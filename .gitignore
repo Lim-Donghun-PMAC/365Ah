@@ -1,6 +1,6 @@
 Bin/
-Database/
-Log/
+#Database/
+#Log/
 obj/
 Temp/
 .vs/
@@ -19,4 +19,4 @@ Temp/
 *_ppProj*
 
 
-pp_proj.h
+#pp_proj.h

@@ -1,0 +1,70 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+ open subprog stack_algorithm(void)
+
+ sub: Clear_(&Top)	
+//	클리어	 ↑ Top 변수
+   Top = -1;
+ return;
+
+
+ sub: Push(Mode,MAX_Index,Input_Top,&Output_Top,element,Input_Data,&Data)
+ //	 삽입  ↑ 순환 모드, 인덱스 최대치, Top, &Push 처리 Top, 요소, 저장할 데이터, 출력 데이터 
+   Output_Top = Input_Top;						// Power Pmac 함수에서는 주소를 접근하여 처리과정에서 버그가 있음 따라서 값을 읽어오고, 그 값을 내보내는 변수에 집어넣어서 사용
+   Data = Input_Data;							// Power Pmac 함수에서는 주소를 접근하여 처리과정에서 버그가 있음 따라서 값을 읽어오고, 그 값을 내보내는 변수에 집어넣어서 사용
+   if( Input_Top == MAX_Index - 1 )				// Top 위치가 최대 Index와 같다면
+   {
+		if( Mode == N_Circulation )				// 인덱스 초과 시 순환모드를 사용중이라면
+		{
+			Output_Top = 0;						// Top 위치 0으로 초기화
+			Data = element;
+		}
+		else									// 순환 모드를 사용 안한다면
+		{
+			// over Flow 발생 --> Top 증가 x, data삽입 x 
+		}	
+   }
+   else if( element != 0 )						// Top 위치가 최대 Index보다 작으며, 요소가 있다면 
+   {
+      Output_Top++;								// Top 증가 
+      Data = element;							// 데이터 삽입
+   }
+ return;
+
+ sub: Pop(Input_Top,&Output_Top,element,&Data)
+ //	 취출 ↑ Top, &Pop 처리 Top, 요소, 출력 데이터
+   Output_Top = Input_Top;						// Power Pmac 함수에서는 주소를 접근하여 처리과정에서 버그가 있음 따라서 값을 읽어오고, 그 값을 내보내는 변수에 집어넣어서 사용
+   if( Output_Top != -1 )						// Top 초기위치가 아니라면
+   {
+	  Data = element;							// 데이터 삽입
+	  Output_Top--;								// Top 감소
+	}
+	else										// 초기위치라면
+	{
+		Data = 0;								// 쓰레기값 방지 
+	}
+ return;
+
+ close 
+
+ // [ 참조 : 2025.10.22 AIO Cal Prog Add ] 
+ open subprog AIO_Calc(void)
+
+ sub:AO_Regulator(Recv_Voltage, &Ret_AO_Ecat_Data)
+	Ret_AO_Ecat_Data = Recv_Voltage * P_AO_Range_Set_Value(0);		// P_AO_Range_Set_Value(0) → 1500  1v : 1500
+return;
+
+sub:AI_Regulator(Recv_AI_Data, &Ret_Processed_Data)
+	Ret_Processed_Data = int(((P_Regul_Max_kPa_Value - P_Regul_Min_kPa_Value) / (P_Regul_Max_AD - P_Regul_Min_AD)) * Recv_AI_Data - P_Regul_Cal_Inclination);// 125);
+return;
+
+sub: AI_Current_Input_Type(Recv_AI_Data, &Ret_Processed_Data)
+							// (20mA - 4mA) / (29700 - 20) * AI_data + 기울기 ( 3.99 )
+	Ret_Processed_Data = int(((P_Current_Max_Value - P_Current_Min_Value) / (P_Current_Max_AD - P_Current_Min_AD)) * Recv_AI_Data + 3.99 );
+return;
+
+close

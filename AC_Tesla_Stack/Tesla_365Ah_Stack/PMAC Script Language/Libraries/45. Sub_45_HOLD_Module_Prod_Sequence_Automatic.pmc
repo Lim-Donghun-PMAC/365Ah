@@ -1,0 +1,2437 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+
+open subprog Sub_Hold_Automatic_Prod_Sequnce(void)
+			 
+// 1) Search    -  검색창에 Search 만 검색하시면 ↓ 하단부 함수 Start 부분 쉽게 찾기 가능
+//-------------------------------------------------------------------------------
+// [Set]						// [Execute]					//  [Precondition]	
+//-------------------------------------------------------------------------------
+//[극판 유무검사]
+// Set_Hold_Exist_Insp			// Execute_Hold_Exist_Insp			// Precondition_Hold_Exist_Insp				// 극판 유무 검사
+//[제거 Part]
+// Set_Hold_Remove_NG_PNP		// Execute_Hold_Remove_NG_PNP		// Precondition_Hold_Remove_NG_PNP			// NG PNP 제거	
+// Set_Hold_Remove_Align		// Execute_Hold_Remove_Align		// Precondition_Hold_Remove_Align			// Align 제거
+// Set_Hold_Remove_2TR			// Execute_Hold_Remove_2TR			// Precondition_Hold_Remove_2TR				// 2TR 극판 제거	
+//[공급 Part]
+// Set_Hold_Supply_1TR			// Execute_Hold_Supply_1TR			// Precondition_Hold_Supply_1TR				// 1TR 극판 공급
+// Set_Hold_Supply_Align		// Execute_Hold_Supply_Align		// Precondition_Hold_Supply_Align			// Align 극판 공급
+// Set_Hold_Supply_2TR			// Execute_Hold_Supply_2TR			// Precondition_Hold_Supply_2TR				// 2TR 극판 공급
+// Set_Hold_Semi_Run_Pos_Move	// Execute_Hold_Semi_Run_Pos_Move	// Precondition_Hold_Semi_Run_Pos_Move		// 세미런 위치 이동
+
+// ------------------------------------------------------------------------------------------------------------------------------------ //
+
+
+	sub:Set_Mode(Machine_Mode,&rtn)	// 24.07.05 시퀀스별 모드분류작업 _각 Seq별 모드설정 서브함수.	
+
+		//P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module) =  P_Buffer_Mode_Module_Status_Sequence(N_STEP_Machine);		
+				
+		rtn = N_TRUE;
+
+	return
+
+//========================================================//
+// 1.1) Set_Hold_Exist_Insp
+//========================================================//
+	sub:Set_Hold_Exist_Insp(Mode,&Set_Hold_Exist_Insp_RTN)
+
+		//=========================================//
+		// 1.0)Init
+		//=========================================//
+		//P_Act_Hold_Complete_Bit(N_Act_FW_Mandrel_P1),(N_Act_BW_Cathode_FR_Clutch - N_Act_Rotor_Holder_FWD + 1 ) = 0; // 7 ~ 31			 
+		//P_Act_Hold_Complete_Bit(0),(40) = 0;
+		P_Act_Hold_Complete_Bit(0),N_Act_Hold_Define_Limit = 0;
+
+		Set_Hold_Exist_Insp_RTN = 0;	
+
+		switch(Mode)
+		{
+			// 1.1) 일반 생산 모드 
+			case N_Normal_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Hold_Exist_Insp_Array(0)  = Mode;										// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Hold_Exist_Insp_Array(1)  = N_SEQ_Normal_Hold_Exist_Insp_No_1			// 2) 극판 유무검사 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Hold_Exist_Insp_Array(2)  = N_SEQ_Normal_Hold_Exist_Insp_No_2			// 3) 극판 유무검사 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Exist_Insp_Array(3)  = N_SEQ_Normal_Hold_Exist_Insp_No_3			// 4) 극판 유무검사 - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Exist_Insp_Array(4)  = N_SEQ_Normal_Hold_Exist_Insp_No_4			// 5) 극판 유무검사 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Hold_Exist_Insp_Array(5)  = N_SEQ_Normal_Hold_Exist_Insp_No_5			// 6) 극판 유무검사 - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Exist_Insp_Array(6)  = N_SEQ_Normal_Hold_Exist_Insp_No_6			// 7) 극판 유무검사 - 일반 모드  || 여섯번째 시퀀스
+
+				P_Buffer_Seqdata_Hold_Exist_Insp_Array(7) = N_COMPLETE;									// 8) 극판 유무검사 - 일반 모드 || 시퀀스 완료 체크
+
+				Set_Hold_Exist_Insp_RTN = N_TRUE;
+			break;
+
+			default : 
+			
+			break;
+		}
+
+	return
+
+
+//===========================================================================//
+// 1.2) Management_Hold_Exis_Insp - 시퀀스 실행 관리 함수 _ 인덱스에 맞는 동작 가져오기
+//===========================================================================//
+	sub:Management_Hold_Exist_Insp(Mode,Index,&data,&Management_Hold_Exis_Insp_RTN)
+		
+		Management_Hold_Exis_Insp_RTN = 0;
+		if ( P_Buffer_Seqdata_Hold_Exist_Insp_Array(0) == Mode )					// 1) 실행 전 모드 체크
+		{																	
+			if ( P_Buffer_Seqdata_Hold_Exist_Insp_Array(Index) == N_COMPLETE )		// 1.1) 인덱스 배열값이 완료 일 경우
+			{																 
+				data = N_COMPLETE;													// 1.1.1) 데이터 완료값 반환
+				Management_Hold_Exis_Insp_RTN = N_EXCEPT;							// 1.1.2) 예외값 반환
+			}																
+			else if ( P_Buffer_Seqdata_Hold_Exist_Insp_Array(Index) != 0 )			// 1.1.3) 완료도 아니고 0값도 아닐 경우
+			{																 
+				data = P_Buffer_Seqdata_Hold_Exist_Insp_Array(Index);				// 1.1.4) 인덱스 배열값 반환
+				Management_Hold_Exis_Insp_RTN = N_TRUE;								// 1.1.5) True 반환
+			}																
+			else															
+			{																
+				data = 0;															// 1.1.6) 인덱스 배열값 0값 반환
+				Management_Hold_Exis_Insp_RTN = N_FALSE;							// 1.1.7) False  반환
+			}															
+		}
+
+	return
+
+//===========================================================================//
+// 1.3) Execute_Hold_Exist_Insp - 동작
+//===========================================================================//
+	sub:Execute_Hold_Exist_Insp(Mode,data,&Execute_Hold_Exist_Insp_RTN) 
+
+		Execute_Hold_Exist_Insp_RTN = 0;
+		switch( Mode )	// 모드구분.
+		{
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Normal_Status_Sequence :		
+				
+				switch(data)	// 시퀀스구분.
+				{		
+					// 1. [ 극판 유무검사 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Exist_Insp_No_1:	// 1. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear)				= F_ACT_STATUS_ENABLE;		// 1. 모듈 상태 초기화.
+			
+						Execute_Hold_Exist_Insp_RTN = N_TRUE;		
+		
+					break;		
+		
+					// 2. [ 극판 유무검사 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Exist_Insp_No_2:	// 2. [ 일반 생산 모드 ]						
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Exist_Insp_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ 극판 유무검사 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Exist_Insp_No_3:	// 3. [ 일반 생산 모드 ] 		
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Stack_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 스택 이동.
+		
+						Execute_Hold_Exist_Insp_RTN = N_TRUE;
+					break;
+		
+					// 4. [ 극판 유무검사 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Exist_Insp_No_4:	// 4. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+		
+						Execute_Hold_Exist_Insp_RTN = N_TRUE;
+					break;
+		
+					// 5. [ 극판 유무검사 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Exist_Insp_No_5:	// 5. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Check)			= F_ACT_STATUS_ENABLE;		// 1. 극판 유무에 따른 극판 유무 검사, 빈테이블 검사
+
+						Execute_Hold_Exist_Insp_RTN = N_TRUE;
+					break;
+		
+					// 6. [ 극판 유무검사 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Exist_Insp_No_6:	// 6. [ 일반 생산 모드 ]
+						
+						Execute_Hold_Exist_Insp_RTN = N_TRUE;
+					break;
+					
+					default:	
+						Execute_Hold_Exist_Insp_RTN = N_FALSE;	
+					break;
+				}
+			break;
+					
+			default:	
+				Execute_Hold_Exist_Insp_RTN = N_FALSE;	
+			break;
+		}
+	return
+//===========================================================================//
+// 1.4) Precondition_Hold_Exist_Insp - 사전 조건 스킵 변수 부여, 감시 다음 시퀀스 실행 조건 보기
+//===========================================================================//
+
+	sub:Precondition_Hold_Exist_Insp(Mode,Index,&Precondition_Hold_Exist_Insp_RTN)	
+		// 실행 될 시퀀스의 실행 조건 입력 _ 실행 완료 상태 혹은 실행 스킵 상태를 확인
+		local L_Hold_Exist_Insp_Index_Cond = P_Buffer_Seqdata_Hold_Exist_Insp_Array(Index);		// 다음 시작해야 할 동작
+		Precondition_Hold_Exist_Insp_RTN = 0;					// 반환값 초기화.
+		switch(Mode)
+		{
+			case N_Normal_Status_Sequence :		
+				Switch(L_Hold_Exist_Insp_Index_Cond)
+				{
+					case N_SEQ_Normal_Hold_Exist_Insp_No_1 : 
+						Precondition_Hold_Exist_Insp_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Normal_Hold_Exist_Insp_No_2 : 
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Status_Clear) )			// 1. 모듈 상태 초기화.
+						{
+							Precondition_Hold_Exist_Insp_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_Hold_Exist_Insp_No_3 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.
+						{
+							Precondition_Hold_Exist_Insp_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Normal_Hold_Exist_Insp_No_4 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Stack_Pos) )			// 1. 2차 PNP 스택 이동.	
+						{
+							Precondition_Hold_Exist_Insp_RTN = N_TRUE;
+						}
+					break;
+					case N_SEQ_Normal_Hold_Exist_Insp_No_5 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.	
+						{			
+							Precondition_Hold_Exist_Insp_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Exist_Insp_No_6 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Cell_Data_Vision_Check) )			// 1. 극판 유무에 따른 극판 유무 검사, 빈테이블 검사
+						{	
+							Precondition_Hold_Exist_Insp_RTN = N_TRUE;
+						}
+					break;
+		
+					default:
+						 Precondition_Hold_Exist_Insp_RTN = N_TRUE;	
+					break;
+				}
+			break;
+
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			default:	break;
+		}
+	return
+
+
+//========================================================//
+// 2.1) Set_Hold_Remove_NG_PNP
+//========================================================//
+	sub:Set_Hold_Remove_NG_PNP(Mode,&Set_Hold_Remove_NG_PNP_RTN)
+
+		//=========================================//
+		// 1.0)Init
+		//=========================================//
+		//P_Act_Hold_Complete_Bit(N_Act_FW_Mandrel_P1),(N_Act_BW_Cathode_FR_Clutch - N_Act_Rotor_Holder_FWD + 1 ) = 0; // 7 ~ 31			 
+		P_Act_Hold_Complete_Bit(0),(40) = 0;	
+		
+		Set_Hold_Remove_NG_PNP_RTN = 0;	
+
+		switch(Mode)
+		{
+			// 1.1) 일반 생산 모드 
+			case N_Normal_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(0)  = Mode;										// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(1)  =  N_SEQ_Normal_Hold_Remove_NG_PNP_No_1		// 2) NG PNP 제거 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(2)  =  N_SEQ_Normal_Hold_Remove_NG_PNP_No_2		// 3) NG PNP 제거 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(3)  =  N_SEQ_Normal_Hold_Remove_NG_PNP_No_3		// 4) NG PNP 제거 - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(4)  =  N_SEQ_Normal_Hold_Remove_NG_PNP_No_4		// 5) NG PNP 제거 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(5)  =  N_SEQ_Normal_Hold_Remove_NG_PNP_No_5		// 6) NG PNP 제거 - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(6)  =  N_SEQ_Normal_Hold_Remove_NG_PNP_No_6		// 7) NG PNP 제거 - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(7)  =  N_SEQ_Normal_Hold_Remove_NG_PNP_No_7		// 8) NG PNP 제거 - 일반 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(8)  =  N_SEQ_Normal_Hold_Remove_NG_PNP_No_8		// 9) NG PNP 제거 - 일반 모드  || 여덟번째 시퀀스
+
+				P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(9) = N_COMPLETE;									// 10) NG PNP 제거 - 일반 모드 || 시퀀스 완료 체크
+
+				Set_Hold_Remove_NG_PNP_RTN = N_TRUE;
+			break;
+
+			default : 
+			
+			break;
+		}
+
+	return
+
+
+//===========================================================================//
+// 1.2) Management_Hold_Remove_NG_PNP - 시퀀스 실행 관리 함수 _ 인덱스에 맞는 동작 가져오기
+//===========================================================================//
+	sub:Management_Hold_Remove_NG_PNP(Mode,Index,&data,&Management_Hold_Remove_NG_PNP_RTN)
+		
+		Management_Hold_Remove_NG_PNP_RTN = 0;
+		if ( P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(0) == Mode )					// 1) 실행 전 모드 체크
+		{																	
+			if ( P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(Index) == N_COMPLETE )	// 1.1) 인덱스 배열값이 완료 일 경우
+			{																 
+				data = N_COMPLETE;													// 1.1.1) 데이터 완료값 반환
+				Management_Hold_Remove_NG_PNP_RTN = N_EXCEPT;						// 1.1.2) 예외값 반환
+			}																
+			else if ( P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(Index) != 0 )		// 1.1.3) 완료도 아니고 0값도 아닐 경우
+			{																 
+				data = P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(Index);			// 1.1.4) 인덱스 배열값 반환
+				Management_Hold_Remove_NG_PNP_RTN = N_TRUE;							// 1.1.5) True 반환
+			}																
+			else															
+			{																
+				data = 0;															// 1.1.6) 인덱스 배열값 0값 반환
+				Management_Hold_Remove_NG_PNP_RTN = N_FALSE;						// 1.1.7) False  반환
+			}															
+		}
+
+	return
+
+//===========================================================================//
+// 1.3) Execute_Hold_Remove_NG_PNP - 동작
+//===========================================================================//
+	sub:Execute_Hold_Remove_NG_PNP(Mode,data,&Execute_Hold_Remove_NG_PNP_RTN) 
+
+		Execute_Hold_Remove_NG_PNP_RTN = 0;
+		switch( Mode )	// 모드구분.
+		{
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Normal_Status_Sequence :		
+				switch(data)	// 시퀀스구분.
+				{		
+					// 1. [ NG PNP 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_1:	// 1. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear)				= F_ACT_STATUS_ENABLE;		// 1. 모듈 상태 초기화.
+			
+						Execute_Hold_Remove_NG_PNP_RTN = N_TRUE;		
+					break;		
+		
+					// 2. [ NG PNP 제거 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_2:	// 2. [ 일반 생산 모드 ]						
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Remove_NG_PNP_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ NG PNP 제거 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_3:	// 3. [ 일반 생산 모드 ] 		
+						P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 대기 위치 이동.
+		
+						Execute_Hold_Remove_NG_PNP_RTN = N_TRUE;
+					break;
+		
+					// 4. [ NG PNP 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_4:	// 4. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Stack_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 스택 이동.
+		
+						Execute_Hold_Remove_NG_PNP_RTN = N_TRUE;
+					break;
+		
+					// 5. [ NG PNP 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_5:	// 5. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_NG_Box_Pos)				= F_ACT_STATUS_ENABLE;		// 1. NG PNP NG 박스 이동.
+
+						Execute_Hold_Remove_NG_PNP_RTN = N_TRUE;
+					break;
+		
+					// 6. [ NG PNP 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_6:	// 6. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Blow_On)					= F_ACT_STATUS_ENABLE;		// 1. NG PNP 블로우.
+						
+						Execute_Hold_Remove_NG_PNP_RTN = N_TRUE;
+					break;
+					
+					// 7. [ NG PNP 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_7:	// 7. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Remove_NG_PNP_RTN = N_TRUE;
+					break;
+					
+					// 8. [ NG PNP 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_8:	// 8. [ 일반 생산 모드 ]
+
+						Execute_Hold_Remove_NG_PNP_RTN = N_TRUE;
+					break;									
+								
+					default:	
+						Execute_Hold_Remove_NG_PNP_RTN = N_FALSE;	
+					break;
+				}
+			break;
+					
+			default:	
+				Execute_Hold_Remove_NG_PNP_RTN = N_FALSE;	
+			break;
+		}
+	return
+//===========================================================================//
+// 2.4) Precondition_Hold_Remove_NG_PNP - 사전 조건 스킵 변수 부여, 감시 다음 시퀀스 실행 조건 보기
+//===========================================================================//
+
+	sub:Precondition_Hold_Remove_NG_PNP(Mode,Index,&Precondition_Hold_Remove_NG_PNP_RTN)	
+		// 실행 될 시퀀스의 실행 조건 입력 _ 실행 완료 상태 혹은 실행 스킵 상태를 확인
+		local L_Hold_Remove_NG_PNP_Index_Cond = P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(Index);		// 다음 시작해야 할 동작
+		Precondition_Hold_Remove_NG_PNP_RTN = 0;					// 반환값 초기화.
+		switch(Mode)
+		{
+			case N_Normal_Status_Sequence :		
+				Switch(L_Hold_Remove_NG_PNP_Index_Cond)
+				{
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_1 : 
+						Precondition_Hold_Remove_NG_PNP_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_2 : 
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Status_Clear) )			// 1. 모듈 상태 초기화.
+						{
+							Precondition_Hold_Remove_NG_PNP_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_3 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.	
+						{	
+							P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) = 0;			// 초기화.
+							Precondition_Hold_Remove_NG_PNP_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_4 :
+						if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Wait_Pos) )				// 1. 1차 PNP 대기 위치 이동.		
+						{	
+							Precondition_Hold_Remove_NG_PNP_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_5 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Stack_Pos) )			// 1. 2차 PNP 스택 이동.	
+						{			
+							Precondition_Hold_Remove_NG_PNP_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_6 :
+						if( P_Act_Hold_Complete_Bit(N_Act_NG_PNP_NG_Box_Pos) )				// 1. NG PNP NG 박스 이동.
+						{	
+							Precondition_Hold_Remove_NG_PNP_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_7 :
+						if( P_Act_Hold_Complete_Bit(N_Act_NG_PNP_Blow_On) )					// 1. NG PNP 블로우.
+						{
+							Precondition_Hold_Remove_NG_PNP_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_NG_PNP_No_8 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.	
+						{
+							Precondition_Hold_Remove_NG_PNP_RTN = N_TRUE;
+						}
+					break;
+		
+					default:
+						 Precondition_Hold_Remove_NG_PNP_RTN = N_TRUE;	
+					break;
+				}
+			break;
+
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			default:	break;
+		}
+	return
+
+
+//========================================================//
+// 3.1) Set_Hold_Remove_Align
+//========================================================//
+	sub:Set_Hold_Remove_Align(Mode,&Set_Hold_Remove_Align_RTN)
+
+		//=========================================//
+		// 1.0)Init
+		//=========================================//
+		//P_Act_Hold_Complete_Bit(N_Act_FW_Mandrel_P1),(N_Act_BW_Cathode_FR_Clutch - N_Act_Rotor_Holder_FWD + 1 ) = 0; // 7 ~ 31			 
+		P_Act_Hold_Complete_Bit(0),(40) = 0;
+		
+		Set_Hold_Remove_Align_RTN = 0;	
+
+		switch(Mode)
+		{
+			// 1.1) 일반 생산 모드 
+			case N_Normal_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(0)  = Mode;										// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(1)  =  N_SEQ_Normal_Hold_Remove_Align_No_1			// 2) Align 제거 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(2)  =  N_SEQ_Normal_Hold_Remove_Align_No_2			// 3) Align 제거 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(3)  =  N_SEQ_Normal_Hold_Remove_Align_No_3			// 4) Align 제거 - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(4)  =  N_SEQ_Normal_Hold_Remove_Align_No_4			// 5) Align 제거 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(5)  =  N_SEQ_Normal_Hold_Remove_Align_No_5			// 6) Align 제거 - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(6)  =  N_SEQ_Normal_Hold_Remove_Align_No_6			// 7) Align 제거 - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(7)  =  N_SEQ_Normal_Hold_Remove_Align_No_7			// 8) Align 제거 - 일반 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(8)  =  N_SEQ_Normal_Hold_Remove_Align_No_8			// 9) Align 제거 - 일반 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(9)  =  N_SEQ_Normal_Hold_Remove_Align_No_9			// 10) Align 제거 - 일반 모드 || 아홉번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(10) =  N_SEQ_Normal_Hold_Remove_Align_No_10		// 11) Align 제거 - 일반 모드 || 열번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(11) =  N_SEQ_Normal_Hold_Remove_Align_No_11		// 12) Align 제거 - 일반 모드 || 열하나번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(12) =  N_SEQ_Normal_Hold_Remove_Align_No_12		// 13) Align 제거 - 일반 모드 || 열둘번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(13) =  N_SEQ_Normal_Hold_Remove_Align_No_13		// 14) Align 제거 - 일반 모드 || 열세번째 시퀀스
+
+				P_Buffer_Seqdata_Hold_Remove_Align_Array(14) = N_COMPLETE;									// 15) Align 제거 - 일반 모드 || 시퀀스 완료 체크
+
+				Set_Hold_Remove_Align_RTN = N_TRUE;
+			break;
+
+			default : 
+			
+			break;
+		}
+
+	return
+
+
+//===========================================================================//
+// 3.2) Management_Hold_Remove_Align - 시퀀스 실행 관리 함수 _ 인덱스에 맞는 동작 가져오기
+//===========================================================================//
+	sub:Management_Hold_Remove_Align(Mode,Index,&data,&Management_Hold_Remove_Align_RTN)
+		
+		Management_Hold_Remove_Align_RTN = 0;
+		if ( P_Buffer_Seqdata_Hold_Remove_Align_Array(0) == Mode )					// 1) 실행 전 모드 체크
+		{																	
+			if ( P_Buffer_Seqdata_Hold_Remove_Align_Array(Index) == N_COMPLETE )	// 1.1) 인덱스 배열값이 완료 일 경우
+			{																 
+				data = N_COMPLETE;													// 1.1.1) 데이터 완료값 반환
+				Management_Hold_Remove_Align_RTN = N_EXCEPT;						// 1.1.2) 예외값 반환
+			}																
+			else if ( P_Buffer_Seqdata_Hold_Remove_Align_Array(Index) != 0 )		// 1.1.3) 완료도 아니고 0값도 아닐 경우
+			{																 
+				data = P_Buffer_Seqdata_Hold_Remove_Align_Array(Index);				// 1.1.4) 인덱스 배열값 반환
+				Management_Hold_Remove_Align_RTN = N_TRUE;							// 1.1.5) True 반환
+			}																
+			else															
+			{																
+				data = 0;															// 1.1.6) 인덱스 배열값 0값 반환
+				Management_Hold_Remove_Align_RTN = N_FALSE;							// 1.1.7) False  반환
+			}															
+		}
+
+	return
+
+//===========================================================================//
+// 3.3) Execute_Hold_Remove_Align - 동작
+//===========================================================================//
+	sub:Execute_Hold_Remove_Align(Mode,data,&Execute_Hold_Remove_Align_RTN) 
+
+		Execute_Hold_Remove_Align_RTN = 0;
+		switch( Mode )	// 모드구분.
+		{
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Normal_Status_Sequence :		
+				switch(data)	// 시퀀스구분.
+				{		
+					// 1. [ Align 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_Align_No_1:	// 1. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear)				= F_ACT_STATUS_ENABLE;		// 1. 모듈 상태 초기화.
+			
+						Execute_Hold_Remove_Align_RTN = N_TRUE;		
+		
+					break;		
+		
+					// 2. [ Align 제거 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Remove_Align_No_2:	// 2. [ 일반 생산 모드 ]						
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Remove_Align_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ Align 제거 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Remove_Align_No_3:	// 3. [ 일반 생산 모드 ] 		
+						P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 대기 위치 이동.	
+		
+						Execute_Hold_Remove_Align_RTN = N_TRUE;
+					break;
+		
+					// 4. [ Align 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_Align_No_4:	// 4. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Stack_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 스택 이동.
+		
+						Execute_Hold_Remove_Align_RTN = N_TRUE;
+					break;
+		
+					// 5. [ Align 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_Align_No_5:	// 5. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Pos)					= F_ACT_STATUS_ENABLE;		// 1. NG PNP 얼라인 이동.
+
+						Execute_Hold_Remove_Align_RTN = N_TRUE;
+					break;
+		
+					// 6. [ Align 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_Align_No_6:	// 6. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Down_Pos)			= F_ACT_STATUS_ENABLE;		// 1. NG PNP 얼라인 하강.
+						
+						Execute_Hold_Remove_Align_RTN = N_TRUE;
+					break;
+					
+					// 7. [ Align 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_Align_No_7:	// 7. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Vac_On)					= F_ACT_STATUS_ENABLE;		// 1. NG PNP 흡착.
+
+						Execute_Hold_Remove_Align_RTN = N_TRUE;
+					break;
+		
+					// 8. [ Align 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_Align_No_8:	// 8. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Up_Pos)				= F_ACT_STATUS_ENABLE;		// 1. NG PNP 얼라인 상승.
+
+						Execute_Hold_Remove_Align_RTN = N_TRUE;
+					break;
+					
+					// 9. [ Align 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_Align_No_9:	// 9. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.		
+						
+						Execute_Hold_Remove_Align_RTN = N_TRUE;
+					break;
+					
+					// 10. [ Align 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_Align_No_10:	// 10. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_NG_Box_Pos)				= F_ACT_STATUS_ENABLE;		// 1. NG PNP NG 박스 이동.
+						
+						Execute_Hold_Remove_Align_RTN = N_TRUE;
+					break;
+					
+					// 11. [ Align 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_Align_No_11:	// 11. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Blow_On)					= F_ACT_STATUS_ENABLE;		// 1. NG PNP 블로우.
+						
+						Execute_Hold_Remove_Align_RTN = N_TRUE;
+					break;
+					
+					// 12. [ Align 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_Align_No_12:	// 12. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+						
+						Execute_Hold_Remove_Align_RTN = N_TRUE;
+					break;
+					
+					// 13. [ Align 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_Align_No_13:	// 13. [ 일반 생산 모드 ]
+						
+						Execute_Hold_Remove_Align_RTN = N_TRUE;
+					break;
+															
+					default:	
+						Execute_Hold_Remove_Align_RTN = N_FALSE;	
+					break;
+				}
+			break;
+					
+			default:	
+				Execute_Hold_Remove_Align_RTN = N_FALSE;	
+			break;
+		}
+	return
+//===========================================================================//
+// 3.4) Precondition_Hold_Remove_Align - 사전 조건 스킵 변수 부여, 감시 다음 시퀀스 실행 조건 보기
+//===========================================================================//
+
+	sub:Precondition_Hold_Remove_Align(Mode,Index,&Precondition_Hold_Remove_Align_RTN)	
+		// 실행 될 시퀀스의 실행 조건 입력 _ 실행 완료 상태 혹은 실행 스킵 상태를 확인
+		local L_Hold_Remove_Align_Index_Cond = P_Buffer_Seqdata_Hold_Remove_Align_Array(Index);		// 다음 시작해야 할 동작
+		Precondition_Hold_Remove_Align_RTN = 0;					// 반환값 초기화.
+		switch(Mode)
+		{
+			case N_Normal_Status_Sequence :		
+				Switch(L_Hold_Remove_Align_Index_Cond)
+				{
+					case N_SEQ_Normal_Hold_Remove_Align_No_1 : 
+						Precondition_Hold_Remove_Align_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Normal_Hold_Remove_Align_No_2 : 
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Status_Clear) )			// 1. 모듈 상태 초기화.
+						{
+							Precondition_Hold_Remove_Align_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_Hold_Remove_Align_No_3 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.			
+						{	
+							P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) = 0;			// 초기화.
+							Precondition_Hold_Remove_Align_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Normal_Hold_Remove_Align_No_4 :
+						if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Wait_Pos) )				// 1. 1차 PNP 대기 위치 이동.					
+						{	
+							Precondition_Hold_Remove_Align_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Normal_Hold_Remove_Align_No_5 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Stack_Pos) )			// 1. 2차 PNP 스택 이동.		
+						{			
+							Precondition_Hold_Remove_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_Align_No_6 :
+						if( P_Act_Hold_Complete_Bit(N_Act_NG_PNP_Align_Pos) )				// 1. NG PNP 얼라인 이동.
+						{	
+							Precondition_Hold_Remove_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_Align_No_7 :
+						if( P_Act_Hold_Complete_Bit(N_Act_NG_PNP_Align_Down_Pos) )			// 1. NG PNP 얼라인 하강.
+						{
+							Precondition_Hold_Remove_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_Align_No_8 :
+
+						if( P_Act_Hold_Complete_Bit(N_Act_NG_PNP_Vac_On) )					// 1. NG PNP 흡착.
+						{			
+							Precondition_Hold_Remove_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_Align_No_9 :
+						if( P_Act_Hold_Complete_Bit(N_Act_NG_PNP_Align_Up_Pos) )			// 1. NG PNP 얼라인 상승.	
+						{	
+							Precondition_Hold_Remove_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_Align_No_10 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.			
+						{		
+							P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) = 0;			// 초기화.
+							Precondition_Hold_Remove_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_Align_No_11 :
+						if( P_Act_Hold_Complete_Bit(N_Act_NG_PNP_NG_Box_Pos) )				// 1. NG PNP NG 박스 이동.		
+						{		
+							Precondition_Hold_Remove_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_Align_No_12 :
+						if( P_Act_Hold_Complete_Bit(N_Act_NG_PNP_Blow_On) )					// 1. NG PNP 블로우.	
+						{	
+							Precondition_Hold_Remove_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_Align_No_13 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.			
+						{		
+							Precondition_Hold_Remove_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					default:
+						 Precondition_Hold_Remove_Align_RTN = N_TRUE;	
+					break;
+				}
+			break;
+
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			default:	break;
+		}
+	return
+
+
+//========================================================//
+// 4.1) Set_Hold_Remove_2TR
+//========================================================//
+	sub:Set_Hold_Remove_2TR(Mode,&Set_Hold_Remove_2TR_RTN)
+
+		//=========================================//
+		// 1.0)Init
+		//=========================================//
+		//P_Act_Hold_Complete_Bit(N_Act_FW_Mandrel_P1),(N_Act_BW_Cathode_FR_Clutch - N_Act_Rotor_Holder_FWD + 1 ) = 0; // 7 ~ 31			 
+		P_Act_Hold_Complete_Bit(0),(40) = 0;
+		
+		Set_Hold_Remove_2TR_RTN = 0;	
+
+		switch(Mode)
+		{
+			// 1.1) 일반 생산 모드 
+			case N_Normal_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Hold_Remove_2TR_Array(0)  = Mode;										// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Hold_Remove_2TR_Array(1)  =  N_SEQ_Normal_Hold_Remove_2TR_No_1			// 2) 2TR 제거 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_2TR_Array(2)  =  N_SEQ_Normal_Hold_Remove_2TR_No_2			// 3) 2TR 제거 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Remove_2TR_Array(3)  =  N_SEQ_Normal_Hold_Remove_2TR_No_3			// 4) 2TR 제거 - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Remove_2TR_Array(4)  =  N_SEQ_Normal_Hold_Remove_2TR_No_4			// 5) 2TR 제거 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_2TR_Array(5)  =  N_SEQ_Normal_Hold_Remove_2TR_No_5			// 6) 2TR 제거 - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_2TR_Array(6)  =  N_SEQ_Normal_Hold_Remove_2TR_No_6			// 7) 2TR 제거 - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_2TR_Array(7)  =  N_SEQ_Normal_Hold_Remove_2TR_No_7			// 8) 2TR 제거 - 일반 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_2TR_Array(8)  =  N_SEQ_Normal_Hold_Remove_2TR_No_8			// 9) 2TR 제거 - 일반 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_Hold_Remove_2TR_Array(9)  =  N_SEQ_Normal_Hold_Remove_2TR_No_9			// 10) 2TR 제거 - 일반 모드 || 아홉번째 시퀀스
+
+				P_Buffer_Seqdata_Hold_Remove_2TR_Array(10) = N_COMPLETE;								// 11) 2TR 제거 - 일반 모드 || 시퀀스 완료 체크
+
+				Set_Hold_Remove_2TR_RTN = N_TRUE;
+			break;
+
+			default : 
+			
+			break;
+		}
+
+	return
+
+
+//===========================================================================//
+// 4.2) Management_Hold_Remove_2TR - 시퀀스 실행 관리 함수 _ 인덱스에 맞는 동작 가져오기
+//===========================================================================//
+	sub:Management_Hold_Remove_2TR(Mode,Index,&data,&Management_Hold_Remove_2TR_RTN)
+		
+		Management_Hold_Remove_2TR_RTN = 0;
+		if ( P_Buffer_Seqdata_Hold_Remove_2TR_Array(0) == Mode )					// 1) 실행 전 모드 체크
+		{																	
+			if ( P_Buffer_Seqdata_Hold_Remove_2TR_Array(Index) == N_COMPLETE )		// 1.1) 인덱스 배열값이 완료 일 경우
+			{																 
+				data = N_COMPLETE;													// 1.1.1) 데이터 완료값 반환
+				Management_Hold_Remove_2TR_RTN = N_EXCEPT;							// 1.1.2) 예외값 반환
+			}																
+			else if ( P_Buffer_Seqdata_Hold_Remove_2TR_Array(Index) != 0 )			// 1.1.3) 완료도 아니고 0값도 아닐 경우
+			{																 
+				data = P_Buffer_Seqdata_Hold_Remove_2TR_Array(Index);				// 1.1.4) 인덱스 배열값 반환
+				Management_Hold_Remove_2TR_RTN = N_TRUE;							// 1.1.5) True 반환
+			}																
+			else															
+			{																
+				data = 0;															// 1.1.6) 인덱스 배열값 0값 반환
+				Management_Hold_Remove_2TR_RTN = N_FALSE;							// 1.1.7) False  반환
+			}															
+		}
+
+	return
+
+//===========================================================================//
+// 4.3) Execute_Hold_Remove_2TR - 동작
+//===========================================================================//
+	sub:Execute_Hold_Remove_2TR(Mode,data,&Execute_Hold_Remove_2TR_RTN) 
+
+		Execute_Hold_Remove_2TR_RTN = 0;
+		switch( Mode )	// 모드구분.
+		{
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Normal_Status_Sequence :		
+				switch(data)	// 시퀀스구분.
+				{		
+					// 1. [ 2TR 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_2TR_No_1:	// 1. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear)				= F_ACT_STATUS_ENABLE;		// 1. 모듈 상태 초기화.
+			
+						Execute_Hold_Remove_2TR_RTN = N_TRUE;		
+					break;		
+		
+					// 2. [ 2TR 제거 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Remove_2TR_No_2:	// 2. [ 일반 생산 모드 ]						
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Remove_2TR_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ 2TR 제거 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Remove_2TR_No_3:	// 3. [ 일반 생산 모드 ] 		
+						P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 대기 위치 이동.	
+		
+						Execute_Hold_Remove_2TR_RTN = N_TRUE;
+					break;
+		
+					// 4. [ 2TR 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_2TR_No_4:	// 4. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 얼라인 이동.
+
+						Execute_Hold_Remove_2TR_RTN = N_TRUE;
+					break;
+		
+					// 5. [ 2TR 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_2TR_No_5:	// 5. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Down_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 얼라인 하강.
+
+						Execute_Hold_Remove_2TR_RTN = N_TRUE;
+					break;
+		
+					// 6. [ 2TR 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_2TR_No_6:	// 6. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Blow_On)				= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 블로우.
+						
+						Execute_Hold_Remove_2TR_RTN = N_TRUE;
+					break;
+					
+					// 7. [ 2TR 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_2TR_No_7:	// 7. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Up_Pos)			= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 얼라인 상승.
+
+						Execute_Hold_Remove_2TR_RTN = N_TRUE;
+					break;
+		
+					// 8. [ 2TR 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_2TR_No_8:	// 8. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Remove_2TR_RTN = N_TRUE;
+					break;
+					
+					// 9. [ 2TR 제거 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Remove_2TR_No_9:	// 9. [ 일반 생산 모드 ]
+						
+						Execute_Hold_Remove_2TR_RTN = N_TRUE;
+					break;
+															
+					default:	
+						Execute_Hold_Remove_2TR_RTN = N_FALSE;	
+					break;
+				}
+			break;
+					
+			default:	
+				Execute_Hold_Remove_2TR_RTN = N_FALSE;	
+			break;
+		}
+	return
+//===========================================================================//
+// 4.4) Precondition_Hold_Remove_2TR - 사전 조건 스킵 변수 부여, 감시 다음 시퀀스 실행 조건 보기
+//===========================================================================//
+
+	sub:Precondition_Hold_Remove_2TR(Mode,Index,&Precondition_Hold_Remove_2TR_RTN)	
+		// 실행 될 시퀀스의 실행 조건 입력 _ 실행 완료 상태 혹은 실행 스킵 상태를 확인
+		local L_Hold_Remove_2TR_Index_Cond = P_Buffer_Seqdata_Hold_Remove_2TR_Array(Index);		// 다음 시작해야 할 동작
+		Precondition_Hold_Remove_2TR_RTN = 0;					// 반환값 초기화.
+		switch(Mode)
+		{
+			case N_Normal_Status_Sequence :		
+				Switch(L_Hold_Remove_2TR_Index_Cond)
+				{
+					case N_SEQ_Normal_Hold_Remove_2TR_No_1 : 
+						Precondition_Hold_Remove_2TR_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Normal_Hold_Remove_2TR_No_2 : 
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Status_Clear) )			// 1. 모듈 상태 초기화.
+						{
+							Precondition_Hold_Remove_2TR_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_Hold_Remove_2TR_No_3 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.			
+						{	
+							P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) = 0;			// 초기화.
+							Precondition_Hold_Remove_2TR_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Normal_Hold_Remove_2TR_No_4 :
+						if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Wait_Pos) )				// 1. 1차 PNP 대기 위치 이동.			
+						{	
+							Precondition_Hold_Remove_2TR_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Normal_Hold_Remove_2TR_No_5 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Align_Pos) )			// 1. 2차 PNP 얼라인 이동.		
+						{		
+							Precondition_Hold_Remove_2TR_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_2TR_No_6 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Align_Down_Pos) )		// 1. 2차 PNP 얼라인 하강.
+						{	
+							Precondition_Hold_Remove_2TR_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_2TR_No_7 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Blow_On) )				// 1. 2차 PNP 블로우.
+						{
+							Precondition_Hold_Remove_2TR_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_2TR_No_8 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Align_Up_Pos) )		// 1. 2차 PNP 얼라인 상승.
+						{	
+							Precondition_Hold_Remove_2TR_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Remove_2TR_No_9 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.			
+						{	
+							Precondition_Hold_Remove_2TR_RTN = N_TRUE;
+						}
+					break;
+		
+					default:
+						 Precondition_Hold_Remove_2TR_RTN = N_TRUE;	
+					break;
+				}
+			break;
+
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			default:	break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+		}
+	return
+
+//========================================================//
+// 5.1) Set_Hold_Supply_1TR
+//========================================================//
+	sub:Set_Hold_Supply_1TR(Mode,&Set_Hold_Supply_1TR_RTN)
+
+		//=========================================//
+		// 1.0)Init
+		//=========================================//
+		//P_Act_Hold_Complete_Bit(N_Act_FW_Mandrel_P1),(N_Act_BW_Cathode_FR_Clutch - N_Act_Rotor_Holder_FWD + 1 ) = 0; // 7 ~ 31			 
+		P_Act_Hold_Complete_Bit(0),(40) = 0;
+		
+		Set_Hold_Supply_1TR_RTN = 0;	
+
+		switch(Mode)
+		{
+			// 1.1) 일반 생산 모드 
+			case N_Normal_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Hold_Supply_1TR_Array(0)  = Mode;										// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Hold_Supply_1TR_Array(1)  =  N_SEQ_Normal_Hold_Supply_1TR_No_1			// 2) 1TR 공급 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_1TR_Array(2)  =  N_SEQ_Normal_Hold_Supply_1TR_No_2			// 3) 1TR 공급 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Supply_1TR_Array(3)  =  N_SEQ_Normal_Hold_Supply_1TR_No_3			// 4) 1TR 공급 - 일반 모드  || 세번째 시퀀스  [ 참 조: GPIO 고장 시 예외처리 (26.01.08)]
+				P_Buffer_Seqdata_Hold_Supply_1TR_Array(4)  =  N_SEQ_Normal_Hold_Supply_1TR_No_4			// 5) 1TR 공급 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_1TR_Array(5)  =  N_SEQ_Normal_Hold_Supply_1TR_No_5			// 6) 1TR 공급 - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_1TR_Array(6)  =  N_SEQ_Normal_Hold_Supply_1TR_No_6			// 7) 1TR 공급 - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_1TR_Array(7)  =  N_SEQ_Normal_Hold_Supply_1TR_No_7			// 8) 1TR 공급 - 일반 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_1TR_Array(8)  =  N_SEQ_Normal_Hold_Supply_1TR_No_8			// 9) 1TR 공급 - 일반 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_1TR_Array(9)  =  N_SEQ_Normal_Hold_Supply_1TR_No_9			// 10) 1TR 공급 - 일반 모드 || 아홉번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_1TR_Array(10)  =  N_SEQ_Normal_Hold_Supply_1TR_No_10			// 10) 1TR 공급 - 일반 모드 || 아홉번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_1TR_Array(11) = N_COMPLETE;								// 11) 1TR 공급 - 일반 모드 || 시퀀스 완료 체크
+				
+
+				Set_Hold_Supply_1TR_RTN = N_TRUE;
+			break;
+
+			default : 
+			
+			break;
+		}
+
+	return
+
+
+//===========================================================================//
+// 5.2) Management_Hold_Supply_1TR - 시퀀스 실행 관리 함수 _ 인덱스에 맞는 동작 가져오기
+//===========================================================================//
+	sub:Management_Hold_Supply_1TR(Mode,Index,&data,&Management_Hold_Supply_1TR_RTN)
+		
+		Management_Hold_Supply_1TR_RTN = 0;
+		if ( P_Buffer_Seqdata_Hold_Supply_1TR_Array(0) == Mode )					// 1) 실행 전 모드 체크
+		{																	
+			if ( P_Buffer_Seqdata_Hold_Supply_1TR_Array(Index) == N_COMPLETE )		// 1.1) 인덱스 배열값이 완료 일 경우
+			{																 
+				data = N_COMPLETE;													// 1.1.1) 데이터 완료값 반환
+				Management_Hold_Supply_1TR_RTN = N_EXCEPT;							// 1.1.2) 예외값 반환
+			}																
+			else if ( P_Buffer_Seqdata_Hold_Supply_1TR_Array(Index) != 0 )			// 1.1.3) 완료도 아니고 0값도 아닐 경우
+			{																 
+				data = P_Buffer_Seqdata_Hold_Supply_1TR_Array(Index);				// 1.1.4) 인덱스 배열값 반환
+				Management_Hold_Supply_1TR_RTN = N_TRUE;							// 1.1.5) True 반환
+			}																
+			else															
+			{																
+				data = 0;															// 1.1.6) 인덱스 배열값 0값 반환
+				Management_Hold_Supply_1TR_RTN = N_FALSE;							// 1.1.7) False  반환
+			}															
+		}
+
+	return
+
+//===========================================================================//
+// 5.3) Execute_Hold_Supply_1TR - 동작
+//===========================================================================//
+	sub:Execute_Hold_Supply_1TR(Mode,data,&Execute_Hold_Supply_1TR_RTN) 
+
+		Execute_Hold_Supply_1TR_RTN = 0;
+		switch( Mode )	// 모드구분.
+		{
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Normal_Status_Sequence :		
+				switch(data)	// 시퀀스구분.
+				{		
+					// 1. [ 1TR 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_1TR_No_1:	// 1. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear)				= F_ACT_STATUS_ENABLE;		// 1. 모듈 상태 초기화.
+			
+						Execute_Hold_Supply_1TR_RTN = N_TRUE;		
+					break;		
+		
+					// 2. [ 1TR 공급 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Supply_1TR_No_2:	// 2. [ 일반 생산 모드 ]						
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.		
+
+						Execute_Hold_Supply_1TR_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ 1TR 공급 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Supply_1TR_No_3:	// 3. [ 일반 생산 모드 ] 		
+						switch(P_Plate_1TR_Supply_Module_Judge_Bit)
+						{
+							case N_Plate_1TR_Supply_1:			// 2차 PNP에 극판 존재 → 얼라인 공급을 할 필요가 없음 → 1차 PNP 극판 공급 후 대기위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 1차 벨트 이동.
+							break;
+
+							case N_Plate_1TR_Supply_2:			// [2차 PNP Stack에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								P_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Supply_Pos)	= F_ACT_STATUS_ENABLE;	// 1. 1차 PNP 얼라인 → 벨트, 2차 PNP 스택 → 얼라인 이동.
+							break;
+
+							case N_Plate_1TR_Supply_3:			// [2차 PNP 얼라인에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 1차 벨트 이동.	
+							break;
+
+							case N_Plate_1TR_Supply_4:			// [2차 PNP가 얼라인에 있을 경우 1차 PNP 극판 공급 후 1,2차 PNP 동시 진입] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 1차 벨트 이동.	
+							break;
+
+							case N_Plate_1TR_Supply_5:			// [2차 PNP가 스택에 있을 경우 1차 PNP 극판 공급 후 1차 PNP만 얼라인 이동] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 1차 벨트 이동.
+							break;
+						}
+						Execute_Hold_Supply_1TR_RTN = N_TRUE;
+					break;
+					// 4. [ 1TR 퍼즈 체크 - 일반 모드 ] [ 참 조: GPIO 고장 시 예외처리 (26.01.08)]
+					case N_SEQ_Normal_Hold_Supply_1TR_No_4:
+						P_Module_Act_Hold_Command_Array(N_Pasue_Check)		= F_ACT_STATUS_ENABLE;		// 1. 퍼즈 상태 체크
+						Execute_Hold_Supply_1TR_RTN = N_TRUE;														// 리턴값 True
+					break;
+
+					// 5. [ 1TR 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_1TR_No_5:	// 5. [ 일반 생산 모드 ] 
+						switch(P_Plate_1TR_Supply_Module_Judge_Bit)
+						{
+							case N_Plate_1TR_Supply_1:			// 2차 PNP에 극판 존재 → 얼라인 공급을 할 필요가 없음 → 1차 PNP 극판 공급 후 대기위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Down_Pos)	= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 하강.
+							break;
+
+							case N_Plate_1TR_Supply_2:			// [2차 PNP Stack에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								P_Module_Act_Hold_Command_Array(N_Act_Total_Down_Pos)			= F_ACT_STATUS_ENABLE;		// 1. 1,2차 PNP 동시 하강.
+							break;
+
+							case N_Plate_1TR_Supply_3:			// [2차 PNP 얼라인에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								P_Module_Act_Hold_Command_Array(N_Act_Total_Down_Pos)			= F_ACT_STATUS_ENABLE;		// 1. 1,2차 PNP 동시 하강.
+							break;
+
+							case N_Plate_1TR_Supply_4:			// [2차 PNP가 얼라인에 있을 경우 1차 PNP 극판 공급 후 1,2차 PNP 동시 진입] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Down_Pos)	= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 하강.
+							break;
+
+							case N_Plate_1TR_Supply_5:			// [2차 PNP가 스택에 있을 경우 1차 PNP 극판 공급 후 1차 PNP만 얼라인 이동] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Down_Pos)	= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 하강.
+							break;
+						}	
+						Execute_Hold_Supply_1TR_RTN = N_TRUE;
+					break;
+		
+					// 6. [ 1TR 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_1TR_No_6:	// 6. [ 일반 생산 모드 ]
+						switch(P_Plate_1TR_Supply_Module_Judge_Bit)
+						{
+							case N_Plate_1TR_Supply_1:			// 2차 PNP에 극판 존재 → 얼라인 공급을 할 필요가 없음 → 1차 PNP 극판 공급 후 대기위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Vac_On)			= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 흡착.
+							break;
+
+							case N_Plate_1TR_Supply_2:			// [2차 PNP Stack에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								P_Module_Act_Hold_Command_Array(N_Act_Total_Vac_On)				= F_ACT_STATUS_ENABLE;		// 1. 1,2차 PNP 동시 흡착.
+							break;
+
+							case N_Plate_1TR_Supply_3:			// [2차 PNP 얼라인에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								P_Module_Act_Hold_Command_Array(N_Act_Total_Vac_On)				= F_ACT_STATUS_ENABLE;		// 1. 1,2차 PNP 동시 흡착.
+							break;
+
+							case N_Plate_1TR_Supply_4:			// [2차 PNP가 얼라인에 있을 경우 1차 PNP 극판 공급 후 1,2차 PNP 동시 진입] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Vac_On)			= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 흡착.
+							break;
+
+							case N_Plate_1TR_Supply_5:			// [2차 PNP가 스택에 있을 경우 1차 PNP 극판 공급 후 1차 PNP만 얼라인 이동] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Vac_On)			= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 흡착.
+							break;
+						}
+						Execute_Hold_Supply_1TR_RTN = N_TRUE;
+					break;
+		
+					// 7. [ 1TR 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_1TR_No_7:	// 7. [ 일반 생산 모드 ]
+						switch(P_Plate_1TR_Supply_Module_Judge_Bit)
+						{
+							case N_Plate_1TR_Supply_1:			// 2차 PNP에 극판 존재 → 얼라인 공급을 할 필요가 없음 → 1차 PNP 극판 공급 후 대기위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Up_Pos)	= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 상승.
+							break;
+
+							case N_Plate_1TR_Supply_2:			// [2차 PNP Stack에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								P_Module_Act_Hold_Command_Array(N_Act_Total_Up_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 1,2차 PNP 동시 상승.
+							break;
+
+							case N_Plate_1TR_Supply_3:			// [2차 PNP 얼라인에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								P_Module_Act_Hold_Command_Array(N_Act_Total_Up_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 1,2차 PNP 동시 상승.
+							break;
+
+							case N_Plate_1TR_Supply_4:			// [2차 PNP가 얼라인에 있을 경우 1차 PNP 극판 공급 후 1,2차 PNP 동시 진입] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Up_Pos)	= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 상승.
+							break;
+
+							case N_Plate_1TR_Supply_5:			// [2차 PNP가 스택에 있을 경우 1차 PNP 극판 공급 후 1차 PNP만 얼라인 이동] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Up_Pos)	= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 상승.
+							break;
+						}
+						Execute_Hold_Supply_1TR_RTN = N_TRUE;
+					break;
+					
+					// 8. [ 1TR 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_1TR_No_8:	// 8. [ 일반 생산 모드 ]
+						switch(P_Plate_1TR_Supply_Module_Judge_Bit)
+						{
+							case N_Plate_1TR_Supply_1:			// 2차 PNP에 극판 존재 → 얼라인 공급을 할 필요가 없음 → 1차 PNP 극판 공급 후 대기위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 → 대기위치 이동.
+							break;
+
+							case N_Plate_1TR_Supply_2:			// [2차 PNP Stack에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 → 대기위치 이동.
+							break;
+
+							case N_Plate_1TR_Supply_3:			// [2차 PNP 얼라인에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 → 대기위치 이동.
+							break;
+
+							case N_Plate_1TR_Supply_4:			// [2차 PNP가 얼라인에 있을 경우 1차 PNP 극판 공급 후 1,2차 PNP 동시 진입] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Stack_Pos)	= F_ACT_STATUS_ENABLE;	// 1. 1차 PNP 벨트 → 얼라인, 2차 PNP 얼라인 → 스택 이동.
+							break;
+
+							case N_Plate_1TR_Supply_5:			// [2차 PNP가 스택에 있을 경우 1차 PNP 극판 공급 후 1차 PNP만 얼라인 이동] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 → 얼라인 이동.
+							break;
+						}
+						Execute_Hold_Supply_1TR_RTN = N_TRUE;
+					break;
+		
+					// 9. [ 1TR 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_1TR_No_9:	// 9. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.	
+	
+						Execute_Hold_Supply_1TR_RTN = N_TRUE;
+					break;
+		
+					// 10. [ 1TR 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_1TR_No_10:	// 10. [ 일반 생산 모드 ]
+	
+						Execute_Hold_Supply_1TR_RTN = N_TRUE;
+					break;
+																				
+					default:	
+						Execute_Hold_Supply_1TR_RTN = N_FALSE;	
+					break;
+				}
+			break;
+					
+			default:	
+				Execute_Hold_Supply_1TR_RTN = N_FALSE;	
+			break;
+		}
+	return
+//===========================================================================//
+// 5.4) Precondition_Hold_Supply_1TR - 사전 조건 스킵 변수 부여, 감시 다음 시퀀스 실행 조건 보기
+//===========================================================================//
+
+	sub:Precondition_Hold_Supply_1TR(Mode,Index,&Precondition_Hold_Supply_1TR_RTN)	
+		// 실행 될 시퀀스의 실행 조건 입력 _ 실행 완료 상태 혹은 실행 스킵 상태를 확인
+		local L_Hold_Supply_1TR_Index_Cond = P_Buffer_Seqdata_Hold_Supply_1TR_Array(Index);		// 다음 시작해야 할 동작
+		Precondition_Hold_Supply_1TR_RTN = 0;					// 반환값 초기화.
+		switch(Mode)
+		{
+			case N_Normal_Status_Sequence :		
+				Switch(L_Hold_Supply_1TR_Index_Cond)
+				{
+					case N_SEQ_Normal_Hold_Supply_1TR_No_1 : 
+						Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Normal_Hold_Supply_1TR_No_2 : 
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Status_Clear) )					// 1. 모듈 상태 초기화.
+						{
+							Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_Hold_Supply_1TR_No_3 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )						// 1. 스탑 포인트.			
+						{	
+							P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) = 0;			// 초기화.
+							Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Normal_Hold_Supply_1TR_No_4 :
+						switch(P_Plate_1TR_Supply_Module_Judge_Bit)
+						{
+							case N_Plate_1TR_Supply_1:			// 2차 PNP에 극판 존재 → 얼라인 공급을 할 필요가 없음 → 1차 PNP 극판 공급 후 대기위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Belt_Pos) )				// 1. 1차 벨트 이동.
+								{
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+								}
+							break;
+
+							case N_Plate_1TR_Supply_2:			// [2차 PNP Stack에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_Second_PNP_Supply_Pos) )	// 1. 1차 PNP 얼라인 → 벨트, 2차 PNP 스택 → 얼라인 이동.
+										Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_3:			// [2차 PNP 얼라인에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Belt_Pos) )				// 1. 1차 벨트 이동.
+								{
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+								}
+							break;
+
+							case N_Plate_1TR_Supply_4:			// [2차 PNP가 얼라인에 있을 경우 1차 PNP 극판 공급 후 1,2차 PNP 동시 진입] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Belt_Pos) )				// 1. 1차 벨트 이동.
+								{
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+								}
+							break;
+
+							case N_Plate_1TR_Supply_5:			// [2차 PNP가 스택에 있을 경우 1차 PNP 극판 공급 후 1차 PNP만 얼라인 이동] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Belt_Pos) )				// 1. 1차 벨트 이동.
+								{
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+								}
+							break;
+						}
+					break;
+
+					case N_SEQ_Normal_Hold_Supply_1TR_No_5 :	// 퍼즈 상태 체크  [ 참 조: GPIO 고장 시 예외처리 (26.01.08)]
+						if( P_Act_Hold_Complete_Bit(N_Pasue_Check) == N_TRUE )
+							Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+					break;
+
+					case N_SEQ_Normal_Hold_Supply_1TR_No_6 :
+						switch(P_Plate_1TR_Supply_Module_Judge_Bit)
+						{
+							case N_Plate_1TR_Supply_1:			// 2차 PNP에 극판 존재 → 얼라인 공급을 할 필요가 없음 → 1차 PNP 극판 공급 후 대기위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Belt_Down_Pos) )		// 1. 1차 PNP 벨트 하강.
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_2:			// [2차 PNP Stack에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								if( P_Act_Hold_Complete_Bit(N_Act_Total_Down_Pos) )					// 1. 1,2차 PNP 동시 하강.
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_3:			// [2차 PNP 얼라인에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								if( P_Act_Hold_Complete_Bit(N_Act_Total_Down_Pos) )					// 1. 1,2차 PNP 동시 하강.
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_4:			// [2차 PNP가 얼라인에 있을 경우 1차 PNP 극판 공급 후 1,2차 PNP 동시 진입] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Belt_Down_Pos) )		// 1. 1차 PNP 벨트 하강.
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_5:			// [2차 PNP가 스택에 있을 경우 1차 PNP 극판 공급 후 1차 PNP만 얼라인 이동] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Belt_Down_Pos) )		// 1. 1차 PNP 벨트 하강.
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_1TR_No_7 :
+						switch(P_Plate_1TR_Supply_Module_Judge_Bit)
+						{
+							case N_Plate_1TR_Supply_1:			// 2차 PNP에 극판 존재 → 얼라인 공급을 할 필요가 없음 → 1차 PNP 극판 공급 후 대기위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Vac_On) )				// 1. 1차 PNP 벨트 흡착.
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_2:			// [2차 PNP Stack에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								if( P_Act_Hold_Complete_Bit(N_Act_Total_Vac_On) )					// 1. 1,2차 PNP 동시 흡착.
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_3:			// [2차 PNP 얼라인에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								if( P_Act_Hold_Complete_Bit(N_Act_Total_Vac_On) )					// 1. 1,2차 PNP 동시 흡착.
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_4:			// [2차 PNP가 얼라인에 있을 경우 1차 PNP 극판 공급 후 1,2차 PNP 동시 진입] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Vac_On) )				// 1. 1차 PNP 벨트 흡착.
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_5:			// [2차 PNP가 스택에 있을 경우 1차 PNP 극판 공급 후 1차 PNP만 얼라인 이동] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Vac_On) )				// 1. 1차 PNP 벨트 흡착.
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_1TR_No_8 :
+						switch(P_Plate_1TR_Supply_Module_Judge_Bit)
+						{
+							case N_Plate_1TR_Supply_1:			// 2차 PNP에 극판 존재 → 얼라인 공급을 할 필요가 없음 → 1차 PNP 극판 공급 후 대기위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Belt_Up_Pos) )			// 1. 1차 PNP 벨트 상승.
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_2:			// [2차 PNP Stack에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								if( P_Act_Hold_Complete_Bit(N_Act_Total_Up_Pos) )					// 1. 1,2차 PNP 동시 상승.
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_3:			// [2차 PNP 얼라인에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								if( P_Act_Hold_Complete_Bit(N_Act_Total_Up_Pos) )					// 1. 1,2차 PNP 동시 상승.
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_4:			// [2차 PNP가 얼라인에 있을 경우 1차 PNP 극판 공급 후 1,2차 PNP 동시 진입] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Belt_Up_Pos) )			// 1. 1차 PNP 벨트 상승.
+										Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_5:			// [2차 PNP가 스택에 있을 경우 1차 PNP 극판 공급 후 1차 PNP만 얼라인 이동] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Belt_Up_Pos) )			// 1. 1차 PNP 벨트 상승.
+										Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_1TR_No_9 :
+						switch(P_Plate_1TR_Supply_Module_Judge_Bit)
+						{
+							case N_Plate_1TR_Supply_1:			// 2차 PNP에 극판 존재 → 얼라인 공급을 할 필요가 없음 → 1차 PNP 극판 공급 후 대기위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Wait_Pos) )				// 1. 1차 PNP 벨트 → 대기위치 이동.
+								{	
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+								}
+							break;
+
+							case N_Plate_1TR_Supply_2:			// [2차 PNP Stack에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Wait_Pos) )				// 1. 1차 PNP 벨트 → 대기위치 이동.
+								{	
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+								}
+							break;
+
+							case N_Plate_1TR_Supply_3:			// [2차 PNP 얼라인에 있을 경우] 2차 PNP에 극판 미존재, 얼라인 극판 존재 → 1차 PNP 극판 공급 시 2차 PNP 동시에 하강, 흡착, 상승 진행.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Wait_Pos) )				// 1. 1차 PNP 벨트 → 대기위치 이동.
+								{	
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+								}
+							break;
+
+							case N_Plate_1TR_Supply_4:			// [2차 PNP가 얼라인에 있을 경우 1차 PNP 극판 공급 후 1,2차 PNP 동시 진입] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_Second_PNP_Stack_Pos) )		// 1. 1차 PNP 벨트 → 얼라인, 2차 PNP 얼라인 → 스택 이동.
+										Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+							break;
+
+							case N_Plate_1TR_Supply_5:			// [2차 PNP가 스택에 있을 경우 1차 PNP 극판 공급 후 1차 PNP만 얼라인 이동] 2차 PNP, 얼라인 극판 미존재 → 1차 PNP 극판 공급 후 얼라인 위치에서 종료.
+								if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Align_Pos) )			// 1. 1차 PNP 벨트 → 얼라인 이동.
+								{
+									Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+								}
+							break;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_1TR_No_10 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )						// 1. 스탑 포인트.			
+						{	
+							Precondition_Hold_Supply_1TR_RTN = N_TRUE;
+						}
+					break;
+		
+					default:
+						 Precondition_Hold_Supply_1TR_RTN = N_TRUE;	
+					break;
+				}
+			break;
+
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			default:	break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+		}
+	return
+
+
+//========================================================//
+// 6.1) Set_Hold_Supply_Align
+//========================================================//
+	sub:Set_Hold_Supply_Align(Mode,&Set_Hold_Supply_Align_RTN)
+
+		//=========================================//
+		// 1.0)Init
+		//=========================================//
+		//P_Act_Hold_Complete_Bit(N_Act_FW_Mandrel_P1),(N_Act_BW_Cathode_FR_Clutch - N_Act_Rotor_Holder_FWD + 1 ) = 0; // 7 ~ 31
+		P_Act_Hold_Complete_Bit(0),(40) = 0; // 7 ~ 31			 
+		
+		Set_Hold_Supply_Align_RTN = 0;	
+
+		switch(Mode)
+		{
+			// 1.1) 일반 생산 모드 
+			case N_Normal_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Hold_Supply_Align_Array(0)  = Mode;											// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Hold_Supply_Align_Array(1)  =  N_SEQ_Normal_Hold_Supply_Align_No_1				// 2) Align 공급 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_Align_Array(2)  =  N_SEQ_Normal_Hold_Supply_Align_No_2				// 3) Align 공급 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Supply_Align_Array(3)  =  N_SEQ_Normal_Hold_Supply_Align_No_3				// 4) Align 공급 - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Supply_Align_Array(4)  =  N_SEQ_Normal_Hold_Supply_Align_No_4				// 5) Align 공급 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_Align_Array(5)  =  N_SEQ_Normal_Hold_Supply_Align_No_5				// 6) Align 공급 - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_Align_Array(6)  =  N_SEQ_Normal_Hold_Supply_Align_No_6				// 7) Align 공급 - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_Align_Array(7)  =  N_SEQ_Normal_Hold_Supply_Align_No_7				// 8) Align 공급 - 일반 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_Align_Array(8)  =  N_SEQ_Normal_Hold_Supply_Align_No_8				// 9) Align 공급 - 일반 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_Align_Array(9)  =  N_SEQ_Normal_Hold_Supply_Align_No_9				// 10) Align 공급 - 일반 모드 || 아홉번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_Align_Array(10) =  N_SEQ_Normal_Hold_Supply_Align_No_10			// 11) Align 공급 - 일반 모드 || 열번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_Align_Array(11) =  N_SEQ_Normal_Hold_Supply_Align_No_11			// 12) Align 공급 - 일반 모드 || 열번째 시퀀스
+
+				P_Buffer_Seqdata_Hold_Supply_Align_Array(12) = N_COMPLETE;										// 13) Align 공급 - 일반 모드 || 시퀀스 완료 체크
+
+				Set_Hold_Supply_Align_RTN = N_TRUE;
+			break;
+
+			default : 
+			
+			break;
+		}
+
+	return
+
+
+//===========================================================================//
+// 6.2) Management_Hold_Supply_Align - 시퀀스 실행 관리 함수 _ 인덱스에 맞는 동작 가져오기
+//===========================================================================//
+	sub:Management_Hold_Supply_Align(Mode,Index,&data,&Management_Hold_Supply_Align_RTN)
+		
+		Management_Hold_Supply_Align_RTN = 0;
+		if ( P_Buffer_Seqdata_Hold_Supply_Align_Array(0) == Mode )						// 1) 실행 전 모드 체크
+		{																	
+			if ( P_Buffer_Seqdata_Hold_Supply_Align_Array(Index) == N_COMPLETE )		// 1.1) 인덱스 배열값이 완료 일 경우
+			{																 
+				data = N_COMPLETE;														// 1.1.1) 데이터 완료값 반환
+				Management_Hold_Supply_Align_RTN = N_EXCEPT;							// 1.1.2) 예외값 반환
+			}																
+			else if ( P_Buffer_Seqdata_Hold_Supply_Align_Array(Index) != 0 )			// 1.1.3) 완료도 아니고 0값도 아닐 경우
+			{																 
+				data = P_Buffer_Seqdata_Hold_Supply_Align_Array(Index);					// 1.1.4) 인덱스 배열값 반환
+				Management_Hold_Supply_Align_RTN = N_TRUE;								// 1.1.5) True 반환
+			}																
+			else															
+			{																
+				data = 0;																// 1.1.6) 인덱스 배열값 0값 반환
+				Management_Hold_Supply_Align_RTN = N_FALSE;								// 1.1.7) False  반환
+			}															
+		}
+
+	return
+
+//===========================================================================//
+// 6.3) Execute_Hold_Supply_Align - 동작
+//===========================================================================//
+	sub:Execute_Hold_Supply_Align(Mode,data,&Execute_Hold_Supply_Align_RTN) 
+
+		Execute_Hold_Supply_Align_RTN = 0;
+		switch( Mode )	// 모드구분.
+		{
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Normal_Status_Sequence :		
+				switch(data)	// 시퀀스구분.
+				{		
+					// 1. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_Align_No_1:	// 1. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear)				= F_ACT_STATUS_ENABLE;		// 1. 모듈 상태 초기화.
+			
+						Execute_Hold_Supply_Align_RTN = N_TRUE;		
+					break;		
+		
+					// 2. [ Align 공급 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Supply_Align_No_2:	// 2. [ 일반 생산 모드 ]						
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Supply_Align_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ Align 공급 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Supply_Align_No_3:	// 3. [ 일반 생산 모드 ] 		
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Stack_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 스택 이동.	
+		
+						Execute_Hold_Supply_Align_RTN = N_TRUE;
+					break;
+		
+					// 4. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_Align_No_4:	// 4. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 벨트 → 얼라인 이동.
+		
+						Execute_Hold_Supply_Align_RTN = N_TRUE;
+					break;
+		
+					// 5. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_Align_No_5:	// 5. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Down_Pos)			= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 얼라인 하강.
+
+						Execute_Hold_Supply_Align_RTN = N_TRUE;
+					break;
+		
+					// 6. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_Align_No_6:	// 6. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Blow_On)				= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 블로우.
+						
+						Execute_Hold_Supply_Align_RTN = N_TRUE;
+					break;
+					
+					// 7. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_Align_No_7:	// 7. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Up_Pos)			= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 얼라인 상승.
+
+						Execute_Hold_Supply_Align_RTN = N_TRUE;
+					break;
+		
+					// 8. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_Align_No_8:	// 8. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 대기 위치 이동.
+
+						Execute_Hold_Supply_Align_RTN = N_TRUE;
+					break;
+					
+					// 9. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_Align_No_9:	// 9. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Surface_Check)	= F_ACT_STATUS_ENABLE;		// 1. 얼라인 극판 공급 후 극판 표면 검사.
+
+						Execute_Hold_Supply_Align_RTN = N_TRUE;
+					break;
+					
+					// 10. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_Align_No_10:	// 10. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+					
+						Execute_Hold_Supply_Align_RTN = N_TRUE;
+					break;
+
+					// 11. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_Align_No_11:	// 11. [ 일반 생산 모드 ]
+						
+						Execute_Hold_Supply_Align_RTN = N_TRUE;
+					break;	
+																			
+					default:	
+						Execute_Hold_Supply_Align_RTN = N_FALSE;	
+					break;
+				}
+			break;
+					
+			default:	
+				Execute_Hold_Supply_Align_RTN = N_FALSE;	
+			break;
+		}
+	return
+//===========================================================================//
+// 6.4) Precondition_Hold_Supply_Align - 사전 조건 스킵 변수 부여, 감시 다음 시퀀스 실행 조건 보기
+//===========================================================================//
+
+	sub:Precondition_Hold_Supply_Align(Mode,Index,&Precondition_Hold_Supply_Align_RTN)	
+		// 실행 될 시퀀스의 실행 조건 입력 _ 실행 완료 상태 혹은 실행 스킵 상태를 확인
+		local L_Hold_Supply_Align_Index_Cond = P_Buffer_Seqdata_Hold_Supply_Align_Array(Index);		// 다음 시작해야 할 동작
+		Precondition_Hold_Supply_Align_RTN = 0;					// 반환값 초기화.
+		switch(Mode)
+		{
+			case N_Normal_Status_Sequence :		
+				Switch(L_Hold_Supply_Align_Index_Cond)
+				{
+					case N_SEQ_Normal_Hold_Supply_Align_No_1 : 
+						Precondition_Hold_Supply_Align_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Normal_Hold_Supply_Align_No_2 : 
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Status_Clear) )			// 1. 모듈 상태 초기화.
+						{
+							Precondition_Hold_Supply_Align_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_Hold_Supply_Align_No_3 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.			
+						{	
+							P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) = 0;			// 초기화.
+							Precondition_Hold_Supply_Align_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Normal_Hold_Supply_Align_No_4 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Stack_Pos) )			// 1. 2차 PNP 스택 이동.				
+						{
+								Precondition_Hold_Supply_Align_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Normal_Hold_Supply_Align_No_5 :
+						if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Align_Pos) )			// 1. 1차 PNP 벨트 → 얼라인 이동.		
+						{
+							Precondition_Hold_Supply_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_Align_No_6 :
+						if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Align_Down_Pos) )		// 1. 1차 PNP 얼라인 하강.	
+						{	
+							Precondition_Hold_Supply_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_Align_No_7 :
+						if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Blow_On) )				// 1. 1차 PNP 블로우.
+						{
+							Precondition_Hold_Supply_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_Align_No_8 :
+
+						if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Align_Up_Pos) )			// 1. 1차 PNP 얼라인 상승.
+						{			
+							Precondition_Hold_Supply_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_Align_No_9 :
+						if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Wait_Pos) )				// 1. 1차 PNP 대기 위치 이동.		
+						{	
+							Precondition_Hold_Supply_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_Align_No_10 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Cell_Data_Vision_Surface_Check) )	// 1. 얼라인 극판 공급 후 극판 표면 검사.
+						{		
+							Precondition_Hold_Supply_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_Align_No_11 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.		
+						{		
+							Precondition_Hold_Supply_Align_RTN = N_TRUE;
+						}
+					break;
+		
+					default:
+						 Precondition_Hold_Supply_Align_RTN = N_TRUE;	
+					break;
+				}
+			break;
+
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			default:	break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+		}
+	return
+
+//========================================================//
+// 7.1) Set_Hold_Supply_2TR
+//========================================================//
+	sub:Set_Hold_Supply_2TR(Mode,&Set_Hold_Supply_2TR_RTN)
+
+		//=========================================//
+		// 1.0)Init
+		//=========================================//
+		//P_Act_Hold_Complete_Bit(N_Act_FW_Mandrel_P1),(N_Act_BW_Cathode_FR_Clutch - N_Act_Rotor_Holder_FWD + 1 ) = 0; // 7 ~ 31			 
+		P_Act_Hold_Complete_Bit(0),(40) = 0;
+		
+		Set_Hold_Supply_2TR_RTN = 0;	
+
+		switch(Mode)
+		{
+			// 1.1) 일반 생산 모드 
+			case N_Normal_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Hold_Supply_2TR_Array(0)  = Mode;											// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Hold_Supply_2TR_Array(1)  =  N_SEQ_Normal_Hold_Supply_Align_No_1			// 2) 2차 PNP 공급 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_2TR_Array(2)  =  N_SEQ_Normal_Hold_Supply_Align_No_2			// 3) 2차 PNP 공급 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Supply_2TR_Array(3)  =  N_SEQ_Normal_Hold_Supply_Align_No_3			// 4) 2차 PNP 공급 - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Supply_2TR_Array(4)  =  N_SEQ_Normal_Hold_Supply_Align_No_4			// 5) 2차 PNP 공급 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_2TR_Array(5)  =  N_SEQ_Normal_Hold_Supply_Align_No_5			// 6) 2차 PNP 공급 - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_2TR_Array(6)  =  N_SEQ_Normal_Hold_Supply_Align_No_6			// 7) 2차 PNP 공급 - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_2TR_Array(7)  =  N_SEQ_Normal_Hold_Supply_Align_No_7			// 8) 2차 PNP 공급 - 일반 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_2TR_Array(8)  =  N_SEQ_Normal_Hold_Supply_Align_No_8			// 9) 2차 PNP 공급 - 일반 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_Hold_Supply_2TR_Array(9)  =  N_SEQ_Normal_Hold_Supply_Align_No_9			// 10) 2차 PNP 공급 - 일반 모드 || 아홉번째 시퀀스
+
+				P_Buffer_Seqdata_Hold_Supply_2TR_Array(10) = N_COMPLETE;									// 11) 2차 PNP 공급 - 일반 모드 || 시퀀스 완료 체크
+
+				Set_Hold_Supply_2TR_RTN = N_TRUE;
+			break;
+
+			default : 
+			
+			break;
+		}
+
+	return
+
+
+//===========================================================================//
+// 7.2) Management_Hold_Supply_2TR - 시퀀스 실행 관리 함수 _ 인덱스에 맞는 동작 가져오기
+//===========================================================================//
+	sub:Management_Hold_Supply_2TR(Mode,Index,&data,&Management_Hold_Supply_2TR_RTN)
+		
+		Management_Hold_Supply_2TR_RTN = 0;
+		if ( P_Buffer_Seqdata_Hold_Supply_2TR_Array(0) == Mode )						// 1) 실행 전 모드 체크
+		{																	
+			if ( P_Buffer_Seqdata_Hold_Supply_2TR_Array(Index) == N_COMPLETE )			// 1.1) 인덱스 배열값이 완료 일 경우
+			{																 
+				data = N_COMPLETE;														// 1.1.1) 데이터 완료값 반환
+				Management_Hold_Supply_2TR_RTN = N_EXCEPT;								// 1.1.2) 예외값 반환
+			}																
+			else if ( P_Buffer_Seqdata_Hold_Supply_2TR_Array(Index) != 0 )				// 1.1.3) 완료도 아니고 0값도 아닐 경우
+			{																 
+				data = P_Buffer_Seqdata_Hold_Supply_2TR_Array(Index);					// 1.1.4) 인덱스 배열값 반환
+				Management_Hold_Supply_2TR_RTN = N_TRUE;								// 1.1.5) True 반환
+			}																
+			else															
+			{																
+				data = 0;																// 1.1.6) 인덱스 배열값 0값 반환
+				Management_Hold_Supply_2TR_RTN = N_FALSE;								// 1.1.7) False  반환
+			}															
+		}
+
+	return
+
+//===========================================================================//
+// 7.3) Execute_Hold_Supply_2TR - 동작
+//===========================================================================//
+	sub:Execute_Hold_Supply_2TR(Mode,data,&Execute_Hold_Supply_2TR_RTN) 
+
+		Execute_Hold_Supply_2TR_RTN = 0;
+		switch( Mode )	// 모드구분.
+		{
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Normal_Status_Sequence :		
+				switch(data)	// 시퀀스구분.
+				{		
+					// 1. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_2TR_No_1:	// 1. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear)				= F_ACT_STATUS_ENABLE;		// 1. 모듈 상태 초기화.
+			
+						Execute_Hold_Supply_2TR_RTN = N_TRUE;		
+					break;		
+		
+					// 2. [ Align 공급 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Supply_2TR_No_2:	// 2. [ 일반 생산 모드 ]						
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Supply_2TR_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ Align 공급 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Supply_2TR_No_3:	// 3. [ 일반 생산 모드 ] 		
+						P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 대기 위치 이동.	
+		
+						Execute_Hold_Supply_2TR_RTN = N_TRUE;
+					break;
+		
+					// 4. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_2TR_No_4:	// 4. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 얼라인 이동.
+		
+						Execute_Hold_Supply_2TR_RTN = N_TRUE;
+					break;
+		
+					// 5. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_2TR_No_5:	// 5. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Down_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 얼라인 하강.
+
+						Execute_Hold_Supply_2TR_RTN = N_TRUE;
+					break;
+		
+					// 6. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_2TR_No_6:	// 6. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Vac_On)				= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 흡착.
+						
+						Execute_Hold_Supply_2TR_RTN = N_TRUE;
+					break;
+					
+					// 7. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_2TR_No_7:	// 7. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Up_Pos)			= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 얼라인 상승.
+
+						Execute_Hold_Supply_2TR_RTN = N_TRUE;
+					break;
+		
+					// 8. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_2TR_No_8:	// 8. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Supply_2TR_RTN = N_TRUE;
+					break;
+					
+					// 9. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Supply_2TR_No_9:	// 9. [ 일반 생산 모드 ]
+
+						Execute_Hold_Supply_2TR_RTN = N_TRUE;
+					break;
+															
+					default:	
+						Execute_Hold_Supply_2TR_RTN = N_FALSE;	
+					break;
+				}
+			break;
+					
+			default:	
+				Execute_Hold_Supply_2TR_RTN = N_FALSE;	
+			break;
+		}
+	return
+//===========================================================================//
+// 7.4) Precondition_Hold_Supply_2TR - 사전 조건 스킵 변수 부여, 감시 다음 시퀀스 실행 조건 보기
+//===========================================================================//
+
+	sub:Precondition_Hold_Supply_2TR(Mode,Index,&Precondition_Hold_Supply_2TR_RTN)	
+		// 실행 될 시퀀스의 실행 조건 입력 _ 실행 완료 상태 혹은 실행 스킵 상태를 확인
+		local L_Hold_Supply_2TR_Index_Cond = P_Buffer_Seqdata_Hold_Supply_2TR_Array(Index);		// 다음 시작해야 할 동작
+		Precondition_Hold_Supply_2TR_RTN = 0;					// 반환값 초기화.
+		switch(Mode)
+		{
+			case N_Normal_Status_Sequence :		
+				Switch(L_Hold_Supply_2TR_Index_Cond)
+				{
+					case N_SEQ_Normal_Hold_Supply_2TR_No_1 : 
+						Precondition_Hold_Supply_2TR_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Normal_Hold_Supply_2TR_No_2 : 
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Status_Clear) )			// 1. 모듈 상태 초기화.
+						{
+							Precondition_Hold_Supply_2TR_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_Hold_Supply_2TR_No_3 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.			
+						{	
+							P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) = 0;			// 초기화.
+							Precondition_Hold_Supply_2TR_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Normal_Hold_Supply_2TR_No_4 :
+						if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Wait_Pos) )				// 1. 1차 PNP 대기 위치 이동.			
+						{	
+							Precondition_Hold_Supply_2TR_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Normal_Hold_Supply_2TR_No_5 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Align_Pos) )			// 1. 2차 PNP 얼라인 이동.		
+						{			
+							Precondition_Hold_Supply_2TR_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_2TR_No_6 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Align_Down_Pos) )		// 1. 2차 PNP 얼라인 하강.
+						{	
+							Precondition_Hold_Supply_2TR_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_2TR_No_7 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Vac_On) )				// 1. 2차 PNP 흡착.
+						{
+							Precondition_Hold_Supply_2TR_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_2TR_No_8 :
+
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Align_Up_Pos) )		// 1. 2차 PNP 얼라인 상승.
+						{			
+							Precondition_Hold_Supply_2TR_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Supply_2TR_No_9 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.			
+						{	
+							Precondition_Hold_Supply_2TR_RTN = N_TRUE;
+						}
+					break;
+		
+					default:
+						 Precondition_Hold_Supply_2TR_RTN = N_TRUE;	
+					break;
+				}
+			break;
+
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			default:	break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+		}
+	return
+
+//========================================================//
+// 8.1) Set_Hold_Semi_Run_Pos_Move
+//========================================================//
+	sub:Set_Hold_Semi_Run_Pos_Move(Mode,&Set_Hold_Semi_Run_Pos_Move_RTN)
+
+		//=========================================//
+		// 1.0)Init
+		//=========================================//
+		//P_Act_Hold_Complete_Bit(N_Act_FW_Mandrel_P1),(N_Act_BW_Cathode_FR_Clutch - N_Act_Rotor_Holder_FWD + 1 ) = 0; // 7 ~ 31			 
+		P_Act_Hold_Complete_Bit(0),(40) = 0;
+		
+		Set_Hold_Semi_Run_Pos_Move_RTN = 0;	
+
+		switch(Mode)
+		{
+			// 6.1) 일반 생산 모드 
+			case N_Normal_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(0)  = Mode;												// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(1)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_1			// 2) 세미런 위치 이동 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(2)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_2			// 3) 세미런 위치 이동 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(3)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_3			// 4) 세미런 위치 이동 - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(4)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_4			// 5) 세미런 위치 이동 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(5)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_5			// 6) 세미런 위치 이동 - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(6)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_6			// 7) 세미런 위치 이동 - 일반 모드  || 여섯번째 시퀀스
+																															   
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(7) = N_COMPLETE;											// 8) 세미런 위치 이동 - 일반 모드 || 시퀀스 완료 체크
+
+				Set_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+			break;
+
+			// 6.2) 세파 생산 모드 
+			case N_Sepa_Consume_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(0)  = Mode;												// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(1)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_1			// 2) 세미런 위치 이동 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(2)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_2			// 3) 세미런 위치 이동 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(3)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_3			// 4) 세미런 위치 이동 - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(4)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_4			// 5) 세미런 위치 이동 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(5)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_5			// 6) 세미런 위치 이동 - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(6)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_6			// 7) 세미런 위치 이동 - 일반 모드  || 여섯번째 시퀀스
+																															   
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(7) = N_COMPLETE;											// 8) 세미런 위치 이동 - 일반 모드 || 시퀀스 완료 체크
+
+				Set_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+			break;
+
+			// 6.3) 드라이런 모드 
+			case N_Dryrun_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(0)  = Mode;												// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(1)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_1			// 2) 세미런 위치 이동 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(2)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_2			// 3) 세미런 위치 이동 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(3)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_3			// 4) 세미런 위치 이동 - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(4)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_4			// 5) 세미런 위치 이동 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(5)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_5			// 6) 세미런 위치 이동 - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(6)  =  N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_6			// 7) 세미런 위치 이동 - 일반 모드  || 여섯번째 시퀀스
+																															   
+				P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(7) = N_COMPLETE;											// 8) 세미런 위치 이동 - 일반 모드 || 시퀀스 완료 체크
+
+				Set_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+			break;
+
+			default : 
+			
+			break;
+		}
+
+	return
+
+
+//===========================================================================//
+// 8.2) Management_Hold_Semi_Run_Pos_Move - 시퀀스 실행 관리 함수 _ 인덱스에 맞는 동작 가져오기
+//===========================================================================//
+	sub:Management_Hold_Semi_Run_Pos_Move(Mode,Index,&data,&Management_Hold_Semi_Run_Pos_Move_RTN)
+		
+		Management_Hold_Semi_Run_Pos_Move_RTN = 0;
+		if ( P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(0) == Mode )						// 1) 실행 전 모드 체크
+		{																	
+			if ( P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(Index) == N_COMPLETE )		// 1.1) 인덱스 배열값이 완료 일 경우
+			{																 
+				data = N_COMPLETE;															// 1.1.1) 데이터 완료값 반환
+				Management_Hold_Semi_Run_Pos_Move_RTN = N_EXCEPT;							// 1.1.2) 예외값 반환
+			}																
+			else if ( P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(Index) != 0 )			// 1.1.3) 완료도 아니고 0값도 아닐 경우
+			{																 
+				data = P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(Index);				// 1.1.4) 인덱스 배열값 반환
+				Management_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;								// 1.1.5) True 반환
+			}																
+			else															
+			{																
+				data = 0;																	// 1.1.6) 인덱스 배열값 0값 반환
+				Management_Hold_Semi_Run_Pos_Move_RTN = N_FALSE;							// 1.1.7) False  반환
+			}															
+		}
+
+	return
+
+//===========================================================================//
+// 8.3) Execute_Hold_Semi_Run_Pos_Move - 동작
+//===========================================================================//
+	sub:Execute_Hold_Semi_Run_Pos_Move(Mode,data,&Execute_Hold_Semi_Run_Pos_Move_RTN) 
+
+		Execute_Hold_Semi_Run_Pos_Move_RTN = 0;
+		switch( Mode )	// 모드구분.
+		{
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Normal_Status_Sequence :		
+				switch(data)	// 시퀀스구분.
+				{		
+					// 1. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_1:	// 1. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear)				= F_ACT_STATUS_ENABLE;		// 1. 모듈 상태 초기화.
+
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;		
+					break;		
+		
+					// 2. [ Align 공급 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_2:	// 2. [ 일반 생산 모드 ]						
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ Align 공급 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_3:	// 3. [ 일반 생산 모드 ] 		
+						P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 대기 위치 이동.	
+							
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;
+		
+					// 4. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_4:	// 4. [ 일반 생산 모드 ] 	
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 스택 → 얼라인 이동.
+		
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;
+		
+					// 5. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_5:	// 5. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;
+		
+					// 6. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_6:	// 6. [ 일반 생산 모드 ]
+
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;
+					
+					default:	
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_FALSE;	
+					break;
+				}
+			break;
+
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Sepa_Consume_Status_Sequence :		
+				switch(data)	// 시퀀스구분.
+				{		
+					// 1. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_1:	// 1. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear)				= F_ACT_STATUS_ENABLE;		// 1. 모듈 상태 초기화.
+
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;		
+					break;		
+		
+					// 2. [ Align 공급 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_2:	// 2. [ 일반 생산 모드 ]						
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ Align 공급 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_3:	// 3. [ 일반 생산 모드 ] 		
+						P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 대기 위치 이동.	
+							
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;
+		
+					// 4. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_4:	// 4. [ 일반 생산 모드 ] 	
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 스택 → 얼라인 이동.
+		
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;
+		
+					// 5. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_5:	// 5. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;
+		
+					// 6. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_6:	// 6. [ 일반 생산 모드 ]
+
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;
+					
+					default:	
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_FALSE;	
+					break;
+				}
+			break;
+
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Dryrun_Status_Sequence :		
+				switch(data)	// 시퀀스구분.
+				{		
+					// 1. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_1:	// 1. [ 일반 생산 모드 ] 
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear)				= F_ACT_STATUS_ENABLE;		// 1. 모듈 상태 초기화.
+
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;		
+					break;		
+		
+					// 2. [ Align 공급 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_2:	// 2. [ 일반 생산 모드 ]						
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ Align 공급 - 일반 모드 ]		
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_3:	// 3. [ 일반 생산 모드 ] 		
+						P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 1차 PNP 대기 위치 이동.	
+							
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;
+		
+					// 4. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_4:	// 4. [ 일반 생산 모드 ] 	
+						P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Pos)				= F_ACT_STATUS_ENABLE;		// 1. 2차 PNP 스택 → 얼라인 이동.
+		
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;
+		
+					// 5. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_5:	// 5. [ 일반 생산 모드 ]
+						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.
+
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;
+		
+					// 6. [ Align 공급 - 일반 모드 ]
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_6:	// 6. [ 일반 생산 모드 ]
+
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;
+					
+					default:	
+						Execute_Hold_Semi_Run_Pos_Move_RTN = N_FALSE;	
+					break;
+				}
+			break;
+					
+			default:	
+				Execute_Hold_Semi_Run_Pos_Move_RTN = N_FALSE;	
+			break;
+		}
+	return
+//===========================================================================//
+// 8.4) Precondition_Hold_Semi_Run_Pos_Move - 사전 조건 스킵 변수 부여, 감시 다음 시퀀스 실행 조건 보기
+//===========================================================================//
+
+	sub:Precondition_Hold_Semi_Run_Pos_Move(Mode,Index,&Precondition_Hold_Semi_Run_Pos_Move_RTN)	
+		// 실행 될 시퀀스의 실행 조건 입력 _ 실행 완료 상태 혹은 실행 스킵 상태를 확인
+		local L_Hold_Semi_Run_Pos_Move_Index_Cond = P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(Index);		
+		Precondition_Hold_Semi_Run_Pos_Move_RTN = 0;					// 반환값 초기화.
+		switch(Mode)
+		{
+			case N_Normal_Status_Sequence :		
+				Switch(L_Hold_Semi_Run_Pos_Move_Index_Cond)
+				{
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_1 : 
+						Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_2 : 
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Status_Clear) )			// 1. 모듈 상태 초기화.
+						{
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_3 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.			
+						{	
+							P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) = 0;			// 초기화.
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_4 :
+						if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Wait_Pos) )				// 1. 1차 PNP 대기 위치 이동.				
+						{	
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_5 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Align_Pos) )			// 1. 2차 PNP 스택 → 얼라인 이동.			
+						{	
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_6 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.		
+						{	
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+		
+					default:
+						 Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;	
+					break;
+				}
+			break;
+
+			case N_Sepa_Consume_Status_Sequence :		
+				Switch(L_Hold_Semi_Run_Pos_Move_Index_Cond)
+				{
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_1 : 
+						Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_2 : 
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Status_Clear) )			// 1. 모듈 상태 초기화.
+						{
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_3 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.			
+						{	
+							P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) = 0;			// 초기화.
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_4 :
+						if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Wait_Pos) )				// 1. 1차 PNP 대기 위치 이동.				
+						{	
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_5 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Align_Pos) )			// 1. 2차 PNP 스택 → 얼라인 이동.			
+						{	
+								Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_6 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.		
+						{	
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+		
+					default:
+						 Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;	
+					break;
+				}
+			break;
+
+			case N_Dryrun_Status_Sequence :		
+				Switch(L_Hold_Semi_Run_Pos_Move_Index_Cond)
+				{
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_1 : 
+						Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_2 : 
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Status_Clear) )			// 1. 모듈 상태 초기화.
+						{
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_3 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.			
+						{	
+							P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) = 0;			// 초기화.
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_4 :
+						if( P_Act_Hold_Complete_Bit(N_Act_First_PNP_Wait_Pos) )				// 1. 1차 PNP 대기 위치 이동.				
+						{	
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_5 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Align_Pos) )			// 1. 2차 PNP 스택 → 얼라인 이동.			
+						{	
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_6 :
+						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.		
+						{	
+							Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;
+						}
+					break;
+		
+					default:
+						 Precondition_Hold_Semi_Run_Pos_Move_RTN = N_TRUE;	
+					break;
+				}
+			break;
+
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			default:	break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+		}
+
+return
+
+
+
+
+
+
+close

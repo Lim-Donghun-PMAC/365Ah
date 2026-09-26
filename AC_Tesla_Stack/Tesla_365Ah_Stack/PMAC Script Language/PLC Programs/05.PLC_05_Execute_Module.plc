@@ -1,0 +1,129 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.20
+// 세파 첫장 Execute 모듈 추가 - [ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+
+open plc 5
+P_MNTR_PLC5_Task_Time(0) = Sys.Time;
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[5].ldata.L[0]	시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[5].ldata.L[1]	시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[5].ldata.L[2]	시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[5].ldata.L[3]	타이머 초기화 플래그
+
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if(L_Flag_Cycle_Up_Count_Init_Flag == 0)
+{
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 00.2) 시간 체크
+if(L_Flag_Cycle_Up_Count_Init_Flag == 1)
+{
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * 1000
+	if(L_Time_Cycle_Up_Count_Delta_Time < 0)
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+// 00.3) 시간 업데이트
+if(L_Time_Cycle_Up_Count_Delta_Time > 0.1)
+{
+	
+	//여기에 원하는 타이머 추가 
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+//-----------------------------------------------------//
+// 무언 정지 디버깅 저장 (모터 상태, 좌표계 상태, Flag값) //		[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
+//-----------------------------------------------------//
+// P_Stop_Motor_Status(0),48						모터 상태.
+// P_Sub_Master_Motion_Program_Flag(0),34			좌표계 상태.
+// P_Stop_Sub_Master_Motion_Program_Flag(0),15		좌표계 Flag 상태. [P_Sub_Master_Motion_Program_Flag]
+// P_Stop_Slave_Motion_Program_Flag(0),15			좌표계 Flag 상태. [P_Slave_Motion_Program_Flag]
+if ( P_Stop_Debug_Flag == 1 )
+{
+	P_Stop_Status_Save_Address = &P_Stop_Motor_Status(0);
+	call Unexp_Stop_Module.Save_Program(48,F_Type_Motor,0,P_Stop_Status_Save_Address,&P_Stop_Save_RTN(0))	// 모터 상태 확인 함수 실행. 인자 (사이즈, 타입, 확인 주소값, 저장 주소값, &반환값)
+	P_Stop_Status_Save_Address = &P_Stop_Coord_Status(0);
+	call Unexp_Stop_Module.Save_Program(34,F_Type_Coord,0,P_Stop_Status_Save_Address,&P_Stop_Save_RTN(1))	// 좌표계 상태 확인 함수 실행. 인자 (사이즈, 타입, 확인 주소값, 저장 주소값, &반환값)
+	P_Stop_Status_Check_Address = &P_Sub_Master_Motion_Program_Flag(0);
+	P_Stop_Status_Save_Address = &P_Stop_Sub_Master_Motion_Program_Flag(0);
+	call Unexp_Stop_Module.Save_Program(15,F_Type_Flag,P_Stop_Status_Check_Address,P_Stop_Status_Save_Address,&P_Stop_Save_RTN(2))	// Flag 상태 확인 함수 실행. 인자 (사이즈, 타입, 확인 주소값, 저장 주소값, &반환값)
+	P_Stop_Status_Check_Address = &P_Slave_Motion_Program_Flag(0);
+	P_Stop_Status_Save_Address = &P_Stop_Slave_Motion_Program_Flag(0);
+	call Unexp_Stop_Module.Save_Program(15,F_Type_Flag,P_Stop_Status_Check_Address,P_Stop_Status_Save_Address,&P_Stop_Save_RTN(3))	// Flag 상태 확인 함수 실행. 인자 (사이즈, 타입, 확인 주소값, 저장 주소값, &반환값)
+	P_Stop_Debug_Flag = 0;
+}
+//-----------------------------------------------------//
+// 메모리 타워 Total Bit 10진수 → 16진수 변형 프로그램 //		[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
+//-----------------------------------------------------//
+if ( P_Total_Unit_Bit != P_Old_Total_Unit_Bit )
+	call Unexp_Stop_Module.Hex_Conversion(P_Total_Unit_Bit,&P_Memory_Tower_Dec_Result)
+P_Old_Total_Unit_Bit = P_Total_Unit_Bit
+
+/*
+// [ 참조 : 26.02.25 NamePlate Two BTN 추가 ]
+// NamePlate M_X 신호 BG.C Prog Address 변환 
+// BG.C에서 Addr Char* 형으로 받기 때문에.... IO로 받을 수가 없으므로... IO 를보고 캐릭터형으로 넘겨주자
+if( M_X_ARC_NP_BTN_Plate_Tilting == 1 && M_X_ARC_NP_Two_Btn_Signal == 1 )	// 투버튼 & NP 버튼 
+	NP_Addr_Plate_Tilting = 1;
+else
+	NP_Addr_Plate_Tilting = 0;
+
+if( M_X_ARC_NP_BTN_Unwinder_Lock_Unlock == 1 && M_X_ARC_NP_Two_Btn_Signal == 1 )
+	NP_Addr_Chuck_UnChuck = 1;
+else
+	NP_Addr_Chuck_UnChuck = 0;
+
+if( M_X_ARC_NP_BTN_Plate_Vac_On_Off == 1 && M_X_ARC_NP_Two_Btn_Signal == 1 )
+	NP_Addr_Plate_Vac_Blow = 1;
+else
+	NP_Addr_Plate_Vac_Blow = 0;
+
+if( M_X_ARC_NP_BTN_Plate_Sepa_Cutting == 1 && M_X_ARC_NP_Two_Btn_Signal == 1 )
+	NP_Addr_Plate_Cutting = 1;
+else
+	NP_Addr_Plate_Cutting = 0;
+
+if( M_X_ARC_NP_BTN_Plate_Stopper_Clamp == 1 && M_X_ARC_NP_Two_Btn_Signal == 1 )
+	NP_Addr_Stopper_Clamp = 1;
+else
+	NP_Addr_Stopper_Clamp = 0;
+
+if( M_X_ARC_NP_BTN_Plate_Up_Dn == 1 && M_X_ARC_NP_Two_Btn_Signal == 1 )
+	NP_Addr_Plate_Up = 1;
+else
+	NP_Addr_Plate_Up = 0;
+
+if( M_X_ARC_NP_Plate_Down == 1 && M_X_ARC_NP_Two_Btn_Signal == 1 )
+	NP_Addr_Plate_Down = 1;
+else
+	NP_Addr_Plate_Down = 0;
+
+if( M_X_ARC_NP_BTN_Unwinder_Rotation == 1 && M_X_ARC_NP_Two_Btn_Signal == 1 )
+	NP_Addr_Rotation = 1;
+else
+	NP_Addr_Rotation = 0;
+
+if( M_X_ARC_NP_BTN_Unwinder_Re_Rotation == 1 && M_X_ARC_NP_Two_Btn_Signal == 1 )
+	NP_Addr_RE_Rotation = 1;
+else
+	NP_Addr_RE_Rotation = 0;
+
+*/
+P_MNTR_PLC5_Task_Time(1) = (Sys.Time - P_MNTR_PLC5_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC5_Task_Time(1) > P_MNTR_PLC5_Task_Max_Time )
+{
+	P_MNTR_PLC5_Task_Max_Time = P_MNTR_PLC5_Task_Time(1);
+}
+close

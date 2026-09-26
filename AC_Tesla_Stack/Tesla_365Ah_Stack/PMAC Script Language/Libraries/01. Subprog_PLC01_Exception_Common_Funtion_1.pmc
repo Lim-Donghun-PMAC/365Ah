@@ -1,0 +1,130 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+global P_Status_Log = 0;
+global P_Loop_Count = 0;
+
+
+open subprog Sub_Exception_Common_Function(void)
+	
+	// 변경 전 기존 큐 값들은 초기화 시킨 후 상태 변경
+	// 1. 설비 상태 변경
+	sub:Convert_Status(Status_to,&rtn)
+	
+	local L_Convert_PMAC_Commands = 0;
+	local L_Queue_Clear_Return = 0;
+	local L_Convert_Timeout_Timer = Sys.Time;
+
+
+	// Queue Initialize
+	call Sub_Automation_Circular_Queue.ClearQueue(&L_Queue_Clear_Return)
+	
+	if ( L_Queue_Clear_Return == N_CirQueue_TRUE )
+	{
+		// 상태 변경 진행
+		switch(Status_to)
+		{
+			// 1.1. HOLDING
+			case F_Status_HOLD :
+				if ( P_PMAC_Status == F_Status_EXECUTE )
+					L_Convert_PMAC_Commands = F_Command_Hold;
+				else
+				{
+					P_Status_Log = P_PMAC_Status;
+					P_Loop_Count++;
+				}
+			break;
+
+			// 1.2. SUSPENDING
+			case F_Status_SUSPENDED :
+				if ( P_PMAC_Status == F_Status_EXECUTE )
+					L_Convert_PMAC_Commands = F_Command_Suspend;
+				else
+				{
+					P_Status_Log = P_PMAC_Status;
+					P_Loop_Count++;
+				}
+			break;
+
+			// 1.3. EXECUTE
+			case F_Status_EXECUTE :
+				if ( P_PMAC_Status == F_Status_HOLD )
+					L_Convert_PMAC_Commands = F_Command_Unhold;
+				else if ( P_PMAC_Status == F_Status_SUSPENDED )
+					L_Convert_PMAC_Commands = F_Command_Unsuspend;
+				else
+				{
+					P_Status_Log = P_PMAC_Status;
+					P_Loop_Count++;
+				}
+
+			break;
+
+			// 1.4. STOPPING
+			case F_Status_STOPPED :
+				L_Convert_PMAC_Commands = F_Command_Stop;
+			break;
+		}
+	}
+
+
+	// 결과값 리턴
+	if ( L_Convert_PMAC_Commands != 0 )		// 커맨드가 있다면
+	{
+		P_PMAC_Commands = L_Convert_PMAC_Commands;	// 커맨드를 변환 해주고
+		while ( P_PMAC_Commands != 0 ) {}			// 상태 변경이 될 때까지 기달린다.
+		if ( P_Convert_to_Status(L_Convert_PMAC_Commands) == Status_to )		// 원하는 상태로 변경이 됐는지?
+			rtn = F_TRUE;
+		else
+			rtn = N_FALSE;
+	}
+	else
+	{
+		rtn = N_FALSE;
+	}
+
+	return
+
+	//// 2. 설비 시작 시 변수 초기화 - Auto Starting 시 변수 초기화 항목들
+	//sub:Initialize_Value(&rtn)
+	//
+	//	// Queue 및 자동 기능 스텝머신 초기화
+	//	P_Queue_Process_Status = F_Status_IDLE;
+	//	P_Process_Function_Command = 0;		
+	//	P_HOLD_FUNC_Remove_STEP = 0;			
+	//	P_HOLD_FUNC_Supply_STEP = 0;			
+	//	P_HOLD_FUNC_MoveToProdPos_STEP = 0;	
+	//	P_Execute_IsEnable_State_Machine = 0;	
+	//	P_EXECUTE_FUNC_Ready_STEP = 0;		
+	//	P_EXECUTE_FUNC_ProdPos_STEP = 0;		
+	//	P_EXECUTE_FUNC_Switching_STEP = 0;	
+	//	P_STOP_FUNC_CycleStop_STEP = 0;		
+	//	P_STOP_FUNC_PauseProc_STEP = 0;		
+	//	P_STOP_FUNC_StopComplete_STEP = 0;
+	//	rtn = F_TRUE;
+	//return
+	//
+	//// 3. 설비 사이클 정지 시 상태별 사이클 정지 확인 기능
+	//sub:CycleStop_by_Status(&rtn)
+	//
+	//	// 현재 행동만 하고 멈추도록...
+	//	
+	//	//// 큐 클리어 - 임시삭제
+	//	//if ( L_CycleStop_Enter == 1 )
+	//	//{	
+	//	//	L_CycleStop_Enter = 0;
+	//	//
+	//	//	local L_StopStep_QueClear = 0;
+	//	//	call Sub_Automation_Circular_Queue.ClearQueue(&L_StopStep_QueClear);
+	//	//	if ( L_StopStep_QueClear == N_CirQueue_TRUE )
+	//	//	{
+	//	//		rtn = F_TRUE;
+	//	//	}
+	//	//}
+	//return
+
+
+close

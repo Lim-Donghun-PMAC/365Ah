@@ -1,0 +1,1651 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>DC55630F-4F87-4875-BDCF-C595C895EBF0</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Tesla_365Ah_Stack</RootNamespace>
+    <AssemblyName>Power Pmac Project Template</AssemblyName>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <TelnetPort>22</TelnetPort>
+    <TelnetUser>root</TelnetUser>
+    <FTPPassword>ftp</FTPPassword>
+    <FTPPort>21</FTPPort>
+    <FTPUser>ftp</FTPUser>
+    <PVarStart>8192</PVarStart>
+    <QVarStart>1024</QVarStart>
+    <MVarStart>8192</MVarStart>
+    <UserBuffer>1</UserBuffer>
+    <ProgramBuffer>16</ProgramBuffer>
+    <TableBuffer>1</TableBuffer>
+    <LookAheadBuffer>16</LookAheadBuffer>
+    <SymbolsBufSize>1</SymbolsBufSize>
+    <CpuAffinityType>Unknown</CpuAffinityType>
+    <CpuAffinityServoTask>1</CpuAffinityServoTask>
+    <CpuAffinityRtiTask>2</CpuAffinityRtiTask>
+    <CpuAffinityBackgroundTask>0</CpuAffinityBackgroundTask>
+    <CpuAffinityBgCplcTask>0</CpuAffinityBgCplcTask>
+    <CpuAffinityPhaseTask>1</CpuAffinityPhaseTask>
+    <CpuAffinityEcatTask>3</CpuAffinityEcatTask>
+    <CpuAffinityEipTask>0</CpuAffinityEipTask>
+    <CpuAffinityRtiCPlcThreadTask>2</CpuAffinityRtiCPlcThreadTask>
+    <CpuAffinityGateCaptureTask>1</CpuAffinityGateCaptureTask>
+    <CpuAffinityGpAsciiTask>0</CpuAffinityGpAsciiTask>
+    <CpuAffinityBgcplcTask>0</CpuAffinityBgcplcTask>
+    <EtherCatStackType>1</EtherCatStackType>
+    <RealtimeRoutinesBuildFlag>0</RealtimeRoutinesBuildFlag>
+    <TemplateVersion>3.2</TemplateVersion>
+    <ProjppRunAtOption>No</ProjppRunAtOption>
+    <DownloadCSoruce>Yes</DownloadCSoruce>
+    <EncryptionOption>Encrypt All Project Files</EncryptionOption>
+    <ProjppTimeoutPeriod>300000</ProjppTimeoutPeriod>
+    <ProjectExportLevel>0</ProjectExportLevel>
+    <DownloadSystemSetupConfig>No</DownloadSystemSetupConfig>
+    <UseNewNamingFormat>Yes</UseNewNamingFormat>
+    <Verbose>Disabled</Verbose>
+    <Name>Tesla_365Ah_Stack</Name>
+    <PPCPUType>armLS1043A;4.1.18-ipipe</PPCPUType>
+    <IgnoreErrors>No</IgnoreErrors>
+    <ProjectFrimwareVers>2.8.3.0</ProjectFrimwareVers>
+    <CPUType>arm,LS1043A</CPUType>
+    <DefaultCoOrdinateNumberForCSGlobalVariable>0</DefaultCoOrdinateNumberForCSGlobalVariable>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>Bin\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>false</DebugSymbols>
+    <OutputPath>Bin\Release\</OutputPath>
+  </PropertyGroup>
+  <UsingTask AssemblyFile="$(CompileTaskPath)\PPMAC460CompileTask.dll" TaskName="PPMAC460CompileTask.CompileTask" />
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="C Language\Background Programs\Manual\btn\btn.h">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="C Language\Background Programs\Manual\Home\_home.h">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="C Language\Background Programs\Manual\Jog\Jog.h">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="C Language\Background Programs\mc\mc_protocol.h">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="C Language\Background Programs\save_c\save_h.h">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="C Language\CPLCs\bgcplc01\cappheader1.h">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="C Language\CPLCs\rticplc\rtiheader1.h">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="C Language\Include\common.h">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="C Language\Include\ECATMap.h">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Configuration\ECATConfig.cfg">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Configuration\eni.xml">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Configuration\mc_protocol_set_a.cfg">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Configuration\mc_protocol_set_b.cfg">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Documentation\01.Use_Button.txt">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Documentation\save_A.txt">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Documentation\save_B.txt">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Log\ecmaster0.0.log">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Log\ecmaster0.1.log">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Log\error0.0.log">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Log\error0.1.log">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\00. Define_Mode_[Name].pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>74</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\00. Define_PLC00_Prod_Mode_Mangement.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>23</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\00. Define_Sub_Motion00_Name.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>69</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\00.Config_Program.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>1</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\01. Define_PLC01_Main_Process.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>24</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\01. Define_PLC02_Queue_Prog.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>25</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\02.Config_Motor_A.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>4</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\02.Config_Motor_B.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>5</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\03. Define_PLC03_Abort_Calc.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>28</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\03. Define_PLC03_Memory.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>27</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\03. Define_PLC03_Pause_Resume.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>26</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\03.GPIO_Map.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>9</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\04. Define_Common_Variable.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>10</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\04. Define_PLC04_Vision.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>29</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\04.Config_Motor_Name.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>11</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\05. Define_M_Variables_For_C_Program.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>18</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\05. Define_PLC05.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>30</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\05. Define_PLC05_Motion.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>31</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\05.Config_Cascading.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>12</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\06. Define_PLC06_ Spool_Calculation.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>33</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\06.Config_Camtable.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>13</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\07. Define_PLC07_Communication.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>34</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\07.Config_MC_Protocol_Mapping.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>14</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\08. Define_PLC08_PACK_ML.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>35</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\08.Config_Modbus_Mapping.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>15</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\09. Define_PLC09_PACK_ML.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>36</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\09. Define_Virtual Axis.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>19</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\10. Define_Motion_Program.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>21</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\10. Define_PLC10.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>37</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\100.MODE_Define_Values_Wait_Mode.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>76</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\101.MODE_Define_Half_Anode_Run_Mode.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>77</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\102.MODE_Define_Half_Cathode_Run_Mode.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>78</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\103.MODE_Define_Values_Dynamic_Wait_Mode.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>79</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\11. Define_PLC11.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>38</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\12. Define_PLC12_Background_Monitoring.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>39</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\13. Define_PLC13_Home_Prog.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>40</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\14. Define_PLC14_BTN_JOG.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>41</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\15. Define_PLC13.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>42</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\16. Define_PLC16.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>43</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\17. Define_PLC17.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>44</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\18. Define_PLC18_EPC.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>45</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\19. Define_PLC_19_Home_Sequence.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>46</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\20. Define_PLC20_MES_PV_Upload.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>47</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\21. Define_PLC13_Manual_Module.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>48</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\22. Define_PLC22.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>49</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\23. Define_PLC23.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>51</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\24. Define_PLC24.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>52</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\25. Define_PLC25.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>53</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\26. Define_PLC26_Alarm.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>54</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\27. Define_PLC27_InterLock_PLC.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>55</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\28. Define_PLC28_Sheet_Data_Flow.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>56</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\30. Define_PLC30_ECAT_Drive_Parameter.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>58</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\29. Define_PLC29_Single_Dry_Run.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>57</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\31. Define_PLC31_Initialize.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>59</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\33.Define_TackTimeCheck.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>60</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\45. Define_Sub_All_Home_Module.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>65</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\46. Define_Sub_All_Home_Action_Module.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>66</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\99.Define_Mode_Variables.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>75</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\===Libraries_Define===.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>61</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\===Mode_Define===.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>73</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\===PLC_Define===.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>22</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\===Setup_Define===.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>0</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\AX1515_2_Mapping.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>89</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\AX1515_5_Mapping.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>90</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\AX1515_6_Mapping.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>91</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\AX1515_7_Mapping.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>92</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\BTN_Define.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>81</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\BTN_Header.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>82</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\Define_Hold.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>83</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\ECATMap.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>0</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\50. Define_Hold_Module.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>69</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\51. Define_EXECUTE_Module.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>70</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\52. Define_Suspend_Module.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>71</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\47. Define_PLC_19_New_Home_Sequence.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>67</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\===ETC===.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>80</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\===Home_Define===.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>64</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\===Status_Define===.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>68</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\999.Debug_Provisional_TobeDelete.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>88</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\43.LogProgram.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>86</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\Motor_Sector_Define.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>84</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\03. New_Config_IO.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>8</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\53. Define_STOPPING_Module.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>72</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\Subprog_Manual_Module_Sequnce.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>85</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Global Includes\44. Define_Z_Axis_Cnt.pmh">
+      <SubType>Content</SubType>
+      <DisplayOrder>62</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\00. Subprog_ETC_Name.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>36</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\00. Subprog_Initialize.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>37</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\00. Subprog_PLC00_Execute_Manage.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>3</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\00. Subprog_PLC00_Name.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>4</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\00. Subprog_Sub_Motion00_Name.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>1</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\01. Subprog_PLC00_Name.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>5</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\01. Subprog_PLC01_Automation_Circular_Queue.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>7</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\03. Subprog_PLC03_Abort_Calc.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>18</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\03. Subprog_PLC03_MemoryTower.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>17</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\02. Subprog_PLC02_Vision.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>8</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\05. Subprog_PLC05_Unexpected_Stop.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>19</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\09. Subprog_PLC09_PACKML.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>20</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\10. Subprog_PLC10_Suspend.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>23</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\11.Sub_Program11_Anode_TR1.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>38</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\12. Subprog_PLC12_Continuous_NG.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>24</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\12.Sub_Program12_Anode_TR1_PICKER_AXIS_T.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>39</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\13.Sub_Program13_Anode_TR2.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>40</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\14. Subprog_PLC14_BTN_Program.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>25</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\14.Sub_Program14_Anode_Clamp.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>42</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\15.Sub_Program15_Final_Roll.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>42</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\16. Subprog_PLC16_Execute_Module_Function.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>27</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\16.Sub_Program16_Stack_Table.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>43</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\17. Subprog_PLC17_TactTime_Function.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>28</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\17.Sub_Program17_Cathode_Clamp.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>44</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\18.Sub_Program18_Cathode_TR2.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>45</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\19.Sub_Program19_Cathode_TR1_PICKER_AXIS_T.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>46</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\20.Sub_Program20_Cathode_TR1.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>55</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\24.1. Subprog_PLC24_Force_BTN_Program.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>30</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\24.1. Subprog_PLC24_Force_BTN_Program.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>112</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\24.1. Subprog_PLC24_Force_BTN_Program.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>112</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\31. Target_Position.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>110</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\37. Subprog_Stop_Module_Act_Module.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>65</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\24. Subprog_PLC24_Motion_Coordination.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>29</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\26. Subprog_PLC26_Alarm_Sort.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>31</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\27. Subprog_PLC27_Interlock.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>32</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\29. Subprog_PLC29_Single_Dry_Run.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>34</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\31. Subprog_Modbus_Interface.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>59</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\33. Subprog_Manual_Module_Act_Function.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>61</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\34 .Subprog_Manual_Module_Bit_Interlock_Function.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>62</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\28. Subprog_PLC28_Sheet_Data_Flow.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>33</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\35. Subprog_MSA_Module_Act_Subprocess.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>63</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\36. Subprog_MSA_Manual_Act_Main_Process.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>64</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\39. Subprog_Manual_Sequnce_Module_Process.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>67</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\39. Sub_40_Suspend_Module_Act_Subprocess.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>75</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\41. Sub_41_Suspend_Module_Act_Mainprocess.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>77</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\42. Sub_42_Suspend_Module_Prod_Sequence_Automatic.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>78</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\50. Subprog_PLC19_All_Home_Func.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>94</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\51. Subprog_PLC19_All_Home_Condition_Avoid.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>95</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\52. Subprog_PLC19_All_Home_Modifier.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>96</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\38. Subprog_Stop_Module_Act_Main_Process.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>66</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\===ETC===.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>35</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\=====Suspend_Module======.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>74</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\===Motion_SubMaster===.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>0</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\===PLC===.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>2</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\=====HOLD_Module======.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>79</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\=====Manual_Module======.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>60</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\43. Sub_43_HOLD_Module_Act_Subprocess.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>80</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\44. Sub_44_HOLD_Module_Act_Mainprocess.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>86</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\45. Sub_45_HOLD_Module_Prod_Sequence_Automatic.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>87</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\=====HOME__Module======.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>93</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\46. Sub_46_HOLD_Sub_Process_Module.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>88</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\47. Sub_47_Execute_Module_Act_Subprocess.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>90</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\48. Sub_48_Execute_Module_Act_Mainprocess.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>91</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\49. Sub_49_Execute_Module_Prod_Sequence_Automatic.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>92</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\=====EXECUTE__Module======.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>89</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\40. Sub_40.1_Manual_ARC_Act_Process.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>76</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\30. Subprog_Main_Process_Init.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>57</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\=====ETC======.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>106</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\60.subprog_Stack_Algorithm.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>107</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\=====EXECUTE_ETC======.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>56</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\=====Re_Home_Module======.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>97</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\53. Sub_53_All_Home_Module_Act_Subprocess.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>98</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\54. Sub_54_All_Home_Module_Act_Mainprocess.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>104</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\55. Sub_55_All_Home_Module_Prod_Sequence_Automatic.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>105</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\First_ULD_Data_Clear.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>112</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\First_Unloader_Safe_CHK.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>111</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\MSA_SubProg.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>109</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Libraries\timer.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>108</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\00.Prog1_Master_Motion_Program.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>2</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\02.Prog2.Cathode_Align_Stage.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>43</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\03.Prog3.Anode_Align_Stage.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>44</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\11.Prog11_Submaster_Motion_Anode_TR1.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>5</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\12.Prog12_Submaster_Motion_Anode_TR1_PICER_AXIS_T.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>6</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\13.Prog13_Submaster_Motion_Anode_TR2.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>8</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\14.Prog14_Submaster_Motion_Anode_Clamp.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>9</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\15.Prog15_Submaster_Motion_Final_Roll.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>10</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\16.Prog16_Submaster_Motion_Stack_Table.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>11</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\17.Prog17_Submaster_Motion_Cathode_Clamp.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>12</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\18.Prog18_Submaster_Motion_Cathode_TR2.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>13</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\19.Prog19_Submaster_Motion_Cathode_TR1_PICKER_AXIS_T.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>14</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\20.Prog20_Submaster_Motion_Cathode_TR1.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>15</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\21.Prog21_Slave_1_Motion_Anode_TR1.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>18</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\22.Prog22_Slave_2_Motion_Anode_TR1_PICKER_AXIS_T.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>19</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\23.Prog23_Slave_3_Motion_Anode_TR2.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>20</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\24.Prog24_Slave_4_Motion_Anode_Clamp.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>21</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\25.Prog25_Slave_5_Final_Roll.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>23</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\26.Prog26_Slave_6_Stack_Table.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>24</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\27.Prog27_Slave_7_Motion_Cathode_Clamp.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>25</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\28.Prog28_Slave_8_Motion_Cathode_TR2.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>26</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\29.Prog29_Slave_9_Motion_Cathode_TR1_PICKER_AXIS_T.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>27</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\30.Prog30_Slave_10_Motion_Cathode_TR1.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>28</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\31.Prog31_Slave_11_Motion_1st_Sheet_Paper.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>29</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\32.Prog32_Slave_12_Motion_Cathode_NG_PNP.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>30</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\33.Prog33_Slave_13_Motion_Anode_NG_PNP.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>32</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\34.Prog34_Slave_14_Motion_1st_ULD.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>33</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\35.prog35_Slave_15_Motion_Driving_Roller.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>35</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\36.prog36_Unwinder.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>36</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\===Align_Motion===.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>42</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\===Master_Motion===.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>0</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\===Sepa_Motion===.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>45</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\===Slave_Motion===.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>16</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\===Sub_Master_Motion===.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>3</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\37.prog37_Slave_16_Motion_Anode_TR1_Z.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>37</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\38.prog38_Slave_17_Motion_Anode_TR2_Z.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>38</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\39.prog39_Slave_18_Motion_Cathode_TR2_Z.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>39</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\40.prog40_Slave_19_Motion_Cathode_TR1_Z.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>40</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\Motion Programs\41.prog41_Slave_20_Motion_CamData.pmc">
+      <SubType>Content</SubType>
+      <DisplayOrder>41</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\00.PLC_00_Prod_Mode_Mangement.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>0</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\01.PLC_01_Auto_Main_Prod_Main_Process.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>4</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\03.PLC_03_Memory_Tower_Pause_Resume.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>8</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\02.PLC_02_Main_Status_Module_Process,Act.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>6</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\05.PLC_05_Execute_Module.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>10</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\06.PLC_06_Spool_Calculation.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>11</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\07.PLC_07_PLC_Communication.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>13</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\08.PLC_08_Process_Program.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>14</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\09.PLC_09_Sub_Process_Program.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>15</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\10.PLC_10_Protocol_Program.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>19</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\14.PLC_14_STOP_MSA_Acting.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>22</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\12.PLC_12_Monitoring.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>20</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\13.PLC_13_STOP_MSA Module_Process.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>21</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\15.PLC_15_Button_Program.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>24</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\16.PLC_16_MES_PV_Upload_Program.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>30</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\17.PLC_17_TactTime_Program.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>31</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\18.PLC_18_EPC.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>32</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\19.PLC_19_Home_Sequence.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>33</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\20.PLC_20_Shutdown.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>34</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\21.PLC_21_Manual_ARC_NamePlate.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>39</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\23.PLC_23_Status_To_PLC.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>40</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\24.PLC_24_Coordination_AIO.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>41</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\25.PLC_25_Memory_Set.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>42</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\26.PLC_26_Alarm_To_PLC.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>43</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\27.PLC_27_InterLock.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>44</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\28.PLC_28_Sheet_Data_Flow.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>45</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\29.PLC_29_Single_Dry_Run.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>46</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\30.PLC_30_ECAT_Drive_SET.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>47</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\31.PLC_31_Initialze.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>48</DisplayOrder>
+    </Content>
+    <Content Include="PMAC Script Language\PLC Programs\04.PLC_04_Vision_Inspection.plc">
+      <SubType>Content</SubType>
+      <DisplayOrder>9</DisplayOrder>
+    </Content>
+    <Content Include="System\EtherCAT\331.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\331{001 Module 1 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\331.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\331{002 Module 2 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\331.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\331{003 Module 3 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\331.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\331{004 Module 4 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\331.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\331{005 Module 5 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\331.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\331{006 Module 6 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\331.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\331{007 Module 7 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\331.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\331{008 Module 8 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\331.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\331{009 Module 9 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\331.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\331{010 Module 10 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\331.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\331{011 Module 11 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\331.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\332.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\333.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\334.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\335.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\336.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\337.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\338.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\339.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\340.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\341.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\342.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\343.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\344.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\345.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\346.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\347.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\348.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\348{001 Module 1 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\348.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\348{002 Module 2 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\348.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\348{003 Module 3 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\348.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\348{004 Module 4 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\348.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\348{005 Module 5 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\348.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\348{006 Module 6 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\348.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\348{007 Module 7 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\348.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\348{008 Module 8 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\348.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\348{009 Module 9 %28NX-AD3208%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\348.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\349.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\349{001 Module 1 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\349.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\349{002 Module 2 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\349.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\349{003 Module 3 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\349.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\349{004 Module 4 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\349.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\349{005 Module 5 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\349.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\349{006 Module 6 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\349.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\349{007 Module 7 %28NX-AD3608%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\349.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\349{008 Module 8 %28NX-AD3208%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\349.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\349{009 Module 9 %28NX-DA3605%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\349.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\602.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\603.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\603{001 Module 1 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\603.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\603{002 Module 2 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\603.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\603{003 Module 3 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\603.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\603{004 Module 4 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\603.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\603{005 Module 5 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\603.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\603{006 Module 6 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\603.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\603{007 Module 7 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\603.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\603{008 Module 8 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\603.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\603{009 Module 9 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\603.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\603{010 Module 10 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\603.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\603{011 Module 11 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\603.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\604.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\605.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\606.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\607.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\608.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\609.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\610.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\611.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\612.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\613.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\614.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\615.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\616.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\617.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\618.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\619.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\620.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\620{001 Module 1 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\620.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\620{002 Module 2 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\620.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\620{003 Module 3 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\620.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\620{004 Module 4 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\620.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\620{005 Module 5 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\620.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\620{006 Module 6 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\620.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\620{007 Module 7 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\620.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\620{008 Module 8 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\620.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\620{009 Module 9 %28NX-AD3208%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\620.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\621.ecatslave">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\Master0.ecatmaster</DependentUpon>
+      <AssignedMotorNumber>-1</AssignedMotorNumber>
+    </Content>
+    <Content Include="System\EtherCAT\621{001 Module 1 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\621.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\621{002 Module 2 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\621.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\621{003 Module 3 %28NX-ID5342%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\621.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\621{004 Module 4 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\621.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\621{005 Module 5 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\621.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\621{006 Module 6 %28NX-OD5121%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\621.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\621{007 Module 7 %28NX-AD3608%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\621.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\621{008 Module 8 %28NX-AD3208%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\621.ecatslave</DependentUpon>
+    </Content>
+    <Content Include="System\EtherCAT\621{009 Module 9 %28NX-DA3605%29.ecatmodule">
+      <SubType>Content</SubType>
+      <DependentUpon>System\EtherCAT\621.ecatslave</DependentUpon>
+    </Content>
+    <None Include="System\Hardware\CK3W-AX1515[7].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\CK3W-ECS300[1].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\CK3W-AX1515[6].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\CK3W-AX1515[5].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\CK3W-AX1515[2].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\CK3W-AX1111[0].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\CK3W-AX1515[4].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\CK3W-AX1515[3].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\CK3W-AX1313[0].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\ACC-24E3[7].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\ACC-24E3[6].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\ACC-24E3[5].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\ACC-24E3[4].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\ACC-24E3[3].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\ACC-24E3[2].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\ACC-24E3[1].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <None Include="System\Hardware\ACC-24E3[0].hwsetup">
+      <SubType>Content</SubType>
+    </None>
+    <Folder Include="C Language\" />
+    <Folder Include="C Language\Background Programs\" />
+    <Folder Include="C Language\Background Programs\capp1" />
+    <Content Include="C Language\Background Programs\capp1\capp1.h" />
+    <Folder Include="C Language\Background Programs\Manual\" />
+    <Folder Include="C Language\Background Programs\Manual\btn" />
+    <Folder Include="C Language\Background Programs\Manual\Home" />
+    <Folder Include="C Language\Background Programs\Manual\Jog" />
+    <Folder Include="C Language\Background Programs\mc\" />
+    <Folder Include="C Language\Background Programs\save_c\" />
+    <Folder Include="C Language\CPLCs\" />
+    <Folder Include="C Language\CPLCs\bgcplc00" />
+    <Content Include="C Language\Background Programs\save_c\save_c.c">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="C Language\Background Programs\save_c\save_func_c.c">
+      <SubType>Code</SubType>
+    </Content>
+    <Compile Include="C Language\CPLCs\bgcplc00\bgcplc.c" />
+    <Folder Include="C Language\CPLCs\bgcplc01\" />
+    <Folder Include="C Language\CPLCs\bgcplc02\" />
+    <Folder Include="C Language\CPLCs\rticplc" />
+    <Content Include="C Language\CPLCs\bgcplc01\bgcplc01.c">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="C Language\CPLCs\rticplc\rticplc.c" />
+    <Folder Include="C Language\Include" />
+    <Content Include="C Language\Include\pp_proj.h" />
+    <Folder Include="C Language\Libraries" />
+    <Folder Include="C Language\Realtime Routines" />
+    <Content Include="C Language\Realtime Routines\usrcode.c" />
+    <Content Include="C Language\Realtime Routines\usrcode.h" />
+    <Folder Include="Configuration" />
+    <None Include="Configuration\pp_custom_save.cfg" />
+    <None Include="Configuration\pp_custom_save.tpl" />
+    <None Include="Configuration\pp_disable.txt" />
+    <None Include="Configuration\pp_inc_disable.txt" />
+    <None Include="Configuration\pp_inc_startup.txt" />
+    <None Include="Configuration\pp_save.cfg" />
+    <None Include="Configuration\pp_startup.txt" />
+    <None Include="Configuration\systemsetup.cfg" />
+    <Folder Include="Documentation" />
+    <Content Include="Documentation\00. Work_History.txt" />
+    <Folder Include="Log" />
+    <None Include="Log\pp_error.log" />
+    <None Include="Log\pp_error_hist.log" />
+    <None Include="Log\pp_proj.log" />
+    <Folder Include="PMAC Script Language\" />
+    <Folder Include="PMAC Script Language\Global Includes" />
+    <Folder Include="PMAC Script Language\Kinematic Routines" />
+    <Folder Include="PMAC Script Language\Libraries" />
+    <Folder Include="PMAC Script Language\Motion Programs" />
+    <Folder Include="PMAC Script Language\PLC Programs" />
+    <Folder Include="System" />
+    <Folder Include="System\Hardware" />
+    <Folder Include="System\CPU" />
+    <None Include="System\CPU\System.cpusetup" />
+    <Folder Include="System\Motors" />
+    <Folder Include="System\Coordinate Systems" />
+    <Folder Include="System\Encoder" />
+    <None Include="System\Encoder\Encoder.encsetup" />
+    <Folder Include="System\EtherCAT" />
+    <None Include="System\EtherCAT\Master0.ecatmaster">
+      <IgnoreRevision>false</IgnoreRevision>
+      <UseEtherCATConfigurationTemplate>false</UseEtherCATConfigurationTemplate>
+      <IsStationAddressDisabled>false</IsStationAddressDisabled>
+      <AutoConfigureMotorTopology>true</AutoConfigureMotorTopology>
+      <ShowEtherCATMotorConfigurationView>true</ShowEtherCATMotorConfigurationView>
+      <AllowDuplicatePDOMapping>false</AllowDuplicatePDOMapping>
+    </None>
+    <Folder Include="Tools" />
+    <None Include="Tools\Tune.tunesetup" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="C Language\Background Programs\Manual\btn\btn.c">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="C Language\Background Programs\Manual\btn\btnAction.c">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="C Language\Background Programs\Manual\btn\btn_Init.c">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="C Language\Background Programs\Manual\Home\home.c">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="C Language\Background Programs\Manual\Home\home_act.c">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="C Language\Background Programs\Manual\Jog\Jog.c">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="C Language\Background Programs\Manual\Jog\jog_act.c">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="C Language\Background Programs\Manual\Jog\motor_get.c">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="C Language\Background Programs\Manual\Jog\Motor_Status.c">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="C Language\Background Programs\Manual\Manual.c">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="C Language\Background Programs\mc\mc_protocol.c">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.Common.targets" />
+  <Target Name="Build">
+    <CompileTask Files="@(Compile)" OutputPath="$(OutputPath)" DebugSymbols="$(DebugSymbols)" ProjectPath="$(MSBuildProjectDirectory)" PPCPUType="$(PPCPUType)" RealtimeRoutinesBuildFlag="$(RealtimeRoutinesBuildFlag)" CustomCompileFlags="@(CustomCompile)" CustomLibraryFlags="@(CustomLibrary)" CustomMakeFilePath="@(CustomMakeFilePath)" />
+  </Target>
+  <Target Name="Rebuild">
+    <CompileTask Files="@(Compile)" OutputPath="$(OutputPath)" DebugSymbols="$(DebugSymbols)" ProjectPath="$(MSBuildProjectDirectory)" PPCPUType="$(PPCPUType)" RealtimeRoutinesBuildFlag="$(RealtimeRoutinesBuildFlag)" CustomCompileFlags="@(CustomCompile)" CustomLibraryFlags="@(CustomLibrary)" CustomMakeFilePath="@(CustomMakeFilePath)" />
+  </Target>
+  <Target Name="Clean">
+    <RemoveDir Directories="$(OutputPath)" />
+    <MakeDir Directories="$(OutputPath)" />
+  </Target>
+</Project>

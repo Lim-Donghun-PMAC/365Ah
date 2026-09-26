@@ -1,0 +1,801 @@
+//READ 영역
+ptr M_Motor_Vel(50)->*;
+ptr M_Motor_TA(50)->*;
+ptr M_Motor_TD(50)->*;
+ptr M_Motor_BTN(50)->*;
+ptr M_Motor_RecipePos(50)->*;
+ptr M_Motor_Move_Distance(50)->*;
+ptr M_Motor_Home_Offset(50)->*;
+
+M_Motor_Vel(0)->*;
+M_Motor_TA(0)->*;
+M_Motor_TD(0)->*;
+M_Motor_BTN(0)->*;
+M_Motor_RecipePos(0)->*;
+M_Motor_Move_Distance(0)->*;
+M_Motor_Home_Offset(0)->*;
+
+//Write 영역
+
+ptr M_Motor_Pos_Data(50)->*;
+ptr M_Motor_Status_Data(50)->*;
+ptr M_Motor_Recipe_Pos_Interlock(50)->*;
+ptr M_Motor_Peak_Load_Ratio(50)->*;
+ptr M_Motor_Effective_Load_Ratio(50)->*;
+ptr M_Motor_Check_Current_Recipe_Pos(50)->*;
+
+M_Motor_Pos_Data(0)->*;
+M_Motor_Status_Data(0)->*;
+M_Motor_Recipe_Pos_Interlock(0)->*;
+M_Motor_Peak_Load_Ratio(0)->*;
+M_Motor_Effective_Load_Ratio(0)->*;
+M_Motor_Check_Current_Recipe_Pos(0)->*;
+
+
+
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+																		 READ 영역 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+// (Axis 01) TR#1 CATHODE T
+M_Motor_Vel(1)				->Sys.Idata[10800];
+M_Motor_TA(1)				->u.user:$00A8C4.00.16;
+M_Motor_TD(1)				->u.user:$00A8C4.16.16;
+M_Motor_BTN(1)				->u.user:$00A8C8.00.16;
+M_Motor_RecipePos(1)		->u.user:$00A8C8.16.16;
+M_Motor_Move_Distance(1) 	->Sys.Idata[10804];
+M_Motor_Home_Offset(1)		->Sys.Idata[10805];
+// (Axis 02) TR#1 ANODE T
+M_Motor_Vel(2)				->Sys.Idata[10807];
+M_Motor_TA(2)				->u.user:$00A8E0.00.16;
+M_Motor_TD(2)				->u.user:$00A8E0.16.16;
+M_Motor_BTN(2)				->u.user:$00A8E4.00.16;
+M_Motor_RecipePos(2)		->u.user:$00A8E4.16.16;
+M_Motor_Move_Distance(2)	->Sys.Idata[10811];
+M_Motor_Home_Offset(2)		->Sys.Idata[10812];
+// (Axis 03) TR#2 CATHODE T
+M_Motor_Vel(3)				->Sys.Idata[10814];
+M_Motor_TA(3)				->u.user:$00A8FC.00.16;
+M_Motor_TD(3)				->u.user:$00A8FC.16.16;
+M_Motor_BTN(3)				->u.user:$00A900.00.16;
+M_Motor_RecipePos(3)		->u.user:$00A900.16.16;
+M_Motor_Move_Distance(3)	->Sys.Idata[10818];
+M_Motor_Home_Offset(3)		->Sys.Idata[10819];
+// (Axis 04) TR#2 ANODE T
+M_Motor_Vel(4)				->Sys.Idata[10821];
+M_Motor_TA(4)				->u.user:$00A918.00.16;
+M_Motor_TD(4)				->u.user:$00A918.16.16;
+M_Motor_BTN(4)				->u.user:$00A91C.00.16;
+M_Motor_RecipePos(4)		->u.user:$00A91C.16.16;
+M_Motor_Move_Distance(4)	->Sys.Idata[10825];
+M_Motor_Home_Offset(4)		->Sys.Idata[10826];
+// (Axis 05) CATHODE CLAMP Y1
+M_Motor_Vel(5)				->Sys.Idata[10828];
+M_Motor_TA(5)				->u.user:$00A934.00.16;
+M_Motor_TD(5)				->u.user:$00A934.16.16;
+M_Motor_BTN(5)				->u.user:$00A938.00.16;
+M_Motor_RecipePos(5)		->u.user:$00A938.16.16;
+M_Motor_Move_Distance(5)	->Sys.Idata[10832];
+M_Motor_Home_Offset(5)		->Sys.Idata[10833];
+// (Axis 06) ANODE CLAMP Y1
+M_Motor_Vel(6)				->Sys.Idata[10835];
+M_Motor_TA(6)				->u.user:$00A950.00.16;
+M_Motor_TD(6)				->u.user:$00A950.16.16;
+M_Motor_BTN(6)				->u.user:$00A954.00.16;
+M_Motor_RecipePos(6)		->u.user:$00A954.16.16;
+M_Motor_Move_Distance(6)	->Sys.Idata[10839];
+M_Motor_Home_Offset(6)		->Sys.Idata[10840];
+// (Axis 07) CATHODE CLAMP Y2
+M_Motor_Vel(7)				->Sys.Idata[10842];
+M_Motor_TA(7)				->u.user:$00A96C.00.16;
+M_Motor_TD(7)				->u.user:$00A96C.16.16;
+M_Motor_BTN(7)				->u.user:$00A970.00.16;
+M_Motor_RecipePos(7)		->u.user:$00A970.16.16;
+M_Motor_Move_Distance(7)	->Sys.Idata[10846];
+M_Motor_Home_Offset(7)		->Sys.Idata[10847];
+// (Axis 08) ANODE CLAMP Y2
+M_Motor_Vel(8)				->Sys.Idata[10849];
+M_Motor_TA(8)				->u.user:$00A988.00.16;
+M_Motor_TD(8)				->u.user:$00A988.16.16;
+M_Motor_BTN(8)				->u.user:$00A98C.00.16;
+M_Motor_RecipePos(8)		->u.user:$00A98C.16.16;
+M_Motor_Move_Distance(8)	->Sys.Idata[10853];
+M_Motor_Home_Offset(8)		->Sys.Idata[10854];
+// (Axis 09) CATHODE CLAMP Z
+M_Motor_Vel(9)				->Sys.Idata[10856];
+M_Motor_TA(9)				->u.user:$00A9A4.00.16;
+M_Motor_TD(9)				->u.user:$00A9A4.16.16;
+M_Motor_BTN(9)				->u.user:$00A9A8.00.16;
+M_Motor_RecipePos(9)		->u.user:$00A9A8.16.16;
+M_Motor_Move_Distance(9)	->Sys.Idata[10860];
+M_Motor_Home_Offset(9)		->Sys.Idata[10861];
+// (Axis 10) ANODE CLAMP Z
+M_Motor_Vel(10)				->Sys.Idata[10863];
+M_Motor_TA(10)				->u.user:$00A9C0.00.16;
+M_Motor_TD(10)				->u.user:$00A9C0.16.16;
+M_Motor_BTN(10)				->u.user:$00A9C4.00.16;
+M_Motor_RecipePos(10)		->u.user:$00A9C4.16.16;
+M_Motor_Move_Distance(10)	->Sys.Idata[10867];
+M_Motor_Home_Offset(10)		->Sys.Idata[10868];	
+// (Axis 11) S/T MAIN Z
+M_Motor_Vel(11)				->Sys.Idata[10870];
+M_Motor_TA(11)				->u.user:$00A9DC.00.16;
+M_Motor_TD(11)				->u.user:$00A9DC.16.16;
+M_Motor_BTN(11)				->u.user:$00A9E0.00.16;
+M_Motor_RecipePos(11)		->u.user:$00A9E0.16.16;
+M_Motor_Move_Distance(11)	->Sys.Idata[10874];
+M_Motor_Home_Offset(11)		->Sys.Idata[10875];
+// (Axis 12) FINAL ROLL X
+M_Motor_Vel(12)				->Sys.Idata[10877];
+M_Motor_TA(12)				->u.user:$00A9F8.00.16;
+M_Motor_TD(12)				->u.user:$00A9F8.16.16;
+M_Motor_BTN(12)				->u.user:$00A9FC.00.16;
+M_Motor_RecipePos(12)		->u.user:$00A9FC.16.16;
+M_Motor_Move_Distance(12)	->Sys.Idata[10881];
+M_Motor_Home_Offset(12)		->Sys.Idata[10882];
+// (Axis 13) FINAL ROLL Z
+M_Motor_Vel(13)				->Sys.Idata[10884];
+M_Motor_TA(13)				->u.user:$00AA14.00.16;
+M_Motor_TD(13)				->u.user:$00AA14.16.16;
+M_Motor_BTN(13)				->u.user:$00AA18.00.16;
+M_Motor_RecipePos(13)		->u.user:$00AA18.16.16;
+M_Motor_Move_Distance(13)	->Sys.Idata[10888];
+M_Motor_Home_Offset(13)		->Sys.Idata[10889];
+// (Axis 14) SUBFEEDING ROLL
+M_Motor_Vel(14)				->Sys.Idata[10891];
+M_Motor_TA(14)				->u.user:$00AA30.00.16;
+M_Motor_TD(14)				->u.user:$00AA30.16.16;
+M_Motor_BTN(14)				->u.user:$00AA34.00.16;
+M_Motor_RecipePos(14)		->u.user:$00AA34.16.16;
+M_Motor_Move_Distance(14)	->Sys.Idata[10895];
+M_Motor_Home_Offset(14)		->Sys.Idata[10896];
+// (Axis 15) DRIVING ROLL
+M_Motor_Vel(15)				->Sys.Idata[10898];
+M_Motor_TA(15)				->u.user:$00AA4C.00.16;
+M_Motor_TD(15)				->u.user:$00AA4C.16.16;
+M_Motor_BTN(15)				->u.user:$00AA50.00.16;
+M_Motor_RecipePos(15)		->u.user:$00AA50.16.16;
+M_Motor_Move_Distance(15)	->Sys.Idata[10902];
+M_Motor_Home_Offset(15)		->Sys.Idata[10903];
+// (Axis 16) SERVO DANCER
+M_Motor_Vel(16)				->Sys.Idata[10905];
+M_Motor_TA(16)				->u.user:$00AA68.00.16;
+M_Motor_TD(16)				->u.user:$00AA68.16.16;
+M_Motor_BTN(16)				->u.user:$00AA6C.00.16;
+M_Motor_RecipePos(16)		->u.user:$00AA6C.16.16;
+M_Motor_Move_Distance(16)	->Sys.Idata[10909];
+M_Motor_Home_Offset(16)		->Sys.Idata[10910];
+// (Axis 17) TR#1 CAHTODE Z
+M_Motor_Vel(17)				->Sys.Idata[10912];
+M_Motor_TA(17)				->u.user:$00AA84.00.16;
+M_Motor_TD(17)				->u.user:$00AA84.16.16;
+M_Motor_BTN(17)				->u.user:$00AA88.00.16;
+M_Motor_RecipePos(17)		->u.user:$00AA88.16.16;
+M_Motor_Move_Distance(17)	->Sys.Idata[10916];
+M_Motor_Home_Offset(17)		->Sys.Idata[10917];
+// (Axis 18) TR#1 ANODE Z
+M_Motor_Vel(18)				->Sys.Idata[10919];
+M_Motor_TA(18)				->u.user:$00AAA0.00.16;
+M_Motor_TD(18)				->u.user:$00AAA0.16.16;
+M_Motor_BTN(18)				->u.user:$00AAA4.00.16;
+M_Motor_RecipePos(18)		->u.user:$00AAA4.16.16;
+M_Motor_Move_Distance(18)	->Sys.Idata[10923];
+M_Motor_Home_Offset(18)		->Sys.Idata[10924];
+// (Axis 19) TR#1 CATHODE PICKER T
+M_Motor_Vel(19)				->Sys.Idata[10926];
+M_Motor_TA(19)				->u.user:$00AABC.00.16;
+M_Motor_TD(19)				->u.user:$00AABC.16.16;
+M_Motor_BTN(19)				->u.user:$00AAC0.00.16;
+M_Motor_RecipePos(19)		->u.user:$00AAC0.16.16;
+M_Motor_Move_Distance(19)	->Sys.Idata[10930];
+M_Motor_Home_Offset(19)		->Sys.Idata[10931];
+// (Axis 20) TR#1 ANODE PICKER T
+M_Motor_Vel(20)				->Sys.Idata[10933];
+M_Motor_TA(20)				->u.user:$00AAD8.00.16;
+M_Motor_TD(20)				->u.user:$00AAD8.16.16;
+M_Motor_BTN(20)				->u.user:$00AADC.00.16;
+M_Motor_RecipePos(20)		->u.user:$00AADC.16.16;
+M_Motor_Move_Distance(20)	->Sys.Idata[10937];
+M_Motor_Home_Offset(20)		->Sys.Idata[10938];
+// (Axis 21) TR#2 CATHODE Z
+M_Motor_Vel(21)				->Sys.Idata[10940];
+M_Motor_TA(21)				->u.user:$00AAF4.00.16;
+M_Motor_TD(21)				->u.user:$00AAF4.16.16;
+M_Motor_BTN(21)				->u.user:$00AAF8.00.16;
+M_Motor_RecipePos(21)		->u.user:$00AAF8.16.16;
+M_Motor_Move_Distance(21)	->Sys.Idata[10944];
+M_Motor_Home_Offset(21)		->Sys.Idata[10945];
+// (Axis 22) TR#2 ANODE Z
+M_Motor_Vel(22)				->Sys.Idata[10947];
+M_Motor_TA(22)				->u.user:$00AB10.00.16;
+M_Motor_TD(22)				->u.user:$00AB10.16.16;
+M_Motor_BTN(22)				->u.user:$00AB14.00.16;
+M_Motor_RecipePos(22)		->u.user:$00AB14.16.16;
+M_Motor_Move_Distance(22)	->Sys.Idata[10951];
+M_Motor_Home_Offset(22)		->Sys.Idata[10952];
+// (Axis 23) S/U UPPER SPOOL ROTATE
+M_Motor_Vel(23)				->Sys.Idata[10954];
+M_Motor_TA(23)				->u.user:$00AB2C.00.16;
+M_Motor_TD(23)				->u.user:$00AB2C.16.16;
+M_Motor_BTN(23)				->u.user:$00AB30.00.16;
+M_Motor_RecipePos(23)		->u.user:$00AB30.16.16;
+M_Motor_Move_Distance(23)	->Sys.Idata[10958];
+M_Motor_Home_Offset(23)		->Sys.Idata[10959];
+// (Axis 24) S/U LOWER SPOOL ROTATE
+M_Motor_Vel(24)				->Sys.Idata[10961];
+M_Motor_TA(24)				->u.user:$00AB48.00.16;
+M_Motor_TD(24)				->u.user:$00AB48.16.16;
+M_Motor_BTN(24)				->u.user:$00AB4C.00.16;
+M_Motor_RecipePos(24)		->u.user:$00AB4C.16.16;
+M_Motor_Move_Distance(24)	->Sys.Idata[10965];
+M_Motor_Home_Offset(24)		->Sys.Idata[10966];
+// (Axis 25) SPARE
+M_Motor_Vel(25)				->Sys.Idata[10968];
+M_Motor_TA(25)				->u.user:$00AB64.00.16;
+M_Motor_TD(25)				->u.user:$00AB64.16.16;
+M_Motor_BTN(25)				->u.user:$00AB68.00.16;
+M_Motor_RecipePos(25)		->u.user:$00AB68.16.16;
+M_Motor_Move_Distance(25)	->Sys.Idata[10972];
+M_Motor_Home_Offset(25)		->Sys.Idata[10973];
+// (Axis 26) SPARE
+M_Motor_Vel(26)				->Sys.Idata[10975];
+M_Motor_TA(26)				->u.user:$00AB80.00.16;
+M_Motor_TD(26)				->u.user:$00AB80.16.16;
+M_Motor_BTN(26)				->u.user:$00AB84.00.16;
+M_Motor_RecipePos(26)		->u.user:$00AB84.16.16;
+M_Motor_Move_Distance(26)	->Sys.Idata[10979];
+M_Motor_Home_Offset(26)		->Sys.Idata[10980];
+// (Axis 27) SPARE
+M_Motor_Vel(27)				->Sys.Idata[10982];
+M_Motor_TA(27)				->u.user:$00AB9C.00.16;
+M_Motor_TD(27)				->u.user:$00AB9C.16.16;
+M_Motor_BTN(27)				->u.user:$00ABA0.00.16;
+M_Motor_RecipePos(27)		->u.user:$00ABA0.16.16;
+M_Motor_Move_Distance(27)	->Sys.Idata[10986];
+M_Motor_Home_Offset(27)		->Sys.Idata[10987];
+// (Axis 28) SPARE
+M_Motor_Vel(28)				->Sys.Idata[10989];
+M_Motor_TA(28)				->u.user:$00ABB8.00.16;
+M_Motor_TD(28)				->u.user:$00ABB8.16.16;
+M_Motor_BTN(28)				->u.user:$00ABBC.00.16;
+M_Motor_RecipePos(28)		->u.user:$00ABBC.16.16;
+M_Motor_Move_Distance(28)	->Sys.Idata[10993];
+M_Motor_Home_Offset(28)		->Sys.Idata[10994];
+// (Axis 29) SPARE
+M_Motor_Vel(29)				->Sys.Idata[10996];
+M_Motor_TA(29)				->u.user:$00ABD4.00.16;
+M_Motor_TD(29)				->u.user:$00ABD4.16.16;
+M_Motor_BTN(29)				->u.user:$00ABD8.00.16;
+M_Motor_RecipePos(29)		->u.user:$00ABD8.16.16;
+M_Motor_Move_Distance(29)	->Sys.Idata[11000];
+M_Motor_Home_Offset(29)		->Sys.Idata[11001];
+// (Axis 30) SPARE
+M_Motor_Vel(30)				->Sys.Idata[11003];
+M_Motor_TA(30)				->u.user:$00ABF0.00.16;
+M_Motor_TD(30)				->u.user:$00ABF0.16.16;
+M_Motor_BTN(30)				->u.user:$00ABF4.00.16;
+M_Motor_RecipePos(30)		->u.user:$00ABF4.16.16;
+M_Motor_Move_Distance(30)	->Sys.Idata[11007];
+M_Motor_Home_Offset(30)		->Sys.Idata[11008];
+// (Axis 31) SPARE
+M_Motor_Vel(31)				->Sys.Idata[11010];
+M_Motor_TA(31)				->u.user:$00AC0C.00.16;
+M_Motor_TD(31)				->u.user:$00AC0C.16.16;
+M_Motor_BTN(31)				->u.user:$00AC10.00.16;
+M_Motor_RecipePos(31)		->u.user:$00AC10.16.16;
+M_Motor_Move_Distance(31)	->Sys.Idata[11014];
+M_Motor_Home_Offset(31)		->Sys.Idata[11015];
+// (Axis 32) SPARE
+M_Motor_Vel(32)				->Sys.Idata[11017];
+M_Motor_TA(32)				->u.user:$00AC28.00.16;
+M_Motor_TD(32)				->u.user:$00AC28.16.16;
+M_Motor_BTN(32)				->u.user:$00AC2C.00.16;
+M_Motor_RecipePos(32)		->u.user:$00AC2C.16.16;
+M_Motor_Move_Distance(32)	->Sys.Idata[11021];
+M_Motor_Home_Offset(32)		->Sys.Idata[11022];
+// (Axis 33) EPC SENSOR
+M_Motor_Vel(33)				->Sys.Idata[11024];
+M_Motor_TA(33)				->u.user:$00AC44.00.16;
+M_Motor_TD(33)				->u.user:$00AC44.16.16;
+M_Motor_BTN(33)				->u.user:$00AC48.00.16;
+M_Motor_RecipePos(33)		->u.user:$00AC48.16.16;
+M_Motor_Move_Distance(33)	->Sys.Idata[11028];
+M_Motor_Home_Offset(33)		->Sys.Idata[11029];
+// (Axis 34) STACK VISION
+M_Motor_Vel(34)				->Sys.Idata[11031];
+M_Motor_TA(34)				->u.user:$00AC60.00.16;
+M_Motor_TD(34)				->u.user:$00AC60.16.16;
+M_Motor_BTN(34)				->u.user:$00AC64.00.16
+M_Motor_RecipePos(34)		->u.user:$00AC64.16.16;
+M_Motor_Move_Distance(34)	->Sys.Idata[11035];
+M_Motor_Home_Offset(34)		->Sys.Idata[11036];
+// (Axis 35) 1ST SHEET PAPER X
+M_Motor_Vel(35)				->Sys.Idata[11038];
+M_Motor_TA(35)				->u.user:$00AC7C.00.16;
+M_Motor_TD(35)				->u.user:$00AC7C.16.16;
+M_Motor_BTN(35)				->u.user:$00AC80.00.16;
+M_Motor_RecipePos(35)		->u.user:$00AC80.16.16;
+M_Motor_Move_Distance(35)	->Sys.Idata[11042];
+M_Motor_Home_Offset(35)		->Sys.Idata[11043];
+// (Axis 36) CATHODE ALIGN X
+M_Motor_Vel(36)				->Sys.Idata[11045];
+M_Motor_TA(36)				->u.user:$00AC98.00.16;
+M_Motor_TD(36)				->u.user:$00AC98.16.16;
+M_Motor_BTN(36)				->u.user:$00AC9C.00.16;
+M_Motor_RecipePos(36)		->u.user:$00AC9C.16.16;
+M_Motor_Move_Distance(36)	->Sys.Idata[11049];
+M_Motor_Home_Offset(36)		->Sys.Idata[11050];
+// (Axis 37) CATHODE ALIGN Y
+M_Motor_Vel(37)				->Sys.Idata[11052];
+M_Motor_TA(37)				->u.user:$00ACB4.00.16;
+M_Motor_TD(37)				->u.user:$00ACB4.16.16;
+M_Motor_BTN(37)				->u.user:$00ACB8.00.16;
+M_Motor_RecipePos(37)		->u.user:$00ACB8.16.16;
+M_Motor_Move_Distance(37)	->Sys.Idata[11056];
+M_Motor_Home_Offset(37)		->Sys.Idata[11057];
+// (Axis 38) CATHODE ALIGN T
+M_Motor_Vel(38)				->Sys.Idata[11059];
+M_Motor_TA(38)				->u.user:$00ACD0.00.16;
+M_Motor_TD(38)				->u.user:$00ACD0.16.16;
+M_Motor_BTN(38)				->u.user:$00ACD4.00.16;
+M_Motor_RecipePos(38)		->u.user:$00ACD4.16.16;
+M_Motor_Move_Distance(38)	->Sys.Idata[11063];
+M_Motor_Home_Offset(38)		->Sys.Idata[11064];
+// (Axis 39) ANODE ALIGN X
+M_Motor_Vel(39)				->Sys.Idata[11066];
+M_Motor_TA(39)				->u.user:$00ACEC.00.16;
+M_Motor_TD(39)				->u.user:$00ACEC.16.16;
+M_Motor_BTN(39)				->u.user:$00ACF0.00.16;
+M_Motor_RecipePos(39)		->u.user:$00ACF0.16.16;
+M_Motor_Move_Distance(39)	->Sys.Idata[11070];
+M_Motor_Home_Offset(39)		->Sys.Idata[11071];
+// (Axis 40) ANODE ALIGN Y
+M_Motor_Vel(40)				->Sys.Idata[11073];
+M_Motor_TA(40)				->u.user:$00AD08.00.16;
+M_Motor_TD(40)				->u.user:$00AD08.16.16;
+M_Motor_BTN(40)				->u.user:$00AD0C.00.16;
+M_Motor_RecipePos(40)		->u.user:$00AD0C.16.16;
+M_Motor_Move_Distance(40)	->Sys.Idata[11077];
+M_Motor_Home_Offset(40)		->Sys.Idata[11078];
+// (Axis 41) ANODE ALIGN T
+M_Motor_Vel(41)				->Sys.Idata[11080];
+M_Motor_TA(41)				->u.user:$00AD24.00.16;
+M_Motor_TD(41)				->u.user:$00AD24.16.16;
+M_Motor_BTN(41)				->u.user:$00AD28.00.16;
+M_Motor_RecipePos(41)		->u.user:$00AD28.16.16;
+M_Motor_Move_Distance(41)	->Sys.Idata[11084];
+M_Motor_Home_Offset(41)		->Sys.Idata[11085];
+// (Axis 42) NG CATHODE PNP T
+M_Motor_Vel(42)				->Sys.Idata[11087];
+M_Motor_TA(42)				->u.user:$00AD40.00.16;
+M_Motor_TD(42)				->u.user:$00AD40.16.16;
+M_Motor_BTN(42)				->u.user:$00AD44.00.16;
+M_Motor_RecipePos(42)		->u.user:$00AD44.16.16;
+M_Motor_Move_Distance(42)	->Sys.Idata[11091];
+M_Motor_Home_Offset(42)		->Sys.Idata[11092];
+// (Axis 43) NG ANODE PNP T
+M_Motor_Vel(43)				->Sys.Idata[11094];
+M_Motor_TA(43)				->u.user:$00AD5C.00.16;
+M_Motor_TD(43)				->u.user:$00AD5C.16.16;
+M_Motor_BTN(43)				->u.user:$00AD60.00.16;
+M_Motor_RecipePos(43)		->u.user:$00AD60.16.16;
+M_Motor_Move_Distance(43)	->Sys.Idata[11098];
+M_Motor_Home_Offset(43)		->Sys.Idata[11099];
+// (Axis 44) NG CATHODE PNP Z
+M_Motor_Vel(44)				->Sys.Idata[11101];
+M_Motor_TA(44)				->u.user:$00AD78.00.16;
+M_Motor_TD(44)				->u.user:$00AD78.16.16;
+M_Motor_BTN(44)				->u.user:$00AD7C.00.16;
+M_Motor_RecipePos(44)		->u.user:$00AD7C.16.16;
+M_Motor_Move_Distance(44)	->Sys.Idata[11105];
+M_Motor_Home_Offset(44)		->Sys.Idata[11106];
+// (Axis 45) NG ANODE PNP Z
+M_Motor_Vel(45)				->Sys.Idata[11108];
+M_Motor_TA(45)				->u.user:$00AD94.00.16;
+M_Motor_TD(45)				->u.user:$00AD94.16.16;
+M_Motor_BTN(45)				->u.user:$00AD98.00.16;
+M_Motor_RecipePos(45)		->u.user:$00AD98.16.16;
+M_Motor_Move_Distance(45)	->Sys.Idata[11112];
+M_Motor_Home_Offset(45)		->Sys.Idata[11113];
+// (Axis 46) 1ST UNLOADER X
+M_Motor_Vel(46)				->Sys.Idata[11115];
+M_Motor_TA(46)				->u.user:$00ADB0.00.16;
+M_Motor_TD(46)				->u.user:$00ADB0.16.16;
+M_Motor_BTN(46)				->u.user:$00ADB4.00.16;
+M_Motor_RecipePos(46)		->u.user:$00ADB4.16.16;
+M_Motor_Move_Distance(46)	->Sys.Idata[11119];
+M_Motor_Home_Offset(46)		->Sys.Idata[11120];
+// (Axis 47) 1ST UNLOADER Z
+M_Motor_Vel(47)				->Sys.Idata[11122];
+M_Motor_TA(47)				->u.user:$00ADCC.00.16;
+M_Motor_TD(47)				->u.user:$00ADCC.16.16;
+M_Motor_BTN(47)				->u.user:$00ADD0.00.16;
+M_Motor_RecipePos(47)		->u.user:$00ADD0.16.16;
+M_Motor_Move_Distance(47)	->Sys.Idata[11126];
+M_Motor_Home_Offset(47)		->Sys.Idata[11127];
+// (Axis 48) 1ST UNLOADER T
+M_Motor_Vel(48)				->Sys.Idata[11129];
+M_Motor_TA(48)				->u.user:$00ADE8.00.16;
+M_Motor_TD(48)				->u.user:$00ADE8.16.16;
+M_Motor_BTN(48)				->u.user:$00ADEC.00.16;
+M_Motor_RecipePos(48)		->u.user:$00ADEC.16.16;
+M_Motor_Move_Distance(48)	->Sys.Idata[11133];
+M_Motor_Home_Offset(48)		->Sys.Idata[11134];
+// (Axis 49) SPARE
+M_Motor_Vel(49)				->Sys.Idata[11136];
+M_Motor_TA(49)				->u.user:$00AE04.00.16;
+M_Motor_TD(49)				->u.user:$00AE04.16.16;
+M_Motor_BTN(49)				->u.user:$00AE08.00.16;
+M_Motor_RecipePos(49)		->u.user:$00AE08.16.16;
+M_Motor_Move_Distance(49)	->Sys.Idata[11140];
+M_Motor_Home_Offset(49)		->Sys.Idata[11141];
+// (Axis 50) SPARE
+M_Motor_Vel(50)				->Sys.Idata[11143];
+M_Motor_TA(50)				->u.user:$00AE20.00.16;
+M_Motor_TD(50)				->u.user:$00AE20.16.16;
+M_Motor_BTN(50)				->u.user:$00AE24.00.16;
+M_Motor_RecipePos(50)		->u.user:$00AE24.16.16;
+M_Motor_Move_Distance(50)	->Sys.Idata[11147];
+M_Motor_Home_Offset(50)		->Sys.Idata[11148];
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+																		 Write 영역 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+// (Axis 01) TR#1 CATHODE T
+ M_Motor_Pos_Data(1)			  		->Sys.Idata[20400];	
+ M_Motor_Status_Data(1)					->u.user:$013EC8.00.16;
+ M_Motor_Recipe_Pos_Interlock(1)		->u.user:$013EC8.16.16;
+ M_Motor_Peak_Load_Ratio(1)				->u.user:$013ECC.00.16;
+ M_Motor_Effective_Load_Ratio(1)		->u.user:$013ECC.16.16;
+ M_Motor_Check_Current_Recipe_Pos(1)	->u.user:$013ED4.00.16;
+ // (Axis 02) TR#1 ANODE T
+ M_Motor_Pos_Data(2)					->Sys.Idata[20407];	
+ M_Motor_Status_Data(2)					->u.user:$013EE4.00.16;
+ M_Motor_Recipe_Pos_Interlock(2)		->u.user:$013EE4.16.16;
+ M_Motor_Peak_Load_Ratio(2)				->u.user:$013EE8.00.16;
+ M_Motor_Effective_Load_Ratio(2)		->u.user:$013EE8.16.16;
+ M_Motor_Check_Current_Recipe_Pos(2)	->u.user:$013EF0.00.16;
+ // (Axis 03) TR#2 CATHODE T
+ M_Motor_Pos_Data(3)					->Sys.Idata[20414];		
+ M_Motor_Status_Data(3)					->u.user:$013F00.00.16;	
+ M_Motor_Recipe_Pos_Interlock(3)		->u.user:$013F00.16.16;
+ M_Motor_Peak_Load_Ratio(3)				->u.user:$013F04.00.16;	
+ M_Motor_Effective_Load_Ratio(3)		->u.user:$013F04.16.16;
+ M_Motor_Check_Current_Recipe_Pos(3)	->u.user:$013F0C.00.16;	
+ // (Axis 04) TR#2 ANODE T
+ M_Motor_Pos_Data(4)					->Sys.Idata[20421];	
+ M_Motor_Status_Data(4)					->u.user:$013F1C.00.16;
+ M_Motor_Recipe_Pos_Interlock(4)		->u.user:$013F1C.16.16;
+ M_Motor_Peak_Load_Ratio(4)				->u.user:$013F20.00.16;
+ M_Motor_Effective_Load_Ratio(4)		->u.user:$013F20.16.16;
+ M_Motor_Check_Current_Recipe_Pos(4)	->u.user:$013F28.00.16;
+ // (Axis 05) CATHODE CLAMP Y1
+ M_Motor_Pos_Data(5)					->Sys.Idata[20428];	
+ M_Motor_Status_Data(5)					->u.user:$013F38.00.16;
+ M_Motor_Recipe_Pos_Interlock(5)		->u.user:$013F38.16.16;
+ M_Motor_Peak_Load_Ratio(5)				->u.user:$013F3C.00.16;
+ M_Motor_Effective_Load_Ratio(5)		->u.user:$013F3C.16.16;
+ M_Motor_Check_Current_Recipe_Pos(5)	->u.user:$013F44.00.16; // 여기서부터 
+ // (Axis 06) ANODE CLAMP Y1
+ M_Motor_Pos_Data(6)					->Sys.Idata[20435];	
+ M_Motor_Status_Data(6)					->u.user:$013F54.00.16;
+ M_Motor_Recipe_Pos_Interlock(6)		->u.user:$013F54.16.16;
+ M_Motor_Peak_Load_Ratio(6)				->u.user:$013F58.00.16;
+ M_Motor_Effective_Load_Ratio(6)		->u.user:$013F58.16.16;
+ M_Motor_Check_Current_Recipe_Pos(6)	->u.user:$013F60.00.16;
+ // (Axis 07) CATHODE CLAMP Y2
+ M_Motor_Pos_Data(7)					->Sys.Idata[20442];		
+ M_Motor_Status_Data(7)					->u.user:$013F70.00.16;	
+ M_Motor_Recipe_Pos_Interlock(7)		->u.user:$013F70.16.16;
+ M_Motor_Peak_Load_Ratio(7)				->u.user:$013F74.00.16;	
+ M_Motor_Effective_Load_Ratio(7)		->u.user:$013F74.16.16;
+ M_Motor_Check_Current_Recipe_Pos(7)	->u.user:$013F7C.00.16;	
+ // (Axis 08) ANODE CLAMP Y2
+ M_Motor_Pos_Data(8)					->Sys.Idata[20449];	
+ M_Motor_Status_Data(8)					->u.user:$013F8C.00.16;
+ M_Motor_Recipe_Pos_Interlock(8)		->u.user:$013F8C.16.16;
+ M_Motor_Peak_Load_Ratio(8)				->u.user:$013F90.00.16;
+ M_Motor_Effective_Load_Ratio(8)		->u.user:$013F90.16.16;
+ M_Motor_Check_Current_Recipe_Pos(8)	->u.user:$013F98.00.16;
+ // (Axis 09) CATHODE CLAMP Z
+ M_Motor_Pos_Data(9)					->Sys.Idata[20456];	
+ M_Motor_Status_Data(9)					->u.user:$013FA8.00.16;
+ M_Motor_Recipe_Pos_Interlock(9)		->u.user:$013FA8.16.16;
+ M_Motor_Peak_Load_Ratio(9)				->u.user:$013FAC.00.16;
+ M_Motor_Effective_Load_Ratio(9)		->u.user:$013FAC.16.16;
+ M_Motor_Check_Current_Recipe_Pos(9)	->u.user:$013FB4.00.16;
+ // (Axis 10) ANODE CLAMP Z
+ M_Motor_Pos_Data(10)					->Sys.Idata[20463];	
+ M_Motor_Status_Data(10)				->u.user:$013FC4.00.16;
+ M_Motor_Recipe_Pos_Interlock(10)		->u.user:$013FC4.16.16;
+ M_Motor_Peak_Load_Ratio(10)			->u.user:$013FC8.00.16;
+ M_Motor_Effective_Load_Ratio(10)		->u.user:$013FC8.16.16;
+ M_Motor_Check_Current_Recipe_Pos(10)	->u.user:$013FD0.00.16;
+ // (Axis 11) S/T MAIN Z
+ M_Motor_Pos_Data(11)					->Sys.Idata[20470];	
+ M_Motor_Status_Data(11)				->u.user:$013FE0.00.16;
+ M_Motor_Recipe_Pos_Interlock(11)		->u.user:$013FE0.16.16;
+ M_Motor_Peak_Load_Ratio(11)			->u.user:$013FE4.00.16;
+ M_Motor_Effective_Load_Ratio(11)		->u.user:$013FE4.16.16;
+ M_Motor_Check_Current_Recipe_Pos(11)	->u.user:$013FEC.00.16;
+ // (Axis 12) FINAL ROLL X
+ M_Motor_Pos_Data(12)					->Sys.Idata[20477];	
+ M_Motor_Status_Data(12)				->u.user:$013FFC.00.16; 
+ M_Motor_Recipe_Pos_Interlock(12)		->u.user:$013FFC.16.16;
+ M_Motor_Peak_Load_Ratio(12)			->u.user:$014000.00.16;
+ M_Motor_Effective_Load_Ratio(12)		->u.user:$014000.16.16;
+ M_Motor_Check_Current_Recipe_Pos(12)	->u.user:$014008.00.16;
+ // (Axis 13) FINAL ROLL Z
+ M_Motor_Pos_Data(13)					->Sys.Idata[20484];	
+ M_Motor_Status_Data(13)				->u.user:$014018.00.16;
+ M_Motor_Recipe_Pos_Interlock(13)		->u.user:$014018.16.16;
+ M_Motor_Peak_Load_Ratio(13)			->u.user:$01401C.00.16;
+ M_Motor_Effective_Load_Ratio(13)		->u.user:$01401C.16.16;
+ M_Motor_Check_Current_Recipe_Pos(13)	->u.user:$014024.00.16;
+ // (Axis 14) SUBFEEDING ROLL
+ M_Motor_Pos_Data(14)					->Sys.Idata[20491];	
+ M_Motor_Status_Data(14)				->u.user:$014034.00.16;
+ M_Motor_Recipe_Pos_Interlock(14)		->u.user:$014034.16.16;
+ M_Motor_Peak_Load_Ratio(14)			->u.user:$014038.00.16;
+ M_Motor_Effective_Load_Ratio(14)		->u.user:$014038.16.16;
+ M_Motor_Check_Current_Recipe_Pos(14)	->u.user:$014040.00.16;
+ // (Axis 15) DRIVING ROLL
+ M_Motor_Pos_Data(15)					->Sys.Idata[20498];	
+ M_Motor_Status_Data(15)				->u.user:$014050.00.16;
+ M_Motor_Recipe_Pos_Interlock(15)		->u.user:$014050.16.16;
+ M_Motor_Peak_Load_Ratio(15)			->u.user:$014054.00.16;
+ M_Motor_Effective_Load_Ratio(15)		->u.user:$014054.16.16;
+ M_Motor_Check_Current_Recipe_Pos(15)	->u.user:$01405C.00.16;
+ // (Axis 16) SERVO DANCER
+ M_Motor_Pos_Data(16)					->Sys.Idata[20505];
+ M_Motor_Status_Data(16)				->u.user:$01406C.00.16;
+ M_Motor_Recipe_Pos_Interlock(16)		->u.user:$01406C.16.16;
+ M_Motor_Peak_Load_Ratio(16)			->u.user:$014070.00.16;
+ M_Motor_Effective_Load_Ratio(16)		->u.user:$014070.16.16;
+ M_Motor_Check_Current_Recipe_Pos(16)	->u.user:$014078.00.16;
+ // (Axis 17) TR#1 CAHTODE Z
+ M_Motor_Pos_Data(17)					->Sys.Idata[20512];
+ M_Motor_Status_Data(17)				->u.user:$014088.00.16;
+ M_Motor_Recipe_Pos_Interlock(17)		->u.user:$014088.16.16;
+ M_Motor_Peak_Load_Ratio(17)			->u.user:$01408C.00.16;
+ M_Motor_Effective_Load_Ratio(17)		->u.user:$01408C.16.16;
+ M_Motor_Check_Current_Recipe_Pos(17)	->u.user:$014094.00.16;
+ // (Axis 18) TR#1 ANODE Z
+ M_Motor_Pos_Data(18)					->Sys.Idata[20519];
+ M_Motor_Status_Data(18)				->u.user:$0140A4.00.16;
+ M_Motor_Recipe_Pos_Interlock(18)		->u.user:$0140A4.16.16;
+ M_Motor_Peak_Load_Ratio(18)			->u.user:$0140A8.00.16;
+ M_Motor_Effective_Load_Ratio(18)		->u.user:$0140A8.16.16;
+ M_Motor_Check_Current_Recipe_Pos(18)	->u.user:$0140B0.00.16;
+ // (Axis 19) TR#1 CATHODE PICKER T
+ M_Motor_Pos_Data(19)					->Sys.Idata[20526];	
+ M_Motor_Status_Data(19)				->u.user:$0140C0.00.16;
+ M_Motor_Recipe_Pos_Interlock(19)		->u.user:$0140C0.16.16;
+ M_Motor_Peak_Load_Ratio(19)			->u.user:$0140C4.00.16;
+ M_Motor_Effective_Load_Ratio(19)		->u.user:$0140C4.16.16;
+ M_Motor_Check_Current_Recipe_Pos(19)	->u.user:$0140CC.00.16;
+ // (Axis 20) TR#1 ANODE PICKER T
+ M_Motor_Pos_Data(20)					->Sys.Idata[20533];
+ M_Motor_Status_Data(20)				->u.user:$0140DC.00.16;
+ M_Motor_Recipe_Pos_Interlock(20)		->u.user:$0140DC.16.16;
+ M_Motor_Peak_Load_Ratio(20)			->u.user:$0140E0.00.16;
+ M_Motor_Effective_Load_Ratio(20)		->u.user:$0140E0.16.16;
+ M_Motor_Check_Current_Recipe_Pos(20)	->u.user:$0140E8.00.16;
+ // (Axis 21) TR#2 CATHODE Z
+ M_Motor_Pos_Data(21)					->Sys.Idata[20540];	
+ M_Motor_Status_Data(21)				->u.user:$0140F8.00.16;
+ M_Motor_Recipe_Pos_Interlock(21)		->u.user:$0140F8.16.16;
+ M_Motor_Peak_Load_Ratio(21)			->u.user:$0140FC.00.16;
+ M_Motor_Effective_Load_Ratio(21)		->u.user:$0140FC.16.16;
+ M_Motor_Check_Current_Recipe_Pos(21)	->u.user:$014104.00.16;
+ // (Axis 22) TR#2 ANODE Z
+ M_Motor_Pos_Data(22)					->Sys.Idata[20547];	
+ M_Motor_Status_Data(22)				->u.user:$014114.00.16;
+ M_Motor_Recipe_Pos_Interlock(22)		->u.user:$014114.16.16;
+ M_Motor_Peak_Load_Ratio(22)			->u.user:$014118.00.16;
+ M_Motor_Effective_Load_Ratio(22)		->u.user:$014118.16.16;
+ M_Motor_Check_Current_Recipe_Pos(22)	->u.user:$014120.00.16;
+ // (Axis 23) S/U UPPER SPOOL ROTATE
+ M_Motor_Pos_Data(23)					->Sys.Idata[20554];
+ M_Motor_Status_Data(23)				->u.user:$014130.00.16;
+ M_Motor_Recipe_Pos_Interlock(23)		->u.user:$014130.16.16;
+ M_Motor_Peak_Load_Ratio(23)			->u.user:$014134.00.16;
+ M_Motor_Effective_Load_Ratio(23)		->u.user:$014134.16.16;
+ M_Motor_Check_Current_Recipe_Pos(23)	->u.user:$01413C.00.16;
+ // (Axis 24) S/U LOWER SPOOL ROTATE
+ M_Motor_Pos_Data(24)					->Sys.Idata[20561];	
+ M_Motor_Status_Data(24)				->u.user:$01414C.00.16;
+ M_Motor_Recipe_Pos_Interlock(24)		->u.user:$01414C.16.16;
+ M_Motor_Peak_Load_Ratio(24)			->u.user:$014150.00.16;
+ M_Motor_Effective_Load_Ratio(24)		->u.user:$014150.16.16;
+ M_Motor_Check_Current_Recipe_Pos(24)	->u.user:$014158.00.16;
+ // (Axis 25) SPARE
+ M_Motor_Pos_Data(25)					->Sys.Idata[20568];
+ M_Motor_Status_Data(25)				->u.user:$014168.00.16;
+ M_Motor_Recipe_Pos_Interlock(25)		->u.user:$014168.16.16;
+ M_Motor_Peak_Load_Ratio(25)			->u.user:$01416C.00.16;
+ M_Motor_Effective_Load_Ratio(25)		->u.user:$01416C.16.16;
+ M_Motor_Check_Current_Recipe_Pos(25)	->u.user:$014174.00.16;
+ // (Axis 26) SPARE
+ M_Motor_Pos_Data(26)					->Sys.Idata[20575];	
+ M_Motor_Status_Data(26)				->u.user:$014184.00.16;
+ M_Motor_Recipe_Pos_Interlock(26)		->u.user:$014184.16.16;
+ M_Motor_Peak_Load_Ratio(26)			->u.user:$014188.00.16;
+ M_Motor_Effective_Load_Ratio(26)		->u.user:$014188.16.16;
+ M_Motor_Check_Current_Recipe_Pos(26)	->u.user:$014190.00.16;
+ // (Axis 27) SPARE
+ M_Motor_Pos_Data(27)					->Sys.Idata[20582];
+ M_Motor_Status_Data(27)				->u.user:$0141A0.00.16;
+ M_Motor_Recipe_Pos_Interlock(27)		->u.user:$0141A0.16.16;
+ M_Motor_Peak_Load_Ratio(27)			->u.user:$0141A4.00.16;
+ M_Motor_Effective_Load_Ratio(27)		->u.user:$0141A4.16.16;
+ M_Motor_Check_Current_Recipe_Pos(27)	->u.user:$0141AC.00.16;
+ // (Axis 28) SPARE
+ M_Motor_Pos_Data(28)					->Sys.Idata[20589];
+ M_Motor_Status_Data(28)				->u.user:$0141BC.00.16;
+ M_Motor_Recipe_Pos_Interlock(28)		->u.user:$0141BC.16.16;
+ M_Motor_Peak_Load_Ratio(28)			->u.user:$0141C0.00.16;
+ M_Motor_Effective_Load_Ratio(28)		->u.user:$0141C0.16.16;
+ M_Motor_Check_Current_Recipe_Pos(28)	->u.user:$0141C8.00.16;
+ // (Axis 29) SPARE
+ M_Motor_Pos_Data(29)					->Sys.Idata[20596];
+ M_Motor_Status_Data(29)				->u.user:$0141D8.00.16;
+ M_Motor_Recipe_Pos_Interlock(29)		->u.user:$0141D8.16.16;
+ M_Motor_Peak_Load_Ratio(29)			->u.user:$0141DC.00.16;
+ M_Motor_Effective_Load_Ratio(29)		->u.user:$0141DC.16.16;
+ M_Motor_Check_Current_Recipe_Pos(29)	->u.user:$0141E4.00.16;
+ // (Axis 30) SPARE
+ M_Motor_Pos_Data(30)					->Sys.Idata[20603];
+ M_Motor_Status_Data(30)				->u.user:$0141F4.00.16;
+ M_Motor_Recipe_Pos_Interlock(30)		->u.user:$0141F4.16.16;
+ M_Motor_Peak_Load_Ratio(30)			->u.user:$0141F8.00.16;
+ M_Motor_Effective_Load_Ratio(30)		->u.user:$0141F8.16.16;
+ M_Motor_Check_Current_Recipe_Pos(30)	->u.user:$014200.00.16;
+ // (Axis 31) SPARE
+ M_Motor_Pos_Data(31)					->Sys.Idata[20610];	
+ M_Motor_Status_Data(31)				->u.user:$014210.00.16;
+ M_Motor_Recipe_Pos_Interlock(31)		->u.user:$014210.16.16;
+ M_Motor_Peak_Load_Ratio(31)			->u.user:$014214.00.16;
+ M_Motor_Effective_Load_Ratio(31)		->u.user:$014214.16.16;
+ M_Motor_Check_Current_Recipe_Pos(31)	->u.user:$01421C.00.16;
+ // (Axis 32) SPARE
+ M_Motor_Pos_Data(32)					->Sys.Idata[20617];	
+ M_Motor_Status_Data(32)				->u.user:$01422C.00.16;
+ M_Motor_Recipe_Pos_Interlock(32)		->u.user:$01422C.16.16;
+ M_Motor_Peak_Load_Ratio(32)			->u.user:$014230.00.16;
+ M_Motor_Effective_Load_Ratio(32)		->u.user:$014230.16.16;
+ M_Motor_Check_Current_Recipe_Pos(32)	->u.user:$014238.00.16;
+ // (Axis 33) EPC SENSOR
+ M_Motor_Pos_Data(33)					->Sys.Idata[20624];
+ M_Motor_Status_Data(33)				->u.user:$014248.00.16;
+ M_Motor_Recipe_Pos_Interlock(33)		->u.user:$014248.16.16;
+ M_Motor_Peak_Load_Ratio(33)			->u.user:$01424C.00.16;
+ M_Motor_Effective_Load_Ratio(33)		->u.user:$01424C.16.16;
+ M_Motor_Check_Current_Recipe_Pos(33)	->u.user:$014254.00.16;
+ // (Axis 34) STACK VISION
+ M_Motor_Pos_Data(34)					->Sys.Idata[20631];
+ M_Motor_Status_Data(34)				->u.user:$014264.00.16;
+ M_Motor_Recipe_Pos_Interlock(34)		->u.user:$014264.16.16;
+ M_Motor_Peak_Load_Ratio(34)			->u.user:$014268.00.16;
+ M_Motor_Effective_Load_Ratio(34)		->u.user:$014268.16.16;
+ M_Motor_Check_Current_Recipe_Pos(34)	->u.user:$014270.00.16;
+ // (Axis 35) 1ST SHEET PAPER X
+ M_Motor_Pos_Data(35)					->Sys.Idata[20638];	
+ M_Motor_Status_Data(35)				->u.user:$014280.00.16;
+ M_Motor_Recipe_Pos_Interlock(35)		->u.user:$014280.16.16;
+ M_Motor_Peak_Load_Ratio(35)			->u.user:$014284.00.16;
+ M_Motor_Effective_Load_Ratio(35)		->u.user:$014284.16.16;
+ M_Motor_Check_Current_Recipe_Pos(35)	->u.user:$01428C.00.16;
+ // (Axis 36) CATHODE ALIGN X
+ M_Motor_Pos_Data(36)					->Sys.Idata[20645];
+ M_Motor_Status_Data(36)				->u.user:$01429C.00.16;
+ M_Motor_Recipe_Pos_Interlock(36)		->u.user:$01429C.16.16;
+ M_Motor_Peak_Load_Ratio(36)			->u.user:$0142A0.00.16;
+ M_Motor_Effective_Load_Ratio(36)		->u.user:$0142A0.16.16;
+ M_Motor_Check_Current_Recipe_Pos(36)	->u.user:$0142A8.00.16;
+ // (Axis 37) CATHODE ALIGN Y
+ M_Motor_Pos_Data(37)					->Sys.Idata[20652];	
+ M_Motor_Status_Data(37)				->u.user:$0142B8.00.16;
+ M_Motor_Recipe_Pos_Interlock(37)		->u.user:$0142B8.16.16;
+ M_Motor_Peak_Load_Ratio(37)			->u.user:$0142BC.00.16;
+ M_Motor_Effective_Load_Ratio(37)		->u.user:$0142BC.16.16;
+ M_Motor_Check_Current_Recipe_Pos(37)	->u.user:$0142C4.00.16;
+ // (Axis 38) CATHODE ALIGN T
+ M_Motor_Pos_Data(38)					->Sys.Idata[20659];
+ M_Motor_Status_Data(38)				->u.user:$0142D4.00.16;
+ M_Motor_Recipe_Pos_Interlock(38)		->u.user:$0142D4.16.16;
+ M_Motor_Peak_Load_Ratio(38)			->u.user:$0142D8.00.16;
+ M_Motor_Effective_Load_Ratio(38)		->u.user:$0142D8.16.16;
+ M_Motor_Check_Current_Recipe_Pos(38)	->u.user:$0142E0.00.16;
+ // (Axis 39) ANODE ALIGN X
+ M_Motor_Pos_Data(39)					->Sys.Idata[20666];	
+ M_Motor_Status_Data(39)				->u.user:$0142F0.00.16;
+ M_Motor_Recipe_Pos_Interlock(39)		->u.user:$0142F0.16.16;
+ M_Motor_Peak_Load_Ratio(39)			->u.user:$0142F4.00.16;
+ M_Motor_Effective_Load_Ratio(39)		->u.user:$0142F4.16.16;
+ M_Motor_Check_Current_Recipe_Pos(39)	->u.user:$0142FC.00.16;
+ // (Axis 40) ANODE ALIGN Y
+ M_Motor_Pos_Data(40)					->Sys.Idata[20673];	
+ M_Motor_Status_Data(40)				->u.user:$01430C.00.16;
+ M_Motor_Recipe_Pos_Interlock(40)		->u.user:$01430C.16.16;
+ M_Motor_Peak_Load_Ratio(40)			->u.user:$014310.00.16;
+ M_Motor_Effective_Load_Ratio(40)		->u.user:$014310.16.16;
+ M_Motor_Check_Current_Recipe_Pos(40)	->u.user:$014318.00.16;
+ // (Axis 41) ANODE ALIGN T
+ M_Motor_Pos_Data(41)					->Sys.Idata[20680];
+ M_Motor_Status_Data(41)				->u.user:$014328.00.16;
+ M_Motor_Recipe_Pos_Interlock(41)		->u.user:$014328.16.16;
+ M_Motor_Peak_Load_Ratio(41)			->u.user:$01432C.00.16;
+ M_Motor_Effective_Load_Ratio(41)		->u.user:$01432C.16.16;
+ M_Motor_Check_Current_Recipe_Pos(41)	->u.user:$014334.00.16;
+ // (Axis 42) NG CATHODE PNP T
+ M_Motor_Pos_Data(42)					->Sys.Idata[20687];	
+ M_Motor_Status_Data(42)				->u.user:$014344.00.16;
+ M_Motor_Recipe_Pos_Interlock(42)		->u.user:$014344.16.16;
+ M_Motor_Peak_Load_Ratio(42)			->u.user:$014348.00.16;
+ M_Motor_Effective_Load_Ratio(42)		->u.user:$014348.16.16;
+ M_Motor_Check_Current_Recipe_Pos(42)	->u.user:$014350.00.16;
+ // (Axis 43) NG ANODE PNP T
+ M_Motor_Pos_Data(43)					->Sys.Idata[20694];
+ M_Motor_Status_Data(43)				->u.user:$014360.00.16;
+ M_Motor_Recipe_Pos_Interlock(43)		->u.user:$014360.16.16;
+ M_Motor_Peak_Load_Ratio(43)			->u.user:$014364.00.16;
+ M_Motor_Effective_Load_Ratio(43)		->u.user:$014364.16.16;
+ M_Motor_Check_Current_Recipe_Pos(43)	->u.user:$01436C.00.16;
+ // (Axis 44) NG CATHODE PNP Z
+ M_Motor_Pos_Data(44)					->Sys.Idata[20701];
+ M_Motor_Status_Data(44)				->u.user:$01437C.00.16;
+ M_Motor_Recipe_Pos_Interlock(44)		->u.user:$01437C.16.16;
+ M_Motor_Peak_Load_Ratio(44)			->u.user:$014380.00.16;
+ M_Motor_Effective_Load_Ratio(44)		->u.user:$014380.16.16;
+ M_Motor_Check_Current_Recipe_Pos(44)	->u.user:$014388.00.16;
+ // (Axis 45) NG ANODE PNP Z
+ M_Motor_Pos_Data(45)					->Sys.Idata[20708];	
+ M_Motor_Status_Data(45)				->u.user:$014398.00.16;
+ M_Motor_Recipe_Pos_Interlock(45)		->u.user:$014398.16.16;
+ M_Motor_Peak_Load_Ratio(45)			->u.user:$01439C.00.16;
+ M_Motor_Effective_Load_Ratio(45)		->u.user:$01439C.16.16;
+ M_Motor_Check_Current_Recipe_Pos(45)	->u.user:$0143A4.00.16;
+ // (Axis 46) 1ST UNLOADER X
+ M_Motor_Pos_Data(46)					->Sys.Idata[20715];
+ M_Motor_Status_Data(46)				->u.user:$0143B4.00.16;
+ M_Motor_Recipe_Pos_Interlock(46)		->u.user:$0143B4.16.16;
+ M_Motor_Peak_Load_Ratio(46)			->u.user:$0143B8.00.16;
+ M_Motor_Effective_Load_Ratio(46)		->u.user:$0143B8.16.16;
+ M_Motor_Check_Current_Recipe_Pos(46)	->u.user:$0143C0.00.16;
+ // (Axis 47) 1ST UNLOADER Z
+ M_Motor_Pos_Data(47)					->Sys.Idata[20722];	
+ M_Motor_Status_Data(47)				->u.user:$0143D0.00.16;
+ M_Motor_Recipe_Pos_Interlock(47)		->u.user:$0143D0.16.16;
+ M_Motor_Peak_Load_Ratio(47)			->u.user:$0143D4.00.16;
+ M_Motor_Effective_Load_Ratio(47)		->u.user:$0143D4.16.16;
+ M_Motor_Check_Current_Recipe_Pos(47)	->u.user:$0143DC.00.16;
+ // (Axis 48) 1ST UNLOADER T
+ M_Motor_Pos_Data(48)					->Sys.Idata[20729];
+ M_Motor_Status_Data(48)				->u.user:$0143EC.00.16;
+ M_Motor_Recipe_Pos_Interlock(48)		->u.user:$0143EC.16.16;
+ M_Motor_Peak_Load_Ratio(48)			->u.user:$0143F0.00.16;
+ M_Motor_Effective_Load_Ratio(48)		->u.user:$0143F0.16.16;
+ M_Motor_Check_Current_Recipe_Pos(48)	->u.user:$0143F8.00.16;
+ // (Axis 49) SPARE
+ M_Motor_Pos_Data(49)					->Sys.Idata[20736];
+ M_Motor_Status_Data(49)				->u.user:$014408.00.16;
+ M_Motor_Recipe_Pos_Interlock(49)		->u.user:$014408.16.16;
+ M_Motor_Peak_Load_Ratio(49)			->u.user:$01440C.00.16;
+ M_Motor_Effective_Load_Ratio(49)		->u.user:$01440C.16.16;
+ M_Motor_Check_Current_Recipe_Pos(49)	->u.user:$014414.00.16;
+ // (Axis 50) SPARE
+ M_Motor_Pos_Data(50)					->Sys.Idata[20743];
+ M_Motor_Status_Data(50)				->u.user:$014424.00.16;
+ M_Motor_Recipe_Pos_Interlock(50)		->u.user:$014424.16.16;
+ M_Motor_Peak_Load_Ratio(50)			->u.user:$014428.00.16;
+ M_Motor_Effective_Load_Ratio(50)		->u.user:$014428.16.16;
+ M_Motor_Check_Current_Recipe_Pos(50)	->u.user:$014430.00.16;
+
+
+
+
+
+

@@ -1,0 +1,86 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 26.01.12 
+// 내용 - Ecat Motor M변수 포인팅
+//==========================================================================================================================================================================================================================================
+
+
+
+ptr M_Touchprobefunction(49) -> *;				// M probefunction 배열 선언
+ptr M_Touchprobestatus(49) -> *;				// M probestatus 배열 선언
+
+
+//M_Touchprobefunction(N_EPC_SENSOR)	-> ECAT[0].IO[9].Data;	 // Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_STACK_VISION)-> ECAT[0].IO[14].Data;	 // Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_SHEET_PAPER_X)->	ECAT[0].IO[19].Data; // Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_Align_CA_X)	->	ECAT[0].IO[24].Data; //  Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_Align_CA_Y)	->	ECAT[0].IO[29].Data; // Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_Align_CA_T)	->	ECAT[0].IO[32].Data; //  Slave_1008_InoSV680I_1008_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_Align_AN_X)	->	ECAT[0].IO[38].Data; //  Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_Align_AN_Y)	->	ECAT[0].IO[43].Data; //  Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_Align_AN_T)	->	ECAT[0].IO[46].Data; //  Slave_1011_InoSV680I_1011_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_NG_PnP_CA_T)	->	ECAT[0].IO[52].Data; //  Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_NG_PnP_AN_T)	->	ECAT[0].IO[57].Data; //  Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_NG_PnP_CA_Z)	->	ECAT[0].IO[62].Data; //  Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_NG_PnP_AN_Z)	->	ECAT[0].IO[67].Data; //  Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_UNLOADER_X)	->	ECAT[0].IO[72].Data; //  Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_UNLOADER_Z)	->	ECAT[0].IO[77].Data; //  Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_60B8_0_Touchprobefunction
+//M_Touchprobefunction(N_UNLOADER_T)	->	ECAT[0].IO[82].Data; //  Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_60B8_0_Touchprobefunction
+
+//M_Touchprobestatus(N_EPC_SENSOR)	->	ECAT[0].IO[4109].Data;  // Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_STACK_VISION)	->	ECAT[0].IO[4116].Data;  // Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_SHEET_PAPER_X)	->	ECAT[0].IO[4123].Data;  // Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_Align_CA_X)	->	ECAT[0].IO[4130].Data;  // Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_Align_CA_Y)	->	ECAT[0].IO[4137].Data;  // Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_Align_CA_T)	->	ECAT[0].IO[4145].Data;  // Slave_1008_InoSV680I_1008_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_Align_AN_X)	->	ECAT[0].IO[4153].Data;  // Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_Align_AN_Y)	->	ECAT[0].IO[4160].Data;  // Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_Align_AN_T)	->	ECAT[0].IO[4168].Data;  // Slave_1011_InoSV680I_1011_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_NG_PnP_CA_T)	->	ECAT[0].IO[4176].Data;  // Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_NG_PnP_AN_T)	->	ECAT[0].IO[4183].Data;  // Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_NG_PnP_CA_Z)	->	ECAT[0].IO[4190].Data;  // Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_NG_PnP_AN_Z)	->	ECAT[0].IO[4197].Data;  // Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_UNLOADER_X)	->	ECAT[0].IO[4204].Data;  // Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_UNLOADER_Z)	->	ECAT[0].IO[4211].Data;  // Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_60B9_0_Touchprobestatus
+//M_Touchprobestatus(N_UNLOADER_T)	->	ECAT[0].IO[4218].Data;  // Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_60B9_0_Touchprobestatus
+
+					 					
+										
+M_Touchprobefunction(N_EPC_SENSOR)	->  Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_60B8_0_Touchprobefunction
+M_Touchprobefunction(N_STACK_VISION)->  Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_60B8_0_Touchprobefunction;
+M_Touchprobefunction(N_SHEET_PAPER_X)->	Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_60B8_0_Touchprobefunction;
+M_Touchprobefunction(N_Align_CA_X)	->	Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_60B8_0_Touchprobefunction;
+M_Touchprobefunction(N_Align_CA_Y)	->	Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_60B8_0_Touchprobefunction;
+M_Touchprobefunction(N_Align_CA_T)	->	Slave_1008_InoSV680I_1008_60B8_0_Touchprobefunction;				
+M_Touchprobefunction(N_Align_AN_X)	->	Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_60B8_0_Touchprobefunction;
+M_Touchprobefunction(N_Align_AN_Y)	->	Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_60B8_0_Touchprobefunction;
+M_Touchprobefunction(N_Align_AN_T)	->	Slave_1011_InoSV680I_1011_60B8_0_Touchprobefunction;				
+M_Touchprobefunction(N_NG_PnP_CA_T)	->	Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_60B8_0_Touchprobefunction;
+M_Touchprobefunction(N_NG_PnP_AN_T)	->	Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_60B8_0_Touchprobefunction;
+M_Touchprobefunction(N_NG_PnP_CA_Z)	->	Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_60B8_0_Touchprobefunction;
+M_Touchprobefunction(N_NG_PnP_AN_Z)	->	Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_60B8_0_Touchprobefunction;
+M_Touchprobefunction(N_UNLOADER_X)	->	Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_60B8_0_Touchprobefunction;
+M_Touchprobefunction(N_UNLOADER_Z)	->	Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_60B8_0_Touchprobefunction;
+M_Touchprobefunction(N_UNLOADER_T)	->	Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_60B8_0_Touchprobefunction;
+										
+M_Touchprobestatus(N_EPC_SENSOR)	->	Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_60B9_0_Touchprobestatus;  
+M_Touchprobestatus(N_STACK_VISION)	->	Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_60B9_0_Touchprobestatus;  
+M_Touchprobestatus(N_SHEET_PAPER_X)	->	Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_60B9_0_Touchprobestatus;  
+M_Touchprobestatus(N_Align_CA_X)	->	Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_60B9_0_Touchprobestatus;  
+M_Touchprobestatus(N_Align_CA_Y)	->	Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_60B9_0_Touchprobestatus;  
+M_Touchprobestatus(N_Align_CA_T)	->	Slave_1008_InoSV680I_1008_60B9_0_Touchprobestatus;					
+M_Touchprobestatus(N_Align_AN_X)	->	Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_60B9_0_Touchprobestatus;  
+M_Touchprobestatus(N_Align_AN_Y)	->	Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_60B9_0_Touchprobestatus;  
+M_Touchprobestatus(N_Align_AN_T)	->	Slave_1011_InoSV680I_1011_60B9_0_Touchprobestatus;					
+M_Touchprobestatus(N_NG_PnP_CA_T)	->	Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_60B9_0_Touchprobestatus;  
+M_Touchprobestatus(N_NG_PnP_AN_T)	->	Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_60B9_0_Touchprobestatus;  
+M_Touchprobestatus(N_NG_PnP_CA_Z)	->	Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_60B9_0_Touchprobestatus;  
+M_Touchprobestatus(N_NG_PnP_AN_Z)	->	Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_60B9_0_Touchprobestatus;  
+M_Touchprobestatus(N_UNLOADER_X)	->	Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_60B9_0_Touchprobestatus;  
+M_Touchprobestatus(N_UNLOADER_Z)	->	Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_60B9_0_Touchprobestatus;  
+M_Touchprobestatus(N_UNLOADER_T)	->	Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_60B9_0_Touchprobestatus;  
+					 															
+										
+										
+										

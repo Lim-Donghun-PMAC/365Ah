@@ -1,0 +1,53 @@
+
+
+&31
+#35-> 1000x		// 시트페이퍼 x축
+//===============//
+
+
+
+open prog 31
+	
+	ABS					// 절대좌표모드
+	LINEAR
+	
+	while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(11) == 1 && P_Slave_Motion_Program_Flag(11) == 1 )
+	{	// 프로그램 허용 플래그
+	
+		Switch ( P_Slave11_Motion_Command )
+		{	
+			case 0 :
+			break;
+
+			// 커멘드별 모션
+			// case 1
+			case N_Sheet_Paper_BWD_Motion :	// 후진
+				P_Slave11_Motion_Command == 0;
+				P_Sheet_Paper_BWD_Status == F_Status_EXECUTE;
+				tm(60)ta(30)ts(5)						// 95ms
+				x(P_1st_Sheet_Paper_X_BWD)				
+				dwell(0)
+				P_Sheet_Paper_BWD_Status == F_Status_COMPLETE;
+				dwell(0)									
+			break;
+
+			// case 2
+			case N_Sheet_Paper_FWD_Motion:		// 전진
+				P_Slave11_Motion_Command == 0;
+				P_Sheet_Paper_FWD_Pos_Status == F_Status_EXECUTE;		// [ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+				tm(85)ta(10)ts(100)						// 45ms
+				x(P_1st_Sheet_Paper_X_FWD)					
+				dwell(0)
+				P_Sheet_Paper_FWD_Pos_Status == F_Status_COMPLETE;		// [ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+				dwell(0)															
+			break;
+
+			default :
+
+			break;
+
+		}
+		
+	}
+
+close

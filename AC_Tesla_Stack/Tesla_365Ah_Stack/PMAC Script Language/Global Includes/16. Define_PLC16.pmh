@@ -1,0 +1,23 @@
+// [ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+
+global P_Final_Roll_Cathode_Pos_Status = 0;				// 파이널 롤러 양극 이동 상태.
+global P_Sheet_Paper_FWD_Pos_Status = 0;				// Sheet Paper 전진 이동 상태.
+global P_Final_Roll_Vision_Pos_Status = 0;				// 파이널 롤러 비전 위치 이동 상태.
+global P_Cathode_Clamp_ON_Status = 0;					// 양극 클램프 ON 이동 상태.
+global P_Anode_Clamp_ON_Status = 0;
+global P_Anode_Clamp_OFF_Status = 0;
+
+
+global P_Partition_Up_Flag = 0;
+global P_Partition_Down_Flag = 0;
+
+global P_Partition_Avoid_Flag = 0;
+
+global P_Partition_Avoid_Z_Speed = 10;
+global P_Partition_Avoid_X_Speed = 25;
+global P_Partition_Avoid_T_Speed = 10;
+global P_Partition_Avoid_2nd_T_Pos = 45;
+global P_Partition_Step_Flag = 0;
+
+#define Partition_Down_Mode_Interlock u.user:$0147EC.27.01
+#define Partition_Up_Mode_Interlock u.user:$0147EC.28.01

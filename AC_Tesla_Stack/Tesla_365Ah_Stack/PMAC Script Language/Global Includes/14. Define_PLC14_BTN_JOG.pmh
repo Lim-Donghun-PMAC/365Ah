@@ -1,0 +1,719 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.08.01
+// 버튼 프로그램 추가 - [ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+// 25.08.07
+// ARC 버튼 인터락 변수 추가, NP Plate 램프 변수 추가 - [ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+// 25.09.25
+// Status Clear 버튼 추가 - [ 참조 : 25.09.25 Status Clear 버튼 추가 ]
+// 강제 출력 버튼 추가 - [ 참조 : 25.09.25 DIO 강제 출력 버튼 추가 ]
+//======================================================================================================
+
+//===============================================================================
+// PLC07 ↓ 아래 모두들 다 
+//===============================================================================
+//======================================================
+// 극판 ID 포인팅
+//======================================================
+//======================================================
+// Write - Data 이동
+//======================================================
+
+//ptr P_Project_Ver_A->*
+//P_Project_Ver_A->u.user:$02EE34.00.16;						
+//// 2) 버전관리 변수명
+//ptr P_Project_Ver_B->*
+//P_Project_Ver_B->u.user:$02EE34.16.16;
+//// 3) 버전관리 변수명
+//ptr P_Project_Ver_C->*
+//P_Project_Ver_C->u.user:$02EE38.00.16;
+
+global	P_Flag_Sepa_Stack_Mode_CHK = 0;
+
+global P_Read_Timer_S(9);
+P_Read_Timer_S(0),8 = 0;
+
+global P_Write_Timer_S(9);
+P_Write_Timer_S(0),8 = 0;
+
+global P_Interval_Read_S(9)
+P_Interval_Read_S(0),8 = 0;
+
+P_Interval_Read_S(1) = 50;
+P_Interval_Read_S(2) = 50;
+P_Interval_Read_S(3) = 30;
+P_Interval_Read_S(4) = 30;
+P_Interval_Read_S(5) = 100;
+P_Interval_Read_S(6) = 100;
+P_Interval_Read_S(7) = 100;
+P_Interval_Read_S(8) = 100;
+
+global P_Interval_Write_S(9)
+P_Interval_Write_S(0),8 = 0;
+
+P_Interval_Write_S(1) = 50;
+P_Interval_Write_S(2) = 50;
+P_Interval_Write_S(3) = 50;
+P_Interval_Write_S(4) = 50;
+P_Interval_Write_S(5) = 50;
+P_Interval_Write_S(6) = 50;
+P_Interval_Write_S(7) = 50;
+P_Interval_Write_S(8) = 50;
+
+//===============================================================================
+// Receive
+//===============================================================================
+// [sector]-3
+//===============================================================================
+global P_UI_Jog_Vel_M(50);
+P_UI_Jog_Vel_M(0),50 = 0;
+// 임시 테스트용
+P_UI_Jog_Vel_M(42)	= 25;
+P_UI_Jog_Vel_M(44)	= 25;
+P_UI_Jog_Vel_M(43)	= 25;
+P_UI_Jog_Vel_M(45)	= 25;
+P_UI_Jog_Vel_M(21)	= 25;
+P_UI_Jog_Vel_M(22)	= 25;
+P_UI_Jog_Vel_M(3)	= 25;
+P_UI_Jog_Vel_M(4)	= 25;
+P_UI_Jog_Vel_M(1)	= 25;
+P_UI_Jog_Vel_M(2)	= 25;
+P_UI_Jog_Vel_M(17)	= 25;
+P_UI_Jog_Vel_M(18)	= 25;
+//===============================================================================
+// [sector]-4
+//===============================================================================
+global P_Initialize_Read_Excom_Variables_Flag = 0;
+
+global P_Old_X_Read_Count_S(9);
+P_Old_X_Read_Count_S(0),8 = 0;
+
+// [실린더 동작횟수 카운터 영역]
+global P_Cathode_Clamp_MC_Cylinder_Count = 0;
+global P_Cathode_Clamp_OP_Cylinder_Count = 0;
+//#define P_Cathode_Clamp_outside_Machine_Cylinder_Count	P8021
+
+global P_Anode_Clamp_MC_Cylinder_Count = 0;
+global P_Anode_Clamp_OP_Cylinder_Count = 0;	
+//#define P_Anode_Clamp_outside_Machine_Cylinder_Count		P8023
+
+#define P_Cathode_1ST_TR_Cylinder_Count						P8003
+#define P_Anode_1ST_TR_Cylinder_Count						P8004	 
+
+global P_BTN_Cathode_Clamp_inside_Machine_Cylinder_Count_Clear;
+global P_BTN_Cathode_Clamp_Middle_Cylinder_Count_Clear;
+global P_BTN_Cathode_Clamp_outside_Machine_Cylinder_Count_Clear;
+
+global P_BTN_Anode_Clamp_inside_Machine_Cylinder_Count_Clear;
+global P_BTN_Anode_Clamp_Middle_Cylinder_Count_Clear;		
+global P_BTN_Anode_Clamp_outside_Machine_Cylinder_Count_Clear;	
+
+global P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear = 0;
+global P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear_Old = 0;
+global P_BTN_Anode_1ST_TR_Cylinder_Count_Clear = 0;
+global P_BTN_Anode_1ST_TR_Cylinder_Count_Clear_Old = 0;
+
+// [버튼 프로그램]
+#define N_Btn_Unit_EA	120
+
+// [실린더 버튼 변수 선언]
+global P_X_BTN_Manual_1(120);
+P_X_BTN_Manual_1(0),120,1 = 0;
+
+global P_X_BTN_Manual_2(120);
+P_X_BTN_Manual_2(0),120,1 = 0;
+
+global P_X_BTN_Manual_3(120);
+P_X_BTN_Manual_3(0),120,1 = 0;
+
+//250513
+// [Sector]-5
+//===============================================================================
+// Send
+//===============================================================================
+//===============================================================================
+// [sector]-4
+//===============================================================================
+
+//global P_Recipe_POS_Interock_M(50);
+//P_Recipe_POS_Interock_M(0),50,1 = 0
+
+//global P_Servo_Status_M(50);
+//P_Servo_Status_M(0),50,1 = 0;
+
+//global P_Status_MinusLimit_M(50);
+//P_Status_MinusLimit_M(0),50,1 = 0;
+
+//global P_Status_PlusLimit_M(33);
+//P_Status_PlusLimit_M(0),33,1 = 0;
+
+//global P_Status_Error_M(33);
+//P_Status_Error_M(0),33,1 = 0;
+
+//global P_Status_Ready_M(33);
+//P_Status_Ready_M(0),33,1 = 0;
+//
+//global P_Status_Dog_M(33);
+//P_Status_Dog_M(0),33,1 = 0;
+//global P_Status_Origin_M(33);
+//P_Status_Origin_M(0),33,1 = 0;
+
+// 조그인터락 변수 20.03.17
+// plc 26 - Sub_InterLockJog
+//global P_Jog_Move_Impossible_1_Pos(32);		//	조그동작 가능한지 보는 변수
+//global P_Jog_Move_Impossible_2_Pos(32);		//	조그동작 가능한지 보는 변수
+//global P_Jog_Move_Impossible_3_Pos(32);		//	조그동작 가능한지 보는 변수
+//global P_Jog_Move_Impossible_4_Pos(32);		//	조그동작 가능한지 보는 변수
+//global P_Jog_Move_Impossible_5_Pos(32);		//	조그동작 가능한지 보는 변수
+//global P_Jog_Move_Impossible_6_Pos(32);		//	조그동작 가능한지 보는 변수
+//global P_Jog_Move_Impossible_7_Pos(32);		//	조그동작 가능한지 보는 변수
+//global P_Jog_Move_Impossible_8_Pos(32);		//	조그동작 가능한지 보는 변수
+//global P_Jog_Move_Impossible_9_Pos(32);		//	조그동작 가능한지 보는 변수
+//global P_Jog_Move_Impossible_10_Pos(32);	//	조그동작 가능한지 보는 변수
+
+//global P_Home_InterLock_Flag_M(32);
+//P_Home_InterLock_Flag_M(0),32 = 0;
+
+// [ 참조 : 23.10.26 인터락 메시지 추가 ] 
+//global P_Home_interlock_Messege_M(27)
+//P_Home_interlock_Messege_M(0),27,1 = 0
+//global P_Jog_interlock_Messege_M(27)
+//P_Jog_interlock_Messege_M(0),27,1 = 0
+////global P_Interlock_Messege(27)
+////P_Interlock_Messege(0),27,1 = 0
+//global P_Jog_Interlock_Messege_flag = 0
+//global P_Home_Interlock_Messege_flag = 0
+//global P_Jog_Interlock_Messege_State_Machine = 0
+//global P_Home_Interlock_Messege_State_Machine = 0
+//global P_Interlock_Messege_Confirmed = 0
+
+//global P_Home_Complete_M(33);
+//P_Home_Complete_M(0),33,1 = 0;
+//
+//global P_Home_Request_M(33);
+//P_Home_Request_M(0),33,1 = 0;
+//
+global P_Home_InterLock_M(50);
+P_Home_InterLock_M(0),50,1 = 1;// 홈 가능할 때 1, 아니면 0;
+//
+//global P_Status_Busy_M(33);
+//P_Status_Busy_M(0),33,1 = 0;
+//
+//global P_Effective_Load_Ratio_M(33);
+//P_Effective_Load_Ratio_M(0),33,1 = 0;
+//
+//global	P_Check_Current_Motor_Reicpe_Pos_Bit_M(33);
+//P_Check_Current_Motor_Reicpe_Pos_Bit_M(0),33,1 = 0;
+
+
+global P_Status_BTN_Manual_1(N_Btn_Unit_EA);			// 실린더 상태 변수 선언
+P_Status_BTN_Manual_1(0),N_Btn_Unit_EA,1 = 0;
+
+global P_Status_BTN_Manual_2(N_Btn_Unit_EA);			// 진공 상태 변수 선언
+P_Status_BTN_Manual_2(0),N_Btn_Unit_EA,1 = 0;
+
+global P_Status_BTN_Manual_Interlock_1(N_Btn_Unit_EA);
+P_Status_BTN_Manual_Interlock_1(0),N_Btn_Unit_EA,1 = 0;
+
+global P_Status_BTN_Manual_Interlock_2(N_Btn_Unit_EA);
+P_Status_BTN_Manual_Interlock_2(0),N_Btn_Unit_EA,1 = 0;
+
+global P_Status_BTN_Manual_Interlock_3(N_Btn_Unit_EA);
+P_Status_BTN_Manual_Interlock_3(0),N_Btn_Unit_EA,1 = 0;
+
+// [ 참조 : 240425 ARC 내재화 프로그램 업데이트 ]
+P_Status_BTN_Manual_Interlock_1(92),13,1 = 1;						// ARC 버튼 후 [ 프로그램을 다운 받았을 때 인터락이 켜져있게 하기 위함 ]
+P_Status_BTN_Manual_Interlock_2(92),13,1 = 1;						// ARC 버튼 후 [ 프로그램을 다운 받았을 때 인터락이 켜져있게 하기 위함 ]
+P_Status_BTN_Manual_Interlock_3(92),13,1 = 1;						// ARC 버튼 후 [ 프로그램을 다운 받았을 때 인터락이 켜져있게 하기 위함 ]
+P_Status_BTN_Manual_Interlock_1(105),11,1 = 1;						// ARC 버튼 후 [ 프로그램을 다운 받았을 때 인터락이 켜져있게 하기 위함 ]
+
+
+
+
+//===============================================================================
+// PLC14 ↓ 아래 모두들 다 
+//===============================================================================
+
+
+
+
+
+
+//===============================================================================
+// PLC27 ↓ 아래 모두들 다 
+//===============================================================================
+
+global P_Mode_Run_Enable_Flag(5);			  //비전 MSA 모드 실행 가능 플래그.
+P_Mode_Run_Enable_Flag(0),5 = 0;			  
+											  
+global P_RECIPE_PLC27_Manual_Interval = 5;	  // 메뉴얼은 크게 CPU 부하율에 크게 관여 안함
+global P_RECIPE_PLC27_Auto_Interval = 50;	  // 오토 상태에선 크게 볼게 없음
+
+global P_MNTR_PLC4_Vision_Result(201);
+P_MNTR_PLC4_Vision_Result(0),200,1 = 0;
+
+// [메모리타워]
+//global P_Buffer_Motor_Position_Management = 0;
+
+//global	P_SM_Anode_1P_Cell_Memory = 0;			// 음극 1차 Transfer 극판 메모리 영역
+//global	P_SM_Anode_2P_Cell_Memory = 0;			// 음극 2차 Transfer 극판 메모리 영역 
+//global	P_SM_Anode_Align_Cell_Memory = 0;		// 음극 얼라인 테이블 극판 메모리 영역
+//global	P_SM_Cathode_1P_Cell_Memory = 0;		// 양극 1차 Transfer 극판 메모리 영역
+//global	P_SM_Cathode_2P_Cell_Memory = 0;		// 양극 2차 Transfer 극판 메모리 영역
+//global	P_SM_Cathode_Align_Cell_Memory = 0;		// 양극 얼라인 테이블 극판 메모리 영역
+//global	P_SM_Stack_Table_Cell_Memory = 0;		// Stack Table 극판 메모리 영역
+//
+//global P_Btn_Stop_Flag=0;						// 스탑버튼에 대한 플래그.
+
+// [메모리타워_2]
+global P_Recipe_Speed_Value	= 0						// 레시피 변수
+P_Recipe_Speed_Value = 100;
+
+global	P_Slave6_Target_X_For_Cell_Out=0;		// MainZ 배출 타겟포지션.		- 배출시퀀스에서 계산됨.
+
+
+// 이외 글로벌 변수
+
+//==========================================================================================================================================================================================================================================
+//			변수명				해당변수					변수설명														사용되는 프로그램	
+//==========================================================================================================================================================================================================================================
+
+//-------- UI버튼 ----------------------------------------------------------------------------------------------------------------------------------------------------------
+//global		P_UI_Jog_Plus = 0;						//	조그 플러스버튼													Sub_Jog																
+//global		P_UI_Jog_Minus = 0;						//	조그 마이너스버튼													Sub_Jog										 
+//global		P_UI_Jog_Stop = 0;						//	조그 정지버튼														Sub_Jog										   
+//global		P_UI_Inc_Move = 0;						//	조그 상대값 이동 버튼												Sub_Jog										 
+//global		P_UI_ABS_Move = 0;						//	조그 절대값 이동 버튼												Sub_Jog		
+//global		P_UI_ABS_Move_2 = 0;					//	조그 절대값 이동 버튼 2		
+//global		P_UI_Jog_Kill = 0;						//	조그 Kill 버튼			
+//global		P_UI_Jog_All_Kill = 0;					//  조그 all Kill 버튼
+//global		P_UI_Inc_Move_Old = 0;
+//global		P_Jog_Type(31);			 			//	조그 구동 타입(모터별)											Sub_Jog		
+//P_Jog_Type(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+
+//------- 동작타입 P_Jog_Type(N_Motor) ----------------------------------------------------------------------------------------------------------------------------------------------------------
+#define		MOM_Jog					1			// 조그 누르는동안 이동												Sub_Jog	
+#define		INC_Jog					2			// 조그 상대값 이동													Sub_Jog	
+#define		ABS_Jog					3			// 조그 절대값 이동													Sub_Jog	
+#define		ABS_Jog_2				4			// 조그 절대값 이동_2
+//------- 유닛별 설정 변수 ----------------------------------------------------------------------------------------------------------------------------------------------------------
+//global		P_Btn_1(50);						//	버튼1															Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+//P_Btn_1(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_Btn_2(50);						//	버튼2															Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+//P_Btn_2(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_Btn_3(50);						//	버튼3															Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+//P_Btn_3(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_UI_Btn(50);						//	UI버튼															Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+//P_UI_Btn(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_Sol_1(50);						//	출력1															Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+//P_Sol_1(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_Sol_2(50);						//	출력2															Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+//P_Sol_2(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_Sol_3(50);						//	출력3															Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+//P_Sol_3(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_Lamp_1(50);						//	램프1															Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+//P_Lamp_1(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_Lamp_2(50);						//	램프2															Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+//P_Lamp_2(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_Lamp_3(50);						//	램프3															Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+//P_Lamp_3(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_Btn_Type(50);						//	버튼타입															Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+//P_Btn_Type(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_Cylinder_Type(50);				//	실린더타입														Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+//P_Cylinder_Type(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;																					
+
+//global P_Detect_Foward_Sensor_1(50);	// 전진 감지 센서 1
+//P_Detect_Foward_Sensor_1(0),50 = 0;
+//global P_Detect_Foward_Sensor_2(50);	// 전진 감지 센서 2
+//P_Detect_Foward_Sensor_2(0),50 = 0;
+//global P_Detect_Backward_Sensor_1(50);	// 후진 감지 센서 1 
+//P_Detect_Backward_Sensor_1(0),50 = 0;
+//global P_Detect_Backward_Sensor_2(50);	// 후진 감지 센서 2
+//P_Detect_Backward_Sensor_2(0),50 = 0;
+
+//global P_Sensor_Type(50);				// 센서 타입
+//P_Sensor_Type(0),50 = 0;
+
+//------- 버튼타입	P_Btn_Type(Unit_No)	----------------------------------------------------------------------------------------------------------------------------------------------------------
+#define		Nothing					0			//																	Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value																	
+#define		two_Button				1			//																	Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+#define		Toggle					2			//																	Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+#define		Push_Delay				3			//																	Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+#define		Toggle_Push_Delay		4			//																	Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+#define     Three_Button            5
+#define     Exception_Three_Button  6								//									Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+#define     Spool_two_Button        7												
+//------- 실린더타입 P_Cylinder_Type(Unit_No) ----------------------------------------------------------------------------------------------------------------------------------------------------------
+#define		Nothing					0			//																	Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+#define		Single					1			//																	Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+#define		Double					2			//																	Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+#define     Trio                    3
+//------- 센서타입 P_Sensor_Type(Unit_No) ----------------------------------------------------------------------------------------------------------------------------------------------------------
+#define		Nothing					0			//																	Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+#define		Single					1			//
+#define		Double					2			//																	Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+#define		two_Double				3			//																	Sub_btn_Manual, Sub_Btn_Config, Sub_Btn_Return_Value
+
+//------- 모터별 설정 변수 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//global		P_CamTable_Num(50);					// 캠테이블번호(슬레이브축)											Sub_2nd_Home
+//P_CamTable_Num(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_CamTable_Master_Num(50);			// 캠테이블번호(서브마스터)											Sub_2nd_Home
+//P_CamTable_Master_Num(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_Master_Motor_Num(50);				// 겐트리 제어 시 마스터축 번호.										Sub_2nd_Home
+//P_Master_Motor_Num(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+//global		P_Enc_Num(50);						// 외부엔코더 번호(모터별).
+//P_Enc_Num(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+global		P_HCK_Step_MNTR(50);				// 모터 위치 계산된 값(모터별)										plc11, Sub_2nd_Home
+P_HCK_Step_MNTR(0),50 = 0;
+global		P_Axis_Home_Pos(50);				// 하드웨어 모터 대기 위치(모터별)										Sub_2nd_Home
+P_Axis_Home_Pos(0),50 = 0;
+global		P_Axis_Ready_Pos(50);				// 모터 대기 위치(모터별)	(mm단위입력)									Sub_2nd_Home
+P_Axis_Ready_Pos(0),50 = 0;			
+global		P_PMAC_Homing_CHK(50);				// 홈 체크 변수(모터별)												plc11, Sub_2nd_Home
+P_PMAC_Homing_CHK(0),50=0;
+
+global		P_Poistion_error=5;					// 대기위치 허용오차범위
+
+//------- 홈 State 배열 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//  사용되는 프로그램 : PLC11, Initialize_Home_Type_Array, Sub_1st_Home, Sub_2nd_Home
+// Home_State_Machine에 따른 함수 실행 번호.  State_Matrix 참고.
+//global P_Home_Type_Array_1(63);
+////P_Home_Type_Array_1(0) = 0,	2,	1,	4,	5,	1,	7,	8,	9,	1,	11,	12,	13,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	11,	7,	23,	24,	1,	11,	1,	1,	1,	1,	29,	18,	11,	7,	30,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,  1,	1,	1,	1,	1,	1,	31;
+//// [ 참조 : 20210316 외부엔코더 제로값 셋팅 완료 신호 확인 구문 추가 ]
+//P_Home_Type_Array_1(0) = 0,	2,	1,	4,	5,	1,	7,	8,	9,	1,	11,	12,	13,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	11,	7,	23,	24,	51,	11,	1,	1,	1,	1,	29,	18,	11,	7,	30,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,  1,	1,	1,	1,	1,	1,	31;
+//
+//
+//
+//global P_Home_Type_Array_2(63);
+//P_Home_Type_Array_2(0) = 0,	2,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	32,	33,	34,	35,	36,	37,	1,	45,	40,	41,	45,	1,	1,	35,	49,	42,	43,	1,	45,	46,	47,	45,	35,	48,	31;
+//
+//
+//global P_Home_Type_Array_3(63);
+//P_Home_Type_Array_3(0) = 0,	2,	1,	4,	5,	6,	7,	8,	9,	1,	11,	12,	13,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	11,	7,	23,	24,	1,	11,	1,	1,	1,	1,	29,	18,	11,	7,	30,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	31;
+//
+//global P_Home_Type_Array_4(63);
+//P_Home_Type_Array_4(0) = 0,	2,	1,	4,	5,	1,	7,	8,	9,	1,	11,	1,	1,	1,	1,	1,	1,	1,	19,	20,	7,	1,	1,	11,	7,	23,	24,	1,	11,	26,	18,	11,	28,	29,	18,	11,	7,	30,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	31;
+//
+//global P_Home_Type_Array_5(63);
+//P_Home_Type_Array_5(0) = 0,	2,	3,	4,	5,	1,	7,	8,	9,	1,	11,	1,	1,	14,	15,	16,	17,	18,	1,	1,	1,	1,	1,	11,	7,	23,	24,	1,	11,	1,	1,	1,	1,	29,	18,	11,	7,	30,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	31;
+//
+//global P_Home_Type_Array_6(63);
+//P_Home_Type_Array_6(0) = 0,	2,	1,	4,	5,	1,	1,	8,	9,	10,	11,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	21,	22,	1,	7,	1,	1,	25,	11,	1,	1,	1,	1,	29,	18,	11,	7,	30,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	31;
+//
+//
+//global P_Home_Type_Array_7(63);
+//P_Home_Type_Array_7(0) = 0,	2,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	32,	33,	34,	1,	36,	37,	38,	45,	1,	1,	1,	21,	22,	35,	49,	1,	1,	44,	45,	46,	47,	45,	35,	48,	31;
+//
+//// 20.04.23 추가된 타입.( Clamp X축 - plimits = 0 인상태에서 홈잉.)
+//global P_Home_Type_Array_8(63);
+//P_Home_Type_Array_8(0) = 0,	2,	1,	4,	5,	1,	7,	8,	9,	1,	11,	12,	50,	7,	1,	1,	1,	1,	1,	1,	1,	1,	1,	11,	7,	19,	20,	7,	11,	1,	28,	1,	1,	26,	18,	11,	7,	1,	28,	1,	1,	1,	1,	1,	29,	18,	11,	7,	30,	1,	1,	1,	1,	1,	1,	1,  1,	1,	1,	1,	1,	1,	31;
+//
+//
+//global P_Choice_Home_Type_Array(31);
+//P_Choice_Home_Type_Array(0)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+
+
+// Define 03 ( 기존 )
+global	P_Home_Command(50);						// 홈 커멘드(모터별)							PLC11
+P_Home_Command(0),50 = 0;
+
+
+//global P_Jog_ABS_Move_2_Interock_M(33);
+//P_Jog_ABS_Move_2_Interock_M(0),33 = 0;	// 조그 절대이동 인터락
+//
+//global  P_Jog_Inc_Move_Interock_M(33);
+//P_Jog_Inc_Move_Interock_M(0),33 = 0;	// 조그 상대이동 인터락
+//
+//global P_Jog_Plus_Interock_M(33)
+//P_Jog_Plus_Interock_M(0),33 = 0;	// 조그 플러스 인터락.
+//
+//global P_Jog_Minus_Interock_M(33)
+//P_Jog_Minus_Interock_M(0),33 = 0;	// 조그 마이너스 인터락.
+//
+//global 	P_Jog_Course(31);			// 조그 이동 방향  1: + 2 : -
+//P_Jog_Course(0),30 = 0;
+//
+//global P_Jog_Command(31);			// 모터별 조그 명령
+//P_Jog_Command(0),30 = 0;
+
+global P_Recipe_Count_Num = 0;
+
+global L_Motor_Status_Update_Interval = 300;
+global L_Motor_Recipe_Update_Interval = 10;
+
+global P_UI_Servo_On_Off = 0;
+
+global P_Old_BTN_Servo_On_Off_M(33);
+P_Old_BTN_Servo_On_Off_M(0),33 = 0;
+global P_Peak_Load_Ratio_M(33);
+P_Peak_Load_Ratio_M(0),33 = 0;
+
+global P_Chk_Current_Jog_Sel(33);
+P_Chk_Current_Jog_Sel(0),32 = 0;
+
+global P_Jog_Sel_Count = 0;
+
+global P_Recipe_POS_Interock_Num_Bit(33);
+P_Recipe_POS_Interock_Num_Bit(0),32 = 0;
+
+global P_Recipe_VEL(11);
+P_Recipe_VEL(0),10 = 0;
+
+global P_Recipe_POS(11);
+P_Recipe_POS(0),10 = 0;
+
+global P_BTN_Servo_On_Off_M(33);
+P_BTN_Servo_On_Off_M(0),32 = 0;
+
+global P_BTN_Home_M(33);
+P_BTN_Home_M(0),32 = 0;
+
+global P_BTN_Jog_Stop_M(33);
+P_BTN_Jog_Stop_M(0),32 = 0;
+
+global P_BTN_Recipe_POS_RUN_M(33);
+P_BTN_Recipe_POS_RUN_M(0),32 = 0;
+
+global P_Recipe_POS_Flag_M(33);
+P_Recipe_POS_Flag_M(0),32 = 0;
+
+global P_BTN_Jog_INC_M(33);		// 상대이동버튼P변수
+P_BTN_Jog_INC_M(0),33,1=0;
+
+global P_BTN_JOG_ABS_M(33);		// 절대이동버튼P변수
+P_BTN_JOG_ABS_M(0),33,1=0;
+
+global P_User_Jog_Distance=0;	// 사용자 조그 거리
+
+global P_Unit_Command(100);								// 유닛 명령(유닛번호)
+P_Unit_Command(0),100,1 = 0;
+
+global P_Unit_State_Machine(100);
+P_Unit_State_Machine(0),100,1 = 0;
+
+global P_Status_BTN_Manual_3(100);		// 진공 상태 변수 선언
+P_Status_BTN_Manual_3(0),100,1 = 0;		// 진공 상태 변수 초기화
+
+global P_Chk_Current_BTN_Sel(50);
+P_Chk_Current_BTN_Sel(0),49 = 0;
+global P_BTN_Sel_Count = 0;
+global P_PC_BTN_No = 0;
+
+global P_BTN_Interlock_Update_Interval = 20 ;
+
+global P_Align_Table_Status_Update_Interval = 30;	 // 얼라인 테이블 제로 클램프 상태 확인 주기.
+
+//global P_Jelly_Roll_Prod_Count_Old = 0;		// 젤리롤 카운트 올드 변수.
+global P_Jelly_Roll_Total_Count_Old = 0;		// 젤리롤 카운트 올드 변수.
+
+
+global P_Old_m4120 = 0;
+global P_Old_m4121 = 0;
+global P_Old_m4122 = 0;
+global P_Old_m4123 = 0;
+
+global P_Linear_Encoder_Pos_Check_Flag(5);	// 리니어 엔코더 위치 체크 플래그.
+P_Linear_Encoder_Pos_Check_Flag(0),5 = 0;
+
+global P_Linear_Encoder_Pos(5);						// 리니어 엔코더 위치 저장 변수.
+P_Linear_Encoder_Pos(0),5 = 0;
+
+global P_Status_Linear_Encoder_HomeZero(5);			// 리니어 엔코더 홈 제로 상태.
+P_Status_Linear_Encoder_HomeZero(0),5 = 0;	
+
+global P_Command_Linear_Encoder_HomeZero(5);		// 리니어 엔코더 홈 제로 커맨드
+P_Command_Linear_Encoder_HomeZero(0),5 = 0;			
+
+#define N_Cathode_2ND_PNP_X_Align_Pos	1	//양극 2차 PNP X축 얼라인 위치 문자열 정의
+#define N_Anode_2ND_PNP_X_Align_Pos		2	//음극 2차 PNP X축 얼라인 위치 문자열 정의
+
+// [ 참조 : 20210316 외부엔코더 위치 제로값 셋팅 시점 변경 변수 정의 ] [ 참조 : 2024-04-25 ]
+global	P_Flag_Linear_Enc_Homezero_Complete_M17 = 0;
+global	P_Flag_Linear_Enc_Homezero_Complete_M18 = 0;
+global	P_Flag_Linear_Enc_Homezero_Complete_M19 = 0;
+global	P_Flag_Linear_Enc_Homezero_Complete_M20 = 0;
+
+global	P_CMD_Linear_ENC_Homezero_M17 = 0;
+global	P_CMD_Linear_ENC_Homezero_M18 = 0;
+global	P_CMD_Linear_ENC_Homezero_M19 = 0;
+global	P_CMD_Linear_ENC_Homezero_M20 = 0;
+
+// global P_Home_Wait_POS_Status_Chk_Delay_Timer(33) = 0;
+// P_Home_Wait_POS_Status_Chk_Delay_Timer(0),33 = 0;
+
+#define F_Type_Normal    1 // 보통 상태 홈 ( 홈 체크 변수가 0일 때 홈 잡는 방식 )
+#define F_Type_Wait_POS  2 // 모터 정위치 ( 홈 체크 변수가 1일 때 홈 잡는 방식 )
+
+
+global P_OLD_Home_Offset(30);
+P_OLD_Home_Offset(0),30,1 = 0;
+
+#define F_Cmd_NG_Push	0	// 밀어내기 동작.
+#define	F_Cmd_NG_Pull	1	// 당기기 동작.
+global P_RECIPE_PLC27_Alltime_Interval = 100; //300;//100;			// 모터 상태 업데이트로 인한 CPU 부하율이 증가
+
+global P_Manual_Memory_Tower_Timer = 0;
+global P_Memory_Tower_Interval = 1000;
+
+
+global	P_PLC_14_Status_Cycle_Stop_Flag	= 0;
+
+
+// [ 참조 : 얼라인 테이블 클리닝 모드 ]
+global P_Cathode_AlignTable_Cleaning_Pos_Status_Machine = 0;
+global P_Anode_AlignTable_Cleaning_Pos_Status_Machine = 0;
+
+global P_Status_Cathode_AlignTable_Cleaning_Pos = 0;
+global P_Status_Anode_AlignTable_Cleaning_Pos = 0;
+
+global P_CMD_Cathode_AlignTable_Cleaning_Pos = 0;
+global P_CMD_Anode_AlignTable_Cleaning_Pos = 0;
+
+global P_Cathode_2nd_pnp_Cleaning_Mode_Pos = 210;
+global P_Anode_2nd_pnp_Cleaning_Mode_Pos = 210;
+
+global P_Interlock_Test = 0;
+
+//========================================================//
+// 버튼 프로그램 추가. [ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+//========================================================//
+#define P_BTN_Status					M_X_BTN_Machine_READY | M_X_BTN_Machine_START | M_X_BTN_Machine_STOP | M_X_BTN_Machine_RESET	// 버튼 상태 변수.
+//#define P_PNP_Picker_T_Pos				0.5 > abs(P_Motor_Current_Pos(N_1st_Picker_CA_T)) && 0.5 > abs(P_Motor_Current_Pos(N_1st_Picker_AN_T))						// Picker T축 위치 확인.
+//#define P_NG_PNP_Pos					0.5 > abs(P_Motor_Current_Pos(N_NG_PnP_CA_T)) && 0.5 > abs(P_Motor_Current_Pos(N_NG_PnP_CA_Z)) && 0.5 > abs(P_Motor_Current_Pos(N_NG_PnP_AN_T)) && 0.5 > abs(P_Motor_Current_Pos(N_NG_PnP_AN_Z))	// NG PNP 대기 위치 확인. [ 참조 : IDLE상태 위치 확인 NG PNP 추가 ]
+global P_PNP_Picker_T_Pos = 0
+global P_NG_PNP_Pos = 0
+//#define P_PNP_Picker_T_Pos				((P_Axis_Ready_Pos(19) + 0.5) > abs(P_Motor_Current_Pos(N_1st_Picker_CA_T)) && (P_Axis_Ready_Pos(19) -0.5) < abs(P_Motor_Current_Pos(N_1st_Picker_CA_T))) && ((P_Axis_Ready_Pos(20) + 0.5) > abs(P_Motor_Current_Pos(N_1st_Picker_AN_T)) && (P_Axis_Ready_Pos(20) - 0.5) < abs(P_Motor_Current_Pos(N_1st_Picker_AN_T)))	// Picker T축 위치 확인.
+//#define P_NG_PNP_Pos					(P_Axis_Ready_Pos(42) + 0.5) > abs(P_Motor_Current_Pos(N_NG_PnP_CA_T)) && (P_Axis_Ready_Pos(42) - 0.5) < abs(P_Motor_Current_Pos(N_NG_PnP_CA_T)) && (P_Axis_Ready_Pos(44) + 0.5) > abs(P_Motor_Current_Pos(N_NG_PnP_CA_Z)) && (P_Axis_Ready_Pos(44) - 0.5) < abs(P_Motor_Current_Pos(N_NG_PnP_CA_Z)) && (P_Axis_Ready_Pos(43) + 0.5) > abs(P_Motor_Current_Pos(N_NG_PnP_AN_T)) && (P_Axis_Ready_Pos(43) - 0.5) < abs(P_Motor_Current_Pos(N_NG_PnP_AN_T)) && (P_Axis_Ready_Pos(45) + 0.5) > abs(P_Motor_Current_Pos(N_NG_PnP_AN_Z)) && (P_Axis_Ready_Pos(45) - 0.5) < abs(P_Motor_Current_Pos(N_NG_PnP_AN_Z)) // NG PNP 대기 위치 확인. [ 참조 : IDLE상태 위치 확인 NG PNP 추가 ]
+
+
+//#define P_PNP_Picker_T_Pos				-1 < P_Motor_Current_Pos(N_1st_Picker_CA_T) && P_Motor_Current_Pos(N_1st_Picker_CA_T) < 1\
+//										&& -1 < P_Motor_Current_Pos(N_1st_Picker_AN_T) && P_Motor_Current_Pos(N_1st_Picker_AN_T) < 1						// Picker T축 위치 확인.
+//#define P_NG_PNP_Pos					-1 < P_Motor_Current_Pos(N_NG_PnP_CA_T) && P_Motor_Current_Pos(N_NG_PnP_CA_T) < 1\
+//										&& -1 < P_Motor_Current_Pos(N_NG_PnP_AN_T) && P_Motor_Current_Pos(N_NG_PnP_AN_T) < 1\
+//										&& -1 < P_Motor_Current_Pos(N_NG_PnP_CA_Z) && P_Motor_Current_Pos(N_NG_PnP_CA_Z) < 1\
+//										&& -1 < P_Motor_Current_Pos(N_NG_PnP_AN_Z) && P_Motor_Current_Pos(N_NG_PnP_AN_Z) < 1
+									 
+global M_Old_X_BTN_Machine_READY = 0;		// Edge 값.
+global M_Old_X_BTN_Machine_START = 0;		// Edge 값.
+global M_Old_X_BTN_Machine_STOP = 0;		// Edge 값.
+global M_Old_X_BTN_Machine_RESET = 0;		// Edge 값.
+global M_Old_X_BTN_Machine_MODE = 0;		// Edge 값.
+global P_BTN_Motor_Pos_Check_RTN = 0;		// IDLE 상태 일 때 모터 위치 확인.
+global P_BTN_Memory_Tower_Check_Bit = 0;	// IDLE 상태 일 때 메모리 타워 진행 확인 [1차 언로더 때문]
+global P_PMAC_Status_IDLE_Motor_Not_Pos = 0;// IDLE 상태 모터 통합 위치. [ 위치 변경 ]
+global P_PMAC_Status_IDLE_Motor_Pos = 0;	// IDLE 상태 모터 통합 위치.
+global P_BTN_Motor_Pos_Check_Monitor = 0;	// IDLE 상태 모터 통합 위치 확인.
+global P_PackML_Auto_Stop_Bit = 0;			// IDLE, RESETTING Auto → Manual 변경 시 사용 변수.
+global P_BTN_IDLE_Motor_Not_Pos = 0;		// IDLE 상태 일 때 모터 위치 아닐 경우 PackML에서 Skip 하는 변수.
+global M_X_BTN_Machine_Mode = 0;			// 모드 로터리 스위치.	[0:Manual, 1:Auto]
+global M_Old_X_BTN_Machine_Mode = 0;		// 모드 로터리 스위치.	[0:Manual, 1:Auto]
+//======================================//
+// BTN Lamp 변수 //
+//======================================//
+// BTN Lamp 인자.
+#define Ready_BTN	1						// Ready 버튼.
+#define Start_BTN	2						// Start 버튼.
+#define Stop_BTN	3						// Stop 버튼.
+
+#define Turn_Off	1						// 소등.
+#define Blinking	2						// 점멸.
+#define Turn_On		3						// 점등.
+
+global P_Lamp_Blinking_Timer = 0;			// 점멸을 위한 램프 타이머.
+#define Blinking_Time	500
+
+global P_BTN_Ready_Lamp = 0;				// Ready 램프.	[매칭 후 변수명 변경 필요]
+global P_BTN_Start_Lamp = 0;				// Start 램프.	[매칭 후 변수명 변경 필요]
+global P_BTN_Stop_Lamp = 0;					// Stop 램프.	[매칭 후 변수명 변경 필요]
+
+
+// [ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+global P_ARC_Name_Plate_Passive_Status = 0;	// NP Plate 가능 상태.
+global P_ARC_Passive_Status = 0;			// UI 터치 가능 상태.
+global P_NP_Spool_Number = 0;				// ARC Spool 번호.
+global P_ARC_Page_On = 0;					// ARC Page.
+
+/*
+[search]
+---------------------------------------------------------------------------------------------------
+|							램		프		동		작		진		행							  |
+|-------------------------------------------------------------------------------------------------|
+|	     상부	   |	    하부		  |							조		건						  |
+|-------------------------------------|-----------------------------------------------------------|
+| N_Upper_1st_Step | N_Lower_1st_Step |		언와인더 언척											  |
+|-------------------------------------|-----------------------------------------------------------|
+| N_Upper_2nd_Step | N_Lower_2nd_Step |		언와인더 척 + 틸팅 0도 + 진공 출력 ON + 진공 입력 OFF    |
+|-------------------------------------|-----------------------------------------------------------|
+| N_Upper_3rd_Step | N_Lower_3rd_Step |		언와인더 척 + 틸팅 0도 + 진공 출력 ON + 진공 입력 ON	  |
+|-------------------------------------|-----------------------------------------------------------|
+| N_Upper_4th_Step | N_Lower_4th_Step |		언와인더 척 + 틸팅 0도								  |
+|-------------------------------------|-----------------------------------------------------------|
+| N_Upper_5th_Step | N_Lower_5th_Step |		언와인더 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 OFF   |
+|-------------------------------------|-----------------------------------------------------------|
+| N_Upper_6th_Step | N_Lower_6th_Step |		언와인더 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 ON    |
+|-------------------------------------|-----------------------------------------------------------|
+| N_Upper_7th_Step | N_Lower_7th_Step |		언와인더 척 + 틸팅 90도								  |
+---------------------------------------------------------------------------------------------------*/
+
+#define N_Upper_1st_Step		M_Y_Upper_Unwinder_Lock_Sol^$1 && M_Y_Upper_Unwinder_UnLock_Sol
+#define N_Upper_2nd_Step		M_Y_Upper_Unwinder_Lock_Sol && M_Y_Upper_Unwinder_UnLock_Sol^$1 && M_X_Sepa_Upper_ARC_UnTilting_Sensor_Front && M_X_Sepa_Upper_ARC_UnTilting_Sensor_Rear && M_Y_Sepa_Upper_ARC_Ejector_Vac_On && M_X_ARC_NP_Upper_Plate_Vac_On^$1
+#define N_Upper_3rd_Step		M_Y_Upper_Unwinder_Lock_Sol && M_Y_Upper_Unwinder_UnLock_Sol^$1 && M_X_Sepa_Upper_ARC_UnTilting_Sensor_Front && M_X_Sepa_Upper_ARC_UnTilting_Sensor_Rear && M_Y_Sepa_Upper_ARC_Ejector_Vac_On && M_X_ARC_NP_Upper_Plate_Vac_On
+#define N_Upper_4th_Step		M_Y_Upper_Unwinder_Lock_Sol && M_Y_Upper_Unwinder_UnLock_Sol^$1 && M_X_Sepa_Upper_ARC_UnTilting_Sensor_Front && M_X_Sepa_Upper_ARC_UnTilting_Sensor_Rear
+#define N_Upper_5th_Step		M_Y_Upper_Unwinder_Lock_Sol && M_Y_Upper_Unwinder_UnLock_Sol^$1 && M_X_Sepa_Upper_ARC_Tilting_Sensor_Front && M_X_Sepa_Upper_ARC_Tilting_Sensor_Rear && M_Y_Sepa_Upper_ARC_Ejector_Vac_On && M_X_ARC_NP_Upper_Plate_Vac_On^$1
+#define N_Upper_6th_Step		M_Y_Upper_Unwinder_Lock_Sol && M_Y_Upper_Unwinder_UnLock_Sol^$1 && M_X_Sepa_Upper_ARC_Tilting_Sensor_Front && M_X_Sepa_Upper_ARC_Tilting_Sensor_Rear && M_Y_Sepa_Upper_ARC_Ejector_Vac_On && M_X_ARC_NP_Upper_Plate_Vac_On
+#define N_Upper_7th_Step		M_Y_Upper_Unwinder_Lock_Sol && M_Y_Upper_Unwinder_UnLock_Sol^$1 && M_X_Sepa_Upper_ARC_Tilting_Sensor_Front && M_X_Sepa_Upper_ARC_Tilting_Sensor_Rear
+
+#define N_Lower_1st_Step		M_Y_Lower_Unwinder_Lock_Sol^$1 && M_Y_Lower_Unwinder_UnLock_Sol
+#define N_Lower_2nd_Step		M_Y_Lower_Unwinder_Lock_Sol && M_Y_Lower_Unwinder_UnLock_Sol^$1 && M_X_Sepa_Lower_ARC_UnTilting_Sensor_Front && M_X_Sepa_Lower_ARC_UnTilting_Sensor_Rear && M_Y_Sepa_Lower_ARC_Ejector_Vac_On && M_X_ARC_NP_Lower_Plate_Vac_On^$1
+#define N_Lower_3rd_Step		M_Y_Lower_Unwinder_Lock_Sol && M_Y_Lower_Unwinder_UnLock_Sol^$1 && M_X_Sepa_Lower_ARC_UnTilting_Sensor_Front && M_X_Sepa_Lower_ARC_UnTilting_Sensor_Rear && M_Y_Sepa_Lower_ARC_Ejector_Vac_On && M_X_ARC_NP_Lower_Plate_Vac_On
+#define N_Lower_4th_Step		M_Y_Lower_Unwinder_Lock_Sol && M_Y_Lower_Unwinder_UnLock_Sol^$1 && M_X_Sepa_Lower_ARC_UnTilting_Sensor_Front && M_X_Sepa_Lower_ARC_UnTilting_Sensor_Rear
+#define N_Lower_5th_Step		M_Y_Lower_Unwinder_Lock_Sol && M_Y_Lower_Unwinder_UnLock_Sol^$1 && M_X_Sepa_Lower_ARC_Tilting_Sensor_Front && M_X_Sepa_Lower_ARC_Tilting_Sensor_Rear && M_Y_Sepa_Lower_ARC_Ejector_Vac_On && M_X_ARC_NP_Lower_Plate_Vac_On^$1
+#define N_Lower_6th_Step		M_Y_Lower_Unwinder_Lock_Sol && M_Y_Lower_Unwinder_UnLock_Sol^$1 && M_X_Sepa_Lower_ARC_Tilting_Sensor_Front && M_X_Sepa_Lower_ARC_Tilting_Sensor_Rear && M_Y_Sepa_Lower_ARC_Ejector_Vac_On && M_X_ARC_NP_Lower_Plate_Vac_On
+#define N_Lower_7th_Step		M_Y_Lower_Unwinder_Lock_Sol && M_Y_Lower_Unwinder_UnLock_Sol^$1 && M_X_Sepa_Lower_ARC_Tilting_Sensor_Front && M_X_Sepa_Lower_ARC_Tilting_Sensor_Rear
+
+//=============//
+// define 선언 //
+//=============//
+#define ARC_NP_Blinking_Time	500					// 램프 점멸 시간. [500ms]
+#define ARC_NP_Upper_Check		1					// 네임 플레이트 상부 선택.
+#define ARC_NP_Lower_Check		2					// 네임 플레이트 하부 선택.
+//====================//
+// 상부 기준 변수 선언 //
+//====================//
+global P_ARC_NP_Upper_Timer = 0;					// 상부 램프 타이머.
+global P_ARC_Upper_Ready = 0;						// 상부 언와인더 준비 완료 변수.
+global P_ARC_NP_Upper_3rd_Step_Toggle_Variable = 0;	// 2nd Step Edge 변수. [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+global P_ARC_NP_Upper_7th_Step_Variable = 0;		// 6th Step Edge 변수. [정회전, 역회전 누른 후 땔 때 램프 초기화]
+global P_ARC_NP_Upper_7th_Step_Edge_Variable = 0;	// 6th Step Edge 변수. [상,하 바꿀 때 램프 초기화]
+global P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit = 0;	// 정회전, 역회전 점멸 확인 비트 변수. [0:소등(버튼 누를 시 점등), 1:점멸(버튼 누를 시 조건에 따라 구동)]
+//====================//
+// 하부 기준 변수 선언 //
+//====================//
+global P_ARC_NP_Lower_Timer = 0;					// 하부 램프 타이머.
+global P_ARC_Lower_Ready = 0;						// 하부 언와인더 준비 완료 변수.
+global P_ARC_NP_Lower_3rd_Step_Toggle_Variable = 0;	// 2nd Step Edge 변수. [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+global P_ARC_NP_Lower_7th_Step_Variable = 0;		// 6th Step Edge 변수. [정회전, 역회전 누른 후 땔 때 램프 초기화]
+global P_ARC_NP_Lower_7th_Step_Edge_Variable = 0;	// 6th Step Edge 변수. [상,하 바꿀 때 램프 초기화]
+global P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit = 0;	// 정회전, 역회전 점멸 확인 비트 변수. [0:소등(버튼 누를 시 점등), 1:점멸(버튼 누를 시 조건에 따라 구동)]
+//===============//
+// 공통 변수 선언 //
+//===============//
+global M_Old_X_ARC_NP_Ready = 0;					// Ready 버튼 Edge 변수.
+global M_Old_X_ARC_NP_Unwinder_Rotation = 0;		// 정회전 버튼 Edge 변수.
+global M_Old_X_ARC_NP_Unwinder_Re_Rotation = 0;		// 역회전 버튼 Edge 변수.
+
+//======================================//
+// Status Clear 버튼 //	[ 참조 : 25.09.25 Status Clear 버튼 추가 ]
+//======================================//
+global P_Status_Clear_Flag = 0;						// Abort 발생 시 Status Clear 진행 플래그.
+global P_Status_Clear_RTN = 0;						// Suspend Status_Clear 반환값.
+
+global P_MSA_BTN_On = 0;
+global P_Align_Take_Off_BTN_ON = 0;
+
+//======================================//
+// ARC Ready 램프 점멸 상태로 일정 시간 지난 후 팝업 띄움 //	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
+//======================================//
+global P_ARC_NP_Upper_Ready_Check_Bit = 0;			// ARC Ready 램프 점멸 중 일정 시간이 지난 후 팝업 및 부저 발생 (일정 시간, 팝업, 부저는 PLC에서 제어)
+global P_ARC_NP_Lower_Ready_Check_Bit = 0;			// ARC Ready 램프 점멸 중 일정 시간이 지난 후 팝업 및 부저 발생 (일정 시간, 팝업, 부저는 PLC에서 제어)

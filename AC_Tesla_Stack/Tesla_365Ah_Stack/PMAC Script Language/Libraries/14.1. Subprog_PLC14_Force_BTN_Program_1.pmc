@@ -1,0 +1,203 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.09.25
+// 강제 출력 버튼 추가 - [ 참조 : 25.09.25 DIO 강제 출력 버튼 추가 ]
+//======================================================================================================
+//-------------------------//
+// 강제 출력 버튼 관련 함수 //
+//-------------------------//
+open Subprog Force_BTN_Function(void)
+	// 일반 출력 모드 주소 설정.
+	sub:Normal_Mode_Address_Config(void)
+		
+		// GPIO #0
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_0th_Gpio_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_0th_Gpio_Board_IO_Num,P_Force_BTN_Address_Count
+		// GPIO #1
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_1st_Gpio_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_1st_Gpio_Board_IO_Num,P_Force_BTN_Address_Count
+		// GPIO #2
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_2nd_Gpio_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_2nd_Gpio_Board_IO_Num,P_Force_BTN_Address_Count
+		// GPIO #3
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_3rd_Gpio_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_3rd_Gpio_Board_IO_Num,P_Force_BTN_Address_Count
+		// GPIO #4
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_4th_Gpio_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_4th_Gpio_Board_IO_Num,P_Force_BTN_Address_Count
+		// GPIO #5
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_5th_Gpio_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_5th_Gpio_Board_IO_Num,P_Force_BTN_Address_Count
+		// GPIO #6
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_6th_Gpio_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_6th_Gpio_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #100
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_100th_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_100th_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #101
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_101st_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_101st_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #102
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_102nd_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_102nd_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #103
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_103rd_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_103rd_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #104
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_104th_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_104th_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #105
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_105th_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_105th_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #106
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_106th_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_106th_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #107
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_107th_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_107th_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #108
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_108th_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_108th_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #109
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_109th_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_109th_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #110
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_110th_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_110th_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #111
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_111st_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_111st_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #112
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_112nd_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_112nd_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #113
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_113rd_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_113rd_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #114
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_114th_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_114th_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #115
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_115th_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_115th_Board_IO_Num,P_Force_BTN_Address_Count
+		// Ecat #116
+		cmd"M%d->Ecat[0].IO[%d].Data.%d.1",P_Force_BTN_Ecat_116th_M_Variable_Num+P_Force_BTN_Address_Count,P_Force_BTN_Ecat_116th_Board_IO_Num,P_Force_BTN_Address_Count
+
+		if ( P_Force_BTN_Address_Count > 15 ) {}
+		else
+			P_Force_BTN_Address_Count++;
+
+	return;
+
+	// 일반 출력 모드 저장된 M변수 불러오기.
+	sub:Normal_Mode_Retrieve_M_Variable(void)
+
+		// GPIO #0
+		M(P_Force_BTN_0th_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_0th_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// GPIO #1
+		M(P_Force_BTN_1st_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_1st_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// GPIO #2																     
+		M(P_Force_BTN_2nd_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_2nd_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// GPIO #3																     
+		M(P_Force_BTN_3rd_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_3rd_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// GPIO #4																    
+		M(P_Force_BTN_4th_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_4th_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// GPIO #5																     
+		M(P_Force_BTN_5th_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_5th_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// GPIO #6																     
+		M(P_Force_BTN_6th_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_6th_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #100
+		M(P_Force_BTN_Ecat_100th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_100th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #101																
+		M(P_Force_BTN_Ecat_101st_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_101st_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #102																
+		M(P_Force_BTN_Ecat_102nd_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_102nd_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #103																 
+		M(P_Force_BTN_Ecat_103rd_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_103rd_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #104																 
+		M(P_Force_BTN_Ecat_104th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_104th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #105																 
+		M(P_Force_BTN_Ecat_105th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_105th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #106																 
+		M(P_Force_BTN_Ecat_106th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_106th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #107																 
+		M(P_Force_BTN_Ecat_107th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_107th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #108																 
+		M(P_Force_BTN_Ecat_108th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_108th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #109																 
+		M(P_Force_BTN_Ecat_109th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_109th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #110																 
+		M(P_Force_BTN_Ecat_110th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_110th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #111																 
+		M(P_Force_BTN_Ecat_111st_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_111st_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #112																 
+		M(P_Force_BTN_Ecat_112nd_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_112nd_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #113																 
+		M(P_Force_BTN_Ecat_113rd_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_113rd_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #114																 
+		M(P_Force_BTN_Ecat_114th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_114th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #115																 
+		M(P_Force_BTN_Ecat_115th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_115th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #116																 
+		M(P_Force_BTN_Ecat_116th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count) = P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_116th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count)
+
+		if( P_Force_BTN_M_Variable_Save_Count > 15 ){}
+		else
+			P_Force_BTN_M_Variable_Save_Count++;
+
+	return;
+
+	// 강제 출력 모드 주소 설정.
+	sub:Force_Mode_Address_Config(void)
+
+		if ( P_Force_BTN_Address_Count > P_Force_BTN_Address_Clear_Count ){}
+		else
+		{
+			//if ( P_Force_BTN_Address_Count == 224 )				// Ecat 비어있는 보드 점프.
+			//	P_Force_BTN_Address_Count = 256
+			//else
+			//{
+				cmd"M%d->*",P_Force_BTN_M_Variable_Start_Num+P_Force_BTN_Address_Count;		// 주소값 초기화.
+				P_Force_BTN_Address_Count++;					// 카운트 증가.
+			//}
+		}
+
+	return;
+
+	// 강제 출력 모드 저장된 M변수 저장.
+	sub:Force_Mode_Save_M_Variable(void)
+
+		// GPIO #0
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_0th_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_0th_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// GPIO #1
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_1st_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_1st_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// GPIO #2
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_2nd_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_2nd_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// GPIO #3
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_3rd_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_3rd_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// GPIO #4
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_4th_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_4th_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// GPIO #5
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_5th_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_5th_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// GPIO #6
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_6th_Gpio_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_6th_Gpio_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #100
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_100th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_100th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #101
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_101st_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_101st_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #102
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_102nd_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_102nd_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #103
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_103rd_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_103rd_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #104
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_104th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_104th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #105
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_105th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_105th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #106
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_106th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_106th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #107
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_107th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_107th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #108
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_108th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_108th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #109
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_109th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_109th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #110
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_110th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_110th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #111
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_111st_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_111st_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #112
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_112nd_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_112nd_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #113
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_113rd_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_113rd_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #114
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_114th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_114th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #115
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_115th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_115th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+		// Ecat #116
+		P_Force_BTN_M_Variable_Save((P_Force_BTN_Ecat_116th_M_Variable_Num - P_Force_BTN_M_Variable_Start_Num) + P_Force_BTN_M_Variable_Save_Count) = M(P_Force_BTN_Ecat_116th_M_Variable_Num + P_Force_BTN_M_Variable_Save_Count)
+
+
+		if( P_Force_BTN_M_Variable_Save_Count > 15 ){}
+		else
+			P_Force_BTN_M_Variable_Save_Count++;
+
+	return;
+
+close

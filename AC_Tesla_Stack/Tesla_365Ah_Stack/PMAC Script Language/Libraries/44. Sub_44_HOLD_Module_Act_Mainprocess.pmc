@@ -1,0 +1,1041 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+
+// 동작 커맨드 발생 감지 및 동작 실행
+open subprog Subprog_Mainprocess_HOLD_Act_Module(void)
+
+// 1) 커맨드 감시 
+	sub:Management(&rtn)
+
+		// 0. 로컬변수 선언 (완료 감시 변수 초기화)
+		//=============================================================================================================================================
+		// 1. 배출 모듈 
+		//=============================================================================================================================================
+		// 1.1) 공용
+		local L_Subprog_Act_Hold_Module_Stop_Point;							// 	[Hold 모듈 정지 포인트]
+		local L_Subprog_Act_Hold_Module_Status_Clear;						//	[Hold 모듈 관련 상태값 초기화]
+		local L_Subprog_Act_Cell_Data_Vision_Check;							//	[극판 유무에 따른 극판 유무 검사, 빈테이블 검사]
+		local L_Subprog_Act_Cell_Data_Vision_Surface_Check;					//	[얼라인 극판 공급 후 극판 표면 검사]
+		local L_Subprog_Ace_Hold_Module_First_PNP_Wait_Pos					//	[1차 PNP]	[대기 위치 이동]
+		local L_Subprog_Ace_Hold_Module_First_PNP_Belt_Pos					//	[1차 PNP]	[벨트 이동]
+		local L_Subprog_Ace_Hold_Module_First_PNP_Belt_Down_Pos				//	[1차 PNP]	[벨트 하강]
+		local L_Subprog_Ace_Hold_Module_First_PNP_Belt_Up_Pos				//	[1차 PNP]	[벨트 상승]
+		local L_Subprog_Ace_Hold_Module_First_PNP_Align_Pos					//	[1차 PNP]	[얼라인 이동]
+		local L_Subprog_Ace_Hold_Module_First_PNP_Align_Down_Pos			//	[1차 PNP]	[얼라인 하강]
+		local L_Subprog_Ace_Hold_Module_First_PNP_Align_Up_Pos				//	[1차 PNP]	[얼라인 상승]
+		local L_Subprog_Ace_Hold_Module_First_PNP_Vac_On					//	[1차 PNP]	[벨트 흡착]
+		local L_Subprog_Ace_Hold_Module_First_PNP_Blow_On					//	[1차 PNP]	[얼라인 블로우]
+		local L_Subprog_Ace_Hold_Module_Second_PNP_Stack_Pos				//	[2차 PNP]	[얼라인 → 스택 이동]
+		local L_Subprog_Ace_Hold_Module_Second_PNP_Align_Pos				//	[2차 PNP]	[스택 → 얼라인 이동]
+		local L_Subprog_Ace_Hold_Module_Second_PNP_Align_Down_Pos			//	[2차 PNP]	[얼라인 하강]
+		local L_Subprog_Ace_Hold_Module_Second_PNP_Align_Up_Pos				//	[2차 PNP]	[얼라인 상승]
+		local L_Subprog_Ace_Hold_Module_Second_PNP_Vac_On					//	[2차 PNP]	[얼라인 흡착]
+		local L_Subprog_Ace_Hold_Module_Second_PNP_Blow_On					//	[2차 PNP]	[얼라인 블로우]
+		local L_Subprog_Ace_Hold_Module_First_Second_PNP_Wait_Supply_Pos	//	[1,2차 PNP]	[1차 PNP 대기 위치 → 벨트, 2차 PNP 스택 → 얼라인 이동]
+		local L_Subprog_Ace_Hold_Module_First_Second_PNP_Supply_Pos			//	[1,2차 PNP]	[1차 PNP 얼라인 → 벨트, 2차 PNP 스택 → 얼라인 이동]
+		local L_Subprog_Ace_Hold_Module_First_Second_PNP_Stack_Pos			//	[1,2차 PNP]	[1차 PNP 벨트 → 얼라인, 2차 PNP 얼라인 → 스택 이동]
+		local L_Subprog_Ace_Hold_Module_Total_Down_Pos						//	[1,2차 PNP]	[1,2차 PNP 동시 하강]
+		local L_Subprog_Ace_Hold_Module_Total_Up_Pos						//	[1,2차 PNP]	[1,2차 PNP 동시 상승]
+		local L_Subprog_Ace_Hold_Module_Total_Vac_On						//	[1,2차 PNP]	[1,2차 PNP 동시 흡착]
+		local L_Subprog_Ace_Hold_Module_NG_PNP_NG_Bos_Pos					//	[NG PNP]	[NG 박스 이동]
+		local L_Subprog_Ace_Hold_Module_NG_PNP_Align_Pos					//	[NG PNP]	[얼라인 이동]
+		local L_Subprog_Ace_Hold_Module_NG_PNP_Align_Down_Pos				//	[NG PNP]	[얼라인 하강]
+		local L_Subprog_Ace_Hold_Module_NG_PNP_Align_Up_Pos					//	[NG PNP]	[얼라인 상승]
+		local L_Subprog_Ace_Hold_Module_NG_PNP_Vac_On						//	[NG PNP]	[흡착]
+		local L_Subprog_Ace_Hold_Module_NG_PNP_Blow_On						//	[NG PNP]	[블로우]
+		local L_Subprog_Ace_Hold_Module_Pause_Check;						// [퍼즈체크] [ 참 조: GPIO 고장 시 예외처리 (26.01.08)]
+//=========================================================//
+// 1) [Hold 모듈 정지 포인트]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Module_Stop_Point) = N_Ready_Step;							// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Act_Hold_Module_Stop_Point = 0;																	// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Module_Stop_Point(&L_Subprog_Act_Hold_Module_Stop_Point);			// 실행 함수 호출.
+		IF ( L_Subprog_Act_Hold_Module_Stop_Point == N_COMPLETE )													// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Hold_Module_Stop_Point == N_FALSE )													// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 2) [Hold 모듈 Init]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear) = F_ACT_STATUS_ENABLE;					// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Module_Status_Clear) = N_Ready_Step;						// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Act_Hold_Module_Status_Clear = 0;																	// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Module_Status_Clear(&L_Subprog_Act_Hold_Module_Status_Clear);		// 실행 함수 호출.
+		IF ( L_Subprog_Act_Hold_Module_Status_Clear == N_COMPLETE )													// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Hold_Module_Status_Clear == N_FALSE )												// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear) = F_ACT_STATUS_ALARM;						// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Module_Status_Clear) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 3) [극판 유무에 따른 극판 유무 검사, 빈테이블 검사]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Check) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Check) != F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Check) = F_ACT_STATUS_ENABLE;				// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = N_Ready_Step;						// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Act_Cell_Data_Vision_Check = 0;																	// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Cell_Data_Vision_Check(&L_Subprog_Act_Cell_Data_Vision_Check);		// 실행 함수 호출.
+		IF ( L_Subprog_Act_Cell_Data_Vision_Check == N_COMPLETE )													// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Check) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Cell_Data_Vision_Check == N_FALSE )													// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Check) = F_ACT_STATUS_ALARM;						// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Check) == F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Check) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 4) [얼라인 극판 공급 후 극판 표면 검사]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Surface_Check) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Surface_Check) != F_ACT_STATUS_ENABLE )		// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Surface_Check) = F_ACT_STATUS_ENABLE;		// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Surface_Check) = N_Ready_Step;				// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Act_Cell_Data_Vision_Surface_Check = 0;															// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Cell_Data_Vision_Surface_Check(&L_Subprog_Act_Cell_Data_Vision_Surface_Check);	// 실행 함수 호출.
+		IF ( L_Subprog_Act_Cell_Data_Vision_Surface_Check == N_COMPLETE )											// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Surface_Check) = F_ACT_STATUS_DISABLE;			// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Cell_Data_Vision_Surface_Check == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Surface_Check) = F_ACT_STATUS_ALARM;				// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Surface_Check) == F_ACT_STATUS_ENABLE )		// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Cell_Data_Vision_Surface_Check) = F_ACT_STATUS_INITIAL;		// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 5) [1차 PNP]	[대기 위치 이동]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos) = F_ACT_STATUS_ENABLE;					// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) = N_Ready_Step;							// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_First_PNP_Wait_Pos = 0;															// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.First_PNP_Wait_Pos(&L_Subprog_Ace_Hold_Module_First_PNP_Wait_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_First_PNP_Wait_Pos == N_COMPLETE )											// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_First_PNP_Wait_Pos == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Wait_Pos) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+//=========================================================//
+// 6) [1차 PNP]		[벨트 이동]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Pos) != F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Pos) = F_ACT_STATUS_ENABLE;			// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = N_Ready_Step;					// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_First_PNP_Belt_Pos = 0;													// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.First_PNP_Belt_Pos(&L_Subprog_Ace_Hold_Module_First_PNP_Belt_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_First_PNP_Belt_Pos == N_COMPLETE )									// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Pos) = F_ACT_STATUS_DISABLE;				// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_First_PNP_Belt_Pos == N_FALSE )									// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Pos) = F_ACT_STATUS_ALARM;					// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Pos) == F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Pos) = F_ACT_STATUS_INITIAL;			// 엣지 변수 초기화
+		}
+	}
+//=========================================================//
+// 7) [1차 PNP]		[벨트 하강]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Down_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Down_Pos) != F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Down_Pos) = F_ACT_STATUS_ENABLE;				// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Down_Pos) = N_Ready_Step;					// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_First_PNP_Belt_Down_Pos = 0;														// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.First_PNP_Belt_Down_Pos(&L_Subprog_Ace_Hold_Module_First_PNP_Belt_Down_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_First_PNP_Belt_Down_Pos == N_COMPLETE )										// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Down_Pos) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_First_PNP_Belt_Down_Pos == N_FALSE )									// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Down_Pos) = F_ACT_STATUS_ALARM;					// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Down_Pos) == F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Down_Pos) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 8) [1차 PNP]		[벨트 상승]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Up_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Up_Pos) != F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Up_Pos) = F_ACT_STATUS_ENABLE;					// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Up_Pos) = N_Ready_Step;						// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_First_PNP_Belt_Up_Pos = 0;														// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.First_PNP_Belt_Up_Pos(&L_Subprog_Ace_Hold_Module_First_PNP_Belt_Up_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_First_PNP_Belt_Up_Pos == N_COMPLETE )										// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Up_Pos) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_First_PNP_Belt_Up_Pos == N_FALSE )										// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Up_Pos) = F_ACT_STATUS_ALARM;						// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Up_Pos) == F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Belt_Up_Pos) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 9) [1차 PNP]		[얼라인 이동]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Pos) != F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Pos) = F_ACT_STATUS_ENABLE;			// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = N_Ready_Step;				// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_First_PNP_Align_Pos = 0;													// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.First_PNP_Align_Pos(&L_Subprog_Ace_Hold_Module_First_PNP_Align_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_First_PNP_Align_Pos == N_COMPLETE )									// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Pos) = F_ACT_STATUS_DISABLE;				// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_First_PNP_Align_Pos == N_FALSE )								// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Pos) = F_ACT_STATUS_ALARM;				// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Pos) == F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Pos) = F_ACT_STATUS_INITIAL;			// 엣지 변수 초기화
+		}
+	}
+//=========================================================//
+// 10) [1차 PNP]		[얼라인 하강]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Down_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Down_Pos) != F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Down_Pos) = F_ACT_STATUS_ENABLE;				// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Down_Pos) = N_Ready_Step;					// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_First_PNP_Align_Down_Pos = 0;														// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.First_PNP_Align_Down_Pos(&L_Subprog_Ace_Hold_Module_First_PNP_Align_Down_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_First_PNP_Align_Down_Pos == N_COMPLETE )										// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Down_Pos) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_First_PNP_Align_Down_Pos == N_FALSE )									// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Down_Pos) = F_ACT_STATUS_ALARM;					// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Down_Pos) == F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Down_Pos) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+		}
+	}
+//=========================================================//
+// 11) [1차 PNP]		[얼라인 상승]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Up_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Up_Pos) != F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Up_Pos) = F_ACT_STATUS_ENABLE;				// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Up_Pos) = N_Ready_Step;						// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_First_PNP_Align_Up_Pos = 0;														// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.First_PNP_Align_Up_Pos(&L_Subprog_Ace_Hold_Module_First_PNP_Align_Up_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_First_PNP_Align_Up_Pos == N_COMPLETE )										// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Up_Pos) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_First_PNP_Align_Up_Pos == N_FALSE )										// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Up_Pos) = F_ACT_STATUS_ALARM;						// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Up_Pos) == F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Align_Up_Pos) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+		}
+	}
+//=========================================================//
+// 12) [1차 PNP]		[벨트 흡착]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Vac_On) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Vac_On) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Vac_On) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Vac_On) = N_Ready_Step;							// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_First_PNP_Vac_On = 0;																// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.First_PNP_Vac_On(&L_Subprog_Ace_Hold_Module_First_PNP_Vac_On);		// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_First_PNP_Vac_On == N_COMPLETE )												// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Vac_On) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_First_PNP_Vac_On == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Vac_On) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Vac_On) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Vac_On) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 13) [1차 PNP]		[얼라인 블로우]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Blow_On) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Blow_On) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Blow_On) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Blow_On) = N_Ready_Step;							// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_First_PNP_Blow_On = 0;															// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.First_PNP_Blow_On(&L_Subprog_Ace_Hold_Module_First_PNP_Blow_On);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_First_PNP_Blow_On == N_COMPLETE )											// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Blow_On) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_First_PNP_Blow_On == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_First_PNP_Blow_On) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Blow_On) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_PNP_Blow_On) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 14) [2차 PNP]		[얼라인 → 스택 이동]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Stack_Pos) == F_ACT_STATUS_ENABLE )
+	{	
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Stack_Pos) != F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = N_Ready_Step;						// 스텝 머신 실행.
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Stack_Pos) = F_ACT_STATUS_ENABLE;					// 변수 업데이트.
+		}	
+		L_Subprog_Ace_Hold_Module_Second_PNP_Stack_Pos = 0;															// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Second_PNP_Stack_Pos(&L_Subprog_Ace_Hold_Module_Second_PNP_Stack_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_Second_PNP_Stack_Pos == N_COMPLETE )											// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Stack_Pos) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_Second_PNP_Stack_Pos == N_FALSE )										// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Stack_Pos) = F_ACT_STATUS_ALARM;						// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Stack_Pos) == F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Stack_Pos) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+//=========================================================//
+// 15) [2차 PNP]		[스택 → 얼라인 이동]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Pos) != F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Pos) = F_ACT_STATUS_ENABLE;					// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) = N_Ready_Step;						// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_Second_PNP_Align_Pos = 0;															// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Second_PNP_Align_Pos(&L_Subprog_Ace_Hold_Module_Second_PNP_Align_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_Second_PNP_Align_Pos == N_COMPLETE )											// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Pos) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_Second_PNP_Align_Pos == N_FALSE )										// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Pos) = F_ACT_STATUS_ALARM;						// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Pos) == F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Pos) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 16) [2차 PNP]		[얼라인 하강]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Down_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Down_Pos) != F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Down_Pos) = F_ACT_STATUS_ENABLE;				// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) = N_Ready_Step;					// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_Second_PNP_Align_Down_Pos = 0;													// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Second_PNP_Align_Down_Pos(&L_Subprog_Ace_Hold_Module_Second_PNP_Align_Down_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_Second_PNP_Align_Down_Pos == N_COMPLETE )									// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Down_Pos) = F_ACT_STATUS_DISABLE;				// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_Second_PNP_Align_Down_Pos == N_FALSE )									// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Down_Pos) = F_ACT_STATUS_ALARM;					// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Down_Pos) == F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Down_Pos) = F_ACT_STATUS_INITIAL;			// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 17) [2차 PNP]		[얼라인 상승]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Up_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Up_Pos) != F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Up_Pos) = F_ACT_STATUS_ENABLE;				// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) = N_Ready_Step;					// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_Second_PNP_Align_Up_Pos = 0;														// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Second_PNP_Align_Up_Pos(&L_Subprog_Ace_Hold_Module_Second_PNP_Align_Up_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_Second_PNP_Align_Up_Pos == N_COMPLETE )										// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Up_Pos) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_Second_PNP_Align_Up_Pos == N_FALSE )									// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Up_Pos) = F_ACT_STATUS_ALARM;					// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Up_Pos) == F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Align_Up_Pos) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 18) [2차 PNP]		[얼라인 흡착]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Vac_On) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Vac_On) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Vac_On) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = N_Ready_Step;							// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_Second_PNP_Vac_On = 0;															// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Second_PNP_Vac_On(&L_Subprog_Ace_Hold_Module_Second_PNP_Vac_On);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_Second_PNP_Vac_On == N_COMPLETE )											// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Vac_On) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_Second_PNP_Vac_On == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Vac_On) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Vac_On) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Vac_On) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 19) [2차 PNP]		[얼라인 블로우]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Blow_On) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Blow_On) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Blow_On) = F_ACT_STATUS_ENABLE;					// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) = N_Ready_Step;							// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_Second_PNP_Blow_On = 0;															// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Second_PNP_Blow_On(&L_Subprog_Ace_Hold_Module_Second_PNP_Blow_On);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_Second_PNP_Blow_On == N_COMPLETE )											// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Blow_On) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_Second_PNP_Blow_On == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Blow_On) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Blow_On) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Second_PNP_Blow_On) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 20) [1,2차 PNP]	[1차 PNP 대기 위치 → 벨트, 2차 PNP 스택 → 얼라인 이동]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) != F_ACT_STATUS_ENABLE )	// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) = F_ACT_STATUS_ENABLE;		// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) = N_Ready_Step;			// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_First_Second_PNP_Wait_Supply_Pos = 0;												// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.First_Second_PNP_Wait_Supply_Pos(&L_Subprog_Ace_Hold_Module_First_Second_PNP_Wait_Supply_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_First_Second_PNP_Wait_Supply_Pos == N_COMPLETE )								// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) = F_ACT_STATUS_DISABLE;			// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_First_Second_PNP_Wait_Supply_Pos == N_FALSE )							// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) = F_ACT_STATUS_ALARM;			// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) == F_ACT_STATUS_ENABLE )	// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) = F_ACT_STATUS_INITIAL;		// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 21) [1,2차 PNP]	[1차 PNP 얼라인 → 벨트, 2차 PNP 스택 → 얼라인 이동]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Supply_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Supply_Pos) != F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Supply_Pos) = F_ACT_STATUS_ENABLE;			// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Supply_Pos) = N_Ready_Step;				// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_First_Second_PNP_Supply_Pos = 0;													// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.First_Second_PNP_Supply_Pos(&L_Subprog_Ace_Hold_Module_First_Second_PNP_Supply_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_First_Second_PNP_Supply_Pos == N_COMPLETE )									// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Supply_Pos) = F_ACT_STATUS_DISABLE;				// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_First_Second_PNP_Supply_Pos == N_FALSE )								// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Supply_Pos) = F_ACT_STATUS_ALARM;				// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Supply_Pos) == F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Supply_Pos) = F_ACT_STATUS_INITIAL;			// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 22) [1,2차 PNP]	[1차 PNP 벨트 → 얼라인, 2차 PNP 얼라인 → 스택 이동]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Stack_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Stack_Pos) != F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Stack_Pos) = F_ACT_STATUS_ENABLE;			// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Stack_Pos) = N_Ready_Step;					// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_First_Second_PNP_Stack_Pos = 0;													// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.First_Second_PNP_Stack_Pos(&L_Subprog_Ace_Hold_Module_First_Second_PNP_Stack_Pos);// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_First_Second_PNP_Stack_Pos == N_COMPLETE )									// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Stack_Pos) = F_ACT_STATUS_DISABLE;				// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_First_Second_PNP_Stack_Pos == N_FALSE )									// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Stack_Pos) = F_ACT_STATUS_ALARM;					// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Stack_Pos) == F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_First_Second_PNP_Stack_Pos) = F_ACT_STATUS_INITIAL;			// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 23) [1,2차 PNP]	[1,2차 PNP 동시 하강]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_Total_Down_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Total_Down_Pos) != F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Total_Down_Pos) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Down_Pos) = N_Ready_Step;								// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_Total_Down_Pos = 0;																// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Total_Down_Pos(&L_Subprog_Ace_Hold_Module_Total_Down_Pos);			// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_Total_Down_Pos == N_COMPLETE )												// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_Total_Down_Pos) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_Total_Down_Pos == N_FALSE )												// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_Total_Down_Pos) = F_ACT_STATUS_ALARM;								// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Total_Down_Pos) == F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Total_Down_Pos) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 24) [1,2차 PNP]	[1,2차 PNP 동시 상승]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_Total_Up_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Total_Up_Pos) != F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Total_Up_Pos) = F_ACT_STATUS_ENABLE;							// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Up_Pos) = N_Ready_Step;								// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_Total_Up_Pos = 0;																	// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Total_Up_Pos(&L_Subprog_Ace_Hold_Module_Total_Up_Pos);				// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_Total_Up_Pos == N_COMPLETE )													// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_Total_Up_Pos) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_Total_Up_Pos == N_FALSE )												// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_Total_Up_Pos) = F_ACT_STATUS_ALARM;								// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Total_Up_Pos) == F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Total_Up_Pos) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 25) [1,2차 PNP]	[1,2차 PNP 동시 흡착]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_Total_Vac_On) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Total_Vac_On) != F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Total_Vac_On) = F_ACT_STATUS_ENABLE;							// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Vac_On) = N_Ready_Step;								// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_Total_Vac_On = 0;																	// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Total_Vac_On(&L_Subprog_Ace_Hold_Module_Total_Vac_On);				// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_Total_Vac_On == N_COMPLETE )													// 실행 함수 호출 완료 되었을 경우.
+		{	
+			P_Module_Act_Hold_Command_Array(N_Act_Total_Vac_On) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_Total_Vac_On == N_FALSE )												// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_Total_Vac_On) = F_ACT_STATUS_ALARM;								// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_Total_Vac_On) == F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_Total_Vac_On) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 26) [NG PNP]		[NG 박스 이동]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_NG_Box_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_NG_Box_Pos) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_NG_Box_Pos) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) = N_Ready_Step;							// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_NG_PNP_NG_Bos_Pos = 0;															// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.NG_PNP_NG_Bos_Pos(&L_Subprog_Ace_Hold_Module_NG_PNP_NG_Bos_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_NG_PNP_NG_Bos_Pos == N_COMPLETE )											// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_NG_Box_Pos) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_NG_PNP_NG_Bos_Pos == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_NG_Box_Pos) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_NG_Box_Pos) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_NG_Box_Pos) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 27) [NG PNP]		[얼라인 이동]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Pos) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Pos) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) = N_Ready_Step;							// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_NG_PNP_Align_Pos = 0;																// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.NG_PNP_Align_Pos(&L_Subprog_Ace_Hold_Module_NG_PNP_Align_Pos);		// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_NG_PNP_Align_Pos == N_COMPLETE )												// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Pos) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_NG_PNP_Align_Pos == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Pos) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Pos) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Pos) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 28) [NG PNP]		[얼라인 하강]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Down_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Down_Pos) != F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Down_Pos) = F_ACT_STATUS_ENABLE;					// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) = N_Ready_Step;						// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_NG_PNP_Align_Down_Pos = 0;														// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.NG_PNP_Align_Down_Pos(&L_Subprog_Ace_Hold_Module_NG_PNP_Align_Down_Pos);	// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_NG_PNP_Align_Down_Pos == N_COMPLETE )										// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Down_Pos) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_NG_PNP_Align_Down_Pos == N_FALSE )										// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Down_Pos) = F_ACT_STATUS_ALARM;						// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Down_Pos) == F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Down_Pos) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 29) [NG PNP]		[얼라인 상승]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Up_Pos) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Up_Pos) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Up_Pos) = F_ACT_STATUS_ENABLE;					// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) = N_Ready_Step;						// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_NG_PNP_Align_Up_Pos = 0;															// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.NG_PNP_Align_Up_Pos(&L_Subprog_Ace_Hold_Module_NG_PNP_Align_Up_Pos);// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_NG_PNP_Align_Up_Pos == N_COMPLETE )											// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Up_Pos) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_NG_PNP_Align_Up_Pos == N_FALSE )										// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Up_Pos) = F_ACT_STATUS_ALARM;						// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Up_Pos) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Align_Up_Pos) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 30) [NG PNP]		[흡착]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Vac_On) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Vac_On) != F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Vac_On) = F_ACT_STATUS_ENABLE;							// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) = N_Ready_Step;								// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_NG_PNP_Vac_On = 0;																// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.NG_PNP_Vac_On(&L_Subprog_Ace_Hold_Module_NG_PNP_Vac_On);			// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_NG_PNP_Vac_On == N_COMPLETE )												// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Vac_On) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_NG_PNP_Vac_On == N_FALSE )												// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Vac_On) = F_ACT_STATUS_ALARM;								// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Vac_On) == F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Vac_On) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 31) [NG PNP]		[블로우]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Blow_On) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Blow_On) != F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Blow_On) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = N_Ready_Step;								// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_NG_PNP_Blow_On = 0;																// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.NG_PNP_Blow_On(&L_Subprog_Ace_Hold_Module_NG_PNP_Blow_On);			// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_NG_PNP_Blow_On == N_COMPLETE )												// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Blow_On) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_NG_PNP_Blow_On == N_FALSE )												// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Blow_On) = F_ACT_STATUS_ALARM;								// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Blow_On) == F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Act_NG_PNP_Blow_On) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 32) [PAUSE]		[퍼즈확인] [ 참 조: GPIO 고장 시 예외처리 (26.01.08)]
+//=========================================================// 
+	if( P_Module_Act_Hold_Command_Array(N_Pasue_Check) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Pasue_Check) != F_ACT_STATUS_ENABLE )							// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Pasue_Check) = F_ACT_STATUS_ENABLE;							// 변수 업데이트.
+			P_Module_Act_Hold_State_Machine_Array(N_Pasue_Check) = N_Ready_Step;								// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Ace_Hold_Module_Pause_Check = 0;																// 반환값 초기화.
+		call Subprog_Subprocess_Hold_Act_Module.Hold_Pause_Check(&L_Subprog_Ace_Hold_Module_Pause_Check);		// 실행 함수 호출.
+		IF ( L_Subprog_Ace_Hold_Module_Pause_Check == N_COMPLETE )												// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Hold_Command_Array(N_Pasue_Check) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Ace_Hold_Module_Pause_Check == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Hold_Supply_1TR_State_Machine = N_Error_Step; 													// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Hold_Command_Array(N_Pasue_Check) = F_ACT_STATUS_ALARM;								// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Hold_Command_Array(N_Pasue_Check) == F_ACT_STATUS_ENABLE )							// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Hold_Command_Array(N_Pasue_Check) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+		}
+	}
+//===========================================================================================		
+// 리턴값 
+//===========================================================================================	
+	rtn = N_TRUE;
+//===========================================================================================
+	return
+
+
+
+close

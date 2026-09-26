@@ -1,0 +1,53 @@
+//======================================================================================================
+// 양극 얼라인 스테이지 무브 모션
+//======================================================================================================
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.28 김성중 선임 
+// Cal, Cleaning 위치 이동, Align 탈착 모드 프로그래밍 진행 - [ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ] 
+
+&2
+#36->1000X		// Cathode Align Stage X	1000Cts = 1mm
+#37->1000Y		// Cathode Align Stage Y    1000Cts = 1mm
+#38->1000TT		// Cathode Align Stage T	1000Cts = 1도
+
+
+
+Open PROG 2
+	
+ 	LINEAR
+	ABS	// 절대 위치로 이동 
+	
+	If ( P_Cathode_Align_Table_Move == F_Align_Move_Mode )	// 얼라인 무브 동작 
+	{	
+		P_Tact_Time_Check(N_Cathode_Align) == 1;			// Tact Time 측정 시작	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		dwell(0);
+		TA( P_Cathode_Align_Stage_TA ) TS( P_Cathode_Align_Stage_TS ) TM( P_Cathode_Align_Stage_TM )	
+		X( P_Cathode_Align_Stage_X_mm ) Y( P_Cathode_Align_Stage_Y_mm ) TT( P_Cathode_Align_Stage_T_mm )
+		//M_Y_Vision_Cathode_Aling_Move_Complete == 1
+		P_Tact_Time_Check(N_Cathode_Align) == 0;			// Tact Time 측정 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		dwell(0)
+	}
+	Else If ( P_Cathode_Align_Table_Move == F_Start_Position_Move_Mode )		// 대기 위치 무브 동작
+	{	
+		P_Tact_Time_Check(N_Cathode_Align) == 1;			// Tact Time 측정 시작	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		dwell(0);
+		TA( P_Cathode_Align_Stage_TA ) TS( P_Cathode_Align_Stage_TS ) TM( P_Cathode_Align_Stage_TM )	
+		X( 0 ) Y( 0 ) TT( 0 )
+		//M_Y_Vision_Cathode_Aling_Move_Complete == 0
+		P_Tact_Time_Check(N_Cathode_Align) == 0;			// Tact Time 측정 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		dwell(0)
+	}
+	Else if ( P_Cathode_Align_Table_Move == F_Align_AutoCal_Move_Mode )		//양극 얼라인 오토 캘 
+	{
+		if( P_CMD_Align_Complete == 0)										//양극 얼라인 무브 완료 신호 초기화 
+		{
+			TA( 100 ) TS( 50 ) TM( 1000 )	
+			X(P_Align_AutoCal_X_POS) Y(P_Align_AutoCal_Y_POS) TT(P_Align_AutoCal_T_POS)	//양극 얼라인 테이블 X,Y,T축 보정값 입력
+			P_CMD_Align_Complete == 1										//양극 얼라인 무브 완료 신호 ON
+			dwell(0)
+		}
+	}
+close
+

@@ -1,0 +1,15 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+#define N_NIPROLL			0
+#define N_PLATE				1
+#define N_PLATE_Clamp		2
+#define N_Cutter			3
+#define N_Plate_Vac			4
+
+global P_ARC_TEST_Flag = 0;
+global P_ARC_Frist_Start = 0;
+global P_BTN_Program_Test = 0;

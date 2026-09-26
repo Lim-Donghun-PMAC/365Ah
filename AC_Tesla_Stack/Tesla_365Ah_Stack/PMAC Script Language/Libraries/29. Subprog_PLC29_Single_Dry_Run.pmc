@@ -1,0 +1,1531 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.09.12
+// 단동, 연동 프로그램 주석 정리 및 인터락 추가. [ 참조 : 25.09.12 단동, 연동 프로그램 주석 및 인터락 추가 ]
+
+/*	search [ㄴㄷㅁㄱ] ← 검색용.
+Evade_Pos				회피 동작
+Evade_Pos_Check			회피 확인
+Motion_Ready			모션 준비
+Coord_Activate			좌표계 활성화
+Coord_Activate_Check	좌표계 활성화 확인
+Select_Run_Mode			런모드 선택
+Run_Execute				런모드 진행
+Interlock				인터락
+__Init					초기화
+*/
+open subprog Single_Dry_Run(void)
+	
+	//1.회피동작
+	sub:Evade_Pos(Unit,&rtn)
+
+		rtn = 0;
+
+		switch ( Unit )
+		{
+			case N_Cathode_1st_PNP_Unit :
+				Motor[1].JogSpeed = 50;									// 속도 지정.
+				Motor[3].JogSpeed = 50;									// 속도 지정.
+				//Motor[1].ProgJogPos = (P_Recipe_M01_POS(1)/10);		// 양극 1차 PNP 벨트 위치 이동.		추후 레시피 Pos로 변경.
+				//Motor[3].ProgJogPos = (P_Recipe_M03_POS(2)/10);		// 양극 2차 PNP 스택 위치 이동.
+				Motor[1].ProgJogPos = 0;								// 양극 1차 PNP 벨트 위치 이동.
+				Motor[3].ProgJogPos = 90000;							// 양극 2차 PNP 스택 위치 이동.
+				Jog1=*													// Jog 이동.
+				Jog3=*													// Jog 이동.
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]	
+			break;
+
+			case N_Anode_1st_PNP_Unit :	
+				Motor[2].JogSpeed = 50;									// 속도 지정.
+				Motor[4].JogSpeed = 50;									// 속도 지정.
+				///Motor[2].ProgJogPos = (P_Recipe_M02_POS(1)/10);		// 음극 1차 PNP 벨트 위치 이동.
+				///Motor[4].ProgJogPos = (P_Recipe_M04_POS(2)/10);		// 음극 2차 PNP 스택 위치 이동.
+				Motor[2].ProgJogPos = 0;								// 음극 1차 PNP 벨트 위치 이동.
+				Motor[4].ProgJogPos = 90000;							// 음극 2차 PNP 스택 위치 이동.
+				Jog2=*													// Jog 이동.
+				Jog4=*													// Jog 이동.
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Cathode_Clamp_Unit : 
+				Motor[11].JogSpeed = 20;								// 속도 지정.
+				Motor[11].ProgJogPos = -30000							// 스택테이블 30mm 하강.
+				Jog11:*													// Jog 이동.
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Anode_Clamp_Unit :
+				Motor[11].JogSpeed = 20;								// 속도 지정.
+				Motor[11].ProgJogPos = -30000							// 스택테이블 30mm 하강.
+				Jog11:*													// Jog 이동.
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Stack_Table_Unit :			
+				Motor[11].JogSpeed = 20;								// 속도 지정.
+				Motor[11].ProgJogPos = -30000							// 스택테이블 30mm 하강.
+				Jog11:*													// Jog 이동.
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Finall_Roller_X_Unit:
+				Motor[12].JogSpeed = 50;								// 속도 지정.
+				//Motor[12].ProgJogPos = (P_Recipe_M12_POS(1)/10);		// 파이널롤러 음극 위치로 이동	.
+				Motor[12].ProgJogPos = -197000;							// 파이널롤러 음극 위치로 이동	.
+				Jog12=*													// Jog 이동.
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Cathode_2nd_PNP_Unit :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]
+				Motor[12].JogSpeed = 50;								// 속도 지정.
+				//Motor[12].ProgJogPos = (P_Recipe_M12_POS(1)/10);		// 파이널롤러 음극 위치로 이동	.
+				Motor[12].ProgJogPos = -197000;							// 파이널롤러 음극 위치로 이동	.
+				Jog12=*													// Jog 이동.
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_Anode_2nd_PNP_Unit :	
+				Motor[12].JogSpeed = 50;								// 속도 지정.
+				//Motor[12].ProgJogPos = (P_Recipe_M12_POS(1)/10);		// 파이널롤러 음극 위치로 이동	.
+				Motor[12].ProgJogPos = 168000;							// 파이널롤러 음극 위치로 이동	.
+				Jog12=*													// Jog 이동.
+				rtn = N_TRUE;	
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]
+			break
+
+			case N_Cathode_Align_Unit :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_Anode_Align_Unit :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_Finall_Roller_Z_Unit :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_Cathode_1st_Picker_T :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_Anode_1st_Picker_T :								
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Final_Roll_Evade :
+				Motor[13].JogSpeed = 30;								// 속도 지정.
+				cmd"#13j-"												// 파이널롤러 z축 - 리밋으로 회피.
+			break;
+
+			case N_Sheet_Paper_Unit :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_Cathode_NG_PNP_Total_Unit :
+			case N_Cathode_NG_PNP_T :
+				Motor[3].JogSpeed = 50;									// 속도 지정.
+				//Motor[3].ProgJogPos = (P_Recipe_M03_POS(2)/10);			// 양극 2차 PNP 스택 위치 이동
+				Motor[3].ProgJogPos = 90000;							// 양극 2차 PNP 스택 위치 이동
+				Jog3=*													// Jog 이동.
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_Cathode_NG_PNP_Z :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Anode_NG_PNP_Total_Unit :
+			case N_Anode_NG_PNP_T :
+				Motor[4].JogSpeed = 50;									// 속도 지정.
+				//Motor[4].ProgJogPos = (P_Recipe_M04_POS(2)/10);			// 음극 2차 PNP 스택 위치 이동
+				Motor[4].ProgJogPos = 90000;							// 음극 2차 PNP 스택 위치 이동
+				Jog4=*													// Jog 이동.
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_Anode_NG_PNP_Z :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_1st_UND_X :
+				Motor[11].JogSpeed = 20;								// 속도 지정.
+				Motor[47].JogSpeed = 20;								// 속도 지정.
+				//Motor[47].ProgJogPos = (P_Recipe_M47_POS(1)/10);		// 스텟 진입 위치 이동.
+				Motor[47].ProgJogPos = -9790;							// 스텟 진입 위치 이동.
+				cmd"#11j-"												// 메인 Z축 - 리밋으로 회피.
+				Jog47=*													// Jog 이동.
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_1st_UND_Z :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_1st_UND_T :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+		}
+	return
+
+	// 2.회피 확인 
+	sub:Evade_Pos_Check(Unit,&rtn)
+
+		rtn = 0;
+
+		switch ( Unit )
+		{
+			case N_Cathode_1st_PNP_Unit :
+				if ( Motor[N_1st_PnP_CA_T].DesVelZero == 1 && Motor[N_2nd_PnP_CA_T].DesVelZero == 1 )			//양극2차 정지확인
+				{	
+					P_Single_Run_Pos_Rtn1 = 0;							// 반환값 초기화.
+					P_Single_Run_Pos_Rtn2 = 0;							// 반환값 초기화.
+					call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP, &P_Cathode_2nd_Unit_Status, &P_Single_Run_Pos_Rtn1);	// 메모리 타워로 위치 확인.
+					call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP, &P_Cathode_1st_Unit_Status, &P_Single_Run_Pos_Rtn2);	// 메모리 타워로 위치 확인.
+					if( P_Single_Run_Pos_Rtn1 == 1 && P_Single_Run_Pos_Rtn2 == 1 )	// 반환값 확인.
+					{
+						if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )	// 양극 2차 PNP : Stack 위치, 1차 PNP : Belt 위치.
+							rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+						else											// 아닐 경우.
+							rtn = N_FALSE;								// 반환값 업데이트. [FALSE]
+					}
+					else												// 위치 메모리 타워 진행이 안될 경우.
+						rtn = N_FALSE;									// 반환값 업데이트. [FALSE]
+				}
+			break;
+
+			case N_Anode_1st_PNP_Unit :	
+				if ( Motor[N_1st_PnP_AN_T].DesVelZero == 1 && Motor[N_2nd_PnP_AN_T].DesVelZero == 1 )			//양극2차 정지확인
+				{	
+					P_Single_Run_Pos_Rtn1 = 0;							// 반환값 초기화.
+					P_Single_Run_Pos_Rtn2 = 0;							// 반환값 초기화.
+					call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP, &P_Anode_2nd_Unit_Status, &P_Single_Run_Pos_Rtn1);		// 메모리 타워로 위치 확인.
+					call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP, &P_Anode_1st_Unit_Status, &P_Single_Run_Pos_Rtn2);		// 메모리 타워로 위치 확인.
+					if( P_Single_Run_Pos_Rtn1 == 1 && P_Single_Run_Pos_Rtn2 == 1 )	// 반환값 확인.
+					{
+						if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )		// 음극 2차 PNP : Stack 위치, 1차 PNP : Belt 위치.
+							rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+						else											// 아닐 경우.
+							rtn = N_FALSE;								// 반환값 업데이트. [FALSE]
+					}
+					else												// 위치 메모리 타워 진행이 안될 경우.
+						rtn = N_FALSE;									// 반환값 업데이트. [FALSE]
+				}			
+			break;
+
+			case N_Cathode_Clamp_Unit : 
+				if ( Motor[11].DesVelZero == 1 )						// 워크 테이블 정지확인
+				{
+					if ( P_Motor_Current_Pos(N_MAIN_Z) > ((P_Recipe_M11_POS(1)/10000) - 30) - P_Motor_Ready_Poa_Inpos_200um && P_Motor_Current_Pos(N_MAIN_Z) < ((P_Recipe_M11_POS(1)/10000) - 30) + P_Motor_Ready_Poa_Inpos_200um )		//20 워크 테이블 위치 확인.
+					{				
+						rtn = N_TRUE;									// 반환값 업데이트. [TRUE]		
+					}
+					else												// 아닐 경우.
+					{
+						P_Error_Monitoring_Count_1++;					// 모니터링 카운트 증가.
+						rtn = N_FALSE;									// 반환값 업데이트. [FALSE]
+					}
+				}												
+			break;
+
+			case N_Anode_Clamp_Unit :
+				if ( Motor[11].DesVelZero == 1 )						// 워크 테이블 정지확인
+				{
+					if ( P_Motor_Current_Pos(N_MAIN_Z) > ((P_Recipe_M11_POS(1)/10000) - 30) - P_Motor_Ready_Poa_Inpos_200um && P_Motor_Current_Pos(N_MAIN_Z) < ((P_Recipe_M11_POS(1)/10000) - 30) + P_Motor_Ready_Poa_Inpos_200um )		//20 워크 테이블 위치 확인.
+					{				
+						rtn = N_TRUE;									// 반환값 업데이트. [TRUE]		
+					}
+					else												// 아닐 경우.
+					{
+						P_Error_Monitoring_Count_1++; 					// 모니터링 카운트 증가.
+						rtn = N_FALSE;									// 반환값 업데이트. [FALSE]
+					}
+				}			
+			break;
+
+			case N_Stack_Table_Unit :
+				if ( Motor[11].DesVelZero == 1 )						// 워크테이블 정지확인
+				{
+					if ( P_Motor_Current_Pos(N_MAIN_Z) > ((P_Recipe_M11_POS(1)/10000) - 30) - P_Motor_Ready_Poa_Inpos_200um && P_Motor_Current_Pos(N_MAIN_Z) < ((P_Recipe_M11_POS(1)/10000) - 30) + P_Motor_Ready_Poa_Inpos_200um )		//20 워크 테이블 위치 확인.
+					{				
+						rtn = N_TRUE;									// 반환값 업데이트. [TRUE]		
+					}
+					else												// 아닐 경우.
+					{
+						P_Error_Monitoring_Count_1++; 					// 모니터링 카운트 증가.
+						rtn = N_FALSE;									// 반환값 업데이트. [FALSE]
+					}
+				}			
+			break;
+
+			case N_Cathode_2nd_PNP_Unit :						
+				if(Motor[12].DesVelZero == 1)
+				{
+					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) > (P_Recipe_M12_POS(1)/10000) - P_Motor_Ready_Poa_Inpos_200um && P_Motor_Current_Pos(N_FINAL_ROLL_X) < (P_Recipe_M12_POS(1)/10000) + P_Motor_Ready_Poa_Inpos_200um)
+					{
+						rtn = N_TRUE;
+					}
+					else
+					{
+						P_Error_Monitoring_Count_1++; 					// 모니터링 카운트 증가.
+						rtn = N_FALSE;									// 반환값 업데이트. [FALSE]
+					}
+				}
+			break;
+
+			case N_Anode_2nd_PNP_Unit :						
+				if(Motor[12].DesVelZero == 1)
+				{
+					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) > (P_Recipe_M12_POS(2)/10000) - P_Motor_Ready_Poa_Inpos_200um && P_Motor_Current_Pos(N_FINAL_ROLL_X) < (P_Recipe_M12_POS(2)/10000) + P_Motor_Ready_Poa_Inpos_200um)
+					{
+						rtn = N_TRUE;
+					}
+					else
+					{
+						P_Error_Monitoring_Count_1++; 					// 모니터링 카운트 증가.
+						rtn = N_FALSE;									// 반환값 업데이트. [FALSE]
+					}
+				}	
+			break;
+
+			case N_Cathode_Align_Unit :						
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Anode_Align_Unit :						
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Finall_Roller_X_Unit :
+				if ( Motor[N_FINAL_ROLL_X].DesVelZero == 1 )						// 파이널롤러 X축 정지 확인			
+				{			
+					P_Single_Run_Pos_Rtn1 = 0;							// 반환값 초기화.
+					call Sub_Unit_Memory_Status.individual_mode(F_Final_Roll, &P_FinalRoll_Unit_Status, &P_Single_Run_Pos_Rtn1);	// 메모리 타워로 위치 확인.
+					if( P_Single_Run_Pos_Rtn1 == 1 )					// 반환값 확인.
+					{
+						if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Discharge_Pos )	// 음극 위치에 있을 경우.
+							rtn = N_TRUE;								// 반환값 업데이트. [TRUE]	
+						else
+						rtn = N_FALSE;									// 반환값 업데이트. [FALSE]
+					}	
+				}					
+			break;
+
+			case N_Finall_Roller_Z_Unit :						
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Cathode_1st_Picker_T :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_Anode_1st_Picker_T :								
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Final_Roll_Evade :
+				//if( Motor[13].MinusLimit == 1 )							// 리밋 확인.
+				if( P789 == 1 )							// 리밋 확인.
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+			break;
+
+			case N_Sheet_Paper_Unit :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Cathode_NG_PNP_Total_Unit :
+			case N_Cathode_NG_PNP_T :
+				if ( Motor[N_2nd_PnP_CA_T].DesVelZero == 1 )							//양극2차 정지확인
+				{	
+					P_Single_Run_Pos_Rtn1 = 0;							// 반환값 초기화.
+					call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP, &P_Cathode_2nd_Unit_Status, &P_Single_Run_Pos_Rtn1);	// 메모리 타워로 위치 확인.
+					if( P_Single_Run_Pos_Rtn1 == 1 )					// 반환값 확인.
+					{
+						if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )	// 양극 2차 PNP Stack 상승 일 경우.
+							rtn = N_TRUE;								// 반환값 업데이트. [TRUE]
+						else
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+					}
+					else
+						rtn = N_FALSE;									// 반환값 업데이트. [FALSE]
+				}
+			break
+
+			case N_Cathode_NG_PNP_Z :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Anode_NG_PNP_Total_Unit :
+			case N_Anode_NG_PNP_T :	
+				if (Motor[N_2nd_PnP_AN_T].DesVelZero == 1 )							//양극2차 정지확인
+				{	
+					P_Single_Run_Pos_Rtn1 = 0;							// 반환값 초기화.
+					call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP, &P_Anode_2nd_Unit_Status, &P_Single_Run_Pos_Rtn1);	// 메모리 타워로 위치 확인.
+					if( P_Single_Run_Pos_Rtn1 == 1 )					// 반환값 확인.
+					{
+						if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )		// 음극 2차 PNP Stack 상승 일 경우.
+							rtn = N_TRUE;								// 반환값 업데이트. [TRUE]
+						else
+							rtn = N_FALSE;								// 반환값 업데이트. [FALSE]
+					}
+					else
+						rtn = N_FALSE;									// 반환값 업데이트. [FALSE]
+				}			
+			break;
+
+			case N_Anode_NG_PNP_Z :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_1st_UND_X :
+				if (Motor[11].DesVelZero == 1 && Motor[47].DesVelZero == 1 )		// 워크 테이블, 1차 언로드 Z축 정지 확인.		
+				{
+					//if( Motor[11].MinusLimit == 1 )						// 워크 테이블 리밋 확인.
+					if( P789 == 1 )						// 워크 테이블 리밋 확인.
+						rtn = N_TRUE;									// 반환값 업데이트. [TRUE]
+				}
+			break
+
+			case N_1st_UND_Z :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_1st_UND_T :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+		}
+	return
+
+	// 3.모션 준비
+	sub:Motion_Ready(&rtn)
+		rtn = 0;
+		switch (P_Single_Run_Motion_Ready_State_Machine)
+		{
+			case 1 :
+				P_Single_Run_Motion_Ready_RTN = 0;						// 타임 베이스 반환값 초기화.
+				call Sub_Common_Function.Timebase_On(&P_Single_Run_Motion_Ready_RTN);	// 타임 베이스 ON
+				if( P_Single_Run_Motion_Ready_RTN == 1 )				// 반환값 확인.
+					P_Single_Run_Motion_Ready_State_Machine = 2 ;		// 다음 스텟 머신으로 이동.
+			break;
+			case 2 : 
+				P_Slave1_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave2_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave3_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave4_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave5_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave6_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave7_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave8_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave9_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave10_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave11_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave12_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave13_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave14_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+				P_Slave15_Motion_Command = 0;							// Slave 모션 Cmd 초기화.
+		
+				P_Cathode_Count = 0;									// 극판 카운트 초기화.
+				// 단동 때만 음극 1카운트 1 만들어 클램프 표창 모드 막음
+				P_Anode_Count = 1;										// 극판 카운트 초기화.
+				P_Mode_Command = 0;										// 모드 커멘드 초기화.
+				P_Current_Mode = 0;										// 현재 모드 초기화.
+				
+
+				P_SubMaster_Sub_Old_Command(0),F_Max_Index,1=0;							// 서브 프로그램 내 변수 초기화.
+				P_SubMaster_Sub_Old_Mode(0),F_Max_Index,1=0;								// 서브 프로그램 내 변수 초기화.
+				P_SubMaster_Sub_Old_Trigger(0),F_Max_Index,1=0;							// 서브 프로그램 내 변수 초기화.
+				P_SubMaster_Sub_Mode_Command(0),F_Max_Index,1=0;							// 서브 프로그램 내 변수 초기화.
+
+
+				if( P_Single_Run_Unit == N_Cathode_1st_PNP_Unit || P_Single_Run_Unit ==  N_Cathode_2nd_PNP_Unit || P_Single_Run_Unit ==  N_Anode_1st_PNP_Unit || P_Single_Run_Unit == N_Anode_2nd_PNP_Unit )
+				{
+					if(Motor[1].phasefound == 1 && Motor[2].phasefound == 1 && Motor[3].phasefound == 1 && Motor[4].phasefound == 1)
+					{
+						cmd"#*j/"
+						P_Servo_ON_MNTR2++
+						P_Master_Motion_Program_Flag = 1;						// 마스터 플래그	On.	
+						P_Old_X_PLC_Sync_Heart_Bit = 0;
+						P_Single_Run_Motion_Ready_State_Machine = 3;			// 다음 스텟 머신으로 이동.								
+					}
+				}
+				else
+				{
+					cmd"#*j/"
+					P_Servo_ON_MNTR3++
+					P_Master_Motion_Program_Flag = 1;						// 마스터 플래그	On.	
+					P_Old_X_PLC_Sync_Heart_Bit = 0;
+					P_Single_Run_Motion_Ready_State_Machine = 3;			// 다음 스텟 머신으로 이동.								
+				}
+			break;
+
+			case 3 :																	
+				if (P_Master_Motion_Program_Flag == 1 )					// 마스터 플래그 On 확인.
+				{
+					#ifdef F_Virtual_Axis_Test		// 가상축일때
+						if( P_Single_Run_Unit == N_Cathode_1st_PNP_Unit || P_Single_Run_Unit == N_Anode_1st_PNP_Unit )
+						{
+							if(M_Y_A_Site_Heart_Bit != P_Old_X_PLC_Sync_Heart_Bit && M_Y_A_Site_Heart_Bit == 1)
+							{
+								if( M_X_Pause_Status_Complete_Signal ) {}	// 진입 타이밍을 맞추기위해 반댓열 퍼즈일시 starting에서 모션 잡아둠
+								else
+								{
+									START N_Coord_Master_Motion	: N_Prog_Master_Motion_Sub_Program;
+									P_Single_Run_Motion_Ready_State_Machine = 4;
+								}
+								P_Old_X_PLC_Sync_Heart_Bit = M_Y_A_Site_Heart_Bit;
+							}
+						}
+					#else // F_Real_Axis_Test			// 실축일때
+
+						#ifdef F_Def_Stack_A			// A열일때	
+							if( (M_X_PLC_Sync_Heart_Bit != P_Old_X_PLC_Sync_Heart_Bit && M_X_PLC_Sync_Heart_Bit == 1) && P_Single_Run_Pass == 0 ) // P_Old_X_PLC_Sync_Heart_Bit -> 03번 PLC 동기화
+							{
+								if( M_X_Pause_Status_Complete_Signal ) {}	// 진입 타이밍을 맞추기위해 반댓열 퍼즈일시 starting에서 모션 잡아둠
+								else
+								{
+									START N_Coord_Master_Motion	: N_Prog_Master_Motion_Sub_Program;
+									P_Single_Run_Motion_Ready_State_Machine = 4;
+								}
+							}
+						#else							// B열일때
+							if( (M_X_PLC_Sync_Heart_Bit != P_Old_X_PLC_Sync_Heart_Bit && M_X_PLC_Sync_Heart_Bit == 0) && P_Single_Run_Pass == 0 )	// P_Old_X_PLC_Sync_Heart_Bit -> 03번 PLC 동기화
+							{
+								if( M_X_Pause_Status_Complete_Signal ) {}	// 진입 타이밍을 맞추기위해 반댓열 퍼즈일시 starting에서 모션 잡아둠
+								else
+								{
+									START N_Coord_Master_Motion	: N_Prog_Master_Motion_Sub_Program;
+									P_Single_Run_Motion_Ready_State_Machine = 4;
+								}
+							}
+						#endif
+
+					#endif
+					else
+					{
+						START N_Coord_Master_Motion	: N_Prog_Master_Motion_Sub_Program;
+						P_Single_Run_Motion_Ready_State_Machine = 4;		// 다음 스텟 머신으로 이동.	
+					}
+				}						
+			break;
+
+			case 4 : 	
+				P_Single_Run_Motion_Ready_RTN = 0					// 모션 프로그램 On 반환값 초기화.
+				call Sub_Common_Function.Master_Motion_Program_On(&P_Single_Run_Motion_Ready_RTN);	// 모션 프로그램 플래그 ON
+				if ( P_Single_Run_Motion_Ready_RTN == 1 )			// 반환값 확인.
+					P_Single_Run_Motion_Ready_State_Machine = 5;	// 다음 스텟 머신으로 이동.		
+			break;
+		
+			case 5 : 			
+				//cmd"disable plc 4,12,27,28";							// 생각해보자																	
+				P_Single_Run_Motion_Ready_State_Machine = 6;			// 다음 스텟 머신으로 이동.			
+			break;
+			
+			case 6 :
+				if ( Coord[1].ProgRunning == 1 )						// 마스터 촤표계 활성화 확인.
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+			break;														
+		}
+	return
+
+	// 4.좌표계 활성화
+	sub:Coord_Activate(Unit,&rtn)
+		rtn = 0;														// 반환값 초기화.
+		P_Coord_1 = 0;													// 좌표계 설정 초기화.
+		P_Coord_2 = 0;													// 좌표계 설정 초기화.
+		P_Coord_3 = 0;													// 좌표계 설정 초기화.
+		P_Coord_4 = 0;													// 좌표계 설정 초기화.
+
+		switch( Unit )
+		{
+			default:
+			break;
+
+			case N_Cathode_1st_PNP_Unit :
+
+				START N_Coord_Cathode_TR1_Sub			: N_Prog_Cathode_TR1_Sub_Program;
+				START N_Coord_Cathode_TR1_Slave			: N_Prog_Cathode_TR1_Slave_Program;
+				start N_Coord_Cathode_TR1_Z_Slave		: N_Prog_Cathode_TR1_Z_Slave_Program;
+			break;
+
+			case N_Cathode_1st_Picker_T :
+				// 양극 1차 pnp 피커 좌표계 번호
+				//START N_Coord_Cathode_TR1_Picker_Sub	: N_Prog_Cathode_TR1_Picker_Sub_Program;			//PickerT좌표계 PNP에 묶음으로 인하여 주석 처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]
+				//START N_Coord_Cathode_TR1_Picker_Slave	: N_Prog_Cathode_TR1_Picker_Slave_Program;		//PickerT좌표계 PNP에 묶음으로 인하여 주석 처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]
+			break;
+			
+			case N_Anode_1st_PNP_Unit :	
+				// 음극 1차 PNP 좌표계 번호
+				START N_Coord_Anode_TR1_Sub				: N_Prog_Anode_TR1_Sub_Program;
+				START N_Coord_Anode_TR1_Slave			: N_Prog_Anode_TR1_Slave_Program;
+				start N_Coord_Anode_TR1_Z_Slave			: N_Prog_Anode_TR1_Z_Slave_Program;
+				//// 음극 1차 pnp 피커 좌표계 번호
+				//P_Coord_3 = 12;
+				//P_Coord_4 = 22;																																							 
+			break;
+
+			case N_Anode_1st_Picker_T :
+				// 음극 1차 pnp 피커 좌표계 번호
+				//START N_Coord_Anode_TR1_Picker_Sub		: N_Prog_Anode_TR1_Picker_Sub_Program;			//PickerT좌표계 PNP에 묶음으로 인하여 주석 처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]
+				//START N_Coord_Anode_TR1_Picker_Slave	: N_Prog_Anode_TR1_Picker_Slave_Program;			//PickerT좌표계 PNP에 묶음으로 인하여 주석 처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]
+			break
+			
+			case N_Cathode_Clamp_Unit : 
+				START N_Coord_Cathode_Clamp_Sub			: N_Prog_Cathode_Clamp_Sub_Program;
+				START N_Coord_Cathode_Clamp_Slave		: N_Prog_Cathode_Clamp_Slave_Program;
+			break;
+			
+			case N_Anode_Clamp_Unit :
+				START N_Coord_Anode_Clamp_Sub			: N_Prog_Anode_Clamp_Sub_Program;
+				START N_Coord_Anode_Clamp_Slave			: N_Prog_Anode_Clamp_Slave_Program;
+			break;
+			
+			case N_Stack_Table_Unit :
+				START N_Coord_Stack_Table_Sub			: N_Prog_Stack_Table_Sub_Program;
+				START N_Coord_Stack_Table_Slave			: N_Prog_Stack_Table_Slave_Program;
+			break;
+			
+			case N_Cathode_2nd_PNP_Unit :						
+				START N_Coord_Cathode_TR2_Sub			: N_Prog_Cathode_TR2_Sub_Program;
+				START N_Coord_Cathode_TR2_Slave			: N_Prog_Cathode_TR2_Slave_Program;
+				start N_Coord_Cathode_TR2_Z_Slave		: N_Prog_Cathode_TR2_Z_Slave_Program;
+			break;
+			
+			case N_Anode_2nd_PNP_Unit :						
+				START N_Coord_Anode_TR2_Sub				: N_Prog_Anode_TR2_Sub_Program;
+				START N_Coord_Anode_TR2_Slave			: N_Prog_Anode_TR2_Slave_Program;
+				start N_Coord_Anode_TR2_Z_Slave			: N_Prog_Anode_TR2_Z_Slave_Program;
+			break;
+			
+			case N_Cathode_Align_Unit :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Anode_Align_Unit :				
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+								
+			case N_Finall_Roller_X_Unit :						
+				START N_Coord_Final_Roll_Sub			: N_Prog_Final_Roll_Sub_Program;
+				START N_Coord_Final_Roll_Slave			: N_Prog_Final_Roll_Slave_Program;
+			break;
+			
+			case N_Finall_Roller_Z_Unit :						
+				START N_Coord_Final_Roll_Sub			: N_Prog_Final_Roll_Sub_Program;
+				START N_Coord_Final_Roll_Slave			: N_Prog_Final_Roll_Slave_Program;
+			break;
+
+			case N_Sheet_Paper_Unit :
+				START N_Coord_Sheet_Paper_TR1_Slave		: N_Prog_Sheet_Paper_TR1_Slave_Program;
+			break;
+
+			case N_Cathode_NG_PNP_Total_Unit :
+			case N_Cathode_NG_PNP_T :
+				START N_Coord_Cathode_NG_TR_Slave		: N_Prog_Cathode_NG_TR_Slave_Program;
+			break
+
+			case N_Cathode_NG_PNP_Z :
+				START N_Coord_Cathode_NG_TR_Slave		: N_Prog_Cathode_NG_TR_Slave_Program;
+			break;
+
+			case N_Anode_NG_PNP_Total_Unit :
+			case N_Anode_NG_PNP_T :
+				START N_Coord_Anode_NG_TR_Slave			: N_Prog_Anode_NG_TR_Slave_Program;
+			break;
+
+			case N_Anode_NG_PNP_Z :
+				START N_Coord_Anode_NG_TR_Slave			: N_Prog_Anode_NG_TR_Slave_Program;
+			break
+
+			case N_1st_UND_X :
+				START N_Coord_Unload_TR1_Slave			: N_Prog_Unload_TR1_Slave_Program;
+			break
+
+			case N_1st_UND_Z :
+				START N_Coord_Unload_TR1_Slave			: N_Prog_Unload_TR1_Slave_Program;
+			break
+
+			case N_1st_UND_T :
+				START N_Coord_Unload_TR1_Slave			: N_Prog_Unload_TR1_Slave_Program;
+			break
+
+			case N_Clamp_FR_Run :
+				START N_Coord_Anode_Clamp_Sub			: N_Prog_Anode_Clamp_Sub_Program;
+				START N_Coord_Anode_Clamp_Slave			: N_Prog_Anode_Clamp_Slave_Program;
+				START N_Coord_Final_Roll_Sub			: N_Prog_Final_Roll_Sub_Program;
+				START N_Coord_Final_Roll_Slave			: N_Prog_Final_Roll_Slave_Program;
+				START N_Coord_Cathode_Clamp_Sub			: N_Prog_Cathode_Clamp_Sub_Program;
+				START N_Coord_Cathode_Clamp_Slave		: N_Prog_Cathode_Clamp_Slave_Program;
+			break
+		}
+
+//		if( P_Single_Run_Unit != N_Clamp_FR_Run )
+//		{
+//			if( P_Coord_1 != 0 )											// 좌표계 활성화.
+//				cmd"&%ub%ur",P_Coord_1,P_Coord_1;							// 좌표계 활성화.
+//			if( P_Coord_2 != 0 )											// 좌표계 활성화.
+//				cmd"&%ub%ur",P_Coord_2,P_Coord_2;							// 좌표계 활성화.
+//			if( P_Coord_3 != 0 )											// 좌표계 활성화.
+//				cmd"&%ub%ur",P_Coord_3,P_Coord_3;							// 좌표계 활성화.
+//			if( P_Coord_4 != 0 )											// 좌표계 활성화.
+//				cmd"&%ub%ur",P_Coord_4,P_Coord_4;							// 좌표계 활성화.
+//		}
+//		else if ( P_Single_Run_Unit == N_Clamp_FR_Run )
+//		{
+//			START N_Coord_Anode_Clamp_Sub			: N_Prog_Anode_Clamp_Sub_Program;
+//			START N_Coord_Final_Roll_Sub			: N_Prog_Final_Roll_Sub_Program;
+//			START N_Coord_Cathode_Clamp_Sub			: N_Prog_Cathode_Clamp_Sub_Program;
+//		}
+
+		rtn = N_TRUE;													// 반환값 업데이트. [TRUE]		
+
+	return
+
+	// 5.좌표계 활성화 확인
+	sub:Coord_Activate_Check(Unit, &rtn)
+		rtn = 0;
+		switch ( Unit )
+		{
+			case N_Cathode_1st_PNP_Unit :
+				if ( Coord[20].ProgRunning == 1 && Coord[30].ProgRunning == 1 )	// 좌표계 활성화 확인.	
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break;
+
+			case N_Cathode_1st_Picker_T :
+				//if ( Coord[19].ProgRunning == 1 && Coord[29].ProgRunning == 1 )	// 좌표계 활성화 확인.		//PickerT좌표계 PNP에 묶음으로 인하여 주석 처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]		
+				//{
+				//	rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				//}
+				//else													// 좌표계 비활성화 일 경우.
+				//{
+				//	P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+				//	rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				//}	
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]
+			break;
+
+			case N_Cathode_2nd_PNP_Unit :
+				if ( Coord[18].ProgRunning == 1 && Coord[28].ProgRunning == 1 )	// 좌표계 활성화 확인.	
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break;
+
+			case N_Anode_1st_PNP_Unit :
+				if ( Coord[11].ProgRunning == 1 && Coord[21].ProgRunning == 1 )	// 좌표계 활성화 확인.	
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break;	
+
+			case N_Anode_1st_Picker_T :
+				//if ( Coord[12].ProgRunning == 1 && Coord[22].ProgRunning == 1 )	// 좌표계 활성화 확인.		//PickerT좌표계 PNP에 묶음으로 인하여 주석 처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]
+				//{
+				//	rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				//}
+				//else													// 좌표계 비활성화 일 경우.
+				//{
+				//	P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+				//	rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				//}	
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]
+			break;
+
+			case N_Anode_2nd_PNP_Unit :
+				if ( Coord[13].ProgRunning == 1 && Coord[23].ProgRunning == 1 )	// 좌표계 활성화 확인.	
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break;	
+
+			case N_Cathode_Clamp_Unit :
+				if ( Coord[17].ProgRunning == 1 && Coord[27].ProgRunning == 1 )	// 좌표계 활성화 확인.	
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break;
+
+			case N_Anode_Clamp_Unit :
+				if ( Coord[14].ProgRunning == 1 && Coord[24].ProgRunning == 1 )	// 좌표계 활성화 확인.	
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break;
+
+			case N_Finall_Roller_X_Unit : 
+				if ( Coord[15].ProgRunning == 1 && Coord[25].ProgRunning == 1 )	// 좌표계 활성화 확인.	
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break;
+
+			case N_Finall_Roller_Z_Unit : 
+				if ( Coord[15].ProgRunning == 1 && Coord[25].ProgRunning == 1 )	// 좌표계 활성화 확인.	
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break;
+
+			case N_Stack_Table_Unit :
+				if ( Coord[16].ProgRunning == 1 && Coord[26].ProgRunning == 1 )	// 좌표계 활성화 확인.	
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break;
+
+			case N_Cathode_Align_Unit :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Anode_Align_Unit :				
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Sheet_Paper_Unit :
+				if ( Coord[31].ProgRunning == 1 )						// 좌표계 활성화 확인.	
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break;
+
+			case N_Cathode_NG_PNP_Total_Unit :
+			case N_Cathode_NG_PNP_T :
+				if ( Coord[32].ProgRunning == 1 )						// 좌표계 활성화 확인.			
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break
+
+			case N_Cathode_NG_PNP_Z :
+				if ( Coord[32].ProgRunning == 1 )						// 좌표계 활성화 확인.			
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break;
+
+			case N_Anode_NG_PNP_Total_Unit :
+			case N_Anode_NG_PNP_T :
+				if ( Coord[33].ProgRunning == 1 )						// 좌표계 활성화 확인.			
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break;
+
+			case N_Anode_NG_PNP_Z :
+				if ( Coord[33].ProgRunning == 1 )						// 좌표계 활성화 확인.			
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break
+
+			case N_1st_UND_X :
+				if ( Coord[34].ProgRunning == 1 )						// 좌표계 활성화 확인.			
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break
+
+			case N_1st_UND_Z :
+				if ( Coord[34].ProgRunning == 1 )						// 좌표계 활성화 확인.			
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break
+
+			case N_1st_UND_T :
+				if ( Coord[34].ProgRunning == 1 )						// 좌표계 활성화 확인.			
+				{
+					rtn = N_TRUE;										// 반환값 업데이트. [TRUE]		
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break
+
+			case N_Clamp_FR_Run :
+				if( Coord[17].ProgRunning == 1 && Coord[27].ProgRunning == 1 && Coord[14].ProgRunning == 1 && Coord[24].ProgRunning == 1 && Coord[15].ProgRunning == 1 && Coord[25].ProgRunning == 1)
+				{
+					rtn = N_TRUE;
+				}
+				else													// 좌표계 비활성화 일 경우.
+				{
+					P_Error_Monitoring_Count_4++; 						// 모니터링 카운트 증가.
+					rtn = N_FALSE;										// 반환값 업데이트. [FALSE]
+				}	
+			break;
+
+
+			default:
+				rtn = N_FALSE;	
+			break;
+
+		}
+
+
+	return
+
+	// 6.런모드 선택 _ 양극런&음극런 / 파이널롤러 Z축/ 메인 Z축 / 양극얼라인 / 음극 얼라인 
+	sub:Select_Run_Mode(Unit,&rtn)
+		rtn = 0;
+		switch( Unit )
+		{
+			case N_Cathode_1st_Picker_T :
+			case N_Cathode_Clamp_Unit :
+			case N_Cathode_1st_PNP_Unit :
+			case N_Cathode_2nd_PNP_Unit :
+							P_Cathode_Run_Command_Flag = 1;				//양극런 진입
+							//P_Single_Run_Mode_Flag = 1;
+							rtn = N_TRUE;								// 반환값 업데이트. [TRUE]		
+			break;
+			
+			case N_Clamp_FR_Run : 
+			case N_Anode_1st_Picker_T :
+			case N_Anode_Clamp_Unit :
+			case N_Anode_1st_PNP_Unit :	
+			case N_Anode_2nd_PNP_Unit :	
+			case N_Finall_Roller_X_Unit :
+							P_Anode_Run_Command_Flag = 1;				//음극런 진입
+							//P_Single_Run_Mode_Flag = 1;
+							rtn = N_TRUE;								// 반환값 업데이트. [TRUE]		
+			break;
+		
+			case N_Cathode_Align_Unit :						
+				//P_Cathode_AT_Motion_Flag = 1;							//양극 얼라인 모션
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+			
+			case N_Anode_Align_Unit :						
+				//P_Anode_AT_Motion_Flag = 1;							//음극 얼라인 모션
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+			
+			case N_Finall_Roller_Z_Unit :						
+				//P_Final_Roll_Z_Motion_Flag = 1;						//파이널롤러 Z축 모션
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Stack_Table_Unit :
+				//P_Main_Z_Motion_Flag = 1;								//메인Z축 모션
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Sheet_Paper_Unit :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_Cathode_NG_PNP_Total_Unit :
+			case N_Cathode_NG_PNP_T :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_Cathode_NG_PNP_Z :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Anode_NG_PNP_Total_Unit :
+			case N_Anode_NG_PNP_T :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_Anode_NG_PNP_Z :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break;
+
+			case N_1st_UND_X :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_1st_UND_Z :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+
+			case N_1st_UND_T :
+				rtn = N_TRUE;											// 반환값 업데이트. [TRUE]		
+			break
+		}
+
+	return
+
+	// 7. 런모드 진행.
+	sub:Run_Execute(&Run_Execute_RTN)
+		/* 
+			P_Single_Run_Mode_Flag = 1						런모드. (양,음극 1,2차 PNP, Clamp) [연동]
+			
+			P_Sheet_Paper_Motion_Flag = 1					시트페이퍼 연속 동작
+
+			P_Cathode_Align_Motion_State_Machine = 1		양극 얼라인 연속 동작
+
+			P_Anode_Align_Motion_State_Machine = 1			음극 얼라인 연속 동작
+
+			P_NG_PNP_Uint_State_Machine = 1					NG PNP 연속 동작
+
+		*/
+		Run_Execute_RTN = 0;
+
+		// 1. 유닛 단동 실행
+		if ( P_Single_Run_Mode_Flag == 1 )											// 런모드 실행 Flag On 일 경우.														
+		{
+			if ( P_Single_Run_Mode_Flag != P_Old_Single_Run_Mode_Flag || P_Current_Mode != P_Old_Current_Mode )	// Edge 상태 확인.
+			{
+
+				P_Position_Calc_Status = F_Status_Nonseatus;						// 모터 위치 계산 상태 초기화.
+				P_Init_Result(0),N_Mode_Total_EA,1 = 0;								// 모드 배열 초기화 결과값 초기화.
+				P_Vision_Result(0),N_Vision_Total_EA,1 = 0;							// 비전 결과값 초기화.			24.01.31 추가.
+				P_Vision_Result_Get_First_Cycle(0),N_Vision_Total_EA,1 = 0;			// 비전 결과값 get 사이클 카운트 변수 초기화.
+
+				P_Old_Current_Mode = P_Current_Mode;								// 모드값 동기화.
+				P_Old_Single_Run_Mode_Flag = P_Single_Run_Mode_Flag;				// 런모드 플래그 이전값 동기화.
+			}
+		
+			switch ( P_Current_Mode )
+			{
+				case F_Half_Cathode_Run_Mode :										// 양극 Half Run 모드.
+					if ( P_Master_Motion_Trigger >= 83 && P_Master_Motion_Trigger < 85 )	// Trigger 확인.
+					{
+						if ( P_Init_Result(N_Anode_Run) < F_Result_Complete )		// 음극 런모드 Array 완료 전 일 경우.
+						{
+							call Sub_Init_Run_Mode_Array.Anode_Run(F_Dry_Run,89,&P_Init_Result(N_Anode_Run));
+							//call Sub_Init_Run_Mode_Array.Anode_Run(F_Normal_Run,89,&P_Init_Result(N_Anode_Run));	// 음극 런모드 Array 초기화.
+							if ( P_Init_Result(N_Anode_Run) == F_Result_Complete )	// 음극 런모드 Array 완료 일 경우.
+							{
+								P_Mode_Command = F_Half_Anode_Run_Command;			// 음극 런모드 실행.
+							}
+						}
+					}
+				break;
+				
+				case F_Half_Anode_Run_Mode :										// 음극 Half Run 모드.
+					if ( P_Master_Motion_Trigger >= 40 && P_Master_Motion_Trigger < 42 )	// Trigger 확인.
+					{
+						if ( P_Init_Result(N_Cathode_Run) < F_Result_Complete	)	// 양극 런모드 Array 완료 전 일 경우.
+						{
+							call Sub_Init_Run_Mode_Array.Cathode_Run(F_Dry_Run,44,&P_Init_Result(N_Cathode_Run));
+							//call Sub_Init_Run_Mode_Array.Cathode_Run(F_Normal_Run,44,&P_Init_Result(N_Cathode_Run));// 양극런모드 Array 초기화.
+							if ( P_Init_Result(N_Cathode_Run) == F_Result_Complete )// 양극 런모드 Array 완료 일 경우.
+							{
+								P_Mode_Command = F_Half_Cathode_Run_Command;		// 양극 런모드 실행.
+							}
+						}
+					}
+				break;
+				
+				case F_Wait_Mode :													// Wait 모드.
+					if ( P_Cathode_Run_Command_Flag == 1 )							// 양극 런 진입 Flag On 일 경우.
+					{
+						if ( P_Master_Motion_Trigger >= 40 && P_Master_Motion_Trigger < 42 ) // Trigger 확인.
+						{
+							if ( P_Init_Result(N_Cathode_Run) < F_Result_Complete )	// 양극 런모드 Array 완료 전 일 경우.
+							{
+								//call Sub_Init_Run_Mode_Array.Cathode_Run(F_Dry_Run,44,&P_Init_Result(N_Cathode_Run));
+								call Sub_Init_Run_Mode_Array.Cathode_Run(F_Normal_Run,44,&P_Init_Result(N_Cathode_Run)); // 일반 양극런.		
+								if ( P_Init_Result(N_Cathode_Run) == F_Result_Complete )	// 양극 런모드 Array 완료 일 경우.
+								{
+									if( P_Master_Motion_Trigger <= P_In_Position(F_Half_Cathode_Run_Command) - P_In_Pos_Trg )	// 양극 런 In position 확인.
+									{
+										P_Cathode_Run_Command_Flag = 0;				// 양극 런 진입 Flag 초기화.
+										P_Mode_Command = F_Half_Cathode_Run_Command;// 양극 런모드 실행.
+									}
+								}
+							}
+						}
+					}
+		
+		
+					if ( P_Anode_Run_Command_Flag == 1 )							// 음극 런 진입 Flag On 일 경우.
+					{
+						if ( P_Master_Motion_Trigger >= 84 && P_Master_Motion_Trigger < 86 )	// Trigger 확인.
+						{
+							if ( P_Init_Result(N_Anode_Run) < F_Result_Complete	)	// 음극 런모드 Array 완료 전 일 경우.
+							{
+								//call Sub_Init_Run_Mode_Array.Anode_Run(F_Dry_Run,89,&P_Init_Result(N_Anode_Run));
+								call Sub_Init_Run_Mode_Array.Anode_Run(F_Normal_Run,89,&P_Init_Result(N_Anode_Run));	// 음극런 배열 초기화.	
+								if ( P_Init_Result(N_Anode_Run) == F_Result_Complete )	// 음극 런모드 Array 완료 일 경우.
+								{
+									if( P_Master_Motion_Trigger <= P_In_Position(F_Half_Anode_Run_Command) - P_In_Pos_Trg )	// 음극 런 In position 확인.
+									{
+										P_Anode_Run_Command_Flag = 0;				// 음극 런 진입 Flag 초기화.
+										P_Mode_Command = F_Half_Anode_Run_Command;	// 음극 런모드 실행.								
+									}
+								}
+							}
+						}
+					}
+				break;				
+			}				
+		}			
+		else if ( P_Sheet_Paper_Motion_Flag == 1 )						// Sheet Paper 모션 플래그
+		{
+			P_Sheet_Paper_Motion_Flag = 0								// 재진입 방지.
+			P_Slave11_Motion_Command = 88
+		}
+
+		
+		// 2. 양극 얼라인 단동, 반복 움직임
+		switch ( P_Cathode_Align_Motion_State_Machine )
+		{
+			case 1 : // 얼라인 무브 동작 활성화.
+				if( P_Single_Run_Align_Timer > 500 )					// 딜레이 시간 확인.
+				{		
+					P_Single_Run_Align_Timer = 0;						// 타이머 초기화.
+					P_Cathode_Align_Stage_X_mm=5;						// 구동 위치 업데이트.
+					P_Cathode_Align_Stage_Y_mm=5;						// 구동 위치 업데이트.
+					P_Cathode_Align_Stage_T_mm=1.5;						// 구동 위치 업데이트.
+		
+					P_Cathode_Align_Table_Move = F_Align_Move_Mode;		// 얼라인 무브 동작 플래그.
+					cmd"&2b2r";											// 좌표계 활성화.
+		
+					P_Cathode_Align_Motion_State_Machine = 2;			// 다음 스텟 머신으로 이동.
+				}
+				else If(P_Single_Run_Stop_Command == 1 || M_X_BTN_CMD_Auto_Stop == 1)
+				{
+					P_Cathode_Align_Motion_State_Machine = 0
+				}
+			break;
+		
+			case 2 : // 얼라인 대기 위치 동작 확성화.
+				if( P_Single_Run_Align_Timer > 500 )					// 딜레이 시간 확인.
+				{
+					P_Single_Run_Align_Timer = 0;						// 타이머 초기화.
+		
+					P_Cathode_Align_Table_Move = F_Start_Position_Move_Mode;	//	얼라인 대기 위치 동작 플래그.
+					cmd"&2b2r";											// 좌표계 활성화.
+		
+					P_Cathode_Align_Motion_State_Machine = 1;			// 이전 스텟 머신으로 이동.
+				}
+				else If(P_Single_Run_Stop_Command == 1 || M_X_BTN_CMD_Auto_Stop == 1)
+				{
+					P_Cathode_Align_Motion_State_Machine = 0
+				}
+			break;
+		}	
+		
+		// 3. 음극 얼라인 단동, 반복 움직임
+		switch ( P_Anode_Align_Motion_State_Machine )
+		{		
+			case 1 : // 얼라인 무브 동작 활성화.
+				if( P_Single_Run_Align_Timer2 > 500 )					// 딜레이 시간 확인.
+				{		
+					P_Single_Run_Align_Timer2 = 0;						// 타이머 초기화.
+					P_Anode_Align_Stage_X_mm=5;							// 구동 위치 업데이트.
+					P_Anode_Align_Stage_Y_mm=5;							// 구동 위치 업데이트.
+					P_Anode_Align_Stage_T_mm=1.5;						// 구동 위치 업데이트.
+					
+					P_Anode_Align_Table_Move = F_Align_Move_Mode;		//	얼라인 무브 동작 플래그.
+					cmd"&3b3r";											// 좌표계 활성화.
+		
+					P_Anode_Align_Motion_State_Machine = 2;				// 다음 스텟 머신으로 이동.
+				}
+				else If(P_Single_Run_Stop_Command == 1 || M_X_BTN_CMD_Auto_Stop == 1)
+				{
+					P_Anode_Align_Motion_State_Machine = 0
+				}
+
+			break;
+		
+			case 2 : // 얼라인 대기 위치 동작 확성화.	
+				if( P_Single_Run_Align_Timer2 > 500 )					// 딜레이 시간 확인.
+				{
+					P_Single_Run_Align_Timer2 = 0;						// 타이머 초기화.
+		
+					P_Anode_Align_Table_Move = F_Start_Position_Move_Mode;	//	얼라인 대기위치 동작 플래그.
+					cmd"&3b3r";											// 좌표계 활성화.
+		
+					P_Anode_Align_Motion_State_Machine = 1;				// 이전 스텟 머신으로 이동.
+				}
+				else If(P_Single_Run_Stop_Command == 1 || M_X_BTN_CMD_Auto_Stop == 1)
+				{
+					P_Anode_Align_Motion_State_Machine = 0
+				}
+			break;
+		}
+			
+		// 3. NG PNP 단동 동작, 반복 움직임		
+		switch( P_NG_PNP_Uint_State_Machine )
+		{
+			case 1 : // 배열 업데이트.
+				P_NG_PNP_Motion_Cnt = 1									// 모션 카운트 초기화.
+				P_NG_PNP_Motion_arr(0) = 6								// 횟수 배열 업데이트.
+				P_NG_PNP_Motion_arr(1) = N_NG_PNP_NG_To_Align_Motion	// NG Box → Align.
+				P_NG_PNP_Motion_arr(2) = N_NG_PNP_Align_Down_Motion		// Align Down.
+				P_NG_PNP_Motion_arr(3) = N_NG_PNP_Align_Vac				// Align Vac.
+				P_NG_PNP_Motion_arr(4) = N_NG_PNP_Align_UP_Motion		// Align Up.
+				P_NG_PNP_Motion_arr(5) = N_NG_PNP_Align_To_NG_Motion	// Align → NG Box.
+				P_NG_PNP_Motion_arr(6) = N_NG_PNP_NG_Blow				// NG Box Blow.
+				
+				P_NG_PNP_Uint_State_Machine++;							// 다음 스텟 머신으로 이동.
+			break;
+			
+			case 2 : // Cmd 실행.
+				if( P_Single_Run_Unit == N_Cathode_NG_PNP_Total_Unit )	// 양극 NG PNP 선택.
+				{
+					P_Slave12_Motion_Command = P_NG_PNP_Motion_arr(P_NG_PNP_Motion_Cnt)	// Cmd 실행.
+				}
+				else if ( P_Single_Run_Unit == N_Anode_NG_PNP_Total_Unit )	// 음극 NG PNP 선택.
+				{
+					P_Slave13_Motion_Command = P_NG_PNP_Motion_arr(P_NG_PNP_Motion_Cnt)	// Cmd 실행.
+				}
+				P_NG_PNP_Motion_Cnt++									// 모션 카운트 증가.
+				P_NG_PNP_Motion_arr(0)--								// 횟수 배열 감소.
+				P_Single_Run_Timer = 0;									// 타이머 초기화.
+				P_NG_PNP_Uint_State_Machine++;							// 다음 스텟 머신으로 이동.
+			break;
+			
+			case 3: // Cmd 완료 확인.
+				if( P_Single_Run_Timer > 500 && Motor[N_NG_PnP_CA_T].DesVelZero == 1 && Motor[N_NG_PnP_CA_Z].DesVelZero == 1 && Motor[N_NG_PnP_AN_T].DesVelZero == 1 && Motor[N_NG_PnP_AN_Z].DesVelZero == 1)	// cmd 실행 확인.
+				{
+					if( P_NG_PNP_Motion_arr(0) == 0 )					// 횟수 배열이 0일 경우.
+					{
+						P_NG_PNP_Uint_State_Machine = 1;				// 배열 업데이트.
+					}
+					else												// 횟수 배열이 0이 아닐 경우.
+					{
+						P_NG_PNP_Uint_State_Machine = 2;				// 이전 스텟 머신으로 이동.
+					}
+				}
+				else If(P_Single_Run_Stop_Command == 1 || M_X_BTN_CMD_Auto_Stop == 1)
+				{
+					P_NG_PNP_Uint_State_Machine = 4
+				}
+
+			break;
+
+			case 4 :
+				if( P_Single_Run_Timer > 500 && Motor[N_NG_PnP_CA_T].DesVelZero == 1 && Motor[N_NG_PnP_CA_Z].DesVelZero == 1 && Motor[N_NG_PnP_AN_T].DesVelZero == 1 && Motor[N_NG_PnP_AN_Z].DesVelZero == 1)	// cmd 실행 확인.
+				{
+					if( P_NG_PNP_Motion_arr(0) == 0 )					// 횟수 배열이 0일 경우.
+					{
+						P_NG_PNP_Uint_State_Machine = 0;				// 배열 업데이트.
+					}
+				}
+			break;
+
+		}
+	return
+
+	// 8.인터락
+	sub:Interlock(Unit,&Interlock_RTN)
+		/*
+			[양극]							[음극]						[1차 언로더]
+			N_Cathode_1st_PNP_Unit 			N_Anode_1st_PNP_Unit		N_1st_UND_X			
+			N_Cathode_2nd_PNP_Unit			N_Anode_2nd_PNP_Unit		N_1st_UND_Z			
+			N_Cathode_1st_Picker_T			N_Anode_1st_Picker_T		N_1st_UND_T		
+			N_Cathode_NG_PNP_T				N_Anode_NG_PNP_T			
+			N_Cathode_NG_PNP_Z				N_Anode_NG_PNP_Z		
+			N_Cathode_NG_PNP_Total_Unit		N_Anode_NG_PNP_Total_Unit
+			N_Cathode_Align_Unit			N_Anode_Align_Unit
+			N_Cathode_Clamp_Unit			N_Anode_Clamp_Unit		
+			[파이널 롤러]					[스텍]							
+			N_Finall_Roller_X_Unit			N_Stack_Table_Unit				
+			N_Finall_Roller_Z_Unit			N_Sheet_Paper_Unit				
+		*/
+		Interlock_RTN = 0;			// 반환값 초기화.
+		switch(Unit)
+		{
+			case N_Cathode_1st_PNP_Unit :								// 양극 1차 PNP.
+				//if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ (P_Recipe_M03_POS(2)/10) )	// 양극 2차 PNP Stack 위치.
+				if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ 90 )						// 양극 2차 PNP Stack 위치.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+			break;
+
+			case N_Anode_1st_PNP_Unit :	 								// 음극 1차 PNP.
+				//if ( P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ (P_Recipe_M04_POS(2)/10) )	// 음극 2차 PNP Stack 위치.
+				if ( P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ 90 )						// 음극 2차 PNP Stack 위치.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+			break;
+
+			case N_Cathode_2nd_PNP_Unit :								// 양극 2차 PNP.
+				//if ( P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ (P_Recipe_M12_POS(1)/10) && P_Motor_Current_Pos(N_1st_PnP_CA_T) ~ (P_Recipe_M01_POS(1)/10) && P_Motor_Current_Pos(N_UNLOADER_Z) ~ (P_Recipe_M47_POS(2)/10) )	// 파이널 롤러 음극 위치 && 양극 1차 PNP 대기 위치 && 1차 언로더 Z축 대기 위치.
+				if ( P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ -197 && P_Motor_Current_Pos(N_1st_PnP_CA_T) ~ 45 && P_Motor_Current_Pos(N_UNLOADER_Z) ~ 69 )	// 파이널 롤러 음극 위치 && 양극 1차 PNP 대기 위치 && 1차 언로더 Z축 대기 위치.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+			break;
+
+			case N_Anode_2nd_PNP_Unit :	 								// 음극 2차 PNP.
+				//if ( P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ (P_Recipe_M12_POS(2)/10) && P_Motor_Current_Pos(N_1st_PnP_AN_T) ~ (P_Recipe_M02_POS(1)/10) )	// 파이널 롤러 양극 위치 && 음극 1차 PNP 대기 위치.
+				if ( P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ 168 && P_Motor_Current_Pos(N_1st_PnP_AN_T) ~ 45)		// 파이널 롤러 양극 위치 && 음극 1차 PNP 대기 위치.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+
+			break;
+
+			case N_Cathode_Clamp_Unit :									// 양극 클램프.
+			case N_Anode_Clamp_Unit :									// 음극 클램프.
+				//if ( P_Motor_Current_Pos(N_MAIN_Z) ~ (P_Recipe_M11_POS(x)/10) )
+				if ( P_Motor_Current_Pos(N_MAIN_Z) ~ -30 )					// 워크 테이블 -30mm
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+			break;
+
+			case N_Finall_Roller_X_Unit :								// 파이널 롤러 X축.
+				//if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ (P_Recipe_M03_POS(1)/10) && P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ (P_Recipe_M04_POS(1)/10) && P_Motor_Current_Pos(N_UNLOADER_X) ~ (P_Recipe_M46_POS(1)/10) && P_Motor_Current_Pos(N_UNLOADER_Z) ~ (P_Recipe_M47_POS(2)/10) )	// 양,음극 2차 PNP 대기 위치, 1차 언로더 X축,Z축 대기 위치.
+				if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ 0 && P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ 0 && P_Motor_Current_Pos(N_UNLOADER_X) ~ -5.4 && P_Motor_Current_Pos(N_UNLOADER_Z) ~ 69 )	// 양,음극 2차 PNP 대기 위치, 1차 언로더 X축,Z축 대기 위치.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+			break;
+
+			case N_Finall_Roller_Z_Unit :								// 파이널 롤러 Z축.
+				//if ( P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ (P_Recipe_M04_POS(1)/10)  )	// 음극 2차 PNP 대기 위치.
+				if ( P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ 0 )						// 음극 2차 PNP 대기 위치.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+			break;
+
+			case N_Sheet_Paper_Unit :									// Sheet Paper.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+			break;
+
+			case N_Cathode_NG_PNP_Total_Unit :							// 양극 NG PNP 전체.
+			case N_Cathode_NG_PNP_T :									// 양극 NG PNP T축.
+				//if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ (P_Recipe_M03_POS(2)/10) && P_Motor_Current_Pos(N_1st_PnP_CA_T) ~ (P_Recipe_M01_POS(1)/10) )	// 양극 2차 PNP Stack 위치 && 양극 1차 PNP Align 위치 아닌 곳.
+				if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ 90 && P_Motor_Current_Pos(N_1st_PnP_CA_T) ~ 45 )	// 양극 2차 PNP Stack 위치 && 양극 1차 PNP Align 위치 아닌 곳.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+			break;
+
+			case N_Cathode_NG_PNP_Z :									// 양극 NG PNP Z축.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+			break;
+
+			case N_Anode_NG_PNP_Total_Unit :							// 음극 NG PNP 전체.
+			case N_Anode_NG_PNP_T :										// 음극 NG PNP T축.
+				//if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ (P_Recipe_M03_POS(2)/10) )
+				//if ( P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ (P_Recipe_M04_POS(2)/10) && P_Motor_Current_Pos(N_1st_PnP_AN_T) ~ (P_Recipe_M02_POS(1)/10) )	// 음극 2차 PNP Stack 위치 && 음극 1차 PNP Align 위치 아닌 곳.
+				if ( P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ 90 && P_Motor_Current_Pos(N_1st_PnP_AN_T) ~ 45 )	// 음극 2차 PNP Stack 위치 && 음극 1차 PNP Align 위치 아닌 곳.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+			break;
+
+			case N_Anode_NG_PNP_Z :										// 음극 NG PNP Z축.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+			break;
+
+			case N_Cathode_Align_Unit :									// 양극 얼라인 테이블.
+				//if ( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) ~ (P_Recipe_M21_POS(1)/10) )	// 양극 2차 PNP Z축 대기 위치.
+				if ( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) ~ 24 )						// 양극 2차 PNP Z축 대기 위치.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+			break;
+
+			case N_Anode_Align_Unit :									// 음극 얼라인 테이블.
+				//if ( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) ~ (P_Recipe_M22_POS(1)/10) )	// 음극 2차 PNP Z축 대기 위치.
+				if ( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) ~ 24 )						// 음극 2차 PNP Z축 대기 위치.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+			break;
+
+			case N_Cathode_1st_Picker_T :								// 양극 Picker T축.
+					Interlock_RTN = N_FALSE;							// 구동 가능.	
+			break
+
+			case N_Anode_1st_Picker_T :									// 음극 Picker T축.							
+					Interlock_RTN = N_FALSE;							// 구동 가능.	
+			break;
+
+			case N_Stack_Table_Unit :						
+					Interlock_RTN = N_FALSE;							// 구동 가능.	
+			break;
+
+			case N_1st_UND_X :											// 1차 언로더 X축.
+				//if ( Motor[11].MinusLimit == 1 && P_Motor_Current_Pos(N_UNLOADER_Z) ~ -9.79 )	// 워크 테이블 Z축 -Limit && 1차 언로더 Z축 스텍 진입 위치.
+				//if ( Motor[11].MinusLimit == 1 && P_Motor_Current_Pos(N_UNLOADER_Z) ~ (P_Recipe_M47_POS(1)/10) && P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ (P_Recipe_M12_POS(3)/10) )	// 워크 테이블 Z축 -Limit && 1차 언로더 Z축 스텍 진입 && 파이널 롤러 배출 위치.
+				if ( P789 == 1 && P_Motor_Current_Pos(N_UNLOADER_Z) ~ -9.79 && P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ -197 )	// 워크 테이블 Z축 -Limit && 1차 언로더 Z축 스텍 진입 && 파이널 롤러 배출 위치.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+			break
+
+			case N_1st_UND_Z :											// 1차 언로더 Z축.
+				//if ( P_Motor_Current_Pos(N_UNLOADER_X) < (P_Recipe_M46_POS(1)/10) + 110 +  && P_Motor_Current_Pos(N_UNLOADER_T) ~ (P_Recipe_M48_POS(1)/10) )// 1차 언로더 X축 110mm 이전 && T축 대기 위치.
+				if ( P_Motor_Current_Pos(N_UNLOADER_X) < 110 && P_Motor_Current_Pos(N_UNLOADER_T) ~ -2.817 )	// 1차 언로더 X축 110mm 이전 && T축 대기 위치.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+			break
+
+			case N_1st_UND_T :											// 1차 언로더 T축.
+				//if ( P_Motor_Current_Pos(N_UNLOADER_X) ~ (P_Recipe_M46_POS(1)/10) && P_Motor_Current_Pos(N_UNLOADER_Z) ~ (P_Recipe_M47_POS(2)/10) )	// 1차 언로더 X축 대기위치, Z축 대기 위치.
+				if ( P_Motor_Current_Pos(N_UNLOADER_X) ~ -5.4 && P_Motor_Current_Pos(N_UNLOADER_Z) ~ 69 )			// 1차 언로더 X축 대기위치, Z축 대기 위치.
+					Interlock_RTN = N_FALSE;							// 구동 가능.
+				else													// 단동 시 회피 필요 기구물의 위치가 변경 될 경우.
+					Interlock_RTN = N_TRUE;								// 구동 불가.
+			break
+		}
+	return
+
+	sub:Init(&Init_RTN)		// [__Init]
+		Init_RTN = 0;
+
+		P_Slave1_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave2_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave3_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave4_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave5_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave6_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave7_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave8_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave9_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave10_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave11_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave12_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave13_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave14_Motion_Command = 0;									// 슬레이브축 커멘드
+		P_Slave15_Motion_Command = 0;									// 슬레이브축 커멘드
+
+		P_Cathode_Count = 0;											// 극판 카운트 초기화.
+		P_Anode_Count = 0;												// 극판 카운트 초기화.
+		P_Mode_Command = 0;												// 모드 커멘드 초기화.
+		P_Current_Mode = 0;												// 현재 모드 초기화.
+		
+		P_SubMaster_Sub_Old_Command(0),F_Max_Index,1=0;							// 서브 프로그램 내 변수 초기화.
+		P_SubMaster_Sub_Old_Mode(0),F_Max_Index,1=0;								// 서브 프로그램 내 변수 초기화.
+		P_SubMaster_Sub_Old_Trigger(0),F_Max_Index,1=0;							// 서브 프로그램 내 변수 초기화.
+		P_SubMaster_Sub_Mode_Command(0),F_Max_Index,1=0;							// 서브 프로그램 내 변수 초기화.
+
+		//사용 플래그 초기화
+		P_Sub_Master_Motion_Program_Flag(0),F_Type_Coord_EA = 0;						// 서브마스터 플래그 초기화.
+		P_Slave_Motion_Program_Flag(0),F_Type_Coord_EA = 0;							// 슬래이브 플래그 초기화.
+
+		P_Single_Run_Control_State_Machine = 0;							// 명령부 스텟 머신 초기화.
+		P_Single_Run_Execute_Bit = 0;									// 메모리타워 오류 무시 비트 초기화.
+
+		P_Single_Run_Start_Flag = 0;									// 단동 시작 Flag 초기화.
+		P_Single_Run_Mode_Flag = 0;										// 런모드 플래그 초기화.
+		P_Single_Run_State_Machine = 0;									// 런모드 스텟 머신 초기화.
+		P_Final_Roll_Z_Motion_Flag = 0;									// Flag 초기화.
+		P_Final_Roll_Z_Motion_State_Machine = 0;						// 스텟 머신 초기화.
+		P_Main_Z_Motion_Flag = 0;										// Flag 초기화.
+		P_Main_Z_Motion_State_Machine = 0;								// 스텟 머신 초기화.
+		P_Sheet_Paper_Motion_Flag = 0;									// Flag 초기화.
+		P_Sheet_Paper_Motion_State_Machine = 0;							// 스텟 머신 초기화.
+		P_Cathode_NG_PNP_T_Motion_Flag = 0;								// Flag 초기화.
+		P_Cathode_NG_PNP_T_Motion_State_Machine = 0;					// 스텟 머신 초기화.
+		P_Cathode_NG_PNP_Z_Motion_Flag = 0;								// Flag 초기화.
+		P_Cathode_NG_PNP_Z_Motion_State_Machine = 0;					// 스텟 머신 초기화.
+		P_Anode_NG_PNP_T_Motion_Flag = 0;								// Flag 초기화.
+		P_Anode_NG_PNP_T_Motion_State_Machine = 0;						// 스텟 머신 초기화.
+		P_Anode_NG_PNP_Z_Motion_Flag = 0;								// Flag 초기화.
+		P_Anode_NG_PNP_Z_Motion_State_Machine = 0;						// 스텟 머신 초기화.
+		P_1st_UND_X_Motion_Flag = 0;									// Flag 초기화.
+		P_1st_UND_X_Motion_State_Machine = 0;							// 스텟 머신 초기화.
+		P_1st_UND_Z_Motion_Flag = 0;									// Flag 초기화.
+		P_1st_UND_Z_Motion_State_Machine = 0;							// 스텟 머신 초기화.
+		P_1st_UND_T_Motion_Flag = 0;									// Flag 초기화.
+		P_1st_UND_T_Motion_State_Machine = 0;							// 스텟 머신 초기화.
+		P_NG_PNP_Uint_Motion_Flag = 0;									// Flag 초기화.
+		P_NG_PNP_Uint_State_Machine = 0;								// 스텟 머신 초기화.
+		P_Single_Run_State_Machine = 0;									// 
+
+		////진공부 초기화
+		//P_CMD_Cathode_1st_Vac_MNTR = 0;								// 진공부 초기화.
+		//P_CMD_Cathode_2nd_Vac_MNTR = 0;								// 진공부 초기화.
+		//P_CMD_Cathode_Align_Vac_MNTR = 0;								// 진공부 초기화.
+		//P_CMD_Anode_1st_Vac_MNTR = 0;									// 진공부 초기화.
+		//P_CMD_Anode_2nd_Vac_MNTR = 0;									// 진공부 초기화.
+		//P_CMD_Anode_Align_Vac_MNTR = 0;								// 진공부 초기화.
+
+		Init_RTN = N_TRUE;
+	return
+close

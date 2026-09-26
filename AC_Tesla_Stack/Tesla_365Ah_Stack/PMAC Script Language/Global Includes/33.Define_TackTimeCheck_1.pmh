@@ -1,0 +1,270 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+
+global	P_Whole_Stacking_Tack_Time = 0;							   // 전체 스텍 텍 타임 버퍼에 넣어주는 타임 변수
+global	P_Whole_Stacking_Tack_Time_Check = 0;					// 전체 스텍 텍 타임 실제 업데이트 변수
+global	P_Whole_Stacking_Tack_Timer_Check_Flag = 0;				   // 전체 스텍 텍 메모리 시프트 활성화 변수
+global	P_Whole_Stacking_Timer_Shift_Status_Machine = 0;		// 전체 스텍 텍 타임 스텟 머신 변수
+
+global P_Whole_Stacking_TackTime_Array0	 = 0;					// 전체 스텍 텍 타임 버퍼0
+global P_Whole_Stacking_TackTime_Array1	 = 0;					// 전체 스텍 텍 타임 버퍼1
+global P_Whole_Stacking_TackTime_Array2	 = 0;					// 전체 스텍 텍 타임 버퍼2
+global P_Whole_Stacking_TackTime_Array3	 = 0;					// 전체 스텍 텍 타임 버퍼3
+global P_Whole_Stacking_TackTime_Array4	 = 0;					// 전체 스텍 텍 타임 버퍼4
+global P_Whole_Stacking_TackTime_Array5	 = 0;					// 전체 스텍 텍 타임 버퍼5
+global P_Whole_Stacking_TackTime_Array6	 = 0;					// 전체 스텍 텍 타임 버퍼6
+global P_Whole_Stacking_TackTime_Array7	 = 0;					// 전체 스텍 텍 타임 버퍼7
+global P_Whole_Stacking_TackTime_Array8	 = 0;					// 전체 스텍 텍 타임 버퍼8
+global P_Whole_Stacking_TackTime_Array9	 = 0;					// 전체 스텍 텍 타임 버퍼9
+global P_Whole_Stacking_TackTime_Array10 = 0;					// 전체 스텍 텍 타임 버퍼10
+
+//=====================================================================================================================
+// 스텍 음 양극 텍 타임 체크 변수
+global	P_First_Stacking_Start = 0; 						// 음극 첫장을 스텍 테이블에 파기 하는 시점 완료 변수
+global	P_Last_Stacking_Complete = 0;						// 음극 마지막 장을 스텍 테이블에 파기하는 시점 완료 변수 
+global	P_Stacking_Tack_Time = 0;							// 스텍 텍 타임 버퍼에 넣어주는 타임 변수
+global	P_Stacking_Tack_Time_Check = 0;						// 스텍 텍 타임 실제 업데이트 변수
+global	P_Stacking_Tack_Timer_Check_Flag = 0;				// 스텍 텍 메모리 시프트 활성화 변수
+global	P_Stacking_Timer_Shift_Status_Machine = 0;			// 스텍 텍 타임 스텟 머신 변수
+
+//=====================================================================================================================
+//[ 참조 : 241120 F/R 텍타임 추가 ]
+//파이널롤러 텍타임 변수 
+global P_Cathode_to_Anode_FR_Tack_Time_Check = 0;			//Final Roll (양->음) 텍타임 체크 변수
+global P_Anode_to_Cathode_FR_Tack_Time_Check = 0;			//Final Roll (음->양) 텍타임 체크 변수
+
+global P_Cathode_to_Anode_FR_Tack_Time_Start = 0;			//Final Roll (양->음) 텍타임 시작 변수
+global P_Anode_to_Cathode_FR_Tack_Time_Start = 0;			//Final Roll (음->양) 텍타임 시작 변수
+
+global P_Cathode_to_Anode_FR_Tack_Time_Complete = 0;		//Final Roll (양->음) 텍타임 종료 변수
+global P_Anode_to_Cathode_FR_Tack_Time_Complete = 0;		//Final Roll (음->양) 텍타임 종료 변수
+
+global P_Cathode_to_Anode_FR_Time = 0;						//Final Roll (양->음) 텍타임 저장 변수 
+global P_Anode_to_Cathode_FR_Time = 0;						//Final Roll (음->양) 텍타임 저장 변수 
+
+global P_Cathode_to_Anode_FR_Tack_Timer_Check_Flag = 0;		//Final Roll (양->음) 텍타임 체크 플래그 변수
+global P_Anode_to_Cathode_FR_Tack_Timer_Check_Flag = 0;		//Final Roll (음->양) 텍타임 체크 플래그 변수
+
+//=====================================================================================================================
+// 얼라인 테이블 배출 텍 타임 체크 변수
+// 음극
+global	P_Anode_Align_Table_Time = 0;                           // 음극 얼라인 테이블 타임 버퍼에 넣어주는 타임 변수
+global	P_Anode_Align_Table_Tack_Time_Check = 0;                // 음극 얼라인 테이블 타임 실제 업데이트 변수
+global	P_Anode_Align_Table_Tack_Timer_Check_Flag = 0;			// 음극 얼라인 테이블 메모리 시프트 활성화 변수
+global	P_Anode_Align_Table_Timer_Shift_Status_Machine = 0;		// 음극 얼라인 테이블 타임 스텟 머신 변수
+global  P_Anode_Align_Tack_Time_Start = 0;						// 음극 얼라인 테이블 텍타임 시작 
+global P_Anode_Align_Tack_Time_Complete = 0;
+// 양극
+global	P_Cathode_Align_Table_Time = 0;                         	// 양극 얼라인 테이블 타임 버퍼에 넣어주는 타임 변수
+global	P_Cathode_Align_Table_Tack_Time_Check = 0;              	// 양극 얼라인 테이블 타임 실제 업데이트 변수
+global	P_Cathode_Align_Table_Tack_Timer_Check_Flag = 0;			// 양극 얼라인 테이블 메모리 시프트 활성화 변수
+global	P_Cathode_Align_Table_Timer_Shift_Status_Machine = 0;		// 양극 얼라인 테이블 타임 스텟 머신 변수
+global  P_Cathode_Align_Tack_Time_Start = 0;						// 양극 얼라인 테이블 텍타임 시작 
+global P_Cathode_Align_Tack_Time_Complete = 0;
+
+//=====================================================================================================================
+// 1차 P&P 텍 타임 체크 변수
+// 벨트 하강 시작 부터 -> 얼라인 테이블 하강 완료
+// 음극
+global	P_Anode_1th_Tack_Time_Start = 0; 				// 음극 1차 P&P 시작 시점 변수	
+global	P_Anode_1th_Tack_Time_Complete = 0;             // 음극 1차 P&P 완료 시점 변수
+global	P_Anode_1th_Time = 0;                           // 음극 1차 P&P 타임 버퍼에 넣어주는 타임 변수
+global	P_Anode_1th_Tack_Time_Check = 0;                // 음극 1차 P&P 타임 실제 업데이트 변수
+global	P_Anode_1th_Tack_Timer_Check_Flag = 0;			// 음극 1차 P&P 메모리 시프트 활성화 변수
+global	P_Anode_1th_Timer_Shift_Status_Machine = 0;		// 음극 1차 P&P 타임 스텟 머신 변수
+
+
+// 양극
+global	P_Cathode_1th_Tack_Time_Start = 0; 				// 양극 1차 P&P 시작 시점 변수	
+global	P_Cathode_1th_Tack_Time_Complete = 0;           // 양극 1차 P&P 완료 시점 변수
+global	P_Cathode_1th_Time = 0;                         // 양극 1차 P&P 타임 버퍼에 넣어주는 타임 변수
+global	P_Cathode_1th_Tack_Time_Check = 0;              // 양극 1차 P&P 타임 실제 업데이트 변수
+global	P_Cathode_1th_Tack_Timer_Check_Flag = 0;		// 양극 1차 P&P 메모리 시프트 활성화 변수
+global	P_Cathode_1th_Timer_Shift_Status_Machine = 0;	// 양극 1차 P&P 타임 스텟 머신 변수
+
+
+
+//=====================================================================================================================
+// 2차 P&P 텍 타임 체크 변수
+// 얼라인 테이블 하강 -> 스텍 테이블 하강
+// 음극
+global	P_Anode_2th_Tack_Time_Start = 0; 				// 음극 2차 P&P 시작 시점 변수	
+global	P_Anode_2th_Tack_Time_Complete = 0;             // 음극 2차 P&P 완료 시점 변수
+global	P_Anode_2th_Time = 0;                           // 음극 2차 P&P 타임 버퍼에 넣어주는 타임 변수
+global	P_Anode_2th_Tack_Time_Check = 0;                // 음극 2차 P&P 타임 실제 업데이트 변수
+global	P_Anode_2th_Tack_Timer_Check_Flag = 0;			// 음극 2차 P&P 메모리 시프트 활성화 변수
+global	P_Anode_2th_Timer_Shift_Status_Machine = 0;		// 음극 2차 P&P 타임 스텟 머신 변수
+
+
+// 양극
+global	P_Cathode_2th_Tack_Time_Start = 0; 				// 양극 2차 P&P 시작 시점 변수	
+global	P_Cathode_2th_Tack_Time_Complete = 0;           // 양극 2차 P&P 완료 시점 변수
+global	P_Cathode_2th_Time = 0;                         // 양극 2차 P&P 타임 버퍼에 넣어주는 타임 변수
+global	P_Cathode_2th_Tack_Time_Check = 0;              // 양극 2차 P&P 타임 실제 업데이트 변수
+global	P_Cathode_2th_Tack_Timer_Check_Flag = 0;		// 양극 2차 P&P 메모리 시프트 활성화 변수
+global	P_Cathode_2th_Timer_Shift_Status_Machine = 0;	// 양극 2차 P&P 타임 스텟 머신 변수
+
+//=====================================================================================================================
+// 1차 P&P NG 텍 타임 체크 변수
+// 얼라인 테이블 하강 -> 벨트 하강 까지
+// 음극
+global	P_Anode_1th_NG_Tack_Time_Start = 0; 				// 음극 1차 P&P NG 시작 시점 변수	
+global	P_Anode_1th_NG_Tack_Time_Complete = 0;              // 음극 1차 P&P NG 완료 시점 변수
+global	P_Anode_1th_NG_Time = 0;                            // 음극 1차 P&P NG 타임 버퍼에 넣어주는 타임 변수
+global	P_Anode_1th_NG_Tack_Time_Check = 0;                 // 음극 1차 P&P NG 타임 실제 업데이트 변수
+global	P_Anode_1th_NG_Tack_Timer_Check_Flag = 0;			// 음극 1차 P&P NG 메모리 시프트 활성화 변수
+global	P_Anode_1th_NG_Timer_Shift_Status_Machine = 0;		// 음극 1차 P&P NG 타임 스텟 머신 변수
+
+
+// 양극
+global	P_Cathode_1th_NG_Tack_Time_Start = 0; 				// 양극 1차 P&P NG 시작 시점 변수	
+global	P_Cathode_1th_NG_Tack_Time_Complete = 0;            // 양극 1차 P&P NG 완료 시점 변수
+global	P_Cathode_1th_NG_Time = 0;                          // 양극 1차 P&P NG 타임 버퍼에 넣어주는 타임 변수
+global	P_Cathode_1th_NG_Tack_Time_Check = 0;               // 양극 1차 P&P NG 타임 실제 업데이트 변수
+global	P_Cathode_1th_NG_Tack_Timer_Check_Flag = 0;			// 양극 1차 P&P NG 메모리 시프트 활성화 변수
+global	P_Cathode_1th_NG_Timer_Shift_Status_Machine = 0;	// 양극 1차 P&P NG 타임 스텟 머신 변수
+
+
+//=====================================================================================================================
+// Clamp 타임 체크 변수
+// Clamp -> UnCalmp 완료
+// 음극
+global	P_Anode_Clamp_Tack_Time_Start = 0; 				// 음극 Clamp 시작 시점 변수	
+global	P_Anode_Clamp_Tack_Time_Complete = 0;           // 음극 Clamp 완료 시점 변수
+global	P_Anode_Clamp_Time = 0;                         // 음극 Clamp 타임 버퍼에 넣어주는 타임 변수
+global	P_Anode_Clamp_Tack_Time_Check = 0;              // 음극 Clamp 타임 실제 업데이트 변수
+global	P_Anode_Clamp_Tack_Timer_Check_Flag = 0;		// 음극 Clamp 메모리 시프트 활성화 변수
+global	P_Anode_Clamp_Timer_Shift_Status_Machine = 0;	// 음극 Clamp 타임 스텟 머신 변수
+
+// 양극
+global	P_Cathode_Clamp_Tack_Time_Start = 0; 				// 양극 Clamp 시작 시점 변수	
+global	P_Cathode_Clamp_Tack_Time_Complete = 0;           	// 양극 Clamp 완료 시점 변수
+global	P_Cathode_Clamp_Time = 0;                         	// 양극 Clamp 타임 버퍼에 넣어주는 타임 변수
+global	P_Cathode_Clamp_Tack_Time_Check = 0;              	// 양극 Clamp 타임 실제 업데이트 변수
+global	P_Cathode_Clamp_Tack_Timer_Check_Flag = 0;			// 양극 Clamp 메모리 시프트 활성화 변수
+global	P_Cathode_Clamp_Timer_Shift_Status_Machine = 0;		// 양극 Clamp 타임 스텟 머신 변수
+
+//=====================================================================================================================
+//[ 참조 : 241120 F/R 텍타임 추가 ]
+// Final Roll X 축 타임 체크 변수
+global	P_Final_Roll_X_Timer_Shift_Status_Machine = 0;							// Final Roll 타임 스텟 머신 변수
+
+global	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array0 = 0;					// Final Roll (양->음) 타임 버퍼 0
+global	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array1 = 0;					// Final Roll (양->음) 타임 버퍼 1
+global	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array2 = 0;    				// Final Roll (양->음) 타임 버퍼 2
+global	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array3 = 0;    				// Final Roll (양->음) 타임 버퍼 3
+global	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array4 = 0;    				// Final Roll (양->음) 타임 버퍼 4
+global	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array5 = 0;    				// Final Roll (양->음) 타임 버퍼 5
+global	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array6 = 0;    				// Final Roll (양->음) 타임 버퍼 6
+global	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array7 = 0;    				// Final Roll (양->음) 타임 버퍼 7
+global	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array8 = 0;    				// Final Roll (양->음) 타임 버퍼 8
+global	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array9 = 0;    				// Final Roll (양->음) 타임 버퍼 9
+global	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array10 = 0;   				// Final Roll (양->음) 타임 버퍼 10
+
+global	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array0 = 0;					// Final Roll (음->양) 타임 버퍼 0
+global	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array1 = 0;					// Final Roll (음->양) 타임 버퍼 1
+global	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array2 = 0;    				// Final Roll (음->양) 타임 버퍼 2
+global	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array3 = 0;    				// Final Roll (음->양) 타임 버퍼 3
+global	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array4 = 0;    				// Final Roll (음->양) 타임 버퍼 4
+global	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array5 = 0;    				// Final Roll (음->양) 타임 버퍼 5
+global	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array6 = 0;    				// Final Roll (음->양) 타임 버퍼 6
+global	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array7 = 0;    				// Final Roll (음->양) 타임 버퍼 7
+global	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array8 = 0;    				// Final Roll (음->양) 타임 버퍼 8
+global	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array9 = 0;    				// Final Roll (음->양) 타임 버퍼 9
+global	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array10 = 0;   				// Final Roll (음->양) 타임 버퍼 10
+//=====================================================================================================================
+
+global P_Pneumatic_Pressure_Unit_Tack_Time_Chk_Timer(27);  // 공압 실린더, 진공 텍타임 측정 타이머
+P_Pneumatic_Pressure_Unit_Tack_Time_Chk_Timer(0),27 = 0;
+
+global P_Pneumatic_Pressure_Unit_Tack_Time(27);            // 공압 실린더, 진공 텍타임 측정 시간
+P_Pneumatic_Pressure_Unit_Tack_Time(0),27 = 0;
+
+// 젤리 롤 Stack 중 발생한 NG 카운트 보고 (MCC보고를 위함)
+// - 세파 첫장 깔기 때 카운트 초기화, 배출 시간 보고 때 종합 NG 카운트 보고 
+global	P_MCC_Anode_Align_NG_Count = 0;		// 음극 얼라인 NG 카운트
+global	P_MCC_Cathode_Align_NG_Count = 0;		// 양극 얼라인 NG 카운트
+global	P_MCC_Anode_Retry_NG_Count = 0;		// 음극 얼라인 NG 카운트
+global	P_MCC_Cathode_Retry_NG_Count = 0;		// 양극 얼라인 NG 카운트
+
+#define N_Align_Table_Anode_Zero_Clamp_Lock                 1		// 음극 얼라인 테이블 제로 클램프
+#define N_Align_Table_Anode_Zero_Clamp_UnLock               2		// 음극 얼라인 테이블 제로 언클램프
+#define N_Final_Roll_Sepa_Clamp                             3       // 파이널 롤 세파 클램프
+#define N_Final_Roll_Sepa_UnClamp                           4       // 파이널 롤 세파 언 클램프
+#define N_Align_Table_Cathode_Zero_Clamp_Lock               5		// 양극 얼라인 테이블 잠금
+#define N_Align_Table_Cathode_Zero_Clamp_UnLock             6       // 양극 얼라인 테이블 잠금 해제 
+#define N_1ST_TR_Anode_VAC_On                               7		// 음극 1차 PNP 진공 온
+#define N_1ST_TR_Anode_VAC_Off                              8       // 음극 1차 PNP 진공 오프
+#define N_1ST_TR_Cathode_VAC_On                             9		// 양극 1차 PNP 진공 온
+#define N_1ST_TR_Cathode_VAC_Off                            10      // 양극 1차 PNP 진공 오프
+#define N_2ND_TR_Anode_VAC_On                               11		// 음극 2차 PNP 진공 온
+#define N_2ND_TR_Anode_VAC_Off                              12      // 음극 2차 PNP 진공 오프
+#define N_2ND_TR_Cathode_VAC_On                             13		// 양극 1차 PNP 진공 온
+#define N_2ND_TR_Cathode_VAC_Off                            14      // 양극 1차 PNP 진공 오프
+#define N_Align_Table_Anode_VAC_On                          15		// 음극 얼라인 테이블 진공 온
+#define N_Align_Table_Anode_VAC_Off                         16      // 음극 얼라인 테이블 진공 오프
+#define N_Align_Table_Cathode_VAC_On                        17		// 양극 얼라인 테이블 진공 온
+#define N_Align_Table_Cathode_VAC_Off                       18      // 양극 얼라인 테이블 진공 오프
+#define N_Stack_Table_VAC_On								19		// 스텍 테이블 진공 온
+#define N_Stack_Table_VAC_Off								20		// 스텍 테이블 진공 오프
+#define N_Stack_Table_Rise									21		// 스텍 테이블 상승
+#define N_Stack_Table_Down									22		// 스텍 테이블 하강
+#define N_Sepa_Cutting_Rise									23		// 세파 컷팅 상승
+#define N_Sepa_Cutting_Down									24		// 세파 컷팅 하강
+#define N_2ND_TR_Cathode_Zero_Clamp_Lock					25		// 양극 2차 PNP 제로 클램프
+#define N_2ND_TR_Cathode_Zero_Clamp_UnLock					26		// 양극 2차 PNP 제로 언클램프
+#define N_2ND_TR_Anode_Zero_Clamp_Lock						27		// 음극 2차 PNP 제로 클램프
+#define N_2ND_TR_Anode_Zero_Clamp_UnLock					28		// 음극 2차 PNP 제로 언클램프
+#define N_Stack_Job_Change_Lock								29		// 스텍 잡체인지 테이블 잠금
+#define N_Stack_Job_Change_UnLock							30		// 스텍 잡체인지 테이블 잠금
+#define N_Final_Back_UP_Roll_Clamp							31		// 파이널 롤러 백업롤 클램프
+#define N_Final_Back_UP_Roll_UnClamp						32		// 파이널 롤러 백업롤 언클램프
+#define N_ARC_UPPER_Plate									33		// 상부 ARC 플레이트 
+#define N_ARC_UPPER_UnPlate									34		// 상부 ARC 언플레이트
+#define N_ARC_UPPER_Tilting									35		// 상부 ARC 틸팅
+#define N_ARC_UPPER_UnTilting								36		// 상부 ARC 언틸팅
+#define N_ARC_UPPER_Cutter									37		// 상부 ARC 커터 ON
+#define N_ARC_UPPER_UnCutter								38		// 상부 ARC 커터 OFF
+#define N_ARC_UPPER_Clamp									39		// 상부 ARC 클램프
+#define N_ARC_UPPER_UnClamp									40		// 상부 ARC 언클램프
+#define N_ARC_LOWER_Plate									41		// 하부 ARC 플레이트 
+#define N_ARC_LOWER_UnPlate									42		// 하부 ARC 언플레이트
+#define N_ARC_LOWER_Tilting									43		// 하부 ARC 틸팅
+#define N_ARC_LOWER_UnTilting								44		// 하부 ARC 언틸팅
+#define N_ARC_LOWER_Cutter									45		// 하부 ARC 커터 ON
+#define N_ARC_LOWER_UnCutter								46		// 하부 ARC 커터 OFF
+#define N_ARC_LOWER_Clamp									47		// 하부 ARC 클램프
+#define N_ARC_LOWER_UnClamp									48		// 하부 ARC 언클램프
+#define N_1ST_Unloader_Grip									49		// 1차 언로더 그립
+#define N_1ST_Unloader_UnGrip								50		// 1차 언로더 언그립
+#define N_Cathode_Clamp_Damper_Rise							51		// 양극 클램프 댐퍼 ON
+#define N_Cathode_Clamp_Damper_Down							52		// 양극 클램프 댐퍼 OFF
+#define N_Anode_Clamp_Damper_Rise							53		// 음극 클램프 댐퍼 ON
+#define N_Anode_Clamp_Damper_Down							54		// 음극 클램프 댐퍼 OFF
+
+//=====================================================================================================================
+#define		Standby_Pos					0
+#define		FR_MainZ_Pos				1
+#define		Unloader_Go_Pos				2
+#define		SubZ_Down_Pos				3
+#define		Unloader_Cutting_Pos		4
+#define		FR_Clamp_ON_Complete		5
+#define		Cutting_Complete			6
+
+#define		Motion_PG_Active_Starting	7
+#define		FR_Standby_Pos				8
+#define		Sepa_First_Complete			9
+#define		Complete					10
+#define		Total						11
+
+
+global	P_Discharge_Tact_Time_Arr(12);
+P_Discharge_Tact_Time_Arr(0),12 = 0;
+
+// [ 참조 : 241119 Heap구조 알람프로그램 추가기능 머지작업_배출텍 ], Hold 시점 시간 소요 확인용 타이머 변수 추가
+global P_Discharge_Hold_Timer = 0;
+global P_Discharge_Hold_Time = 0;

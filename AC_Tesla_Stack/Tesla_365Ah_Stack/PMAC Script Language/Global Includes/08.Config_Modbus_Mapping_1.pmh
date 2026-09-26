@@ -1,0 +1,26 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+#ifdef F_Def_Stack_A
+	Sys.ModbusServerEnable = 1;
+#else
+	Modbus[1].Config.UnitID = 0;
+	Modbus[1].Config.ServerIpAddr[0] = 192;
+	Modbus[1].Config.ServerIpAddr[1] = 168;
+	Modbus[1].Config.ServerIpAddr[2] = 0;
+	Modbus[1].Config.ServerIpAddr[3] = 200;
+	Modbus[1].Config.KeepAliveEnable = 1;
+	Modbus[1].Config.KeepAliveIdle = 40;
+	Modbus[1].Config.KeepAliveInterval = 10;
+	Modbus[1].Config.KeepAliveCnt = 3;
+#endif
+
+global P_Modbus_Connected_Flag = 0;				// 모드버스 연결 확인 플래그
+
+#define P_Write_Modbus_HeartBeat	P1500
+
+
+#define  N_Modbus_Enable			333

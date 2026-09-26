@@ -1,0 +1,869 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.08.01
+// 버튼 프로그램 추가 - [ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+// 25.08.07
+// NP Plate 램프 추가 - [ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+// 25.09.25
+// Status Clear 버튼 추가 - [ 참조 : 25.09.25 Status Clear 버튼 추가 ]
+// 강제 출력 버튼 추가 - [ 참조 : 25.09.25 DIO 강제 출력 버튼 추가 ]
+// 26.03.27 
+// 일반모드 진행을 위한 리뉴얼 작업 진행 - [ 참조 : 26.03.27 일반모드 진행을 위한 리뉴얼 작업 진행] 	
+
+//======================================================================================================
+
+open plc 15
+P_MNTR_PLC15_Task_Time(0) = Sys.Time;
+#define	L_System_Timer				Sys.Time		// 시스템 타이머
+
+Local L_PLC15_Time_Cycle_Up_Count_Start_Time;		// Plc[15].ldata.L[0]	시간 체크 시작 시간
+Local L_PLC15_Time_Cycle_Up_Count_End_Time;			// Plc[15].ldata.L[1]	시간 체크 종료 시간
+Local L_PLC15_Time_Cycle_Up_Count_Delta_Time;		// Plc[15].ldata.L[2]	시작과 종료 시간 사이의 시간
+Local L_PLC15_Flag_Cycle_Up_Count_Init_Flag;		// Plc[15].ldata.L[3]	타이머 초기화 플래그
+local L_Old_M_X_BTN_CMD_Auto_Start					// Plc[15].ldata.L[4]	Start io old 변수
+local L_X_Door_Open_Signal_Old
+local L_Old_M_X_BTN_CMD_Auto_Stop
+local L_Old_M_X_BTN_CMD_Ready
+local M_Old_M_X_BTN_CMD_Select_Switch
+local L_Cycle_Stop_Get_Timer;
+local L_Interrupt_timer;
+#define N_120sec	120000		// 120s 
+#define N_10sec		10000		// 10s
+#define N_5sec		5000		// 5s
+local L_Interrupt_Flag;					// Plc[15].ldata.L[11]
+local L_Old_BTN_Push_Force_Cycle_Stop;	// Plc[15].ldata.L[12]
+local L_Old_STOP_Initial_Process_STEP;	// Plc[15].ldata.L[13]
+local L_Old_STOP_Cylce_Stop_STEP;		// Plc[15].ldata.L[14]
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_PLC15_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_PLC15_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_PLC15_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_PLC15_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+
+// 00.2) 시간 체크
+if( L_PLC15_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_PLC15_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_PLC15_Time_Cycle_Up_Count_Delta_Time = (L_PLC15_Time_Cycle_Up_Count_End_Time - L_PLC15_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_PLC15_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_PLC15_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if (L_PLC15_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{		
+	P_Manual_Memory_Tower_Timer = P_Manual_Memory_Tower_Timer + L_PLC15_Time_Cycle_Up_Count_Delta_Time;
+	P_Lamp_Blinking_Timer = P_Lamp_Blinking_Timer + L_PLC15_Time_Cycle_Up_Count_Delta_Time;
+	P_ARC_NP_Upper_Timer = P_ARC_NP_Upper_Timer + L_PLC15_Time_Cycle_Up_Count_Delta_Time;
+	P_ARC_NP_Lower_Timer = P_ARC_NP_Lower_Timer + L_PLC15_Time_Cycle_Up_Count_Delta_Time;
+	//L_ARC_Ready_Check_Timer = L_ARC_Ready_Check_Timer + L_PLC15_Time_Cycle_Up_Count_Delta_Time;
+	L_Cycle_Stop_Get_Timer = L_Cycle_Stop_Get_Timer + L_PLC15_Time_Cycle_Up_Count_Delta_Time;
+	L_Interrupt_timer = L_Interrupt_timer + L_PLC15_Time_Cycle_Up_Count_Delta_Time;
+	L_PLC15_Time_Cycle_Up_Count_Start_Time = L_PLC15_Time_Cycle_Up_Count_End_Time;
+	L_PLC15_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+//===============================//
+// 로터리 스위치에 따른 모드 변경 //
+//=============================//
+//------------------------//
+// [Auto] 현재 모드 변경.
+//------------------------//
+if ( M_X_BTN_CMD_Select_Switch == 1 )//M_X_BTN_Machine_Mode == 1 )				// 오토로 로터리 스위치를 돌릴 경우.
+{
+	M_Y_Inner_Led_Lamp_On = 0			// 오토 스위치로 돌아가면 설비 내부 LED Lamp OFF
+	M_Y_Trigger_Display_Current_Mode_To_PLC = 1;		// Auto Mode 라고 PLC 측에 신호 넘겨 줌.
+
+	if ( P_PMAC_Status == F_Status_RESETTING ){}// Manual 모드, Resetting 상태 일 경우. (홈을 잡고 있는 중) [Manual 모드 유지]		[ 참조 : 25.08.14 PackML 버튼 프로그램 수정 ]
+	else										// Manual 모드, Resetting 상태가 아닐 경우.
+	{
+		P_PMAC_Current_Mode = F_Current_Automatic;	// Auto 모드 변경.
+	}
+	P_Vision_Send_Auto_Maual_Signal = F_Current_Automatic
+}
+
+//------------------------//
+// [Manual] 현재 모드 변경.
+//------------------------//
+if ( M_X_BTN_CMD_Select_Switch == 0 ) //M_X_BTN_Machine_Mode == 0 )				// 메뉴얼로 로터리 스위치을 돌릴 경우.	
+{
+	P_Vision_Send_Auto_Maual_Signal = F_Current_Manual
+
+	if ( P_PMAC_Status == F_Status_STOPPED || P_PMAC_Status == F_Status_ABORTED )			// 상태가 Stopped, Aborted 일 경우.
+	{
+		M_Y_Trigger_Display_Current_Mode_To_PLC = 0;	// Manual Mode 라고 PLC 측에 신호 넘겨 줌.
+		P_PMAC_Current_Mode = F_Current_Manual;	// Manual 모드로 변경.
+	}
+
+	if ( M_Old_M_X_BTN_CMD_Select_Switch == 1 )		// 이전 Auto Mode 일 경우.
+	{
+		P_PMAC_Commands = F_Command_Stop;		// (Commands) Stop.
+		P_Stop_Cmd_Origin = 33
+		//P_First_Sepa_Mode_State_Machine = 0;	// [VE15] 세파 첫장 커맨드 초기화.
+		
+		// [VE15] 양/음극 비전 첫장 신호 가끔 초기화 안된 상태에서 시작하는 경우 발생하여 Auto → Manual ㅂ전환 시 ON일 경우 초기화.
+	    if( M_Y_Vision_Anode_Align_Start == 1 )
+			M_Y_Vision_Anode_Align_Start = 0;
+		if( M_Y_Vision_Cathode_Align_Start == 1 )
+			M_Y_Vision_Cathode_Align_Start = 0;
+	}
+}
+M_Old_M_X_BTN_CMD_Select_Switch = M_X_BTN_CMD_Select_Switch;//M_X_BTN_Machine_Mode;			// Edge 업데이트.
+
+
+
+
+
+//==================================================================
+// 시작버튼 (Start, ppt : Start)	// Start 버튼은 오토에서만 동작 되어야 함.
+//==================================================================
+If ( P_PMAC_Current_Mode == F_Current_Automatic )
+{
+	if( M_X_BTN_CMD_Auto_Start == 1 && L_Old_M_X_BTN_CMD_Auto_Start!= M_X_BTN_CMD_Auto_Start )
+	{
+		P_PMAC_Commands = F_Command_Start;
+
+		P_Execute_DryRun_Stop_Timer = 0;			// 드라이런 타이머 초기화.
+		P_Cathode_Cur_Mode = 0;						// 양극 현재 모드 초기화.
+		P_Anode_Cur_Mode = 0;						// 음극 현재 모드 초기화.
+	}
+}
+L_Old_M_X_BTN_CMD_Auto_Start= M_X_BTN_CMD_Auto_Start;
+
+
+
+//==================================================================
+// 정지버튼 (Stop, ppt : Stop)
+//==================================================================
+//----------------------------------------------------
+// 1. 버튼 동작. : 버튼이 눌리면 플래그 On.
+//----------------------------------------------------
+if( ( M_X_BTN_CMD_Auto_Stop == 1 && L_Old_M_X_BTN_CMD_Auto_Stop == 0 ) || ( M_X_Other_Door_Open_Signal == 1 && L_X_Door_Open_Signal_Old == 0 ))
+{
+	// [ 참조 : 적층 중 알람 없이 사이클 스탑되어 로그 추가 ]
+	if ( P_PMAC_Current_Mode == F_Current_Automatic && M_X_Other_Door_Open_Signal == 1 )
+	{
+		P_Door_Open_Stop_Count++
+	}
+
+	if( P_SM_Anode_Align_MSA != 0 && P_Anode_Align_Stop_Blocked == 0  )
+	{
+		P_Anode_Align_Stop_Blocked = 1
+		P_SM_Anode_Align_MSA = 41
+	}
+
+	if( P_SM_Cathode_Align_MSA != 0 && P_Cathode_Align_Stop_Blocked == 0  )
+	{
+		P_Cathode_Align_Stop_Blocked = 1
+		P_SM_Cathode_Align_MSA = 41
+	}
+
+	if( P_SM_Cathode_Stack_MSA != 0 && P_Cathode_Stack_Stop_Blocked == 0  )
+	{
+		P_Cathode_Stack_Stop_Blocked = 1
+		P_SM_Cathode_Stack_MSA = 44
+	}
+
+	if( P_SM_Anode_Stack_MSA != 0 && P_Anode_Stack_Stop_Blocked == 0  )
+	{
+		P_Anode_Stack_Stop_Blocked = 1
+		P_SM_Anode_Stack_MSA = 44
+	}	
+
+	// [ 참조 : 26.04.24 Manual 상태에서 조그 구종 중 Stop 버튼 눌렀을 시 조그 STOP ]
+	//[참조 : 260724 2차 클리닝 위치 이동, 얼라인 탈착 모드 시퀀스 수정 ]
+	if ( P_PMAC_Current_Mode == F_Current_Manual )
+	{
+		call BTN_Program.Motor_Stop();				// 모터 Stop
+	}
+
+	P_Partition_Avoid_Flag = 0;
+
+	P_PMAC_Commands = F_Command_Stop;
+	P_Align_Take_Off_Stop_Signal = 1;
+	P_Stop_Cmd_Origin = 34
+}
+L_Old_M_X_BTN_CMD_Auto_Stop = M_X_BTN_CMD_Auto_Stop;
+L_X_Door_Open_Signal_Old = M_X_Other_Door_Open_Signal;
+
+
+
+
+//==================================================================
+// 레디버튼 (운전준비, ppt : Reset)
+//==================================================================
+If ( P_PMAC_Current_Mode == F_Current_Manual )
+{
+	if( M_X_BTN_CMD_Ready == 1 && L_Old_M_X_BTN_CMD_Ready == 0)
+	{	
+		P_Partition_Avoid_Flag = 0;
+		P_PMAC_Commands = F_Command_Reset;
+	}
+}
+L_Old_M_X_BTN_CMD_Ready = M_X_BTN_CMD_Ready;
+
+
+//==================================================================
+// 리셋버튼 (Reset, ppt : Clear) 
+//==================================================================
+
+if ( M_X_BTN_CMD_Reset == 1 )					// Reset 버튼을 누를 경우.
+{
+	// 1. 전체 모터 서보 ON
+	call BTN_Program.Motor_Servo_On();				// 모터 Servo On.
+
+	// 2. 모드 변수 초기화
+	//P_Current_Mode = 0;								// 현재 모드 초기화. 
+	//P_Master_Motion_Trigger = 0;					// 마스터 트리거 초기화.
+
+	// 3. 알람 상태초기화
+	P_Compare_Priority = 4
+	M0,680 = 0;										// 알람 초기화
+	P_Alarm_Occur_Index_Flag(0), 4 = 0;				// 
+	P_First_Alarm_Flag = 0;
+	P_Alarm_duplicate_Check_Arr(0), 670 = 0;
+	// [참조 : 26.04.21 드라이브 알람 수정 ]	
+	P_Old_Drive_Alarm(0), 50 = 0;					// 드라이브 알람 올드 변수 초기화
+	call Alarm.Drive_Alarm_Reset();					// 드라이브 알람 리셋 I/O 출력
+	// 3.1 Suspend 팝업 알람 초기화	[ 참조 : 26.04.24 Suspend 모듈 팝업 추가 ]
+	P_Suspend_Discharge_First_Address = &P_Suspend_Discharging_Popup_Flag;			// 배출 팝업 변수 중 가장 첫번째 변수 주소 저장
+	P_Suspend_ARC_First_Address = &P_Suspend_ARC_Manual_ARC_Active_Popup_Flag;		// ARC 팝업 변수 중 가장 첫번째 변수 주소 저장
+	P(P_Suspend_Discharge_First_Address),Discharge_Popup_Cnt = 0;					// 첫번째 주소로 부터 배출 총 팝업 수 만큼의 변수 초기화
+	P(P_Suspend_ARC_First_Address),ARC_Popup_Cnt = 0;								// 첫번째 주소로 부터 ARC 총 팝업 수 만큼의 변수 초기화
+
+	// 4. 초기화
+	P_Pause_Alarm_Blocked = 0
+
+	P_Partition_Avoid_Flag=0;
+	P_Y_Interlock_Popup_On_Request = 0;				// Reset 버튼 누를 시 Popup 요청 신호 초기화.
+
+	// [참조 : 260520 ECAT 재연결 프로그램 추가]
+	P_Y_Ecat_ReConnection_Fail= 0
+	P_Y_Ecat_ReConnection_Complete = 0
+
+
+	P_PMAC_Commands = F_Command_Clear;				// (Commands) Clear.
+}
+
+
+
+
+// 버튼 LED 상태 표시
+if( P_PMAC_Current_Mode == F_Current_Manual )
+{
+	IF ( P_PMAC_Status == F_Status_IDLE )
+	{
+		// 대기위치, 음극 스텍 정지 위치, 양극 스텍 정지 위치, 젤리롤 배출 위치
+		if ( (P_Unit_integrated_Status == 0 || P_Unit_integrated_Status == F_Equipment_Initial_Ready_Pos || P_Unit_integrated_Status == F_Equipment_IDLE_Initial_Ready_Pos || P_Unit_integrated_Status == F_Equipment_IDLE_Anode_Side_Pos || P_Unit_integrated_Status == F_Equipment_IDLE_Cathode_Side_Pos || P_Unit_integrated_Status == F_Equipment_Discharge_Stop_Pos || P_Unit_integrated_Status == F_Equipment_Frist_Sepa_Runing_Stop_Pos) && (P_Motor_Current_Pos(N_SHEET_PAPER_X) ~ P_Recipe_M35_POS(1) || P_Motor_Current_Pos(N_SHEET_PAPER_X) ~ P_Recipe_M35_POS(2)) )		// [ 참조 : 25.09.01 ]	[ 참조 : 26.05.28 세파 첫장 시 클램프 미진행 ] [ 참조 : 26.06.21 Idle 상태에서 Sheet Paper 위치 확인 ]
+		{
+			M_Y_Trigger_Display_Selected_Motor_Status_To_PLC = 1;		// Ready 버튼 LED ON
+		}
+		else
+		{
+			M_Y_Trigger_Display_Selected_Motor_Status_To_PLC = 0;		// Ready 버튼 LED OFF
+			P_PMAC_Commands = F_Command_Stop
+			P_Stop_Cmd_Origin = 35
+		}
+	}
+	else
+	{
+		M_Y_Trigger_Display_Selected_Motor_Status_To_PLC = 0;			// Ready 버튼 LED OFF
+	}
+	IF ( P_PMAC_Status == F_Status_STOPPING || P_PMAC_Status == F_Status_STOPPED )			// [ 참조 : 26.06.04 PACKML 램프 수정 ]
+	{
+		M_Y_Trigger_Display_Current_Stop_To_PLC = 1;					// Stop 버튼 LED ON
+	}
+	ELSE
+	{
+		M_Y_Trigger_Display_Current_Stop_To_PLC = 0;					// Stop 버튼 LED OFF
+	}
+	//4. 알람 발생 신호 전달	
+	If ( P_PMAC_Status == F_Status_ABORTING || P_PMAC_Status == F_Status_ABORTED )
+	{
+		M_Y_Trigger_Display_Enable_Alarm_To_PLC = 1;					// 알람 발생 신호 PLC 측에 전달
+	}
+	Else 
+	{
+		M_Y_Trigger_Display_Enable_Alarm_To_PLC = 0;					// 알람 발생 신호 OFF PLC 측에 전달
+	}
+
+	M_Y_Trigger_Display_Current_Execute_To_PLC = 0;						// Start 버튼 LED OFF
+	//M_Y_Trigger_Display_Current_Stop_To_PLC = 0;						// Stop 버튼 LED OFF		[ 참조 : 26.06.04 PACKML 램프 수정 ]
+}
+else 
+{
+	//1. 레디 버튼 LED
+	if( P_PMAC_Status == F_Status_IDLE )
+	{
+		M_Y_Trigger_Display_Selected_Motor_Status_To_PLC = 1;			// Ready 버튼 LED ON
+	}
+	else
+	{
+		M_Y_Trigger_Display_Selected_Motor_Status_To_PLC = 0;			// Ready 버튼 LED OFF
+	}
+
+
+	//2. Start 버튼 LED
+	If ( P_PMAC_Status == F_Status_EXECUTE || P_PMAC_Status == F_Status_STOPPING || P_PMAC_Status == F_Status_HOLD || P_PMAC_Status == F_Status_HOLDING || P_PMAC_Status == F_Status_UNHOLDING || P_PMAC_Status == F_Status_SUSPENDING || P_PMAC_Status == F_Status_SUSPENDED || P_PMAC_Status == F_Status_UNSUSPENDING )
+	{
+		// PMAC 상태가 실행 중일 경우 초록색 ON
+		M_Y_Trigger_Display_Current_Execute_To_PLC = 1;					// Start 버튼 LED ON
+	}
+	Else
+	{
+		M_Y_Trigger_Display_Current_Execute_To_PLC = 0;					// Start 버튼 LED OFF
+	}
+
+
+	//3. Stop 버튼 LED
+	If ( P_PMAC_Status == F_Status_STOPPED || P_PMAC_Status == F_Status_COMPLETE || P_PMAC_Status == F_Status_RESETTING  ) // 재진 변경 표순석요청.
+	// PMAC 내부 상태가 정지중이거나 완전 정지 혹은 완료 상태이면 
+	{ // 참조 : [ 빨간불 ]
+		M_Y_Trigger_Display_Current_Stop_To_PLC = 1;					// Stop 버튼 LED ON
+	}
+	Else
+	{
+		M_Y_Trigger_Display_Current_Stop_To_PLC = 0;					// Stop 버튼 LED OFF
+	}
+
+
+	//4. 알람 발생 신호 전달	
+	If ( P_PMAC_Status == F_Status_ABORTING || P_PMAC_Status == F_Status_ABORTED )
+	{
+		M_Y_Trigger_Display_Enable_Alarm_To_PLC = 1;					// 알람 발생 신호 PLC 측에 전달
+	}
+	Else 
+	{
+		M_Y_Trigger_Display_Enable_Alarm_To_PLC = 0;					// 알람 발생 신호 OFF PLC 측에 전달
+	}
+
+}
+
+
+
+//===========================================================================//
+// Manual 상태 시 메모리 타워 실행.
+if(P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status == F_Status_IDLE)
+{
+	if( P_SM_Anode_Align_MSA == 0 && P_SM_Cathode_Align_MSA == 0 && P_SM_Anode_Stack_MSA == 0 && P_SM_Cathode_Stack_MSA == 0 && P_Single_Run_State_Machine == 0 )
+	{
+		if( P_Manual_Memory_Tower_Timer > P_Memory_Tower_Interval )
+		{
+			P_Manual_Memory_Tower_Timer = 0;
+			P_Memory_Tower_Search_Flag = 1
+		}
+	}
+}
+
+
+//========================//
+// Status Clear 버튼 추가 // [ 참조 : 25.09.25 Status Clear 버튼 추가 ]	u.user:$00AE4C.9 
+//========================//
+//[참조 : 260909 Abort시 Auto 여도 status clear 되게 변경  ]
+if( P_PMAC_Current_Mode != F_Current_Automatic  || P_Status_Clear_Flag == 1 )	// Auto 상태에서 누르게 된다면 Index 및 Queue 초기화가 되므로	[참조 : 260904 status clear 매뉴얼모드일때만 ]
+{
+	if ( M_Func_BTN.Status_Clear == 1 || P_Status_Clear_Flag == 1 )				// Status Clear 버튼이 눌릴 경우 || Abort가 발생 했을 경우 : Auto상태에선 clear불가하지만, Aborted후 Manual 변경할테니 적용 가능
+	{
+		P_Status_Clear_Flag = 0;												// 재진입 방지.
+	
+		// 0. 공통
+			P_PMAC_Commands = F_Command_Stop;				// Command Stop.
+			P_Stop_Cmd_Origin = 36
+			call Sub_Automation_Circular_Queue.ClearQueue(&P_Queue_Clear);	// Queue Clear.
+			P_Queue_Process_Status = F_Status_IDLE;			// Queue 상태 초기화.
+			P_Queue_Process_Command = 0;					// Queue 처리 Command.
+			P_Queue_Dequeue_Command = 0;                    // Queue Dequeue Command.
+			P_Stop_CycleStop_Position = N_Layer_Pause_Number// Cycle Stop Position 업데이트.
+			P_Master_Motion_Program_Flag = 0;				// 마스터 플래그 초기화.
+			P_Current_Cell_Memory_Jelly_Roll = 0
+	
+			P_Cathode_Count = 0;											// 양극 극판 카운트 초기화.
+			P_Anode_Count = 0;												// 음극 극판 카운트 초기화.
+	
+			P_Com_EPC_Sepa_Consume_Mode_Flag = 0;							// EPC 세파모드 플레그 초기화	
+	
+			P_Stack_Table_NG_Count = 0
+	
+		// 1. Resetting	
+			P_PMAC_Homing_CHK(1),50 = 0;					// 모터 홈 상태 초기화.
+			P_Stack_Judgement_Memory = 0;					// HOME RESET 버튼 추가. 
+		// 2. Execute
+			P_Mode_Command_Wait_Count = 0;					// 적층 - Wait 카운트 초기화. (디버깅 용)
+			P_Master_Motion_Trigger = 0;					// 적층 - 마스터 트리거 초기화.
+			P_Mode_Command = 0;								// 적층 - 모드 커멘드 초기화.
+			P_Current_Mode = 0;								// 적층 - 현재 모드 초기화.
+			P_Stack_Table_NG_Flag = 0;						// 적층 - 스텍 NG Flag 초기화. (있을 경우 Stack Table NG로 중간 배출 진행)
+			P_EXECUTE_IsEnable_Firt_Stacking_Flag = 0;		// 극판 처음 쌓는 조건 감시 ( 0 : 처음 쌓을 경우, 1 : 1장 이상 쌓은 경우 )
+			P_PLC01_Execute_Retry_Sepa_Mode_Count = 0;		// 세파 재시도 횟수 카운트 초기화.
+	
+			P_System_Cascading_OFF_Cmd = F_Command_Start;
+	
+			//[세파 첫장 모듈]
+			P_Act_Execute_Complete_Bit(0),N_Act_Execute_Define_Limit,1 = 0;	
+			P_Module_Act_Execute_Command_Array(0),N_Act_Execute_Define_Limit,1 = 0;
+			P_OLD_Module_Act_Execute_Command_Array(0),N_Act_Execute_Define_Limit,1 = 0;
+			P_Module_Act_Execute_State_Machine_Array(0),N_Act_Execute_Define_Limit,1 = 0;
+	
+			P_Execute_First_Sepa_Mode_Cmd = 0;			
+			P_Execute_First_Sepa_Mode_Status = 0;		
+			P_Execute_First_Sepa_Mode_Module_Status = 0;	
+			P_Execute_First_Sepa_Mode_State_Machine = 0;	
+			P_Execute_First_Sepa_Mode_Seq_Index = 0;		
+			P_Execute_First_Sepa_Mode_Self_Index = 0;	
+			P_Module_Act_Execute_State_Machine_Array(0),N_Act_Execute_Define_Limit = 0;	// 세파 첫장 - 모듈 스텟 머신 초기화.
+	
+		// 3. Hold 
+			// [HOLD 모듈]
+			P_Act_Hold_Complete_Bit(0),N_Act_Hold_Define_Limit,1 = 0;	
+			P_Module_Act_Hold_Command_Array(0),N_Act_Hold_Define_Limit,1 = 0;
+			P_OLD_Module_Act_Hold_Command_Array(0),N_Act_Hold_Define_Limit,1 = 0;
+			P_Module_Act_Hold_State_Machine_Array(0),N_Act_Hold_Define_Limit,1 = 0;
+			
+			// [유무검사]
+			P_Hold_Exist_Insp_Cmd = 0;				
+			P_Hold_Exist_Insp_Status = 0;			
+			P_Hold_Exist_Insp_Module_Status = 0;		
+			P_Hold_Exist_Insp_State_Machine = 0;		
+			P_Hold_Exist_Insp_Seq_Index = 0;			
+			P_Hold_Exist_Insp_Self_Index = 0;		
+	
+			//[NG PNP 제거]
+			P_Hold_Remove_NG_PNP_Cmd = 0;					
+			P_Hold_Remove_NG_PNP_Status = 0;					
+			P_Hold_Remove_NG_PNP_Module_Status = 0;			
+			P_Hold_Remove_NG_PNP_State_Machine = 0;			
+			P_Hold_Remove_NG_PNP_Seq_Index = 0;				
+			P_Hold_Remove_NG_PNP_Self_Index = 0;				
+			P_PLC01_Hold_Remove_NG_PNP_Sub_Flag = 0;				
+			P_PLC01_Hold_Remove_NG_PNP_Sub_State_Machine = 0;	
+			P_PLC01_Hold_Remove_NG_PNP_Sub_Status = 0;			
+	
+			//[얼라인제거]
+			P_Hold_Remove_Align_Cmd = 0;				
+			P_Hold_Remove_Align_Status = 0;			
+			P_Hold_Remove_Align_Module_Status = 0;	
+			P_Hold_Remove_Align_State_Machine = 0;	
+			P_Hold_Remove_Align_Seq_Index = 0;		
+			P_Hold_Remove_Align_Self_Index = 0;		
+			P_PLC01_Hold_Remove_Align_Sub_Flag = 0;			
+			P_PLC01_Hold_Remove_Align_Sub_State_Machine = 0;	
+			P_PLC01_Hold_Remove_Align_Sub_Status = 0;		
+	
+			//[2PNP 제거]
+			P_Hold_Remove_2TR_Cmd = 0;				
+			P_Hold_Remove_2TR_Status = 0;			
+			P_Hold_Remove_2TR_Module_Status = 0;		
+			P_Hold_Remove_2TR_State_Machine = 0;		
+			P_Hold_Remove_2TR_Seq_Index = 0;			
+			P_Hold_Remove_2TR_Self_Index = 0;		
+			
+			//[1TR 공급]
+			P_Hold_Supply_1TR_Cmd = 0;			
+			P_Hold_Supply_1TR_Status = 0;		
+			P_Hold_Supply_1TR_Module_Status = 0;	
+			P_Hold_Supply_1TR_State_Machine = 0;	
+			P_Hold_Supply_1TR_Seq_Index = 0;		
+			P_Hold_Supply_1TR_Self_Index = 0;	
+			P_Hold_Supply_1TR_Debug_Edge = 0;
+			P_PLC01_Hold_Supply_1TR_Memory_RTN = 0;					// HOLD 메모리타워 리턴값
+			P_PLC01_Hold_Supply_1TR_Judge_Flag = 0;					// HOLD 1TR 공급 판단 플래그 
+			P_PLC01_Hold_Supply_1TR_Judge_State_Machine = 0;		// HOLD 1TR 공급 판단 스텟머신
+			P_PLC01_Hold_Supply_1TR_Judge_Status = 0;				// HOLD 1TR 공급 판단 상태
+	
+			//[얼라인공급]
+			P_Hold_Supply_Align_Cmd = 0;				
+			P_Hold_Supply_Align_Status = 0;			
+			P_Hold_Supply_Align_Module_Status = 0;	
+			P_Hold_Supply_Align_State_Machine = 0;	
+			P_Hold_Supply_Align_Seq_Index = 0;		
+			P_Hold_Supply_Align_Self_Index = 0;		
+	
+			//[2TR공급]
+			P_Hold_Supply_2TR_Cmd = 0;				
+			P_Hold_Supply_2TR_Status = 0;			
+			P_Hold_Supply_2TR_Module_Status = 0;		
+			P_Hold_Supply_2TR_State_Machine = 0;		
+			P_Hold_Supply_2TR_Seq_Index = 0;			
+			P_Hold_Supply_2TR_Self_Index = 0;		
+	
+			//[세미런위치이동]
+			P_Hold_Semi_Run_Pos_Move_Cmd = 0;				
+			P_Hold_Semi_Run_Pos_Move_Status = 0;				
+			P_Hold_Semi_Run_Pos_Move_Module_Status = 0;		
+			P_Hold_Semi_Run_Pos_Move_State_Machine = 0;		
+			P_Hold_Semi_Run_Pos_Move_Seq_Index = 0;			
+			P_Hold_Semi_Run_Pos_Move_Self_Index = 0;			
+	
+		// 4. Suspend
+			// 공통 //
+			P_Status_Clear_RTN = 0;							// Suspend 모듈 및 배출 PLC 인터페이스 초기화 함수 반환값 초기화.
+			call Discharge_Sub_Prog.Module_Reset(&P_Status_Clear_RTN)	// Suspend 모듈 및 배출 PLC 인터페이스 초기화.
+			// 배출 //
+			call Discharge_Sub_Prog.Discharge_After_Action();	// 배출 모듈 - PLC 인터페이스 및 배출 관련 변수 초기화.
+			P_Suspend_Discharge_Cmd = 0;					// 배출 모듈 - 커맨드 초기화.
+			P_EXECUTE_Status_Prod_Sequence(N_Discharge_Module) = 0;	// 배출 모듈 - 진행 상태 초기화.
+			P_Suspend_Discharge_Status = 0;					// 배출 모듈 - 시퀀스 모듈 실행 상태 초기화.
+			P_Suspend_Discharge_Module_Status = 0;			// 배출 모듈 - 모듈 실행 상태 초기화.
+			P_Suspend_Discharge_State_Machine = 0;			// 배출 모듈 - 스텟 머신 초기화.
+			P_Suspend_Discharge_Seq_Index = 0;				// 배출 모듈 - 인덱스 초기화.
+			P_Suspend_Discharge_Self_Index = 0;				// 배출 모듈 - Precondition 인덱스 초기화.
+			P_Suspend_Anode_1TR_Cell_Supply_Cmd = 0;			// 음극 1차 PNP 극판 공급 모듈 - 커맨드 초기화.					[ 참조 : 26.01.12 음극 1차 PNP 극판 공급 모듈 수정 ]
+			P_EXECUTE_Status_Prod_Sequence(N_Anode_1TR_Supply_Module) = 0;	// 음극 1차 PNP 극판 공급 모듈 - 진행 상태 초기화.
+			P_Suspend_Anode_1TR_Cell_Supply_Status = 0;			// 음극 1차 PNP 극판 공급 모듈 - 시퀀스 모듈 실행 상태 초기화.
+			P_Suspend_Anode_1TR_Cell_Supply_Module_Status = 0;	// 음극 1차 PNP 극판 공급 모듈 - 모듈 실행 상태 초기화.
+			P_Suspend_Anode_1TR_Cell_Supply_State_Machine = 0;	// 음극 1차 PNP 극판 공급 모듈 - 스텟 머신 초기화.
+			P_Suspend_Anode_1TR_Cell_Supply_Seq_Index = 0;		// 음극 1차 PNP 극판 공급 모듈 - 인덱스 초기화.
+			P_Suspend_Anode_1TR_Cell_Supply_Self_Index = 0;		// 음극 1차 PNP 극판 공급 모듈 - Precondition 인덱스 초기화.
+			P_Jelly_Roll_Prod_Count = 0;					// 현재 젤리롤 생산 카운트 초기화.
+			P_Jelly_Roll_OK_Count = 0;						// 젤리롤 카운트 초기화.
+			P_Jelly_Roll_NG_Count = 0;						// NG 젤리롤 카운트 초기화.
+			P_Jelly_Roll_Total_Count = 0;					// 생산 카운트 조기화
+			P_Suspend_Discharge_Last_Run_Bit = 0;			// Last Run 진행 여부 확인 초기화.
+			// ARC //
+			P_Suspend_ARC_Cmd = 0;							// ARC 모듈 - 커맨드 초기화.
+			P_EXECUTE_Status_Prod_Sequence(N_ARC_Module) = 0;	// ARC 모듈 - 진행 상태 초기화.
+			P_Suspend_ARC_Status = 0;						// ARC 모듈 - 시퀀스 모듈 실행 상태 초기화.
+			P_Suspend_ARC_State_Machine = 0;				// ARC 모듈 - 스텟 머신 초기화.
+			P_Suspend_ARC_Seq_Index = 0;					// ARC 모듈 - 인덱스 초기화.
+			P_Suspend_ARC_Self_Index = 0;                   // ARC 모듈 - Precondition 인덱스 초기화.
+			P_Suspend_ARC_Module_Status = 0;				// ARC 모듈 - 스텟 머신 초기화.
+			P_Suspend_ARC_Manual_Occur_Flag = 0;			// ARC 모듈 - 매뉴얼 ARC 발생 플래그 초기화. [ 참조 : 26.04.17 ARC 보완사항 수정 ]
+			P_Suspend_ARC_Complete_Flag = 0;				// ARC 모듈 - ARC 완료 플래그. [ 참조 : 26.04.24 ARC 보완사항 수정 ]
+			
+			M_Y_PLC_ARC_EPC_Value_Apply_Signal = 0;			// ARC 진행 및 ARC 세파 소비 모드 이후 ARC EPC값 적용 신호	[ 참조 : 26.05.08 ARC 후 ARC EPC값 적용 인터페이스 추가 ]
+			P_ARC_EPC_Vision_Value_Apply_Flag = 0;			// ARC 이후 및 세파 소비 모드 진행 후 배출 시 ARC EPC값 적용 플래그.
+			P_ARC_EPC_Vision_Value_Apply_State_Machine = 0;	// ARC 이후 및 세파 소비 모드 진행 후 배출 시 ARC EPC값 적용 스텟머신.
+	
+			P_Stopping_CycleStop_Status = 0
+			P_Stopping_CycleStop_State_Machine = 0
+			P_Stopping_CycleStop_Module_Status = 0
+			P_Stopping_CycleStop_Seq_Index = 0
+			P_Stopping_CycleStop_Precondition_Seq_Index = 0
+			
+			P_Align_Take_Off_State_Machine = 0
+			P_Align_Take_Off_Seq_Index = 0
+			P_Align_Take_Off_Seq_PreCondition_Index = 0
+			P_Align_Take_Off_Status_Prod_Sequence(N_PLC13_Align_Take_Off) = 0
+			P_Align_Take_Off_Status = 0	
+	
+			// [ 참조 : 260420 SUSPEND 배출 시, 얼라인 재보정 기능 추가 ]
+			P_Ca_AT_Retry_Cal_Pass = 0;										// 양극 얼라인 재보정 패스 신호 초기화
+			P_An_AT_Retry_Cal_Pass = 0;										// 음극 얼라인 재보정 패스 신호 초기화
+			P_Ca_AT_Retry_Cal_Complete = 0;									// 양극 얼라인 재보정 완료 내부 신호 초기화
+			P_An_AT_Retry_Cal_Complete = 0;									// 음극 얼라인 재보정 완료 내부 신호 초기화
+			P_PMAC_To_Vision_Ca_AT_Retry_Cal_Ack = 0;						// 양극 얼라인 재보정 완료 신호 초기화[PMAC → VISION ]
+			P_PMAC_To_Vision_An_AT_Retry_Cal_Ack = 0;						// 음극 얼라인 재보정 완료 신호 초기화[PMAC → VISION ]
+		
+			// Suspend 팝업 알람 초기화	[ 참조 : 26.04.24 Suspend 모듈 팝업 추가 ]
+			P_Suspend_Discharge_First_Address = &P_Suspend_Discharging_Popup_Flag;			// 배출 팝업 변수 중 가장 첫번째 변수 주소 저장
+			P_Suspend_ARC_First_Address = &P_Suspend_ARC_Manual_ARC_Active_Popup_Flag;		// ARC 팝업 변수 중 가장 첫번째 변수 주소 저장
+			P(P_Suspend_Discharge_First_Address),Discharge_Popup_Cnt = 0;					// 첫번째 주소로 부터 배출 총 팝업 수 만큼의 변수 초기화
+			P(P_Suspend_ARC_First_Address),ARC_Popup_Cnt = 0;								// 첫번째 주소로 부터 ARC 총 팝업 수 만큼의 변수 초기화
+		
+		// 5. Sheet Data
+			// 5.1 양극
+			Sys_Cathode_Belt_Sheet_Data = 0;				// 양극 Belt Sheet Data 초기화.
+			// 5.2 음극
+			Sys_Anode_Belt_Sheet_Data = 0;					// 음극 Belt Sheet Data 초기화.
+			// 5.3 스텍 
+			Sys_Stack_Sheet_Data = 0;						// Stack Sheet Data 초기화.
+			P_Status_Clear_Sheet_Maint_Check = 1;			// 극판 존재 시 Maint NG 씌움.
+	
+			// [참조 : 260108 라스트런 완료 후 1차 언로더가 젤리롤 가져가기 전에 정지 후  Status clear 시 테이블에 젤리롤은 버려야하는데 해당 변수가 off되지 않아 원하지 않은 타이밍에 Suspend로 상태 변할 수 있어 수정]
+			P_Suspend_Discharge_Last_Run_Bit = 0;
+	
+			P_Current_Cell_Memory_Jelly_Roll = 0;
+			P_Partition_Avoid_Flag = 0;
+	
+			P_Sepa_To_Normal_Mode_Sync_Flag = 0;																	// [ 참조 : 26.07.31 Pause_Resume 수정 ]	
+	
+		// 6. 중간 배출 무시.	[ 참조 : 26.05.13 중간 배출 무시 추가 ]
+			P_ARC_Middle_Discharge_Ignore_Vision_Check = 0;	// ARC 진행 후 Vision 신호 또는 극판 적층 수 확인 초기화.
+
+			P_Stack_Table_JR_Exist_Flag = 0;	// 스택 테이블 젤리롤 만재 플래그 초기화
+			P_MSA_Sample_Flag = 0;				// msa 샘플 플래그 초기화
+	}
+}
+
+// [참조 : 260904 강제 사이클스탑 ]
+if( P_PMAC_Status != F_Status_STOPPING )		// stopping 일때는 timer 변경 없음 
+	L_Cycle_Stop_Get_Timer = 0;					// timer init
+
+// 강제 사이클 스탑 버튼 추가
+if( P_PMAC_Current_Mode == F_Current_Automatic )	// Auto 일때만, 강제 사이클 스탑 가능하도록
+{
+	if ( M_Func_BTN.Push_Force_Cycle_Stop == 1 && L_Old_BTN_Push_Force_Cycle_Stop == 0 || L_Cycle_Stop_Get_Timer >= N_120sec )	// Auto Mode : 강제 사이클 스탑 버튼
+	{
+		L_Cycle_Stop_Get_Timer = 0;											// timer init
+		if( P_PMAC_Status != F_Status_STOPPING )
+		{
+			P_PMAC_Commands = F_Command_Stop;								// Command Stop.
+			P_Stop_Cmd_Origin = 102;
+		}
+		else	// P_PMAC_Status == F_Status_STOPPING						// Stopping 일때
+		{
+			call Sub_Automation_Circular_Queue.ClearQueue(&P_Queue_Clear);	// Queue Clear.
+			if( P_Queue_Clear == N_CirQueue_TRUE )
+			{
+				if( PLC[1].Active == 1 )									// Queue PLC ON 
+				{
+					PLC[1].ldata.L[6] = 0;									// L_PMAC_Status_Edge_Value = 0;
+					L_Interrupt_Flag = N_TRUE;								// Queue 1 stop 인터럽트 플래그
+					L_Old_STOP_Initial_Process_STEP = 0;
+					L_Old_STOP_Cylce_Stop_STEP = 0;
+					L_Interrupt_timer = 0;									// Timer Init
+				}
+				//else	// Queue PLC OFF 
+				//{
+				//	// Alarm?
+				//}
+			}
+		}
+	}
+}
+L_Old_BTN_Push_Force_Cycle_Stop = M_Func_BTN.Push_Force_Cycle_Stop;
+
+if( L_Interrupt_Flag == N_TRUE )	// Plc[15].ldata.L[11]
+{
+	switch(P_Process_Function_Command)
+	{
+		case N_Function_Stop_Initial_Process:
+			
+			if( L_Old_STOP_Initial_Process_STEP != P_STOP_Initial_Process_STEP )
+				L_Interrupt_timer = 0;
+			else if( L_Interrupt_timer > N_5sec )
+			{
+				L_Interrupt_timer = 0;
+				P_Status_Clear_Flag = 1;					// Status Clear BTN 
+				switch( L_Old_STOP_Initial_Process_STEP )	// Plc[15].ldata.L[13]
+				{
+					case N_STOP_Initial_Ready:	// Hold 및 Sepa 첫장 종료 안됐을 경우 
+						// Hold StateMachine 및 완료 신호 초기화
+						P_Hold_Exist_Insp_State_Machine = 0;		P_Hold_Exist_Insp = 0;
+						P_Hold_Remove_NG_PNP_State_Machine = 0;		P_Hold_Remove_NG_PNP = 0;
+						P_Hold_Remove_Align_State_Machine = 0;		P_Hold_Remove_Align = 0;
+						P_Hold_Remove_2TR_State_Machine = 0;		P_Hold_Remove_2TR = 0;
+						P_Hold_Supply_1TR_State_Machine = 0;		P_Hold_Supply_1TR = 0;
+						P_Hold_Supply_Align_State_Machine = 0;		P_Hold_Supply_Align = 0;
+						P_Hold_Supply_2TR_State_Machine = 0;		P_Hold_Supply_2TR = 0;
+						P_Hold_Semi_Run_Pos_Move_State_Machine = 0;	P_Hold_Semi_Run = 0;
+						// 첫장깔기 StateMachine 및 완료 신호 초기화
+						P_Execute_First_Sepa_Mode_State_Machine = 0;
+						P_Execute_First_Sepa_Mode_Module_Status = 0;			
+					break;
+
+					case 1:		// suspend에서 종료 안됐을 경우
+						P_Suspend_Discharge_State_Machine = 0;
+						P_Suspend_Discharge_Module_Status = 0;
+						P_Suspend_Anode_1TR_Cell_Supply_State_Machine = 0;
+						P_Suspend_Anode_1TR_Cell_Supply_Module_Status = 0;
+						P_Suspend_ARC_State_Machine = 0;
+						P_Suspend_ARC_Module_Status = 0;
+					break;
+
+					case 2:		// 마스터 좌표계 문제일 시 
+						cmd"&1a";
+					break;
+
+					case 3:		// 마스터 좌표계 문제일 시 
+						cmd"&1a";
+					break;
+
+					case 4:		// 모터 정지 확인이 안될때
+						cmd"#1..48j/";
+					break;
+
+					case 5:		// 서브모션 좌표계 및 슬레이브 모션 좌표계 종료
+						cmd"&1..41a";
+					break;
+				}
+			}
+			L_Old_STOP_Initial_Process_STEP = P_STOP_Initial_Process_STEP;
+		break;
+
+		case N_Function_CycleStop:
+			if( L_Old_STOP_Cylce_Stop_STEP == N_Complete_Step )
+				L_Interrupt_Flag = 0;
+
+			if( L_Old_STOP_Cylce_Stop_STEP != P_STOP_Cylce_Stop_STEP )
+				L_Interrupt_timer = 0;
+			else if( L_Interrupt_timer > N_10sec )
+			{
+				L_Interrupt_timer = 0;
+				P_Status_Clear_Flag = 1;				// Status Clear BTN
+				switch( L_Old_STOP_Cylce_Stop_STEP )	// Plc[15].ldata.L[14]
+				{
+					default : break;
+					
+					case 2:							// 대기위치 jog 이동이 끝나질 않았다는 점
+						cmd"#1..48j/";
+						P_Force_Stop_Flag = 1;		// Force Stop Flag on
+					break;
+				}
+			}
+
+			L_Old_STOP_Cylce_Stop_STEP = P_STOP_Initial_Process_STEP;
+		break;
+	}
+}
+
+// PLC 터치 LED 램프 버튼이 들어오면 LED LAMP on/off 조절
+if( P_BTN_LED_LAMP == 1 && P_Old_BTN_LED_LAMP != P_BTN_LED_LAMP )
+{
+	M_Y_Inner_Led_Lamp_On = M_Y_Inner_Led_Lamp_On^$1;	
+}
+P_Old_BTN_LED_LAMP = P_BTN_LED_LAMP
+
+
+// [ 참조 : 26.05.08 격벽 실린더 동작시 임시로 1차 PNP 회피 동작 추가 ]
+
+if(P_PMAC_Current_Mode == F_Current_Manual)
+{
+	if(P_Partition_Down_Flag == 1 && P_Partition_Avoid_Flag == 0 && M_Y_An_Ca_Partition_Up_Sol == 1)
+	{
+		// 1,2차 pnp Z + F/R Z 상승
+		// F/R X 가운데로 
+		// 1차 T 얼라인 위치로
+		// 2차는 45도
+		if(P_PMAC_Status == F_Status_IDLE && P_Stack_Judgement_Memory == 0)
+		{
+			P_Partition_Avoid_Flag = 1;
+		}
+	}
+	else if(P_Partition_Up_Flag == 1)
+	{
+		M_Y_An_Ca_Partition_Up_Sol = 1;
+		M_Y_An_Ca_Partition_Down_Sol = 0;
+	}
+	
+	if(P_Partition_Avoid_Flag == 1)
+	{
+		Motor[N_1st_PnP_CA_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
+		Motor[N_1st_PnP_AN_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
+		Motor[N_2nd_PnP_CA_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
+		Motor[N_2nd_PnP_AN_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
+		Motor[N_FINAL_ROLL_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
+
+		Motor[N_1st_PnP_CA_Z].ProgJogPos = 0;	//대기 상승위치
+		Motor[N_1st_PnP_AN_Z].ProgJogPos = 0;	//대기 상승위치
+		Motor[N_2nd_PnP_CA_Z].ProgJogPos = 0;	//대기 상승위치
+		Motor[N_2nd_PnP_AN_Z].ProgJogPos = 0;	//대기 상승위치
+		Motor[N_FINAL_ROLL_Z].ProgJogPos = P_Final_Roll_Z_Run_Pos * 1000;
+
+		jog17=*;
+		jog18=*;
+		jog21=*;
+		jog22=*;
+		jog13=*;
+
+		P_Partition_Avoid_Flag = 2;
+	}
+
+	if( P_Partition_Avoid_Flag == 2)
+	{
+		if((P_Motor_Current_Pos(N_1st_PnP_CA_Z) < 0 + 0.5 && P_Motor_Current_Pos(N_1st_PnP_CA_Z) > 0 - 0.5) && (P_Motor_Current_Pos(N_1st_PnP_AN_Z) < 0 + 0.5 && P_Motor_Current_Pos(N_1st_PnP_AN_Z) > 0 - 0.5) && (P_Motor_Current_Pos(N_FINAL_ROLL_Z) < P_Final_Roll_Z_Run_Pos + 0.5 && P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Final_Roll_Z_Run_Pos - 0.5))
+		{
+			P_Partition_Avoid_Flag = 3;
+		}
+	}
+
+	if(P_Partition_Avoid_Flag == 3)
+	{
+		Motor[N_FINAL_ROLL_X].JogSpeed = P_Partition_Avoid_X_Speed;
+
+		Motor[N_FINAL_ROLL_X].ProgJogPos = 0;	//대기 상승위치
+
+		jog12=*;
+
+		P_Partition_Avoid_Flag = 4;
+	}
+
+	if( P_Partition_Avoid_Flag == 4 )
+	{
+
+		if(P_Motor_Current_Pos(N_FINAL_ROLL_X) < 0 + 0.5 && P_Motor_Current_Pos(N_FINAL_ROLL_X) > 0 - 0.5)
+		{
+			P_Partition_Avoid_Flag = 5;
+		}
+	}
+
+	if(P_Partition_Avoid_Flag == 5)
+	{
+		Motor[N_1st_PnP_CA_T].JogSpeed = P_Partition_Avoid_T_Speed;
+		Motor[N_1st_PnP_AN_T].JogSpeed = P_Partition_Avoid_T_Speed;
+		Motor[N_2nd_PnP_CA_T].JogSpeed = P_Partition_Avoid_T_Speed;
+		Motor[N_2nd_PnP_AN_T].JogSpeed = P_Partition_Avoid_T_Speed;
+
+		Motor[N_1st_PnP_CA_T].ProgJogPos = P_Cathode_1TR_T_Align_POS * 1000;
+		Motor[N_1st_PnP_AN_T].ProgJogPos = P_Anode_1TR_T_Align_POS * 1000;
+		Motor[N_2nd_PnP_CA_T].ProgJogPos = P_Partition_Avoid_2nd_T_Pos * 1000;
+		Motor[N_2nd_PnP_AN_T].ProgJogPos = P_Partition_Avoid_2nd_T_Pos * 1000;
+
+		jog1=*;
+		jog2=*;
+		jog3=*;
+		jog4=*;
+
+		P_Partition_Avoid_Flag = 6;
+	}
+
+	if(P_Partition_Avoid_Flag == 6)
+	{
+		if((P_Motor_Current_Pos(N_1st_PnP_CA_T) < P_Cathode_1TR_T_Align_POS + 0.5 && P_Motor_Current_Pos(N_1st_PnP_CA_T) > P_Cathode_1TR_T_Align_POS - 0.5) && (P_Motor_Current_Pos(N_1st_PnP_AN_T) < P_Anode_1TR_T_Align_POS + 0.5 && P_Motor_Current_Pos(N_1st_PnP_AN_T) > P_Anode_1TR_T_Align_POS - 0.5))
+		{
+			if((P_Motor_Current_Pos(N_2nd_PnP_CA_T) < P_Partition_Avoid_2nd_T_Pos + 0.5 && P_Motor_Current_Pos(N_2nd_PnP_CA_T) > P_Partition_Avoid_2nd_T_Pos - 0.5) && (P_Motor_Current_Pos(N_2nd_PnP_AN_T) < P_Partition_Avoid_2nd_T_Pos + 0.5 && P_Motor_Current_Pos(N_2nd_PnP_AN_T) > P_Partition_Avoid_2nd_T_Pos - 0.5))
+			{
+				P_Partition_Avoid_Flag = 7;
+			}
+		}		
+	}
+
+	if(P_Partition_Avoid_Flag == 7)
+	{
+		M_Y_An_Ca_Partition_Up_Sol = 0;
+		M_Y_An_Ca_Partition_Down_Sol = 1;
+
+		P_Partition_Avoid_Flag = 0;
+	}
+}
+
+// 격벽 파티션 하강 모드 인터락
+if(P_PMAC_Current_Mode == F_Current_Automatic)
+{
+	Partition_Down_Mode_Interlock = 0;
+	Partition_Up_Mode_Interlock = 0;
+}
+else if(P_PMAC_Current_Mode == F_Current_Manual)
+{
+	if(P_PMAC_Status == F_Status_IDLE && P_Stack_Judgement_Memory == 0 && M_Y_An_Ca_Partition_Up_Sol == 1)
+	{
+		Partition_Down_Mode_Interlock = 1;
+		Partition_Up_Mode_Interlock = 0;
+	}
+	else if(M_Y_An_Ca_Partition_Down_Sol == 1)
+	{
+		Partition_Down_Mode_Interlock = 0;
+		Partition_Up_Mode_Interlock = 1;
+	}
+	else
+	{
+		Partition_Down_Mode_Interlock = 0;
+		Partition_Up_Mode_Interlock = 0;
+	}
+}
+
+P_MNTR_PLC15_Task_Time(1) = (Sys.Time - P_MNTR_PLC15_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC15_Task_Time(1) > P_MNTR_PLC15_Task_Max_Time )
+{
+	P_MNTR_PLC15_Task_Max_Time = P_MNTR_PLC15_Task_Time(1);
+}
+close
+

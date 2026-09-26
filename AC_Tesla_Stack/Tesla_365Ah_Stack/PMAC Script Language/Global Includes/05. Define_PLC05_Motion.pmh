@@ -1,0 +1,932 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+// [Slave Command]
+global P_Slave1_Motion_Command = 0;		// 슬레이브축 커멘드
+global P_Slave2_Motion_Command = 0;		// 슬레이브축 커멘드
+global P_Slave3_Motion_Command = 0;		// 슬레이브축 커멘드
+global P_Slave4_Motion_Command = 0;		// 슬레이브축 커멘드
+global P_Slave5_Motion_Command = 0;		// 슬레이브축 커멘드
+global P_Slave6_Motion_Command = 0;		// 슬레이브축 커멘드
+global P_Slave7_Motion_Command = 0;		// 슬레이브축 커멘드
+global P_Slave8_Motion_Command = 0;		// 슬레이브축 커멘드
+global P_Slave9_Motion_Command = 0;		// 슬레이브축 커멘드
+global P_Slave10_Motion_Command = 0;	// 슬레이브축 커멘드
+global P_Slave11_Motion_Command = 0;	// [ 2024.11.27 세파로드 마스터팔로잉 테스트 ]
+global P_Slave12_Motion_Command = 0;	
+global P_Slave13_Motion_Command = 0;	
+global P_Slave14_Motion_Command = 0;
+global P_Slave15_Motion_Command = 0;	// Servo 드라이빙 커맨드
+global P_Slave16_Motion_Command = 0;	// 음극 1차 Z축 슬레이브 커맨드 [ 참 조 : 2025.11.24 Z축 분리 ]
+global P_Slave17_Motion_Command = 0;	// 음극 2차 Z축 슬레이브 커맨드 [ 참 조 : 2025.11.24 Z축 분리 ]
+global P_Slave18_Motion_Command = 0;	// 양극 2차 Z축 슬레이브 커맨드 [ 참 조 : 2025.11.24 Z축 분리 ]
+global P_Slave19_Motion_Command = 0;	// 양극 1차 Z축 슬레이브 커맨드 [ 참 조 : 2025.11.24 Z축 분리 ]
+global P_Slave20_Motion_Command = 0;	// 피드포워드 용 Cam 모션
+
+global P_PNP_90_Deg_TM = 115
+global P_PNP_90_Deg_TA = 95
+global P_PNP_90_Deg_TS = 15
+
+global P_PNP_Ready_TM = 100
+global P_PNP_Ready_TA = 50
+global P_PNP_Ready_TS = 15
+
+global P_PNP_45_Deg_TM = 115
+global P_PNP_45_Deg_TA = 95
+global P_PNP_45_Deg_TS = 15
+
+
+
+
+// P_Slave1_Motion_Command - 음극 1차 PNP
+// P_Slave10_Motion_Command - 양극 2차 pnp
+#define	N_1st_PNP_Belt_To_Align_Motion		1
+#define	N_1st_PNP_Align_To_Belt_Motion		2
+#define	N_1st_PNP_Align_Down_Motion			3
+#define	N_1st_PNP_Align_Up_Motion			4
+#define	N_1st_PNP_Belt_Down_Motion			5
+#define	N_1st_PNP_Belt_Up_Motion			6
+#define	N_1st_PNP_Ready_Pos_Motion			9
+#define	N_1st_PNP_Ready_To_Align_Motion		10
+#define	N_1st_PNP_Ready_To_Belt_Motion		11
+#define	N_1st_PNP_Align_Blow				12
+#define	N_1st_PNP_Belt_Vac					13
+#define N_1st_PNP_Align_Vac					14
+
+
+// P_Slave3_Motion_Command - 음극 2차 
+// P_Slave8_Motion_Command - 양극 2차
+#define	N_2nd_PNP_Align_To_Stack_Motion		1
+#define	N_2nd_PNP_Stack_To_Align_Motion		2
+#define	N_2nd_PNP_Stack_Down_Motion			3
+#define	N_2nd_PNP_Stack_Up_Motion			4
+#define	N_2nd_PNP_Align_Down_Motion			5
+#define	N_2nd_PNP_Align_Up_Motion			6
+#define	N_2nd_PNP_Align_Vac					10
+#define	N_2nd_PNP_Stack_Blow				11
+#define	N_2nd_PNP_Align_Blow				12
+// [ 참조 : 2025.07.25 Sepa Blow 모션 추가 ]
+#define N_2nd_PNP_Sepa_Blow					13
+
+// P_Slave4_Motion_Command - 음극 클램프
+// P_Slave7_Motion_Command - 양극 클램프
+#define	N_Clamp_Off_Motion					1
+#define	N_Clamp_On_Motion					2
+#define	N_Clamp_Down_Motion					3
+
+
+// P_Slave5_Motion_Command - 파이널롤러
+#define N_FR_Anode_Move_Motion				1
+#define N_FR_Cathode_Move_Motion			2
+#define N_FR_Discharge_Move_Motion			3
+#define N_FR_Stack_Pos_Motion				4
+#define N_FR_Stack_Down_Motion				5
+#define N_FR_Stack_UP_Motion				6
+#define N_FR_Stack_UP_Motion2				7
+#define N_FR_Last_Run_Motion				8
+#define N_First_Sepa_1st_Move				9
+
+#define N_FR_Virtual_Anode_Move				54
+#define N_FR_Virtual_Cathode_Move			55
+
+#define N_First_Sepa_Driving 66
+
+
+// P_Slave6_Motion_Command - 스택테이블
+#define N_Stack_Table_Ready_Pos_Moton		1
+#define N_Stack_Table_Sheet_Thickness_Dn	2
+
+
+// P_Slave11_Motion_Command - 시트페이퍼
+#define N_Sheet_Paper_BWD_Motion			1
+#define N_Sheet_Paper_FWD_Motion			2
+
+
+// P_Slave12_Motion_Command - 양극 ng PNP
+// P_Slave13_Motion_Command - 음극 ng PNP
+#define N_NG_PNP_Align_To_NG_Motion			1
+#define N_NG_PNP_NG_To_Align_Motion			2
+#define N_NG_PNP_NG_UP_Motion				3
+#define N_NG_PNP_NG_Down_Motion				4
+#define N_NG_PNP_Align_UP_Motion			5
+#define N_NG_PNP_Align_Down_Motion			6
+#define N_NG_PNP_Align_Vac					7
+#define N_NG_PNP_NG_Blow					8
+
+
+// P_Slave14_Motion_Command - 1차 언로더
+#define N_1st_UND_Stack_UP_Motion			1
+#define N_1st_UND_Stack_FWD_Motion			2
+#define N_1st_UND_Cell_Grip_UP_Motion		3
+#define N_1st_UND_BWD_UP_Motion				4
+#define N_1st_UND_BWD_Motion				5
+#define N_1st_UND_BWD_Down_Motion			6
+#define N_1st_UND_Handover_Motion			7
+#define N_1st_UND_Avoid_Motion				8
+#define N_1st_UND_Turn_Motion				9
+
+// P_Slave9_Motion_Command - 음극 1차 피커
+// P_Slave2_Motion_Command - 양극 1차 피커
+#define N_1st_Picker_Turn					1
+
+//------------------------------------------------------------------------------------------------------
+// 01.Define_Program_Ver
+//------------------------------------------------------------------------------------------------------
+#define		P_PROG_21_Program_Ver	P2781		//	PROG21 프로그램 버전 변수
+#define		P_PROG_23_Program_Ver	P2783		//	PROG23 프로그램 버전 변수
+#define		P_PROG_24_Program_Ver	P2784		//	PROG24 프로그램 버전 변수
+#define		P_PROG_25_Program_Ver	P2785		//	PROG25 프로그램 버전 변수
+#define		P_PROG_26_Program_Ver	P2786		//	PROG26 프로그램 버전 변수
+#define		P_PROG_27_Program_Ver	P2787		//	PROG27 프로그램 버전 변수
+#define		P_PROG_28_Program_Ver	P2788		//	PROG28 프로그램 버전 변수
+#define		P_PROG_30_Program_Ver	P2790		//	PROG30 프로그램 버전 변수
+
+
+//------------------------------------------------------------------------------------------------------
+// 12.Define_Trigger_Variables
+//------------------------------------------------------------------------------------------------------
+//			변수명				해당변수				변수설명										사용되는 프로그램	
+global P_Master_Motion_Trigger=0;					// 마스터 모션 트리거							마스터 모션프로그램
+
+global	P_Parity_Bit = 0;
+
+
+//------------------------------------------------------------------------------------------------------
+// 14.Define_Global_Variables
+//------------------------------------------------------------------------------------------------------
+global P_Master_Move = 10;						//	마스터축 이동거리													마스터 모션프로그램
+global P_Master_TA = 0;							//	마스터축 TA														마스터 모션프로그램
+global P_Master_TS = 0;							//  마스터축 TS														마스터 모션프로그램
+global P_Master_TM = 10;						//	마스터축 TM
+global P_Anode_Count=0;							// 음극 적재 카운트													Sub_Sequence_Conversion
+global P_Cathode_Count=0;  						// 양극 적재 카운트													Sub_Sequence_Conversion
+global P_Anode_Thickness = 0.190;				// 양극 극판 두께
+global P_Cathode_Thickness = 0.138;				// 음극 극판 두께	
+global P_Sepa_Thickness = 0.012//0.016; //0.016; // 0.016 = 16cts		// 세파 두께, 모션프로그램에서 스케일 적용
+
+global P_Anode_Thickness_PLC = 0;				// 음극 두께_기준 값
+global P_Cathode_Thickness_PLC = 0;				// 양극 두께_기준 값
+global P_Sepa_Thickness_PLC = 0;				// 분리막 두께_기준 값
+//------------------------------------------------------------------------------------------------------
+// 19.Define_Global_Vision
+//------------------------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------------------------
+// 28.Define_Process_Program_Variables
+//------------------------------------------------------------------------------------------------------
+
+#define F_Max_Index			16
+
+global P_Old_P_Anode_TR1_Master_Motion_Trigger(F_Max_Index);	//Anode TR1 마스터 모션 트리거
+P_Old_P_Anode_TR1_Master_Motion_Trigger(0),F_Max_Index,1=0;
+global P_Old_P_Cathode_TR1_Master_Motion_Trigger(F_Max_Index);	//Cathode TR1 마스터 모션 트리거
+P_Old_P_Cathode_TR1_Master_Motion_Trigger(0),F_Max_Index,1=0;
+//=============================================
+//Current Mode 현재 상태 버퍼 구문 추가
+global P_Anode_TR1_Old_Mode(F_Max_Index);						//Anode TR1 Current Mode 
+P_Anode_TR1_Old_Mode(0),F_Max_Index,1=0;
+global P_Cathode_TR1_Old_Mode(F_Max_Index);						//Cathode TR1 Current Mode 
+P_Cathode_TR1_Old_Mode(0),F_Max_Index,1=0;
+
+//Current Mode 이전 상태 버퍼 구문 추가 
+global P_Older_Than_P_Anode_TR1_Old_Mode(F_Max_Index);			//Anode TR1 이전 Current Mode 
+P_Older_Than_P_Anode_TR1_Old_Mode(0),F_Max_Index,1=0;
+global P_Older_Than_P_Cathode_TR1_Old_Mode(F_Max_Index);			//Cathode TR1 이전 Current Mode
+P_Older_Than_P_Cathode_TR1_Old_Mode(0),F_Max_Index,1=0;
+//=============================================
+//모드 변경 시 및 현재모드가 Wait모드가 아닐 때의 마스터 트리거 이전 값 버퍼 구문 추가   
+global P_Older_Than_P_Sequence_Old_P_Anode_TR1_Current_Mode_Trigger(F_Max_Index);	//Anode TR1 
+P_Older_Than_P_Sequence_Old_P_Anode_TR1_Current_Mode_Trigger(0),F_Max_Index,1=0;
+global P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Current_Mode_Trigger(F_Max_Index); 	//Cathode TR1 
+P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Current_Mode_Trigger(0),F_Max_Index,1=0;
+
+//Mode Command 현재 상태 버퍼 구문 추가 
+global P_Old_P_Anode_TR1_Mode_Command(F_Max_Index);			//Anode TR1 
+P_Old_P_Anode_TR1_Mode_Command(0),F_Max_Index,1=0;
+global P_Old_P_Cathode_TR1_Mode_Command(F_Max_Index);		//Cathode TR1 
+P_Old_P_Cathode_TR1_Mode_Command(0),F_Max_Index,1=0;
+
+//Mode Command 이전 상태 버퍼 구문 추가 
+global P_Older_Than_P_Old_P_Anode_TR1_Mode_Command(F_Max_Index);		//Anode TR1 
+P_Older_Than_P_Old_P_Anode_TR1_Mode_Command(0),F_Max_Index,1=0;
+global P_Older_Than_P_Old_P_Cathode_TR1_Mode_Command(F_Max_Index);	//Cathode TR1 
+P_Older_Than_P_Old_P_Cathode_TR1_Mode_Command(0),F_Max_Index,1=0;
+
+//모드 커맨드가 변경 될 떄 마다 마스터 트리거 이전 값 버퍼 구문 추가
+global P_Older_Than_P_Sequence_Old_P_Anode_TR1_Mode_Command_Trigger(F_Max_Index);		//Anode TR1 
+P_Older_Than_P_Sequence_Old_P_Anode_TR1_Mode_Command_Trigger(0),F_Max_Index,1=0;
+ global P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Mode_Command_Trigger(F_Max_Index);		//Cathode TR1
+P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Mode_Command_Trigger(0),F_Max_Index,1=0;
+//=============================================
+//PMAC 현재 상태 버퍼 구문 추가 
+global P_Old_P_Anode_TR1_PMAC_Status(F_Max_Index);		//Anode TR1 
+P_Old_P_Anode_TR1_PMAC_Status(0),F_Max_Index,1=0;
+global P_Old_P_Cathode_TR1_PMAC_Status(F_Max_Index);		//Cathode TR1
+P_Old_P_Cathode_TR1_PMAC_Status(0),F_Max_Index,1=0;
+
+//PMAC 이전 상태 버퍼 구문 추가 
+global P_Older_Than_P_Old_P_Anode_TR1_PMAC_Status(F_Max_Index);
+P_Older_Than_P_Old_P_Anode_TR1_PMAC_Status(0),F_Max_Index,1=0;
+global P_Older_Than_P_Old_P_Cathode_TR1_PMAC_Status(F_Max_Index);
+P_Older_Than_P_Old_P_Cathode_TR1_PMAC_Status(0),F_Max_Index,1=0;
+
+//슬레이브 모션 커맨드 현재 상태 버퍼 구문 추가 
+global P_Old_P_Slave1_Motion_Command(F_Max_Index);				//Anode TR1(Slave01)
+P_Old_P_Slave1_Motion_Command(0),F_Max_Index,1=0;
+global P_Old_P_Slave10_Motion_Command(F_Max_Index);				//Cathode TR1(Slave10)
+P_Old_P_Slave10_Motion_Command(0),F_Max_Index,1=0;
+
+//슬레이브 모션 커맨드 이전 상태 버퍼 구문 추가 
+global P_Old_Slave1_P_SubMaster_Sub_Mode_Command(F_Max_Index);	//Anode TR1(Slave01)
+P_Old_Slave1_P_SubMaster_Sub_Mode_Command(0),F_Max_Index,1=0;
+global P_Old_Slave10_P_SubMaster_Sub_Mode_Command(F_Max_Index);	//Cathode TR1(Slave10)
+P_Old_Slave10_P_SubMaster_Sub_Mode_Command(0),F_Max_Index,1=0;
+global	P_Sequence_Old_P_Current_Mode_Trigger(F_Max_Index);
+P_Sequence_Old_P_Current_Mode_Trigger(0),F_Max_Index,1=0;
+
+// plc 0 - 2020.02.25
+global P_Sequence_Old_Mode(F_Max_Index);	// wait모드 진입전 모드를 알기위한 변수
+P_Sequence_Old_Mode(0),F_Max_Index,1=0;
+global	P_Sequence_Old_P_Mode_Command(F_Max_Index);
+P_Sequence_Old_P_Mode_Command(0),F_Max_Index,1=0;
+
+global	P_Sequence_Old_P_Mode_Command_Trigger(F_Max_Index);
+P_Sequence_Old_P_Mode_Command_Trigger(0),F_Max_Index,1=0;
+
+
+
+
+
+//------------------------------------------------------------------------------------------------------
+// 29.Define_SubMaster_SubProgram_Local_Variables
+//------------------------------------------------------------------------------------------------------
+global P_SubMaster_Sub_Old_Mode(F_Max_Index);		// 모드 이전값	 기존 : L_Old_Mode
+P_SubMaster_Sub_Old_Mode(0),F_Max_Index,1=0;		// 변수 초기화.
+global P_SubMaster_Sub_Old_Command(F_Max_Index);	// 커멘드 이전값.  기존 : L_Old_Command
+P_SubMaster_Sub_Old_Command(0),F_Max_Index,1=0;		// 변수 초기화.
+global P_SubMaster_Sub_Mode_Command(F_Max_Index);	//  모드 커멘드.	 기존 : L_Mode_Command
+P_SubMaster_Sub_Mode_Command(0),F_Max_Index,1=0;	// 변수 초기화.
+global P_SubMaster_Sub_Old_Trigger(F_Max_Index);	// 트리거 이전값	 기존 : L_Old_Trigger
+P_SubMaster_Sub_Old_Trigger(0),F_Max_Index,1=0;		// 변수 초기화.
+
+//------------------------------------------------------------------------------------------------------
+// 06.Define_Interlock_Variables
+//------------------------------------------------------------------------------------------------------
+global P_InterLock_No3_Array(F_Max_Index);
+P_InterLock_No3_Array(0),F_Max_Index,1=0;
+global P_Old_InterLock_No3_Array(F_Max_Index);
+P_Old_InterLock_No3_Array(0),F_Max_Index,1=0;	
+
+global P_Mode_Err(5)
+P_Mode_Err(0),5 = 0
+
+//------------------------------------------------------------------------------------------------------
+// 1019. Define_PLC19_Variables
+//------------------------------------------------------------------------------------------------------
+global P_Spool_Enable = 0;
+
+
+//------------------------------------------------------------------------------------------------------
+// 1103.Flow_Chart_Variables
+//------------------------------------------------------------------------------------------------------
+global	P_Cathode_1St_Flow_Chart_Bit_Flag=0;		
+global	P_Cathode_AT_Flow_Chart_Bit_Flag=0;		
+global	P_Cathode_2nd_Flow_Chart_Bit_Flag=0;		
+global	P_Anode_Clamp_Flow_Chart_Bit_Flag=0;		
+global	P_Final_Roll_Flow_Chart_Bit_Flag=0;		
+global	P_Stack_Table_Flow_Chart_Bit_Flag=0;		
+global	P_Cathode_Clamp_Flow_Chart_Bit_Flag=0;	
+global	P_Anode_2nd_Flow_Chart_Bit_Flag=0;		
+global	P_Anode_AT_Flow_Chart_Bit_Flag=0;		
+global	P_Anode_1St_Flow_Chart_Bit_Flag=0;
+global  P_Sepa_Unwinder_Flow_Chart_Bit_Flag = 0;
+
+//------------------------------------------------------------------------------------------------------
+// 1020.Define_Cell_Out_And_Sepa_Motion_PLC
+//------------------------------------------------------------------------------------------------------
+
+global	P_Slave5_Target_Z_For_Cutting=0;	// F/R Z축 컷팅시 살짝 내리기. - 배출시퀀스에서 계산됨.
+
+
+
+//------------------------------------------------------------------------------------------------------
+// Header File1
+//------------------------------------------------------------------------------------------------------
+//global P_Slave20_Motion_Command = 0;
+global P_Slave31_Motion_Command = 0;
+
+
+//------------------------------------------------------------------------------------------------------
+// Mode
+//------------------------------------------------------------------------------------------------------
+#define	F_Semi_Run_Mode			4	
+
+
+// [참조: 260114 Pause 에러 관련 보완 프로그램 추가]
+global P_Pause_Err_Process = 0
+global P_Pause_Err_Timer = 0
+global P_Pause_Err_Count = 0
+global P_Pause_Err_Use = 0
+global P_Pause_Err_Use2 = 1
+
+global P_Anode_Pause_Signal_Err = 0
+global P_Cathode_Pause_Signal_Err = 0
+
+global P_Anode_Pause_Err = 0
+global P_Anode_Pause_Err_Count = 0
+
+
+global P_Phasing_Err(5)
+P_Phasing_Err(0),5 = 0
+
+global P_Phasing_Err2(5)
+P_Phasing_Err2(0),5 = 0
+
+global P_Execute_Wait_Mode_Memory_Tower = 0
+global P_Execute_Vac_MNTR = 0
+
+global P_Old_Cathode_Cur_Mode = 0
+
+global P_Cathode_Run_Mode_Type(20)
+P_Cathode_Run_Mode_Type(0),20 = 0
+
+global P_Cathode_Run_Mode_Trigger(20)
+P_Cathode_Run_Mode_Trigger(0),20 = 0
+
+global P_Old_Anode_Cur_Mode = 0
+
+global P_Anode_Run_Mode_Type(20)
+P_Anode_Run_Mode_Type(0),20 = 0
+
+global P_Anode_Run_Mode_Trigger(20)
+P_Anode_Run_Mode_Trigger(0),20 = 0
+
+
+global P_Anode_1TR_T_Belt_To_Align = 0
+global P_Anode_1TR_T_Align_To_Belt = 0
+global P_Anode_1TR_T_Ready_Pos = 0
+global P_Anode_1TR_T_Ready_To_Align = 0
+global P_Anode_1TR_T_Ready_To_Belt = 0
+global P_Anode_Picker_Turn = 0
+global P_Anode_2TR_T_Align_To_Stack = 0
+global P_Anode_2TR_T_Stack_To_Align = 0
+global P_Anode_Clamp_Off = 0
+global P_Anode_Clamp_On = 0
+global P_Anode_Clamp_Down = 0
+global P_FR_Anode_Motion = 0
+global P_FR_Cathode_Motion = 0
+global P_Stack_Table_Down = 0
+global P_Cathode_Clamp_On = 0
+global P_Cathode_Clamp_Off = 0
+global P_Cathode_Clamp_Down = 0
+global P_Cathode_2TR_T_Align_To_Stack = 0
+global P_Cathode_2TR_T_Stack_To_Align = 0
+global P_Cathode_Picker_Turn = 0
+global P_Cathode_1TR_T_Belt_To_Align = 0
+global P_Cathode_1TR_T_Align_To_Belt = 0
+global P_Cathode_1TR_T_Ready_Pos = 0
+global P_Cathode_1TR_T_Ready_To_Align = 0
+global P_Cathode_1TR_T_Ready_To_Belt = 0
+global P_Anode_1TR_Z_Belt_To_Align = 0
+global P_Anode_1TR_Z_Align_To_Belt = 0
+global P_Anode_1TR_Z_Align_Down = 0
+global P_Anode_1TR_Z_Align_UP = 0
+global P_Anode_1TR_Z_Belt_Down = 0
+global P_Anode_1TR_Z_Belt_UP = 0
+global P_Anode_1TR_Z_Ready = 0
+global P_Anode_1TR_Z_Align_Blow = 0
+global P_Anode_1TR_Z_Belt_Vac = 0
+global P_Cathode_1TR_Z_Belt_To_Align = 0
+global P_Cathode_1TR_Z_Align_To_Belt = 0
+global P_Cathode_1TR_Z_Align_Down = 0
+global P_Cathode_1TR_Z_Align_UP = 0
+global P_Cathode_1TR_Z_Belt_Down = 0
+global P_Cathode_1TR_Z_Belt_UP = 0
+global P_Cathode_1TR_Z_Ready = 0
+global P_Cathode_1TR_Z_Align_Blow = 0
+global P_Cathode_1TR_Z_Belt_Vac = 0
+global P_Anode_2TR_Align_To_Stack = 0
+global P_Anode_2TR_Stack_To_Align = 0
+global P_Anode_2TR_Stack_Down = 0
+global P_Anode_2TR_Stack_UP = 0
+global P_Anode_2TR_Align_Down = 0
+global P_Anode_2TR_Align_UP = 0
+global P_Anode_2TR_Align_Vac = 0
+global P_Anode_2TR_Stack_Blow = 0
+global P_Anode_2TR_Stack_Sepa_Blow = 0
+global P_FR_Last_Run_Motion = 0;
+
+global P_Servo_Dancer_Ready_Pos = 0
+global P_Servo_Dancer_Ready_Offset = 2
+
+global P_Servo_Dancer_Test = 0
+
+
+
+global P_Align_Start_IO_Judgment = 0
+
+
+global P_Driving_Clamp2 = 1
+global P_Driving_Clamp = 1
+
+
+global P_MSA_Timer = 0
+global P_SM_Cathode_Stack_MSA = 0
+global P_SM_Anode_Stack_MSA = 0
+global P_SM_Cathode_Align_MSA = 0
+global P_SM_Anode_Align_MSA = 0
+
+
+global P_MSA_Interlock = 0
+global P_Anode_MSA_Final_Roll_Pos_Check = 0
+global P_Anode_MSA_2nd_PNP_Pos_Check = 0
+global P_Anode_MSA_1nd_PNP_Pos_Check = 0
+
+global P_MSA_Err_Save_CA_Stack_MSA = 0
+global P_MSA_Err_Save_AN_Stack_MSA = 0
+global P_MSA_Err_Save_CA_Align_MSA = 0
+global P_MSA_Err_Save_AN_Align_MSA = 0
+
+global P_MSA_BTN_Err = 0
+
+global P_Anode_Algin_MSA_RTN = 0
+global P_Anode_Algin_MSA_RTN2 = 0
+global P_Cathode_Algin_MSA_RTN = 0
+global P_Cathode_Stack_MSA_RTN
+global P_Anode_Stack_MSA_RTN
+
+global P_Anode_Align_MSA_Count = 0
+global P_Cathode_Align_MSA_Count = 0
+global P_Anode_Stack_MSA_Count = 0
+global P_Cathode_Stack_MSA_Count = 0
+
+
+global P_Cathode_Align_Stop_Blocked = 0
+global P_Anode_Align_Stop_Blocked = 0
+global P_Cathode_Stack_Stop_Blocked = 0
+global P_Anode_Stack_Stop_Blocked = 0
+
+
+
+global P_Anode_Align_MSA_Execute_Timer = 0
+global P_Cathode_Align_MSA_Execute_Timer = 0
+global P_Anode_Stack_MSA_Execute_Timer = 0
+global P_Cathode_Stack_MSA_Execute_Timer = 0
+
+
+global P_Anode_Align_Interlock_Blocked = 0
+global P_Cathode_Align_Interlock_Blocked = 0
+global P_Anode_Stack_Interlock_Blocked = 0
+global P_Cathode_Stack_Interlock_Blocked = 0
+
+
+global P_Anode_1TR_T_Align_POS = 90
+global P_Anode_1TR_T_Belt_POS = 0
+global P_Anode_1TR_T_Ready_POS = 45
+
+global P_Anode_2TR_T_Align_POS = 0
+global P_Anode_2TR_T_Stack_POS = 90
+
+global P_Cathode_2TR_T_Align_POS = 0
+global P_Cathode_2TR_T_Stack_POS = 90
+
+global P_Cathode_1TR_T_Align_POS = 90
+global P_Cathode_1TR_T_Belt_POS = 0
+global P_Cathode_1TR_T_Ready_POS = 45
+
+
+
+global P_Seq_Abort = 0
+global P_Blocked_Abort = 0
+global P_Abort_Flag = 0
+
+
+
+//global M_Y_P_PMAC_Status1 = 0
+//global M_Y_P_PMAC_Status2 = 0
+//global M_Y_P_PMAC_Status3 = 0
+//global M_Y_P_PMAC_Status4 = 0
+//global M_Y_P_PMAC_Status5 = 0
+
+
+
+//global M_X_Opposite_Lane_Status1 = 0 
+//global M_X_Opposite_Lane_Status2 = 0 
+//global M_X_Opposite_Lane_Status3 = 0 
+//global M_X_Opposite_Lane_Status4 = 0 
+//global M_X_Opposite_Lane_Status5 = 0 
+
+//global M_X_Abort_Command = 0
+//global M_Y_Abort_Command = 0
+
+global P_Opposite_Lane_1ST_TR_Safe_Pos = 35
+
+global P_Opposite_Lane_P_PMAC_Status = 0
+global P_Opposite_Lane_OFF_Not_Start = 0
+
+global P_Pause_Alarm_Blocked = 0
+
+global P_Old_Alarm_Arr = 0
+
+global P_Cycle_Stop_Delay_Time = 0
+global P_Cycle_Stop_Offset = 0.5
+
+global P_Opposite_Lane_Abort_Alram_Flag = 0
+
+global P_Cathode_Clmap_Y1_Ready_Pos = 0
+global P_Cathode_Clmap_Y1_Clamp_Pos = 40
+
+global P_Anode_Clmap_Y1_Ready_Pos = 0
+global P_Anode_Clmap_Y1_Clamp_Pos = 40
+
+global P_Cathode_Clmap_Y2_Ready_Pos = 0
+global P_Cathode_Clmap_Y2_Clamp_Pos = 40
+
+global P_Anode_Clmap_Y2_Ready_Pos = 0
+global P_Anode_Clmap_Y2_Clamp_Pos = 40
+
+global P_Cathode_Clamp_Z2_Ready_Pos = 0
+global P_Cathode_Clamp_Z2_Clamp_Pos = -1.5
+
+global P_Anode_Clamp_Z2_Ready_Pos = 0
+global P_Anode_Clamp_Z2_Clamp_Pos = -1.5
+
+global P_Cathode_Clamp_Z1_Ready_Pos = 0
+global P_Cathode_Clamp_Z1_Clamp_Pos = -1.5
+
+global P_Anode_Clamp_Z1_Ready_Pos = 0
+global P_Anode_Clamp_Z1_Clamp_Pos = -1.5
+
+
+global P_Cathode_Clamp_Z2_Cell_Down = 0
+global P_Anode_Clamp_Z2_Cell_Down = 0
+global P_Cathode_Clamp_Z1_Cell_Down = 0
+global P_Anode_Clamp_Z1_Cell_Down = 0
+
+
+global P_Single_Run_Pass = 0
+
+
+global P_Cathode_2nd_PNP_Sepa_Blow = 0
+global P_Cathode_2nd_PNP_Align_Blow = 0
+global P_Cathode_2nd_PNP_Stack_Blow = 0
+global P_Cathode_2nd_PNP_Align_Vac = 0
+global P_Cathode_2nd_PNP_Align_Up_Motion = 0
+global P_Cathode_2nd_PNP_Align_Down_Motion = 0
+global P_Cathode_2nd_PNP_Stack_Up_Motion = 0
+global P_Cathode_2nd_PNP_Stack_Down_Motion = 0
+global P_Cathode_2nd_PNP_Stack_To_Align_Motion = 0
+global P_Cathode_2nd_PNP_Align_To_Stack_Motion = 0
+
+global P_Door_Open_Stop_Count = 0
+
+global P_Buf_Stack_NG_Flag = 0
+
+global P_Stop_1st_PNP_Move = 0
+
+global P_Seq_Abort_Timer = 0
+
+global P_Sync_Test = 0
+
+global P_Dry_Pause_Flag = 0
+
+global P_Dry_Run_Pasue_Timer = 0
+
+global P_Resume_Stop_Blocked = 0
+
+global P_Discharge_Wait = 0
+global P_Command_Run_Flag = 0
+
+global P_Stop_Cmd_Origin = 0
+
+global P_Stop_Origin_Save(15)
+P_Stop_Origin_Save(0),15 = 0
+
+// 260401 세파 열선 ON 후 20초 동안 꺼지지 않는다면 강제로 off
+global P_Old_M_Y_Sepa_Cutter_SSR_On = 0
+global P_Sepa_Cutter_SSR_Off_Time = 20000
+global P_Sepa_Cutter_SSR_Off = 0
+global P_Sepa_Cutter_SSR_Off_Timer = 0
+
+global P_Starting_Pause_IO_Flag = 0
+global P_PLC03_Seq_Pause_Start_Flag = 0;
+global P_PLC03_Seq_Pause_Start_State_Machine = 0;
+global P_PLC03_Seq_Pause_Start_Status = 0;
+
+
+global P_ARC_NP_Push_BTN = 0
+global P_ARC_UI_Push_BTN
+global P_M_Manual_ARC_BTN
+// [참조 : 260629 Two 버튼 인터락 타이머 추가]
+global P_Two_Btn_Active_Flag = 0;				
+global P_Two_Btn_Interlock_Time = 300;
+global P_NP_Unwinder_Active_Hold = 0;
+
+//#define def_Name_Plate_Btn_Input ECAT[0].IO[4236].Data.11.5 | ECAT[0].IO[4237].Data.0.7   // Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.11.5 | Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.0.7
+#define def_Name_Plate_Btn_Input Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.11.5 | Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.0.7   // Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.11.5 | Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.0.7
+
+
+// 상수로 사용할 변환 비율 (10000 / 11.60492748)
+global P_MAX_KGF = 11.60492748;
+global P_KGF_TO_DAC_RATIO = 32767 / P_MAX_KGF; 
+global P_Dac_Out_Value = 0;
+global P_Recipe_Dancer_input_kgf = 0;
+
+
+global P_Cathode_NG_PNP_Vel_Zero_Set = 0
+global P_Anode_NG_PNP_Vel_Zero_Set = 0
+
+
+global P_Anode_Run_DR = 25  // 이전 27
+global P_Cathode_Run_DR = 70  // 이전 27
+
+
+global P_1st_UND_Grip_Time = 0
+// 260430 배출텍 조정
+//global P_1st_UND_Grip_Time_offset = 1.7
+global P_1st_UND_Grip_Time_offset = 1.4
+global P_1st_UND_Grip_Time_offset2 = 3
+
+global P_First_Sepa_Driving_Use = 1
+
+global P_First_Sepa_Driving_Timing = 40
+
+global P_Unloader_Safe_rtn = 0
+
+global P_Final_Start = 0
+global P_Driving_Start = 0
+
+
+global P_Starting_Pause_IO_OFF_Flag = 0
+global P_individual_Hold_return
+global P_individual_Hold_return2
+
+global P_Tension_Ready_Pass = 0
+
+global P_Discharge_cal_rtn = 0
+
+global P_Old_Tact_Current_Mode = 0
+
+global P_Sheet_Clear = 0
+
+global P_Anode_Clamp_On_Time2 = 0
+global P_Anode_Clamp_On_Time = 0
+global P_Cathode_Clamp_On_Time = 0
+global P_Cathode_Clamp_On_Time2 = 0
+
+global P_Offset = 7
+
+global P_Man_C = 0
+
+global P_NG_Box_Stop_Use = 0
+
+// [ 참조 : 260406 EMO 눌렀을 때 모터 정지 ]
+global P_SlewTime = 100;
+global P_Old_SlewTime = 0;
+
+
+
+global P_Resume_MNTR1 = 0
+global P_Resume_MNTR2 = 0
+global P_Resume_MNTR3 = 0
+global P_Resume_MNTR4 = 0
+global P_Resume_MNTR5 = 0
+global P_Resume_MNTR6 = 0
+global P_Resume_MNTR7 = 0
+global P_Resume_MNTR8 = 0
+global P_Resume_MNTR9 = 0
+global P_Resume_MNTR10 = 0
+global P_Resume_MNTR11 = 0
+global P_Resume_MNTR12 = 0
+
+global P_old_P_Anode_Count = 0
+
+global P_Sheet_Paper_BWD_Count = 10
+
+global P_Stop_CHK = 0
+global P_Seq_Pause = 0
+global P_Seq_Pause2 = 0
+
+global P_MSA_TimeBase_Rtn = 0
+
+global P_Old_Vison_Read_EPC_Camera_Move_Request = 0
+
+global P_First_Sepa_Time_Out_Count = 0
+
+global P_Align_Retry_Cal_RTN = 0
+
+global P_Sheet_Err(16)
+P_Sheet_Err(0),16 = 0
+
+// 드라이빙 푸는 양 계산 추가
+global P_Driving_Cal = 0
+global P_Driving_End_Pos = 0
+global P_Driving_Start_Pos = 0
+global P_Drivig_Cal_Save(5)
+P_Drivig_Cal_Save(0),5 = 0
+
+
+
+global P_Anode_Align_Blow = 0
+global P_Cathode_Align_Blow = 0
+
+
+global P_PMAC_Status_Arr_Save1(5)
+P_PMAC_Status_Arr_Save1(0),5 = 0
+
+global P_HomePos_Save1(5)
+P_HomePos_Save1(0),5 = 0
+
+global P_PMAC_Status_Arr_Save2(5)
+P_PMAC_Status_Arr_Save2(0),5 = 0
+
+global P_HomePos_Save2(5)
+P_HomePos_Save2(0),5 = 0
+
+global P_PMAC_Status_Arr_Save3(5)
+P_PMAC_Status_Arr_Save3(0),5 = 0
+
+global P_HomePos_Save3(5)
+P_HomePos_Save3(0),5 = 0
+
+global P_PMAC_Status_Arr_Save4(5)
+P_PMAC_Status_Arr_Save4(0),5 = 0
+
+global P_HomePos_Save4(5)
+P_HomePos_Save4(0),5 = 0
+
+
+global P_Home_Pos_Err_Cnt1 = 0
+global P_Home_Pos_Err_Cnt2 = 0
+global P_Home_Pos_Err_Cnt3 = 0
+global P_Home_Pos_Err_Cnt4 = 0
+
+global P_Align_Inspection_Delay = 0
+
+
+global P_HomePos_Err(5)
+P_HomePos_Err(0),5 = 0
+
+
+global P_Anode_Sheet_Test = 0.5
+global P_Cathode_Sheet_Test = 0.5
+
+
+global P_Anode_Sheet_Interlock_Timing = 17
+global P_Cathode_Sheet_Interlock_Timing = 62
+
+global P_Discharge_Err_MNTR = 0
+global P_Arc_Err_MNTR = 0
+
+global P_Abort_Cnt = 0
+global P_EMO_Cnt = 0
+
+global P_Dry_Run_Inspection = 0
+
+
+global P_Servo_ON_MNTR1	 = 0
+global P_Servo_ON_MNTR2	 = 0
+global P_Servo_ON_MNTR3	 = 0
+global P_Servo_ON_MNTR4	 = 0
+global P_Servo_ON_MNTR5	 = 0
+global P_Servo_ON_MNTR6	 = 0
+global P_Servo_ON_MNTR7	 = 0
+global P_Servo_ON_MNTR8	 = 0
+global P_Servo_ON_MNTR9	 = 0
+global P_Servo_ON_MNTR10 = 0
+global P_Servo_ON_MNTR11 = 0
+global P_Servo_ON_MNTR12 = 0
+global P_Servo_ON_MNTR13 = 0
+global P_Servo_ON_MNTR14 = 0
+global P_Servo_ON_MNTR15 = 0
+global P_Servo_ON_MNTR16 = 0
+global P_Servo_ON_MNTR17 = 0
+global P_Servo_ON_MNTR18 = 0
+global P_Servo_ON_MNTR19 = 0
+global P_Servo_ON_MNTR20 = 0
+global P_Servo_ON_MNTR21 = 0
+global P_Servo_ON_MNTR22 = 0
+global P_Servo_ON_MNTR23 = 0
+global P_Servo_ON_MNTR24 = 0
+global P_Servo_ON_MNTR25 = 0
+global P_Servo_ON_MNTR26 = 0
+global P_Servo_ON_MNTR27 = 0
+global P_Servo_ON_MNTR28 = 0
+global P_Servo_ON_MNTR29 = 0
+global P_Servo_ON_MNTR30 = 0
+
+// [참조 : 260520 ECAT 재연결 프로그램 추가]
+global P_X_IO_WinMess_Connect_BTN = 0
+global P_Ecat_ReConnetion_State_Machine = 0
+global P_Ecat_Reconnection_Timer = 0
+global P_Y_Ecat_Reconnecting = 0
+global P_Y_Ecat_ReConnection_Fail= 0
+global P_Y_Ecat_ReConnection_Complete = 0
+global P_X_Ecat_Reconnection_BTN = 0
+
+//[참조 : 260730 환경안전검수용 인터락 활성화 버튼 추가]
+global P_X_Interlock_Enable_BTN = 0;
+
+#define	N_Ecat_Slave_Max_Index 19
+#define Ecat_Total_Slave_Online_Status	(ecat[0].slave[0].Online & ecat[0].slave[1].Online & ecat[0].slave[2].Online & ecat[0].slave[3].Online & ecat[0].slave[4].Online & ecat[0].slave[5].Online & ecat[0].slave[6].Online & ecat[0].slave[7].Online & ecat[0].slave[8].Online & ecat[0].slave[9].Online & ecat[0].slave[10].Online & ecat[0].slave[11].Online & ecat[0].slave[12].Online & ecat[0].slave[13].Online & ecat[0].slave[14].Online & ecat[0].slave[15].Online & ecat[0].slave[16].Online & ecat[0].slave[17].Online & ecat[0].slave[18].Online & ecat[0].slave[19].Online)
+#define Ecat_Total_Slave_State	(ecat[0].slave[0].State & ecat[0].slave[1].State & ecat[0].slave[2].State & ecat[0].slave[3].State & ecat[0].slave[4].State & ecat[0].slave[5].State & ecat[0].slave[6].State & ecat[0].slave[7].State & ecat[0].slave[8].State & ecat[0].slave[9].State & ecat[0].slave[10].State & ecat[0].slave[11].State & ecat[0].slave[12].State & ecat[0].slave[13].State & ecat[0].slave[14].State & ecat[0].slave[15].State & ecat[0].slave[16].State & ecat[0].slave[17].State & ecat[0].slave[18].State & ecat[0].slave[19].State)
+
+
+global P_X_Old_MC_Reconnect_BTN_Signal = 0
+
+// 참조 260605 1차 언로더 데이터 삭제 버튼 추가
+// [참고 : 260828 1차 언로더 언그립 엣지 시 젤리롤 데이터 삭제 추가 ]
+global P_BTN_1st_ULD_Data_Clear = 0
+global P_Old_BTN_1st_ULD_Data_Clear = 0
+global P_Old_M_Y_1st_Unloader_UnGrip_Sol = 0
+
+global P_Sepa_Cutter_Heat_Meter = 0
+global P_Sepa_Cutter_Heating_Timer = 0
+
+global P_Middle_Skip_Off_Flag = 0
+
+
+global P_Stop_MNTR1 = 0
+global P_Stop_MNTR2 = 0
+
+global P_Sheet_Pos_Offset = 2
+
+// 260612 Stopping 무언정지 수정
+global P_Stopping_Wait_Time = 30
+global P_Stopping_Test_Timer = 0
+
+// 260612 세파 열선 로그 추가
+global P_Cutter_FWB_Heater_Current(10)
+P_Cutter_FWB_Heater_Current(0),10 = 0
+global P_1st_ULD_OK_Lamp = 0
+global P_1st_ULD_NG_Lamp = 0
+global P_1st_ULD_Sample_QC_Lamp = 0
+
+// 260616 1차 언로더 데이터 있는 상태에서 유저 선택 세파모드로 재가동 시 1차 언로더 데이터를 2차 언로더까지 전달해야 execute로 넘어가는 부분 수정
+global P_Proceed_Execute_Flag = 0
+
+// 260708 연속 ng 기준 시트 단위에서 젤리롤 단위로 변경 및 연속 ng 카운트 시점 변경하여 알람 발생 시점 배출 후 발생하게 수정
+global P_Continuous_Call_Stack_NG_Flag = 0
+global P_Continuous_Call_Stack_OK_Flag = 0
+
+
+// 260715 stop 후 재가동 시 피커 홈 다시 안잡게 수정
+global P_Cathode_Picker_Home_Pos = 0
+global P_Anode_Picker_Home_Pos = 0
+
+// [ 참조 : 260910 전체 홈 진행시 파이널롤러 X,Z축 시트페이퍼 X축 대기위치 확인 ]
+global P_FR_Sheet_Paper_Home_Chk = 0;
+
+global P_Align_TimeOut1 = 0
+global P_Align_TimeOut2 = 0
+global P_Align_TimeOut3 = 0
+global P_Align_TimeOut4 = 0
+global P_Align_TimeOut5 = 0
+global P_Align_TimeOut6 = 0
+global P_Anode_Align_OK = 0
+global P_Cathode_Align_OK = 0
+global P_Anode_Align_NG = 0
+global P_Cathode_Align_NG = 0
+global P_Anode_Align_TimeOut = 0
+global P_Cathode_Align_TimeOut = 0
+
+global P_Anode_Surf_OK = 0
+global P_Cathode_Surf_OK = 0
+global P_Anode_Surf_NG = 0
+global P_Cathode_Surf_NG = 0
+global P_Anode_Surf_TimeOut = 0
+global P_Cathode_Surf_TimeOut = 0
+global P_Surf_TimeOut1 = 0
+global P_Surf_TimeOut2 = 0
+global P_Surf_TimeOut3 = 0
+global P_Surf_TimeOut4 = 0
+global P_Surf_TimeOut5 = 0
+global P_Surf_TimeOut6 = 0
+
+global P_Anode_Stack_TimeOut = 0
+global P_Cathode_Stack_TimeOut = 0
+global P_Anode_Stack_OK = 0
+global P_Cathode_Stack_OK = 0
+global P_Anode_Stack_NG = 0
+global P_Cathode_Stack_NG = 0
+global P_Stack_TimeOut1 = 0
+global P_Stack_TimeOut2 = 0
+global P_Stack_TimeOut3 = 0
+
+global P_Align_Move_Err = 0
+
+
+global P_Ecat_Test = 0
+global P_Scan_Time(2)
+global P_Scan_Aver = 0
+global P_Scan_MAX = 0
+
+//[ 참조 : 26.08.14 PickerT 모션 변경 ]
+global P_Cathode_1TR_Picker_T_Belt_POS = 0		// 양극 1차 PickerT축 벨트위치
+global P_Cathode_1TR_Picker_T_Align_POS = 0		// 양극 1차 PickerT축 얼라인위치 
+global	P_Anode_1TR_Picker_T_Belt_POS	= 0		// 음극 1차 PickerT축 벨트위치	
+global P_Anode_1TR_Picker_T_Align_POS = 0		// 음극 1차 PickerT축 얼라인위치 
+global P_1TR_Picker_T_Align_POS = -180			// 1차 PickerT축 얼라인 위치(공급)

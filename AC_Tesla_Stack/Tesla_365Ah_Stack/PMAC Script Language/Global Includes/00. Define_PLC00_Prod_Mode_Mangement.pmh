@@ -1,0 +1,599 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+global P_Force_Stop_Flag = 0;
+
+	#define	F_True					1
+	#define F_False					0
+
+	global P_Execute_DryRun_Stop_Timer = 0;		// 드라이런 가동 경과 시간
+	global P_DryRun_Timer = 0;					// 드라이런 가동 경과 시간	[ 참조 : 25.07.15 드라이런 진행 경과 타이머 수정 ]
+	global P_Dryrun_Operating_Time = 10;			// 드라이런 가동 시간 설정
+
+	global P_Anode_Align_Vac_Err_On = 0;
+	global P_Cathode_Align_Vac_Err_On = 0;
+	global P_Anode_1ST_TR_Vac_Err_On = 0;
+	global P_Anode_2ND_TR_Vac_Err_On = 0;
+	global P_Cathode_1ST_TR_Vac_Err_On = 0;
+	global P_Cathode_2ND_TR_Vac_Err_On = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC0_Task_Time(2);
+	P_MNTR_PLC0_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC0_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC1_Task_Time(2);
+	P_MNTR_PLC1_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC1_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC2_Task_Time(2);
+	P_MNTR_PLC2_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC2_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC3_Task_Time(2);
+	P_MNTR_PLC3_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC3_Task_Max_Time = 0;
+
+		// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC4_Task_Time(2);
+	P_MNTR_PLC4_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC4_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC5_Task_Time(2);
+	P_MNTR_PLC5_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC5_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC6_Task_Time(2);
+	P_MNTR_PLC6_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC6_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC7_Task_Time(2);
+	P_MNTR_PLC7_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC7_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC8_Task_Time(2);
+	P_MNTR_PLC8_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC8_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC9_Task_Time(2);
+	P_MNTR_PLC9_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC9_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC10_Task_Time(2);
+	P_MNTR_PLC10_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC10_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC11_Task_Time(2);
+	P_MNTR_PLC11_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC11_Task_Max_Time = 0;
+
+		// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC12_Task_Time(2);
+	P_MNTR_PLC12_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC12_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC13_Task_Time(2);
+	P_MNTR_PLC13_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC13_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC14_Task_Time(2);
+	P_MNTR_PLC14_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC14_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC15_Task_Time(2);
+	P_MNTR_PLC15_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC15_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC16_Task_Time(2);
+	P_MNTR_PLC16_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC16_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC17_Task_Time(2);
+	P_MNTR_PLC17_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC17_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC18_Task_Time(2);
+	P_MNTR_PLC18_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC18_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC19_Task_Time(2);
+	P_MNTR_PLC19_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC19_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC20_Task_Time(2);
+	P_MNTR_PLC20_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC20_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC21_Task_Time(2);
+	P_MNTR_PLC21_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC21_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC22_Task_Time(2);
+	P_MNTR_PLC22_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC22_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC23_Task_Time(2);
+	P_MNTR_PLC23_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC23_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC24_Task_Time(2);
+	P_MNTR_PLC24_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC24_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC25_Task_Time(2);
+	P_MNTR_PLC25_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC25_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC26_Task_Time(2);
+	P_MNTR_PLC26_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC26_Task_Max_Time = 0;
+
+		// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC27_Task_Time(2);
+	P_MNTR_PLC27_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC27_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC28_Task_Time(2);
+	P_MNTR_PLC28_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC28_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC29_Task_Time(2);
+	P_MNTR_PLC29_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC29_Task_Max_Time = 0;
+
+	// [ 참조 : 20220608 PLC별 Scan 시간 측정 ]
+	global	P_MNTR_PLC30_Task_Time(2);
+	P_MNTR_PLC30_Task_Time(0),2,1 = 0;
+
+	global	P_MNTR_PLC30_Task_Max_Time = 0;
+
+	// [ 참조 : 230103 좌표계 다운될경우 상태 체크 변수 추가 ]
+	global	P_Coord_Shutdown_Status_log = 0;
+	
+	global	P_In_Pos_Trg = 2;
+	global  P_Position_Calc_Status  = 0;
+
+	#define	N_Task_Scale	1000
+
+
+// 1. Sub_Vision_Result	- 24.01.31 수정됨.
+	#define F_Vision_Result_None			0	// 결과값 없음.
+	#define F_Vision_Result_OK				1	// NG 없음.
+	#define F_Vision_Result_Align_NG		2	// 얼라인 NG.
+	#define F_Vision_Result_Surface_NG		3	// 표면검사 NG.
+	#define F_Vision_Result_Stack_NG		4   // Stack NG.
+	global P_Vision_Result(4);				// Vision 결과표시변수.
+	P_Vision_Result(0),4 = 0;
+	global P_Vision_Result_Get_First_Cycle(4); // Vision 데이터 get 사이클 표시 변수
+	P_Vision_Result_Get_First_Cycle(0), 4 = 0;
+	#define N_Vis_Anode_Run					0	// 음극런진행중.			
+	#define N_Vis_Cathode_Run				1	// 양극런진행중.
+	#define N_Vis_Anode_Run_Start			2	// 음극런 스타트위치.
+	#define N_Vis_Cathode_Run_Start			3	// 양극런 스타트위치.
+	#define N_Vision_Total_EA				4	// 총 개수.
+
+// 2. Sub_Init_Run_Mode_Array
+	// 2.1) 런모드 Define.
+	#define F_Normal_Run 				1		// 정상 런
+	#define F_Semi_Run					2		// 세미 런
+	#define	F_Last_Run					3		// 라스트 런
+	#define F_Sepa_Run					11		// 세파 런		
+
+	#define F_Sepa_Semi_Run				12		// 세파 세미런
+	#define F_Sepa_Last_Run				13		// 세파 라스트런
+		
+	#define F_Dry_Run					21		// 드라이 런
+	//#define F_Dry_Semi_Run				22       // 드라이 세미런
+	#define F_Dry_Last_Run				23      // 드라이 라스트런
+	// [ 참 조 : 2025.12.12 세파 첫장 세미런 추가 ] 
+	#define F_Frist_Sepa_Semi_Run		80		// 세파 깔기 첫장 세미런
+	#define F_Frist_Sepa_Sepa_Semi_Run	81		// 세파 깔기 첫장 세미런
+
+	#define F_NG					31		// NG 처리를 위한 런.
+	#define F_Vac_Err					40	// 1st or 2nd pnp vac err처리를 위한 런
+	#define F_Stop						50	// 사이클 정지 를 위한 런
+	// 2.2) 결과값 Define		
+	#define F_Result_None				0		// 초기화.
+	#define F_Result_Complete			1   	// 변경완료.
+	// 2.3) 결과표시 변수 Define
+	#define N_Wait						0		// Wait모드 인덱스값.
+	#define	N_Anode_Run					1		// 음극런모드 인덱스값.	
+	#define N_Cathode_Run				2		// 양극런모드 인덱스값.
+	#define N_Anode_Vac_Err				4		// 음극 진공 err 런 배열 초기화 인덱스값.
+	#define N_Cathode_Vac_Err			5		// 양극 진공 err 런 배열 초기화 인덱스값.
+	#define N_Mode_Total_EA				6		// 모드 개수.
+	global	P_Init_Result(N_Mode_Total_EA);		// 모드 Array 초기화 결과값 표시 변수.	
+	P_Init_Result(0),N_Mode_Total_EA,1 = 0;
+
+// 3. Sub_PNP_Pos_Update
+	global	P_PNP_Pos=0;							// PNP 위치 표시변수. ( 업데이트어디서?_)	
+	#define N_Pos_Anode_Run_Start			1		// 음극런 스타트위치.	( 모든 P&P 상승상태.)
+	#define N_Pos_Anode_Run_Wait			2   	// 음극런 극판대기위치.( 음극1차 P&P상승, 나머지 하강상태.)
+	#define N_Pos_Cathode_Run_Start			3   	// 양극런 스타트위치.	( 모든 P&P 상승상태.)
+	#define N_Pos_Cathode_Run_Wait			4   	// 양극런 극판대기위치.( 음극1차 P&P상승, 나머지 하강상태.)
+	#define N_Pos_Execute_Finish			5		// 적층완료 위치. ( 음극 1,2차 대기위치, 양극클램프온. )
+	#define N_Pos_Anode_NG_Wait				6		// 음극 NG처리 중 극판대기위치.
+	#define	N_Pos_Cathode_NG_Wait			7		// 양극 NG처리 중 극판대기위치.
+//  [ 참조 : 세파 모드를 위한, 구문 변경_240304]
+	#define	N_Pos_Anode_Sepa_Run_Start		8		// 음극 세파모드 런 위치 
+	#define	N_Pos_Cathode_Sepa_Run_Start	9		// 양극 세파모드 런 위치 
+
+//------------------------------------------------------------------------------------------//
+// plc 0 - Execute 생산관리모듈
+	global	P_Execute_Manage_Mode=0;			// Execute 생산관리 프로그램 모듈 1: 가동, 0 : 미가동.		 실행신호는 외부에서, 정지신호는 내부에서?
+	// 24.02.01 추가됨.
+	#define Slave8_Cathode_Motion_4Trg(a)	P_Slave8_Cathode_Run_Motion_Array(a) | P_Slave8_Cathode_Run_Motion_Array(a+1) | P_Slave8_Cathode_Run_Motion_Array(a+2) | P_Slave8_Cathode_Run_Motion_Array(a+3) 
+	#define Slave3_Anode_Motion_4Trg(a)		P_Slave3_Anode_Run_Motion_Array(a) | P_Slave3_Anode_Run_Motion_Array(a+1) | P_Slave3_Anode_Run_Motion_Array(a+2) | P_Slave3_Anode_Run_Motion_Array(a+3) 
+
+	#define Total_Inpos_Bit			Motor[5].InPos	& Motor[6].InPos & Motor[7].InPos	& Motor[8].InPos & Motor[9].InPos	& Motor[10].InPos & Motor[11].InPos & Motor[12].InPos & \
+									Motor[13].InPos & Motor[14].InPos & Motor[15].InPos & Motor[16].InPos & Motor[17].InPos & Motor[18].InPos & Motor[19].InPos & Motor[20].InPos 	
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//--------------------------Test----------------------------------------------------------------------//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+global P_Align_NG_Tack_Flag = 0;
+
+global P_2th_Ng_Front_Vision_Pos = 280;
+
+
+// 비전패스 모드 사용시 플래그
+Global P_Anode_Align_OK_Flag = 0;						// 음극 얼라인 비젼 내부 OK 플래그
+Global P_Anode_Align_NG_Flag = 0;						// 음극 얼라인 비젼 내부 NG 플래그
+Global P_Cathode_Align_OK_Flag = 0;						// 양극 얼라인 비젼 내부 OK 플래그
+Global P_Cathode_Align_NG_Flag = 0;                     // 양극 얼라인 비젼 내부 NG 플래그
+Global P_Stack_Table_OK_Flag = 0;						// 스텍 얼라인 비젼 내부 OK 플래그
+//Global P_Stack_Table_NG_Flag = 0;                       // 스텍 얼라인 비젼 내부 NG 플래그
+
+global P_Anode_Retry_OK_Flag = 0;						// 음극 얼라인 비젼 내부 OK 플래그
+global P_Anode_Retry_NG_Flag = 0;                   	// 음극 얼라인 비젼 내부 NG 플래그
+global P_Cathode_Retry_OK_Flag = 0;                 	// 양극 얼라인 비젼 내부 OK 플래그
+global P_Cathode_Retry_NG_Flag = 0;                 	// 양극 얼라인 비젼 내부 NG 플래그
+
+// 비전 패스 관련 변수 모음
+#define	N_Vision_Pass_Off			0
+#define	N_Vision_Pass_On			1
+#define	N_Vision_Pass_TimeOut		99
+
+#define N_2nd_Empty_Table_Vision_Pos	290
+
+global P_Func_Anode_2TR_Avoid_X_Value = 290;
+global P_Func_Cathode_2TR_Avoid_X_Value = 290;
+
+global	P_Anode_Surf_Insp_Trigger = 77;		//74
+global	P_Cathode_Surf_Insp_Trigger = 32;	//29
+
+global	P_CMD_Cathode_Vision_Tigger = 0;
+global	P_CMD_Anode_Vision_Tigger = 0;
+global	P_CMD_Stack_Table_Vision_Trigger = 0;
+global	P_CMD_Cathode_Empty_Table_Vision = 0;
+global	P_CMD_Anode_Empty_Table_Vision = 0;
+
+global	P_CMD_Cathode_Existence_Vision = 0;
+global	P_CMD_Anode_Existence_Vision = 0;
+
+// Error 관련 변수 선언
+global	P_Align_Manager_Error_Cnt = 0;
+global	P_Surf_Manager_Error_Cnt = 0;
+global	P_Retry_Manager_Error_Cnt = 0;
+global	P_Stack_Manager_Error_Cnt = 0;
+global	P_Existence_Manager_Error_Cnt = 0;
+
+global	P_Where_To_Occur_Error_Retry_Status = 0;
+global	P_Which_Retry_Insp_Type = 0;
+
+global	P_Where_To_Occur_Error_Align_Status = 0;
+global	P_Which_Align_Insp_Type = 0;
+
+global	P_Where_To_Occur_Error_Surf_Status = 0;
+global	P_Which_Surf_Insp_Type = 0;
+////
+
+global	P_Where_To_Occur_Error_Existence_Status = 0;
+global	P_Which_Existence_Insp_Type = 0;
+
+global	P_Where_To_Occur_Error_Stack_Status = 0;
+
+// First Sepa On 
+global	P_Vision_Clamping_Flag = 0;
+
+
+// Exist Vision TIme Set
+global	P_Exist_Insp_Total_Time = 4000;
+global	P_Exist_Insp_Trg_Time = 2000;
+
+// Stack Vision TIme Set
+global	P_Stack_Insp_Total_Time = 150;
+global	P_Stack_Trg_Time = 50;
+
+
+// Front Vision TIme Set
+global	P_Surf_Insp_Total_Time = 200;
+
+global	P_Retry_Insp_Total_Time;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
+
+#ifdef F_04_Tack_Enable
+P_Retry_Insp_Total_Time = 250;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
+#endif
+
+#ifdef F_05_Tack_Enable
+P_Retry_Insp_Total_Time = 280;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
+#endif
+
+#ifdef F_045_Tack_Enable
+P_Retry_Insp_Total_Time = 280;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
+#endif
+
+#ifdef F_035_Tack_Enable
+P_Retry_Insp_Total_Time = 220;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
+#endif
+
+global	P_Surf_TimeOut_Cnt = 0;
+global	P_Align_TimeOut_Cnt = 0;
+global	P_Retry_TimeOut_Cnt = 0;
+global	P_Stack_TimeOut_Cnt = 0;
+
+
+// Align Vision TIme Set
+// [ 참조 : 241205 035s, 0.4s얼라인 모션 변경, 0.35s 얼라인 검사 타이밍 수정 및 극판 데이터 타이밍 수정 ]
+#ifdef F_035_Tack_Enable
+global	P_Align_Insp_Total_Time = 180;//210;
+#else
+global	P_Align_Insp_Total_Time = 210;
+#endif
+
+global	P_Align_Trg_Time = 50
+global	P_Aligning_Time = 50
+
+
+// EmptyTable
+
+global	P_Cathode_Empty_Table_Vision_Flag = 0;
+global	P_Anode_Empty_Table_Vision_Flag = 0;
+
+
+
+#define	Sys_Descent_Align_Timer							Sys.CdTimer[0]
+#define	Sys_Descent_Stack_Timer							Sys.CdTimer[1]
+
+#define	Sys_Descent_Surface_Timer						Sys.CdTimer[2]
+#define	Sys_Descent_Existence_Timer						Sys.CdTimer[3]
+
+#define	Sys_Descent_Empty_Table_Timer					Sys.CdTimer[4]
+#define Sys_Descent_Sepa_Edge_Insp_Timer				Sys.CdTimer[5]
+
+#define	Sys_Descent_Retry_Timer							Sys.CdTimer[7]
+
+ptr M_Cathode_Belt_MNTR->*
+ptr M_Cathode_1st_MNTR->*
+ptr M_Cathode_Align_MNTR->*
+ptr M_Cathode_2nd_MNTR->*
+ptr M_Anode_Belt_MNTR->*
+ptr M_Anode_1st_MNTR->*
+ptr M_Anode_Align_MNTR->*
+ptr M_Anode_2nd_MNTR->*
+
+M_Cathode_Belt_MNTR->u.user:$1F44.16.16;
+M_Cathode_1st_MNTR->u.user:$1F4C.16.16;
+M_Cathode_Align_MNTR->u.user:$1F54.16.16;
+M_Cathode_2nd_MNTR->u.user:$1F5C.16.16;
+
+M_Anode_Belt_MNTR->u.user:$1F94.16.16
+M_Anode_1st_MNTR->u.user:$1F9C.16.16
+M_Anode_Align_MNTR->u.user:$1FA4.16.16
+M_Anode_2nd_MNTR->u.user:$1FAC.16.16
+
+
+
+/*			극판 정보 Bitwise 	1Byte로 나타냄.			*/
+
+//#define		Hex_Time_Out			$1
+#define		Hex_Maint_NG				$2			// 0000 0000 0000 0010
+													   
+#define		Hex_Align_NG				$4			// 0000 0000 0000 0100
+#define		Hex_Align_Time_Out			$5			// 0000 0000 0000 0101
+#define		Hex_Align_OK				$8			// 0000 0000 0000 1000
+													   
+#define		Hex_Surf_NG					$10			// 0000 0000 0001 0000
+#define		Hex_Surf_Time_Out			$11			// 0000 0000 0001 0001
+#define		Hex_Surf_OK					$20			// 0000 0000 0010 0000
+													
+#define		Hex_Saved_Surf_Image		$40			// 0000 0000 0100 0000
+#define		Hex_Cell_Existence			$80			// 0000 0000 1000 0000
+													   
+#define		Hex_Stack_NG				$100		// 0000 0001 0000 0000
+#define		Hex_Stack_OK				$200		// 0000 0010 0000 0000
+
+#define		Hex_NG_Masking				$117		// 0000 0001 0001 0111
+#define		Hex_OK_Masking				$28			// 0000 0000 0010 1000
+
+#define		Hex_Stack_Time_Out			$101		// 0000 0001 0000 0001
+
+
+//// 보고 NG 코드 모음
+
+#define		N_Maint_NG_Code			128
+#define		N_TimeOut_NG_Code		256
+//	모션 모드 정의
+
+// 비전 공통 상태
+// Sleep 0
+// Idle 1
+// 
+#define F_Status_Ready								2
+#define F_Status_Waiting_For_Inspection				3
+#define F_Status_Inspection_OK						4
+#define F_Status_Inspection_NG						5
+#define	F_Status_TimeOut							6
+
+// 얼라인 비전 상태
+#define F_Status_Aligning							7
+
+
+// 표면검사 비전 상태
+#define F_Status_Surface_Image_Saving				3
+
+#define	F_Status_Inspection_Complete				10
+
+#define	F_Status_Error								99
+
+
+/*		비전 검사 판정 정보		*/
+#define	F_Insepction_OK			1
+#define	F_Insepction_NG			2
+#define	F_Insepction_TimeOut	3
+#define	F_Insepction_Abnormal	4
+
+/*			함수 관련 정보			*/
+
+#define	F_Function_Error		99
+
+
+global	P_Selected_Surf_Insp_Type = 0;
+global	P_Selected_Align_Insp_Type = 0;
+global	P_Selected_Retry_Insp_Type = 0;
+global	P_Selected_Exist_Insp_Type = 0;
+
+global	P_VISION_RECIPE_PLC4_Surface_TrgOff = 40;
+global	P_VISION_RECIPE_PLC4_Surface_Ins_Time = 210;
+
+
+global	P_CMD_Cathode_Vision_Retry = 0;
+global	P_CMD_Anode_Vision_Retry = 0;
+
+global	P_Prev_Align_Manager_Status = 0;
+global	P_Prev_Surf_Manager_Status = 0;
+global	P_Prev_Exist_Manager_Status = 0;
+
+global	P_Prev_Selected_Align_Type = 0;
+global	P_Prev_Selected_Surf_Type = 0;
+global	P_Prev_Selected_Exist_Type = 0;
+
+
+
+global	P_Status_Align_Vision_Manager = 0;
+global	P_Status_Surface_Vision_Manager = 0;
+global	P_Status_Sheet_Existence_Vision_Manager = 0;
+global	P_Status_Stack_Vision_Manager = 0;
+global	P_Status_Retry_Vision_Manager = 0;
+
+global	P_Vision_All_Status_Manager_Init_Flag = 0;
+
+global	P_Cycle_Stop_Command = 0;
+global	P_Surface_Inspection_Complete_Error = 0;
+
+// [ 참조 : 20220823 음/양극 사이클 스탑 후 작업자가 반대편 Align Cell 제거 시 공급하기 위한 Position Switching ]
+global	P_Switching_From_Cathode_To_Anode_Flag = 0;
+global	P_Switching_From_Anode_To_Cathode_Flag = 0;
+global	P_Switching_Mode_Complete_Flag = 0;
+
+global	P_Surf_Cathode_Error_Count = 0;
+global	P_Surf_Anode_Error_Count = 0;
+
+global	P_First_Anode_Sheet_Supply_Flag = 0;
+global	P_First_Cathode_Sheet_Supply_Flag = 0;
+
+global	P_Set_Cathode_Align_Pos_Zero = 0;
+global	P_Set_Anode_Align_Pos_Zero = 0;
+
+
+global P_Cathode_Cur_Mode = 0;
+global P_Anode_Cur_Mode = 0;
+
+// 디버깅용 변수
+#define M_X_Vision_Stack_Align_Ok	                               M4228	//스텍 얼라인 비전 양품 표시
+#define M_X_Vision_Stack_Align_Ng	                               M4227	//스텍 얼라인 비전 불량 표시
+#define M_Y_PLC_EPCAlignMode_Complete_Return					   M5195	
+#define M_Y_Vision_Stack_EPC_Align_Vision_Trigger				   M5234	// EPC 보정 기능 _ 스텍 촬상 신호
+
+
+
+#define N_Tension_Acc	0
+#define N_Tension_Dec	1
+#define N_Zero			0
+// 2026.01.30 추가 
+// 추가 : // [ 참조 : 26.02.02 드라이빙 구동 모션 ]
+global P_AN_to_CA_DR_Trig = 26;		// 양극방향으로 이동할때 
+global P_CA_to_AN_DR_Trig = 71;		// 음극방향으로 이동할때
+
+global P_Tension_FF(2)
+P_Tension_FF(0),2 = 0.01;
+
+global P_Sepa_CompDac_Value = 0;
+
+global P_FR_Move_Command = 0;
+
+global P_FF_Enable = 0;				// FF 사용 여부 변수
+
+
+// [ 참조 : 26.08.21 Power Rack 풀림 현상 개선 프로그램. ]
+
+
+global P_Anode_Run_FR_Move_Check_AI = 0;	// 파이널롤러 25트리거 Position, 모터 체크시, QCP단에 입력 
+global P_Cathode_Run_FR_Move_Check_AI = 0;  // 파이널롤러 70트리거 Position, 모터 체크시, QCP단에 입력
+
+// [ 참조 : 26.09.02 Power Rack 풀림 현상 프로그램 수정 ]
+global P_FR_Move_Check_AI_OffSet = 50;//500;	//150;	// 파이널 롤러 파워랙 풀림 현상 확인을 위한 아날로그 오프셋값.
+global P_FR_AI_Value(5);
+P_FR_AI_Value(0),5 = 0;
+global P_Aver_FR_AI_Value = 0;

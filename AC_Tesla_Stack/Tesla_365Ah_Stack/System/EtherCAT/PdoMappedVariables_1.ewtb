@@ -1,0 +1,344 @@
+<EtherCatWatchTable xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SlaveWatchEntries>
+    <SlaveWatchEntry>
+      <Name>Slave_1001 [NX-ECC203]</Name>
+      <PdoWatchEntries>
+        <ArrayMappedPdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_3003_3_NXUnitRegistrationStatus63</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>true</IsInput>
+          <BitLength>64</BitLength>
+          <DataType>ARRAY [0..7] OF BYTE</DataType>
+          <IoBufferOffset>0</IoBufferOffset>
+          <ElementCount>8</ElementCount>
+        </ArrayMappedPdoWatchEntry>
+        <ArrayMappedPdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_3006_3_NXUnitIODataActiveStatus63</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>true</IsInput>
+          <BitLength>64</BitLength>
+          <DataType>ARRAY [0..7] OF BYTE</DataType>
+          <IoBufferOffset>8</IoBufferOffset>
+          <ElementCount>8</ElementCount>
+        </ArrayMappedPdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_2002_1_SysmacErrorStatus</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>true</IsInput>
+          <BitLength>8</BitLength>
+          <DataType>USINT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_6002_1_InputBit16bits</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>true</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>UINT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_6040_1_Ch1AnalogInputValue</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>true</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>INT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_6040_2_Ch2AnalogInputValue</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>true</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>INT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_6040_3_Ch3AnalogInputValue</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>true</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>INT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_6040_4_Ch4AnalogInputValue</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>true</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>INT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_6060_1_Ch1AnalogInputValue</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>true</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>INT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_6060_2_Ch2AnalogInputValue</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>true</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>INT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_6060_3_Ch3AnalogInputValue</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>true</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>INT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_6060_4_Ch4AnalogInputValue</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>true</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>INT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_7022_1_OutputBit16bits</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>false</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>UINT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_7080_1_Ch1AnalogOutputValue</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>false</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>INT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_7080_2_Ch2AnalogOutputValue</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>false</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>INT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_7080_3_Ch3AnalogOutputValue</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>false</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>INT</DataType>
+        </PdoWatchEntry>
+        <PdoWatchEntry>
+          <Request>Slave_1001_NX_ECC203_1001_7080_4_Ch4AnalogOutputValue</Request>
+          <Response />
+          <IsCommand>false</IsCommand>
+          <Comment />
+          <IsResponseHavingError>false</IsResponseHavingError>
+          <FormatSettings>
+            <Type>None</Type>
+            <Scale>1</Scale>
+            <DecimalPlaces>3</DecimalPlaces>
+            <MaskString>0xFFFFFFFF</MaskString>
+            <BitCount>32</BitCount>
+            <StartingBitIndex>0</StartingBitIndex>
+            <IsAddingCommaAfterEvery4Bits>false</IsAddingCommaAfterEvery4Bits>
+          </FormatSettings>
+          <IsInput>false</IsInput>
+          <BitLength>16</BitLength>
+          <DataType>INT</DataType>
+        </PdoWatchEntry>
+      </PdoWatchEntries>
+    </SlaveWatchEntry>
+  </SlaveWatchEntries>
+  <Settings>
+    <UpdateRate>100</UpdateRate>
+    <EchoMode>7</EchoMode>
+    <IsShowingResponseTime>true</IsShowingResponseTime>
+    <IsDisplayingComment>false</IsDisplayingComment>
+    <IsPrependFormatting>false</IsPrependFormatting>
+    <IsWatchLocked>false</IsWatchLocked>
+  </Settings>
+</EtherCatWatchTable>

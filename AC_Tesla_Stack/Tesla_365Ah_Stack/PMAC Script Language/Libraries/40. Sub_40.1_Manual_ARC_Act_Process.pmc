@@ -1,0 +1,495 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.12.23 박성민 책임
+// 매뉴얼 ARC 액팅함수 
+// 26.03.27 
+// 일반모드 진행을 위한 리뉴얼 작업 진행 - [ 참조 : 26.03.27 일반모드 진행을 위한 리뉴얼 작업 진행] 	
+
+/*
+1. Manual ARC Acting Module
+[search]	ㄴㄷㅁㄱ
+
+*/
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.04 박성민 책임
+// 모듈화 프로그래밍 진행 (배출) - [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+// 25.06.04 김형진 책임
+// 모듈화 프로그래밍 진행 (ARC) - [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+
+// 동작 커맨드 발생 감지 및 동작 실행
+open subprog Subprog_Mainprocess_Manual_ARC_Act_Module(void)
+
+
+// 1) 커맨드 감시 
+	sub:Management(&rtn)
+
+		//=============================================================================================================================================
+		// 1. Manual ARC 모듈 
+		//=============================================================================================================================================
+		local L_Subprog_Act_Module_ARC_Pre_Act;							// Type : [x]			동작 : [ARC 진행 전 사전 작업]
+		//local L_Subprog_Act_Module_Nip_Roll_FWD;						// Type : [IO]			동작 : [닙롤 전진]	
+		local L_Subprog_Act_Module_Dancer_Closed;						// Type : [모터]			동작 : Open->Closed Loop 변경
+		//local L_Subprog_Act_Module_Nip_Roll_BWD;						// Type : [IO]			동작 : [닙롤 후진]
+		local L_Subprog_Act_Module_Dancer_Opend;						// Type : [모터]			동작 : Close->Open Loop 변경
+		local L_Subprog_Act_Module_Use_Plate_FWD;					// Type : [IO]			동작 : [교체 플레이트 전진]
+		local L_Subprog_Act_Module_Use_Plate_BWD;					// Type : [IO]			동작 : [교체 플레이트 후진]
+		local L_Subprog_Act_Module_Use_Plate_Clamp_ON;				// Type : [IO]			동작 : [교체 플레이트 클램프 ON]
+		local L_Subprog_Act_Module_Use_Plate_Clamp_OFF;				// Type : [IO]			동작 : [교체 플레이트 클램프 OFF]
+		local L_Subprog_Act_Module_Use_Plate_Cutter_FWD;			// Type : [IO]			동작 : [교체 플레이트 커터 전진]
+		local L_Subprog_Act_Module_Use_Plate_Cutter_BWD;			// Type : [IO]			동작 : [교체 플레이트 커터 후진]
+		local L_Subprog_Act_Module_Replace_Plate_Blow_ON;						// Type : [IO]			동작 : [플레이트 블로우 ON]
+		local L_Subprog_Act_Module_Replace_Plate_Blow_OFF;						// Type : [IO]			동작 : [플레이트 블로우 OFF]
+		local L_Subprog_Act_Module_Spool_Change;						// Type : [IO]			동작 : [ARC 완료 후 스풀 교체]
+		local L_Subprog_Act_Module_Previous_Spool_Remain_Winding;		// Type : [모터]		 	동작 : [이전 스풀 잔량 감기]
+		local L_Subprog_Act_Module_ARC_Post_Act;						// Type : [x]			동작 : [ARC 진행 후 사후 작업]
+  
+//=========================================================//
+// 36) ARC - ARC 진행 전 사전 작업 [X]
+//=========================================================// 
+	IF ( P_Module_Act_Command_Array(N_Act_ARC_Pre_Act) == F_ACT_STATUS_ENABLE )								// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_ARC_Pre_Act) != F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_ARC_Pre_Act) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Act_ARC_Pre_Act) = N_Ready_Step;			 					// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_ARC_Pre_Act = 0;																// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.ARC_Pre_Act(&L_Subprog_Act_Module_ARC_Pre_Act)					// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_ARC_Pre_Act == N_COMPLETE )												// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Act_ARC_Pre_Act) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_ARC_Pre_Act == N_FALSE )												// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]									
+			P_Module_Act_Command_Array(N_Act_ARC_Pre_Act) = F_ACT_STATUS_ALARM;								// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_ARC_Pre_Act) == F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_ARC_Pre_Act) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	}
+//=========================================================//
+// 37) ARC - 닙롤 전진 [IO] -> 닙롤 삭제로 인하여 Closed Loop 변경 [ 참조 : 26.02.25 ClosedLoop 변경 ]
+//=========================================================// 
+	IF ( P_Module_Act_Command_Array(N_Dancer_Closed) == F_ACT_STATUS_ENABLE )							// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Dancer_Closed) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Dancer_Closed) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Dancer_Closed) = N_Ready_Step;			 				// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_Dancer_Closed = 0;																// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.Dancer_Closed(&L_Subprog_Act_Module_Dancer_Closed)					// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_Dancer_Closed == N_COMPLETE )												// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Dancer_Closed) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_Dancer_Closed == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]		
+			P_Module_Act_Command_Array(N_Dancer_Closed) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Dancer_Closed) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Dancer_Closed) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 38) ARC - 닙롤 후진 [IO] --> 닙롤 삭제로 인하여 Open Loop 변경 [ 참조 : 26.02.25 ClosedLoop 변경 ]
+//=========================================================// 
+	IF ( P_Module_Act_Command_Array(N_Dancer_Open) == F_ACT_STATUS_ENABLE )							// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Dancer_Open) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Dancer_Open) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Dancer_Open) = N_Ready_Step;			 				// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_Dancer_Opend = 0;																// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.Dancer_Open(&L_Subprog_Act_Module_Dancer_Opend)					// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_Dancer_Opend == N_COMPLETE )												// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Dancer_Open) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_Dancer_Opend == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]		
+			P_Module_Act_Command_Array(N_Dancer_Open) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Dancer_Open) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Dancer_Open) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 39) ARC - 교체 플레이트 전진 [IO]
+//=========================================================// 
+	IF ( P_Module_Act_Command_Array(N_Act_Use_Plate_FWD) == F_ACT_STATUS_ENABLE )						// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_FWD) != F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_FWD) = F_ACT_STATUS_ENABLE;					// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Act_Use_Plate_FWD) = N_Ready_Step;			 			// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_Use_Plate_FWD = 0;															// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.Use_Plate_FWD(&L_Subprog_Act_Module_Use_Plate_FWD)		// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_Use_Plate_FWD == N_COMPLETE )											// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Act_Use_Plate_FWD) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_Use_Plate_FWD == N_FALSE )										// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]		
+			P_Module_Act_Command_Array(N_Act_Use_Plate_FWD) = F_ACT_STATUS_ALARM;						// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_FWD) == F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_FWD) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 40) ARC - 교체 플레이트 후진 [IO]
+//=========================================================// 
+	IF ( P_Module_Act_Command_Array(N_Act_Use_Plate_BWD) == F_ACT_STATUS_ENABLE )						// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_BWD) != F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_BWD) = F_ACT_STATUS_ENABLE;					// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Act_Use_Plate_BWD) = N_Ready_Step;			 			// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_Use_Plate_BWD = 0;															// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.Use_Plate_BWD(&L_Subprog_Act_Module_Use_Plate_BWD)		// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_Use_Plate_BWD == N_COMPLETE )											// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Act_Use_Plate_BWD) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_Use_Plate_BWD == N_FALSE )										// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]		
+			P_Module_Act_Command_Array(N_Act_Use_Plate_BWD) = F_ACT_STATUS_ALARM;						// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_BWD) == F_ACT_STATUS_ENABLE )				// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_BWD) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 41) ARC - 사용 플레이트 클램프 ON [IO]
+//=========================================================// 
+	IF ( P_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_ON) == F_ACT_STATUS_ENABLE )					// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_ON) != F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_ON) = F_ACT_STATUS_ENABLE;				// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Act_Use_Plate_Clamp_ON) = N_Ready_Step;			 		// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_Use_Plate_Clamp_ON = 0;													// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.Use_Plate_Clamp_ON(&L_Subprog_Act_Module_Use_Plate_Clamp_ON)		// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_Use_Plate_Clamp_ON == N_COMPLETE )									// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_ON) = F_ACT_STATUS_DISABLE;				// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_Use_Plate_Clamp_ON == N_FALSE )									// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]		
+			P_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_ON) = F_ACT_STATUS_ALARM;					// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_ON) == F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_ON) = F_ACT_STATUS_INITIAL;			// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 42) ARC - 사용 플레이트 클램프 OFF [IO]
+//=========================================================// 
+	IF ( P_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_OFF) == F_ACT_STATUS_ENABLE )					// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_OFF) != F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_OFF) = F_ACT_STATUS_ENABLE;			// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Act_Use_Plate_Clamp_OFF) = N_Ready_Step;			 		// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_Use_Plate_Clamp_OFF = 0;													// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.Use_Plate_Clamp_OFF(&L_Subprog_Act_Module_Use_Plate_Clamp_OFF)	// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_Use_Plate_Clamp_OFF == N_COMPLETE )									// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_OFF) = F_ACT_STATUS_DISABLE;				// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_Use_Plate_Clamp_OFF == N_FALSE )									// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]		
+			P_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_OFF) = F_ACT_STATUS_ALARM;					// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_OFF) == F_ACT_STATUS_ENABLE )			// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_OFF) = F_ACT_STATUS_INITIAL;			// 엣지 변수 초기화
+		}
+	}
+
+
+//=========================================================//
+// 43) ARC - 사용 플레이트 커터 전진 [IO]
+//=========================================================// 
+	IF ( P_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_FWD) == F_ACT_STATUS_ENABLE )				// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_FWD) != F_ACT_STATUS_ENABLE )		// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_FWD) = F_ACT_STATUS_ENABLE;			// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Act_Use_Plate_Cutter_FWD) = N_Ready_Step;			 	// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_Use_Plate_Cutter_FWD = 0;													// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.Use_Plate_Cutter_FWD(&L_Subprog_Act_Module_Use_Plate_Cutter_FWD)		// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_Use_Plate_Cutter_FWD == N_COMPLETE )									// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_FWD) = F_ACT_STATUS_DISABLE;				// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_Use_Plate_Cutter_FWD == N_FALSE )								// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]		
+			P_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_FWD) = F_ACT_STATUS_ALARM;				// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_FWD) == F_ACT_STATUS_ENABLE )		// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_FWD) = F_ACT_STATUS_INITIAL;			// 엣지 변수 초기화
+		}
+	}
+
+
+//=========================================================//
+// 44) ARC - 사용 플레이트 커터 후진 [IO]
+//=========================================================// 
+	IF ( P_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_BWD) == F_ACT_STATUS_ENABLE )				// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_BWD) != F_ACT_STATUS_ENABLE )		// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_BWD) = F_ACT_STATUS_ENABLE;			// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Act_Use_Plate_Cutter_BWD) = N_Ready_Step;			 	// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_Use_Plate_Cutter_BWD = 0;													// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.Use_Plate_Cutter_BWD(&L_Subprog_Act_Module_Use_Plate_Cutter_BWD)		// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_Use_Plate_Cutter_BWD == N_COMPLETE )									// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_BWD) = F_ACT_STATUS_DISABLE;				// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_Use_Plate_Cutter_BWD == N_FALSE )								// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]		
+			P_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_BWD) = F_ACT_STATUS_ALARM;				// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_BWD) == F_ACT_STATUS_ENABLE )		// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_BWD) = F_ACT_STATUS_INITIAL;			// 엣지 변수 초기화
+		}
+	}
+
+
+//=========================================================//
+// 45) ARC - 교체 플레이트 블로우 ON [IO]
+//=========================================================//
+	IF ( P_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_ON) == F_ACT_STATUS_ENABLE )							// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_ON) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_ON) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Blow_ON) = N_Ready_Step;			 				// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_Replace_Plate_Blow_ON = 0;																// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.Replace_Plate_Blow_ON(&L_Subprog_Act_Module_Replace_Plate_Blow_ON)				// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_Replace_Plate_Blow_ON == N_COMPLETE )												// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_ON) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_Replace_Plate_Blow_ON == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]		
+			P_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_ON) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_ON) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_ON) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	} 
+
+
+//=========================================================//
+// 46) ARC - 교체 플레이트 블로우 OFF [IO]
+//=========================================================// 
+	IF ( P_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_OFF) == F_ACT_STATUS_ENABLE )							// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_OFF) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_OFF) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Blow_OFF) = N_Ready_Step;			 				// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_Replace_Plate_Blow_OFF = 0;															// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.Replace_Plate_Blow_OFF(&L_Subprog_Act_Module_Replace_Plate_Blow_OFF)				// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_Replace_Plate_Blow_OFF == N_COMPLETE )											// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_OFF) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_Replace_Plate_Blow_OFF == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]		
+			P_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_OFF) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_OFF) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_OFF) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+
+
+//=========================================================//
+// 47) ARC - ARC 완료 후 스풀 교체 [X]
+//=========================================================// 
+	IF ( P_Module_Act_Command_Array(N_Act_Spool_Change) == F_ACT_STATUS_ENABLE )							// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Spool_Change) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Spool_Change) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Act_Spool_Change) = N_Ready_Step;			 				// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_Spool_Change = 0;																// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.Spool_Change(&L_Subprog_Act_Module_Spool_Change)					// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_Spool_Change == N_COMPLETE )												// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Act_Spool_Change) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_Spool_Change == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]		
+			P_Module_Act_Command_Array(N_Act_Spool_Change) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Spool_Change) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Spool_Change) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	}
+
+
+//=========================================================//
+// 48) ARC - 이전 스풀 잔량 감기 [모터]
+//=========================================================// 
+	IF ( P_Module_Act_Command_Array(N_Act_Previous_Spool_Remain_Winding) == F_ACT_STATUS_ENABLE )			// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Previous_Spool_Remain_Winding) != F_ACT_STATUS_ENABLE )	// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Previous_Spool_Remain_Winding) = F_ACT_STATUS_ENABLE;		// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Act_Previous_Spool_Remain_Winding) = N_Ready_Step;			// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_Previous_Spool_Remain_Winding = 0;												// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.Previous_Spool_Remain_Winding(&L_Subprog_Act_Module_Previous_Spool_Remain_Winding)	// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_Previous_Spool_Remain_Winding == N_COMPLETE )								// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Act_Previous_Spool_Remain_Winding) = F_ACT_STATUS_DISABLE;			// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_Previous_Spool_Remain_Winding == N_FALSE )							// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]		
+			P_Module_Act_Command_Array(N_Act_Previous_Spool_Remain_Winding) = F_ACT_STATUS_ALARM;			// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_Previous_Spool_Remain_Winding) == F_ACT_STATUS_ENABLE )	// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_Previous_Spool_Remain_Winding) = F_ACT_STATUS_INITIAL;		// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 49) ARC - ARC 진행 후 사후 작업 [X]
+//=========================================================// 
+	IF ( P_Module_Act_Command_Array(N_Act_ARC_Post_Act) == F_ACT_STATUS_ENABLE )							// 동작이 활성화 상태이면 동작 함수 호출.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_ARC_Post_Act) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_ARC_Post_Act) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_State_Machine_Array(N_Act_ARC_Post_Act) = N_Ready_Step;			 				// 스텝 머신 실행.
+		}
+
+		L_Subprog_Act_Module_ARC_Post_Act = 0;																// 반환값 초기화.
+		call Subprog_Subprocess_Act_Module.ARC_Post_Act(&L_Subprog_Act_Module_ARC_Post_Act)					// 실행 함수 호출.
+		IF ( L_Subprog_Act_Module_ARC_Post_Act == N_COMPLETE )												// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Command_Array(N_Act_ARC_Post_Act) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_Module_ARC_Post_Act == N_FALSE )											// 실행 함수 호출 실패 되었을 경우.
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;														// 함수 진행 중 Error 발생 시 시퀀스 종료. (Time Out, Stopping)	[ 참조 : 25.07.08 Suspend 프로그램 수정 ]		
+			P_Module_Act_Command_Array(N_Act_ARC_Post_Act) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	ELSE																									// 동작이 활성화 상태가 아닐 경우.
+	{
+		IF ( P_OLD_Module_Act_Command_Array(N_Act_ARC_Post_Act) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Command_Array(N_Act_ARC_Post_Act) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	}
+//===========================================================================================		
+// 리턴값 
+//===========================================================================================	
+	rtn = N_TRUE;
+//===========================================================================================
+	return
+
+
+Close

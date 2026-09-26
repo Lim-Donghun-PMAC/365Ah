@@ -1,0 +1,158 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+open subprog HoldCmdList(void)
+
+
+sub:Init(List_Ptr, &Head)
+
+Head = &P(List_Ptr);
+p(Head),20,1 = 0;
+P_Data_Idx = 0
+P_Hold_Data_Process_Complete = 0;
+return;
+
+
+sub:Set_Data(Head_Idx, Object, Command, Dest, &Ret_Num)
+
+	if(Head_Idx != 0)
+	{
+		P(Head_Idx)++;									// Data 저장된 개수 증가
+	
+		P_Cur_Size = P(Head_Idx);						// Set Data를 저장하기 위한 위치 지정
+		P_Cur_Idx = Head_Idx + P_Cur_Size;				// (기준 변수 + 저장 위치 지정)을 연산하여 Data를 저장할 배열 위치를 알려줌
+		if(P(P_Cur_Idx) != 0)
+		{
+			P(P_Cur_Idx) = 0;							// 데이터 넣을 배열에 값이 있다면, 초기화 후 data set
+		}
+		P(P_Cur_Idx) |= Object | Command | Dest;		// Data Set
+		Ret_Num = 1
+	
+	}
+	else
+	{
+		Ret_Num = -1			// Head index가 없으면 Set 실패.
+	
+	}
+
+return;
+
+
+sub:Get_Data(Head_Idx, &Data, &Ret_Num)
+	P_Except_Return_Array(N_CurPosData_RTN) = 0;
+
+	P_Data_Idx++																				//몇번째 Data를 꺼내야하는지 알려줌(Data set하기 전 Init에서 초기화함)
+
+	P_Get_Data_Idx = Head_Idx + P_Data_Idx														// 기준 인덱스(0번배열) + 데이터 꺼낼 배열
+
+	if(P(P_Get_Data_Idx) != 0)
+	{		
+		P_MotionData = P(P_Get_Data_Idx) & $FFFFFFFF;											// 0~31bit data만 저장
+		
+		call DataParsing.Get_CurPos(P_MotionData, &P_Except_Return_Array(N_CurPosData_RTN));	// 현재 유닛 위치 파악하기 위한 함수
+
+		if(P_Except_Return_Array(N_CurPosData_RTN) != -1)
+		{
+			// 현재 위치 to cmd 반환 
+			Data = (P(P_Get_Data_Idx) | P_Except_Return_Array(N_CurPosData_RTN)) & $FFFFFFFF;	// Set Data(12~31bit)와 현재위치(0~11bit) OR 연산하여 저장
+			P(P_Get_Data_Idx) = 0;																// Set Data를 저장했으므로 초기화
+			P_Hold_Motion_Arr(0)--																// Set Data를 저장하여 초기화 했으므로 저장된 Data 개수 알려주는 0번 배열 값 -1
+			Ret_Num = 1;
+		}
+		else
+		{
+			Ret_Num = N_Err_CurPosParsing;
+
+		}	
+	}
+	else
+	{
+		Ret_Num = N_Empty_Next_Data;
+
+	}
+
+return;
+
+
+close
+
+
+open subprog HoldSequence(Data, &rtn)
+
+	P_TimeOutNumb = 0;
+	P_Except_Return_Array(N_Same_Pos_Chk_RTN) = 0;
+	P_Except_Return_Array(N_Motion_Action_RTN) = 0;
+	P_CmdData = 0;
+	P_DataList(0),5,1 = 0;
+
+	P_DataList(N_Elec) = Data & Hex_Elec_Masking;	// 음극 or 양극
+	P_DataList(N_Obj) = Data & Hex_Obj_Masking;		// 유닛 선택
+	P_DataList(N_Cmd) = Data & Hex_Cmd_Masking;		// 수평이동, 수직이동, 진공, 블로우, 스탑
+	P_DataList(N_Dst) = Data & Hex_Dst_Masking;		// 목적지
+	P_DataList(N_Cur) = Data & Hex_Cur_Masking;		// 현재위치
+
+
+	if(P_DataList(N_Cmd) == Hex_Cmd_Stop)
+	{
+		if(P_PMAC_Status == F_Status_STOPPING)
+		{
+			rtn = N_Stop_Point;							// Stop Point 시 P_PMAC_Status가 Stopping이면 HOLD 시퀀스 종료
+			return;
+		}
+		else
+		{
+			rtn = 1										// Stop Point 시 P_PMAC_Status가 Stopping이 아니면 해당 Data만 실행 종료
+			return;
+		}
+	}
+	
+	if(P_DataList(N_Elec) != Hex_Elec_Masking && P_DataList(N_Elec) != 0)		// 음/양극 설정이 되어있지 않으면 에러
+	{
+		rtn = N_Err_NotSelectedElec;
+		return;
+	}
+
+	if(P_DataList(N_Cmd) & (Hex_Cmd_Vertical | Hex_Cmd_Horizontal) )			// 명령위치와 현재위치를 비교하여 동일하면 해당 Data 종료, 다르면 모션 실행
+	{																			// Vac, Blow는 현재위치와 명령위치가 같기 때문에 수직or수평 이동 때만 확인함
+		call DataParsing.Check_SamePosDestCur(P_DataList(N_Dst), P_DataList(N_Cur), &P_Except_Return_Array(N_Same_Pos_Chk_RTN));
+		if(P_Except_Return_Array(N_Same_Pos_Chk_RTN) == 1)						// 명령위치와 현재위치가 같다는 의미로 동작할 필요 없어 MotionAction 함수 실행하기 전에 함수 종료
+		{																	
+			rtn = N_SamePos;				 
+			return;
+		}
+	}
+	call MotionAction(Data, &P_Except_Return_Array(N_Motion_Action_RTN));		// 모터 동작 함수 실행
+
+	if( P_Except_Return_Array(N_Motion_Action_RTN) == N_Stop_Point )			// 1차 PNP 벨트 진입 시점 기다리다가 Stopping 되면 HOLD 시퀀스 종료
+	{
+		rtn = N_Stop_Point;			
+		return;
+	}
+	else if( P_Except_Return_Array(N_Motion_Action_RTN) == N_Hold_Data_Err )
+	{
+		rtn = N_Hold_Data_Err;			
+		return;
+	}
+
+	P_Hold_Motion_Err_Chk = Sys.Time
+	P_Hold_Motion= 0
+
+	while( P_Hold_Motion== 0 )					
+	{	
+		if( Hold_Motion_Complete == 1 && Sys.Time < (P_Hold_Motion_Err_Chk + 2 * (100 / P_Recipe_Speed_Value) ))										// 동작 명령한 모터의 움직임이 완료될 때 까지 대기 후 완료되면 해당 Data 동작 완료
+		{
+			rtn = 1
+			P_Hold_Motion= 1
+		}
+		else if( Sys.Time > (P_Hold_Motion_Err_Chk + 2 * (100 / P_Recipe_Speed_Value)))
+		{
+			P_Hold_Err_MNTR(N_Hold_Action_Err) = 1
+			rtn = N_Motion_Err
+			P_Hold_Motion= 1
+		}
+	}
+	
+close

@@ -1,0 +1,509 @@
+//김준수 추가
+#define F_EPC_Auto_Status	$0	// 0000 0000 0000 0000	//EPC 엑츄에이터 상태 [Auto]
+#define F_EPC_Manual_Status $2  // 0000 0000 0000 0010	//EPC 엑츄에이터 상태 [Manual]
+#define F_EPC_Center_Status $4	// 0000 0000 0000 0100	//EPC 엑츄에이터 상태 [Center]
+
+#define M_PLC_HeartBit_Flag M4223 //임시
+#define M_X_BTN_Press_Jog_Left_From_PLC  M4160 //임시
+#define M_X_BTN_Press_Jog_Right_From_PLC M4107 //임시
+global P_TEST_EPC_Interlock_Auto				//임시
+global P_TEST_EPC_Interlock_Manual				//임시
+
+
+global	P_Discharge_Total_Tact = 0;
+
+
+global	P_Read_Sector_TactTime(6);
+P_Read_Sector_TactTime(1) = 50;
+P_Read_Sector_TactTime(2) = 500;
+P_Read_Sector_TactTime(3) = 230;
+P_Read_Sector_TactTime(4) = 500;
+P_Read_Sector_TactTime(5) = 10000;
+
+global	P_Write_Sector_TactTime(6);
+P_Write_Sector_TactTime(1) = 50;
+P_Write_Sector_TactTime(2) = 50;
+P_Write_Sector_TactTime(3) = 200;
+P_Write_Sector_TactTime(4) = 200;
+P_Write_Sector_TactTime(5) = 20000;
+
+
+//로그데이터 
+global P_PLC15_Sub_Function_Dryrun_Active_Flag	 = 0;
+global P_Sepa_Rotation_Sequence_Run_Trigger_Cnt		 = 0;
+
+//250513
+global P_Sepa_Mode_Sepa_Recipe_Count	= 0;				//세파 모드 적층 개수
+//global P_Recipe_Speed_Value 			= 100;				//PPMAC 장비 속도
+global P_Discharged_After_End_Trigger	= 0;				//중간 배출 후 설비 정지 신호
+global P_Unloader_1st_Grip_Delay		= 0;				//1차 언로더 GRIP Delay 값
+global P_Separate_Cutter_Heating_Limit_Value = 0;		//스텍 1차 언로더 열선 커터 온 리미트 값
+global P_Separate_Cutting_Current	 = 0;		//Separate Cutting 전류 확인 값 
+global P_Separate_Cutter_Change_Cycle = 0;				// 세파 커터 교체 주기
+global P_X_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger = 0; //양극 탭 재검사 연속 ng발생 및 1차 언로더 배출 후 사이클 정지 요청 수신 확인 신호
+global P_X_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger = 0;	//음극 탭 재검사 연속 ng발생 및 1차 언로더 배출 후 사이클 정지 요청 수신 확인 신호
+global P_X_Cathode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger = 0;				//양극 얼라인 캘틀어짐 발생 및 1차 언로더 배출 후 사이클 정지 요청 수신 확인 신호
+global P_X_Anode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger = 0;					//음극얼라인 캘틀어짐 발생 및 1차 언로더 배출 후 사이클 정지 요청 수신 확인 신호
+global P_X_Stack_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger = 0;					//스텍비전 캘틀어짐 발생 및 1차 언로더 배출 후 사이클 정지 요청 수신 확인 신호
+global P_Interlock_Messege_Confirmed = 0;					//인터락 팝업 확인 완료 신호
+global P_X_MC_Communication_HeartBit = 0;					//이더넷 통신 하트비트 신호 (D영역 하트비트 신호 입력)
+global P_SV_Cathode_Count = 0;								//양극 Stack 수
+global P_SV_Anode_Count = 0;								//음극 Stack 수
+
+global P_SV_AO_Reference_Value_Chanel(3);					//Clamp 압력_양극뱡항_기준값
+P_SV_AO_Reference_Value_Chanel(0),3 = 0;
+
+global P_SV_Cathode_Reference_Thickness = 0;				//양극 두께 기준값	
+global P_SV_Anode_Reference_Thickness = 0;					//음극 두께 기준값
+global P_SV_Stack_Table_Damper_Cathode	= 0;				//스텍 테이블 댐퍼 전공 레귤레이터 양극
+global P_SV_Stack_Table_Damper_Anode	= 0;				//스텍 테이블 댐퍼 전공 레귤레이터 음극
+global P_SV_Sepa_Reference_Thickness	= 0;				//분리막 두께_기준값
+global P_SV_Jelly_Roll_Width = 0;	//J/R 폭
+global P_Cathode_Align_Continuous_NG_Recipe	= 0;			//양극 Align Vision 연속 불량 알람 발생 횟수 설정
+global P_Anode_Align_Continuous_NG_Recipe = 0;				//음극 Align Vision 연속 불량 알람 발생 횟수 설정
+global P_Stack_Vision_Continuous_NG_Recipe = 0;				//Stack Vision 연속 불량 알람 횟수 설정
+global P_PLC_Recipe_EPC_Sepa_Count = 0;						//EPC 보정 모드 2차 세파 모드 개수
+global P_PLC_Recipe_Revise_Sepa	= 0;						//EPC 보정 Retry 횟수 설정 
+global P_X_PLC_to_PMAC_Correction_Value = 0;				//EPC 보정률 
+global P_Anode_Align_Continuous_NG_Check_range = 0;			//음극 Align Vision 연속 불량 알람 발생 탐색 범위 설정
+global P_Cathode_Align_Continuous_NG_Check_range = 0;		//양극 Align Vision 연속 불량 알람 발생 탐색 범위 설정
+global P_Stack_Align_Continuous_NG_Check_range	 = 0;		//Stack Vision 연속 불량 알람 발생 탐색 범위 설정
+global P_Cathode_Surface_Continuous_NG_Recipe = 0;			//양극 Surface 비전 연속 불량 알람 발생 횟수 설정
+global P_Anode_Surface_Continuous_NG_Recipe = 0;			//음극 Surface 비전 연속 불량 알람 발생 횟수 설정
+global P_Cathode_Surface_Continuous_NG_Check_range = 0;		//양극 Surface 비전 연속 불량 알람 발생 탐색 범위 설정
+global P_Anode_Surface_Continuous_NG_Check_range = 0;		//음극 Surface 비전 연속 불량 알람 발생 탐색 범위 설정
+
+global P_Servo_Dancer_Alarm_Maximum_Angle_Value = 0;		//서보 댄서 알람 발생 각도 상한 값
+global P_Servo_Dancer_Alarm_Minimum_Angle_Value = 0;		//서보 댄서 알람 발생 각도 하한 값
+global P_Current_Selected_Spool_Rev_Counts_Init_Read = 0;	//스풀 회전수 저장 영역
+global P_Spool_ARC_Distance_mm = 0;							//세파 ARC 이동량 설정
+global P_ARC_Upper_Request_Sepa_Thickness_mm = 0;			//세파 상단 ARC 교체 두께 설정
+global P_ARC_Lower_Request_Sepa_Thickness_mm = 0;			//세파 하단 ARC 교체 두께 설정
+global P_Selected_Spool_Arc_Set_Rev_Counts_Value = 0;		//세파 arc 교체 회전 수 설정
+global P_Set_Cnt_FR_Moving_Sepa_ARC = 0;					//세파 arc 교체 F/R 이동 횟수 설정
+global P_Current_Selected_Spool_Rev_Counts = 0;				// 현재 사용 중인 스풀 회전수 카운트 변수
+global P_AI_Cathode_Clamp_Damper=0;							// 양극 클램프 댐퍼 입력값
+global P_AI_Anode_Clamp_Damper=0;							// 음극 클램프 댐퍼 입력값
+
+global P_MSA_Run_Repeat_Num(5); // MSA 횟수 설정
+P_MSA_Run_Repeat_Num(0),5 = 0;
+#define F_Cathode_Stack_MSA						1			// 양극 스텍 MSA 모드 실행.
+#define F_Anode_Stack_MSA						2			// 음극 스텍 MSA 모드 실행.
+#define F_Cathode_Align_MSA						3			// 양극 얼라인 MSA 모드 실행
+#define F_Anode_Align_MSA						4			// 음극 얼라인 MSA 모드 실행
+
+global P_Current_MSA_Run_Num(5);// 현재 MSA 진행 횟수
+P_Current_MSA_Run_Num(0),5 = 0;
+
+global P_Select_Sheet_Value = 0; //젤리 롤 기종 인덱스 ( PLC -> PPMAC )
+global P_BTN_Config_Setup_Mode_Select = 0;	//PMAC 셋업 모드 사용
+global P_Sepa_Thickness_Max_Value = 0;	//세파 최대 두께 설정 
+global P_AI_Cathode_Clamp_Damper_Zero_Mpa_Analog_Value = 0; //양극 클램프 0Mpa 기준 아날로그 값
+global P_AI_Anode_Clamp_Damper_Zero_Mpa_Analog_Value = 0;	//음극 클램프 0Mpa 기준 아날로그 값
+global P_Accumulated_Movement_MM_Unit_Cathode_1ST_pnp = 0;	//양극 1차 pnp x축 누적 이동량
+global P_Accumulated_Movement_MM_Unit_Anode_1ST_pnp = 0;	//음극 1차 pnp x축 누적 이동량
+global P_Accumulated_Movement_MM_Unit_Cathode_2nd_pnp = 0;	//양극 2차 pnp x축 누적 이동량
+global P_Accumulated_Movement_MM_Unit_Anode_2nd_pnp = 0;	//음극 2차 pnp x축 누적 이동량
+
+global P_AI_Anode_Clamp_Damper_Mpa = 0;						//음극 클램프 공압 현재 AD값 표시
+global P_AI_Cathode_Clamp_Damper_Mpa = 0;					//양극 클램프 공압 현재 AD값 표시
+global P_Current_Whole_Stack_Jelly_Roll_Thinckness_mm = 0;  // 스텍 시 젤리롤 두께(mm) 업데이트 
+//global P_Current_Jelly_Roll_Thinckness_mm = 0;				//현재 젤리롤 두께(mm)
+global P_Upper_Sepa_Current_Thickness_um = 0;				// 상단 언와인더 세파 잔량 um단위
+global P_Lower_Sepa_Current_Thickness_um = 0;				// 하단 언와인더 세파 잔량 um단위
+global P_Spool_Rotate_Distance = 750000;//500000;;			// 스풀 와인딩 거리
+global Spool_Diameter = 0;
+global P_Current_FR_Moving_Cnt_To_PlC = 0;					//세파 arc 현재 F/R이동 횟수 표시
+global P_MES_APC_Select_Btn = 0;							// MES APC 사용 미사용 버튼
+global P_AO_Anode_Clamp_Damper = 0;							// 음극 클램프 댐퍼 출력값
+global P_AO_Cathode_Clamp_Damper = 0;						// 양극 클램프 댐퍼 출력값
+global P_Sepa_Length = 201.2;									// 세파의 폭
+						
+/* 모션 프로그램 다운 플래그 및 관련 변수 */
+global P_Minus_Limit_Detect_Popup_Flag = 0;
+global P_Plus_Limit_Detect_Popup_Flag = 0;
+global P_Fatal_Fe_Limit_Detect_Popup_Flag = 0;
+global P_Emergency_Alarm_Popup_Flag = 0;
+global P_SepaArcing_Popup_Flag = 0;
+
+// [ 참조 : 양/음극 탭 리트라이 및 캘 틀어짐 추가 ]
+global P_Y_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger = 0;	// 양극 탭 재검사 연속 ng발생 및 1차 언로더 배출 후 사이클 정지 요청 신호
+global P_Y_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger = 0;	// 음극 탭 재검사 연속 ng발생 및 1차 언로더 배출 후 사이클 정지 요청 신호
+
+// [ 참조 : 양/음극 탭 리트라이 및 캘 틀어짐 추가 ]
+global P_Y_Cathode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger = 0;				// 양극 캘 틀어짐 사이클 정지 트리거
+global P_Y_Anode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger = 0;					// 음극 캘 틀어짐 사이클 정지 트리거
+global P_Y_Stack_Align_Calibration_twisted_Cycle_Stop_Request_Trigger = 0;					// 스텍 얼라인 캘리브레이션 틀어짐 사이클 정지 트리거
+
+global	P_Current_Selected_Sheet_Value = 0;						//?현재 젤리 롤 기종 인덱스
+global  P_Status_Config_Mode_Select = 0;						// PMAC 현재 모드 
+global  P_Sepa_Thickness_Jig_Value = 0;							// 세파 최대 두께 값 적용
+global  P_PV_Stack_Table_Damper_Cathode = 0;					// 스텍 테이블 댐퍼 전공 레귤레이터 양극
+global  P_PV_Stack_Table_Damper_Anode = 0;						// 스텍 테이블 댐퍼 전공 레귤레이터 음극
+
+global	P_Discharge_Standby_Pos_Tack_Time = 0;					// 배출 대기 위치 이동
+global	P_Discharge_FR_MainZ_Pos_Tack_Time = 0;					// 배출 위치 이동
+global	P_Discharge_Unloader_Go_Pos_Tack_Time = 0;				// 언로더 진입
+global	P_Discharge_SubZ_Down_Pos_Tack_Time = 0;				// 스텍테이블 하강
+global	P_Discharge_Unloader_Cutting_Pos_Tack_Time = 0;			// 언로더 컷팅위치
+global	P_Discharge_FR_Clamp_ON_Complete_Tack_Time = 0;			// 파이널롤러 클램프 완료
+global	P_Discharge_Cutting_Complete_Tack_Time = 0;				// 컷팅 후 배출 완료
+global	P_Discharge_Motion_PG_Active_Starting_Tack_Time = 0;	// 모션 프로그램 활성화 시작(A,B동기화)
+global	P_Discharge_Motion_PG_Active_Complete_Tack_Time = 0;	// 모션 프로그램 활성화 완료(A,B 동기화)
+global	P_Discharge_Sepa_First_Complete_Tack_Time = 0;			// 세파 첫장 완료
+global	P_Discharge_Complete_Tack_Time = 0;						// 배출 완료
+global	P_Discharge_Total_Tack_Time = 0;						// 배출 총 텍타임
+
+global	P_Anode_Clamp_TackTime_Array0 = 0;						// 음극 Clamp 타임 버퍼 0
+global	P_Anode_Clamp_TackTime_Array1 = 0;						// 음극 Clamp 타임 버퍼 1
+global	P_Anode_Clamp_TackTime_Array2 = 0;    					// 음극 Clamp 타임 버퍼 2
+global	P_Anode_Clamp_TackTime_Array3 = 0;    					// 음극 Clamp 타임 버퍼 3
+global	P_Anode_Clamp_TackTime_Array4 = 0;    					// 음극 Clamp 타임 버퍼 4
+global	P_Anode_Clamp_TackTime_Array5 = 0;    					// 음극 Clamp 타임 버퍼 5
+global	P_Anode_Clamp_TackTime_Array6 = 0;    					// 음극 Clamp 타임 버퍼 6
+global	P_Anode_Clamp_TackTime_Array7 = 0;    					// 음극 Clamp 타임 버퍼 7
+global	P_Anode_Clamp_TackTime_Array8 = 0;    					// 음극 Clamp 타임 버퍼 8
+global	P_Anode_Clamp_TackTime_Array9 = 0;    					// 음극 Clamp 타임 버퍼 9
+global	P_Anode_Clamp_TackTime_Array10 = 0;   					// 음극 Clamp 타임 버퍼 10
+
+global	P_Stacking_TackTime_Array0 = 0;							// 스텍 텍 타임 버퍼 0	
+global	P_Stacking_TackTime_Array1 = 0;							// 스텍 텍 타임 버퍼 1
+global	P_Stacking_TackTime_Array2 = 0;    						// 스텍 텍 타임 버퍼 2
+global	P_Stacking_TackTime_Array3 = 0;    						// 스텍 텍 타임 버퍼 3
+global	P_Stacking_TackTime_Array4 = 0;    						// 스텍 텍 타임 버퍼 4
+global	P_Stacking_TackTime_Array5 = 0;    						// 스텍 텍 타임 버퍼 5
+global	P_Stacking_TackTime_Array6 = 0;    						// 스텍 텍 타임 버퍼 6
+global	P_Stacking_TackTime_Array7 = 0;    						// 스텍 텍 타임 버퍼 7
+global	P_Stacking_TackTime_Array8 = 0;    						// 스텍 텍 타임 버퍼 8
+global	P_Stacking_TackTime_Array9 = 0;    						// 스텍 텍 타임 버퍼 9
+global	P_Stacking_TackTime_Array10 = 0;   						// 스텍 텍 타임 버퍼 10
+
+global	P_Cathode_Clamp_TackTime_Array0 = 0;					// 양극 Clamp 타임 버퍼 0	
+global	P_Cathode_Clamp_TackTime_Array1 = 0;					// 양극 Clamp 타임 버퍼 1
+global	P_Cathode_Clamp_TackTime_Array2 = 0;    				// 양극 Clamp 타임 버퍼 2
+global	P_Cathode_Clamp_TackTime_Array3 = 0;    				// 양극 Clamp 타임 버퍼 3
+global	P_Cathode_Clamp_TackTime_Array4 = 0;    				// 양극 Clamp 타임 버퍼 4
+global	P_Cathode_Clamp_TackTime_Array5 = 0;    				// 양극 Clamp 타임 버퍼 5
+global	P_Cathode_Clamp_TackTime_Array6 = 0;    				// 양극 Clamp 타임 버퍼 6
+global	P_Cathode_Clamp_TackTime_Array7 = 0;    				// 양극 Clamp 타임 버퍼 7
+global	P_Cathode_Clamp_TackTime_Array8 = 0;    				// 양극 Clamp 타임 버퍼 8
+global	P_Cathode_Clamp_TackTime_Array9 = 0;    				// 양극 Clamp 타임 버퍼 9
+global	P_Cathode_Clamp_TackTime_Array10 = 0;   				// 양극 Clamp 타임 버퍼 10
+
+global	P_JellyRoll_Out_TackTime_Array0 = 0;					// 젤리롤 배출 타임 버퍼 0
+global	P_JellyRoll_Out_TackTime_Array1 = 0;					// 젤리롤 배출 타임 버퍼 1
+global	P_JellyRoll_Out_TackTime_Array2 = 0;    				// 젤리롤 배출 타임 버퍼 2
+global	P_JellyRoll_Out_TackTime_Array3 = 0;    				// 젤리롤 배출 타임 버퍼 3
+global	P_JellyRoll_Out_TackTime_Array4 = 0;    				// 젤리롤 배출 타임 버퍼 4
+global	P_JellyRoll_Out_TackTime_Array5 = 0;    				// 젤리롤 배출 타임 버퍼 5
+global	P_JellyRoll_Out_TackTime_Array6 = 0;    				// 젤리롤 배출 타임 버퍼 6
+global	P_JellyRoll_Out_TackTime_Array7 = 0;    				// 젤리롤 배출 타임 버퍼 7
+global	P_JellyRoll_Out_TackTime_Array8 = 0;    				// 젤리롤 배출 타임 버퍼 8
+global	P_JellyRoll_Out_TackTime_Array9 = 0;    				// 젤리롤 배출 타임 버퍼 9
+global	P_JellyRoll_Out_TackTime_Array10 = 0;   				// 젤리롤 배출 타임 버퍼 10
+
+global	P_Anode_1th_TackTime_Array0 = 0;						// 음극 1차 P&P 타임 버퍼 0
+global	P_Anode_1th_TackTime_Array1 = 0;						// 음극 1차 P&P 타임 버퍼 1
+global	P_Anode_1th_TackTime_Array2 = 0;    					// 음극 1차 P&P 타임 버퍼 2
+global	P_Anode_1th_TackTime_Array3 = 0;    					// 음극 1차 P&P 타임 버퍼 3
+global	P_Anode_1th_TackTime_Array4 = 0;    					// 음극 1차 P&P 타임 버퍼 4
+global	P_Anode_1th_TackTime_Array5 = 0;    					// 음극 1차 P&P 타임 버퍼 5
+global	P_Anode_1th_TackTime_Array6 = 0;    					// 음극 1차 P&P 타임 버퍼 6
+global	P_Anode_1th_TackTime_Array7 = 0;    					// 음극 1차 P&P 타임 버퍼 7
+global	P_Anode_1th_TackTime_Array8 = 0;    					// 음극 1차 P&P 타임 버퍼 8
+global	P_Anode_1th_TackTime_Array9 = 0;    					// 음극 1차 P&P 타임 버퍼 9
+global	P_Anode_1th_TackTime_Array10 = 0;   					// 음극 1차 P&P 타임 버퍼 10
+
+global	P_Cathode_1th_TackTime_Array0 = 0;						// 양극 1차 P&P 타임 버퍼 0	
+global	P_Cathode_1th_TackTime_Array1 = 0;						// 양극 1차 P&P 타임 버퍼 1
+global	P_Cathode_1th_TackTime_Array2 = 0;    					// 양극 1차 P&P 타임 버퍼 2
+global	P_Cathode_1th_TackTime_Array3 = 0;    					// 양극 1차 P&P 타임 버퍼 3
+global	P_Cathode_1th_TackTime_Array4 = 0;    					// 양극 1차 P&P 타임 버퍼 4
+global	P_Cathode_1th_TackTime_Array5 = 0;    					// 양극 1차 P&P 타임 버퍼 5
+global	P_Cathode_1th_TackTime_Array6 = 0;    					// 양극 1차 P&P 타임 버퍼 6
+global	P_Cathode_1th_TackTime_Array7 = 0;    					// 양극 1차 P&P 타임 버퍼 7
+global	P_Cathode_1th_TackTime_Array8 = 0;    					// 양극 1차 P&P 타임 버퍼 8
+global	P_Cathode_1th_TackTime_Array9 = 0;    					// 양극 1차 P&P 타임 버퍼 9
+global	P_Cathode_1th_TackTime_Array10 = 0;   					// 양극 1차 P&P 타임 버퍼 10
+
+global	P_Anode_2th_TackTime_Array0 = 0;						// 음극 2차 P&P 타임 버퍼 0
+global	P_Anode_2th_TackTime_Array1 = 0;						// 음극 2차 P&P 타임 버퍼 1
+global	P_Anode_2th_TackTime_Array2 = 0;    					// 음극 2차 P&P 타임 버퍼 2
+global	P_Anode_2th_TackTime_Array3 = 0;    					// 음극 2차 P&P 타임 버퍼 3
+global	P_Anode_2th_TackTime_Array4 = 0;    					// 음극 2차 P&P 타임 버퍼 4
+global	P_Anode_2th_TackTime_Array5 = 0;    					// 음극 2차 P&P 타임 버퍼 5
+global	P_Anode_2th_TackTime_Array6 = 0;    					// 음극 2차 P&P 타임 버퍼 6
+global	P_Anode_2th_TackTime_Array7 = 0;    					// 음극 2차 P&P 타임 버퍼 7
+global	P_Anode_2th_TackTime_Array8 = 0;    					// 음극 2차 P&P 타임 버퍼 8
+global	P_Anode_2th_TackTime_Array9 = 0;    					// 음극 2차 P&P 타임 버퍼 9
+global	P_Anode_2th_TackTime_Array10 = 0;   					// 음극 2차 P&P 타임 버퍼 10
+
+global	P_Cathode_2th_TackTime_Array0 = 0;						// 양극 2차 P&P 타임 버퍼 0	
+global	P_Cathode_2th_TackTime_Array1 = 0;						// 양극 2차 P&P 타임 버퍼 1
+global	P_Cathode_2th_TackTime_Array2 = 0;    					// 양극 2차 P&P 타임 버퍼 2
+global	P_Cathode_2th_TackTime_Array3 = 0;    					// 양극 2차 P&P 타임 버퍼 3
+global	P_Cathode_2th_TackTime_Array4 = 0;    					// 양극 2차 P&P 타임 버퍼 4
+global	P_Cathode_2th_TackTime_Array5 = 0;    					// 양극 2차 P&P 타임 버퍼 5
+global	P_Cathode_2th_TackTime_Array6 = 0;    					// 양극 2차 P&P 타임 버퍼 6
+global	P_Cathode_2th_TackTime_Array7 = 0;    					// 양극 2차 P&P 타임 버퍼 7
+global	P_Cathode_2th_TackTime_Array8 = 0;    					// 양극 2차 P&P 타임 버퍼 8
+global	P_Cathode_2th_TackTime_Array9 = 0;    					// 양극 2차 P&P 타임 버퍼 9
+global	P_Cathode_2th_TackTime_Array10 = 0;   					// 양극 2차 P&P 타임 버퍼 10
+
+global	P_Anode_Align_Table_TackTime_Array0 = 0;				// 음극 얼라인 테이블 타임 버퍼 0
+global	P_Anode_Align_Table_TackTime_Array1 = 0;				// 음극 얼라인 테이블 타임 버퍼 1
+global	P_Anode_Align_Table_TackTime_Array2 = 0;    			// 음극 얼라인 테이블 타임 버퍼 2
+global	P_Anode_Align_Table_TackTime_Array3 = 0;    			// 음극 얼라인 테이블 타임 버퍼 3
+global	P_Anode_Align_Table_TackTime_Array4 = 0;    			// 음극 얼라인 테이블 타임 버퍼 4
+global	P_Anode_Align_Table_TackTime_Array5 = 0;    			// 음극 얼라인 테이블 타임 버퍼 5
+global	P_Anode_Align_Table_TackTime_Array6 = 0;    			// 음극 얼라인 테이블 타임 버퍼 6
+global	P_Anode_Align_Table_TackTime_Array7 = 0;    			// 음극 얼라인 테이블 타임 버퍼 7
+global	P_Anode_Align_Table_TackTime_Array8 = 0;    			// 음극 얼라인 테이블 타임 버퍼 8
+global	P_Anode_Align_Table_TackTime_Array9 = 0;    			// 음극 얼라인 테이블 타임 버퍼 9
+global	P_Anode_Align_Table_TackTime_Array10 = 0;   			// 음극 얼라인 테이블 타임 버퍼 10
+
+global	P_Cathode_Align_Table_TackTime_Array0 = 0;				// 양극 얼라인 테이블 타임 버퍼 0
+global	P_Cathode_Align_Table_TackTime_Array1 = 0;				// 양극 얼라인 테이블 타임 버퍼 1
+global	P_Cathode_Align_Table_TackTime_Array2 = 0;    			// 양극 얼라인 테이블 타임 버퍼 2
+global	P_Cathode_Align_Table_TackTime_Array3 = 0;    			// 양극 얼라인 테이블 타임 버퍼 3
+global	P_Cathode_Align_Table_TackTime_Array4 = 0;    			// 양극 얼라인 테이블 타임 버퍼 4
+global	P_Cathode_Align_Table_TackTime_Array5 = 0;    			// 양극 얼라인 테이블 타임 버퍼 5
+global	P_Cathode_Align_Table_TackTime_Array6 = 0;    			// 양극 얼라인 테이블 타임 버퍼 6
+global	P_Cathode_Align_Table_TackTime_Array7 = 0;    			// 양극 얼라인 테이블 타임 버퍼 7
+global	P_Cathode_Align_Table_TackTime_Array8 = 0;    			// 양극 얼라인 테이블 타임 버퍼 8
+global	P_Cathode_Align_Table_TackTime_Array9 = 0;    			// 양극 얼라인 테이블 타임 버퍼 9
+global	P_Cathode_Align_Table_TackTime_Array10 = 0;   			// 양극 얼라인 테이블 타임 버퍼 10
+
+global	P_Anode_NG_PNP_TackTime_Array0 = 0;						// 음극 NG P&P 타임 버퍼 0
+global	P_Anode_NG_PNP_TackTime_Array1 = 0;						// 음극 NG P&P 타임 버퍼 1
+global	P_Anode_NG_PNP_TackTime_Array2 = 0;    					// 음극 NG P&P 타임 버퍼 2
+global	P_Anode_NG_PNP_TackTime_Array3 = 0;    					// 음극 NG P&P 타임 버퍼 3
+global	P_Anode_NG_PNP_TackTime_Array4 = 0;    					// 음극 NG P&P 타임 버퍼 4
+global	P_Anode_NG_PNP_TackTime_Array5 = 0;    					// 음극 NG P&P 타임 버퍼 5
+global	P_Anode_NG_PNP_TackTime_Array6 = 0;    					// 음극 NG P&P 타임 버퍼 6
+global	P_Anode_NG_PNP_TackTime_Array7 = 0;    					// 음극 NG P&P 타임 버퍼 7
+global	P_Anode_NG_PNP_TackTime_Array8 = 0;    					// 음극 NG P&P 타임 버퍼 8
+global	P_Anode_NG_PNP_TackTime_Array9 = 0;    					// 음극 NG P&P 타임 버퍼 9
+global	P_Anode_NG_PNP_TackTime_Array10 = 0;   					// 음극 NG P&P 타임 버퍼 10
+
+global	P_Cathode_NG_PNP_TackTime_Array0 = 0;					// 양극 NG P&P 타임 버퍼 0
+global	P_Cathode_NG_PNP_TackTime_Array1 = 0;					// 양극 NG P&P 타임 버퍼 1
+global	P_Cathode_NG_PNP_TackTime_Array2 = 0;    				// 양극 NG P&P 타임 버퍼 2
+global	P_Cathode_NG_PNP_TackTime_Array3 = 0;    				// 양극 NG P&P 타임 버퍼 3
+global	P_Cathode_NG_PNP_TackTime_Array4 = 0;    				// 양극 NG P&P 타임 버퍼 4
+global	P_Cathode_NG_PNP_TackTime_Array5 = 0;    				// 양극 NG P&P 타임 버퍼 5
+global	P_Cathode_NG_PNP_TackTime_Array6 = 0;    				// 양극 NG P&P 타임 버퍼 6
+global	P_Cathode_NG_PNP_TackTime_Array7 = 0;    				// 양극 NG P&P 타임 버퍼 7
+global	P_Cathode_NG_PNP_TackTime_Array8 = 0;    				// 양극 NG P&P 타임 버퍼 8
+global	P_Cathode_NG_PNP_TackTime_Array9 = 0;    				// 양극 NG P&P 타임 버퍼 9
+global	P_Cathode_NG_PNP_TackTime_Array10 = 0;   				// 양극 NG P&P 타임 버퍼 10
+
+global  P_Sepa_Unwinder_TackTime_Array0 = 0;					// 세파언와인더 타임 버퍼 0
+global  P_Sepa_Unwinder_TackTime_Array1 = 0;					// 세파언와인더 타임 버퍼 1
+global  P_Sepa_Unwinder_TackTime_Array2 = 0;					// 세파언와인더 타임 버퍼 2
+global  P_Sepa_Unwinder_TackTime_Array3 = 0;					// 세파언와인더 타임 버퍼 3
+global  P_Sepa_Unwinder_TackTime_Array4 = 0;					// 세파언와인더 타임 버퍼 4
+global  P_Sepa_Unwinder_TackTime_Array5 = 0;					// 세파언와인더 타임 버퍼 5
+global  P_Sepa_Unwinder_TackTime_Array6 = 0;					// 세파언와인더 타임 버퍼 6
+global  P_Sepa_Unwinder_TackTime_Array7 = 0;					// 세파언와인더 타임 버퍼 7
+global  P_Sepa_Unwinder_TackTime_Array8 = 0;					// 세파언와인더 타임 버퍼 8
+global  P_Sepa_Unwinder_TackTime_Array9 = 0;					// 세파언와인더 타임 버퍼 9
+global  P_Sepa_Unwinder_TackTime_Array10 = 0;					// 세파언와인더 타임 버퍼 10
+global	P_Sepa_Unwinder_TackTime_Array11 = 0;					// 세파언와인더 타임 버퍼 11
+
+global  P_1st_Unloader_TackTime_Array0 = 0;						// 1차 언로더 타임 버퍼 0
+global  P_1st_Unloader_TackTime_Array1 = 0;						// 1차 언로더 타임 버퍼 1
+global  P_1st_Unloader_TackTime_Array2 = 0;						// 1차 언로더 타임 버퍼 2
+global  P_1st_Unloader_TackTime_Array3 = 0;						// 1차 언로더 타임 버퍼 3
+global  P_1st_Unloader_TackTime_Array4 = 0;						// 1차 언로더 타임 버퍼 4
+global  P_1st_Unloader_TackTime_Array5 = 0;						// 1차 언로더 타임 버퍼 5
+global  P_1st_Unloader_TackTime_Array6 = 0;						// 1차 언로더 타임 버퍼 6
+global  P_1st_Unloader_TackTime_Array7 = 0;						// 1차 언로더 타임 버퍼 7
+global  P_1st_Unloader_TackTime_Array8 = 0;						// 1차 언로더 타임 버퍼 8
+global  P_1st_Unloader_TackTime_Array9 = 0;						// 1차 언로더 타임 버퍼 9
+global  P_1st_Unloader_TackTime_Array10 = 0;					// 1차 언로더 타임 버퍼 10
+
+global	P_Cathode_1st_Vacuum_TackTime_Array1 = 0;				// 양극 1차 Vacuum 타임 버퍼 1
+global	P_Cathode_1st_Vacuum_TackTime_Array2 = 0;				// 양극 1차 Vacuum 타임 버퍼 2
+global	P_Cathode_1st_Vacuum_TackTime_Array3 = 0;				// 양극 1차 Vacuum 타임 버퍼 3
+global	P_Cathode_1st_Vacuum_TackTime_Array4 = 0;				// 양극 1차 Vacuum 타임 버퍼 4
+global	P_Cathode_1st_Vacuum_TackTime_Array5 = 0;				// 양극 1차 Vacuum 타임 버퍼 5
+global	P_Cathode_1st_Vacuum_TackTime_Array6 = 0;				// 양극 1차 Vacuum 타임 버퍼 6
+global	P_Cathode_1st_Vacuum_TackTime_Array7 = 0;				// 양극 1차 Vacuum 타임 버퍼 7
+global	P_Cathode_1st_Vacuum_TackTime_Array8 = 0;				// 양극 1차 Vacuum 타임 버퍼 8
+global	P_Cathode_1st_Vacuum_TackTime_Array9 = 0;				// 양극 1차 Vacuum 타임 버퍼 9
+global	P_Cathode_1st_Vacuum_TackTime_Array10 = 0;				// 양극 1차 Vacuum 타임 버퍼 10
+																
+global  P_Cathode_Align_Vacuum_TackTime_Array1 = 0;				// 양극 얼라인 Vacuum 타임 버퍼 1
+global	P_Cathode_Align_Vacuum_TackTime_Array2 = 0;				// 양극 얼라인 Vacuum 타임 버퍼 2
+global	P_Cathode_Align_Vacuum_TackTime_Array3 = 0;				// 양극 얼라인 Vacuum 타임 버퍼 3
+global	P_Cathode_Align_Vacuum_TackTime_Array4 = 0;				// 양극 얼라인 Vacuum 타임 버퍼 4
+global	P_Cathode_Align_Vacuum_TackTime_Array5 = 0;				// 양극 얼라인 Vacuum 타임 버퍼 5
+global	P_Cathode_Align_Vacuum_TackTime_Array6 = 0;				// 양극 얼라인 Vacuum 타임 버퍼 6
+global	P_Cathode_Align_Vacuum_TackTime_Array7 = 0;				// 양극 얼라인 Vacuum 타임 버퍼 7
+global	P_Cathode_Align_Vacuum_TackTime_Array8 = 0;				// 양극 얼라인 Vacuum 타임 버퍼 8
+global	P_Cathode_Align_Vacuum_TackTime_Array9 = 0;				// 양극 얼라인 Vacuum 타임 버퍼 9
+global	P_Cathode_Align_Vacuum_TackTime_Array10 = 0;			// 양극 얼라인 Vacuum 타임 버퍼 10
+
+global P_Cathode_2nd_Vacuum_TackTime_Array1 = 0;				// 양극 2차 Vacuum 타임 버퍼 1
+global P_Cathode_2nd_Vacuum_TackTime_Array2 = 0;				// 양극 2차 Vacuum 타임 버퍼 2
+global P_Cathode_2nd_Vacuum_TackTime_Array3 = 0;				// 양극 2차 Vacuum 타임 버퍼 3
+global P_Cathode_2nd_Vacuum_TackTime_Array4 = 0;				// 양극 2차 Vacuum 타임 버퍼 4
+global P_Cathode_2nd_Vacuum_TackTime_Array5 = 0;				// 양극 2차 Vacuum 타임 버퍼 5
+global P_Cathode_2nd_Vacuum_TackTime_Array6 = 0;				// 양극 2차 Vacuum 타임 버퍼 6
+global P_Cathode_2nd_Vacuum_TackTime_Array7 = 0;				// 양극 2차 Vacuum 타임 버퍼 7
+global P_Cathode_2nd_Vacuum_TackTime_Array8 = 0;				// 양극 2차 Vacuum 타임 버퍼 8
+global P_Cathode_2nd_Vacuum_TackTime_Array9 = 0;				// 양극 2차 Vacuum 타임 버퍼 9
+global P_Cathode_2nd_Vacuum_TackTime_Array10 = 0;				// 양극 2차 Vacuum 타임 버퍼 10
+
+global	P_Anode_1st_Vacuum_TackTime_Array1 = 0;					// 음극 1차 Vacuum 타임 버퍼 1
+global	P_Anode_1st_Vacuum_TackTime_Array2 = 0;					// 음극 1차 Vacuum 타임 버퍼 2
+global	P_Anode_1st_Vacuum_TackTime_Array3 = 0;					// 음극 1차 Vacuum 타임 버퍼 3
+global	P_Anode_1st_Vacuum_TackTime_Array4 = 0;					// 음극 1차 Vacuum 타임 버퍼 4
+global	P_Anode_1st_Vacuum_TackTime_Array5 = 0;					// 음극 1차 Vacuum 타임 버퍼 5
+global	P_Anode_1st_Vacuum_TackTime_Array6 = 0;					// 음극 1차 Vacuum 타임 버퍼 6
+global	P_Anode_1st_Vacuum_TackTime_Array7 = 0;					// 음극 1차 Vacuum 타임 버퍼 7
+global	P_Anode_1st_Vacuum_TackTime_Array8 = 0;					// 음극 1차 Vacuum 타임 버퍼 8
+global	P_Anode_1st_Vacuum_TackTime_Array9 = 0;					// 음극 1차 Vacuum 타임 버퍼 9
+global	P_Anode_1st_Vacuum_TackTime_Array10 = 0;				// 음극 1차 Vacuum 타임 버퍼 10
+																
+global  P_Anode_Align_Vacuum_TackTime_Array1 = 0;				// 음극 얼라인 Vacuum 타임 버퍼 1
+global	P_Anode_Align_Vacuum_TackTime_Array2 = 0;				// 음극 얼라인 Vacuum 타임 버퍼 2
+global	P_Anode_Align_Vacuum_TackTime_Array3 = 0;				// 음극 얼라인 Vacuum 타임 버퍼 3
+global	P_Anode_Align_Vacuum_TackTime_Array4 = 0;				// 음극 얼라인 Vacuum 타임 버퍼 4
+global	P_Anode_Align_Vacuum_TackTime_Array5 = 0;				// 음극 얼라인 Vacuum 타임 버퍼 5
+global	P_Anode_Align_Vacuum_TackTime_Array6 = 0;				// 음극 얼라인 Vacuum 타임 버퍼 6
+global	P_Anode_Align_Vacuum_TackTime_Array7 = 0;				// 음극 얼라인 Vacuum 타임 버퍼 7
+global	P_Anode_Align_Vacuum_TackTime_Array8 = 0;				// 음극 얼라인 Vacuum 타임 버퍼 8
+global	P_Anode_Align_Vacuum_TackTime_Array9 = 0;				// 음극 얼라인 Vacuum 타임 버퍼 9
+global	P_Anode_Align_Vacuum_TackTime_Array10 = 0;				// 음극 얼라인 Vacuum 타임 버퍼 10
+
+global P_Anode_2nd_Vacuum_TackTime_Array1 = 0;					// 음극 2차 Vacuum 타임 버퍼 1
+global P_Anode_2nd_Vacuum_TackTime_Array2 = 0;					// 음극 2차 Vacuum 타임 버퍼 2
+global P_Anode_2nd_Vacuum_TackTime_Array3 = 0;					// 음극 2차 Vacuum 타임 버퍼 3
+global P_Anode_2nd_Vacuum_TackTime_Array4 = 0;					// 음극 2차 Vacuum 타임 버퍼 4
+global P_Anode_2nd_Vacuum_TackTime_Array5 = 0;					// 음극 2차 Vacuum 타임 버퍼 5
+global P_Anode_2nd_Vacuum_TackTime_Array6 = 0;					// 음극 2차 Vacuum 타임 버퍼 6
+global P_Anode_2nd_Vacuum_TackTime_Array7 = 0;					// 음극 2차 Vacuum 타임 버퍼 7
+global P_Anode_2nd_Vacuum_TackTime_Array8 = 0;					// 음극 2차 Vacuum 타임 버퍼 8
+global P_Anode_2nd_Vacuum_TackTime_Array9 = 0;					// 음극 2차 Vacuum 타임 버퍼 9
+global P_Anode_2nd_Vacuum_TackTime_Array10 = 0;					// 음극 2차 Vacuum 타임 버퍼 10
+
+global P_Final_Roll_TackTime_Array1 = 0;						// 파이널 롤러 텍타임 버퍼 1
+global P_Final_Roll_TackTime_Array2 = 0;						// 파이널 롤러 텍타임 버퍼 2
+global P_Final_Roll_TackTime_Array3 = 0;						// 파이널 롤러 텍타임 버퍼 3
+global P_Final_Roll_TackTime_Array4 = 0;						// 파이널 롤러 텍타임 버퍼 4
+global P_Final_Roll_TackTime_Array5 = 0;						// 파이널 롤러 텍타임 버퍼 5
+global P_Final_Roll_TackTime_Array6 = 0;						// 파이널 롤러 텍타임 버퍼 6
+global P_Final_Roll_TackTime_Array7 = 0;						// 파이널 롤러 텍타임 버퍼 7
+global P_Final_Roll_TackTime_Array8 = 0;						// 파이널 롤러 텍타임 버퍼 8
+global P_Final_Roll_TackTime_Array9 = 0;						// 파이널 롤러 텍타임 버퍼 9
+global P_Final_Roll_TackTime_Array10 = 0;						// 파이널 롤러 텍타임 버퍼 10
+
+global P_Sepa_ARC_TackTime_Array1 = 0;							// 세파 ARC 텍타임 버퍼 1
+global P_Sepa_ARC_TackTime_Array2 = 0;							// 세파 ARC 텍타임 버퍼 2
+global P_Sepa_ARC_TackTime_Array3 = 0;							// 세파 ARC 텍타임 버퍼 3
+global P_Sepa_ARC_TackTime_Array4 = 0;							// 세파 ARC 텍타임 버퍼 4
+global P_Sepa_ARC_TackTime_Array5 = 0;							// 세파 ARC 텍타임 버퍼 5
+global P_Sepa_ARC_TackTime_Array6 = 0;							// 세파 ARC 텍타임 버퍼 6
+global P_Sepa_ARC_TackTime_Array7 = 0;							// 세파 ARC 텍타임 버퍼 7
+global P_Sepa_ARC_TackTime_Array8 = 0;							// 세파 ARC 텍타임 버퍼 8
+global P_Sepa_ARC_TackTime_Array9 = 0;							// 세파 ARC 텍타임 버퍼 9
+global P_Sepa_ARC_TackTime_Array10 = 0;							// 세파 ARC 텍타임 버퍼 10
+
+//김준수
+global P_PACK_ML_Status_bit = 0;								// PackMl 정보 표시 비트 
+
+
+global  P_Whole_Stacking_TackTime_MES_Report_Flag = 0;			// 전체 스텍 TACTIME MES보고 신호
+global	P_JellyRoll_Out_TackTime_MES_Report_Flag = 0;			// 배출 TACTIME MES보고 신호
+global  P_PV_Cathode_Count = 0;  								// 양극 적재 카운트
+global  P_PV_Anode_Count = 0;									// 음극 적재 카운트
+global  P_PV_AO_Value_Chanel(4);								// AO 변수 체널
+P_PV_AO_Value_Chanel(0),3 = 0;									// AO 변수 체널
+global P_PV_Cathode_NG_TR_NG_Count = 0;							// PLC보고용 NG TR NG 개수
+global P_PV_Anode_NG_TR_NG_Count = 0;							// PLC보고용 NG TR NG 개수
+global P_PV_Anode_Retry_NG_Count = 0;							// PLC보고용 리트라이 카운트 
+global P_PV_Cathode_Retry_NG_Count = 0;							// PLC보고용 리트라이 카운트 
+global P_PV_Align_INPUT_Count = 0;								// 신규 추가 Align 투입 개수.
+
+global P_Unloader_Grip_Pressure = 0;							//1차 언로드 그립 압력
+global P_Unloader_Heatmeter = 0;								//히트미터 값
+
+global P_Project_Ver_A = 3;	//프로그램 구분(헝가리1, 미주향2, GM향3)
+global P_Project_Ver_B = 1;	// 기능 추가
+global P_Project_Ver_C = 1;	// 기능	변경
+global P_Project_Ver_D = 1;	// 미확정(버그 수정) _ 미확정이므로 PLC 터치 화면에서는 0으로 표시_PLC7에서 PLC맵핑 변수에 0값을 넣어줌
+
+// 인터락 팝업 메시지
+global P_Interlock_Messege(50)
+P_Interlock_Messege(0),50 = 0
+
+global P_EPC_Y_StandBy = 0;										//EPC 모터 보정 위치
+
+
+global P_SV_Read_Enable_Flag = 0;								//SV읽기 허가 신호
+
+global P_Spool_Rotate_Distance_mm = 0;							//스풀 감기 거리 설정값
+
+
+global P_Current_Homming_Status(50);							// 현재 홈 진행 상태 감시 변수
+P_Current_Homming_Status(0),50 =0;
+
+global P_Home_Execute_Type(50);									// 홈 체크 변수상태에 따라 홈잡는 방식 확인용
+P_Home_Execute_Type(0),50 = 0;
+
+global P_Cathode_Clamp_Gantry = 0;								//양극 클램프 동시 시작
+global P_Anode_Clamp_Gantry = 0;								//음극 클램프 동시 시작
+
+global P_SV_Separator_Heting_Cutter_Change_Period = 0;			// 세파 히팅 커터 교체 주기 (MES에서 받는 영역) 현재 PLC팀 프로그램상 따로 기능은 추가 안되있음.
+
+
+
+#define I_Cathode_Clamp_Damper			Sys.Idata[10423]
+#define I_Anode_Clamp_Damper			Sys.Idata[10426]
+
+global P_Interval_Read_Time(6);
+global P_Interval_Write_Time(6)
+
+P_Interval_Read_Time(1) = 1000;
+P_Interval_Read_Time(2)	= 200;	
+P_Interval_Read_Time(3)	= 50;	
+P_Interval_Read_Time(4)	= 50;	
+P_Interval_Read_Time(5)	= 10000;
+
+P_Interval_Write_Time(1) = 1000;
+P_Interval_Write_Time(2) = 50;
+P_Interval_Write_Time(3) = 100;
+P_Interval_Write_Time(4) = 300;
+P_Interval_Write_Time(5) = 10000;
+
+
+global P_Cathode_Picker_Cylinder_Count = 0;			// 양극 피커 실린더 사용횟수	
+global P_Anode_Picker_Cylinder_Count = 0;			// 음극 피커 실린더 사용횟수
+
+global P_SV_Stack_Table_Cathode_Reference_Value = 0;	// 스택 테이블 정공 레귤레이터 양극
+global P_SV_Stack_Table_Anode_Reference_Value = 0;		// 스택 테이블 정공 레귤레이터 음극
+
+// 드라이빙 롤러 옵셋 값 (임시로 1호기만 적용해서 테스트)
+global P_CA_DR_Offset = 2.4;//2.6; //2.8 //2.5;//1.4 +0.5 + 0.3;
+global P_AN_DR_Offset = 2.4;//2.6; //2.8 //2.5;//1.4 + 0.5 +0.3;
+global P_First_DR_Offset = 1.5;
+global P_Last_DR_Offset = 3;
+
+
+global P_BTN_QC_Sample_Flag = 0;
+global P_BTN_Loss_Sample_Flag = 0;
+global P_MSA_Sample_Flag = 0;	// 스택 MSA 후 배출 시 MSA 샘플 플래그
+
+global P_Sample_JR_Recipe_Count = 0;
+
+ptr M_Sample_JR_Prod_Count->Sys.Udata[21027];
+ptr M_Sample_Btn_Flag->u.user:$014890.00.02;
+
+// [ 참조 : 260630 클램프 동작 횟수 PMAC ↔ PLC I/F 추가 ]
+global P_Ca_Clamp_Y_Move = 0;
+global P_An_Clamp_Y_Move = 0;
+
+// [ 참조 : 260909 스택 테이블 적층 완료 젤리롤 유무 비트 추가 ]
+global P_Stack_Table_JR_Exist_Flag = 0;

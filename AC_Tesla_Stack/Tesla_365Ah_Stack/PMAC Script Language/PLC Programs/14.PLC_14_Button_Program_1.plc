@@ -1,0 +1,454 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.08.01
+// 버튼 프로그램 추가 - [ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+// 25.08.07
+// NP Plate 램프 추가 - [ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+// 25.09.25
+// Status Clear 버튼 추가 - [ 참조 : 25.09.25 Status Clear 버튼 추가 ]
+// 강제 출력 버튼 추가 - [ 참조 : 25.09.25 DIO 강제 출력 버튼 추가 ]
+//======================================================================================================
+
+open plc 14
+
+#define	L_System_Timer				Sys.Time		// 시스템 타이머
+
+Local L_PLC14_Time_Cycle_Up_Count_Start_Time;		// Plc[14].ldata.L[0]	시간 체크 시작 시간
+Local L_PLC14_Time_Cycle_Up_Count_End_Time;			// Plc[14].ldata.L[1]	시간 체크 종료 시간
+Local L_PLC14_Time_Cycle_Up_Count_Delta_Time;		// Plc[14].ldata.L[2]	시작과 종료 시간 사이의 시간
+Local L_PLC14_Flag_Cycle_Up_Count_Init_Flag;		// Plc[14].ldata.L[3]	타이머 초기화 플래그
+local L_ARC_Ready_Check_Timer;						// Plc[14].ldata.L[4]	레디 체크 타이머
+local L_ARC_Ready_Check_Interval_Time = 5;			// Plc[14].ldata.L[5]	인터벌 타이머
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_PLC14_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_PLC14_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_PLC14_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_PLC14_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+
+// 00.2) 시간 체크
+if( L_PLC14_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_PLC14_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_PLC14_Time_Cycle_Up_Count_Delta_Time = (L_PLC14_Time_Cycle_Up_Count_End_Time - L_PLC14_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_PLC14_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_PLC14_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if (L_PLC14_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{		
+	P_Manual_Memory_Tower_Timer = P_Manual_Memory_Tower_Timer + L_PLC14_Time_Cycle_Up_Count_Delta_Time;
+	P_Lamp_Blinking_Timer = P_Lamp_Blinking_Timer + L_PLC14_Time_Cycle_Up_Count_Delta_Time;
+	P_ARC_NP_Upper_Timer = P_ARC_NP_Upper_Timer + L_PLC14_Time_Cycle_Up_Count_Delta_Time;
+	P_ARC_NP_Lower_Timer = P_ARC_NP_Lower_Timer + L_PLC14_Time_Cycle_Up_Count_Delta_Time;
+	L_ARC_Ready_Check_Timer = L_ARC_Ready_Check_Timer + L_PLC14_Time_Cycle_Up_Count_Delta_Time;
+	P_Force_BTN_Force_Mode_Timer = P_Force_BTN_Force_Mode_Timer + L_PLC14_Time_Cycle_Up_Count_Delta_Time;
+	L_PLC14_Time_Cycle_Up_Count_Start_Time = L_PLC14_Time_Cycle_Up_Count_End_Time;
+	L_PLC14_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+//===============================//
+// 로터리 스위치에 따른 모드 변경 //
+//=============================//
+//------------------------//
+// [Auto] 현재 모드 변경.
+//------------------------//
+if ( M_X_BTN_Machine_Mode == 1 )				// 오토로 로터리 스위치를 돌릴 경우.
+{
+	//M_Y_Trigger_Display_Current_Mode_To_PLC = 1;		// Auto Mode 라고 PLC 측에 신호 넘겨 줌.
+	if ( P_PMAC_Status == F_Status_IDLE || P_PMAC_Status == F_Status_RESETTING || P_PMAC_Status == F_Status_STARTING )		// IDLE, RESETTING, STARTING 일 경우. 
+	{
+		P_PackML_Auto_Stop_Bit = 1;				// 정지 비트 ON. [ IDLE, RESETTING, STARTING 상태에서 Auto → Manual 로 스위치를 돌릴 경우 정지하기 위함 ]
+		if ( M_X_BTN_Machine_STOP == 1 )		// 정지 버튼을 누를 경우.
+		{
+			P_PackML_Auto_Stop_Switch_Bit = 1;	// 정지 비트 ON. [ IDLE, RESETTING, STARTING 상태에서 Auto + 정지 스위치를 누를 경우 정지하기 위함 ]
+		}
+	}
+	else
+	{											// 그 외 상태일 경우.
+		P_PackML_Auto_Stop_Bit = 0;				// 정지 비트 OFF.
+	}
+	if ( P_PMAC_Status == F_Status_RESETTING ){}// Manual 모드, Resetting 상태 일 경우. (홈을 잡고 있는 중) [Manual 모드 유지]		[ 참조 : 25.08.14 PackML 버튼 프로그램 수정 ]
+	else										// Manual 모드, Resetting 상태가 아닐 경우.
+	{
+		P_PMAC_Current_Mode = F_Current_Automatic;	// Auto 모드 변경.
+	}
+}
+//------------------------//
+// [Manual] 현재 모드 변경.
+//------------------------//
+if ( M_X_BTN_Machine_Mode == 0 )				// 메뉴얼로 로터리 스위치을 돌릴 경우.	
+{
+	if ( P_PMAC_Status == F_Status_STOPPED || P_PMAC_Status == F_Status_ABORTED )			// 상태가 Stopped, Aborted 일 경우.
+	{
+		//M_Y_Trigger_Display_Current_Mode_To_PLC = 0;	// Manual Mode 라고 PLC 측에 신호 넘겨 줌.
+		P_PMAC_Current_Mode = F_Current_Manual;	// Manual 모드로 변경.
+		P_BTN_Mode_Change_Stop_Bit = 0;			// 모드 변경으로 인한 정지 Bit On. [PackML에서 Auto, Stopping으로 들어가서 PackML을 마무리 시키기 위함]
+	}
+	if ( M_Old_X_BTN_Machine_Mode == 1 )		// 이전 Auto Mode 일 경우.
+	{
+		P_PMAC_Commands = F_Command_Stop;		// (Commands) Stop.
+		P_BTN_Mode_Change_Stop_Bit = 1;			// 모드 변경으로 인한 정지 Bit On. [PackML에서 Auto, Stopping으로 들어가서 PackML을 마무리 시키기 위함]
+		//P_First_Sepa_Mode_State_Machine = 0;	// [VE15] 세파 첫장 커맨드 초기화.
+		// [VE15] 양/음극 비전 첫장 신호 가끔 초기화 안된 상태에서 시작하는 경우 발생하여 Auto → Manual ㅂ전환 시 ON일 경우 초기화.
+	    //if( M_Y_Vision_Anode_Align_Start == 1 )
+		//	M_Y_Vision_Anode_Align_Start = 0;
+		//if( M_Y_Vision_Cathode_Align_Start == 1 )
+		//	M_Y_Vision_Cathode_Align_Start = 0;
+	}
+}
+M_Old_X_BTN_Machine_Mode = M_X_BTN_Machine_Mode;			// Edge 업데이트.
+//=======================//
+// 모드에 따른 함수 Call //
+//=====================//
+if ( P_PMAC_Current_Mode == F_Current_Automatic )			// Auto Mode 일 경우.
+{
+	call BTN_Program.Auto_LED();							// Auto LED 프로그램 실행.
+	if ( P_BTN_Status == 1 )								// 버튼 입력값이 들어올 경우. [Ready, Start, Stop, Reset]
+	{
+		call BTN_Program.Auto();							// Auto 프로그램 실행.
+	}
+}
+else if ( P_PMAC_Current_Mode == F_Current_Manual )			// Manual Mode 일 경우.
+{
+	call BTN_Program.Manual_LED();							// Manual LED 프로그램 실행.
+	if ( P_BTN_Status == 1 )								// 버튼 입력값이 들어올 경우. [Ready, Start, Stop, Reset]
+	{
+		call BTN_Program.Manual();							// Manual 프로그램 실행.
+	}
+}
+
+M_Old_X_BTN_Machine_READY = M_X_BTN_Machine_READY;			// Edge값 업데이트.
+M_Old_X_BTN_Machine_START = M_X_BTN_Machine_START;			// Edge값 업데이트.
+M_Old_X_BTN_Machine_STOP = M_X_BTN_Machine_STOP;			// Edge값 업데이트.
+M_Old_X_BTN_Machine_RESET = M_X_BTN_Machine_RESET;			// Edge값 업데이트.
+//----------------------------------------//
+// 버튼 램프 업데이트 - 모터 현재 위치 확인 //
+//--------------------------------------//
+if ( P_PMAC_Status == F_Status_IDLE && P_BTN_Memory_Tower_Check_Bit == 1 )	// IDLE 상태에서 모터 위치 확인 (위치가 아닐 경우 Commands Stop)
+{
+	P_BTN_Motor_Pos_Check_RTN = 0;											// 반환값 초기화.
+	call BTN_Program.BTN_Motor_Pos_Check(&P_BTN_Motor_Pos_Check_RTN)		// IDLE 위치 확인.
+	if ( P_BTN_Motor_Pos_Check_RTN == N_TRUE )								// IDLE 위치 일 경우.
+	{
+		P_PMAC_Status_IDLE_Motor_Not_Pos = 0;								// IDLE 모터 위치 확인.
+		P_PMAC_Status_IDLE_Motor_Pos = 1;									// IDLE 모터 위치 확인.
+	}
+	else if ( P_BTN_Motor_Pos_Check_RTN == N_FALSE )						// IDLE 위치가 아닐 경우.
+	{
+		P_PMAC_Status_IDLE_Motor_Not_Pos = 1;								// IDLE 모터 위치 확인.
+		P_PMAC_Status_IDLE_Motor_Pos = 0;	 								// IDLE 모터 위치 확인.
+	}
+}
+else																		// IDLE 상태가 아닐 경우.
+{
+	P_BTN_Memory_Tower_Check_Bit = 0;										// 초기화.
+	P_PMAC_Status_IDLE_Motor_Not_Pos = 0;									// 초기화.
+	P_PMAC_Status_IDLE_Motor_Pos = 0;										// 초기화.
+}
+//===========================================================================//
+// Manual 상태 시 메모리 타워 실행.
+if(P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status == F_Status_IDLE)
+{
+	if( P_Manual_Memory_Tower_Timer > P_Memory_Tower_Interval )
+	{
+		P_Manual_Memory_Tower_Timer = 0;
+		P_Memory_Tower_Search_Flag = 1
+	}
+}
+
+//=======================================//
+// ARC 버튼 인터락 [ UI Touch, NP Plate ]// [ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+//=====================================//
+// 버튼 입력 처리 부 ========================================================================================
+// ARC 버튼 인터락 시작.
+// M_X_ARC_NP_Plate_Select 는 푸쉬버튼
+
+local L_ARC_NP_Push_BTN;
+local L_X_ARC_NP_Plate_Select;
+
+if( M_X_ARC_NP_Plate_Select == 1 && L_X_ARC_NP_Plate_Select  == 0 )								// NP Plate 우선권 버튼이 눌렸을 경우.
+{
+	L_X_ARC_NP_Plate_Select = 1;																// 재진입 방지.
+	L_ARC_NP_Push_BTN = N_TRUE;																	// 인터락 실행.
+	P_ARC_Page_On = 0;																			// UI Page 초기화.
+}
+if( P_ARC_Page_On == N_TRUE )																	// UI Page Open.
+{
+	// ARC 기구물 상태 확인
+	P_ARC_Name_Plate_Passive_Status = F_Status_STOPPING;										// NP Plate 인터락.
+	P_ARC_Passive_Status = F_Status_STARTING;													// UI Page 사용 가능.
+	L_ARC_NP_Push_BTN = 0;																		// 네임플레이트 off
+	L_X_ARC_NP_Plate_Select = 0;																// 재진입 방지 변수 초기화
+}
+else if( L_ARC_NP_Push_BTN == N_TRUE ) 															// 네임플레이트
+{
+	// ARC 기구물 상태 확인 
+	P_ARC_Name_Plate_Passive_Status = F_Status_STARTING;										// NP Plate 사용 가능.
+	P_ARC_Passive_Status = F_Status_STOPPING;													// UI Page 인터락.
+
+	if( M_X_ARC_NP_Auto_Reel_Change_Upper == 1 )												// Name Plate 선택과 Spool 번호가 일치하는지 위하여 조건 나눔
+	{
+		P_ARC_Spool_Number = N_UNWINDER_UPPER;													// NP Plate 상부 지정.
+		P_Status_NP_BTN_Upper_Unwinder = 1;														// NP Plate 상부 지정.
+		P_Status_NP_BTN_Lower_Unwinder = 0;														// NP Plate 상부 지정.
+	}
+	else if( M_X_ARC_NP_Auto_Reel_Change_Lower == 1 )											// Name Plate 선택과 Spool 번호가 일치하는지 위하여 조건 나눔
+	{
+		P_ARC_Spool_Number = N_UNWINDER_LOWER;													// NP Plate 하부 지정.
+		P_Status_NP_BTN_Upper_Unwinder = 0;														// NP Plate 하부 지정.
+		P_Status_NP_BTN_Lower_Unwinder = 1;														// NP Plate 하부 지정.
+	}
+}	
+else																							// 둘다 아닐땐 Stopping ( Cpu 부하 줄이기 )
+{
+	P_ARC_Name_Plate_Passive_Status = F_Status_STOPPING;										// NP Plate 인터락.
+	P_ARC_Passive_Status = F_Status_STOPPING;													// UI Page 인터락.
+	call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_UI_Btn);					// 사용 버튼이 안눌렸다면, 실행자체가 안되도록 인터락
+	call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_NamePlate_Btn);				// 사용 버튼이 안눌렸다면, 실행자체가 안되도록 인터락
+}
+//=============================================================================================================
+// 수동 ARC 시작
+// 와인더 선택권은 P_ARC_Spool_Number 로 
+if( P_ARC_Name_Plate_Passive_Status == F_Status_STARTING ) 										// Name Plate ARC 수동 처리 상태
+{
+	// ↓ UI에서 사용되는 버튼들 싹다 인터락 구문
+	call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_UI_Btn);	
+	call ARC_Motion_State_Function.ARC_NamePlate_State();										// Auto 및 Manual 따른 인터락
+}
+else if( P_ARC_Passive_Status == F_Status_STARTING )											// UI Page ARC 수동 처리 상태
+{
+	// ↓ NamePlate에서 사용되는 버튼들 싹다 인터락 구문
+	call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_NamePlate_Btn);
+	call ARC_Motion_State_Function.ARC_UI_Page_State();											// Auto 및 Manual 따른 인터락 
+}
+//==================================================================//
+// [ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]//
+//================================================================//==========================================================================//
+/* [search / ㄴㄷㅁㄱ]
+-----------------------------------------------------------------------------------------------------------------------------------------------
+|			|  Ready  |  Tilting  |  Lock  |  Rotation  |  Re_Rotation  |   Vac   |							조		건						  |
+|---------------------------------------------------------------------------------------------------------------------------------------------|
+|  1st_Step |   Off   |    Off    |  Blink |	 Off    |      Off      |   Off   |		언와인더 언척											  |
+|---------------------------------------------------------------------------------------------------------------------------------------------|
+|  2nd_Step |   Off   |     On    |   On   |	 Off    |      Off      |  Blink  |		언와인더 척 + 틸팅 0도 + 진공 출력 ON + 진공 입력 OFF    |
+|---------------------------------------------------------------------------------------------------------------------------------------------|
+|  3rd_Step |  Blink  |     On    |   On   |     Off    |      Off      |   Off   |		언와인더 척 + 틸팅 0도 + 진공 출력 ON + 진공 입력 ON	  |
+|---------------------------------------------------------------------------------------------------------------------------------------------|
+|  4th_Step |   Off   |   Blink   |   On   |	 Off    |      Off      |   Off   |		언와인더 척 + 틸팅 0도								  |
+|---------------------------------------------------------------------------------------------------------------------------------------------|
+|  5th_Step |   Off   |     On    |   On   |	 Off    |      Off      |  Blink  |		언와인더 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 OFF   |
+|---------------------------------------------------------------------------------------------------------------------------------------------|
+|  6th_Step |   Off   |   Blink   |   On   |	 Off    |      Off      |    On   |		언와인더 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 ON    |
+|---------------------------------------------------------------------------------------------------------------------------------------------|
+|  7th_Step |   Off   |     On    |   On   |	Blink   |     Blink     |  Blink  |		언와인더 척 + 틸팅 90도								  |
+-----------------------------------------------------------------------------------------------------------------------------------------------*/
+//============================================================================================================================================//
+if ( M_X_ARC_NP_Auto_Reel_Change_Upper == 1 )			// 네임 플레이트 상부 방향 일 경우.
+{
+	//===================//
+	// 조건 램프 프로그램 //
+	//==================//
+	if ( N_Upper_1st_Step )			// 상부 언척 => 척 점멸
+		call ARC_NP_Lamp.Upper_1st_Step();	
+	else if ( N_Upper_2nd_Step )	// 상부 척 + 틸팅 0도 + 진공 출력 ON + 진공 입력 OFF => 틸팅 점등, 척 점등, 진공 점멸
+		call ARC_NP_Lamp.Upper_2nd_Step();
+	else if ( N_Upper_3rd_Step )	// 상부 척 + 틸팅0도 + 진공 출력 ON + 진공 입력 ON => Ready 점멸, 틸팅 점등, 척 점등, 진공 점등
+		call ARC_NP_Lamp.Upper_3rd_Step();
+	else if ( N_Upper_4th_Step )	// 상부 척 + 틸팅 0도 => 척 점등, 틸팅 점멸
+		call ARC_NP_Lamp.Upper_4th_Step();
+	else if ( N_Upper_5th_Step )	// 상부 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 OFF => 틸팅 점등, 척 점등, 진공 점멸
+		call ARC_NP_Lamp.Upper_5th_Step();
+	else if ( N_Upper_6th_Step )	// 상부 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 ON => 틸팅 점멸, 척 점등, 진공 점등
+		call ARC_NP_Lamp.Upper_6th_Step();
+	else if ( N_Upper_7th_Step )	// 상부 척 + 틸팅 90도 => 틸팅 점등, 척 점등, 진공 램프 점멸, 정회전 점멸, 역회전 점멸
+		call ARC_NP_Lamp.Upper_7th_Step();
+	//=====================//
+	// 비조건 램프 프로그램 //
+	//====================//
+	call ARC_NP_Lamp.Unconditional(ARC_NP_Upper_Check)	// 비조건 램프 프로그램 실행.
+}
+
+// 네임 플레이트 하부 일 경우.																																																																																									
+if ( M_X_ARC_NP_Auto_Reel_Change_Lower == 1 )			// 네임 플레이트 하부 방향 일 경우.
+{
+	//===================//
+	// 조건 램프 프로그램 //
+	//==================//
+	if ( N_Lower_1st_Step )			// 하부 언척 => 척 점멸
+		call ARC_NP_Lamp.Lower_1st_Step();	
+	else if ( N_Lower_2nd_Step )	// 하부 척 + 틸팅 0도 + 진공 출력 ON + 진공 입력 OFF => 틸팅 점등, 척 점등, 진공 점멸
+		call ARC_NP_Lamp.Lower_2nd_Step();
+	else if ( N_Lower_3rd_Step )	// 하부 척 + 틸팅0도 + 진공 출력 ON + 진공 입력 ON => Ready 점멸, 틸팅 점등, 척 점등, 진공 점등
+		call ARC_NP_Lamp.Lower_3rd_Step();
+	else if ( N_Lower_4th_Step )	// 하부 척 + 틸팅 0도 => 척 점등, 틸팅 점멸
+		call ARC_NP_Lamp.Lower_4th_Step();
+	else if ( N_Lower_5th_Step )	// 하부 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 OFF => 틸팅 점등, 척 점등, 진공 점멸
+		call ARC_NP_Lamp.Lower_5th_Step();
+	else if ( N_Lower_6th_Step )	// 하부 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 ON => 틸팅 점멸, 척 점등, 진공 점등
+		call ARC_NP_Lamp.Lower_6th_Step();
+	else if ( N_Lower_7th_Step )	// 하부 척 + 틸팅 90도 => 틸팅 점등, 척 점등, 진공 램프 점멸, 정회전 점멸, 역회전 점멸
+		call ARC_NP_Lamp.Lower_7th_Step();
+	//=====================//
+	// 비조건 램프 프로그램 //
+	//====================//
+	call ARC_NP_Lamp.Unconditional(ARC_NP_Lower_Check)	// 비조건 램프 프로그램 실행.
+}
+
+// [ 참조 : 2025.09.26 PMAC 내부 세파 레디신호 처리 ]
+// ARC PLC READY SIGNAL → PMAC 내부 처리 
+if( M_X_ARC_NP_Ready )													// ARC Ready BTN 눌리면
+{
+	call ARC_Motion_State_Function.ARC_Ready_Check();					// Ready 상태 체크 
+}
+if( L_ARC_Ready_Check_Timer >= L_ARC_Ready_Check_Interval_Time )
+{
+	L_ARC_Ready_Check_Timer = 0;										// ARC Ready Check Timer Init
+	if( P_ARC_Ready_Flag(N_Upper) | P_ARC_Ready_Flag(N_Lower) )			// ARC upper lower Ready 되어있다면
+		call ARC_Motion_State_Function.Monitoring_ARC_Ready_Flag();		// ARC Ready Flag 상태 확인
+}
+
+//========================//
+// Status Clear 버튼 추가 // [ 참조 : 25.09.25 Status Clear 버튼 추가 ]
+//========================//
+if ( M_Func_BTN.Status_Clear == 1 || P_Status_Clear_Flag == 1 )		// Status Clear 버튼이 눌릴 경우 || Abort가 발생 했을 경우.
+{
+	P_Status_Clear_Flag = 0;										// 재진입 방지.
+	call BTN_Program.Status_Clear();								// Status Clear 항목 초기화.
+}
+
+//========================//
+// 강제 출력 버튼 추가 // [ 참조 : 25.09.25 DIO 강제 출력 버튼 추가 ]
+//========================//
+// [ 강제 출력 명령부 ] //
+//--------------------//
+// 일반 출력 모드 실행 //
+//--------------------//
+if ( P_Force_BTN_Force_Mode_Status == F_Status_COMPLETE )				// 강제 출력 모드 완료. [강제 출력 모드 진행 중 일반 출력 모드 진행을 막기 위함]
+{
+	if ( M_Func_BTN.Forcibly_DIO_Output_Mode == 0 && P_Old_Force_BTN_Mode == 1 )	// 강제 출력 버튼 하강 Edge 일 경우.
+	{
+		P_Force_BTN_Force_Mode_Status = F_Status_IDLE;					// 강제 출력 모드 상태 초기화.
+		P_Force_BTN_Force_Mode_Complete_Flag = 0;						// 강제 출력 모드 완료 플래그 초기화.
+		P_Force_BTN_Normal_Mode_State_Machine = 1;						// 일반 출력 모드 실행.
+		P_Old_Force_BTN_Mode = M_Func_BTN.Forcibly_DIO_Output_Mode;		// Edge 업데이트.
+	}
+}
+//--------------------//
+// 강제 출력 모드 실행 //
+//--------------------//
+if ( P_Force_BTN_Normal_Mode_Status == F_Status_Nonseatus || P_Force_BTN_Normal_Mode_Status == F_Status_COMPLETE ) // 일반 출력 모드 IDLE (강제 출력 중 재빌드) + 일반 출력 모드 완료 일 경우.  [일반 출력 모드 진행 중 강제 출력 모드 진행을 막기 위함]
+{ 
+	if ( M_Func_BTN.Forcibly_DIO_Output_Mode == 1 && P_Old_Force_BTN_Mode == 0 )	//  강제 출력 버튼 상승 Edge 일 경우.
+	{
+		P_Force_BTN_Normal_Mode_Status = F_Status_IDLE;					// 일반 출력 모드 상태 초기화.
+		P_Force_BTN_Normal_Mode_Complete_Flag = 0;						// 일반 출력 모드 완료 플래그 초기화.
+		P_Force_BTN_Force_Mode_State_Machine = 1;						// 강제 출력 모드 실행.
+		P_Old_Force_BTN_Mode = M_Func_BTN.Forcibly_DIO_Output_Mode;		// Edge 업데이트.
+	}
+}
+//==================================================================//
+// [ 강제 출력 실행부 ] //
+//--------------------//
+// 일반 출력 모드 실행 //
+//--------------------//
+switch( P_Force_BTN_Normal_Mode_State_Machine )
+{
+	case 0 :	break;
+	case 1 : // 카운트 초기화.
+		P_Force_BTN_Normal_Mode_Status = F_Status_EXECUTE;				// 일반 출력 모드 진행 상태. [진행 중]
+		P_Force_BTN_Address_Count = 0;									// 주소 업데이트 카운트 초기화.
+		P_Force_BTN_M_Variable_Save_Count = 0;							// M변수 저장 불러오기 초기화.
+		P_Force_BTN_Normal_Mode_State_Machine++;						// 다음 스텟 머신으로 이동.
+	break;
+
+	case 2 : // DIO 출력 M변수 기본 주소 설정.
+		P_Force_BTN_Normal_Mode_Status = F_Status_EXECUTE;				// 일반 출력 모드 진행 상태. [진행 중]
+
+		call Force_BTN_Function.Normal_Mode_Address_Config();			// 일반 출력 모드 주소 설정.
+		if ( P_Force_BTN_Address_Count > P_Force_BTN_Condition_Count )	// 일반 출력 모드 주소 설정 완료.
+		{
+			P_Force_BTN_Normal_Mode_State_Machine++;					// 다음 스텟 머신으로 이동.
+		}
+	break;
+
+	case 3 : // DIO 출력 M변수 저장 값 불러오기.
+		P_Force_BTN_Normal_Mode_Status = F_Status_EXECUTE;				// 일반 출력 모드 진행 상태. [진행 중]
+
+		call Force_BTN_Function.Normal_Mode_Retrieve_M_Variable();		// 일반 출력 모드 M변수 저장 값 불러오기.
+		if ( P_Force_BTN_M_Variable_Save_Count > P_Force_BTN_Condition_Count )	// 일반 출력 모드 M변수 저장 값 불러오기 완료.
+		{
+			P_Force_BTN_Normal_Mode_State_Machine = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+		}
+	break;
+
+	case N_Complete_Step :
+		P_Force_BTN_Normal_Mode_Status = F_Status_COMPLETE;				// 일반 출력 모드 진행 상태. [완료]
+
+		P_Force_BTN_Normal_Mode_Complete_Flag = 1;						// 일반 출력 모드 완료 플래그.
+		P_Force_BTN_Normal_Mode_State_Machine = 0;						// 스텟 머신 초기화.
+	break;
+}
+//--------------------//
+// 강제 출력 모드 실행 //
+//--------------------//
+switch( P_Force_BTN_Force_Mode_State_Machine )
+{
+	case 0 :	break;
+	case 1 : // 타이머, 카운트 초기화 + 케스케이딩 해제.
+		P_Force_BTN_Force_Mode_Status = F_Status_EXECUTE;				// 강제 출력 모드 진행 상태. [진행 중]
+
+		//Motor[L_Selected_Spool_Number].MasterCtrl = 0;				// 케스케이딩 해제.
+		P_Force_BTN_Force_Mode_Timer = 0;								// 타이머 초기화.
+		P_Force_BTN_Address_Count = 0;									// 주소 업데이트 카운트 초기화.
+		P_Force_BTN_M_Variable_Save_Count = 0;							// M변수 저장 카운트 초기화.
+		P_Force_BTN_Force_Mode_State_Machine++;							// 다음 스텟 머신으로 이동.
+	break;
+
+	case 2 : // 2초 딜레이 후 다음 스텟 머신 이동. ( DIO 강제 출력 사용 버튼이 활성화 된 상태에서 프로그램 다운로드 시 바로 강제 출력 모드 진입 전 M변수를 저장할 대기 시간 부여 )
+		P_Force_BTN_Force_Mode_Status = F_Status_EXECUTE;				// 강제 출력 모드 진행 상태. [진행 중]
+
+		if ( P_Force_BTN_Force_Mode_Timer > P_Force_BTN_Force_Mode_Delay_Time )	// 2초 딜레이 이후.
+		{
+			P_Force_BTN_Force_Mode_State_Machine++;						// 다음 스텟 머신으로 이동.
+		}
+	break;
+
+	case 3 : // DIO 출력 M변수 저장.
+		P_Force_BTN_Force_Mode_Status = F_Status_EXECUTE;				// 강제 출력 모드 진행 상태. [진행 중]
+
+		call Force_BTN_Function.Force_Mode_Save_M_Variable();			// 강제 출력 모드 M변수 저장.
+		if ( P_Force_BTN_M_Variable_Save_Count > P_Force_BTN_Condition_Count )	// 강제 출력 모드 M변수 저장 완료.
+		{
+			P_Force_BTN_Force_Mode_State_Machine++;						// 다음 스텟 머신으로 이동.
+		}
+	break;
+
+	case 4 : // DIO 출력 M변수 기본 주소 설정.
+		P_Force_BTN_Force_Mode_Status = F_Status_EXECUTE;				// 강제 출력 모드 진행 상태. [진행 중]
+
+		call Force_BTN_Function.Force_Mode_Address_Config();			// 강제 출력 모드 주소 설정.
+		if ( P_Force_BTN_Address_Count > P_Force_BTN_Address_Clear_Count )	// 강제 출력 모드 주소 설정 완료.
+		{
+			P_Force_BTN_Force_Mode_State_Machine = N_Complete_Step;		// 완료 스텟 머신으로 이동.
+		}
+	break;
+
+	case N_Complete_Step :
+		P_Force_BTN_Force_Mode_Status = F_Status_COMPLETE;				// 강제 출력 모드 진행 상태. [완료]
+
+		P_Force_BTN_Force_Mode_Complete_Flag = 1;						// 강제 출력 완료 플래그.
+		P_Force_BTN_Force_Mode_State_Machine = 0;						// 스텟 머신 초기화.
+	break;
+}
+
+close
+

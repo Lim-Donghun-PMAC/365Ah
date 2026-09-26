@@ -1,0 +1,585 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.09 김성중 선임
+// MSA 모듈화 프로그래밍 진행 - [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+// 25.07.28 김성중 선임 
+// Cal, Cleaning 위치 이동, Align 탈착 모드 프로그래밍 진행 - [ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ] 
+// 25.12.09 김성중 선임
+// Cycle Stop 모듈화 작업 진행
+
+open plc 14
+P_MNTR_PLC14_Task_Time(0) =  Sys.Time;
+
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[14].ldata.L[0] 시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[14].ldata.L[1] 시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[14].ldata.L[2] 시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[14].ldata.L[3] 타이머 초기화 플래그
+
+local L_PLC14_Sub_MSA_Program_Active;					// Plc[14].ldata.L[4] Sub 프로그램 Active 변수
+local L_VISION_MSA_Seq_Command_Occurs;					// Plc[14].ldata.L[5] 시퀀스 커맨드 발생 변수 
+local L_VISION_MSA_Seq_Data;							// Plc[14].ldata.L[6] MSA Seq Data 리턴 변수
+//local L_VISION_MSA_InterLock_Reentry;					// Plc[14].ldata.L[7] 재진입 방지 변수 추가
+
+local L_Align_Take_Off_InterLock_Reentry;				// Plc[14].ldata.L[8] 재진입 방지 변수 추가
+local L_Align_Take_Off_Seq_Command_Occurs;				// Plc[14].ldata.L[9] 시퀀스 커맨드 발생 변수 
+local L_Align_Take_Off_Seq_Data;						// Plc[14].ldata.L[10] MSA Seq Data 리턴 변수
+
+local L_Pre_Interlock_Chk_Flag;							// Plc[14].ldata.L[11] 사전 인터락 체크 
+// Local Timer
+//local L_VISION_Interlock_Check_Timer ;				// Plc[14].ldata.L[12] 인터락 체크 타이머
+local L_PLC14_Sub_Align_Take_Off_Program_Active;		// Plc[14].ldata.L[13] 얼라인 탈착 모드 프로그램 할성화
+
+local L_Stopping_Seq_Command_Occurs;					// Plc[14].ldata.L[14]
+local L_CycleStop_Seq_Data;								// Plc[14].ldata.L[15]
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+	
+// 00.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{		
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+//-----------------------------------------------------------------------------------------------------------------
+if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status == F_Status_IDLE && P_Stack_Judgement_Memory != N_TRUE )			// IDLE 상황에서만 가능
+{
+	L_PLC14_Sub_MSA_Program_Active = F_Status_STARTING;																			// Start 
+}
+else																															//아닐 경우
+{
+	L_PLC14_Sub_MSA_Program_Active = F_Status_STOPPING;																			//Stop
+}
+
+//========================================================================================================================================================
+//0. 스탑 모듈 
+//========================================================================================================================================================
+if( P_Stopping_CycleStop_Cmd == F_Command_Start )									// 스탑 모듈 실행 - PLC01 Queue 
+{																					  
+	P_Stopping_CycleStop_Cmd = 0;													// 스탑 모듈 - 커맨드 초기화 (재진입 방지) 
+	P_EXECUTE_Status_Prod_Sequence(N_CycleStop_Module) = F_Status_STARTING;			// 스탑 모듈 - 시작 상태 대입																		  
+	P_Stopping_CycleStop_Status = N_TRUE;											// 스탑 모듈 - 시퀀스 모듈 실행 상태
+	L_Stopping_Seq_Command_Occurs = 1;												// 스탑 모듈 - 시퀀스 커맨드 발생 변수
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 0-1 스탑 모듈  구동 시퀀스 - TRUE 일 경우 실행
+//--------------------------------------------------------------------------------------------------------------------------------------
+if( P_Stopping_CycleStop_Status == N_TRUE ) 
+{
+	// 5.1.1 스탑모듈 시퀀스 발생 변수
+	IF ( L_Stopping_Seq_Command_Occurs == 1 )	
+	{ 
+		P_Stopping_CycleStop_Seq_Index = 0
+		P_Except_Return_Array(N_PLC13_CycleStop_Set_Seq_Occurs_RTN) = 0;				// 결과 변수 초기화
+		call Sub_Automatic_Prod_Sequnce.Set_CycleStop(P_Buffer_Mode_Status_Sequence,&P_Except_Return_Array(N_PLC13_CycleStop_Set_Seq_Occurs_RTN))	 
+		if( P_Except_Return_Array(N_PLC13_CycleStop_Set_Seq_Occurs_RTN) == N_TRUE )
+		{
+			L_Stopping_Seq_Command_Occurs = 0;
+			P_Stopping_CycleStop_State_Machine = N_Ready_Step;							// Cycle Stop모듈 구동 준비 스텝으로 이동		
+		}	
+	}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 0-2) stop - Ready Step 
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 0.2.1 스탑 모듈 모듈 시퀀스 _ 동작 준비 스텝
+    if( P_Stopping_CycleStop_State_Machine == N_Ready_Step )							// 레디 스텝
+	{
+		IF ( P_PLC14_STOP_Module_Cycle_Stop_Step_Flag == 1 || P_PLC014_Total_Step_Flag == 1)
+		{
+			P_PLC14_STOP_Module_Cycle_Stop_Step_Flag = 0;
+
+			P_Stopping_CycleStop_Module_Status = F_Status_EXECUTE;							// CycleStop 진행 상태 업데이트.
+			P_Stopping_CycleStop_Seq_Index = P_Stopping_CycleStop_Seq_Index + 1;			// 인덱스 번호 증가.
+	
+			P_Except_Return_Array(N_PLC13_CycleStop_Manage_Get_RTN) = 0;					// 결과 변수 초기화
+			//	↓ 인덱스 업하여 완료를 확인하는 구간
+			call Sub_Automatic_Prod_Sequnce.Management_Cycle_Stop(P_Buffer_Mode_Status_Sequence, P_Stopping_CycleStop_Seq_Index,&L_CycleStop_Seq_Data,&P_Except_Return_Array(N_PLC13_CycleStop_Manage_Get_RTN))		
+	
+			if( P_Except_Return_Array(N_PLC13_CycleStop_Manage_Get_RTN) == N_TRUE )			// 값이 있다면
+			{	
+				P_Except_Return_Array(N_PLC13_CycleStop_Exe_Seq_RTN) = 0;
+				call Sub_Automatic_Prod_Sequnce.Execute_Cycle_Stop(P_Buffer_Mode_Status_Sequence,L_CycleStop_Seq_Data,&P_Except_Return_Array(N_PLC13_CycleStop_Exe_Seq_RTN));
+															
+				IF ( P_Except_Return_Array(N_PLC13_CycleStop_Exe_Seq_RTN) == N_TRUE )									// 리턴변수 참 일때,	
+				{																		
+					P_Stopping_CycleStop_State_Machine = N_Execute_Step;						// Execute_Step 행위 처리 
+				}
+			}
+			else if( P_Except_Return_Array(N_PLC13_CycleStop_Manage_Get_RTN) == N_EXCEPT )	// 완료
+			{
+				P_Stopping_CycleStop_State_Machine = N_Complete_Step;						// 완료
+			}
+		}
+	}
+
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 0-3) 스탑 모듈 - EXECUTE STEP
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 0.3.1. 스탑 모듈 시퀀스 _ 동작 실행중 스텝
+	if( P_Stopping_CycleStop_State_Machine == N_Execute_Step )							// 행위처리 스텝
+	{
+		P_Stopping_CycleStop_Precondition_Seq_Index = P_Stopping_CycleStop_Seq_Index + 1;		// 전제조건 인덱스 대입
+		P_Except_Return_Array(N_PLC13_CycleStop_Pre_Seq_Complete_RTN) = 0;						// 결과변수 초기화
+		// ↓ 스탑 행위 함수 시작 [ 김준수 선임 ]
+		call Sub_Automatic_Prod_Sequnce.Precondition_CycleStop(P_Buffer_Mode_Status_Sequence,P_Stopping_CycleStop_Precondition_Seq_Index,&P_Except_Return_Array(N_PLC13_CycleStop_Pre_Seq_Complete_RTN));
+		if( P_Except_Return_Array(N_PLC13_CycleStop_Pre_Seq_Complete_RTN) == N_TRUE )			// 결과값을 리턴받았다면
+		{
+			P_Stopping_CycleStop_State_Machine = N_Ready_Step;							// 레디스텝으로 이동
+		}
+	}
+	
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 0-4) 스탑 모듈 - COMPLETE STEP
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 0.4.1. 스탑 모듈 시퀀스 _ 동작 실행중 
+	if( P_Stopping_CycleStop_State_Machine == N_Complete_Step )							// 완료스텝
+	{
+		P_Stopping_CycleStop_Module_Status = F_Status_COMPLETE;							// 완료상태 
+		P_EXECUTE_Status_Prod_Sequence(N_CycleStop_Module) = F_Status_COMPLETE;			// 완료상태
+		P_Stopping_CycleStop_State_Machine = 0;											// 스텟머신 초기화
+	}
+	
+
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 0-5) 스탑 모듈 -초기화 STEP
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 0.5.1. 스탑 모듈 시퀀스 _초기화 진행
+	if( P_Stopping_CycleStop_Init_Flag == N_TRUE )
+	{
+		P_Stopping_CycleStop_Init_Flag = N_FALSE;
+		P_Stopping_CycleStop_Module_Status = F_Status_IDLE;								// IDLE 상태
+		P_EXECUTE_Status_Prod_Sequence(N_CycleStop_Module) = F_Status_IDLE;				// IDLE 상태
+	}
+}
+else
+{
+	P_Stopping_CycleStop_State_Machine = 0;
+}
+
+//=======================================================================================================================================================
+// 2.  얼라인 탈착 모드 버튼 커맨드 
+//=======================================================================================================================================================
+//[참조 : 260724 2차 클리닝 위치 이동, 얼라인 탈착 모드 시퀀스 수정 ]
+if ( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status == F_Status_IDLE && P_Stack_Judgement_Memory == 0 )		// 메뉴얼, IDEL 젤리롤 적층 아닐 경우에서만 가능
+{
+	L_PLC14_Sub_Align_Take_Off_Program_Active = F_Status_STARTING;												// Start 
+}
+else																											//아닐 경우
+{
+	L_PLC14_Sub_Align_Take_Off_Program_Active = F_Status_STOPPING;												//Stop
+}
+//-----------------------------------------------------------------------------------------------------------------
+if ( L_PLC14_Sub_Align_Take_Off_Program_Active == F_Status_STARTING)
+{
+	if( P_Align_Take_Off_Mode == 0 && P_Align_Take_Off_BTN_ON == N_TRUE ) 
+	{	
+		if ( P_Align_Take_Off_Cmd(N_Align_AN_Take_Off) == F_Command_Start)										// 음극 얼라인 탈착 모드
+		{
+			P_Align_Take_Off_Cmd(N_Align_AN_Take_Off) = F_Command_NonCommand;		
+			P_Align_Take_Off_Mode = N_Align_AN_Take_Off														
+		}
+		else if ( P_Align_Take_Off_Cmd(N_Align_CA_Take_Off) == F_Command_Start )								// 양극 얼라인 탈착 모드 
+		{
+			P_Align_Take_Off_Cmd(N_Align_CA_Take_Off) = F_Command_NonCommand;
+			P_Align_Take_Off_Mode = N_Align_CA_Take_Off															
+		}
+		P_Align_Take_Off_BTN_ON = N_FALSE;
+		P_Align_Take_Off_Status_Prod_Sequence(N_PLC13_Align_Take_Off) = F_Status_STARTING;
+		P_Align_Take_Off_Status_Flag = N_TRUE;
+		L_Align_Take_Off_Seq_Command_Occurs = N_TRUE;
+	}
+	else
+	{
+		P_Align_Take_Off_BTN_ON = N_FALSE;
+		P_Align_Take_Off_Cmd(0),3 = 0;																			// CMD 초기화
+	}
+}
+else																											// 가능한 상태가 아닐때 커맨드가 저장되어있다면, 초기화 
+{
+	P_Align_Take_Off_BTN_ON = N_FALSE;
+	P_Align_Take_Off_Cmd(0),3 = 0;	
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 2-1) 얼라인 탈착 모드 -  READY COMMAND
+//--------------------------------------------------------------------------------------------------------------------------------------
+if( P_Align_Take_Off_Status_Flag == N_TRUE )																	// 구동 시퀀스 Flag On 되었다면,
+{
+	if( L_Align_Take_Off_Seq_Command_Occurs == N_TRUE )
+	{
+		// 인덱스 초기화
+		P_Align_Take_Off_Seq_Index = 0;
+		P_Except_Return_Array(N_PLC13_Align_Take_Off_Set_Seq_Occurs_RTN) = 0;									// 리턴변수 초기화					
+		call Sub_Manual_Prod_Sequnce.Set_Align_Take_off(P_Align_Take_Off_Mode,&P_Except_Return_Array(N_PLC13_Align_Take_Off_Set_Seq_Occurs_RTN))		
+
+		L_Align_Take_Off_Seq_Command_Occurs = N_FALSE;															// 시퀀스 커맨드 발생 변수 off 
+		P_Align_Take_Off_State_Machine = N_Ready_Step;															// 준비 스텝으로 이동	
+	}
+
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 2-2) 얼라인 탈착 모드 - READY STEP
+//--------------------------------------------------------------------------------------------------------------------------------------
+if( P_Align_Take_Off_State_Machine == N_Ready_Step )																// Ready 스텝
+{
+	P_Align_Take_Off_Status = F_Status_EXECUTE;																		// 상태 업데이트
+	
+	P_Align_Take_Off_Seq_Index = P_Align_Take_Off_Seq_Index + 1;													// 인덱스 증가
+	
+	P_Except_Return_Array(N_PLC13_Align_Take_Off_Manage_Get_RTN) = 0;												// 얼라인 탈착 인덱스 관리 리턴변수 초기화
+	call Sub_Manual_Prod_Sequnce.Management_Align_Take_Off(P_Align_Take_Off_Mode,P_Align_Take_Off_Seq_Index,&L_Align_Take_Off_Seq_Data,&P_Except_Return_Array(N_PLC13_Align_Take_Off_Manage_Get_RTN))		
+	
+	IF ( P_Except_Return_Array(N_PLC13_Align_Take_Off_Manage_Get_RTN) == N_TRUE )									// 얼라인 탈착 인덱스 관리 리턴변수 참 일때																											
+	{
+		P_Except_Return_Array(N_PLC13_Align_Take_Off_Exe_Seq_RTN) = 0;												// 얼라인 탈착 실행함수 리턴변수 초기화
+		call Sub_Manual_Prod_Sequnce.Execute_Align_Take_Off(P_Align_Take_Off_Mode,L_Align_Take_Off_Seq_Data,&P_Except_Return_Array(N_PLC13_Align_Take_Off_Exe_Seq_RTN) );
+														
+		IF ( P_Except_Return_Array(N_PLC13_Align_Take_Off_Exe_Seq_RTN) == N_TRUE )									// 리턴변수 참 일때,	
+		{																		
+			P_Align_Take_Off_State_Machine = N_Execute_Step;														// 전제조건 감시 스텝으로 이동																			
+		}	
+		ELSE					
+		{																													
+			P_Align_Take_Off_State_Machine = N_Error_Step;															// 에러 스텝으로 이동
+		}
+	}
+	ELSE IF ( P_Except_Return_Array(N_PLC13_Align_Take_Off_Manage_Get_RTN) == N_EXCEPT )							// 얼라인 탈착 인덱스 관리 리턴변수 제외 값일때,															
+	{
+		P_Align_Take_Off_State_Machine = N_Complete_Step;															// 완료 스텝으로 이동																		
+	}																																																			  
+	ELSE																																			
+	{
+		P_Align_Take_Off_State_Machine = N_Error_Step;																							
+	}		
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 2-3) 얼라인 탈착 모드 - EXECUTE STEP
+//--------------------------------------------------------------------------------------------------------------------------------------
+	// 2.1.3. 얼라인 탈착 모드 시퀀스 _ 동작 실행중 스텝
+	IF ( P_Align_Take_Off_State_Machine == N_Execute_Step )															// 익스큐트 스텝으로 왔다면,																	
+	{							
+		P_Align_Take_Off_Seq_PreCondition_Index = P_Align_Take_Off_Seq_Index + 1;									// 전제조건 인덱스 대입
+
+		P_Except_Return_Array(N_PLC13_Align_Take_Off_Pre_Seq_Complete_RTN) = 0;										// 함수 리턴 변수 초기화		
+		Call Sub_Manual_Prod_Sequnce.Precondition_Align_Take_Off(P_Align_Take_Off_Mode,P_Align_Take_Off_Seq_PreCondition_Index,&P_Except_Return_Array(N_PLC13_Align_Take_Off_Pre_Seq_Complete_RTN))
+		
+		IF ( P_Except_Return_Array(N_PLC13_Align_Take_Off_Pre_Seq_Complete_RTN) == N_TRUE )							// 참으로 결과가 리턴되었다면,
+		{
+			IF ( P_PMAC_Status == F_Status_STOPPING )																// 얼라인 탈착 진행 중 Stopping 진행 및 정지 가능 할 경우.
+			{	
+				P_Align_Take_Off_State_Machine = N_Error_Step;														// 에러스텝 이동.()
+			}
+			ELSE
+			{
+				P_Align_Take_Off_State_Machine = N_Ready_Step;	
+			}
+		}		
+		Else if ( P_Except_Return_Array(N_PLC13_Align_Take_Off_Pre_Seq_Complete_RTN) == 0 && P_Align_Take_Off_Stop_Signal == 1 )					// 참으로 결과가 리턴되었다면,
+		{
+			P_Align_Take_Off_Stop_Signal = 0;
+			P_Align_Take_Off_State_Machine = N_Error_Step;														// 에러스텝 이동.()
+
+		}
+
+	}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 2-4)  얼라인 탈착 모드 - Complte STEP
+//--------------------------------------------------------------------------------------------------------------------------------------
+	// 2.1.4 배출모듈 시퀀스 _ 동작 완료 스텝
+	IF ( P_Align_Take_Off_State_Machine == N_Complete_Step )
+	{
+		P_Align_Take_Off_Status_Prod_Sequence(N_PLC13_Align_Take_Off) = F_Status_COMPLETE;							// 얼라인 탈착 모듈 상태 변경 _ 완료
+		P_Align_Take_Off_Status = F_Status_COMPLETE;			
+		P_Align_Take_Off_Status_Flag = 0;																			// 얼라인 탈착 상태 FLAG RESET
+		P_Align_Take_Off_State_Machine = 0;																			// 스텝 초기화
+		P_Align_Take_Off_Mode = 0;																					// Mode 초기화
+	}
+
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 2-5)얼라인 탈착 모드- Error STEP
+//--------------------------------------------------------------------------------------------------------------------------------------
+	// 2.1.5 모듈 시퀀스 _ 에러 처리 스텝
+	IF ( P_Align_Take_Off_State_Machine == N_Error_Step )															// 에러스텝이라면 
+	{
+		P_Align_Take_Off_Status_Prod_Sequence(N_PLC13_Align_Take_Off) = F_Status_ABORTED;							// 얼라인 탈착 모듈 상태 변경 _ 어볼트
+	
+		P_Align_Take_Off_Status = F_Status_Error;																	// 에러 상태 대입											
+		P_Align_Take_Off_Status_Flag = 0;																			// 얼라인 탈착 FLAG RESET
+		P_Align_Take_Off_Seq_Index = 0;
+		P_Align_Take_Off_State_Machine = 0;																			// 스텝 초기화.	
+		P_Align_Take_Off_Mode = 0;																					// Mode 초기화
+	}
+}
+ELSE
+{
+	P_Align_Take_Off_State_Machine = 0;																				// 시퀀스 초기화
+}
+
+
+//=======================================================================================================================================================
+//3. 얼라인 보정 오토 캘 
+//=======================================================================================================================================================
+// Idle 상태
+if( P_CMD_Cell_Align(P_Vision_AutoCal_Mode) == 0)			
+{
+	P_PMAC_AutoCal_Status = F_Status_IDLE;
+}	
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 3-1) 얼라인 오토 캘 Start Mode
+//--------------------------------------------------------------------------------------------------------------------------------------
+if( P_CMD_Cell_Align(P_Vision_AutoCal_Mode) == 1 )				
+{
+	// 2.1.1 양극 얼라인 무브 시작
+	IF ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Cathode )	//양극 얼라인 오토 캘일 경우
+	{	
+		cmd "&2b2r"											//양극 얼라인 스테이지 무브 모션 활성화
+		P_PMAC_AutoCal_Mode = F_Command_Start;				//비전 캘리브레이션 PMAC 모드
+		P_PMAC_AutoCal_Status = F_Status_STARTING;		//비전 캘리브레이션 PMAC 상태
+		P_CMD_Cell_Align(P_Vision_AutoCal_Mode)++;
+	}
+	// 2.1.2 양극 얼라인 무브 시작
+	IF ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Anode )	//음극 얼라인 오토 캘일 경우
+	{
+		cmd "&3b3r"											//음극 얼라인 스테이지 무브 모션 활성화
+		P_PMAC_AutoCal_Mode = F_Command_Start;				//비전 캘리브레이션 PMAC 모드
+		P_PMAC_AutoCal_Status = F_Status_STARTING;		//비전 캘리브레이션 PMAC 상태
+		P_CMD_Cell_Align(P_Vision_AutoCal_Mode)++;			//스텝머신 증가
+	}
+}
+// 얼라인 무브 완료
+IF ( P_CMD_Cell_Align(P_Vision_AutoCal_Mode) == 2 )			
+{
+	if( P_CMD_Align_Complete == 1)							//얼라인 무브 완료 시
+	{	
+		P_PMAC_AutoCal_Status = F_Status_HOLD;			//비전 켈리브레이션 상태 Hold
+	}
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 3-2) 얼라인 오토 캘 Stop Mode
+//--------------------------------------------------------------------------------------------------------------------------------------
+if( P_CMD_Cell_Stop(P_Vision_AutoCal_Mode) == 0)
+{
+   
+}
+// 3.2.1. 극판 복귀 시작 : Start
+if( P_CMD_Cell_Stop(P_Vision_AutoCal_Mode) == 1)			
+{
+	// 3.2.1.1. 음극 복귀 모드 시작 
+	IF ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Cathode )	//양극 얼라인 오토 캘일 경우
+	{
+		cmd "&2b2r"											//양극 얼라인 스테이지 무브 모션 활성화
+		P_PMAC_AutoCal_Mode = F_Command_Stop;				//비전 캘리브레이션 PMAC 모드
+		P_PMAC_AutoCal_Status = F_Status_STOPPING;		//비전 캘리브레이션 PMAC 상태
+		P_CMD_Cell_Stop(P_Vision_AutoCal_Mode)++;
+	}
+	// 3.2.1.2. 음극 복귀 모드 시작 
+	IF ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Anode )	//음극 얼라인 오토 캘일 경우
+	{
+		cmd "&3b3r"											//음극 얼라인 스테이지 무브 모션 활성화
+		P_PMAC_AutoCal_Mode = F_Command_Stop;				//비전 캘리브레이션 PMAC 모드
+		P_PMAC_AutoCal_Status = F_Status_STOPPING;		//비전 캘리브레이션 PMAC 상태
+		P_CMD_Cell_Stop(P_Vision_AutoCal_Mode)++;			//스텝머신 증가
+	}
+}
+// 3.2.2. 극판 복귀 동작 중 : Execute
+if( P_CMD_Cell_Stop(P_Vision_AutoCal_Mode) == 2)			
+{
+	P_PMAC_AutoCal_Status = F_Status_EXECUTE;				//얼라인 무브 상태 EXECUTE일 경우
+	P_CMD_Cell_Stop(P_Vision_AutoCal_Mode)++				//스텝머신 증가
+}													
+
+// 3.2.3. 극판 복귀 완료 : Stopped
+IF ( P_CMD_Cell_Stop(P_Vision_AutoCal_Mode) == 3 )			
+{
+	if( P_CMD_Align_Complete == 1)							//얼라인 무브 완료 시
+	{
+		P_PMAC_AutoCal_Status = F_Status_STOPPED;			//비전 켈리브레이션 상태 STOPPED
+	}
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 3-3) 얼라인 오토 캘 Reset Mode
+//-------------------------------------------------------------------------------------------------------------------------------------
+// 3.3.1. 극판 리셋 모드 시퀀스
+if( P_CMD_Cell_Reset(P_Vision_AutoCal_Mode) == 1 )
+{
+	// 3.3.1.1. 모션 프로그램 종료
+	if( P_Vision_Cal_Reset_Count == 1)								
+	{
+		// 3.3.1.1.1. 양극 모션 종료									
+		IF ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Cathode )	//양극 얼라인 오토 캘일 경우	
+		{															
+			P_PMAC_AutoCal_Status = F_Status_CLEARING;		//양극 오토 상태 
+			cmd "&2a"											//양극 얼라인 스테이지 무브 모션 비활성화
+			P_Vision_Cal_Reset_Count++;							//스텝 머신 증가
+		}
+		// 3.3.1.1.2. 음극 모션 종료
+		IF ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Anode )	//음극 얼라인 오토 캘일 경우	
+		{															
+			P_PMAC_AutoCal_Status = F_Status_CLEARING;		//음극 오토 상태 
+			cmd "&3a"											//음극 얼라인 스테이지 무브 모션 비활성화
+			P_Vision_Cal_Reset_Count++;							//스텝 머신 증가
+		}
+	}
+	// 3.3.1.2. 모터 정지 및 서보 온
+	if( P_Vision_Cal_Reset_Count == 2)							
+	{
+		// 3.3.1.2.1. 양극 얼라인 모터 정지 및 서보 온				
+		IF ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Cathode )	//양극 얼라인 오토 캘일 경우	
+		{															
+			cmd "#36j/ #37j/ #38j/"								//양극 얼라인 X,Y,T축 서버 OFF
+			P_Vision_Cal_Reset_Count++;							
+		}														
+		// 3.3.1.2.1. 음극 얼라인 모터 정지 및 서보 온
+		IF ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Anode )	//음극 얼라인 오토 캘일 경우	
+		{
+			cmd "#39j/ #40j/ #41j/"								//음극 얼라인 X,Y,T축 서버 OFF
+			P_Vision_Cal_Reset_Count++;
+		}
+	}
+	if( P_Vision_Cal_Reset_Count == 3)	
+	{
+		P_PMAC_AutoCal_Mode = 0;								//오토 캘 모드 초기화
+		P_Vision_AutoCal_Command = 0;							//비전 오토캘 커맨드 초기화
+		P_PMAC_AutoCal_Status = 0;							//비전 오토캘 상태 초기화
+		P_PMAC_AutoCal_Alarm = 0;								//비전 오토캘 알람 초기화
+		P_PMAC_AutoCal_Status = 0;								//피맥 오토캘 상태 초기화
+		P_Align_AutoCal_X_POS = 0;								//비전 오토캘 얼라인 X축 보정값 초기화
+		P_Align_AutoCal_Y_POS = 0;								//비전 오토캘 얼라인 Y축 보정값 초기화
+		P_Align_AutoCal_T_POS = 0;								//비전 오토캘 얼라인 T축 보정값 초기화
+		
+		P_CMD_Cell_Align(P_Vision_AutoCal_Mode) = 0;			
+		P_CMD_Cell_Stop(P_Vision_AutoCal_Mode) = 0;
+		
+		P_Vision_Cal_Reset_Count++;
+	} 
+	// 리셋 완료
+	if( P_Vision_Cal_Reset_Count == 4)
+	{
+		P_CMD_Cell_Reset(P_Vision_AutoCal_Mode) = 0;
+		P_Vision_Cal_Reset_Count =0;
+	}
+}
+
+
+//=======================================================================================================================================================
+//4. 2차 PNP 클리닝 위치 이동 
+//=======================================================================================================================================================
+//[참조 : 260724 2차 클리닝 위치 이동, 얼라인 탈착 모드 시퀀스 수정 ]
+//4.1 Idle 상태
+if(P_2nd_PNP_Cleaning_Mode_Cmd == 0)
+{
+	P_2nd_PNP_Cleaning_Mode_Status = F_Status_IDLE;			
+}	
+ 
+// 4.2 Start
+if( P_2nd_PNP_Cleaning_Mode_Cmd == 1 )
+{
+	P_2nd_PNP_Cleaning_Mode_Status = F_Status_STARTING;					
+	Motor[N_1st_PnP_CA_Z].JogSpeed = P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed;	// 양극 1차 PNP Z축 조그 스피드 설정
+	Motor[N_1st_PnP_AN_Z].JogSpeed = P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed;	// 음극 1차 PNP Z축 조그 스피드 설정
+	Motor[N_2nd_PnP_CA_Z].JogSpeed = P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed;	// 양극 1차 PNP Z축 조그 스피드 설정
+	Motor[N_2nd_PnP_AN_Z].JogSpeed = P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed;	// 음극 1차 PNP Z축 조그 스피드 설정
+	Motor[N_FINAL_ROLL_Z].JogSpeed = P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed; // 파이널롤러 Z축 조그 스피드 설정
+
+	Motor[N_1st_PnP_CA_Z].ProgJogPos = 0;	//대기 상승위치
+	Motor[N_1st_PnP_AN_Z].ProgJogPos = 0;	//대기 상승위치
+	Motor[N_2nd_PnP_CA_Z].ProgJogPos = 0;	//대기 상승위치
+	Motor[N_2nd_PnP_AN_Z].ProgJogPos = 0;	//대기 상승위치
+	Motor[N_FINAL_ROLL_Z].ProgJogPos = P_Final_Roll_Z_Run_Pos * 1000;
+
+	jog17=*;
+	jog18=*;
+	jog21=*;
+	jog22=*;
+	jog13=*;								
+	P_2nd_PNP_Cleaning_Mode_Cmd++;				
+}
+
+if( P_2nd_PNP_Cleaning_Mode_Cmd == 2 )
+{
+	if((P_Motor_Current_Pos(N_1st_PnP_CA_Z) < 0 + 0.5 && P_Motor_Current_Pos(N_1st_PnP_CA_Z) > 0 - 0.5) && (P_Motor_Current_Pos(N_1st_PnP_AN_Z) < 0 + 0.5 && P_Motor_Current_Pos(N_1st_PnP_AN_Z) > 0 - 0.5) && (P_Motor_Current_Pos(N_FINAL_ROLL_Z) < P_Final_Roll_Z_Run_Pos + 0.5 && P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Final_Roll_Z_Run_Pos - 0.5))
+	{
+		P_2nd_PNP_Cleaning_Mode_Cmd++;
+	}
+	
+}
+
+if( P_2nd_PNP_Cleaning_Mode_Cmd == 3 )						
+{
+	Motor[N_FINAL_ROLL_X].JogSpeed = P_2nd_PNP_Cleaning_Mode_X_Jog_Speed;
+	Motor[N_FINAL_ROLL_X].ProgJogPos = 0;	//대기 상승위치
+	jog12=*;
+	P_2nd_PNP_Cleaning_Mode_Cmd++;
+}
+if( P_2nd_PNP_Cleaning_Mode_Cmd == 4 )
+{
+	if(P_Motor_Current_Pos(N_FINAL_ROLL_X) < 0 + 0.5 && P_Motor_Current_Pos(N_FINAL_ROLL_X) > 0 - 0.5)
+	{
+		P_2nd_PNP_Cleaning_Mode_Cmd++;
+	}
+}
+if(P_2nd_PNP_Cleaning_Mode_Cmd == 5)
+{
+	Motor[N_1st_PnP_CA_T].JogSpeed = P_2nd_PNP_Cleaning_Mode_T_Jog_Speed;
+	Motor[N_1st_PnP_AN_T].JogSpeed = P_2nd_PNP_Cleaning_Mode_T_Jog_Speed;
+	Motor[N_2nd_PnP_CA_T].JogSpeed = P_2nd_PNP_Cleaning_Mode_T_Jog_Speed;
+	Motor[N_2nd_PnP_AN_T].JogSpeed = P_2nd_PNP_Cleaning_Mode_T_Jog_Speed;
+
+	Motor[N_1st_PnP_CA_T].ProgJogPos = P_Cathode_1TR_T_Ready_POS * 1000;
+	Motor[N_1st_PnP_AN_T].ProgJogPos = P_Anode_1TR_T_Ready_POS * 1000;
+	Motor[N_2nd_PnP_CA_T].ProgJogPos = P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos * 1000;
+	Motor[N_2nd_PnP_AN_T].ProgJogPos = P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos * 1000;
+
+	jog1=*;
+	jog2=*;
+	jog3=*;
+	jog4=*;
+
+	P_2nd_PNP_Cleaning_Mode_Cmd++;
+}
+if(P_2nd_PNP_Cleaning_Mode_Cmd == 6)
+{
+	if((P_Motor_Current_Pos(N_1st_PnP_CA_T) < P_Cathode_1TR_T_Ready_POS + 0.5 && P_Motor_Current_Pos(N_1st_PnP_CA_T) > P_Cathode_1TR_T_Ready_POS - 0.5) && (P_Motor_Current_Pos(N_1st_PnP_AN_T) < P_Anode_1TR_T_Ready_POS + 0.5 && P_Motor_Current_Pos(N_1st_PnP_AN_T) > P_Anode_1TR_T_Ready_POS - 0.5))
+	{
+		if((P_Motor_Current_Pos(N_2nd_PnP_CA_T) < P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos + 0.5 && P_Motor_Current_Pos(N_2nd_PnP_CA_T) > P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos - 0.5) && (P_Motor_Current_Pos(N_2nd_PnP_AN_T) < P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos + 0.5 && P_Motor_Current_Pos(N_2nd_PnP_AN_T) > P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos - 0.5))
+		{
+			P_2nd_PNP_Cleaning_Mode_Cmd++;
+		}
+	}		
+}
+if(P_2nd_PNP_Cleaning_Mode_Cmd == 7)
+{
+	P_2nd_PNP_Cleaning_Mode_Status = F_Status_COMPLETE;	// 2차 PNP 클리닝 위치 이동 상태 Complete
+	P_2nd_PNP_Cleaning_Mode_Cmd = 0;					//스텟 머신 증가
+}
+
+
+
+
+P_MNTR_PLC14_Task_Time(1) = (Sys.Time - P_MNTR_PLC14_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC14_Task_Time(1) > P_MNTR_PLC14_Task_Max_Time )
+{
+	P_MNTR_PLC14_Task_Max_Time = P_MNTR_PLC14_Task_Time(1);
+}
+
+close

@@ -1,0 +1,407 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.11 김준수 선임 
+// [ 2025.07.11 Cycle Stop 추가 ]
+
+
+open subprog Sub_Common_Function_Cycle_Stop(void)
+
+sub:New_Speed(&rtn)
+
+	Motor[N_NG_PnP_CA_T].jogSpeed = 30;			// 사이클 스탑 시 양극 NG PNP T축 스피드 재부여
+	Motor[N_NG_PnP_CA_Z].jogSpeed = 30;			// 사이클 스탑 시 양극 NG PNP Z축 스피드 재부여
+	Motor[N_NG_PnP_AN_T].jogSpeed = 30;			// 사이클 스탑 시 음극 NG PNP T축 스피드 재부여
+	Motor[N_NG_PnP_AN_Z].jogSpeed = 30;			// 사이클 스탑 시 음극 NG PNP Z축 스피드 재부여
+	
+	Motor[N_2nd_PnP_CA_Z].jogSpeed = 30;			// 사이클 스탑 시 양극 2차 PNP Z축 스피드 재부여
+	Motor[N_2nd_PnP_AN_Z].jogSpeed = 30;			// 사이클 스탑 시 음극 2차 PNP Z축 스피드 재부여
+	Motor[N_2nd_PnP_CA_T].jogSpeed  = 30;			// 사이클 스탑 시 양극 2차 PNP T축 스피드 재부여
+	Motor[N_2nd_PnP_AN_T].jogSpeed  = 30;			// 사이클 스탑 시 음극 2차 PNP T축 스피드 재부여
+	
+	Motor[N_1st_PnP_CA_T].jogSpeed  = 30;			// 사이클 스탑 시 양극 1차 PNP T축 스피드 재부여
+	Motor[N_1st_PnP_AN_T].jogSpeed  = 30;			// 사이클 스탑 시 음극 1차 PNP T축 스피드 재부여
+	Motor[N_1st_PnP_CA_Z].jogSpeed  = 30;			// 사이클 스탑 시 양극 1차 PNP Z축 스피드 재부여
+	Motor[N_1st_PnP_AN_Z].jogSpeed  = 30;			// 사이클 스탑 시 음극 1차 PNP Z축 스피드 재부여				
+
+	rtn = F_TRUE;								// 실행 완료 반환값
+return
+
+// 원래 스피드로 원복
+sub:Original_Speed(&rtn)
+
+	Motor[N_NG_PnP_CA_T].jogSpeed = P_UI_Jog_Vel_M(N_NG_PnP_CA_T);		// 양극 NG PNP T축 스피드 재부여 기존 스피드 원복
+	Motor[N_NG_PnP_CA_Z].jogSpeed = P_UI_Jog_Vel_M(N_NG_PnP_CA_Z);		// 양극 NG PNP Z축 스피드 재부여 기존 스피드 원복	
+	Motor[N_NG_PnP_AN_T].jogSpeed = P_UI_Jog_Vel_M(N_NG_PnP_AN_T);		// 음극 NG PNP T축 스피드 재부여 기존 스피드 원복	
+	Motor[N_NG_PnP_AN_Z].jogSpeed = P_UI_Jog_Vel_M(N_NG_PnP_AN_Z);		// 음극 NG PNP Z축 스피드 재부여 기존 스피드 원복	
+
+	Motor[N_2nd_PnP_CA_Z].jogSpeed = P_UI_Jog_Vel_M(N_2nd_PnP_CA_Z);	// 양극 2차 PNP Z축 스피드 재부여 기존 스피드 원복	
+	Motor[N_2nd_PnP_AN_Z].jogSpeed = P_UI_Jog_Vel_M(N_2nd_PnP_AN_Z);	// 음극 2차 PNP Z축 스피드 재부여 기존 스피드 원복	
+	Motor[N_2nd_PnP_CA_T].jogSpeed  = P_UI_Jog_Vel_M(N_2nd_PnP_CA_T);	// 양극 2차 PNP T축 스피드 재부여 기존 스피드 원복	
+	Motor[N_2nd_PnP_AN_T].jogSpeed  = P_UI_Jog_Vel_M(N_2nd_PnP_AN_T);	// 음극 2차 PNP T축 스피드 재부여 기존 스피드 원복
+
+	Motor[N_1st_PnP_CA_T].jogSpeed = P_UI_Jog_Vel_M(N_1st_PnP_CA_T);	// 양극 2차 PNP Z축 스피드 재부여 기존 스피드 원복	
+	Motor[N_1st_PnP_AN_T].jogSpeed = P_UI_Jog_Vel_M(N_1st_PnP_AN_T);	// 음극 2차 PNP Z축 스피드 재부여 기존 스피드 원복	
+	Motor[N_1st_PnP_CA_Z].jogSpeed = P_UI_Jog_Vel_M(N_1st_PnP_CA_Z);	// 양극 2차 PNP T축 스피드 재부여 기존 스피드 원복	
+	Motor[N_1st_PnP_AN_Z].jogSpeed = P_UI_Jog_Vel_M(N_1st_PnP_AN_Z);	// 음극 2차 PNP T축 스피드 재부여 기존 스피드 원복
+						
+	rtn = F_TRUE;								// 실행 완료 반환값
+return
+//=============================================================================================================================
+
+// 양,음극 1st PNP Z축 대기위치 이동
+sub: Cathode_Anode_1st_Z_Ready_Move(&rtn)
+	Motor[N_1st_PnP_CA_Z].ProgJogPos = 24*1000;	//대기 상승위치
+	Motor[N_1st_PnP_AN_Z].ProgJogPos = 24*1000;	//대기 상승위치
+	cmd"#%d j=*",N_1st_PnP_CA_Z;
+	cmd"#%d j=*",N_1st_PnP_AN_Z;
+	//jog17=*;
+	//jog18=*;
+	rtn = N_TRUE;
+return;
+
+// 양,음극 1st PNP Z축 대기위치 이동 확인
+sub: Cathode_Anode_1st_Z_Ready_Move_Check(&rtn)
+	rtn = 0;
+	if( Motor[N_1st_PnP_CA_Z].DesVelZero == 1 && Motor[N_1st_PnP_AN_Z].DesVelZero == 1 )
+	{
+		if( P_Motor_Current_Pos(N_1st_PnP_CA_Z) < 24 + 0.2 && P_Motor_Current_Pos(N_1st_PnP_CA_Z) > 24 - 0.2 &&P_Motor_Current_Pos(N_1st_PnP_AN_Z) < 24 + 0.2 && P_Motor_Current_Pos(N_1st_PnP_AN_Z) > 24 - 0.2 )
+		{
+			rtn = N_TRUE;
+		}
+	}
+return;
+
+// 양,음극 1st PNP T축 대기위치 이동 
+sub: Cathode_Anode_1st_T_Ready_Move(&rtn)
+	Motor[N_1st_PnP_CA_T].ProgJogPos = 45*1000;	//T축 대기 
+	Motor[N_1st_PnP_AN_T].ProgJogPos = 45*1000;	//T축 대기 
+	cmd"#%d j=*",N_1st_PnP_CA_T;
+	cmd"#%d j=*",N_1st_PnP_AN_T;
+	//jog1=*;
+	//jog2=*;
+	rtn = N_TRUE;
+return;
+
+// 양,음극 1st PNP T축 대기위치 이동  확인
+sub: Cathode_Anode_1st_T_Ready_Move_Check(&rtn)
+	rtn = 0;
+	if( Motor[N_1st_PnP_CA_T].DesVelZero == 1 && Motor[N_1st_PnP_AN_T].DesVelZero == 1 )
+	{
+		if( P_Motor_Current_Pos(N_1st_PnP_CA_T) < 45 + 0.2 && P_Motor_Current_Pos(N_1st_PnP_CA_T) > 45 - 0.2 && P_Motor_Current_Pos(N_1st_PnP_AN_T) < 45 + 0.2 && P_Motor_Current_Pos(N_1st_PnP_AN_T) > 45 - 0.2 )
+		{
+			rtn = N_TRUE;
+		}
+	}
+return;
+
+// 양,음극 NP PNP Z축 대기위치 이동
+sub:Cathode_Anode_NG_PNP_Z_Ready_Move(&rtn)
+	Motor[N_NG_PnP_CA_Z].ProgJogPos = 0*1000;
+	Motor[N_NG_PnP_AN_Z].ProgJogPos = 0*1000;
+	cmd"#%d j=*",N_NG_PnP_CA_Z;
+	cmd"#%d j=*",N_NG_PnP_AN_Z;
+	//jog40=*;
+	//jog41=*;
+	rtn = F_TRUE;
+return
+
+// 양,음극 NP PNP Z축 대기위치 이동 확인
+sub:Cathode_Anode_NG_PNP_Z_Ready_Move_Check(&rtn)
+	rtn = 0;
+	if( Motor[N_NG_PnP_CA_Z].DesVelZero == 1 && Motor[N_NG_PnP_AN_Z].DesVelZero == 1 )
+	{
+		if( P_Motor_Current_Pos(N_NG_PnP_CA_Z) < 0 + 0.2 && P_Motor_Current_Pos(N_NG_PnP_CA_Z) > 0 - 0.2 &&	P_Motor_Current_Pos(N_NG_PnP_AN_Z) < 0 + 0.2 && P_Motor_Current_Pos(N_NG_PnP_AN_Z) > 0 - 0.2 )
+		{
+			rtn = F_TRUE;
+		}
+	}
+	
+return
+
+// 양,음극 NP PNP T축 대기위치 이동
+sub:Cathode_Anode_NG_PNP_T_Ready_Move(&rtn)
+	motor[N_NG_PnP_CA_T].ProgJogPos = 0*1000;
+	motor[N_NG_PnP_AN_T].ProgJogPos = 0*1000;
+	cmd"#%d j=*",N_NG_PnP_CA_T;
+	cmd"#%d j=*",N_NG_PnP_AN_T;
+	//jog42=*;
+	//jog43=*;
+	rtn = F_TRUE;
+return
+
+// 양,음극 NP PNP T축 대기위치 이동 확인
+sub:Cathode_Anode_NG_PNP_T_Ready_Move_Check(&rtn)
+	rtn = 0;
+	if( Motor[N_NG_PnP_CA_T].DesVelZero == 1 && Motor[N_NG_PnP_AN_T].DesVelZero == 1 )
+	{
+		if( P_Motor_Current_Pos(N_NG_PnP_CA_T) <  0 + 0.2 && P_Motor_Current_Pos(N_NG_PnP_CA_T) > 0 - 0.2 &&	P_Motor_Current_Pos(N_NG_PnP_AN_T) < 0 + 0.2 && P_Motor_Current_Pos(N_NG_PnP_AN_T) >  0 - 0.2 )
+		{
+			rtn = F_TRUE;
+		}
+	}
+return
+
+// 양,음극 2nd PNP Z축 대기위치 이동
+sub:Cathode_Anode_2nd_Z_Ready_Move(&rtn)
+	Motor[N_2nd_PnP_CA_Z].ProgJogPos = 24*1000;
+	Motor[N_2nd_PnP_AN_Z].ProgJogPos = 24*1000;
+	cmd"#%d j=*",N_2nd_PnP_CA_Z;
+	cmd"#%d j=*",N_2nd_PnP_AN_Z;
+	//jog21=*;
+	//jog22=*;
+	rtn = F_TRUE;
+return
+
+// 양,음극 2nd PNP Z축 대기위치 이동 확인
+sub:Cathode_Anode_2nd_Z_Ready_Move_Check(&rtn)
+	rtn = 0;
+	if( Motor[N_2nd_PnP_CA_Z].DesVelZero == 1 && Motor[N_2nd_PnP_AN_Z].DesVelZero == 1 )
+	{
+		if( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) < 24 + 0.2 && P_Motor_Current_Pos(N_2nd_PnP_CA_Z) > 24 - 0.2 &&	P_Motor_Current_Pos(N_2nd_PnP_AN_Z) < 24 + 0.2 && P_Motor_Current_Pos(N_2nd_PnP_AN_Z) > 24 - 0.2 )
+		{
+			rtn = F_TRUE;
+		}
+	}
+return
+
+// 양,음극 2nd PNP T축 대기위치 이동
+sub:Cathode_Anode_2nd_T_Ready_Move(&rtn)
+	Motor[N_2nd_PnP_CA_T].ProgJogPos = 0*1000;
+	Motor[N_2nd_PnP_AN_T].ProgJogPos = 0*1000;
+	cmd"#%d j=*",N_2nd_PnP_CA_T;
+	cmd"#%d j=*",N_2nd_PnP_AN_T;
+	//jog3=*;
+	//jog4=*;
+	rtn = F_TRUE;
+return
+
+// 양,음극 2nd PNP T축 대기위치 이동 확인
+sub:Cathode_Anode_2nd_T_Ready_Move_Check(&rtn)
+	rtn = 0;
+	if( Motor[N_2nd_PnP_CA_T].DesVelZero == 1 && Motor[N_2nd_PnP_AN_T].DesVelZero == 1 )
+	{
+		if( P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 0 + 0.2 && P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 0 - 0.2 &&	P_Motor_Current_Pos(N_2nd_PnP_AN_T) < 0 + 0.2 && P_Motor_Current_Pos(N_2nd_PnP_AN_T) > 0 - 0.2 )
+		{
+			rtn = F_TRUE;
+		}
+	}
+return
+
+// 사이클 스탑 모듈 
+sub: CycleStop_Execute( Index,&Stop_Exe_RTN )
+Stop_Exe_RTN = 0;
+	switch( Index )
+	{
+		case N_SEQ_CycleStop_No_1:												// 0) 첫번째 시퀀스 Motion Prog OFF , Time Base Off, Motion_Command_Init
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_1st_Action) == 0 )
+			{
+				P_Except_Return_Array(N_Com_Master_Motion_Program_OFF_Complete_RTN) = 0;	// 0.1) 마스터 모션 off 함수 반환값 초기화	
+				P_Except_Return_Array(N_Com_Timbase_OFF_Complete_RTN) = 0;					// 0.2) 타임 베이스 off 함수 반환값 초기화
+				P_Except_Return_Array(N_Com_Slave_Motion_Common_Init_Complete_RTN) = 0;		// 0.3) Slave Motion Command 초기화 함수 반환값 초기화
+
+				call Sub_Common_Function.Master_Motion_Program_OFF(&P_Except_Return_Array(N_Com_Master_Motion_Program_OFF_Complete_RTN));
+				call Sub_Common_Function.Timbase_OFF(&P_Except_Return_Array(N_Com_Timbase_OFF_Complete_RTN));
+				call Sub_Common_Function.Slave_Motion_Command_Init(&P_Except_Return_Array(N_Com_Slave_Motion_Common_Init_Complete_RTN));
+				callsub sub.New_Speed(&P_Except_Return_Array(N_Stop_CycleStop_Motor_New_Speed_RTN));
+
+				if( P_Except_Return_Array(N_Com_Master_Motion_Program_OFF_Complete_RTN) & P_Except_Return_Array(N_Com_Timbase_OFF_Complete_RTN) & P_Except_Return_Array(N_Com_Slave_Motion_Common_Init_Complete_RTN) & P_Except_Return_Array(N_Stop_CycleStop_Motor_New_Speed_RTN))
+				{
+					P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_1st_Action) = 1;
+				}
+			}
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_1st_Action) == 1 )
+			{
+				call Sub_Common_Function.Timbase_OFF_Check(&P_Except_Return_Array(N_Com_Timbase_OFF_Check_Complete_RTN));
+
+				if( P_Master_Motion_Program_Flag == 0 && P_Except_Return_Array(N_Com_Timbase_OFF_Check_Complete_RTN) == 1 )
+				{ 
+					Stop_Exe_RTN = N_TRUE;
+				}
+			}
+		break;
+
+		case N_SEQ_CycleStop_No_2:			// 두번째 시퀀스 New Speed 설정		
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_2nd_Action) == 0 )
+			{
+				callsub sub.Cathode_Anode_1st_Z_Ready_Move(&P_Except_Return_Array(N_Stop_Cathode_Anode_1st_Z_Ready_Move_RTN));
+				
+				if( P_Except_Return_Array(N_Stop_Cathode_Anode_1st_Z_Ready_Move_RTN) == 1 )
+				{				
+					P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_2nd_Action) = 1;
+				}
+			}
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_2nd_Action) == 1 )
+			{
+				callsub sub.Cathode_Anode_1st_Z_Ready_Move_Check(&P_Except_Return_Array(N_Stop_Cathode_Anode_1st_Z_Ready_Move_Check_RTN));
+
+				if( P_Except_Return_Array(N_Stop_Cathode_Anode_1st_Z_Ready_Move_Check_RTN) )
+				{
+					Stop_Exe_RTN = N_TRUE;
+				}
+			}
+		break;
+
+		case N_SEQ_CycleStop_No_3:			// 세번쨰 시퀀스, pnp z축 상승 
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_3rd_Action) == 0 )
+			{
+				callsub sub.Cathode_Anode_1st_T_Ready_Move(&P_Except_Return_Array(N_Stop_Cathode_Anode_1st_T_Ready_Move_RTN));
+				
+				if( P_Except_Return_Array(N_Stop_Cathode_Anode_1st_T_Ready_Move_RTN) == 1 )
+				{
+					P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_3rd_Action) = 1;
+				}
+			}
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_3rd_Action) == 1 )
+			{
+				callsub sub.Cathode_Anode_1st_T_Ready_Move_Check(&P_Except_Return_Array(N_Stop_Cathode_Anode_1st_T_Ready_Move_Check_RTN));
+				
+				if( P_Except_Return_Array(N_Stop_Cathode_Anode_1st_T_Ready_Move_Check_RTN) )
+				{
+					Stop_Exe_RTN = N_TRUE;
+				}
+			}
+		break;
+
+		case N_SEQ_CycleStop_No_4:			// 네번째 시퀀스, 양,음극 ng pnp 대기위치
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_4th_Action) == 0 )
+			{
+				callsub sub.Cathode_Anode_NG_PNP_Z_Ready_Move(&P_Except_Return_Array(N_Stop_Cathode_Anode_NG_PNP_Z_Ready_Move_RTN));
+
+				if( P_Except_Return_Array(N_Stop_Cathode_Anode_NG_PNP_Z_Ready_Move_RTN) == 1 )
+				{
+					P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_4th_Action) = 1;
+				}
+			}
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_4th_Action) == 1 )
+			{
+				callsub sub.Cathode_Anode_NG_PNP_Z_Ready_Move_Check(&P_Except_Return_Array(N_Stop_Cathode_Anode_NG_PNP_Z_Ready_Move_Check_RTN));
+
+				if( P_Except_Return_Array(N_Stop_Cathode_Anode_NG_PNP_Z_Ready_Move_Check_RTN) == 1 )
+				{
+					Stop_Exe_RTN = N_TRUE;
+				}
+			}
+		break;
+
+		case N_SEQ_CycleStop_No_5:			// 다섯번째 시퀀스, 양,음극 2차 pnp 대기위치
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_5th_Action) == 0 )
+			{
+				callsub sub.Cathode_Anode_NG_PNP_T_Ready_Move(&P_Except_Return_Array(N_Stop_Cathode_Anode_NG_PNP_T_Ready_Move_RTN));
+
+				if( P_Except_Return_Array(N_Stop_Cathode_Anode_NG_PNP_T_Ready_Move_RTN) == 1 )
+				{
+					P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_5th_Action) = 1;
+				}
+			}
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_5th_Action) == 1 )
+			{
+				callsub sub.Cathode_Anode_NG_PNP_T_Ready_Move_Check(&P_Except_Return_Array(N_Stop_Cathode_Anode_NG_PNP_T_Ready_Move_Check_RTN));
+
+				if( P_Except_Return_Array(N_Stop_Cathode_Anode_NG_PNP_T_Ready_Move_Check_RTN) == 1 )
+				{
+					Stop_Exe_RTN = N_TRUE;
+				}
+			}
+		break;
+
+		case N_SEQ_CycleStop_No_6:			// 여섯번째 시퀀스, 스피드 원복
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_6th_Action) == 0 )
+			{
+				callsub sub.Cathode_Anode_2nd_Z_Ready_Move(&P_Except_Return_Array(N_Stop_Cathode_Anode_2nd_Z_Ready_Move_RTN));
+
+				if( P_Except_Return_Array(N_Stop_Cathode_Anode_2nd_Z_Ready_Move_RTN) == 1 )
+				{
+					P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_6th_Action) = 1;
+				}
+			}
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_6th_Action) == 1 )
+			{
+				callsub sub.Cathode_Anode_2nd_Z_Ready_Move_Check(&P_Except_Return_Array(N_Stop_Cathode_Anode_2nd_Z_Ready_Move_Check_RTN));
+
+				if( P_Except_Return_Array(N_Stop_Cathode_Anode_2nd_Z_Ready_Move_Check_RTN) == 1 )
+				{
+					Stop_Exe_RTN = N_TRUE;
+				}
+			}
+		break;
+
+		case N_SEQ_CycleStop_No_7:			// 일곱번째 시퀀스, 스피드 원복
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_7th_Action) == 0 )
+			{
+				callsub sub.Cathode_Anode_2nd_T_Ready_Move(&P_Except_Return_Array(N_Stop_Cathode_Anode_2nd_T_Ready_Move_RTN));
+
+				if( P_Except_Return_Array(N_Stop_Cathode_Anode_2nd_T_Ready_Move_RTN) == 1 )
+				{
+					P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_7th_Action) = 1;
+				}
+			}
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_7th_Action) == 1 )
+			{
+				callsub sub.Cathode_Anode_2nd_T_Ready_Move_Check(&P_Except_Return_Array(N_Stop_Cathode_Anode_2nd_T_Ready_Move_Check_RTN));
+
+				if( P_Except_Return_Array(N_Stop_Cathode_Anode_2nd_T_Ready_Move_Check_RTN) == 1 )
+				{
+					Stop_Exe_RTN = N_TRUE;
+				}
+			}
+		break;
+
+		case N_SEQ_CycleStop_No_8:
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_8th_Action) == 0 )
+			{
+				callsub sub.Original_Speed(&P_Except_Return_Array(N_Stop_CycleStop_Motor_Original_Speed_RTN));
+				
+				if( P_Except_Return_Array(N_Stop_CycleStop_Motor_Original_Speed_RTN) == 1 )
+				{
+					P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_8th_Action) = 1;
+				}			
+			}
+			if( P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_8th_Action) == 1 )
+			{
+				Stop_Exe_RTN = N_TRUE;
+			}
+		break;
+	}
+return;
+
+
+sub: Last_JellyRoll_Init(void)
+	// [ 참고 : 2025.10.15 미비 사항 추가 건 ]
+	local L_Return = 0;
+
+	// Vision 출력 초기화 구간
+	M_Y_Vision_Anode_Align_Ready = 0;								//	음극 얼라인 비젼 레디 트리거 발생
+	M_Y_Vision_Cathode_Align_Ready = 0;								//	양극 얼라인 비젼 레디 트리거 발생
+	M_Y_Vision_Stack_Ready = 0;										//	스텍 테이블 비젼 레디 트리거 발생	
+	M_Y_Vision_Stack_End_Sheet = 0;									// 스텍 엔드 신호 off
+	M_Y_Vision_Stack_Start_Sheet = 0;								// 스텍 첫장 쌓는 신호 off
+	M_Y_Vision_Stack_EPC_Correction_Trigger = 0;					// EPC 보정 기능_ 스텍 촬상 신호 초기화
+	M_Y_Vision_Stack_Memory_Parsing_Anode = 0;						// 음극 데이터 가져가는 시점 초기화
+	M_Y_Vision_Stack_Memory_Parsing_Cathode = 0;					// 양극 데이터 가져가는 시점 초기화
+
+	// 파이널롤러 클램프 ON 
+	M_Y_FR_Sepa_Clamp_FWD_Sol = 1;									// 파이널롤러 클램프 on 
+	M_Y_FR_Sepa_Clamp_BWD_Sol = 0;									// 파이널롤러 클램프 on
+
+	//M_Y_Sheet_Enable_Flag = 0;									// 극판 준비 신호 off	 
+
+	// 내부 트리거 및 스텟머신 OFF
+	call Discharge_Sub_Prog.Discharge_PackML_Reset(&L_Return);		// 배출 IO 초기화
+	P_Stack_Table_NG_Flag = 0;										// 스텍 테이블 NG Flag 초기화
+
+	// 카운트 갯수 초기화 전 총 생산 갯수에 업데이트
+	P_Jelly_Roll_Total_Count = 0;									// 젤리롤 총 생산량 초기화   
+	P_Cathode_Count = 0;											// 양극 카운트 초기화
+	P_Anode_Count = 0;												// 음극 카운트 초기화
+	P_Jelly_Roll_Prod_Count = 0;									// 극판 카운트 초기화
+	P_Jelly_Roll_OK_Count = 0;
+	P_Jelly_Roll_NG_Count = 0;										// 불량 카운트 초기화
+
+	
+	P_EXECUTE_IsEnable_Firt_Stacking_Flag = 0;						// 처음 쌓는 조건 감시
+	P_PLC12_Continuous_Buffer_Reset_Flag = 1;						// 마지막 공정 시 연속NG버퍼 초기화 플래그 on 
+	P_Status_Clear_Sheet_Maint_Check = 1;							// sheet maint NG 
+return;
+
+close

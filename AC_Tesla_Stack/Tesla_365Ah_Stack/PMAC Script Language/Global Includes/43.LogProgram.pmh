@@ -1,0 +1,86 @@
+
+// [ LogProg 추가 2025.08.07 ]
+
+// 시간 설정 변수 --> PLC에서 받아올 변수
+global P_Log_Data_Y	= 0;
+global P_Log_Data_M	= 0;
+global P_Log_Data_D	= 0;
+global P_Log_Data_H	= 0;
+global P_Log_Data_m	= 0;
+global P_Log_Data_s	= 0;
+
+
+global P_MNTR_End_Index = 0;			// Script에서 char 사용하기 위한 버퍼형 변수
+#define P_BG_CPLC_Running_MNTR				P50
+#define P_RTI_CPLC_Running_MNTR				P51 
+#define P_Log_Start_Flag					P170
+#define P_Log_Document_Remove_Flag			P171
+#define P_Sepa_ID_Change_Flag				P172
+#define P_USB_Register						P173
+#define P_Cur_Line_Check					P175
+#define P_Cur_Line_Check_Init				P176
+
+/* 로그 프로그램 사용 방법
+	1. 시작 인덱스 설정 ( 하단에 있는 Define 증가 )
+	2. Define 증가 시 검색 : [ 로그 갯수 증가 시 꼭 같이 바꿔줘야 하는 디파인 ] 후 갯수 증가
+	3. 아래와 같은 문법으로 사용
+	- 아래 -
+	P_MNTR_End_Index = memset(N_Log_Index_1,0, N_memset_size);
+	P_MNTR_End_Index = sprintf(N_Log_Index_1,"[ 타이핑 ]\n");
+	P_Log_Start_Flag = 1;
+	4. Log 기록 삭제 시 P_Log_Document_Remove_Flag = 1; 
+*/
+
+// Log prog define 
+// Sys.Cdata[200000] 시작. → Sys.Idata[50000]
+// sys.idata[50000] ~ logging memory
+// 20만번지부터~ 로그 프로그램 번지수
+// 로그 갯수가 증가되면 rtiCplc 디파인도 꼭 증가시켜야함 --> 검색 : [ 로그 갯수 증가 시 꼭 같이 바꿔줘야 하는 디파인 ]
+
+#define N_memset_size			50							// 최대 50 50byte
+
+#define N_Log_Index_1			200000 +(N_memset_size * 0)	// 20만번지부터 시작
+#define N_Log_Index_2			200000 +(N_memset_size * 1)	// 200050
+#define N_Log_Index_3			200000 +(N_memset_size * 2)	// 200100
+#define N_Log_Index_4			200000 +(N_memset_size * 3)	// 200150 
+#define N_Log_Index_5			200000 +(N_memset_size * 4)	
+#define N_Log_Index_6			200000 +(N_memset_size * 5)	
+#define N_Log_Index_7			200000 +(N_memset_size * 6)	
+#define N_Log_Index_8			200000 +(N_memset_size * 7)	
+#define N_Log_Index_9			200000 +(N_memset_size * 8)	
+#define N_Log_Index_10			200000 +(N_memset_size * 9)	
+#define N_Log_Index_11			200000 +(N_memset_size * 10)
+#define N_Log_Index_12			200000 +(N_memset_size * 11)
+#define N_Log_Index_13			200000 +(N_memset_size * 12)	
+#define N_Log_Index_14			200000 +(N_memset_size * 13)
+#define N_Log_Index_15			200000 +(N_memset_size * 14)
+#define N_Log_Index_16			200000 +(N_memset_size * 15)	
+#define N_Log_Index_17			200000 +(N_memset_size * 16)
+#define N_Log_Index_18			200000 +(N_memset_size * 17)
+#define N_Log_Index_19			200000 +(N_memset_size * 18)
+#define N_Log_Index_20			200000 +(N_memset_size * 19)
+#define N_Log_Index_21			200000 +(N_memset_size * 20)
+#define N_Log_Index_22			200000 +(N_memset_size * 21)
+#define N_Log_Index_23			200000 +(N_memset_size * 22)
+
+// 로그 갯수가 증가되면 rtiCplc 디파인도 꼭 증가시켜야함 --> 검색 : [ 로그 갯수 증가 시 꼭 같이 바꿔줘야 하는 디파인 ]
+
+
+// Cfrom Script Type 정의
+
+#define	Crank_Cal_type			1 
+
+
+
+global	P_Buffer_Judge_Trg(10);
+P_Buffer_Judge_Trg(0),10,1=0;
+
+
+global P_Hold_Pass = 0;
+
+
+global P_PLC01_Queue_MNTR(15)
+P_PLC01_Queue_MNTR(0),15 = 0;
+
+
+

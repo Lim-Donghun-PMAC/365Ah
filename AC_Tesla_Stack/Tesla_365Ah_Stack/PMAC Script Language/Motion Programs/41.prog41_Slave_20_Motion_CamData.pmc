@@ -1,0 +1,49 @@
+// Rotary Dancer(CamTable Target Motor) FF Control
+// 좌표계 &41
+// 가상축 #61 -> source
+// 가상축 #62 -> target
+
+global P_AN_Cam_Total_Time = P_AN_DR_Ta + P_AN_DR_Tm + P_AN_DR_Ts + P_AN_DR_Td + P_AN_DR_Tsd;
+global P_CA_Cam_Total_Time = P_CA_DR_Ta + P_CA_DR_Tm + P_CA_DR_Ts + P_CA_DR_Td + P_CA_DR_Tsd;
+
+&41
+#61 -> X	// 로터리 댄서 피드포워드 용 가상축(드라이빙 속도를 이용한)
+
+open prog 41
+INC
+LINEAR
+TA(0)TS(0)
+
+while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(15) == 1 && P_Slave_Motion_Program_Flag(15) == 1 )	// D/R가 동작할 때 Rotary Dancer FeedFoward 필요
+{	// 프로그램 허용 플래그
+
+	Switch ( P_Slave20_Motion_Command )
+	{	
+		// 커멘드별 모션
+		case 0:	break;
+		
+		case N_FR_Anode_Move_Motion:  
+	      P_Slave20_Motion_Command == 0;
+  		  tm(P_AN_Cam_Total_Time)
+		  x(P_Cam_Move_Distanse)	
+		  dwell(0)	
+	   break;
+
+	   case N_FR_Cathode_Move_Motion:
+	      P_Slave20_Motion_Command == 0;
+  		  tm(P_CA_Cam_Total_Time)
+		  x(P_Cam_Move_Distanse)	
+		  dwell(0)	
+	   break;
+
+
+	   default :
+			P_Slave15_Motion_Command == 0 //커멘드 초기화.
+			dwell(0)
+	   break;
+
+	}
+	
+}
+
+close

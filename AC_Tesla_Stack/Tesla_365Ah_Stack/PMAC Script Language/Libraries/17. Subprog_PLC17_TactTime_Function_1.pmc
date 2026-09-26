@@ -1,0 +1,64 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+open subprog Tack_Time(void)		// [ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+	sub:Array_Init(void)
+		P_Tact_Time_Stack_Array(0),N_Tact_Time_Num = 0;						// 초기화.
+		P_Tact_Time_Discharge_Array(0),N_Tact_Time_Num = 0;					// 초기화.
+		P_Tact_Time_1st_Unloader_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+		P_Tact_Time_Sepa_ARC_Array(0),N_Tact_Time_Num = 0;					// 초기화.
+		P_Tact_Time_Final_Roll_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+		P_Tact_Time_Cathode_1st_PNP_Array(0),N_Tact_Time_Num = 0;			// 초기화.
+		P_Tact_Time_Cathode_Align_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+		P_Tact_Time_Cathode_2nd_PNP_Array(0),N_Tact_Time_Num = 0;			// 초기화.
+		P_Tact_Time_Cathode_Clamp_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+		P_Tact_Time_Anode_1st_PNP_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+		P_Tact_Time_Anode_Align_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+		P_Tact_Time_Anode_2nd_PNP_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+		P_Tact_Time_Anode_Clamp_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+		P_Tact_Time_Cathode_1st_PNP_Vac_Array(0),N_Tact_Time_Num = 0;		// 초기화.
+		P_Tact_Time_Cathode_Align_PNP_Vac_Array(0),N_Tact_Time_Num = 0;		// 초기화.
+		P_Tact_Time_Cathode_2nd_PNP_Vac_Array(0),N_Tact_Time_Num = 0;		// 초기화.
+		P_Tact_Time_Anode_1st_PNP_Vac_Array(0),N_Tact_Time_Num = 0;			// 초기화.
+		P_Tact_Time_Anode_Align_PNP_Vac_Array(0),N_Tact_Time_Num = 0;		// 초기화.
+		P_Tact_Time_Anode_2nd_PNP_Vac_Array(0),N_Tact_Time_Num = 0;			// 초기화.	
+		P_Tact_Time_Save_Final_Roller_Clamp_Time = 0;						// 초기화.
+		P_Tact_Time_Save_Final_Roller_Unclamp_Time = 0;						// 초기화.
+		P_Tact_Time_Save_Stack_Table_Down_Time = 0;							// 초기화.
+		P_Tact_Time_Save_Stack_Table_Up_Time = 0;							// 초기화.
+		P_Tact_Time_Save_Sepa_Cutting_Down_Time = 0;						// 초기화.
+		P_Tact_Time_Save_Sepa_Cutting_Up_Time = 0;							// 초기화.
+		P_Tact_Time_Save_ARC_Upper_Plate_Up_Time = 0;						// 초기화.
+		P_Tact_Time_Save_ARC_Upper_Plate_Down_Time = 0;						// 초기화.
+		P_Tact_Time_Save_ARC_Upper_Tilting_On_Time = 0;						// 초기화.
+		P_Tact_Time_Save_ARC_Upper_Tilting_Off_Time = 0;					// 초기화.
+		P_Tact_Time_Save_ARC_Upper_Cutter_Fwd_Time = 0;						// 초기화.
+		P_Tact_Time_Save_ARC_Upper_Cutter_Bwd_Time = 0;						// 초기화.
+		P_Tact_Time_Save_ARC_Upper_Clamp_On_Time = 0;						// 초기화.
+		P_Tact_Time_Save_ARC_Upper_Clamp_Off_Time = 0;						// 초기화.
+		P_Tact_Time_Save_ARC_Lower_Plate_Up_Time = 0;						// 초기화.
+		P_Tact_Time_Save_ARC_Lower_Plate_Down_Time = 0;						// 초기화.
+		P_Tact_Time_Save_ARC_Lower_Tilting_On_Time = 0;						// 초기화.
+		P_Tact_Time_Save_ARC_Lower_Tilting_Off_Time = 0;					// 초기화.
+		P_Tact_Time_Save_ARC_Lower_Cutter_Fwd_Time = 0;						// 초기화.
+		P_Tact_Time_Save_ARC_Lower_Cutter_Bwd_Time = 0;						// 초기화.
+		P_Tact_Time_Save_ARC_Lower_Clamp_On_Time = 0;						// 초기화.
+		P_Tact_Time_Save_ARC_Lower_Clamp_Off_Time = 0;						// 초기화.
+	return
+
+	sub:Transmission_Tact_Time(Unit, Unit_Tact_Time)
+		P(Unit+9) = P(Unit+8);
+		P(Unit+8) = P(Unit+7);
+		P(Unit+7) = P(Unit+6);
+		P(Unit+6) = P(Unit+5);
+		P(Unit+5) = P(Unit+4);
+		P(Unit+4) = P(Unit+3);
+		P(Unit+3) = P(Unit+2);
+		P(Unit+2) = P(Unit+1);
+		P(Unit+1) = p(Unit)
+		P(Unit) = Unit_Tact_Time;
+	return
+close

@@ -1,0 +1,71 @@
+//======================================================================================================
+// [ 2025.06.19 추가 ] 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+// 테스트 용 코드
+//Write
+//p8000 ~ p8060모드버스 용 영역
+//p8000 : P_PMAC_Status
+//p8001 : P_Current_Mode
+//p8002 : P_Master_Motion_Trigger
+//p8010 ~ p8060 : P_POS_Data_M(0) ~ P_POS_Data_M(50)
+
+//Read
+//p8100 ~ p8160모드버스 용 영역
+//p8100 : P_PMAC_Status
+//p8101 : P_Current_Mode
+//p8102 : P_Master_Motion_Trigger
+//p8110 ~ p8160 : P_POS_Data_M(0) ~ P_POS_Data_M(50)
+global P_Hold_Pause_Need_Flag = 0;
+global P_Pause_Ready_Flag = 0;
+global P_Pause_Running_Flag = 0 ;
+global P_Resume_Ready_Flag = 0;
+global P_Resume_Start_Flag = 0;
+global P_Hold_Resume_Need_Flag = 0;
+
+#ifdef F_Def_Stack_B
+
+	#define M_Y_A_Site_Heart_Bit						M5014		
+	
+	#define M_X_PLC_Anode_Sheet_Ready2					M4010		// 테스트 변수.
+	#define M_X_PLC_Cathode_Sheet_Ready2				M4011		// 테스트 변수.
+	
+	#define M_X_B_Site_Heart_Bit						M4014		// 하트비트 신화.
+	
+	//M_Y_Pause_Ack_Signal = 1;										// Pause 요청 확인 신호 OFF. [현재 열을 공장 초기화 했을 경우 반대 열은 계속 진행해야 하기 때문에 접점 반대 사용 [ 0 : ON, 1 : OFF ]
+#endif
+
+#ifdef F_Def_Stack_A
+
+	#define M_X_PLC_Anode_Sheet_Ready2					M5010		// 테스트 변수
+	#define M_X_PLC_Cathode_Sheet_Ready2				M5011		// 테스트 변수		
+	
+	#define M_Y_A_Site_Heart_Bit						M5014		// 하트비트 신화.
+	
+	//M_Y_Pause_Ack_Signal = 1;										// Pause 요청 확인 신호 OFF. [현재 열을 공장 초기화 했을 경우 반대 열은 계속 진행해야 하기 때문에 접점 반대 사용 [ 0 : ON, 1 : OFF ]
+#endif
+
+
+global P_Stack_Heart_Bit_Timer;
+global P_Stack_Heart_Bit_Calc = 0;
+global P_Stack_Heart_Bit_Sync_State_Machine = 0;
+
+global P_Pause_Anode_MNTR_Min_Trigger = 40;				// 음극 최소 트리거.
+global P_Pause_Anode_MNTR_Max_Trigger = 42;				// 음극 최대 트리거.
+global P_Pause_Cathode_MNTR_Min_Trigger = 86;			// 양극 최소 트리거.
+global P_Pause_Cathode_MNTR_Max_Trigger = 87;			// 양극 최대 트리거.
+
+global P_Pause_Protect_Variable = 0;					// Pause 재진입 방지 변수.			
+global P_Resume_Protect_Variable = 0;					// Resume 재진입 방지 변수.
+
+// Pause Resume 수정		[ 참조 : 26.07.31 Pause_Resume 수정 ] 
+// 1. 본인 열이 세파모드 일 때 반대 열이 Pause를 걸어도 본인 열은 Pause에 걸리지 않음
+// 1.1 본인 열이 세파모드 일 때 반대 열은 자유롭게 Resume 할 수 있음
+// 2. ARC,EPC Sepa 모드의 경우 세파모드 후 일반모드가 될 때 Starting이 아닌 Execute로 진행
+// 2.2 Starting이 아닌 Execute로 바로 진행 할 경우 MasterTrigger Sync 타이밍이 맞지 않을 수 있어 Sync를 맞춰줌
+global P_Sepa_Mode_Opposite_Resume_Free = 0;			// [1:자유롭게 Resume 가능] 세파 모드 일 경우 반대 열 자유롭게 Resume 할 수 있게 하는 변수. [ 참조 : 26.07.31 Pause_Resume 수정 ] 
+global P_Sepa_To_Normal_Mode_Sync_Flag = 0;				// [커터 전진할 때 켜줌 1:isenable에서 싱크 맞춤] 세파 모드 → 일반 모드가 가능한 세파 모드 일 경우 Execute에서 싱크 맞추기 위한 플래그 변수. [ 참조 : 26.07.31 Pause_Resume 수정 ]
+global P_Sepa_To_Normal_Mode_Sync_Err_Avoid = 0;		// [isenable에서 싱크 맞추기 전 켰다가 싱크 맞춘 후 끔] Execute에서 Sync 진행 시 Error를 피하는 변수.
+

@@ -1,0 +1,139 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.09.01 이상준 선임
+// 레시피 업데이트 프로그램 - [ 참조 : 25.09.01 레시피 업데이트 프로그램 신규 추가 ] 
+
+
+open subprog Sub_Motion_Target_Position(void)
+	//=========================
+	// Slave 1
+	//=========================
+	// #2 음극 1차 PNP T축	
+	P_Anode_1st_T_Belt_To_Align = (P_Recipe_M02_POS(3)/10000)				// 얼라인테이블 위치  
+	P_Anode_1st_T_Align_To_Belt = (P_Recipe_M02_POS(2)/10000)				// 벨트 위치 
+	P_Anode_1st_T_Ready = (P_Recipe_M02_POS(1)/10000)						// 대기위치로 이동 
+	// #18 음극 1차 PNP Z축 
+	P_Recipe_A_1st_Z_Ready_Up = (P_Recipe_M18_POS(1)/10000)					// 대기위치 상승 
+	P_Recipe_A_1st_Z_Ready_Down = (P_Recipe_M18_POS(2)/10000)				// 대기위치 하강 
+	P_Recipe_A_1st_Z_Belt_Up = (P_Recipe_M18_POS(3)/10000)					// 벨트 상승
+	P_Recipe_A_1st_Z_Belt_Down = (P_Recipe_M18_POS(4)/10000)				// 벨트 하강
+	P_Recipe_A_1st_Z_Align_Up = (P_Recipe_M18_POS(5)/10000)					// 얼라인 상승
+	P_Recipe_A_1st_Z_Align_Down = (P_Recipe_M18_POS(6)/10000)				// 얼라인 하강 
+	//=========================
+	// Slave 3
+	//=========================
+	// #4 음극 2차 PNP T축	
+	P_Anode_2st_T_Align_To_Stack = (P_Recipe_M04_POS(2)/10000)		// Stack테이블 위치  
+	P_Anode_2st_T_Stack_To_Align = (P_Recipe_M04_POS(1)/10000)		// Align 위치 
+	// #22 음극 2차 PNP Z축 
+	P_Recipe_A_2st_Z_Align_Up	= (P_Recipe_M22_POS(1)/10000)		// 얼라인상승(대기위치)
+	P_Recipe_A_2st_Z_Align_Down	= (P_Recipe_M22_POS(2)/10000)		// 얼라인하강(대기위치)
+	P_Recipe_A_2st_Z_Stack_Up	= (P_Recipe_M22_POS(3)/10000)		// 스택상승
+	P_Recipe_A_2st_Z_Stack_Down	= (P_Recipe_M22_POS(4)/10000)		// 스택하강
+	P_Recipe_A_2st_Z_Ready_Up    	= (P_Recipe_M22_POS(5)/10000)		// NG회피상승
+	P_Recipe_A_2st_Z_Ready_Down  	= (P_Recipe_M22_POS(6)/10000)		// NG회피하강
+	//=========================
+	// Slave 4
+	//=========================
+	P_Anode_Clamp_Z1_Down = (P_Recipe_M10_POS(4)/10000)
+	//=========================
+	// Slave 5
+	//=========================
+	// Final Roll X축 #12
+	P_Final_Roll_X_Anode_Move = (P_Recipe_M12_POS(2)/10000)					// 음극방향으로 이동
+	P_Final_Roll_X_Cathode_Move = (P_Recipe_M12_POS(3)/10000)					// 양극방향으로 이동	
+	P_Final_Roll_X_Discharge = (P_Recipe_M12_POS(4)/10000)				// 배출위치 이동
+	P_Final_Roll_X_Run_Wait_Pos = (P_Recipe_M12_POS(1)/10000)				// 적층전 대기위치 
+	
+	// Final Roll Z축 #13	
+	P_Final_Roll_Z_Run_Pos = (P_Recipe_M13_POS(2)/10000)					// 파이널롤러 z축 적층 위치로 복귀	
+	P_Final_Roll_Z_Cutting = (P_Recipe_M13_POS(3)/10000)
+	//=========================
+	// Slave 6
+	//=========================
+	// Main_Stack_Table Z축 #11	
+	P_Stack_Table_Z_For_Init = (P_Recipe_M11_POS(1)/10000)					// 대기위치 
+
+	//=========================
+	// Slave 7
+	//=========================
+	P_Cathode_Clamp_Z1_Down = (P_Recipe_M09_POS(4)/10000)					// 극판두께만큼 하강
+	//=========================
+	// Slave 8
+	//=========================
+	// 양극 2차 PNP T축 #3 
+	P_Cathode_2st_T_Align_To_Stack = (P_Recipe_M03_POS(2)/10000)
+	P_Cathode_2st_T_Stack_To_Align = (P_Recipe_M03_POS(1)/10000)
+	// 양극 2차 PNP Z축 #21 
+	P_Recipe_C_2st_Z_Align_Up =	P_Recipe_M21_POS(1);			// 얼라인상승
+	P_Recipe_C_2st_Z_Align_Down = P_Recipe_M21_POS(2);			// 얼라인하강
+	P_Recipe_C_2st_Z_Stack_Up = P_Recipe_M21_POS(3);			// 스택상승
+	P_Recipe_C_2st_Z_Stack_Down = P_Recipe_M21_POS(4);			// 스택하강
+	P_Recipe_C_2st_Z_Ready_Up    = P_Recipe_M21_POS(5);			// 대기 상승
+	P_Recipe_C_2st_Z_Ready_Down  = P_Recipe_M21_POS(6);			// 대기 하강
+	//=========================
+	// Slave 10
+	//=========================
+	// 양극 1차 PNP T축
+	P_Cathode_1st_T_Belt_To_Align = (P_Recipe_M01_POS(3)/10000)				// 얼라인테이블위치
+	P_Cathode_1st_T_Align_To_Belt = (P_Recipe_M01_POS(2)/10000)				// 벨트위치 
+	P_Cathode_1st_T_Ready = (P_Recipe_M01_POS(1)/10000)						// 대기위치&회피위치
+	// #17 양극 1차 PNP Z축 
+	P_Recipe_C_1st_Z_Ready_Up = (P_Recipe_M17_POS(1)/10000)					// 대기위치 상승  
+	P_Recipe_C_1st_Z_Ready_Down = (P_Recipe_M17_POS(2)/10000)				// 대기위치 하강 
+	P_Recipe_C_1st_Z_Belt_Up = (P_Recipe_M17_POS(3)/10000)					// 벨트 상승
+	P_Recipe_C_1st_Z_Belt_Down = (P_Recipe_M17_POS(4)/10000)				// 벨트 하강
+	P_Recipe_C_1st_Z_Align_Up = (P_Recipe_M17_POS(5)/10000)					// 얼라인 상승
+	P_Recipe_C_1st_Z_Align_Down = (P_Recipe_M17_POS(6)/10000)				// 얼라인 하강 
+	//=========================
+	// Slave 11
+	//=========================
+	P_1st_Sheet_Paper_X_BWD = (P_Recipe_M35_POS(2)/10000)					// 1차 시트 페이퍼 X 후진
+	P_1st_Sheet_Paper_X_FWD = (P_Recipe_M35_POS(3)/10000)					// 1차 시트 페이퍼 X 전진
+
+	//=========================
+	// Slave 12
+	//=========================
+	// 양극 NG PNP t축	
+	P_Cathode_NG_T_Align_To_NG = (P_Recipe_M42_POS(1)/10000)				// NG박스이동 
+	P_Cathode_NG_T_NG_To_Align = (P_Recipe_M42_POS(2)/10000)				// Align Table 이동
+	// 양극 NG PNP z축
+	P_Cathode_NG_Z_NG_Up = (P_Recipe_M44_POS(1)/10000)						// NG박스상승(대기상승)	
+	P_Cathode_NG_Z_NG_Down = (P_Recipe_M44_POS(2)/10000)					// NG박스하강(대기하강)
+	P_Cathode_NG_Z_Align_Up = (P_Recipe_M44_POS(3)/10000)					// 얼라인상승
+	P_Cathode_NG_Z_Align_Down = (P_Recipe_M44_POS(4)/10000)					// 얼라인하강		
+	
+	//=========================
+	// Slave 13
+	//=========================
+	// 음극 NG PNP t축	
+	P_Anode_NG_T_Align_To_NG = (P_Recipe_M43_POS(1)/10000)					// NG박스이동 
+	P_Anode_NG_T_NG_To_Align = (P_Recipe_M43_POS(2)/10000)					// Align Table 이동
+	// 음극 NG PNP z축
+	P_Anode_NG_Z_NG_Up = (P_Recipe_M45_POS(1)/10000)						// NG박스상승
+	P_Anode_NG_Z_NG_Down = (P_Recipe_M45_POS(2)/10000)						// NG박스하강
+	P_Anode_NG_Z_Align_Up = (P_Recipe_M45_POS(3)/10000)						// 얼라인상승
+	P_Anode_NG_Z_Align_Down = (P_Recipe_M45_POS(4)/10000)					// 얼라인하강 
+	 	 
+	//=========================
+	// Slave 14
+	//=========================
+	// 1st ULD x축
+	P_1st_ULD_X_Target_BWD = (P_Recipe_M46_POS(1)/10000)					// 언로더 후진 
+	P_1st_ULD_X_FWD = (P_Recipe_M46_POS(2)/10000)							// 1차언로더 진입 
+	// 셀그립 
+	// 셀배출 
+	// 1st ULD z축
+	P_1st_ULD_Z_Stack = (P_Recipe_M47_POS(4)/10000)							// 1차언로더 스택위치 상승
+	P_1st_ULD_Z_Discharge_For_Cell = (P_Recipe_M47_POS(6)/10000)			// 언로더 그립 후 후진을 위한 위치
+	P_1st_ULD_Z_Cutting_For_Cell = (P_Recipe_M47_POS(5)/10000)				// 언로더 그립 전 셀 부착 위치
+	// 1st ULD T축 
+	P_1st_ULD_T_Ready = (P_Recipe_M48_POS(1)/10000)							// 대기위치 
+	P_1st_ULD_T_Discharge = (P_Recipe_M48_POS(2)/10000)						// 배출위치
+	P_1st_ULD_T_Avoid = (P_Recipe_M48_POS(3)/10000)							// 회피위치 
+
+close
+
+
+

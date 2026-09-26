@@ -1,0 +1,421 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.11.17 
+// 데이터 시프트 미비사항 보완 - [ 참조 : 25.11.17 데이터 시프트 미비사항 보완 ]
+
+// 음극 모션 플래그
+global	P_Anode_1st_TR_Belt_Down_Flag = 0;					// 음극 1차 P&P 벨트 하강 플래그
+global	P_Anode_1st_TR_Belt_Pick_Up_Flag = 0;				// 음극 1차 P&P 벨트 픽업 플래그
+global	P_Anode_1st_TR_Align_Down_Flag = 0;					// 음극 1차 P&P 얼라인 하강 플래그
+global	P_Anode_2nd_TR_Align_Pick_Up_Flag = 0;				// 음극 2차 P&P 얼라인 픽업 플래그
+global	P_Anode_2nd_TR_Stack_Down_Flag = 0;					// 음극 2차 P&P 스텍 하강 플래그
+global	P_Anode_NG_TR_Align_Pick_Up_Flag = 0;				// 음극 NG P&P 얼라인 픽업 플래그
+global	P_Anode_NG_TR_NG_Place_Down_Flag = 0;				// 음극 NG P&P NG 플레이스 하강 플래그
+global	P_Anode_2nd_TR_Align_Down_Flag = 0;					// 음극 2차 P&P 얼라인 하강 플래그
+global	P_Anode_1st_TR_Align_Pick_Up_Flag = 0;				// 음극 1차 P&P 얼라인 픽업 플래그
+
+global P_Anode_1st_TR_Belt_Down_State_Machine = 0;			// 음극 1차 P&P 벨트 하강 스테이트 머신
+global P_Anode_1st_TR_Belt_Down_Status = 0;					// 음극 1차P&P 벨트 하강 스테이트 머신 상태
+
+global P_Anode_1st_TR_Belt_Pick_Up_State_Machine = 0;		// 음극 1차 P&P 벨트 픽업 스테이트 머신
+global P_Anode_1st_TR_Belt_Pick_Up_Status = 0;				// 음극 1차 P&P 벨트 픽업 스테이트 머신 상태
+
+global P_Anode_1st_TR_Align_Down_State_Machine = 0;			// 음극 1차 P&P 얼라인 하강 스테이트 머신
+global P_Anode_1st_TR_Align_Down_Status = 0;				// 음극 1차 P&P 얼라인 하강 스테이트 머신 상태
+
+global P_Anode_2nd_TR_Align_Pick_Up_State_Machine = 0;		// 음극 2차 P&P 얼라인 픽업 스테이트 머신
+global P_Anode_2nd_TR_Align_Pick_Up_Status = 0;				// 음극 2차 P&P 얼라인 픽업 스테이트 머신 상태
+
+global P_Anode_2nd_TR_Stack_Down_State_Machine = 0;			// 음극 2차 P&P 스텍 하강 스테이트 머신
+global P_Anode_2nd_TR_Stack_Down_Status = 0;				// 음극 2차 P&P 스텍 하강 스테이트 머신 상태
+
+global P_Anode_NG_TR_Align_Pick_Up_State_Machine = 0;		// 음극 NG P&P 얼라인 픽업 스테이트 머신
+global P_Anode_NG_TR_Align_Pick_Up_Status = 0;				// 음극 NG P&P 얼라인 픽업 스테이트 머신 상태
+
+global P_Anode_NG_TR_NG_Place_Down_State_Machine = 0;		// 음극 NG P&P NG 플레이스 하강 스테이트 머신
+global P_Anode_NG_TR_NG_Place_Down_Status = 0;				// 음극 NG P&P NG 플레이스 하강 스테이트 머신 상태
+
+global P_Anode_2nd_TR_Align_Down_State_Machine = 0;			// 음극 2차 P&P 얼라인 하강 스테이트 머신
+global P_Anode_2nd_TR_Align_Down_Status = 0;				// 음극 2차 P&P 얼라인 하강 스테이트 머신 상태
+
+global P_Anode_1st_TR_Align_Pick_Up_State_Machine = 0;		// 음극 1차 P&P 얼라인 픽업 스테이트 머신
+global P_Anode_1st_TR_Align_Pick_Up_Status = 0;				// 음극 1차 P&P 얼라인 픽업 스테이트 머신 상태
+
+
+// 양극 모션 플래그
+global	P_Cathode_1st_TR_Belt_Down_Flag = 0;				// 1차 P&P 벨트 하강 플래그
+global	P_Cathode_1st_TR_Belt_Pick_Up_Flag = 0;				// 1차 P&P 벨트 상승 플래그
+global	P_Cathode_1st_TR_Align_Down_Flag = 0;				// 1차 P&P 얼라인 하강 플래그
+global	P_Cathode_2nd_TR_Align_Pick_Up_Flag = 0;			// 2차 P&P 얼라인 픽업 플래그
+global	P_Cathode_2nd_TR_Stack_Down_Flag = 0;				// 2차 P&P 스텍 하강 플래그
+global	P_Cathode_NG_TR_Align_Pick_Up_Flag = 0;				// NG P&P 얼라인 픽업 플래그
+global	P_Cathode_NG_TR_NG_Place_Down_Flag = 0;				// NG P&P NG 플레이스 하강 플래그
+global	P_Cathode_2nd_TR_Align_Down_Flag = 0;				// 2차 P&P 얼라인 하강 플래그
+global	P_Cathode_1st_TR_Align_Pick_Up_Flag = 0;			// 1차 P&P 얼라인 픽업 플래그
+
+global P_Cathode_1st_TR_Belt_Down_State_Machine = 0;		// 1차 P&P 벨트 하강 스테이트 머신
+global P_Cathode_1st_TR_Belt_Down_Status = 0;				// 1차 P&P 벨트 하강 스테이트 머신 상태
+
+global P_Cathode_1st_TR_Belt_Pick_Up_State_Machine = 0;		// 1차 P&P 벨트 픽업 스테이트 머신
+global P_Cathode_1st_TR_Belt_Pick_Up_Status = 0;			// 1차 P&P 벨트 픽업 스테이트 머신 상태
+
+global P_Cathode_1st_TR_Align_Down_State_Machine = 0;		// 1차 P&P 얼라인 하강 스테이트 머신
+global P_Cathode_1st_TR_Align_Down_Status = 0;				// 1차 P&P 얼라인 하강 스테이트 머신 상태 
+
+global P_Cathode_2nd_TR_Align_Pick_Up_State_Machine = 0;	// 2차 P&P 얼라인 픽업 스테이트 머신
+global P_Cathode_2nd_TR_Align_Pick_Up_Status = 0;			// 2차 P&P 얼라인 픽업 스테이트 머신 상태
+
+global P_Cathode_2nd_TR_Stack_Down_State_Machine = 0;		// 2차 P&P 스텍 하강 스테이트 머신
+global P_Cathode_2nd_TR_Stack_Down_Status = 0;				// 2차 P&P 스텍 하강 스테이트 머신
+
+global P_Cathode_NG_TR_Align_Pick_Up_State_Machine = 0;		// NG P&P 얼라인 픽업 스테이트 머신
+global P_Cathode_NG_TR_Align_Pick_Up_Status = 0;			// NG P&P 얼라인 픽업 스테이트 머신 상태
+
+
+global P_Cathode_NG_TR_NG_Place_Down_State_Machine = 0;		// NG P&P NG 플레이스 하강 스테이트 머신
+global P_Cathode_NG_TR_NG_Place_Down_Status = 0;		// NG P&P NG 플레이스 하강 스테이트 머신 상태
+
+
+global P_Cathode_2nd_TR_Align_Down_State_Machine = 0;		// 2차 P&P 얼라인 하강 스테이트 머신
+global P_Cathode_2nd_TR_Align_Down_Status = 0;				// 2차 P&P 얼라인 하강 스테이트 머신 상태
+
+global P_Cathode_1st_TR_Align_Pick_Up_State_Machine = 0;	// 1차 P&P 얼라인 픽업 스테이트 머신
+global P_Cathode_1st_TR_Align_Pick_Up_Status = 0;			// 1차 P&P 얼라인 픽업 스테이트 머신 상태
+
+
+global P_Old_Anode_Belt_ASCII = 0;							// 음극 이전 Belt 데이터
+global P_Old_Cathode_Belt_ASCII = 0;						// 양극 이전 Belt 데이터
+
+global P_Anode_Belt_ASCII = 0;								// 음극 Belt 데이터
+global P_Cathode_Belt_ASCII = 0;							// 양극 Belt 데이터
+
+global P_Check_Vac_Time = 300;								// 데이터 이동 확인 시간
+
+// PLC에 MES NG 코드 보고 후 타이밍 확인 용
+global	P_Send_Anode_NG_Code_To_PLC = 0;
+global	P_Receive_Anode_NG_Code_From_PLC = 0;				//음극 NG코드 (PLC->PPMAC)[하위비트]
+global	P_Send_Cathode_NG_Code_To_PLC = 0;
+global	P_Receive_Cathode_NG_Code_From_PLC = 0;				//양극 NG코드 (PLC->PPMAC)[하위비트]
+
+
+global P_Current_Cell_Memory_Anode_1P = 0;					// 현재 극판위치 표시 
+global P_Current_Cell_Memory_Anode_AT = 0;					// 현재 극판위치 표시 
+global P_Current_Cell_Memory_Anode_2P = 0;					// 현재 극판위치 표시
+global P_Current_Cell_Memory_Cathode_1P = 0;				// 현재 극판위치 표시 
+global P_Current_Cell_Memory_Cathode_AT = 0;				// 현재 극판위치 표시 
+global P_Current_Cell_Memory_Cathode_2P = 0;				// 현재 극판위치 표시 
+global P_Current_Cell_Memory_Stack_Table = 0;				// 현재 극판위치 표시 (스텍 테이블 램프)
+global P_Current_Cell_Memory_Cathode_NG_TR = 0;				// 현재 극판위치 표시 (양극 NG TR 램프)
+global P_Current_Cell_Memory_Anode_NG_TR = 0;				// 현재 극판위치 표시 (음극 NG TR 램프)
+
+// 극판데이터 제거 버튼
+global P_BTN_Anode_1st_TR_Buffer_Clear = 0;
+global P_BTN_Anode_2nd_TR_Buffer_Clear = 0;
+global P_BTN_Anode_Align_Buffer_Clear = 0;
+global P_BTN_Anode_NG_TR_Buffer_Clear = 0;
+global P_BTN_Cathode_1st_TR_Buffer_Clear = 0;
+global P_BTN_Cathode_2nd_TR_Buffer_Clear = 0;
+global P_BTN_Cathode_Align_Buffer_Clear = 0;
+global P_BTN_Cathode_NG_TR_Buffer_Clear = 0;
+
+global P_Old_BTN_Anode_1st_TR_Buffer_Clear = 0;
+global P_Old_BTN_Anode_2nd_TR_Buffer_Clear = 0;
+global P_Old_BTN_Anode_Align_Buffer_Clear = 0;
+global P_Old_BTN_Anode_NG_TR_Buffer_Clear = 0; 
+global P_Old_BTN_Cathode_1st_TR_Buffer_Clear = 0;
+global P_Old_BTN_Cathode_2nd_TR_Buffer_Clear = 0;
+global P_Old_BTN_Cathode_Align_Buffer_Clear = 0;
+global P_Old_BTN_Cathode_NG_TR_Buffer_Clear = 0;
+
+
+// MES NG 코드 보고용 플래그
+global P_Send_Anode_NG_Code_Flag = 0;
+global P_Send_Cathode_NG_Code_Flag = 0;
+
+global P_Anode_Vision_NG_To_PLC_Flag = 0;
+//global P_Anode_Surface_NG_To_PLC_Flag = 0;
+
+global P_Cathode_Vision_NG_To_PLC_Flag = 0;
+//global P_Cathode_Surface_NG_To_PLC_Flag = 0;
+
+#define N_NG_Data_Shift_Delay_Time			300
+
+// Status clear 체크 변수
+global P_Status_Clear_Sheet_Maint_Check = 0;
+
+
+#define N_Sheet_Data_Buffer_Size			56
+
+//#define N_Sheet_Data_PMAC_Belt				0
+#define N_Sheet_Data_1st_TR					0
+#define N_Sheet_Data_Align_Table_Vision		7
+#define N_Sheet_Data_Align_Table			14
+#define N_Sheet_Data_2nd_TR					21
+#define N_Sheet_Data_Stack_Table			28
+#define N_Sheet_Data_NG_TR					35
+#define N_Sheet_Data_NG_Place				42
+#define N_Sheet_Data_Before_NG_Place		49
+
+// [1] PLC10 - 세파 Host ID  포인팅
+// 젤리롤 정보
+/* 
+	0-9		: 셀 아이디											Sys.Udata[20252] - Sys.Udata[20256]
+	10		: 드라이런 : 0 , 세파모드 : 1, 일반 : 2				u.user:$013C84.00.16   젤리롤 적층, 세파모드, 드라이런
+	11(A)	: 젤리롤 결과 OK : 1 / NG : 2						u.user:$013C84.16.16   A열 젤리롤 결과(정상, NG,)
+	12(B)	: 젤리롤 결과 OK : 1 / NG : 2						u.user:$013C88.00.16   B열 젤리롤 결과(정상, NG,)
+	13		: Sample Type (loss : 1, qc : 2)					u.user:$013C88.16.16   샘플 타입(qc 또는 loss)
+	14(A)	: NG 종류 3가지 (완적층 : 1, 중간배출 : 2, 세파 : 3)	u.user:$013C8C.00.16   A열 NG 타입(완젤리롤, 중간배출, 세파)
+	15(B)	: NG 종류 3가지 (완적층 : 1, 중간배출 : 2, 세파 : 3)	u.user:$013C8C.16.16   B열 NG 타입(완젤리롤, 중간배출, 세파)
+	16-17	: 정상 배출시 젤리롤 두께								Sys.Udata[20260]
+	18-19	: 중간 배출시 젤리롤 두께								Sys.Udata[20261]
+*/
+ptr	M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(10)->*;					// 기존 : P_Stack_Work_Host_1;
+M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(0)->Sys.Udata[20252];		// Sheet 1,	 Sheet 2	// Sheet 3,	 Sheet 4	
+M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(1)->Sys.Udata[20253];		// Sheet 5,	 Sheet 6	// Sheet 7,	 Sheet 8
+M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(2)->Sys.Udata[20254];		// Sheet 9,	 Sheet 10	// Sheet 11, Sheet 12
+M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(3)->Sys.Udata[20255];		// Sheet 13, Sheet 14	// Sheet 15, Sheet 16
+M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(4)->Sys.Udata[20256];		// Sheet 17, Sheet 18	// Sheet 19, Sheet 20
+M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(5)->Sys.Udata[20257];		// u.user:$013C84.00.16 (M_Stack_Host_ID_Buffer_Mode)  , u.user:$013C84.16.16 (M_Stack_Host_ID_JR_Result)
+M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(6)->Sys.Udata[20258];		// u.user:$013C88.00.16 (M_Stack_Host_ID_JR_Result) , u.user:$013C88.16.16 (M_Stack_Host_ID_Sample_Type)
+M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(7)->Sys.Udata[20259];		// u.user:$013C8C.00.16 (M_Stack_Host_ID_NG_Type)  , u.user:$013C8C.16.16 (M_Stack_Host_ID_NG_Type)
+M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(8)->Sys.Udata[20260];		// Sys.Udata[20260]
+M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(9)->Sys.Udata[20261];		// Sys.Udata[20261]
+
+// 젤리롤 결과 정보 
+ptr M_Stack_Host_ID_Buffer_Mode->u.user:$013C84.00.16;		// 젤리롤 적층, 세파모드, 드라이런
+ptr M_Stack_Host_ID_Sample_Type->u.user:$013C88.16.16;		// 샘플 타입(qc 또는 loss)
+#ifdef F_Def_Stack_A
+	ptr M_Stack_Host_ID_JR_Result->u.user:$013C84.16.16;	// A열 젤리롤 결과(정상, NG,)
+	ptr M_Stack_Host_ID_NG_Type->u.user:$013C8C.00.16;		// A열 NG 타입(완젤리롤, 중간배출, 세파)
+#else
+	ptr M_Stack_Host_ID_JR_Result->u.user:$013C88.00.16;	// B열 젤리롤 결과(정상, NG,)
+	ptr M_Stack_Host_ID_NG_Type->u.user:$013C8C.16.16;		// B열 NG 타입(완젤리롤, 중간배출, 세파)
+#endif
+
+
+//Read
+// 세파 Host ID  
+ptr	M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(7)->*;	 // 기존 : P_Read_Stack_Work_Host_1;
+M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(0)->Sys.Udata[10016];	// Sheet 1,	 Sheet 2	// Sheet 3,	 Sheet 4	
+M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(1)->Sys.Udata[10017];	// Sheet 5,	 Sheet 6	// Sheet 7,	 Sheet 8
+M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(2)->Sys.Udata[10018];	// Sheet 9,	 Sheet 10	// Sheet 11, Sheet 12
+M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(3)->Sys.Udata[10019];	// Sheet 13, Sheet 14	// Sheet 15, Sheet 16
+M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(4)->Sys.Udata[10020];	// Sheet 17, Sheet 18	// Sheet 19, Sheet 20
+//M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(5)->Sys.Udata[10021];	// Sheet 21, Sheet 22	// Sheet 23, Sheet 24
+//M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(6)->Sys.Udata[10022];	// Sheet 25, Sheet 26	// Sheet 27, Sheet 28
+
+// 언로더 1st Host ID
+//ptr M_ASCII_Uloader_1st_Host_ID_Buffer(7)->*
+// 1st 언로더 2025.12.02 추가 PLC <-> PMAC 
+ptr M_ASCII_Uloader_1st_Host_ID_Buffer(10)->*
+M_ASCII_Uloader_1st_Host_ID_Buffer(0)->Sys.Udata[20264];
+M_ASCII_Uloader_1st_Host_ID_Buffer(1)->Sys.Udata[20265];
+M_ASCII_Uloader_1st_Host_ID_Buffer(2)->Sys.Udata[20266];
+M_ASCII_Uloader_1st_Host_ID_Buffer(3)->Sys.Udata[20267];
+M_ASCII_Uloader_1st_Host_ID_Buffer(4)->Sys.Udata[20268];
+M_ASCII_Uloader_1st_Host_ID_Buffer(5)->Sys.Udata[20269];		
+M_ASCII_Uloader_1st_Host_ID_Buffer(6)->Sys.Udata[20270];		
+M_ASCII_Uloader_1st_Host_ID_Buffer(7)->Sys.Udata[20271];		
+M_ASCII_Uloader_1st_Host_ID_Buffer(8)->Sys.Udata[20272];		
+M_ASCII_Uloader_1st_Host_ID_Buffer(9)->Sys.Udata[20273];		
+
+ptr M_ASCII_Anode_Sheet_Belt_Buffer(7)->*
+M_ASCII_Anode_Sheet_Belt_Buffer(0)->Sys.Udata[20000];
+M_ASCII_Anode_Sheet_Belt_Buffer(1)->Sys.Udata[20001];
+M_ASCII_Anode_Sheet_Belt_Buffer(2)->Sys.Udata[20002];
+M_ASCII_Anode_Sheet_Belt_Buffer(3)->Sys.Udata[20003];
+M_ASCII_Anode_Sheet_Belt_Buffer(4)->Sys.Udata[20004];
+M_ASCII_Anode_Sheet_Belt_Buffer(5)->Sys.Udata[20005];
+M_ASCII_Anode_Sheet_Belt_Buffer(6)->Sys.Udata[20006];
+// Anode
+ptr M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Buffer_Size)->*
+
+//// 1. PMAC Belt Buffer
+//M_ASCII_Anode_Sheet_Buffer(0)->Sys.Udata[45000];
+//M_ASCII_Anode_Sheet_Buffer(1)->Sys.Udata[45001];
+//M_ASCII_Anode_Sheet_Buffer(2)->Sys.Udata[45002];
+//M_ASCII_Anode_Sheet_Buffer(3)->Sys.Udata[45003];
+//M_ASCII_Anode_Sheet_Buffer(4)->Sys.Udata[45004];
+//M_ASCII_Anode_Sheet_Buffer(5)->Sys.Udata[45005];
+//M_ASCII_Anode_Sheet_Buffer(6)->Sys.Udata[45006];
+
+// 2. 1st P&P Buffer
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_1st_TR)->Sys.Udata[20007];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_1st_TR + 1)->Sys.Udata[20008];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_1st_TR + 2)->Sys.Udata[20009];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_1st_TR + 3)->Sys.Udata[20010];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_1st_TR + 4)->Sys.Udata[20011];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_1st_TR + 5)->Sys.Udata[20012];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_1st_TR + 6)->Sys.Udata[20013];
+
+// 3. Align Table Buffer(Vision)
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision)->Sys.Udata[20014];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision + 1)->Sys.Udata[20015];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision + 2)->Sys.Udata[20016];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision + 3)->Sys.Udata[20017];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision + 4)->Sys.Udata[20018];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision + 5)->Sys.Udata[20019];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision + 6)->Sys.Udata[20020];
+
+// 4. Align Table Buffer(PLC)
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table)->Sys.Udata[20021];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table + 1)->Sys.Udata[20022];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table + 2)->Sys.Udata[20023];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table + 3)->Sys.Udata[20024];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table + 4)->Sys.Udata[20025];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table + 5)->Sys.Udata[20026];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Align_Table + 6)->Sys.Udata[20027];
+
+// 5. 2nd P&P Buffer
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_2nd_TR)->Sys.Udata[20028];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_2nd_TR + 1)->Sys.Udata[20029];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_2nd_TR + 2)->Sys.Udata[20030];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_2nd_TR + 3)->Sys.Udata[20031];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_2nd_TR + 4)->Sys.Udata[20032];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_2nd_TR + 5)->Sys.Udata[20033];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_2nd_TR + 6)->Sys.Udata[20034];
+
+// 6. Stack Table Buffer
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Stack_Table)-> Sys.Udata[20035];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Stack_Table + 1)-> Sys.Udata[20036];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Stack_Table + 2)-> Sys.Udata[20037];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Stack_Table + 3)-> Sys.Udata[20038];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Stack_Table + 4)-> Sys.Udata[20039];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Stack_Table + 5)-> Sys.Udata[20040];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Stack_Table + 6)-> Sys.Udata[20041];
+
+// 7. NG P&P Buffer
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_TR)-> Sys.Udata[20042];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_TR + 1)-> Sys.Udata[20043];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_TR + 2)-> Sys.Udata[20044];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_TR + 3)-> Sys.Udata[20045];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_TR + 4)-> Sys.Udata[20046];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_TR + 5)-> Sys.Udata[20047];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_TR + 6)-> Sys.Udata[20048];
+
+// 8. NG Place Buffer
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_Place)-> Sys.Udata[20049];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_Place + 1)-> Sys.Udata[20050];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_Place + 2)-> Sys.Udata[20051];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_Place + 3)-> Sys.Udata[20052];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_Place + 4)-> Sys.Udata[20053];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_Place + 5)-> Sys.Udata[20054];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_NG_Place + 6)-> Sys.Udata[20055];
+
+// 9. NG Place Before Buffer
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place)->Sys.Udata[20056];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place + 1)->Sys.Udata[20057];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place + 2)->Sys.Udata[20058];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place + 3)->Sys.Udata[20059];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place + 4)->Sys.Udata[20060];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place + 5)->Sys.Udata[20061];
+M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place + 6)->Sys.Udata[20062];
+
+
+
+// Cathode
+
+ptr M_ASCII_Cathode_Sheet_Belt_Buffer(7)->*
+// 1. PMAC Belt Buffer
+M_ASCII_Cathode_Sheet_Belt_Buffer(0)->Sys.Udata[20112];
+M_ASCII_Cathode_Sheet_Belt_Buffer(1)->Sys.Udata[20113];
+M_ASCII_Cathode_Sheet_Belt_Buffer(2)->Sys.Udata[20114];
+M_ASCII_Cathode_Sheet_Belt_Buffer(3)->Sys.Udata[20115];
+M_ASCII_Cathode_Sheet_Belt_Buffer(4)->Sys.Udata[20116];
+M_ASCII_Cathode_Sheet_Belt_Buffer(5)->Sys.Udata[20117];
+M_ASCII_Cathode_Sheet_Belt_Buffer(6)->Sys.Udata[20118];
+
+ptr M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Buffer_Size)->*
+// 2. 1st P&P Buffer
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_1st_TR)->Sys.Udata[20119];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_1st_TR + 1)->Sys.Udata[20120];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_1st_TR + 2)->Sys.Udata[20121];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_1st_TR + 3)->Sys.Udata[20122];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_1st_TR + 4)->Sys.Udata[20123];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_1st_TR + 5)->Sys.Udata[20124];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_1st_TR + 6)->Sys.Udata[20125];
+
+// 3. Align Table Buffer(Vision)
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision)->Sys.Udata[20126];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision + 1)->Sys.Udata[20127];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision + 2)->Sys.Udata[20128];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision + 3)->Sys.Udata[20129];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision + 4)->Sys.Udata[20130];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision + 5)->Sys.Udata[20131];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table_Vision + 6)->Sys.Udata[20132];
+
+// 4. Align Table Buffer(PLC)
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table)->Sys.Udata[20133];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table + 1)->Sys.Udata[20134];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table + 2)->Sys.Udata[20135];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table + 3)->Sys.Udata[20136];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table + 4)->Sys.Udata[20137];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table + 5)->Sys.Udata[20138];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Align_Table + 6)->Sys.Udata[20139];
+
+// 5. 2nd P&P Buffer
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_2nd_TR)->Sys.Udata[20140];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_2nd_TR + 1)->Sys.Udata[20141];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_2nd_TR + 2)->Sys.Udata[20142];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_2nd_TR + 3)->Sys.Udata[20143];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_2nd_TR + 4)->Sys.Udata[20144];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_2nd_TR + 5)->Sys.Udata[20145];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_2nd_TR + 6)->Sys.Udata[20146];
+
+// 6. Stack Table Buffer
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Stack_Table)-> Sys.Udata[20147];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Stack_Table + 1)-> Sys.Udata[20148];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Stack_Table + 2)-> Sys.Udata[20149];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Stack_Table + 3)-> Sys.Udata[20150];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Stack_Table + 4)-> Sys.Udata[20151];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Stack_Table + 5)-> Sys.Udata[20152];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Stack_Table + 6)-> Sys.Udata[20153];
+
+// 7. NG P&P Buffer
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_TR)-> Sys.Udata[20154];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_TR + 1)-> Sys.Udata[20155];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_TR + 2)-> Sys.Udata[20156];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_TR + 3)-> Sys.Udata[20157];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_TR + 4)-> Sys.Udata[20158];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_TR + 5)-> Sys.Udata[20159];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_TR + 6)-> Sys.Udata[20160];
+
+// 8. NG Place Buffer
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_Place)-> Sys.Udata[20161];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_Place + 1)-> Sys.Udata[20162];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_Place + 2)-> Sys.Udata[20163];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_Place + 3)-> Sys.Udata[20164];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_Place + 4)-> Sys.Udata[20165];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_Place + 5)-> Sys.Udata[20166];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_NG_Place + 6)-> Sys.Udata[20167];
+
+// 9. NG Place Before Buffer
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place)->Sys.Udata[20168];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place + 1)->Sys.Udata[20169];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place + 2)->Sys.Udata[20170];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place + 3)->Sys.Udata[20171];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place + 4)->Sys.Udata[20172];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place + 5)->Sys.Udata[20173];
+M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_Before_NG_Place + 6)->Sys.Udata[20174];
+
+// 첫장, 마지막 장
+
+ptr M_ASCII_First_Sheet_Buffer(7)->*
+M_ASCII_First_Sheet_Buffer(0)->Sys.Udata[20224];
+M_ASCII_First_Sheet_Buffer(1)->Sys.Udata[20225];
+M_ASCII_First_Sheet_Buffer(2)->Sys.Udata[20226];
+M_ASCII_First_Sheet_Buffer(3)->Sys.Udata[20227];
+M_ASCII_First_Sheet_Buffer(4)->Sys.Udata[20228];
+M_ASCII_First_Sheet_Buffer(5)->Sys.Udata[20229];
+M_ASCII_First_Sheet_Buffer(6)->Sys.Udata[20230];
+
+ptr M_ASCII_Last_Sheet_Buffer(7)->*
+M_ASCII_Last_Sheet_Buffer(0)->Sys.Udata[20231];
+M_ASCII_Last_Sheet_Buffer(1)->Sys.Udata[20232];
+M_ASCII_Last_Sheet_Buffer(2)->Sys.Udata[20233];
+M_ASCII_Last_Sheet_Buffer(3)->Sys.Udata[20234];
+M_ASCII_Last_Sheet_Buffer(4)->Sys.Udata[20235];
+M_ASCII_Last_Sheet_Buffer(5)->Sys.Udata[20236];
+M_ASCII_Last_Sheet_Buffer(6)->Sys.Udata[20237];
+

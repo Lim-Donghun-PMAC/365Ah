@@ -1,0 +1,185 @@
+//==========================================================================================================================================================================================================================================
+// ALL Home Management Program 	
+//==========================================================================================================================================================================================================================================
+//==========================================================================================================================================================================================================================================
+// 프로그램 개정이력
+//==========================================================================================================================================================================================================================================
+// 25.06.30 이상준 S 
+// 전체 홈 Management 내 단계별 정리 ↓↓↓
+// initialize -> SKIP 단계 -> 동작명령단계 -> 동작체크단계 -> 그룹체크단계 -> 홈 종료단계 
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 전체 홈 정지 Management 내 단계별 정리 ↓↓↓
+// 동작 여부가 존재하는 전체 홈 스텟머신단계에서 실행 중이 었는지 체크단계 -> 각 멤버의 타입을 보고 정지 -> 각멤버들의 타입을 보고 동작 정지체크 -> 종료 
+// [ 참조 : 2025.07.23 홈 프로그램 추가 ] 
+/*
+open subprog Sub_All_Home_Module(void)
+
+//==========================================================================================================================================================================================================================================
+// 01. 전체 홈 Management 
+//==========================================================================================================================================================================================================================================
+	sub:Management(&rtn)
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// initialize
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		rtn = 0;				// 리턴값 초기화 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 실행부 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		switch( P_AH_Management_State_Machine )						
+		{	
+			case N_AH_Initialize_Step:// initialize		[ N_AH_Initialize_Step : 1 ]			
+				P_AH_Group_Target_Update = 0; 																						 // 그룹동작정보 업데이트 리턴값 초기화 
+				P_AH_Group_Type_Update = 0;																							 // 그룹타입정보 업데이트 리턴값 초기화 	
+				P_AH_Group_Action_CHK_Time_Update = 0;																				 // 그룹타임아웃정보 업데이트 리턴값 초기화 	
+				P_AH_Group_Action_Stop_CHK_Time_Update = 0;																			 // 그룹동작정지 타임아웃정보 업데이트 리턴값 초기화 				
+				call Sub_All_Home_Action_Module.Group_Action_Target_Update(P_AH_Group_Cur_Num,&P_AH_Group_Target_Update)			 // 그룹 (전체 홈 맴버별 동작 타겟 번호)업데이트
+				call Sub_All_Home_Action_Module.Group_Action_Type_Update(P_AH_Group_Cur_Num,&P_AH_Group_Type_Update)				 // 그룹 (전체 홈 맴버별 동작 타입 번호)업데이트
+				call Sub_All_Home_Action_Module.Group_Action_CHK_Time_Update(P_AH_Group_Cur_Num,&P_AH_Group_Action_CHK_Time_Update)	 // 그룹 (전체 홈 맴버별 타임아웃 )업데이트
+				call Sub_All_Home_Action_Module.Group_Action_Stop_CHK_Time_Update(P_AH_Group_Cur_Num,&P_AH_Group_Action_Stop_CHK_Time_Update)	 // 그룹 (전체 홈 정지 맴버별 타임아웃 )업데이트
+				if( P_AH_Group_Target_Update & P_AH_Group_Type_Update & P_AH_Group_Action_CHK_Time_Update & P_AH_Group_Action_Stop_CHK_Time_Update)
+				{				
+						P_AH_Management_State_Machine = N_AH_Initialize_Step_2;														 // 전체 홈 SKIP단계로 이동 
+				}
+			break; 
+			
+			case N_AH_Initialize_Step_2:// SKIP 단계		[ N_AH_Initialize_Step_2 : 2 ]
+				// 전체홈 초기단계에서 호출 ( Group바뀐 후 정보 업데이트 이후 )
+				call Sub_All_Home_Action_Module.Skip_Member_CHK( P_AH_Sector1_Skip_Possible, 1, &P_AH_Sector1_Skip_CHK )
+				call Sub_All_Home_Action_Module.Skip_Member_CHK( P_AH_Sector2_Skip_Possible, 2, &P_AH_Sector2_Skip_CHK )
+								
+				if(P_AH_Sector1_Skip_CHK & P_AH_Sector2_Skip_CHK)
+				{ 
+						P_AH_Management_State_Machine = N_AH_Action_Step;								// 동작 명령 단계로 이동
+				}
+			break; 
+
+			case N_AH_Action_Step:// 동작명령				[ N_AH_Action_Step : 11 ]
+				P_AH_Action_RTN = 0;				
+				call Sub_All_Home_Action_Module.Action(&P_AH_Action_RTN)
+				if(P_AH_Action_RTN == N_AH_TRUE)
+				{					
+					P_AH_Act_CHK_Complete_Bit(0),N_Max_Member_EA,1 = 0;									// 멤버별 동작체크 함수 완료 비트 초기화
+					P_AH_Management_State_Machine = N_AH_Action_CHK_Step;								// 동작체크단계로 이동  
+				}
+				else
+				{
+					P_AH_Management_State_Machine=N_AH_Error_Step;										// 에러단계로 이동 
+				}
+			break;
+			
+			case N_AH_Action_CHK_Step:// 동작체크			[ N_AH_Action_CHK_Step : 21 ]
+			    P_AH_Action_CHK_RTN = 0;
+				call Sub_All_Home_Action_Module.Action_CHK(&P_AH_Action_CHK_RTN)
+				if(P_AH_Action_CHK_RTN == N_AH_TRUE)
+				{
+					P_AH_Management_State_Machine = N_AH_Group_CHK_Step;								// 그룹체크단계로 이동
+				}
+				else if(P_AH_Action_CHK_RTN == N_AH_Wait_Result)
+				{
+					// 대기 
+				}
+				else
+				{
+					P_AH_Management_State_Machine=N_AH_Error_Step;										// 에러단계로 이동 
+				}
+			break; 
+			
+			case N_AH_Group_CHK_Step: // 그룹체크			[ N_AH_Group_CHK_Step : 31 ]
+				P_Group_CHK_RTN = 0
+				call Sub_All_Home_Action_Module.Group_CHK(P_AH_Group_Cur_Num,&P_Group_CHK_RTN)
+				if(P_Group_CHK_RTN == N_AH_TRUE)
+				{
+					P_AH_Group_Cur_Num++;
+					P_AH_Management_State_Machine=N_AH_Initialize_Step;									// Initialize 단계로 이동 
+				}
+				else
+				{
+					P_AH_Management_State_Machine=N_AH_Complete_Step;									// 홈 완료 단계로 이동 
+				}			
+			break;
+			
+
+			case N_AH_Complete_Step: // 홈 종료	[ N_AH_Complete_Step : 99 ]
+				rtn = N_AH_TRUE	
+			break;
+
+			case N_AH_Error_Step:// Error 상태 	[ N_AH_Error_Step : 444 ]						
+				rtn = N_AH_FALSE;																		// 실패 								
+			break;
+
+			default: 
+				// 예외처리
+			break;				
+		}
+	return 
+//==========================================================================================================================================================================================================================================
+// 전체 홈 정지 Management 
+//==========================================================================================================================================================================================================================================
+	sub:Stop_Management(&rtn)
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// initialize
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		rtn = 0;				// 리턴값 초기화 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 실행부 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		switch(P_AH_Stop_Management_State_Machine)
+		{
+			case N_AH_Current_CHK_Step: // 동작여부가 존재하는 스텟머신을 실행중이었는지 체크 [ N_AH_Current_CHK_Step : 1 ]
+				if(P_AH_Management_State_Machine == N_AH_Action_Step || P_AH_Management_State_Machine == N_AH_Action_CHK_Step)
+				{// 전체 홈 스텟머신 단계 중 동작명령단계 OR 동작체크단계  실행 중이었는지 체크 
+					P_AH_Stop_Management_State_Machine=N_AH_Action_Stop_Step;				// 동작정지 단계로 이동 
+				}
+				else
+				{
+					P_AH_Stop_Management_State_Machine = N_AH_End_Step;						// 종료단계로 이동			
+				}
+			break; 
+			
+			case N_AH_Action_Stop_Step: // 동작 정지 명령 [ N_AH_Action_Stop_Step : 2 ]
+				P_AH_Action_Stop_RTN = 0;													// 리턴값 초기화
+				P_AH_Stop_Management_CHK_Timer_lnit_Flag = 1;								// 전체 홈 정지 Management 외부 감시모듈 실행 플래그
+				call Sub_All_Home_Action_Module.Action_Stop(&P_AH_Action_Stop_RTN)			// 각 멤버들의 타입 보고 정지 함수 호출 
+				if( P_AH_Action_Stop_RTN == N_AH_TRUE )
+				{
+					P_AH_Stop_CHK_Complete_Bit(0),N_Max_Member_EA,1 = 0;					// 멤버별 동작정지체크 함수 완료 비트 초기화 
+					P_AH_Stop_Management_State_Machine = N_AH_End_Step;						// 정지완료 단계로 이동 
+				}
+				else
+				{
+					P_AH_Stop_Management_State_Machine = N_AH_End_Step;						// 정지모듈이 종료단계로 이동 
+				}
+			break; 
+
+			case N_AH_Action_Stop_CHK_Step:// 동작 정지 체크 [ N_AH_Action_Stop_CHK_Step : 3 ] 
+				
+				P_Action_Stop_CHK_RTN = 0;													// 리턴값 초기화		
+				call Sub_All_Home_Action_Module.Action_Stop_CHK(&P_Action_Stop_CHK_RTN)
+				if( P_Action_Stop_CHK_RTN == N_AH_TRUE )
+				{
+					P_AH_Stop_Management_State_Machine = N_AH_End_Step;						// 정지종료 단계로 이동 
+				}
+				else
+				{
+					P_AH_Stop_Management_State_Machine = N_AH_Action_Stop_Step;				// 동작 정지명령 단계로 이동 
+				}								
+			break; 
+			 
+			case N_AH_End_Step: // 정지 종료 [ N_AH_End_Step : 4 ]
+				rtn = N_AH_TRUE;															// 정지 완료 	
+			break;
+
+
+			default:// 예외처리
+				P_AH_Home_Status = F_Status_Nonseatus;										// 모듈 종료 
+			break; 
+
+		}
+
+	return
+
+close
+*/
+
+
+

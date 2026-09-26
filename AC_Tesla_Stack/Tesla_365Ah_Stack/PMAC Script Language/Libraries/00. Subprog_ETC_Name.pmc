@@ -1,0 +1,328 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+
+open subprog NP_Func(void)
+
+sub: Act_Func(spool,unit)
+
+if( spool == N_UNWINDER_UPPER )
+{
+	switch(unit)
+	{
+		case N_NP_Chuck:	
+			if( M_X_ARC_NP_BTN_Unwinder_Lock_Unlock == 1 && P_Old_Upper_Sensor(0) == 0 && P_Edge_Upper_Sensor(0) != M_X_ARC_NP_BTN_Unwinder_Lock_Unlock )
+			{
+				P_Old_Upper_Sensor(0) = 1;	
+				M_Y_Upper_Unwinder_Lock_Sol = 1;	
+				M_Y_Upper_Unwinder_UnLock_Sol = 0;	
+			}
+			else if( M_X_ARC_NP_BTN_Unwinder_Lock_Unlock == 1 && P_Old_Upper_Sensor(0) == 1 && P_Edge_Upper_Sensor(0) != M_X_ARC_NP_BTN_Unwinder_Lock_Unlock )
+			{
+				P_Old_Upper_Sensor(0) = 0;
+				M_Y_Upper_Unwinder_Lock_Sol = 0;
+				M_Y_Upper_Unwinder_UnLock_Sol = 1;
+			}
+	
+		break;
+
+		case N_NP_Tilting:		// 상부 틸팅 
+		if ( Upper_Tilting_Warning_Status_Clamp == N_TRUE )		// 상부 클램프 되어있을 경우 틸팅 동작 인터락.
+		{}
+		else if( NP_Upper_Warning == N_TRUE && M_X_ARC_NP_BTN_Plate_Tilting == 1 && P_Edge_Upper_Sensor(1) != M_X_ARC_NP_BTN_Plate_Tilting )	// 인터락 조건 및 버튼입력 시 
+		{
+			P_Old_Upper_Sensor(1) = 0;
+			M_Y_Sepa_ARC_Upper_Tilting_Sol  = 0;
+			M_Y_Sepa_ARC_Upper_UnTilting_Sol = 1;
+		}
+		else
+		{					
+			if( M_X_ARC_NP_BTN_Plate_Tilting == 1 && P_Old_Upper_Sensor(1) == 0 && P_Edge_Upper_Sensor(1) != M_X_ARC_NP_BTN_Plate_Tilting )
+			{
+				P_Old_Upper_Sensor(1) = 1;	
+				M_Y_Sepa_ARC_Upper_Tilting_Sol  = 1;		
+				M_Y_Sepa_ARC_Upper_UnTilting_Sol = 0;		
+			}
+			else if( M_X_ARC_NP_BTN_Plate_Tilting == 1 && P_Old_Upper_Sensor(1) == 1 && P_Edge_Upper_Sensor(1) != M_X_ARC_NP_BTN_Plate_Tilting )
+			{
+				P_Old_Upper_Sensor(1) = 0;
+				M_Y_Sepa_ARC_Upper_Tilting_Sol  = 0;
+				M_Y_Sepa_ARC_Upper_UnTilting_Sol = 1;
+			}
+		}
+		
+		break;
+
+		case N_NP_Plate_Vac:
+			if( M_X_ARC_NP_BTN_Plate_Vac_On_Off == 1 && P_Old_Upper_Sensor(2) == 0 && P_Edge_Upper_Sensor(2) != M_X_ARC_NP_BTN_Plate_Vac_On_Off )
+			{
+				P_Old_Upper_Sensor(2) = 1;
+				M_Y_Sepa_Upper_ARC_Ejector_Vac_On = 1;
+				M_Y_Sepa_Upper_ARC_Ejector_Vac_Off = 0;
+			}
+			else if( M_X_ARC_NP_BTN_Plate_Vac_On_Off == 1 && P_Old_Upper_Sensor(2) == 1 && P_Edge_Upper_Sensor(2) != M_X_ARC_NP_BTN_Plate_Vac_On_Off )
+			{
+				P_Old_Upper_Sensor(2) = 0;
+				M_Y_Sepa_Upper_ARC_Ejector_Vac_On = 0;
+				M_Y_Sepa_Upper_ARC_Ejector_Vac_Off = 1;
+			}
+			
+		break;
+
+		case N_NP_Jog_Plus:	
+			if( M_X_ARC_NP_BTN_Unwinder_Rotation == 1 && P_Old_Upper_Sensor(6) == 0 )
+			{
+				//if( Motor[spool].DesVelZero == 1 )
+				//{
+					P_Edge_Upper_Sensor(6) = 1;
+					Motor[spool].jogspeed = 20;
+					cmd"#%d j+",spool;
+					//call Timer.msec(5);
+				//}
+			}
+			else if( M_X_ARC_NP_BTN_Unwinder_Rotation == 0 && P_Old_Upper_Sensor(6) == 1 )
+			{
+				P_Edge_Upper_Sensor(6) = 0; 
+				cmd"#%d j/",spool;
+			}
+		
+		break;
+
+		case N_NP_Jog_Minus:	
+			if( M_X_ARC_NP_BTN_Unwinder_Re_Rotation == 1 && P_Old_Upper_Sensor(7) == 0 )
+			{
+				//if( Motor[spool].DesVelZero == 1 )
+				//{
+					P_Edge_Upper_Sensor(7) = 1;
+					Motor[spool].jogspeed = 20;
+					cmd"#%d j-",spool;
+					//call Timer.msec(5);
+				//}
+			}
+			else if( M_X_ARC_NP_BTN_Unwinder_Re_Rotation == 0 && P_Old_Upper_Sensor(7) == 1 )
+			{
+				P_Edge_Upper_Sensor(7) = 0;
+				cmd"#%d j/",spool;
+			}
+			
+		break;
+
+		case N_NP_Plate_Up_Dn:
+		if(( NP_Upper_Warning == N_TRUE || P_PMAC_Current_Mode == F_Current_Automatic ) && M_X_ARC_NP_BTN_Plate_Up_Dn == 1 && P_Edge_Upper_Sensor(3) != M_X_ARC_NP_BTN_Plate_Up_Dn )	// 인터락 조건 및 버튼입력 시 
+		{
+			P_Old_Upper_Sensor(3) = 0;
+			M_Y_Sepa_ARC_Upper_Up_Sol = 1;
+			M_Y_Sepa_ARC_Upper_Dn_Sol = 0;
+		}
+		else
+		{	
+			if( M_X_ARC_NP_BTN_Plate_Up_Dn == 1 && P_Old_Upper_Sensor(3) == 0 && P_Edge_Upper_Sensor(3) != M_X_ARC_NP_BTN_Plate_Up_Dn )
+			{
+				P_Old_Upper_Sensor(3) = 1;
+				M_Y_Sepa_ARC_Upper_Up_Sol = 0;
+				M_Y_Sepa_ARC_Upper_Dn_Sol = 1;
+			}
+			else if( M_X_ARC_NP_BTN_Plate_Up_Dn == 1 && P_Old_Upper_Sensor(3) == 1 && P_Edge_Upper_Sensor(3) != M_X_ARC_NP_BTN_Plate_Up_Dn )
+			{
+				P_Old_Upper_Sensor(3) = 0;
+				M_Y_Sepa_ARC_Upper_Up_Sol = 1;
+				M_Y_Sepa_ARC_Upper_Dn_Sol = 0;
+			}		
+		}
+		
+		break;
+
+		case N_NP_Plate_Cut:
+			if( M_X_ARC_NP_BTN_Plate_Sepa_Cutting == 1 && P_Old_Upper_Sensor(4) == 0 && P_Edge_Upper_Sensor(4) != M_X_ARC_NP_BTN_Plate_Sepa_Cutting )
+			{
+				P_Old_Upper_Sensor(4) = 1;
+				M_Y_Sepa_ARC_Upper_Cutting_FWD_Sol = 1;
+				M_Y_Sepa_ARC_Upper_Cutting_BWD_Sol = 0;
+			}
+			else if( M_X_ARC_NP_BTN_Plate_Sepa_Cutting == 1 && P_Old_Upper_Sensor(4) == 1 && P_Edge_Upper_Sensor(4) != M_X_ARC_NP_BTN_Plate_Sepa_Cutting )
+			{
+				P_Old_Upper_Sensor(4) = 0;
+				M_Y_Sepa_ARC_Upper_Cutting_FWD_Sol = 0;
+				M_Y_Sepa_ARC_Upper_Cutting_BWD_Sol = 1;
+			}
+			
+		break;
+
+		case N_NP_Plate_Stopper:
+			if( M_X_ARC_NP_BTN_Plate_Stopper_Clamp == 1 && P_Old_Upper_Sensor(5) == 0 && P_Edge_Upper_Sensor(5) != M_X_ARC_NP_BTN_Plate_Stopper_Clamp )
+			{
+				P_Old_Upper_Sensor(5) = 1;
+				M_Y_Sepa_ARC_Upper_Stopper_FWD_Sol = 1;
+				M_Y_Sepa_ARC_Upper_Stopper_BWD_Sol = 0;
+			}
+			else if( M_X_ARC_NP_BTN_Plate_Stopper_Clamp == 1 && P_Old_Upper_Sensor(5) == 1 && P_Edge_Upper_Sensor(5) != M_X_ARC_NP_BTN_Plate_Stopper_Clamp )
+			{
+				P_Old_Upper_Sensor(5) = 0;
+				M_Y_Sepa_ARC_Upper_Stopper_FWD_Sol = 0;
+				M_Y_Sepa_ARC_Upper_Stopper_BWD_Sol = 1;
+			}
+			
+		break;
+	}
+}
+else if( spool == N_UNWINDER_LOWER )
+{
+	switch(unit)
+	{
+		case N_NP_Chuck:	
+			if( M_X_ARC_NP_BTN_Unwinder_Lock_Unlock == 1 && P_Old_Lower_Sensor(0) == 0 && P_Edge_Lower_Sensor(0) != M_X_ARC_NP_BTN_Unwinder_Lock_Unlock )
+			{
+				P_Old_Lower_Sensor(0) = 1;	
+				M_Y_Lower_Unwinder_Lock_Sol = 1;	
+				M_Y_Lower_Unwinder_UnLock_Sol = 0;	
+			}
+			else if( M_X_ARC_NP_BTN_Unwinder_Lock_Unlock == 1 && P_Old_Lower_Sensor(0) == 1 && P_Edge_Lower_Sensor(0) != M_X_ARC_NP_BTN_Unwinder_Lock_Unlock )
+			{
+				P_Old_Lower_Sensor(0) = 0;
+				M_Y_Lower_Unwinder_Lock_Sol = 0;	
+				M_Y_Lower_Unwinder_UnLock_Sol = 1;	
+			}
+			
+		break;
+
+		case N_NP_Tilting:
+		if ( Lower_Tilting_Warning_Status_Clamp == N_TRUE )		// 상부 클램프 되어있을 경우 틸팅 동작 인터락.
+		{}
+		else if( NP_Lower_Warning == N_TRUE && M_X_ARC_NP_BTN_Plate_Tilting == 1 && P_Edge_Lower_Sensor(1) != M_X_ARC_NP_BTN_Plate_Tilting )
+		{
+			P_Old_Lower_Sensor(1) = 0;
+			M_Y_Sepa_ARC_Lower_Tilting_Sol  = 0;
+			M_Y_Sepa_ARC_Lower_UnTilting_Sol = 1;
+		}
+		else
+		{
+			if( M_X_ARC_NP_BTN_Plate_Tilting == 1 && P_Old_Lower_Sensor(1) == 0 && P_Edge_Lower_Sensor(1) != M_X_ARC_NP_BTN_Plate_Tilting )
+			{
+				P_Old_Lower_Sensor(1) = 1;	
+				M_Y_Sepa_ARC_Lower_Tilting_Sol  = 1;		
+				M_Y_Sepa_ARC_Lower_UnTilting_Sol = 0;		
+			}
+			else if( M_X_ARC_NP_BTN_Plate_Tilting == 1 && P_Old_Lower_Sensor(1) == 1 && P_Edge_Lower_Sensor(1) != M_X_ARC_NP_BTN_Plate_Tilting )
+			{
+				P_Old_Lower_Sensor(1) = 0;
+				M_Y_Sepa_ARC_Lower_Tilting_Sol  = 0;
+				M_Y_Sepa_ARC_Lower_UnTilting_Sol = 1;
+			}
+		}
+			
+		break;
+
+		case N_NP_Plate_Vac:
+			if( M_X_ARC_NP_BTN_Plate_Vac_On_Off == 1 && P_Old_Lower_Sensor(2) == 0 && P_Edge_Lower_Sensor(2) != M_X_ARC_NP_BTN_Plate_Vac_On_Off )
+			{
+				P_Old_Lower_Sensor(2) = 1;
+				M_Y_Sepa_Lower_ARC_Ejector_Vac_On = 1;
+				M_Y_Sepa_Lower_ARC_Ejector_Vac_Off = 0;
+			}
+			else if( M_X_ARC_NP_BTN_Plate_Vac_On_Off == 1 && P_Old_Lower_Sensor(2) == 1 && P_Edge_Lower_Sensor(2) != M_X_ARC_NP_BTN_Plate_Vac_On_Off )
+			{
+				P_Old_Lower_Sensor(2) = 0;
+				M_Y_Sepa_Lower_ARC_Ejector_Vac_On = 0;
+				M_Y_Sepa_Lower_ARC_Ejector_Vac_Off = 1;
+			}
+			
+		break;
+
+		case N_NP_Jog_Plus:	
+			if( M_X_ARC_NP_BTN_Unwinder_Rotation == 1 && P_Old_Lower_Sensor(6) == 0 )
+			{
+				//if( Motor[spool].DesVelZero == 1 )
+				//{
+					P_Edge_Lower_Sensor(6) = 1;
+					Motor[spool].jogspeed = 20;
+					cmd"#%d j+",spool;
+					//call Timer.msec(5);
+				//}
+			}
+			else if( M_X_ARC_NP_BTN_Unwinder_Rotation == 0 && P_Old_Lower_Sensor(6) == 1 )
+			{
+				P_Edge_Lower_Sensor(6) = 0;
+				cmd"#%d j/",spool;
+			}
+		break;
+
+		case N_NP_Jog_Minus:	
+			if( M_X_ARC_NP_BTN_Unwinder_Re_Rotation == 1 && P_Old_Lower_Sensor(7) == 0 )
+			{
+				P_Edge_Lower_Sensor(7) = 1;
+				Motor[spool].jogspeed = 20;
+				cmd"#%d j-",spool;
+				//call Timer.msec(5);
+			}
+			else if( M_X_ARC_NP_BTN_Unwinder_Re_Rotation == 0 && P_Old_Lower_Sensor(7) == 1 )
+			{
+				P_Edge_Lower_Sensor(7) = 0;
+				cmd"#%d j/",spool;
+			}		
+		break;
+
+		case N_NP_Plate_Up_Dn:
+		if(( NP_Lower_Warning == N_TRUE || P_PMAC_Current_Mode == F_Current_Automatic ) && M_X_ARC_NP_BTN_Plate_Up_Dn == 1 && P_Edge_Lower_Sensor(3) != M_X_ARC_NP_BTN_Plate_Up_Dn )
+		{
+			P_Old_Lower_Sensor(3) = 0;
+			M_Y_Sepa_ARC_Lower_Up_Sol = 0;
+			M_Y_Sepa_ARC_Lower_Dn_Sol = 1;
+		}
+		else
+		{
+			if( M_X_ARC_NP_BTN_Plate_Up_Dn == 1 && P_Old_Lower_Sensor(3) == 0 && P_Edge_Lower_Sensor(3) != M_X_ARC_NP_BTN_Plate_Up_Dn )
+			{
+				P_Old_Lower_Sensor(3) = 1;
+				M_Y_Sepa_ARC_Lower_Up_Sol = 1;
+				M_Y_Sepa_ARC_Lower_Dn_Sol = 0;
+			}
+			else if( M_X_ARC_NP_BTN_Plate_Up_Dn == 1 && P_Old_Lower_Sensor(3) == 1 && P_Edge_Lower_Sensor(3) != M_X_ARC_NP_BTN_Plate_Up_Dn )
+			{
+				P_Old_Lower_Sensor(3) = 0;
+				M_Y_Sepa_ARC_Lower_Up_Sol = 0;
+				M_Y_Sepa_ARC_Lower_Dn_Sol = 1;
+			}
+		}
+				
+		break;
+
+		case N_NP_Plate_Cut:
+			if( M_X_ARC_NP_BTN_Plate_Sepa_Cutting == 1 && P_Old_Lower_Sensor(4) == 0 && P_Edge_Lower_Sensor(4) != M_X_ARC_NP_BTN_Plate_Sepa_Cutting )
+			{
+				P_Old_Lower_Sensor(4) = 1;
+				M_Y_Sepa_ARC_Lower_Cutting_FWD_Sol = 1;
+				M_Y_Sepa_ARC_Lower_Cutting_BWD_Sol = 0;
+			}
+			else if( M_X_ARC_NP_BTN_Plate_Sepa_Cutting == 1 && P_Old_Lower_Sensor(4) == 1 && P_Edge_Lower_Sensor(4) != M_X_ARC_NP_BTN_Plate_Sepa_Cutting )
+			{
+				P_Old_Lower_Sensor(4) = 0;
+				M_Y_Sepa_ARC_Lower_Cutting_FWD_Sol = 0;
+				M_Y_Sepa_ARC_Lower_Cutting_BWD_Sol = 1;
+			}
+			
+		break;
+
+		case N_NP_Plate_Stopper:
+			if( M_X_ARC_NP_BTN_Plate_Stopper_Clamp == 1 && P_Old_Lower_Sensor(5) == 0 && P_Edge_Lower_Sensor(5) != M_X_ARC_NP_BTN_Plate_Stopper_Clamp )
+			{
+				P_Old_Lower_Sensor(5) = 1;
+				M_Y_Sepa_ARC_Lower_Stopper_FWD_Sol = 1;
+				M_Y_Sepa_ARC_Lower_Stopper_BWD_Sol = 0;
+			}
+			else if( M_X_ARC_NP_BTN_Plate_Stopper_Clamp == 1 && P_Old_Lower_Sensor(5) == 1 && P_Edge_Lower_Sensor(5) != M_X_ARC_NP_BTN_Plate_Stopper_Clamp )
+			{
+				P_Old_Lower_Sensor(5) = 0;
+				M_Y_Sepa_ARC_Lower_Stopper_FWD_Sol = 0;
+				M_Y_Sepa_ARC_Lower_Stopper_BWD_Sol = 1;
+			}
+			
+		break;
+	}
+}	
+return;
+
+
+close

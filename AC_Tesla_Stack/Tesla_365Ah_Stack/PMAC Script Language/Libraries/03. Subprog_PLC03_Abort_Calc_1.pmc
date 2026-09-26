@@ -1,0 +1,442 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+open subprog PNP_Abort_Time(void)		//[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+
+	// 초기화.
+	sub:Init(void)
+		Motor[N_C_1st_PNP_M_Num].AbortTa = -2;			// 양극 1차 P&P AbortTa 원복.
+		Motor[N_C_1st_PNP_M_Num].AbortTs = -2;			// 양극 1차 P&P AbortTs 원복.
+		Motor[N_A_1st_PNP_M_Num].AbortTa = -2;			// 음극 1차 P&P AbortTa 원복.
+		Motor[N_A_1st_PNP_M_Num].AbortTs = -2;			// 음극 1차 P&P AbortTs 원복.
+		Motor[N_C_2nd_PNP_M_Num].AbortTa = -2;			// 양극 2차 P&P AbortTa 원복.
+		Motor[N_C_2nd_PNP_M_Num].AbortTs = -2;			// 양극 2차 P&P AbortTs 원복.
+		Motor[N_A_2nd_PNP_M_Num].AbortTa = -2;			// 음극 2차 P&P AbortTa 원복.
+		Motor[N_A_2nd_PNP_M_Num].AbortTs = -2;			// 음극 2차 P&P AbortTs 원복.
+		P_C_1st_PNP_FWD_AbortTa = 0;					// 양극 1차 P&P 전진 AbortTa.
+		P_C_1st_PNP_FWD_AbortTs = 0;					// 양극 1차 P&P 전진 AbortTs.
+		P_C_1st_PNP_BWD_AbortTa = 0;					// 양극 1차 P&P 후진 AbortTa.
+		P_C_1st_PNP_BWD_AbortTs = 0;					// 양극 1차 P&P 후진 AbortTs.
+		P_C_2nd_PNP_FWD_AbortTa = 0;					// 양극 2차 P&P 전진 AbortTa.
+		P_C_2nd_PNP_FWD_AbortTs = 0;					// 양극 2차 P&P 전진 AbortTs.
+		P_C_2nd_PNP_BWD_AbortTa = 0;					// 양극 2차 P&P 후진 AbortTa.
+		P_C_2nd_PNP_BWD_AbortTs = 0;					// 양극 2차 P&P 후진 AbortTs.
+		P_A_1st_PNP_FWD_AbortTa = 0;					// 음극 1차 P&P 전진 AbortTa.
+		P_A_1st_PNP_FWD_AbortTs = 0;					// 음극 1차 P&P 전진 AbortTs.
+		P_A_1st_PNP_BWD_AbortTa = 0;					// 음극 1차 P&P 후진 AbortTa.
+		P_A_1st_PNP_BWD_AbortTs = 0;					// 음극 1차 P&P 후진 AbortTs.
+		P_A_2nd_PNP_FWD_AbortTa = 0;					// 음극 2차 P&P 전진 AbortTa.
+		P_A_2nd_PNP_FWD_AbortTs = 0;					// 음극 2차 P&P 전진 AbortTs.
+		P_A_2nd_PNP_BWD_AbortTa = 0;					// 음극 2차 P&P 후진 AbortTa.
+		P_A_2nd_PNP_BWD_AbortTs = 0;					// 음극 2차 P&P 후진 AbortTs.
+	return;
+
+	sub:Abort_Apply(void)
+
+		/*	search	ㄴㄷㅁ
+			Find_C_1st_FWD	Find_C_1st_BWD
+			Find_C_2nd_FWD	Find_C_2nd_BWD
+			Find_A_1st_FWD	Find_A_1st_BWD
+			FInd_A_2nd_FWD	FInd_A_2nd_BWD
+		*/
+		// Auto → Manual 변경 시 AbortTa,Ts 원복.
+		if ( P_PMAC_Current_Mode == F_Current_Manual && P_Old_PMAC_Current_Mode != F_Current_Manual )
+			call PNP_Abort_Time.Init();
+		//P_Old_PMAC_Current_Mode = P_PMAC_Current_Mode 
+		// Auto || Bit 실행 시 모션 진행 중 AbortTa,Ts 계산.
+		if ( P_PMAC_Current_Mode == F_Current_Automatic || P_Single_Motor_Control_Bit == 1 )
+		{
+			//=========================================//
+			// 양극 1차 P&P 전진		[Find_C_1st_FWD]
+			//=========================================//
+			if ( P_C_1st_PNP_FWD_Abort_Calc_Bit == 1 && (P_C_1st_PNP_FWD_Abort_Use_Bit | P_PNP_Abort_Use_Total_Bit))
+			{
+				// 1) 1차 P&P 전진 현재 위치, 속도 업데이트.
+				P_C_1st_PNP_FWD_Cur_Pos = (Motor[N_C_1st_PNP_M_Num].ActPos - Motor[N_C_1st_PNP_M_Num].HomePos) / N_Time_Scale;		// 현재 위치(mm).
+				P_C_1st_PNP_FWD_Cur_Vel = Motor[N_C_1st_PNP_M_Num].DesVel / Sys.ServoPeriod;			// 현재 속도(mm/s).
+				// 2) 1차 P&P 전진 Abort 시간 적용.
+				if ( P_C_1st_PNP_FWD_Cur_Pos < P_C_1st_PNP_FWD_Limit_Pos )								// 현재 위치 < Limit 위치
+					P_C_1st_PNP_FWD_Remain_Stroke = abs(P_C_1st_PNP_FWD_Cur_Pos - P_C_1st_PNP_FWD_Limit_Pos);			// 리밋까지 남은 Stroke(mm).
+				else
+					P_C_1st_PNP_FWD_Remain_Stroke = abs(P_C_1st_PNP_FWD_Cur_Pos - P_C_1st_PNP_FWD_Max_Limit_Pos);		// 리밋까지 남은 Stroke(mm).
+		
+				P_C_1st_PNP_FWD_Stroke_Time = (P_C_1st_PNP_FWD_Remain_Stroke / P_C_1st_PNP_FWD_Cur_Vel) * 2 * N_Time_Scale;	// 감속 시간(ms) = (남은 거리 / 속도) * 2 * 1000;
+				if ( P_C_1st_PNP_FWD_Cur_Pos < P_C_1st_PNP_FWD_ACC_Dis )								// 가속 시 거리 이전 일 경우.
+				{
+					P_C_1st_PNP_FWD_AbortTa = P_1st_PNP_FWD_Abort_Offset(int(P_C_1st_PNP_FWD_Cur_Pos))	// AbortTa 업데이트.
+					P_C_1st_PNP_FWD_AbortTs = P_1st_PNP_FWD_Abort_Offset(int(P_C_1st_PNP_FWD_Cur_Pos))	// AbortTs 업데이트.
+				}
+				else if ( P_C_1st_PNP_FWD_Cur_Pos >= P_C_1st_PNP_FWD_ACC_Dis )							// 가속 시 거리 이후 (감속 시)
+				{
+					P_C_1st_PNP_FWD_AbortTa = P_C_1st_PNP_FWD_Stroke_Time * (Coord[N_C_1st_PNP_C_Num].TimeBase / Sys.ServoPeriod) - P_C_1st_PNP_FWD_Abort_Dec_Offset;		// AbortTa = 감속 시간 * (피드레이트 변화에 따른 속도 차이) - Offset.
+					P_C_1st_PNP_FWD_AbortTs = P_C_1st_PNP_FWD_Abort_Dec_Offset;							// AbortTs 업데이트.
+					if ( P_C_1st_PNP_FWD_AbortTa < 0 )													// AbortTa 값이 음수 일 경우.
+						P_C_1st_PNP_FWD_AbortTa = P_C_1st_PNP_FWD_AbortTs;								// AbortTa 업데이트.
+				}
+				if ( Coord[N_C_1st_PNP_C_Num].ProgRunning == 1 )										// 좌표계가 살아있을 경우에만 Abort Ta, Ts 업데이트.
+				{
+					Motor[N_C_1st_PNP_M_Num].AbortTa = P_C_1st_PNP_FWD_AbortTa;							// AbortTa 업데이트.
+					Motor[N_C_1st_PNP_M_Num].AbortTs = P_C_1st_PNP_FWD_AbortTs;							// AbortTs 업데이트.
+					P_C_1st_PNP_FWD_AbortTa_Buffer = P_C_1st_PNP_FWD_AbortTa;							// AbortTa 저장.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+					P_C_1st_PNP_FWD_AbortTs_Buffer = P_C_1st_PNP_FWD_AbortTs;							// AbortTs 저장. 
+				}
+				else																					// 모션 진행 중 좌표계가 죽을 경우.
+					P_C_1st_PNP_FWD_Abort_Calc_Bit = 0;													// 실행 변수 초기화.
+			}
+			else if ( P_C_1st_PNP_FWD_Abort_Calc_Bit == 0 && P_C_1st_PNP_FWD_Restore_Bit == 1 )			// 모션 종료.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+			{
+				if ( Motor[N_C_1st_PNP_M_Num].DesVelZero == 1 )											// 구동 종료.
+				{
+					P_C_1st_PNP_FWD_Restore_Bit = 0;													// 원복 Bit 초기화. (모션 프로그램에서 ON)
+					Motor[N_C_1st_PNP_M_Num].AbortTa = P_Abort_Init_Value;								// AbortTa 원복.
+					Motor[N_C_1st_PNP_M_Num].AbortTs = P_Abort_Init_Value;								// AbortTs 원복.
+				}
+			}
+			//=========================================//
+			// 양극 2차 P&P 전진		[Find_C_2nd_FWD]
+			//=========================================//
+			if ( P_C_2nd_PNP_FWD_Abort_Calc_Bit == 1 && (P_C_2nd_PNP_FWD_Abort_Use_Bit | P_PNP_Abort_Use_Total_Bit))
+			{
+				// 1) 1차 P&P 전진 현재 위치, 속도 업데이트.
+				P_C_2nd_PNP_FWD_Cur_Pos = (Motor[N_C_2nd_PNP_M_Num].ActPos - Motor[N_C_2nd_PNP_M_Num].HomePos) / N_Time_Scale;		// 현재 위치(mm).
+				P_C_2nd_PNP_FWD_Cur_Vel = Motor[N_C_2nd_PNP_M_Num].DesVel / Sys.ServoPeriod;			// 현재 속도(mm/s).
+				// 2) 1차 P&P 전진 Abort 시간 적용.
+				if ( P_C_2nd_PNP_FWD_Cur_Pos < P_C_2nd_PNP_FWD_Limit_Pos )								// 현재 위치 < Limit 위치
+					P_C_2nd_PNP_FWD_Remain_Stroke = abs(P_C_2nd_PNP_FWD_Cur_Pos - P_C_2nd_PNP_FWD_Limit_Pos);			// 리밋까지 남은 Stroke(mm).
+				else
+					P_C_2nd_PNP_FWD_Remain_Stroke = abs(P_C_2nd_PNP_FWD_Cur_Pos - P_C_2nd_PNP_FWD_Max_Limit_Pos);		// 리밋까지 남은 Stroke(mm).
+		
+				P_C_2nd_PNP_FWD_Stroke_Time = (P_C_2nd_PNP_FWD_Remain_Stroke / P_C_2nd_PNP_FWD_Cur_Vel) * 2 * N_Time_Scale;	// 감속 시간(ms) = (남은 거리 / 속도) * 2 * 1000;
+				if ( P_C_2nd_PNP_FWD_Cur_Pos < P_C_2nd_PNP_FWD_ACC_Dis )								// 가속 시 거리 이전 일 경우.
+				{
+					P_C_2nd_PNP_FWD_AbortTa = P_2nd_PNP_FWD_Abort_Offset(int(P_C_2nd_PNP_FWD_Cur_Pos))	// AbortTa 업데이트.
+					P_C_2nd_PNP_FWD_AbortTs = P_2nd_PNP_FWD_Abort_Offset(int(P_C_2nd_PNP_FWD_Cur_Pos))	// AbortTs 업데이트.
+				}
+				else if ( P_C_2nd_PNP_FWD_Cur_Pos >= P_C_2nd_PNP_FWD_ACC_Dis )							// 가속 시 거리 이후 (감속 시)
+				{
+					P_C_2nd_PNP_FWD_AbortTa = P_C_2nd_PNP_FWD_Stroke_Time * (Coord[N_C_2nd_PNP_C_Num].TimeBase / Sys.ServoPeriod) - P_C_2nd_PNP_FWD_Abort_Dec_Offset;		// AbortTa = 감속 시간 * (피드레이트 변화에 따른 속도 차이) - Offset.
+					P_C_2nd_PNP_FWD_AbortTs = P_C_2nd_PNP_FWD_Abort_Dec_Offset;							// AbortTs 업데이트.
+					if ( P_C_2nd_PNP_FWD_AbortTa < 0 )													// AbortTa 값이 음수 일 경우.
+						P_C_2nd_PNP_FWD_AbortTa = P_C_2nd_PNP_FWD_AbortTs;								// AbortTa 업데이트.
+				}
+				if ( Coord[N_C_2nd_PNP_C_Num].ProgRunning == 1 )										// 좌표계가 살아있을 경우에만 Abort Ta, Ts 업데이트.
+				{
+					Motor[N_C_2nd_PNP_M_Num].AbortTa = P_C_2nd_PNP_FWD_AbortTa;							// AbortTa 업데이트.
+					Motor[N_C_2nd_PNP_M_Num].AbortTs = P_C_2nd_PNP_FWD_AbortTs;							// AbortTs 업데이트.
+					P_C_2nd_PNP_FWD_AbortTs_Buffer = P_C_2nd_PNP_FWD_AbortTa;							// AbortTa 저장.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+					P_C_2nd_PNP_BWD_AbortTa_Buffer = P_C_2nd_PNP_FWD_AbortTs;							// AbortTs 저장. 
+				}
+				else																					// 모션 진행 중 좌표계가 죽을 경우.
+					P_C_2nd_PNP_FWD_Abort_Calc_Bit = 0;													// 실행 변수 초기화.
+			}
+			else if ( P_C_2nd_PNP_FWD_Abort_Calc_Bit == 0 && P_C_2nd_PNP_FWD_Restore_Bit == 1 )			// 모션 종료.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+			{
+				if ( Motor[N_C_2nd_PNP_M_Num].DesVelZero == 1 )											// 구동 종료.
+				{
+					P_C_2nd_PNP_FWD_Restore_Bit = 0;													// 원복 Bit 초기화. (모션 프로그램에서 ON)
+					Motor[N_C_2nd_PNP_M_Num].AbortTa = P_Abort_Init_Value;								// AbortTa 원복.
+					Motor[N_C_2nd_PNP_M_Num].AbortTs = P_Abort_Init_Value;								// AbortTs 원복.
+				}
+			}
+			//=========================================//
+			// 음극 1차 P&P 전진		[Find_A_1st_FWD]
+			//=========================================//
+			if ( P_A_1st_PNP_FWD_Abort_Calc_Bit == 1 && (P_A_1st_PNP_FWD_Abort_Use_Bit | P_PNP_Abort_Use_Total_Bit))
+			{
+				// 1) 1차 P&P 전진 현재 위치, 속도 업데이트.
+				P_A_1st_PNP_FWD_Cur_Pos = (Motor[N_A_1st_PNP_M_Num].ActPos - Motor[N_A_1st_PNP_M_Num].HomePos) / N_Time_Scale;		// 현재 위치(mm).
+				P_A_1st_PNP_FWD_Cur_Vel = Motor[N_A_1st_PNP_M_Num].DesVel / Sys.ServoPeriod;			// 현재 속도(mm/s).
+				// 2) 1차 P&P 전진 Abort 시간 적용.
+				if ( P_A_1st_PNP_FWD_Cur_Pos < P_A_1st_PNP_FWD_Limit_Pos )								// 현재 위치 < Limit 위치
+					P_A_1st_PNP_FWD_Remain_Stroke = abs(P_A_1st_PNP_FWD_Cur_Pos - P_A_1st_PNP_FWD_Limit_Pos);			// 리밋까지 남은 Stroke(mm).
+				else
+					P_A_1st_PNP_FWD_Remain_Stroke = abs(P_A_1st_PNP_FWD_Cur_Pos - P_A_1st_PNP_FWD_Max_Limit_Pos);		// 리밋까지 남은 Stroke(mm).
+		
+				P_A_1st_PNP_FWD_Stroke_Time = (P_A_1st_PNP_FWD_Remain_Stroke / P_A_1st_PNP_FWD_Cur_Vel) * 2 * N_Time_Scale;	// 감속 시간(ms) = (남은 거리 / 속도) * 2 * 1000;
+				if ( P_A_1st_PNP_FWD_Cur_Pos < P_A_1st_PNP_FWD_ACC_Dis )								// 가속 시 거리 이전 일 경우.
+				{
+					P_A_1st_PNP_FWD_AbortTa = P_1st_PNP_FWD_Abort_Offset(int(P_A_1st_PNP_FWD_Cur_Pos))	// AbortTa 업데이트.
+					P_A_1st_PNP_FWD_AbortTs = P_1st_PNP_FWD_Abort_Offset(int(P_A_1st_PNP_FWD_Cur_Pos))	// AbortTs 업데이트.
+				}
+				else if ( P_A_1st_PNP_FWD_Cur_Pos >= P_A_1st_PNP_FWD_ACC_Dis )							// 가속 시 거리 이후 (감속 시)
+				{
+					P_A_1st_PNP_FWD_AbortTa = P_A_1st_PNP_FWD_Stroke_Time * (Coord[N_A_1st_PNP_C_Num].TimeBase / Sys.ServoPeriod) - P_A_1st_PNP_FWD_Abort_Dec_Offset;		// AbortTa = 감속 시간 * (피드레이트 변화에 따른 속도 차이) - Offset.
+					P_A_1st_PNP_FWD_AbortTs = P_A_1st_PNP_FWD_Abort_Dec_Offset;							// AbortTs 업데이트.
+					if ( P_A_1st_PNP_FWD_AbortTa < 0 )													// AbortTa 값이 음수 일 경우.
+						P_A_1st_PNP_FWD_AbortTa = P_A_1st_PNP_FWD_AbortTs;								// AbortTa 업데이트.
+				}
+				if ( Coord[N_A_1st_PNP_C_Num].ProgRunning == 1 )										// 좌표계가 살아있을 경우에만 Abort Ta, Ts 업데이트.
+				{
+					Motor[N_A_1st_PNP_M_Num].AbortTa = P_A_1st_PNP_FWD_AbortTa;							// AbortTa 업데이트.
+					Motor[N_A_1st_PNP_M_Num].AbortTs = P_A_1st_PNP_FWD_AbortTs;							// AbortTs 업데이트.
+					P_A_1st_PNP_FWD_AbortTa_Buffer = P_A_1st_PNP_FWD_AbortTa;							// AbortTa 저장.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+					P_A_1st_PNP_FWD_AbortTs_Buffer = P_A_1st_PNP_FWD_AbortTs;							// AbortTs 저장. 
+				}
+				else																					// 모션 진행 중 좌표계가 죽을 경우.
+					P_A_1st_PNP_FWD_Abort_Calc_Bit = 0;													// 실행 변수 초기화.
+			}
+			else if ( P_A_1st_PNP_FWD_Abort_Calc_Bit == 0 && P_A_1st_PNP_FWD_Restore_Bit == 1 )			// 모션 종료.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+			{
+				if ( Motor[N_A_1st_PNP_M_Num].DesVelZero == 1 )											// 구동 종료.
+				{
+					P_A_1st_PNP_FWD_Restore_Bit = 0;													// 원복 Bit 초기화. (모션 프로그램에서 ON)
+					Motor[N_A_1st_PNP_M_Num].AbortTa = P_Abort_Init_Value;								// AbortTa 원복.
+					Motor[N_A_1st_PNP_M_Num].AbortTs = P_Abort_Init_Value;								// AbortTs 원복.
+				}
+			}
+			//=========================================//
+			// 음극 2차 P&P 전진		[Find_A_2nd_FWD]
+			//=========================================//
+			if ( P_A_2nd_PNP_FWD_Abort_Calc_Bit == 1 && (P_A_2nd_PNP_FWD_Abort_Use_Bit | P_PNP_Abort_Use_Total_Bit))
+			{
+				// 1) 1차 P&P 전진 현재 위치, 속도 업데이트.
+				P_A_2nd_PNP_FWD_Cur_Pos = (Motor[N_A_2nd_PNP_M_Num].ActPos - Motor[N_A_2nd_PNP_M_Num].HomePos) / N_Time_Scale;		// 현재 위치(mm).
+				P_A_2nd_PNP_FWD_Cur_Vel = Motor[N_A_2nd_PNP_M_Num].DesVel / Sys.ServoPeriod;			// 현재 속도(mm/s).
+				// 2) 1차 P&P 전진 Abort 시간 적용.
+				if ( P_A_2nd_PNP_FWD_Cur_Pos < P_A_2nd_PNP_FWD_Limit_Pos )								// 현재 위치 < Limit 위치
+					P_A_2nd_PNP_FWD_Remain_Stroke = abs(P_A_2nd_PNP_FWD_Cur_Pos - P_A_2nd_PNP_FWD_Limit_Pos);			// 리밋까지 남은 Stroke(mm).
+				else
+					P_A_2nd_PNP_FWD_Remain_Stroke = abs(P_A_2nd_PNP_FWD_Cur_Pos - P_A_2nd_PNP_FWD_Max_Limit_Pos);		// 리밋까지 남은 Stroke(mm).
+		
+				P_A_2nd_PNP_FWD_Stroke_Time = (P_A_2nd_PNP_FWD_Remain_Stroke / P_A_2nd_PNP_FWD_Cur_Vel) * 2 * N_Time_Scale;	// 감속 시간(ms) = (남은 거리 / 속도) * 2 * 1000;
+				if ( P_A_2nd_PNP_FWD_Cur_Pos < P_A_2nd_PNP_FWD_ACC_Dis )								// 가속 시 거리 이전 일 경우.
+				{
+					P_A_2nd_PNP_FWD_AbortTa = P_2nd_PNP_FWD_Abort_Offset(int(P_A_2nd_PNP_FWD_Cur_Pos))	// AbortTa 업데이트.
+					P_A_2nd_PNP_FWD_AbortTs = P_2nd_PNP_FWD_Abort_Offset(int(P_A_2nd_PNP_FWD_Cur_Pos))	// AbortTs 업데이트.
+				}
+				else if ( P_A_2nd_PNP_FWD_Cur_Pos >= P_A_2nd_PNP_FWD_ACC_Dis )							// 가속 시 거리 이후 (감속 시)
+				{
+					P_A_2nd_PNP_FWD_AbortTa = P_A_2nd_PNP_FWD_Stroke_Time * (Coord[N_A_2nd_PNP_C_Num].TimeBase / Sys.ServoPeriod) - P_A_2nd_PNP_FWD_Abort_Dec_Offset;		// AbortTa = 감속 시간 * (피드레이트 변화에 따른 속도 차이) - Offset.
+					P_A_2nd_PNP_FWD_AbortTs = P_A_2nd_PNP_FWD_Abort_Dec_Offset;							// AbortTs 업데이트.
+					if ( P_A_2nd_PNP_FWD_AbortTa < 0 )													// AbortTa 값이 음수 일 경우.
+						P_A_2nd_PNP_FWD_AbortTa = P_A_2nd_PNP_FWD_AbortTs;								// AbortTa 업데이트.
+				}
+				if ( Coord[N_A_2nd_PNP_C_Num].ProgRunning == 1 )										// 좌표계가 살아있을 경우에만 Abort Ta, Ts 업데이트.
+				{
+					Motor[N_A_2nd_PNP_M_Num].AbortTa = P_A_2nd_PNP_FWD_AbortTa;							// AbortTa 업데이트.
+					Motor[N_A_2nd_PNP_M_Num].AbortTs = P_A_2nd_PNP_FWD_AbortTs;							// AbortTs 업데이트.
+					P_A_2nd_PNP_FWD_AbortTa_Buffer = P_A_2nd_PNP_FWD_AbortTa;							// AbortTa 저장.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+					P_A_2nd_PNP_FWD_AbortTs_Buffer = P_A_2nd_PNP_FWD_AbortTs;							// AbortTs 저장. 
+				}
+				else																					// 모션 진행 중 좌표계가 죽을 경우.
+					P_A_2nd_PNP_FWD_Abort_Calc_Bit = 0;													// 실행 변수 초기화.
+			}
+			else if ( P_A_2nd_PNP_FWD_Abort_Calc_Bit == 0 && P_A_2nd_PNP_FWD_Restore_Bit == 1 )			// 모션 종료.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+			{
+				if ( Motor[N_A_2nd_PNP_M_Num].DesVelZero == 1 )											// 구동 종료.
+				{
+					P_A_2nd_PNP_FWD_Restore_Bit = 0;													// 원복 Bit 초기화. (모션 프로그램에서 ON)
+					Motor[N_A_2nd_PNP_M_Num].AbortTa = P_Abort_Init_Value;								// AbortTa 원복.
+					Motor[N_A_2nd_PNP_M_Num].AbortTs = P_Abort_Init_Value;								// AbortTs 원복.
+				}
+			}
+			//=========================================//
+			// 양극 1차 P&P 후진		[Find_C_1st_BWD]
+			//=========================================//
+			if ( P_C_1st_PNP_BWD_Abort_Calc_Bit == 1 && (P_C_1st_PNP_BWD_Abort_Use_Bit | P_PNP_Abort_Use_Total_Bit))
+			{
+				// 1) 1차 P&P 전진 현재 위치, 속도 업데이트.
+				P_C_1st_PNP_BWD_Cur_Pos = (Motor[N_C_1st_PNP_M_Num].ActPos - Motor[N_C_1st_PNP_M_Num].HomePos) / N_Time_Scale;		// 현재 위치(mm).
+				P_C_1st_PNP_BWD_Cur_Vel = abs(Motor[N_C_1st_PNP_M_Num].DesVel / Sys.ServoPeriod);		// 현재 속도(mm/s).
+				// 2) 1차 P&P 전진 Abort 시간 적용.
+				if ( P_C_1st_PNP_BWD_Cur_Pos > P_C_1st_PNP_BWD_Limit_Pos )								// 현재 위치 > Limit 위치
+					P_C_1st_PNP_BWD_Remain_Stroke = abs(P_C_1st_PNP_BWD_Cur_Pos - P_C_1st_PNP_BWD_Limit_Pos);			// 리밋까지 남은 Stroke(mm).
+				else
+					P_C_1st_PNP_BWD_Remain_Stroke = abs(P_C_1st_PNP_BWD_Cur_Pos - P_C_1st_PNP_BWD_Max_Limit_Pos);		// 리밋까지 남은 Stroke(mm).
+		
+				P_C_1st_PNP_BWD_Stroke_Time = (P_C_1st_PNP_BWD_Remain_Stroke / P_C_1st_PNP_BWD_Cur_Vel) * 2 * N_Time_Scale;	// 감속 시간(ms) = (남은 거리 / 속도) * 2 * 1000;
+				if ( P_C_1st_PNP_BWD_Cur_Pos > P_C_1st_PNP_BWD_ACC_Dis )								// 가속 시 거리 이전 일 경우.
+				{
+					P_C_1st_PNP_BWD_AbortTa = P_1st_PNP_BWD_Abort_Offset(int(90 - P_C_1st_PNP_BWD_Cur_Pos))	// AbortTa 업데이트.	90 -> 전진 이동 거리로 변수 변경.
+					P_C_1st_PNP_BWD_AbortTs = P_1st_PNP_BWD_Abort_Offset(int(90 - P_C_1st_PNP_BWD_Cur_Pos))	// AbortTs 업데이트.
+				}
+				else if ( P_C_1st_PNP_BWD_Cur_Pos <= P_C_1st_PNP_BWD_ACC_Dis )							// 가속 시 거리 이후 (감속 시)
+				{
+					P_C_1st_PNP_BWD_AbortTa = P_C_1st_PNP_BWD_Stroke_Time * (Coord[N_C_1st_PNP_C_Num].TimeBase / Sys.ServoPeriod) - P_C_1st_PNP_BWD_Abort_Dec_Offset;		// AbortTa = 감속 시간 * (피드레이트 변화에 따른 속도 차이) - Offset.
+					P_C_1st_PNP_BWD_AbortTs = P_C_1st_PNP_BWD_Abort_Dec_Offset;							// AbortTs 업데이트.
+					if ( P_C_1st_PNP_BWD_AbortTa < 0 )													// AbortTa 값이 음수 일 경우.
+						P_C_1st_PNP_BWD_AbortTa = P_C_1st_PNP_BWD_AbortTs;								// AbortTa 업데이트.
+				}
+				if ( Coord[N_C_1st_PNP_C_Num].ProgRunning == 1 )										// 좌표계가 살아있을 경우에만 Abort Ta, Ts 업데이트.
+				{
+					Motor[N_C_1st_PNP_M_Num].AbortTa = P_C_1st_PNP_BWD_AbortTa;							// AbortTa 업데이트.
+					Motor[N_C_1st_PNP_M_Num].AbortTs = P_C_1st_PNP_BWD_AbortTs;							// AbortTs 업데이트.
+					P_C_1st_PNP_BWD_AbortTa_Buffer = P_C_1st_PNP_BWD_AbortTa;							// AbortTa 저장.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+					P_C_1st_PNP_BWD_AbortTs_Buffer = P_C_1st_PNP_BWD_AbortTs;							// AbortTs 저장. 
+				}
+				else																					// 모션 진행 중 좌표계가 죽을 경우.
+					P_C_1st_PNP_BWD_Abort_Calc_Bit = 0;													// 실행 변수 초기화.
+			}
+			else if ( P_C_1st_PNP_BWD_Abort_Calc_Bit == 0 && P_C_1st_PNP_BWD_Restore_Bit == 1 )			// 모션 종료.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+			{
+				if ( Motor[N_C_1st_PNP_M_Num].DesVelZero == 1 )											// 구동 종료.
+				{
+					P_C_1st_PNP_BWD_Restore_Bit = 0;													// 원복 Bit 초기화. (모션 프로그램에서 ON)
+					Motor[N_C_1st_PNP_M_Num].AbortTa = P_Abort_Init_Value;								// AbortTa 원복.
+					Motor[N_C_1st_PNP_M_Num].AbortTs = P_Abort_Init_Value;								// AbortTs 원복.
+				}
+			}
+			//=========================================//
+			// 양극 2차 P&P 후진		[Find_C_2nd_BWD]
+			//=========================================//
+			if ( P_C_2nd_PNP_BWD_Abort_Calc_Bit == 1 && (P_C_2nd_PNP_BWD_Abort_Use_Bit | P_PNP_Abort_Use_Total_Bit))
+			{
+				// 1) 1차 P&P 전진 현재 위치, 속도 업데이트.
+				P_C_2nd_PNP_BWD_Cur_Pos = (Motor[N_C_2nd_PNP_M_Num].ActPos - Motor[N_C_2nd_PNP_M_Num].HomePos) / N_Time_Scale;		// 현재 위치(mm).
+				P_C_2nd_PNP_BWD_Cur_Vel = abs(Motor[N_C_2nd_PNP_M_Num].DesVel / Sys.ServoPeriod);		// 현재 속도(mm/s).
+				// 2) 1차 P&P 전진 Abort 시간 적용.
+				if ( P_C_2nd_PNP_BWD_Cur_Pos > P_C_2nd_PNP_BWD_Limit_Pos )								// 현재 위치 > Limit 위치
+					P_C_2nd_PNP_BWD_Remain_Stroke = abs(P_C_2nd_PNP_BWD_Cur_Pos - P_C_2nd_PNP_BWD_Limit_Pos);			// 리밋까지 남은 Stroke(mm).
+				else
+					P_C_2nd_PNP_BWD_Remain_Stroke = abs(P_C_2nd_PNP_BWD_Cur_Pos - P_C_2nd_PNP_BWD_Max_Limit_Pos);		// 리밋까지 남은 Stroke(mm).
+		
+				P_C_2nd_PNP_BWD_Stroke_Time = (P_C_2nd_PNP_BWD_Remain_Stroke / P_C_2nd_PNP_BWD_Cur_Vel) * 2 * N_Time_Scale;	// 감속 시간(ms) = (남은 거리 / 속도) * 2 * 1000;
+				if ( P_C_2nd_PNP_BWD_Cur_Pos > P_C_2nd_PNP_BWD_ACC_Dis )								// 가속 시 거리 이전 일 경우.
+				{
+					P_C_2nd_PNP_BWD_AbortTa = P_2nd_PNP_BWD_Abort_Offset(int(90 - P_C_2nd_PNP_BWD_Cur_Pos))	// AbortTa 업데이트.
+					P_C_2nd_PNP_BWD_AbortTs = P_2nd_PNP_BWD_Abort_Offset(int(90 - P_C_2nd_PNP_BWD_Cur_Pos))	// AbortTs 업데이트.
+				}
+				else if ( P_C_2nd_PNP_BWD_Cur_Pos <= P_C_2nd_PNP_BWD_ACC_Dis )							// 가속 시 거리 이후 (감속 시)
+				{
+					P_C_2nd_PNP_BWD_AbortTa = P_C_2nd_PNP_BWD_Stroke_Time * (Coord[N_C_2nd_PNP_C_Num].TimeBase / Sys.ServoPeriod) - P_C_2nd_PNP_BWD_Abort_Dec_Offset;		// AbortTa = 감속 시간 * (피드레이트 변화에 따른 속도 차이) - Offset.
+					P_C_2nd_PNP_BWD_AbortTs = P_C_2nd_PNP_BWD_Abort_Dec_Offset;							// AbortTs 업데이트.
+					if ( P_C_2nd_PNP_BWD_AbortTa < 0 )													// AbortTa 값이 음수 일 경우.
+						P_C_2nd_PNP_BWD_AbortTa = P_C_2nd_PNP_BWD_AbortTs;								// AbortTa 업데이트.
+				}
+				if ( Coord[N_C_2nd_PNP_C_Num].ProgRunning == 1 )										// 좌표계가 살아있을 경우에만 Abort Ta, Ts 업데이트.
+				{
+					Motor[N_C_2nd_PNP_M_Num].AbortTa = P_C_2nd_PNP_BWD_AbortTa;							// AbortTa 업데이트.
+					Motor[N_C_2nd_PNP_M_Num].AbortTs = P_C_2nd_PNP_BWD_AbortTs;							// AbortTs 업데이트.
+					P_C_2nd_PNP_BWD_AbortTa_Buffer = P_C_2nd_PNP_BWD_AbortTa;							// AbortTa 저장.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+					P_C_2nd_PNP_BWD_AbortTs_Buffer = P_C_2nd_PNP_BWD_AbortTs;							// AbortTs 저장. 
+				}
+				else																					// 모션 진행 중 좌표계가 죽을 경우.
+					P_C_2nd_PNP_BWD_Abort_Calc_Bit = 0;													// 실행 변수 초기화.
+			}
+			else if ( P_C_2nd_PNP_BWD_Abort_Calc_Bit == 0 && P_C_2nd_PNP_BWD_Restore_Bit == 1 )			// 모션 종료.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+			{
+				if ( Motor[N_C_2nd_PNP_M_Num].DesVelZero == 1 )											// 구동 종료.
+				{
+					P_C_2nd_PNP_BWD_Restore_Bit = 0;													// 원복 Bit 초기화. (모션 프로그램에서 ON)
+					Motor[N_C_2nd_PNP_M_Num].AbortTa = P_Abort_Init_Value;								// AbortTa 원복.
+					Motor[N_C_2nd_PNP_M_Num].AbortTs = P_Abort_Init_Value;								// AbortTs 원복.
+				}
+			}
+			//=========================================//
+			// 음극 1차 P&P 후진		[Find_A_1st_BWD]
+			//=========================================//
+			if ( P_A_1st_PNP_BWD_Abort_Calc_Bit == 1 && (P_A_1st_PNP_BWD_Abort_Use_Bit | P_PNP_Abort_Use_Total_Bit))
+			{
+				// 1) 1차 P&P 전진 현재 위치, 속도 업데이트.
+				P_A_1st_PNP_BWD_Cur_Pos = (Motor[N_A_1st_PNP_M_Num].ActPos - Motor[N_A_1st_PNP_M_Num].HomePos) / N_Time_Scale;		// 현재 위치(mm).
+				P_A_1st_PNP_BWD_Cur_Vel = abs(Motor[N_A_1st_PNP_M_Num].DesVel / Sys.ServoPeriod);		// 현재 속도(mm/s).
+				// 2) 1차 P&P 전진 Abort 시간 적용.
+				if ( P_A_1st_PNP_BWD_Cur_Pos > P_A_1st_PNP_BWD_Limit_Pos )								// 현재 위치 > Limit 위치
+					P_A_1st_PNP_BWD_Remain_Stroke = abs(P_A_1st_PNP_BWD_Cur_Pos - P_A_1st_PNP_BWD_Limit_Pos);			// 리밋까지 남은 Stroke(mm).
+				else
+					P_A_1st_PNP_BWD_Remain_Stroke = abs(P_A_1st_PNP_BWD_Cur_Pos - P_A_1st_PNP_BWD_Max_Limit_Pos);		// 리밋까지 남은 Stroke(mm).
+		
+				P_A_1st_PNP_BWD_Stroke_Time = (P_A_1st_PNP_BWD_Remain_Stroke / P_A_1st_PNP_BWD_Cur_Vel) * 2 * N_Time_Scale;	// 감속 시간(ms) = (남은 거리 / 속도) * 2 * 1000;
+				if ( P_A_1st_PNP_BWD_Cur_Pos > P_A_1st_PNP_BWD_ACC_Dis )								// 가속 시 거리 이전 일 경우.
+				{
+					P_A_1st_PNP_BWD_AbortTa = P_1st_PNP_BWD_Abort_Offset(int(90 - P_A_1st_PNP_BWD_Cur_Pos))	// AbortTa 업데이트.
+					P_A_1st_PNP_BWD_AbortTs = P_1st_PNP_BWD_Abort_Offset(int(90 - P_A_1st_PNP_BWD_Cur_Pos))	// AbortTs 업데이트.
+				}
+				else if ( P_A_1st_PNP_BWD_Cur_Pos <= P_A_1st_PNP_BWD_ACC_Dis )							// 가속 시 거리 이후 (감속 시)
+				{
+					P_A_1st_PNP_BWD_AbortTa = P_A_1st_PNP_BWD_Stroke_Time * (Coord[N_A_1st_PNP_C_Num].TimeBase / Sys.ServoPeriod) - P_A_1st_PNP_BWD_Abort_Dec_Offset;		// AbortTa = 감속 시간 * (피드레이트 변화에 따른 속도 차이) - Offset.
+					P_A_1st_PNP_BWD_AbortTs = P_A_1st_PNP_BWD_Abort_Dec_Offset;							// AbortTs 업데이트.
+					if ( P_A_1st_PNP_BWD_AbortTa < 0 )													// AbortTa 값이 음수 일 경우.
+						P_A_1st_PNP_BWD_AbortTa = P_A_1st_PNP_BWD_AbortTs;								// AbortTa 업데이트.
+				}
+				if ( Coord[N_A_1st_PNP_C_Num].ProgRunning == 1 )										// 좌표계가 살아있을 경우에만 Abort Ta, Ts 업데이트.
+				{
+					Motor[N_A_1st_PNP_M_Num].AbortTa = P_A_1st_PNP_BWD_AbortTa;							// AbortTa 업데이트.
+					Motor[N_A_1st_PNP_M_Num].AbortTs = P_A_1st_PNP_BWD_AbortTs;							// AbortTs 업데이트.
+					P_A_1st_PNP_BWD_AbortTa_Buffer = P_A_1st_PNP_BWD_AbortTa;							// AbortTa 저장.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+					P_A_1st_PNP_BWD_AbortTs_Buffer = P_A_1st_PNP_BWD_AbortTs;							// AbortTs 저장. 
+				}
+				else																					// 모션 진행 중 좌표계가 죽을 경우.
+					P_A_1st_PNP_BWD_Abort_Calc_Bit = 0;													// 실행 변수 초기화.
+			}
+			else if ( P_A_1st_PNP_BWD_Abort_Calc_Bit == 0 && P_A_1st_PNP_BWD_Restore_Bit == 1 )			// 모션 종료.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+			{
+				if ( Motor[N_A_1st_PNP_M_Num].DesVelZero == 1 )											// 구동 종료.
+				{
+					P_A_1st_PNP_BWD_Restore_Bit = 0;													// 원복 Bit 초기화. (모션 프로그램에서 ON)
+					Motor[N_A_1st_PNP_M_Num].AbortTa = P_Abort_Init_Value;								// AbortTa 원복.
+					Motor[N_A_1st_PNP_M_Num].AbortTs = P_Abort_Init_Value;								// AbortTs 원복.
+				}
+			}
+			//=========================================//
+			// 음극 2차 P&P 후진		[Find_A_2nd_BWD]
+			//=========================================//
+			if ( P_A_2nd_PNP_BWD_Abort_Calc_Bit == 1 && (P_A_2nd_PNP_BWD_Abort_Use_Bit | P_PNP_Abort_Use_Total_Bit))
+			{
+				// 1) 1차 P&P 전진 현재 위치, 속도 업데이트.
+				P_A_2nd_PNP_BWD_Cur_Pos = (Motor[N_A_2nd_PNP_M_Num].ActPos - Motor[N_A_2nd_PNP_M_Num].HomePos) / N_Time_Scale;		// 현재 위치(mm).
+				P_A_2nd_PNP_BWD_Cur_Vel = abs(Motor[N_A_2nd_PNP_M_Num].DesVel / Sys.ServoPeriod);		// 현재 속도(mm/s).
+				// 2) 1차 P&P 전진 Abort 시간 적용.
+				if ( P_A_2nd_PNP_BWD_Cur_Pos > P_A_2nd_PNP_BWD_Limit_Pos )								// 현재 위치 > Limit 위치
+					P_A_2nd_PNP_BWD_Remain_Stroke = abs(P_A_2nd_PNP_BWD_Cur_Pos - P_A_2nd_PNP_BWD_Limit_Pos);			// 리밋까지 남은 Stroke(mm).
+				else
+					P_A_2nd_PNP_BWD_Remain_Stroke = abs(P_A_2nd_PNP_BWD_Cur_Pos - P_A_2nd_PNP_BWD_Max_Limit_Pos);		// 리밋까지 남은 Stroke(mm).
+		
+				P_A_2nd_PNP_BWD_Stroke_Time = (P_A_2nd_PNP_BWD_Remain_Stroke / P_A_2nd_PNP_BWD_Cur_Vel) * 2 * N_Time_Scale;	// 감속 시간(ms) = (남은 거리 / 속도) * 2 * 1000;
+				if ( P_A_2nd_PNP_BWD_Cur_Pos > P_A_2nd_PNP_BWD_ACC_Dis )								// 가속 시 거리 이전 일 경우.
+				{
+					P_A_2nd_PNP_BWD_AbortTa = P_2nd_PNP_BWD_Abort_Offset(int(90 - P_A_2nd_PNP_BWD_Cur_Pos))	// AbortTa 업데이트.
+					P_A_2nd_PNP_BWD_AbortTs = P_2nd_PNP_BWD_Abort_Offset(int(90 - P_A_2nd_PNP_BWD_Cur_Pos))	// AbortTs 업데이트.
+				}
+				else if ( P_A_2nd_PNP_BWD_Cur_Pos <= P_A_2nd_PNP_BWD_ACC_Dis )							// 가속 시 거리 이후 (감속 시)
+				{
+					P_A_2nd_PNP_BWD_AbortTa = P_A_2nd_PNP_BWD_Stroke_Time * (Coord[N_A_2nd_PNP_C_Num].TimeBase / Sys.ServoPeriod) - P_A_2nd_PNP_BWD_Abort_Dec_Offset;		// AbortTa = 감속 시간 * (피드레이트 변화에 따른 속도 차이) - Offset.
+					P_A_2nd_PNP_BWD_AbortTs = P_A_2nd_PNP_BWD_Abort_Dec_Offset;							// AbortTs 업데이트.
+					if ( P_A_2nd_PNP_BWD_AbortTa < 0 )													// AbortTa 값이 음수 일 경우.
+						P_A_2nd_PNP_BWD_AbortTa = P_A_2nd_PNP_BWD_AbortTs;								// AbortTa 업데이트.
+				}
+				if ( Coord[N_A_2nd_PNP_C_Num].ProgRunning == 1 )										// 좌표계가 살아있을 경우에만 Abort Ta, Ts 업데이트.
+				{
+					Motor[N_A_2nd_PNP_M_Num].AbortTa = P_A_2nd_PNP_BWD_AbortTa;							// AbortTa 업데이트.
+					Motor[N_A_2nd_PNP_M_Num].AbortTs = P_A_2nd_PNP_BWD_AbortTs;							// AbortTs 업데이트.
+					P_A_2nd_PNP_BWD_AbortTa_Buffer = P_A_2nd_PNP_BWD_AbortTa;							// AbortTa 저장.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+					P_A_2nd_PNP_BWD_AbortTs_Buffer = P_A_2nd_PNP_BWD_AbortTs;							// AbortTs 저장. 
+				}
+				else																					// 모션 진행 중 좌표계가 죽을 경우.
+					P_A_2nd_PNP_BWD_Abort_Calc_Bit = 0;													// 실행 변수 초기화.
+			}
+			else if ( P_A_2nd_PNP_BWD_Abort_Calc_Bit == 0 && P_A_2nd_PNP_BWD_Restore_Bit == 1 )			// 모션 종료.		[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+			{
+				if ( Motor[N_A_2nd_PNP_M_Num].DesVelZero == 1 )											// 구동 종료.
+				{
+					P_A_2nd_PNP_BWD_Restore_Bit = 0;													// 원복 Bit 초기화. (모션 프로그램에서 ON)
+					Motor[N_A_2nd_PNP_M_Num].AbortTa = P_Abort_Init_Value;								// AbortTa 원복.
+					Motor[N_A_2nd_PNP_M_Num].AbortTs = P_Abort_Init_Value;								// AbortTs 원복.
+				}
+			}
+		}
+		// 모션 최고 속도. (mm/ms)
+		P_C_1st_PNP_FWD_Max_Speed = 90 / P_PNP_90_Deg_TM;												// 모션 최고 속도 = 거리 / TM												
+		P_C_1st_PNP_BWD_Max_Speed = 90 / P_PNP_90_Deg_TM;												// 모션 최고 속도 = 거리 / TM	
+		P_C_2nd_PNP_FWD_Max_Speed = 90 / P_PNP_90_Deg_TM;												// 모션 최고 속도 = 거리 / TM	
+		P_C_2nd_PNP_BWD_Max_Speed = 90 / P_PNP_90_Deg_TM;												// 모션 최고 속도 = 거리 / TM	
+		P_A_1st_PNP_FWD_Max_Speed = 90 / P_PNP_90_Deg_TM;												// 모션 최고 속도 = 거리 / TM	
+		P_A_1st_PNP_BWD_Max_Speed = 90 / P_PNP_90_Deg_TM;												// 모션 최고 속도 = 거리 / TM	
+		P_A_2nd_PNP_FWD_Max_Speed = 90 / P_PNP_90_Deg_TM;												// 모션 최고 속도 = 거리 / TM	
+		P_A_2nd_PNP_BWD_Max_Speed = 90 / P_PNP_90_Deg_TM;												// 모션 최고 속도 = 거리 / TM	
+		// 가속 완료 시 거리. (mm)
+		P_C_1st_PNP_FWD_ACC_Dis = P_C_1st_PNP_FWD_Max_Speed * (P_PNP_90_Deg_TA + P_PNP_90_Deg_TS) / 2;	// 모션 가속 거리 = 최고 속도 * (TA + TS) / 2
+		P_C_1st_PNP_BWD_ACC_Dis = P_C_1st_PNP_BWD_Max_Speed * (P_PNP_90_Deg_TA + P_PNP_90_Deg_TS) / 2;	// 모션 가속 거리 = 최고 속도 * (TA + TS) / 2
+		P_C_2nd_PNP_FWD_ACC_Dis = P_C_2nd_PNP_FWD_Max_Speed * (P_PNP_90_Deg_TA + P_PNP_90_Deg_TS) / 2;	// 모션 가속 거리 = 최고 속도 * (TA + TS) / 2
+		P_C_2nd_PNP_BWD_ACC_Dis = P_C_2nd_PNP_BWD_Max_Speed * (P_PNP_90_Deg_TA + P_PNP_90_Deg_TS) / 2;	// 모션 가속 거리 = 최고 속도 * (TA + TS) / 2
+		P_A_1st_PNP_FWD_ACC_Dis = P_A_1st_PNP_FWD_Max_Speed * (P_PNP_90_Deg_TA + P_PNP_90_Deg_TS) / 2;	// 모션 가속 거리 = 최고 속도 * (TA + TS) / 2
+		P_A_1st_PNP_BWD_ACC_Dis = P_A_1st_PNP_BWD_Max_Speed * (P_PNP_90_Deg_TA + P_PNP_90_Deg_TS) / 2;	// 모션 가속 거리 = 최고 속도 * (TA + TS) / 2
+		P_A_2nd_PNP_FWD_ACC_Dis = P_A_2nd_PNP_FWD_Max_Speed * (P_PNP_90_Deg_TA + P_PNP_90_Deg_TS) / 2;	// 모션 가속 거리 = 최고 속도 * (TA + TS) / 2
+		P_A_2nd_PNP_BWD_ACC_Dis = P_A_2nd_PNP_BWD_Max_Speed * (P_PNP_90_Deg_TA + P_PNP_90_Deg_TS) / 2;	// 모션 가속 거리 = 최고 속도 * (TA + TS) / 2
+	
+	return;
+
+close

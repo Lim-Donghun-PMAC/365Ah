@@ -1,0 +1,137 @@
+
+
+&27
+#5-> 1000y		// 양극 클램프 Y축 1
+#7-> 1000yy		// 양극 클램프 Y축 2
+//#9-> 1000z		// 양극 클램프 Z축 1
+#27->1000z		// 양극 클램프 Z축 2			// [ 참조 : 클램프 Z1 모터 번호 변경 2025.10.16 ]
+#25->1000zz		// 양극 클램프 Z축 2
+//===============//
+
+
+
+open prog 27
+	
+	ABS					// 절대좌표모드
+	LINEAR
+	
+	while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(7) == 1 && P_Slave_Motion_Program_Flag(7) == 1 )
+	{	// 프로그램 허용 플래그
+	
+		Switch ( P_Slave7_Motion_Command )
+		{	
+			case 0 :
+
+			break;
+
+			// 커멘드별 모션
+
+			// case 1
+			case N_Clamp_Off_Motion :	// [1] clamp off
+				P_Slave7_Motion_Command == 0;
+				P_Cathode_Clamp_OFF_Status == F_Status_EXECUTE;
+				//pvt(20) z(0) : (100)
+				//pvt(45) y(19.4375) : (-750)    yy(19.4375) : (-750)	
+				//pvt(45) y(0) : (0)             yy(0) : (0) 
+				//dwell(0)
+				// [ 참조 : 2025.09.26 Frax(Vector) 모션 변경 ]
+				ta(5)ts(5)tm(0)		// 15ms
+				z(0.5)zz(0.5)		// 상승
+				ta(35)ts(5)tm(40)	// 85ms
+				y(0)yy(0)			// 원위치
+				P_Cathode_Clamp_OFF_Status == F_Status_COMPLETE;
+				P_Tact_Time_Check(N_Cathode_Clamp) == 0;		// Tact Time 측정 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+				dwell(0)
+			break;
+
+			// case 2
+			case N_Clamp_On_Motion :		// clamp on
+				// 140ms
+				P_Slave7_Motion_Command = 0;
+				//if( P_Process_Function_Command == N_Function_Execute_First_Sepa_OnTable || P_Anode_Count != 0 )
+				if( P_Process_Function_Command == N_Function_Execute_First_Sepa_OnTable || P_Process_Function_Command == N_Function_Stop_Initial_Process ||P_Anode_Count != 0 || P_Buffer_Mode_Status_Sequence == N_Dryrun_Status_Sequence )		// 세파 첫장 진행 중 정지 시 Clamp ON 진행하기 위함. [ 참조 : 25.08.04 세파 첫장 프로그램 수정. ]
+				{																																								// ↑ 드라이런일때 클램프 on 추가
+					P_Cathode_Clamp_ON_Status == F_Status_EXECUTE;	// [ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+					P_Tact_Time_Check(N_Cathode_Clamp) == 1;		// Tact Time 측정 시작	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+					dwell(0)
+					// [ 참조 : 2025.09.26 Frax(Vector) 모션 변경 ]
+					frax(y,z)
+					frax2(yy,zz)		
+
+					//========== 10mm → 43 mm =========================
+					// vector : 14.5	35ms
+					//ta(15)ts(5)			// 10 + 25
+					//y(10)z(11)yy(10)zz(11)F(580)
+					//// vector : 34.312	65ms
+					//ta(25)ts(5)			// 15 + 50  
+					//y(43)z(1.6)yy(43)zz(1.6)F(686)
+
+					//========== 2mm → 43 mm =========================				// 1/2tat + tm + tm + 1/2tdt 
+					//// vector :10.68	26.5ms
+					ta(9)ts(3)						// 6 + 20.5  
+					y(P_Clamp_1st_Vector_Y)z(P_Clamp_1st_Vector_Z)yy(P_Clamp_1st_Vector_Y)zz(P_Clamp_1st_Vector_Z)F(P_Clamp_1st_Vector_Vel)
+					// vector : 42.063	73.5ms
+					ta(21)ts(5)
+					y(P_Clamp_2nd_Vector_Y)z(P_Clamp_2nd_Vector_Z)yy(P_Clamp_2nd_Vector_Y)zz(P_Clamp_2nd_Vector_Z)F(P_Clamp_2nd_Vector_Vel)	// 13 + 59.5
+					
+					//========== 18mm → 43 mm =========================
+					//// Vector : 20.838  45ms
+					//ta(27)ts(5)		// 15 + 32 = 44.5
+					//y(18) z(11) yy(18)zz(11)F(651)
+					//
+					//// Vector : 26.708 55ms
+					//ta(27)ts(5)		// 	20 + 35 
+					//y(43) z(1.6) yy(43)z(1.6)F(763)
+					//==============================================================================================
+
+					// 2025.09.26 이전 버전 모션 
+					//pvt(5) z(0.75) : (300)
+					//pvt(10) z(5) : (500)
+					//pvt(20) y(4) : (400)	 yy(4) : (400)  z(10) : (0)	
+					//pvt(30) y(24.64) : (880) yy(24.64) : (880)	z(7.9) : (-150)
+					//pvt(30) y(38) : (0)	 yy(38) : (0) z(5) : (0)
+					//pvt(10) z(3.5) : (-300)
+					//pvt(5) z(1.75) : (-400)
+					//pvt(20) z(-2) : (0)
+					//dwell(0)
+					P_Cathode_Clamp_ON_Status == F_Status_COMPLETE;	// [ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+					dwell(0)
+				}
+				/* 150ms 사용시 x-> y yy 변경필요
+				pvt(5) z(0.75) : (300)
+				pvt(10) z(5) : (500)
+				pvt(20) x(4) : (400)	z(10) : (0)	
+				pvt(30) x(22) : (800)	z(7.9) : (-150)
+				pvt(40) x(38) : (0)	z(5) : (0)
+				pvt(10) z(3.5) : (-300)
+				pvt(5) z(1.75) : (-400)
+				pvt(20) z(-2) : (0)
+				*/
+			break;
+
+			// case 3
+			case N_Clamp_Down_Motion:		// 극판두께만큼 하강
+				P_Slave7_Motion_Command = 0;
+				if( P_Anode_Count > 1 || P_Buffer_Mode_Status_Sequence == N_Dryrun_Status_Sequence )
+				{							// ↑ 드라이런일때 클램프 on 추가
+					linear
+					// [ 참조 : 2025.09.26 Frax(Vector) 모션 변경 ]
+					P_Cathode_Clamp_Down_MNTR++;
+					ta(5)ts(3)tm(0)		// 20ms
+					// -0.6으로 해야함 수정 필요
+					z(P_CA_Clamp_Cell_Down_Pos)zz(P_CA_Clamp_Cell_Down_Pos)		// -0.8 - (0.016+0.19)( 극판두께란 가정 )
+					//tm(10) ta(5) ts(3)
+					//z(-2 - (P_Cathode_Thickness + P_Sepa_Thickness) )	// -2는 나중에 레시피값으로 변경 필요
+					////z(P_Cathode_Clamp_Z1_Down - (P_Anode_Thickness + P_Sepa_Thickness))   // [ 참조 : 25.09.01 추후 레시피로 받을때 상수->레시피변수로변경 ]
+				}
+			break;
+
+			default :
+
+			break;
+
+		}
+		
+	}
+
+close

@@ -1,0 +1,130 @@
+// 2025.08.26 MES PV 영역 보고 추가 [ 참조 : 2025.08.26 MES PV 영역 보고 추가 ] - 김성중 선임
+// PV 항목 변수
+global P_PV_Separator_Dancer_Pressure = 0;				// Separator_Dancer_압력
+global P_PV_Cathode_Clamp_Pressure = 0;					// Clamp 압력_양극뱡항
+global P_PV_Anoode_Clamp_Pressure = 0;					// Clamp 압력_음극뱡항
+global P_PV_Cathode_Final_Roller_X_Axis	= 0;			// Final Roller 양극방향 X축 위치
+global P_PV_Anode_Final_Roller_X_Axis = 0;				// Final Roller 음극방향 X축 위치
+global P_PV_Cathode_Clamp_ON_Y1_Axis_Pos = 0;			// Clamp 전진(Y1축) 위치_양극뱡항
+global P_PV_Cathode_Clamp_ON_Y2_Axis_Pos = 0;			// Clamp 전진(Y2축) 위치_양극뱡항
+global P_PV_Cathode_Clamp_ON_Z1_Axis_Pos = 0;			// Clamp 전진(Z1축) 위치_양극뱡항
+global P_PV_Cathode_Clamp_ON_Z2_Axis_Pos = 0;			// Clamp 전진(Z2축) 위치_양극뱡항
+global P_PV_Anode_Clamp_ON_Y1_Axis_Pos = 0;				// Clamp 전진(Y1축) 위치_음극뱡항
+global P_PV_Anode_Clamp_ON_Y2_Axis_Pos = 0;				// Clamp 전진(Y2축) 위치_음극뱡항
+global P_PV_Anode_Clamp_ON_Z1_Axis_Pos = 0;				// Clamp 전진(Z1축) 위치_음극뱡항
+global P_PV_Anode_Clamp_ON_Z2_Axis_Pos = 0;				// Clamp 전진(Z2축) 위치_음극뱡항
+global P_PV_Cathode_2th_AT_T_Axis_Pos = 0;				// 양극 2차 PNP T축 Align 위치
+global P_PV_Cathode_2th_ST_T_Axis_Pos = 0;				// 양극 2차 PNP T축 Stack table 위치
+global P_PV_Cathode_2th_AT_Z_Axis_Pos = 0;				// 양극 2차 PNP Z축 Align 위치
+global P_PV_Cathode_2th_ST_Z_Axis_Pos = 0;				// 양극 2차 PNP Z축 Stack 위치
+global P_PV_Anode_2th_AT_T_Axis_Pos = 0;				// 음극 2차 PNP T축 Align 위치
+global P_PV_Anode_2th_ST_T_Axis_Pos = 0;				// 음극 2차 PNP T축 Stack 위치
+global P_PV_Anode_2th_AT_Z_Axis_Pos = 0;				// 음극 2차 PNP Z축 Align 위치
+global P_PV_Anode_2th_ST_Z_Axis_Pos = 0;				// 음극 2차 PNP Z축 Stack 위치
+global P_PV_Cathode_1th_Ready_T_Axis_Pos = 0;			// 양극 1차 PNP T축 대기 위치
+global P_PV_Cathode_1th_CV_T_Axis_Pos = 0;				// 양극 1차 PNP T축 컨베이어 위치
+global P_PV_Cathode_1th_AT_T_Axis_Pos = 0;				// 양극 1차 PNP T축 Align 위치
+global P_PV_Cathode_1th_Ready_Z_Axis_Pos = 0;			// 양극 1차 PNP Z축 대기 위치
+global P_PV_Cathode_1th_CV_Z_Axis_Pos = 0;				// 양극 1차 PNP Z축 컨베이어 위치
+global P_PV_Cathode_1th_AT_Z_Axis_Pos = 0;				// 양극 1차 PNP Z축 Align 위치
+global P_PV_Anode_1th_Ready_T_Axis_Pos = 0;				// 음극 1차 PNP T축 대기 위치
+global P_PV_Anode_1th_CV_T_Axis_Pos = 0;				// 음극 1차 PNP T축 컨베이어 위치
+global P_PV_Anode_1th_AT_T_Axis_Pos = 0;				// 음극 1차 PNP T축 Align 위치
+global P_PV_Anode_1th_Ready_Z_Axis_Pos = 0;				// 음극 1차 PNP Z축 대기 위치
+global P_PV_Anode_1th_CV_Z_Axis_Pos = 0;				// 음극 1차 PNP Z축 컨베이어 위치
+global P_PV_Anode_1th_AT_Z_Axis_Pos = 0;				// 음극 1차 PNP Z축 Align 위치
+global P_PV_Cathode_NG_AT_T_Axis_Pos = 0;				// 양극 NG PNP T축 Align 위치
+global P_PV_Cathode_NG_Box_T_Axis_Pos = 0;				// 양극 NG PNP T축 NG BOX 위치
+global P_PV_Anode_NG_AT_T_Axis_Pos = 0;					// 음극 NG PNP T축 Align 위치
+global P_PV_Anode_NG_Box_T_Axis_Pos = 0;				// 음극 NG PNP T축 NG BOX 위치
+
+
+// PV 항목 캡쳐 위한 플래그 ( Semi_Run에서 전체 플래그 =  1 )
+// 압력 부분
+global P_SemiRun_Separator_Dancer_Pressure_Flag = 0;			// Separator_Dancer_압력 캡쳐 플래그
+global P_SemiRun_Cathode_Clamp_Pressure_Flag = 0;				// Clamp 압력_양극뱡항 캡쳐 플래그
+global P_SemiRun_Anoode_Clamp_Pressure_Flag = 0;				// Clamp 압력_음극뱡항 캡쳐 플래그
+// 모터 위치
+global P_SemiRun_Cathode_Final_Roller_X_Axis_Flag = 0;			// Final Roller 양극방향 X축 위치 캡쳐 플래그
+global P_SemiRun_Anode_Final_Roller_X_Axis_Flag = 0;			// Final Roller 음극방향 X축 위치 캡쳐 플래그
+global P_SemiRun_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag = 0;		// Clamp 전진(Y1,Z1축) 위치_양극뱡항 캡쳐 플래그
+global P_SemiRun_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag = 0;		// Clamp 전진(Y2,Z2축) 위치_양극뱡항 캡쳐 플래그
+global P_SemiRun_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag = 0;		// Clamp 전진(Y1,Z1축) 위치_음극뱡항 캡쳐 플래그
+global P_SemiRun_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag = 0;		// Clamp 전진(Y2,Z2축) 위치_음극뱡항 캡쳐 플래그
+global P_SemiRun_Cathode_2th_AT_T_Axis_Pos_Flag = 0;			// 양극 2차 PNP T축 Align 위치 캡쳐 플래그
+global P_SemiRun_Cathode_2th_ST_T_Axis_Pos_Flag = 0;			// 양극 2차 PNP T축 Stack table 위치 캡쳐 플래그
+global P_SemiRun_Cathode_2th_AT_Z_Axis_Pos_Flag = 0;			// 양극 2차 PNP Z축 Align 위치 캡쳐 플래그
+global P_SemiRun_Cathode_2th_ST_Z_Axis_Pos_Flag = 0;			// 양극 2차 PNP Z축 Stack 위치 캡쳐 플래그
+global P_SemiRun_Anode_2th_AT_T_Axis_Pos_Flag = 0;				// 음극 2차 PNP T축 Align 위치 캡쳐 플래그
+global P_SemiRun_Anode_2th_ST_T_Axis_Pos_Flag = 0;				// 음극 2차 PNP T축 Stack 위치 캡쳐 플래그
+global P_SemiRun_Anode_2th_AT_Z_Axis_Pos_Flag = 0;				// 음극 2차 PNP Z축 Align 위치 캡쳐 플래그
+global P_SemiRun_Anode_2th_ST_Z_Axis_Pos_Flag = 0;				// 음극 2차 PNP Z축 Stack 위치 캡쳐 플래그
+global P_SemiRun_Cathode_1th_Ready_T_Axis_Pos_Flag = 0;			// 양극 1차 PNP T축 대기 위치 캡쳐 플래그
+global P_SemiRun_Cathode_1th_CV_T_Axis_Pos_Flag = 0;			// 양극 1차 PNP T축 컨베이어 위치 캡쳐 플래그
+global P_SemiRun_Cathode_1th_AT_T_Axis_Pos_Flag = 0;			// 양극 1차 PNP T축 Align 위치 캡쳐 플래그
+global P_SemiRun_Cathode_1th_Ready_Z_Axis_Pos_Flag = 0;			// 양극 1차 PNP Z축 대기 위치 캡쳐 플래그
+global P_SemiRun_Cathode_1th_CV_Z_Axis_Pos_Flag = 0;			// 양극 1차 PNP Z축 컨베이어 위치 캡쳐 플래그
+global P_SemiRun_Cathode_1th_AT_Z_Axis_Pos_Flag = 0;			// 양극 1차 PNP Z축 Align 위치 캡쳐 플래그
+global P_SemiRun_Anode_1th_Ready_T_Axis_Pos_Flag = 0;			// 음극 1차 PNP T축 대기 위치 캡쳐 플래그
+global P_SemiRun_Anode_1th_CV_T_Axis_Pos_Flag = 0;				// 음극 1차 PNP T축 컨베이어 위치 캡쳐 플래그
+global P_SemiRun_Anode_1th_AT_T_Axis_Pos_Flag = 0;				// 음극 1차 PNP T축 Align 위치 캡쳐 플래그
+global P_SemiRun_Anode_1th_Ready_Z_Axis_Pos_Flag = 0;			// 음극 1차 PNP Z축 대기 위치 캡쳐 플래그
+global P_SemiRun_Anode_1th_CV_Z_Axis_Pos_Flag = 0;				// 음극 1차 PNP Z축 컨베이어 위치 캡쳐 플래그
+global P_SemiRun_Anode_1th_AT_Z_Axis_Pos_Flag = 0;				// 음극 1차 PNP Z축 Align 위치 캡쳐 플래그
+global P_SemiRun_Cathode_NG_AT_T_Axis_Pos_Flag = 0;				// 양극 NG PNP T축 Align 위치 캡쳐 플래그
+global P_SemiRun_Cathode_NG_Box_T_Axis_Pos_Flag = 0;			// 양극 NG PNP T축 NG BOX 위치 캡쳐 플래그
+global P_SemiRun_Anode_NG_AT_T_Axis_Pos_Flag = 0;				// 음극 NG PNP T축 Align 위치 캡쳐 플래그
+global P_SemiRun_Anode_NG_Box_T_Axis_Pos_Flag = 0;				// 음극 NG PNP T축 NG BOX 위치 캡쳐 플래그
+
+// PV 항목 캡쳐 위한 플래그 ( 각각 모션 위치 완료 후 Flag = 1 )
+// 압력 부분
+global P_Motion_Separator_Dancer_Pressure_Flag = 0;				// Separator_Dancer_압력 캡쳐 플래그
+global P_Motion_Cathode_Clamp_Pressure_Flag = 0;				// Clamp 압력_양극뱡항 캡쳐 플래그
+global P_Motion_Anoode_Clamp_Pressure_Flag = 0;					// Clamp 압력_음극뱡항 캡쳐 플래그
+// 모터 위치
+global P_Motion_Cathode_Final_Roller_X_Axis_Flag = 0;			// Final Roller 양극방향 X축 위치 캡쳐 플래그
+global P_Motion_Anode_Final_Roller_X_Axis_Flag = 0;				// Final Roller 음극방향 X축 위치 캡쳐 플래그
+global P_Motion_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag = 0;		// Clamp 전진(Y1,Z1축) 위치_양극뱡항 캡쳐 플래그
+global P_Motion_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag = 0;		// Clamp 전진(Y2,Z2축) 위치_양극뱡항 캡쳐 플래그
+global P_Motion_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag = 0;			// Clamp 전진(Y1,Z1축) 위치_음극뱡항 캡쳐 플래그
+global P_Motion_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag = 0;			// Clamp 전진(Y2,Z2축) 위치_음극뱡항 캡쳐 플래그
+global P_Motion_Cathode_2th_AT_T_Axis_Pos_Flag = 0;				// 양극 2차 PNP T축 Align 위치 캡쳐 플래그
+global P_Motion_Cathode_2th_ST_T_Axis_Pos_Flag = 0;				// 양극 2차 PNP T축 Stack table 위치 캡쳐 플래그
+global P_Motion_Cathode_2th_AT_Z_Axis_Pos_Flag = 0;				// 양극 2차 PNP Z축 Align 위치 캡쳐 플래그
+global P_Motion_Cathode_2th_ST_Z_Axis_Pos_Flag = 0;				// 양극 2차 PNP Z축 Stack 위치 캡쳐 플래그
+global P_Motion_Anode_2th_AT_T_Axis_Pos_Flag = 0;				// 음극 2차 PNP T축 Align 위치 캡쳐 플래그
+global P_Motion_Anode_2th_ST_T_Axis_Pos_Flag = 0;				// 음극 2차 PNP T축 Stack 위치 캡쳐 플래그
+global P_Motion_Anode_2th_AT_Z_Axis_Pos_Flag = 0;				// 음극 2차 PNP Z축 Align 위치 캡쳐 플래그
+global P_Motion_Anode_2th_ST_Z_Axis_Pos_Flag = 0;				// 음극 2차 PNP Z축 Stack 위치 캡쳐 플래그
+global P_Motion_Cathode_1th_Ready_T_Axis_Pos_Flag = 0;			// 양극 1차 PNP T축 대기 위치 캡쳐 플래그
+global P_Motion_Cathode_1th_CV_T_Axis_Pos_Flag = 0;				// 양극 1차 PNP T축 컨베이어 위치 캡쳐 플래그
+global P_Motion_Cathode_1th_AT_T_Axis_Pos_Flag = 0;				// 양극 1차 PNP T축 Align 위치 캡쳐 플래그
+global P_Motion_Cathode_1th_Ready_Z_Axis_Pos_Flag = 0;			// 양극 1차 PNP Z축 대기 위치 캡쳐 플래그
+global P_Motion_Cathode_1th_CV_Z_Axis_Pos_Flag = 0;				// 양극 1차 PNP Z축 컨베이어 위치 캡쳐 플래그
+global P_Motion_Cathode_1th_AT_Z_Axis_Pos_Flag = 0;				// 양극 1차 PNP Z축 Align 위치 캡쳐 플래그
+global P_Motion_Anode_1th_Ready_T_Axis_Pos_Flag = 0;			// 음극 1차 PNP T축 대기 위치 캡쳐 플래그
+global P_Motion_Anode_1th_CV_T_Axis_Pos_Flag = 0;				// 음극 1차 PNP T축 컨베이어 위치 캡쳐 플래그
+global P_Motion_Anode_1th_AT_T_Axis_Pos_Flag = 0;				// 음극 1차 PNP T축 Align 위치 캡쳐 플래그
+global P_Motion_Anode_1th_Ready_Z_Axis_Pos_Flag = 0;			// 음극 1차 PNP Z축 대기 위치 캡쳐 플래그
+global P_Motion_Anode_1th_CV_Z_Axis_Pos_Flag = 0;				// 음극 1차 PNP Z축 컨베이어 위치 캡쳐 플래그
+global P_Motion_Anode_1th_AT_Z_Axis_Pos_Flag = 0;				// 음극 1차 PNP Z축 Align 위치 캡쳐 플래그
+global P_Motion_Cathode_NG_AT_T_Axis_Pos_Flag = 0;					// 양극 NG PNP T축 Align 위치 캡쳐 플래그
+global P_Motion_Cathode_NG_Box_T_Axis_Pos_Flag = 0;					// 양극 NG PNP T축 NG BOX 위치 캡쳐 플래그
+global P_Motion_Anode_NG_AT_T_Axis_Pos_Flag = 0;						// 음극 NG PNP T축 Align 위치 캡쳐 플래그
+global P_Motion_Anode_NG_Box_T_Axis_Pos_Flag = 0;					// 음극 NG PNP T축 NG BOX 위치 캡쳐 플래그
+
+//1차 및 2차 PNO 실시간 PV값 계산 스케일값 정의
+global	P_Cathode_1PNP_Sacle_Value = 0.1;
+global	P_Cathode_2PNP_Sacle_Value = 0.1;
+global	P_Anode_1PNP_Sacle_Value = 0.1;
+global	P_Anode_2PNP_Sacle_Value = 0.1;
+
+
+global P_PLC01_SemiRun_PV_Flag = 0;
+
+// EPC 보정에 따른 PV Camera 위치값 추가.	[ 참조 : 26.09.14 PV EPC Camera Pos 추가 ]
+global P_PV_EPC_Index = 0;				// PV EPC 배열 Index
+global P_PV_EPC_Camera_Pos(15);			// PV EPC 위치값.
+P_PV_EPC_Camera_Pos(0),15 = 0;			// PV EPC 위치값.
+
+   

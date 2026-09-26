@@ -1,0 +1,906 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.30 
+// 내용 - [ 참조 : 25.06.30  46. Subprog46_Sub_All_Home_Action_Module ]
+// [ 참조 : 2025.07.23 홈 프로그램 추가 ] 
+//==========================================================================================================================================================================================================================================
+//	00. 46. Subprog46_Sub_All_Home_Action_Module 변수 
+//==========================================================================================================================================================================================================================================
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 00.0) 동작타입 Case 디파인
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+#define	F_AH_None							0			// 타입 없음.
+#define	F_AH_Plus_Type						1			// Minus 이동.
+#define	F_AH_Minus_Type						2			// Plus 이동.
+#define	F_AH_Servo_ON_Type					3			// 가상축 서보 온.
+#define	F_AH_IO_Type						4			// IO On/Off.
+#define	F_AH_Home_Type						5			// 홈 명령 
+#define	F_AH_Cascade_Type					6			// 텐션 준비
+#define F_AH_Jog_Type					7			// 조그 앱솔루트 이동.
+
+global P_AH_Group_Updata_Num = 0;
+
+#define N_Pair_Low			1
+#define N_Pair_High			2
+#define N_Anode_High		3
+#define N_Cathode_High		4
+#define N_Done_Pair_Low		5
+#define N_Done_Pair_High	6
+#define N_Done_Anode_High	7
+#define N_Done_Cathode_High	8
+
+
+#define		N_AH_Last_Motor	50
+#define		N_AH_IO01_Unit_Name		N_AH_Last_Motor+1																																					
+#define		N_AH_IO02_Unit_Name		N_AH_Last_Motor+2
+#define		N_AH_IO03_Unit_Name		N_AH_Last_Motor+3
+#define		N_AH_IO04_Unit_Name		N_AH_Last_Motor+4
+#define		N_AH_IO05_Unit_Name		N_AH_Last_Motor+5
+#define		N_AH_IO06_Unit_Name		N_AH_Last_Motor+6
+#define		N_AH_IO07_Unit_Name		N_AH_Last_Motor+7
+#define		N_AH_IO08_Unit_Name		N_AH_Last_Motor+8
+#define		N_AH_IO09_Unit_Name		N_AH_Last_Motor+9
+#define		N_AH_IO10_Unit_Name		N_AH_Last_Motor+10
+#define		N_AH_IO11_Unit_Name		N_AH_Last_Motor+11
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 00.1) 그룹정보 업데이트  - initialize 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+global P_AH_Action_Target(N_Max_Member_EA);				// 전체 홈 맴버별 타겟 번호 
+P_AH_Action_Target(0),N_Max_Member_EA,1 = 0;
+global P_AH_Action_Type(N_Max_Member_EA)=0;				// 전체 홈 맴버별 동작타입 번호 	
+P_AH_Action_Type(0),N_Max_Member_EA,1 = 0;
+global P_AH_Act_Time(N_Max_Member_EA);					// 멤버별 액션에 지정된 시간 
+P_AH_Act_Time(0),N_Max_Member_EA,1 = 0;
+
+//----------------------------------------------------------------------------------------------------------------------------------------------
+// 00.2) Home_Prog_Mode_Update Recipe값으로 받을수 있게끔 변수 추가 그룹 최대개수 5EA, 멤버 최대개수 16EA 
+//----------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------
+// 00.3) 대상 정보 
+//----------------------------------------------------------------------------------------------------------------------------------------------
+// ALL Home Type_1 
+global P_Recipe_G1_Action_Target_Type_1(N_Max_Member_EA);
+global P_Recipe_G2_Action_Target_Type_1(N_Max_Member_EA);
+global P_Recipe_G3_Action_Target_Type_1(N_Max_Member_EA);
+global P_Recipe_G4_Action_Target_Type_1(N_Max_Member_EA);
+global P_Recipe_G5_Action_Target_Type_1(N_Max_Member_EA);
+global P_Recipe_G6_Action_Target_Type_1(N_Max_Member_EA);
+global P_Recipe_G7_Action_Target_Type_1(N_Max_Member_EA);
+global P_Recipe_G8_Action_Target_Type_1(N_Max_Member_EA);
+global P_Recipe_G9_Action_Target_Type_1(N_Max_Member_EA);
+global P_Recipe_G10_Action_Target_Type_1(N_Max_Member_EA);
+global P_Recipe_G11_Action_Target_Type_1(N_Max_Member_EA);
+global P_Recipe_G12_Action_Target_Type_1(N_Max_Member_EA);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 00.4) 동작 타입 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// ALL Home Type_1  
+global P_Recipe_G1_Action_Type_Type_1(N_Max_Member_EA);
+global P_Recipe_G2_Action_Type_Type_1(N_Max_Member_EA);
+global P_Recipe_G3_Action_Type_Type_1(N_Max_Member_EA);
+global P_Recipe_G4_Action_Type_Type_1(N_Max_Member_EA);
+global P_Recipe_G5_Action_Type_Type_1(N_Max_Member_EA);
+global P_Recipe_G6_Action_Type_Type_1(N_Max_Member_EA);
+global P_Recipe_G7_Action_Type_Type_1(N_Max_Member_EA);
+global P_Recipe_G8_Action_Type_Type_1(N_Max_Member_EA);
+global P_Recipe_G9_Action_Type_Type_1(N_Max_Member_EA);
+global P_Recipe_G10_Action_Type_Type_1(N_Max_Member_EA);
+global P_Recipe_G11_Action_Type_Type_1(N_Max_Member_EA);
+global P_Recipe_G12_Action_Type_Type_1(N_Max_Member_EA);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 00.5) 외부 전체 홈 Management 감시모듈 타임 아웃  
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// ALL Home Type_1 
+global P_Recipe_G1_AH_Action_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G1_AH_Action_Time_Type_1(0),N_Max_Member_EA = 1000000;
+global P_Recipe_G2_AH_Action_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G2_AH_Action_Time_Type_1(0),N_Max_Member_EA = 1000000;
+global P_Recipe_G3_AH_Action_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G3_AH_Action_Time_Type_1(0),N_Max_Member_EA = 1000000;
+global P_Recipe_G4_AH_Action_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G4_AH_Action_Time_Type_1(0),N_Max_Member_EA = 1000000;
+global P_Recipe_G5_AH_Action_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G5_AH_Action_Time_Type_1(0),N_Max_Member_EA = 1000000;
+global P_Recipe_G6_AH_Action_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G6_AH_Action_Time_Type_1(0),N_Max_Member_EA = 1000000;
+global P_Recipe_G7_AH_Action_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G7_AH_Action_Time_Type_1(0),N_Max_Member_EA = 1000000;
+global P_Recipe_G8_AH_Action_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G8_AH_Action_Time_Type_1(0),N_Max_Member_EA = 1000000;
+global P_Recipe_G9_AH_Action_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G9_AH_Action_Time_Type_1(0),N_Max_Member_EA = 1000000;
+global P_Recipe_G10_AH_Action_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G10_AH_Action_Time_Type_1(0),N_Max_Member_EA = 1000000;
+global P_Recipe_G11_AH_Action_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G11_AH_Action_Time_Type_1(0),N_Max_Member_EA = 1000000;
+global P_Recipe_G12_AH_Action_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G12_AH_Action_Time_Type_1(0),N_Max_Member_EA = 1000000;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 00.6) 외부 전체 홈 정지 Management 감시모듈 타임 아웃  
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// ALL Home Type_1 
+global P_Recipe_G1_AH_Action_Stop_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(0),N_Max_Member_EA = 1000;
+global P_Recipe_G2_AH_Action_Stop_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(0),N_Max_Member_EA = 1000;
+global P_Recipe_G3_AH_Action_Stop_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(0),N_Max_Member_EA = 1000;
+global P_Recipe_G4_AH_Action_Stop_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(0),N_Max_Member_EA = 1000;
+global P_Recipe_G5_AH_Action_Stop_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(0),N_Max_Member_EA = 1000;
+global P_Recipe_G6_AH_Action_Stop_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G6_AH_Action_Stop_Time_Type_1(0),N_Max_Member_EA = 1000;
+global P_Recipe_G7_AH_Action_Stop_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G7_AH_Action_Stop_Time_Type_1(0),N_Max_Member_EA = 1000;
+global P_Recipe_G8_AH_Action_Stop_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G8_AH_Action_Stop_Time_Type_1(0),N_Max_Member_EA = 1000;
+global P_Recipe_G9_AH_Action_Stop_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G9_AH_Action_Stop_Time_Type_1(0),N_Max_Member_EA = 1000;
+global P_Recipe_G10_AH_Action_Stop_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G10_AH_Action_Stop_Time_Type_1(0),N_Max_Member_EA = 1000;
+global P_Recipe_G11_AH_Action_Stop_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G11_AH_Action_Stop_Time_Type_1(0),N_Max_Member_EA = 1000;
+global P_Recipe_G12_AH_Action_Stop_Time_Type_1(N_Max_Member_EA);
+P_Recipe_G12_AH_Action_Stop_Time_Type_1(0),N_Max_Member_EA = 1000;
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 00.7) 모드유닛별 [ Target정보 업데이트, 동작타입정보 업데이트, 동작 체크 타임아웃정보 업데이트 ]
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 00.8) Target정보 업데이트
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 1번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G1_Action_Target_Type_1(0) = N_MAIN_Z;												// 그룹1의 멤버0 
+P_Recipe_G1_Action_Target_Type_1(1) = N_FINAL_ROLL_Z;										// 그룹1의 멤버1 
+P_Recipe_G1_Action_Target_Type_1(2) = N_1st_PnP_AN_Z;										// 그룹1의 멤버2 
+P_Recipe_G1_Action_Target_Type_1(3) = N_1st_PnP_CA_Z;									// 그룹1의 멤버3
+P_Recipe_G1_Action_Target_Type_1(4) = N_None_Motor;											// 그룹1의 멤버4
+P_Recipe_G1_Action_Target_Type_1(5) = N_None_Motor;											// 그룹1의 멤버5
+P_Recipe_G1_Action_Target_Type_1(6) = N_None_Motor;											// 그룹1의 멤버6
+P_Recipe_G1_Action_Target_Type_1(7) = N_None_Motor;											// 그룹1의 멤버7
+P_Recipe_G1_Action_Target_Type_1(8) = N_None_Motor;											// 그룹1의 멤버8
+P_Recipe_G1_Action_Target_Type_1(9) = N_None_Motor;											// 그룹1의 멤버9
+P_Recipe_G1_Action_Target_Type_1(10) =N_None_Motor;											// 그룹1의 멤버9
+P_Recipe_G1_Action_Target_Type_1(11) =N_None_Motor;											// 그룹1의 멤버1
+P_Recipe_G1_Action_Target_Type_1(12) =N_None_Motor;											// 그룹1의 멤버1
+P_Recipe_G1_Action_Target_Type_1(13) =N_None_Motor;											// 그룹1의 멤버1
+P_Recipe_G1_Action_Target_Type_1(14) =N_None_Motor;											// 그룹1의 멤버1
+P_Recipe_G1_Action_Target_Type_1(15) =N_None_Motor;											// 그룹1의 멤버1
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 2번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G2_Action_Target_Type_1(0) = N_NG_PnP_CA_Z;										// 그룹2의 멤버0
+P_Recipe_G2_Action_Target_Type_1(1) = N_NG_PnP_AN_Z;											// 그룹2의 멤버1
+P_Recipe_G2_Action_Target_Type_1(2) = N_None_Motor;											// 그룹2의 멤버2
+P_Recipe_G2_Action_Target_Type_1(3) = N_None_Motor;											// 그룹2의 멤버3
+P_Recipe_G2_Action_Target_Type_1(4) = N_None_Motor;											// 그룹2의 멤버4
+P_Recipe_G2_Action_Target_Type_1(5) = N_None_Motor;											// 그룹2의 멤버5
+P_Recipe_G2_Action_Target_Type_1(6) = N_None_Motor;											// 그룹2의 멤버6
+P_Recipe_G2_Action_Target_Type_1(7) = N_None_Motor;											// 그룹2의 멤버7
+P_Recipe_G2_Action_Target_Type_1(8) = N_None_Motor;											// 그룹2의 멤버8
+P_Recipe_G2_Action_Target_Type_1(9) = N_None_Motor;											// 그룹2의 멤버9
+P_Recipe_G2_Action_Target_Type_1(10) =N_None_Motor;											// 그룹2의 멤버9
+P_Recipe_G2_Action_Target_Type_1(11) =N_None_Motor;											// 그룹2의 멤버10 
+P_Recipe_G2_Action_Target_Type_1(12) =N_None_Motor;											// 그룹2의 멤버11 
+P_Recipe_G2_Action_Target_Type_1(13) =N_None_Motor;											// 그룹2의 멤버12 
+P_Recipe_G2_Action_Target_Type_1(14) =N_None_Motor;											// 그룹2의 멤버13 
+P_Recipe_G2_Action_Target_Type_1(15) =N_None_Motor;											// 그룹2의 멤버15 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 3번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G3_Action_Target_Type_1(0) = N_NG_PnP_CA_T;										// 그룹3의 멤버0
+P_Recipe_G3_Action_Target_Type_1(1) = N_NG_PnP_AN_T;											// 그룹3의 멤버1
+P_Recipe_G3_Action_Target_Type_1(2) = N_None_Motor;											// 그룹3의 멤버2
+P_Recipe_G3_Action_Target_Type_1(3) = N_None_Motor;											// 그룹3의 멤버3
+P_Recipe_G3_Action_Target_Type_1(4) = N_None_Motor;											// 그룹3의 멤버4
+P_Recipe_G3_Action_Target_Type_1(5) = N_None_Motor;											// 그룹3의 멤버5
+P_Recipe_G3_Action_Target_Type_1(6) = N_None_Motor;											// 그룹3의 멤버6
+P_Recipe_G3_Action_Target_Type_1(7) = N_None_Motor;											// 그룹3의 멤버7
+P_Recipe_G3_Action_Target_Type_1(8) = N_None_Motor;											// 그룹3의 멤버8
+P_Recipe_G3_Action_Target_Type_1(9) = N_None_Motor;											// 그룹3의 멤버9
+P_Recipe_G3_Action_Target_Type_1(10) =N_None_Motor;											// 그룹3의 멤버9
+P_Recipe_G3_Action_Target_Type_1(11) =N_None_Motor;											// 그룹3의 멤버10 
+P_Recipe_G3_Action_Target_Type_1(12) =N_None_Motor;											// 그룹3의 멤버11 
+P_Recipe_G3_Action_Target_Type_1(13) =N_None_Motor;											// 그룹3의 멤버12 
+P_Recipe_G3_Action_Target_Type_1(14) =N_None_Motor;											// 그룹3의 멤버13 
+P_Recipe_G3_Action_Target_Type_1(15) =N_None_Motor;											// 그룹3의 멤버15 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 4번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G4_Action_Target_Type_1(0) = N_1st_PnP_AN_Z;										// 그룹4의 멤버0
+P_Recipe_G4_Action_Target_Type_1(1) = N_1st_PnP_CA_Z;									// 그룹4의 멤버1
+P_Recipe_G4_Action_Target_Type_1(2) = N_None_Motor;											// 그룹4의 멤버2
+P_Recipe_G4_Action_Target_Type_1(3) = N_None_Motor;											// 그룹4의 멤버3
+P_Recipe_G4_Action_Target_Type_1(4) = N_None_Motor;											// 그룹4의 멤버4
+P_Recipe_G4_Action_Target_Type_1(5) = N_None_Motor;											// 그룹4의 멤버5
+P_Recipe_G4_Action_Target_Type_1(6) = N_None_Motor;											// 그룹4의 멤버6
+P_Recipe_G4_Action_Target_Type_1(7) = N_None_Motor;											// 그룹4의 멤버7
+P_Recipe_G4_Action_Target_Type_1(8) = N_None_Motor;											// 그룹4의 멤버8
+P_Recipe_G4_Action_Target_Type_1(9) = N_None_Motor;											// 그룹4의 멤버9
+P_Recipe_G4_Action_Target_Type_1(10) =N_None_Motor;											// 그룹4의 멤버9
+P_Recipe_G4_Action_Target_Type_1(11) =N_None_Motor;											// 그룹4의 멤버10 
+P_Recipe_G4_Action_Target_Type_1(12) =N_None_Motor;											// 그룹4의 멤버11 
+P_Recipe_G4_Action_Target_Type_1(13) =N_None_Motor;											// 그룹4의 멤버12 
+P_Recipe_G4_Action_Target_Type_1(14) =N_None_Motor;											// 그룹4의 멤버13 
+P_Recipe_G4_Action_Target_Type_1(15) =N_None_Motor;											// 그룹4의 멤버15 
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 5번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G5_Action_Target_Type_1(0) = N_1st_PnP_CA_T;									// 그룹5의 멤버0
+P_Recipe_G5_Action_Target_Type_1(1) = N_Align_CA_X;										// 그룹5의 멤버1
+P_Recipe_G5_Action_Target_Type_1(2) = N_Align_CA_Y;										// 그룹5의 멤버2
+P_Recipe_G5_Action_Target_Type_1(3) = N_1st_PnP_AN_T;										// 그룹5의 멤버3
+P_Recipe_G5_Action_Target_Type_1(4) = N_Align_AN_X;											// 그룹5의 멤버4
+P_Recipe_G5_Action_Target_Type_1(5) = N_Align_AN_Y;											// 그룹5의 멤버5
+P_Recipe_G5_Action_Target_Type_1(6) = N_None_Motor;											// 그룹5의 멤버6
+P_Recipe_G5_Action_Target_Type_1(7) = N_None_Motor;											// 그룹5의 멤버7
+P_Recipe_G5_Action_Target_Type_1(8) = N_None_Motor;											// 그룹5의 멤버8
+P_Recipe_G5_Action_Target_Type_1(9) = N_None_Motor;											// 그룹5의 멤버9
+P_Recipe_G5_Action_Target_Type_1(10) =N_None_Motor;											// 그룹5의 멤버9
+P_Recipe_G5_Action_Target_Type_1(11) =N_None_Motor;											// 그룹5의 멤버10 
+P_Recipe_G5_Action_Target_Type_1(12) =N_None_Motor;											// 그룹5의 멤버11 
+P_Recipe_G5_Action_Target_Type_1(13) =N_None_Motor;											// 그룹5의 멤버12 
+P_Recipe_G5_Action_Target_Type_1(14) =N_None_Motor;											// 그룹5의 멤버13 
+P_Recipe_G5_Action_Target_Type_1(15) =N_None_Motor;											// 그룹5의 멤버15 
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 6번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G6_Action_Target_Type_1(0) = N_UNLOADER_X;											// 그룹6의 멤버0
+P_Recipe_G6_Action_Target_Type_1(1) = N_Align_CA_T;										// 그룹6의 멤버1
+P_Recipe_G6_Action_Target_Type_1(2) = N_Align_AN_T;											// 그룹6의 멤버2
+P_Recipe_G6_Action_Target_Type_1(3) = N_None_Motor;											// 그룹6의 멤버3
+P_Recipe_G6_Action_Target_Type_1(4) = N_None_Motor;											// 그룹6의 멤버4
+P_Recipe_G6_Action_Target_Type_1(5) = N_None_Motor;											// 그룹6의 멤버5
+P_Recipe_G6_Action_Target_Type_1(6) = N_None_Motor;											// 그룹6의 멤버6
+P_Recipe_G6_Action_Target_Type_1(7) = N_None_Motor;											// 그룹6의 멤버7
+P_Recipe_G6_Action_Target_Type_1(8) = N_None_Motor;											// 그룹6의 멤버8
+P_Recipe_G6_Action_Target_Type_1(9) = N_None_Motor;											// 그룹6의 멤버9
+P_Recipe_G6_Action_Target_Type_1(10) =N_None_Motor;											// 그룹6의 멤버9
+P_Recipe_G6_Action_Target_Type_1(11) =N_None_Motor;											// 그룹6의 멤버10 
+P_Recipe_G6_Action_Target_Type_1(12) =N_None_Motor;											// 그룹6의 멤버11 
+P_Recipe_G6_Action_Target_Type_1(13) =N_None_Motor;											// 그룹6의 멤버12 
+P_Recipe_G6_Action_Target_Type_1(14) =N_None_Motor;											// 그룹6의 멤버13 
+P_Recipe_G6_Action_Target_Type_1(15) =N_None_Motor;											// 그룹6의 멤버15 
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 7번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G7_Action_Target_Type_1(0) = N_UNLOADER_Z;											// 그룹7의 멤버0
+P_Recipe_G7_Action_Target_Type_1(1) = N_None_Motor;											// 그룹7의 멤버1
+P_Recipe_G7_Action_Target_Type_1(2) = N_None_Motor;											// 그룹7의 멤버2
+P_Recipe_G7_Action_Target_Type_1(3) = N_None_Motor;											// 그룹7의 멤버3
+P_Recipe_G7_Action_Target_Type_1(4) = N_None_Motor;											// 그룹7의 멤버4
+P_Recipe_G7_Action_Target_Type_1(5) = N_None_Motor;											// 그룹7의 멤버5
+P_Recipe_G7_Action_Target_Type_1(6) = N_None_Motor;											// 그룹7의 멤버6
+P_Recipe_G7_Action_Target_Type_1(7) = N_None_Motor;											// 그룹7의 멤버7
+P_Recipe_G7_Action_Target_Type_1(8) = N_None_Motor;											// 그룹7의 멤버8
+P_Recipe_G7_Action_Target_Type_1(9) = N_None_Motor;											// 그룹7의 멤버9
+P_Recipe_G7_Action_Target_Type_1(10) =N_None_Motor;											// 그룹7의 멤버9
+P_Recipe_G7_Action_Target_Type_1(11) =N_None_Motor;											// 그룹7의 멤버10 
+P_Recipe_G7_Action_Target_Type_1(12) =N_None_Motor;											// 그룹7의 멤버11 
+P_Recipe_G7_Action_Target_Type_1(13) =N_None_Motor;											// 그룹7의 멤버12 
+P_Recipe_G7_Action_Target_Type_1(14) =N_None_Motor;											// 그룹7의 멤버13 
+P_Recipe_G7_Action_Target_Type_1(15) =N_None_Motor;											// 그룹7의 멤버15 
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 8번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G8_Action_Target_Type_1(0) = N_UNLOADER_T;											// 그룹8의 멤버0
+P_Recipe_G8_Action_Target_Type_1(1) = N_2nd_PnP_CA_T;									// 그룹8의 멤버1
+P_Recipe_G8_Action_Target_Type_1(2) = N_2nd_PnP_AN_T;										// 그룹8의 멤버2
+P_Recipe_G8_Action_Target_Type_1(3) = N_None_Motor;											// 그룹8의 멤버3
+P_Recipe_G8_Action_Target_Type_1(4) = N_None_Motor;											// 그룹8의 멤버4
+P_Recipe_G8_Action_Target_Type_1(5) = N_None_Motor;											// 그룹8의 멤버5
+P_Recipe_G8_Action_Target_Type_1(6) = N_None_Motor;											// 그룹8의 멤버6
+P_Recipe_G8_Action_Target_Type_1(7) = N_None_Motor;											// 그룹8의 멤버7
+P_Recipe_G8_Action_Target_Type_1(8) = N_None_Motor;											// 그룹8의 멤버8
+P_Recipe_G8_Action_Target_Type_1(9) = N_None_Motor;											// 그룹8의 멤버9
+P_Recipe_G8_Action_Target_Type_1(10) =N_None_Motor;											// 그룹8의 멤버9
+P_Recipe_G8_Action_Target_Type_1(11) =N_None_Motor;											// 그룹8의 멤버10 
+P_Recipe_G8_Action_Target_Type_1(12) =N_None_Motor;											// 그룹8의 멤버11 
+P_Recipe_G8_Action_Target_Type_1(13) =N_None_Motor;											// 그룹8의 멤버12 
+P_Recipe_G8_Action_Target_Type_1(14) =N_None_Motor;											// 그룹8의 멤버13 
+P_Recipe_G8_Action_Target_Type_1(15) =N_None_Motor;											// 그룹8의 멤버15 
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 9번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G9_Action_Target_Type_1(0) = N_2nd_PnP_CA_Z;									// 그룹9의 멤버0
+P_Recipe_G9_Action_Target_Type_1(1) = N_2nd_PnP_AN_Z;										// 그룹9의 멤버1
+P_Recipe_G9_Action_Target_Type_1(2) = N_None_Motor;											// 그룹9의 멤버2
+P_Recipe_G9_Action_Target_Type_1(3) = N_None_Motor;											// 그룹9의 멤버3
+P_Recipe_G9_Action_Target_Type_1(4) = N_None_Motor;											// 그룹9의 멤버4
+P_Recipe_G9_Action_Target_Type_1(5) = N_None_Motor;											// 그룹9의 멤버5
+P_Recipe_G9_Action_Target_Type_1(6) = N_None_Motor;											// 그룹9의 멤버6
+P_Recipe_G9_Action_Target_Type_1(7) = N_None_Motor;											// 그룹9의 멤버7
+P_Recipe_G9_Action_Target_Type_1(8) = N_None_Motor;											// 그룹9의 멤버8
+P_Recipe_G9_Action_Target_Type_1(9) = N_None_Motor;											// 그룹9의 멤버9
+P_Recipe_G9_Action_Target_Type_1(10) =N_None_Motor;											// 그룹9의 멤버9
+P_Recipe_G9_Action_Target_Type_1(11) =N_None_Motor;											// 그룹9의 멤버10 
+P_Recipe_G9_Action_Target_Type_1(12) =N_None_Motor;											// 그룹9의 멤버11 
+P_Recipe_G9_Action_Target_Type_1(13) =N_None_Motor;											// 그룹9의 멤버12 
+P_Recipe_G9_Action_Target_Type_1(14) =N_None_Motor;											// 그룹9의 멤버13 
+P_Recipe_G9_Action_Target_Type_1(15) =N_None_Motor;											// 그룹9의 멤버15 
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 10번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G10_Action_Target_Type_1(0) = N_2nd_PnP_CA_T;									// 그룹10의 멤버0
+P_Recipe_G10_Action_Target_Type_1(1) = N_2nd_PnP_AN_T;										// 그룹10의 멤버1
+P_Recipe_G10_Action_Target_Type_1(2) = N_None_Motor;											// 그룹10의 멤버2
+P_Recipe_G10_Action_Target_Type_1(3) = N_None_Motor;											// 그룹10의 멤버3
+P_Recipe_G10_Action_Target_Type_1(4) = N_None_Motor;											// 그룹10의 멤버4
+P_Recipe_G10_Action_Target_Type_1(5) = N_None_Motor;											// 그룹10의 멤버5
+P_Recipe_G10_Action_Target_Type_1(6) = N_None_Motor;											// 그룹10의 멤버6
+P_Recipe_G10_Action_Target_Type_1(7) = N_None_Motor;											// 그룹10의 멤버7
+P_Recipe_G10_Action_Target_Type_1(8) = N_None_Motor;											// 그룹10의 멤버8
+P_Recipe_G10_Action_Target_Type_1(9) = N_None_Motor;											// 그룹10의 멤버9
+P_Recipe_G10_Action_Target_Type_1(10) =N_None_Motor;											// 그룹10의 멤버9
+P_Recipe_G10_Action_Target_Type_1(11) =N_None_Motor;											// 그룹10의 멤버10 
+P_Recipe_G10_Action_Target_Type_1(12) =N_None_Motor;											// 그룹10의 멤버11 
+P_Recipe_G10_Action_Target_Type_1(13) =N_None_Motor;											// 그룹10의 멤버12 
+P_Recipe_G10_Action_Target_Type_1(14) =N_None_Motor;											// 그룹10의 멤버13 
+P_Recipe_G10_Action_Target_Type_1(15) =N_None_Motor;											// 그룹10의 멤버15 
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 11번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G11_Action_Target_Type_1(0) = N_FINAL_ROLL_X;										// 그룹11의 멤버0
+P_Recipe_G11_Action_Target_Type_1(1) = N_FINAL_ROLL_Z;										// 그룹11의 멤버1
+P_Recipe_G11_Action_Target_Type_1(2) = N_Clamp_CA_Y1;									// 그룹11의 멤버2
+P_Recipe_G11_Action_Target_Type_1(3) = N_Clamp_CA_Y2;									// 그룹11의 멤버3
+P_Recipe_G11_Action_Target_Type_1(4) = N_Clamp_CA_Z1;									// 그룹11의 멤버4
+P_Recipe_G11_Action_Target_Type_1(5) = N_Clamp_AN_Y1;										// 그룹11의 멤버5
+P_Recipe_G11_Action_Target_Type_1(6) = N_Clamp_AN_Y2;										// 그룹11의 멤버6
+P_Recipe_G11_Action_Target_Type_1(7) = N_Clamp_AN_Z1;										// 그룹11의 멤버7
+P_Recipe_G11_Action_Target_Type_1(8) = N_None_Motor;											// 그룹11의 멤버8
+P_Recipe_G11_Action_Target_Type_1(9) = N_None_Motor;											// 그룹11의 멤버9
+P_Recipe_G11_Action_Target_Type_1(10) =N_None_Motor;											// 그룹11의 멤버9
+P_Recipe_G11_Action_Target_Type_1(11) =N_None_Motor;											// 그룹11의 멤버10 
+P_Recipe_G11_Action_Target_Type_1(12) =N_None_Motor;											// 그룹11의 멤버11 
+P_Recipe_G11_Action_Target_Type_1(13) =N_None_Motor;											// 그룹11의 멤버12 
+P_Recipe_G11_Action_Target_Type_1(14) =N_None_Motor;											// 그룹11의 멤버13 
+P_Recipe_G11_Action_Target_Type_1(15) =N_None_Motor;											// 그룹11의 멤버15 
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 12번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G12_Action_Target_Type_1(0) = N_MAIN_Z;												// 그룹11의 멤버0
+P_Recipe_G12_Action_Target_Type_1(1) = N_None_Motor;											// 그룹11의 멤버1
+P_Recipe_G12_Action_Target_Type_1(2) = N_None_Motor;											// 그룹11의 멤버2
+P_Recipe_G12_Action_Target_Type_1(3) = N_None_Motor;											// 그룹11의 멤버3
+P_Recipe_G12_Action_Target_Type_1(4) = N_None_Motor;											// 그룹11의 멤버4
+P_Recipe_G12_Action_Target_Type_1(5) = N_None_Motor;											// 그룹11의 멤버5
+P_Recipe_G12_Action_Target_Type_1(6) = N_None_Motor;											// 그룹11의 멤버6
+P_Recipe_G12_Action_Target_Type_1(7) = N_None_Motor;											// 그룹11의 멤버7
+P_Recipe_G12_Action_Target_Type_1(8) = N_None_Motor;											// 그룹11의 멤버8
+P_Recipe_G12_Action_Target_Type_1(9) = N_None_Motor;											// 그룹11의 멤버9
+P_Recipe_G12_Action_Target_Type_1(10) =N_None_Motor;											// 그룹11의 멤버9
+P_Recipe_G12_Action_Target_Type_1(11) =N_None_Motor;											// 그룹11의 멤버10 
+P_Recipe_G12_Action_Target_Type_1(12) =N_None_Motor;											// 그룹11의 멤버11 
+P_Recipe_G12_Action_Target_Type_1(13) =N_None_Motor;											// 그룹11의 멤버12 
+P_Recipe_G12_Action_Target_Type_1(14) =N_None_Motor;											// 그룹11의 멤버13 
+P_Recipe_G12_Action_Target_Type_1(15) =N_None_Motor;											// 그룹11의 멤버15 
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 7.2) 동작타입정보 업데이트
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 1번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G1_Action_Type_Type_1(0) = F_AH_Minus_Type												// 그룹1의 멤버0은 #1
+P_Recipe_G1_Action_Type_Type_1(1) = F_AH_Minus_Type												// 그룹1의 멤버1은 #2
+P_Recipe_G1_Action_Type_Type_1(2) = F_AH_Minus_Type												// 그룹1의 멤버2은 #3
+P_Recipe_G1_Action_Type_Type_1(3) = F_AH_Minus_Type												// 그룹1의 멤버3은 #4
+P_Recipe_G1_Action_Type_Type_1(4) = F_AH_None													// 그룹1의 멤버4은 #5
+P_Recipe_G1_Action_Type_Type_1(5) = F_AH_None													// 그룹1의 멤버5은 #6
+P_Recipe_G1_Action_Type_Type_1(6) = F_AH_None													// 그룹1의 멤버6은 #7
+P_Recipe_G1_Action_Type_Type_1(7) = F_AH_None													// 그룹1의 멤버7은 #8
+P_Recipe_G1_Action_Type_Type_1(8) = F_AH_None													// 그룹1의 멤버8은 #9
+P_Recipe_G1_Action_Type_Type_1(9) = F_AH_None													// 그룹1의 멤버9은 #10
+P_Recipe_G1_Action_Type_Type_1(10) = F_AH_None													// 그룹1의 멤버9는 #11
+P_Recipe_G1_Action_Type_Type_1(11) = F_AH_None													// 그룹1의 멤버10는 #12
+P_Recipe_G1_Action_Type_Type_1(12) = F_AH_None													// 그룹1의 멤버11는 #13
+P_Recipe_G1_Action_Type_Type_1(13) = F_AH_None													// 그룹1의 멤버12는 #14
+P_Recipe_G1_Action_Type_Type_1(14) = F_AH_None													// 그룹1의 멤버13는 #15
+P_Recipe_G1_Action_Type_Type_1(15) = F_AH_None													// 그룹1의 멤버15는 #16
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 2번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G2_Action_Type_Type_1(0) = F_AH_Home_Type;												// 그룹2의 멤버0은 
+P_Recipe_G2_Action_Type_Type_1(1) = F_AH_Home_Type;												// 그룹2의 멤버1은 
+P_Recipe_G2_Action_Type_Type_1(2) = F_AH_None;													// 그룹2의 멤버2은 
+P_Recipe_G2_Action_Type_Type_1(3) = F_AH_None;													// 그룹2의 멤버3은 
+P_Recipe_G2_Action_Type_Type_1(4) = F_AH_None;													// 그룹2의 멤버4은 
+P_Recipe_G2_Action_Type_Type_1(5) = F_AH_None;													// 그룹2의 멤버5은 
+P_Recipe_G2_Action_Type_Type_1(6) = F_AH_None;													// 그룹2의 멤버6은 
+P_Recipe_G2_Action_Type_Type_1(7) = F_AH_None;													// 그룹2의 멤버7은 
+P_Recipe_G2_Action_Type_Type_1(8) = F_AH_None;													// 그룹2의 멤버8은 
+P_Recipe_G2_Action_Type_Type_1(9) = F_AH_None;													// 그룹2의 멤버9은 
+P_Recipe_G2_Action_Type_Type_1(10) =F_AH_None;													// 그룹2의 멤버9는 
+P_Recipe_G2_Action_Type_Type_1(11) =F_AH_None;													// 그룹2의 멤버10는 
+P_Recipe_G2_Action_Type_Type_1(12) =F_AH_None;													// 그룹2의 멤버11는 
+P_Recipe_G2_Action_Type_Type_1(13) =F_AH_None;													// 그룹2의 멤버12는 
+P_Recipe_G2_Action_Type_Type_1(14) =F_AH_None;													// 그룹2의 멤버13는 
+P_Recipe_G2_Action_Type_Type_1(15) =F_AH_None;													// 그룹2의 멤버15는 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 3번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G3_Action_Type_Type_1(0) = F_AH_Home_Type;												// 그룹3의 멤버0은 #0
+P_Recipe_G3_Action_Type_Type_1(1) = F_AH_Home_Type;												// 그룹3의 멤버1은 #0
+P_Recipe_G3_Action_Type_Type_1(2) = F_AH_None;													// 그룹3의 멤버2은 #0
+P_Recipe_G3_Action_Type_Type_1(3) = F_AH_None;													// 그룹3의 멤버3은 #0
+P_Recipe_G3_Action_Type_Type_1(4) = F_AH_None;													// 그룹3의 멤버4은 #0
+P_Recipe_G3_Action_Type_Type_1(5) = F_AH_None;													// 그룹3의 멤버5은 #0
+P_Recipe_G3_Action_Type_Type_1(6) = F_AH_None;													// 그룹3의 멤버6은 #0
+P_Recipe_G3_Action_Type_Type_1(7) = F_AH_None;													// 그룹3의 멤버7은 #0
+P_Recipe_G3_Action_Type_Type_1(8) = F_AH_None;													// 그룹3의 멤버8은 #0
+P_Recipe_G3_Action_Type_Type_1(9) = F_AH_None;													// 그룹3의 멤버9은 #0
+P_Recipe_G3_Action_Type_Type_1(10) =F_AH_None;													// 그룹3의 멤버9는 #0
+P_Recipe_G3_Action_Type_Type_1(11) =F_AH_None;													// 그룹3의 멤버10는 #0
+P_Recipe_G3_Action_Type_Type_1(12) =F_AH_None;													// 그룹3의 멤버11는 #0
+P_Recipe_G3_Action_Type_Type_1(13) =F_AH_None;													// 그룹3의 멤버12는 #0
+P_Recipe_G3_Action_Type_Type_1(14) =F_AH_None;													// 그룹3의 멤버13는 #0
+P_Recipe_G3_Action_Type_Type_1(15) =F_AH_None;													// 그룹3의 멤버15는 #0
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 4번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G4_Action_Type_Type_1(0) = F_AH_Home_Type;												// 그룹4의 멤버0은 #0
+P_Recipe_G4_Action_Type_Type_1(1) = F_AH_Home_Type;												// 그룹4의 멤버1은 #0
+P_Recipe_G4_Action_Type_Type_1(2) = F_AH_None;													// 그룹4의 멤버2은 #0
+P_Recipe_G4_Action_Type_Type_1(3) = F_AH_None;													// 그룹4의 멤버3은 #0
+P_Recipe_G4_Action_Type_Type_1(4) = F_AH_None;													// 그룹4의 멤버4은 #0
+P_Recipe_G4_Action_Type_Type_1(5) = F_AH_None;													// 그룹4의 멤버5은 #0
+P_Recipe_G4_Action_Type_Type_1(6) = F_AH_None;													// 그룹4의 멤버6은 #0
+P_Recipe_G4_Action_Type_Type_1(7) = F_AH_None;													// 그룹4의 멤버7은 #0
+P_Recipe_G4_Action_Type_Type_1(8) = F_AH_None;													// 그룹4의 멤버8은 #0
+P_Recipe_G4_Action_Type_Type_1(9) = F_AH_None;													// 그룹4의 멤버9은 #0
+P_Recipe_G4_Action_Type_Type_1(10) =F_AH_None;													// 그룹4의 멤버9는 #0
+P_Recipe_G4_Action_Type_Type_1(11) =F_AH_None;													// 그룹4의 멤버10는 #0
+P_Recipe_G4_Action_Type_Type_1(12) =F_AH_None;													// 그룹4의 멤버11는 #0
+P_Recipe_G4_Action_Type_Type_1(13) =F_AH_None;													// 그룹4의 멤버12는 #0
+P_Recipe_G4_Action_Type_Type_1(14) =F_AH_None;													// 그룹4의 멤버13는 #0
+P_Recipe_G4_Action_Type_Type_1(15) =F_AH_None;													// 그룹4의 멤버15는 #0
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 5번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G5_Action_Type_Type_1(0) = F_AH_Home_Type;												// 그룹5의 멤버0은 #0
+P_Recipe_G5_Action_Type_Type_1(1) = F_AH_Home_Type;												// 그룹5의 멤버1은 #0
+P_Recipe_G5_Action_Type_Type_1(2) = F_AH_Home_Type;												// 그룹5의 멤버2은 #0
+P_Recipe_G5_Action_Type_Type_1(3) = F_AH_Home_Type;												// 그룹5의 멤버3은 #0
+P_Recipe_G5_Action_Type_Type_1(4) = F_AH_Home_Type;												// 그룹5의 멤버4은 #0
+P_Recipe_G5_Action_Type_Type_1(5) = F_AH_Home_Type;												// 그룹5의 멤버5은 #0
+P_Recipe_G5_Action_Type_Type_1(6) = F_AH_None;													// 그룹5의 멤버6은 #0
+P_Recipe_G5_Action_Type_Type_1(7) = F_AH_None;													// 그룹5의 멤버7은 #0
+P_Recipe_G5_Action_Type_Type_1(8) = F_AH_None;													// 그룹5의 멤버8은 #0
+P_Recipe_G5_Action_Type_Type_1(9) = F_AH_None;													// 그룹5의 멤버9은 #0
+P_Recipe_G5_Action_Type_Type_1(10) = F_AH_None;													// 그룹5의 멤버9는 #0
+P_Recipe_G5_Action_Type_Type_1(11) = F_AH_None;													// 그룹5의 멤버10는 #0
+P_Recipe_G5_Action_Type_Type_1(12) = F_AH_None;													// 그룹5의 멤버11는 #0
+P_Recipe_G5_Action_Type_Type_1(13) = F_AH_None;													// 그룹5의 멤버12는 #0
+P_Recipe_G5_Action_Type_Type_1(14) = F_AH_None;													// 그룹5의 멤버13는 #0
+P_Recipe_G5_Action_Type_Type_1(15) = F_AH_None;													// 그룹5의 멤버15는 #0
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 6번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G6_Action_Type_Type_1(0) = F_AH_Home_Type;												// 그룹5의 멤버0은 #0
+P_Recipe_G6_Action_Type_Type_1(1) = F_AH_Home_Type;												// 그룹5의 멤버1은 #0
+P_Recipe_G6_Action_Type_Type_1(2) = F_AH_Home_Type;												// 그룹5의 멤버2은 #0
+P_Recipe_G6_Action_Type_Type_1(3) = F_AH_None;													// 그룹5의 멤버3은 #0
+P_Recipe_G6_Action_Type_Type_1(4) = F_AH_None;													// 그룹5의 멤버4은 #0
+P_Recipe_G6_Action_Type_Type_1(5) = F_AH_None;													// 그룹5의 멤버5은 #0
+P_Recipe_G6_Action_Type_Type_1(6) = F_AH_None;													// 그룹5의 멤버6은 #0
+P_Recipe_G6_Action_Type_Type_1(7) = F_AH_None;													// 그룹5의 멤버7은 #0
+P_Recipe_G6_Action_Type_Type_1(8) = F_AH_None;													// 그룹5의 멤버8은 #0
+P_Recipe_G6_Action_Type_Type_1(9) = F_AH_None;													// 그룹5의 멤버9은 #0
+P_Recipe_G6_Action_Type_Type_1(10) = F_AH_None;													// 그룹5의 멤버9는 #0
+P_Recipe_G6_Action_Type_Type_1(11) = F_AH_None;													// 그룹5의 멤버10는 #0
+P_Recipe_G6_Action_Type_Type_1(12) = F_AH_None;													// 그룹5의 멤버11는 #0
+P_Recipe_G6_Action_Type_Type_1(13) = F_AH_None;													// 그룹5의 멤버12는 #0
+P_Recipe_G6_Action_Type_Type_1(14) = F_AH_None;													// 그룹5의 멤버13는 #0
+P_Recipe_G6_Action_Type_Type_1(15) = F_AH_None;													// 그룹5의 멤버15는 #0
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 7번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G7_Action_Type_Type_1(0) = F_AH_Home_Type;												// 그룹5의 멤버0은 #0
+P_Recipe_G7_Action_Type_Type_1(1) = F_AH_None;													// 그룹5의 멤버1은 #0
+P_Recipe_G7_Action_Type_Type_1(2) = F_AH_None;													// 그룹5의 멤버2은 #0
+P_Recipe_G7_Action_Type_Type_1(3) = F_AH_None;													// 그룹5의 멤버3은 #0
+P_Recipe_G7_Action_Type_Type_1(4) = F_AH_None;													// 그룹5의 멤버4은 #0
+P_Recipe_G7_Action_Type_Type_1(5) = F_AH_None;													// 그룹5의 멤버5은 #0
+P_Recipe_G7_Action_Type_Type_1(6) = F_AH_None;													// 그룹5의 멤버6은 #0
+P_Recipe_G7_Action_Type_Type_1(7) = F_AH_None;													// 그룹5의 멤버7은 #0
+P_Recipe_G7_Action_Type_Type_1(8) = F_AH_None;													// 그룹5의 멤버8은 #0
+P_Recipe_G7_Action_Type_Type_1(9) = F_AH_None;													// 그룹5의 멤버9은 #0
+P_Recipe_G7_Action_Type_Type_1(10) = F_AH_None;													// 그룹5의 멤버9는 #0
+P_Recipe_G7_Action_Type_Type_1(11) = F_AH_None;													// 그룹5의 멤버10는 #0
+P_Recipe_G7_Action_Type_Type_1(12) = F_AH_None;													// 그룹5의 멤버11는 #0
+P_Recipe_G7_Action_Type_Type_1(13) = F_AH_None;													// 그룹5의 멤버12는 #0
+P_Recipe_G7_Action_Type_Type_1(14) = F_AH_None;													// 그룹5의 멤버13는 #0
+P_Recipe_G7_Action_Type_Type_1(15) = F_AH_None;													// 그룹5의 멤버15는 #0
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 8번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G8_Action_Type_Type_1(0) = F_AH_Home_Type;												// 그룹5의 멤버0은 #0
+P_Recipe_G8_Action_Type_Type_1(1) = F_AH_Jog_Type;											// 그룹5의 멤버1은 #0
+P_Recipe_G8_Action_Type_Type_1(2) = F_AH_Jog_Type;											// 그룹5의 멤버2은 #0
+P_Recipe_G8_Action_Type_Type_1(3) = F_AH_None;													// 그룹5의 멤버3은 #0
+P_Recipe_G8_Action_Type_Type_1(4) = F_AH_None;													// 그룹5의 멤버4은 #0
+P_Recipe_G8_Action_Type_Type_1(5) = F_AH_None;													// 그룹5의 멤버5은 #0
+P_Recipe_G8_Action_Type_Type_1(6) = F_AH_None;													// 그룹5의 멤버6은 #0
+P_Recipe_G8_Action_Type_Type_1(7) = F_AH_None;													// 그룹5의 멤버7은 #0
+P_Recipe_G8_Action_Type_Type_1(8) = F_AH_None;													// 그룹5의 멤버8은 #0
+P_Recipe_G8_Action_Type_Type_1(9) = F_AH_None;													// 그룹5의 멤버9은 #0
+P_Recipe_G8_Action_Type_Type_1(10) = F_AH_None;													// 그룹5의 멤버9는 #0
+P_Recipe_G8_Action_Type_Type_1(11) = F_AH_None;													// 그룹5의 멤버10는 #0
+P_Recipe_G8_Action_Type_Type_1(12) = F_AH_None;													// 그룹5의 멤버11는 #0
+P_Recipe_G8_Action_Type_Type_1(13) = F_AH_None;													// 그룹5의 멤버12는 #0
+P_Recipe_G8_Action_Type_Type_1(14) = F_AH_None;													// 그룹5의 멤버13는 #0
+P_Recipe_G8_Action_Type_Type_1(15) = F_AH_None;													// 그룹5의 멤버15는 #0
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 9번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G9_Action_Type_Type_1(0) = F_AH_Home_Type;												// 그룹5의 멤버0은 #0
+P_Recipe_G9_Action_Type_Type_1(1) = F_AH_Home_Type;												// 그룹5의 멤버1은 #0
+P_Recipe_G9_Action_Type_Type_1(2) = F_AH_None;													// 그룹5의 멤버2은 #0
+P_Recipe_G9_Action_Type_Type_1(3) = F_AH_None;													// 그룹5의 멤버3은 #0
+P_Recipe_G9_Action_Type_Type_1(4) = F_AH_None;													// 그룹5의 멤버4은 #0
+P_Recipe_G9_Action_Type_Type_1(5) = F_AH_None;													// 그룹5의 멤버5은 #0
+P_Recipe_G9_Action_Type_Type_1(6) = F_AH_None;													// 그룹5의 멤버6은 #0
+P_Recipe_G9_Action_Type_Type_1(7) = F_AH_None;													// 그룹5의 멤버7은 #0
+P_Recipe_G9_Action_Type_Type_1(8) = F_AH_None;													// 그룹5의 멤버8은 #0
+P_Recipe_G9_Action_Type_Type_1(9) = F_AH_None;													// 그룹5의 멤버9은 #0
+P_Recipe_G9_Action_Type_Type_1(10) = F_AH_None;													// 그룹5의 멤버9는 #0
+P_Recipe_G9_Action_Type_Type_1(11) = F_AH_None;													// 그룹5의 멤버10는 #0
+P_Recipe_G9_Action_Type_Type_1(12) = F_AH_None;													// 그룹5의 멤버11는 #0
+P_Recipe_G9_Action_Type_Type_1(13) = F_AH_None;													// 그룹5의 멤버12는 #0
+P_Recipe_G9_Action_Type_Type_1(14) = F_AH_None;													// 그룹5의 멤버13는 #0
+P_Recipe_G9_Action_Type_Type_1(15) = F_AH_None;													// 그룹5의 멤버15는 #0
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 10번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G10_Action_Type_Type_1(0) = F_AH_Home_Type;											// 그룹5의 멤버0은 #0
+P_Recipe_G10_Action_Type_Type_1(1) = F_AH_Home_Type;											// 그룹5의 멤버1은 #0
+P_Recipe_G10_Action_Type_Type_1(2) = F_AH_None;													// 그룹5의 멤버2은 #0
+P_Recipe_G10_Action_Type_Type_1(3) = F_AH_None;													// 그룹5의 멤버3은 #0
+P_Recipe_G10_Action_Type_Type_1(4) = F_AH_None;													// 그룹5의 멤버4은 #0
+P_Recipe_G10_Action_Type_Type_1(5) = F_AH_None;													// 그룹5의 멤버5은 #0
+P_Recipe_G10_Action_Type_Type_1(6) = F_AH_None;													// 그룹5의 멤버6은 #0
+P_Recipe_G10_Action_Type_Type_1(7) = F_AH_None;													// 그룹5의 멤버7은 #0
+P_Recipe_G10_Action_Type_Type_1(8) = F_AH_None;													// 그룹5의 멤버8은 #0
+P_Recipe_G10_Action_Type_Type_1(9) = F_AH_None;													// 그룹5의 멤버9은 #0
+P_Recipe_G10_Action_Type_Type_1(10) = F_AH_None;												// 그룹5의 멤버9는 #0
+P_Recipe_G10_Action_Type_Type_1(11) = F_AH_None;												// 그룹5의 멤버10는 #0
+P_Recipe_G10_Action_Type_Type_1(12) = F_AH_None;												// 그룹5의 멤버11는 #0
+P_Recipe_G10_Action_Type_Type_1(13) = F_AH_None;												// 그룹5의 멤버12는 #0
+P_Recipe_G10_Action_Type_Type_1(14) = F_AH_None;												// 그룹5의 멤버13는 #0
+P_Recipe_G10_Action_Type_Type_1(15) = F_AH_None;												// 그룹5의 멤버15는 #0
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 11번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G11_Action_Type_Type_1(0) = F_AH_Home_Type;												// 그룹5의 멤버0은 #0
+P_Recipe_G11_Action_Type_Type_1(1) = F_AH_Home_Type;												// 그룹5의 멤버1은 #0
+P_Recipe_G11_Action_Type_Type_1(2) = F_AH_Home_Type;												// 그룹5의 멤버2은 #0
+P_Recipe_G11_Action_Type_Type_1(3) = F_AH_Home_Type;												// 그룹5의 멤버3은 #0
+P_Recipe_G11_Action_Type_Type_1(4) = F_AH_Home_Type;												// 그룹5의 멤버4은 #0
+P_Recipe_G11_Action_Type_Type_1(5) = F_AH_Home_Type;												// 그룹5의 멤버5은 #0
+P_Recipe_G11_Action_Type_Type_1(6) = F_AH_Home_Type;												// 그룹5의 멤버6은 #0
+P_Recipe_G11_Action_Type_Type_1(7) = F_AH_Home_Type;												// 그룹5의 멤버7은 #0
+P_Recipe_G11_Action_Type_Type_1(8) = F_AH_None;														// 그룹5의 멤버8은 #0
+P_Recipe_G11_Action_Type_Type_1(9) = F_AH_None;														// 그룹5의 멤버9은 #0
+P_Recipe_G11_Action_Type_Type_1(10) = F_AH_None;													// 그룹5의 멤버9는 #0
+P_Recipe_G11_Action_Type_Type_1(11) = F_AH_None;													// 그룹5의 멤버10는 #0
+P_Recipe_G11_Action_Type_Type_1(12) = F_AH_None;													// 그룹5의 멤버11는 #0
+P_Recipe_G11_Action_Type_Type_1(13) = F_AH_None;													// 그룹5의 멤버12는 #0
+P_Recipe_G11_Action_Type_Type_1(14) = F_AH_None;													// 그룹5의 멤버13는 #0
+P_Recipe_G11_Action_Type_Type_1(15) = F_AH_None;													// 그룹5의 멤버15는 #0
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 12번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G12_Action_Type_Type_1(0) = F_AH_Home_Type;												// 그룹5의 멤버0은 #0
+P_Recipe_G12_Action_Type_Type_1(1) = F_AH_None;														// 그룹5의 멤버1은 #0
+P_Recipe_G12_Action_Type_Type_1(2) = F_AH_None;														// 그룹5의 멤버2은 #0
+P_Recipe_G12_Action_Type_Type_1(3) = F_AH_None;														// 그룹5의 멤버3은 #0
+P_Recipe_G12_Action_Type_Type_1(4) = F_AH_None;														// 그룹5의 멤버4은 #0
+P_Recipe_G12_Action_Type_Type_1(5) = F_AH_None;														// 그룹5의 멤버5은 #0
+P_Recipe_G12_Action_Type_Type_1(6) = F_AH_None;														// 그룹5의 멤버6은 #0
+P_Recipe_G12_Action_Type_Type_1(7) = F_AH_None;														// 그룹5의 멤버7은 #0
+P_Recipe_G12_Action_Type_Type_1(8) = F_AH_None;														// 그룹5의 멤버8은 #0
+P_Recipe_G12_Action_Type_Type_1(9) = F_AH_None;														// 그룹5의 멤버9은 #0
+P_Recipe_G12_Action_Type_Type_1(10) = F_AH_None;													// 그룹5의 멤버9는 #0
+P_Recipe_G12_Action_Type_Type_1(11) = F_AH_None;													// 그룹5의 멤버10는 #0
+P_Recipe_G12_Action_Type_Type_1(12) = F_AH_None;													// 그룹5의 멤버11는 #0
+P_Recipe_G12_Action_Type_Type_1(13) = F_AH_None;													// 그룹5의 멤버12는 #0
+P_Recipe_G12_Action_Type_Type_1(14) = F_AH_None;													// 그룹5의 멤버13는 #0
+P_Recipe_G12_Action_Type_Type_1(15) = F_AH_None;													// 그룹5의 멤버15는 #0
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 7.3) 전체 홈 Management 멤버별 타임아웃 시간 업데이트
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 1번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+//P_Recipe_G1_AH_Action_Time_Type_1(0) = 5000;																// 그룹1의 멤버0은 #1
+//P_Recipe_G1_AH_Action_Time_Type_1(1) = 5000;																// 그룹1의 멤버1은 #2
+//P_Recipe_G1_AH_Action_Time_Type_1(2) = 5000;																// 그룹1의 멤버2은 #3
+//P_Recipe_G1_AH_Action_Time_Type_1(3) = 5000;																// 그룹1의 멤버3은 #4
+//P_Recipe_G1_AH_Action_Time_Type_1(4) = 5000;																// 그룹1의 멤버4은 #5
+//P_Recipe_G1_AH_Action_Time_Type_1(5) = 5000;																// 그룹1의 멤버5은 #6
+//P_Recipe_G1_AH_Action_Time_Type_1(6) = 5000;																// 그룹1의 멤버6은 #7
+//P_Recipe_G1_AH_Action_Time_Type_1(7) = 5000;																// 그룹1의 멤버7은 #8
+//P_Recipe_G1_AH_Action_Time_Type_1(8) = 5000;																// 그룹1의 멤버8은 #9
+//P_Recipe_G1_AH_Action_Time_Type_1(9) = 5000;																// 그룹1의 멤버9은 #10
+//P_Recipe_G1_AH_Action_Time_Type_1(10) = 5000;																// 그룹1의 멤버9는 #11
+//P_Recipe_G1_AH_Action_Time_Type_1(11) = 5000;																// 그룹1의 멤버10는 #12
+//P_Recipe_G1_AH_Action_Time_Type_1(12) = 5000;																// 그룹1의 멤버11는 #13
+//P_Recipe_G1_AH_Action_Time_Type_1(13) = 5000;																// 그룹1의 멤버12는 #14
+//P_Recipe_G1_AH_Action_Time_Type_1(14) = 5000;																// 그룹1의 멤버13는 #15
+//P_Recipe_G1_AH_Action_Time_Type_1(15) = 5000;																// 그룹1의 멤버15는 #16
+////----------------------------------------------------------------------------------------------------------------------------------------------------------
+//// 그룹 2번 
+////----------------------------------------------------------------------------------------------------------------------------------------------------------
+//P_Recipe_G2_AH_Action_Time_Type_1(0) = 5000;																// 그룹2의 멤버0은 
+//P_Recipe_G2_AH_Action_Time_Type_1(1) = 5000;																// 그룹2의 멤버1은 
+//P_Recipe_G2_AH_Action_Time_Type_1(2) = 5000;																// 그룹2의 멤버2은 
+//P_Recipe_G2_AH_Action_Time_Type_1(3) = 5000;																// 그룹2의 멤버3은 
+//P_Recipe_G2_AH_Action_Time_Type_1(4) = 5000;																// 그룹2의 멤버4은 
+//P_Recipe_G2_AH_Action_Time_Type_1(5) = 5000;																// 그룹2의 멤버5은 
+//P_Recipe_G2_AH_Action_Time_Type_1(6) = 5000;																// 그룹2의 멤버6은 
+//P_Recipe_G2_AH_Action_Time_Type_1(7) = 5000;																// 그룹2의 멤버7은 
+//P_Recipe_G2_AH_Action_Time_Type_1(8) = 5000;																// 그룹2의 멤버8은 
+//P_Recipe_G2_AH_Action_Time_Type_1(9) = 5000;																// 그룹2의 멤버9은 
+//P_Recipe_G2_AH_Action_Time_Type_1(10) = 5000;																// 그룹2의 멤버9는 
+//P_Recipe_G2_AH_Action_Time_Type_1(11) = 5000;																// 그룹2의 멤버10는 
+//P_Recipe_G2_AH_Action_Time_Type_1(12) = 5000;																// 그룹2의 멤버11는 
+//P_Recipe_G2_AH_Action_Time_Type_1(13) = 5000;																// 그룹2의 멤버12는 
+//P_Recipe_G2_AH_Action_Time_Type_1(14) = 5000;																// 그룹2의 멤버13는 
+//P_Recipe_G2_AH_Action_Time_Type_1(15) = 5000;																// 그룹2의 멤버15는 
+////----------------------------------------------------------------------------------------------------------------------------------------------------------
+//// 그룹 3번 
+////----------------------------------------------------------------------------------------------------------------------------------------------------------
+//P_Recipe_G3_AH_Action_Time_Type_1(0) = 5000;																// 그룹3의 멤버0은 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(1) = 5000;																// 그룹3의 멤버1은 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(2) = 5000;																// 그룹3의 멤버2은 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(3) = 5000;																// 그룹3의 멤버3은 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(4) = 5000;																// 그룹3의 멤버4은 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(5) = 5000;																// 그룹3의 멤버5은 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(6) = 5000;																// 그룹3의 멤버6은 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(7) = 5000;																// 그룹3의 멤버7은 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(8) = 5000;																// 그룹3의 멤버8은 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(9) = 5000;																// 그룹3의 멤버9은 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(10) = 5000;																// 그룹3의 멤버9는 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(11) = 5000;																// 그룹3의 멤버10는 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(12) = 5000;																// 그룹3의 멤버11는 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(13) = 5000;																// 그룹3의 멤버12는 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(14) = 5000;																// 그룹3의 멤버13는 #0
+//P_Recipe_G3_AH_Action_Time_Type_1(15) = 5000;																// 그룹3의 멤버15는 #0
+////----------------------------------------------------------------------------------------------------------------------------------------------------------
+//// 그룹 4번 
+////----------------------------------------------------------------------------------------------------------------------------------------------------------
+//P_Recipe_G4_AH_Action_Time_Type_1(0) = 5000;																// 그룹4의 멤버0은 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(1) = 5000;																// 그룹4의 멤버1은 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(2) = 5000;																// 그룹4의 멤버2은 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(3) = 5000;																// 그룹4의 멤버3은 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(4) = 5000;																// 그룹4의 멤버4은 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(5) = 5000;																// 그룹4의 멤버5은 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(6) = 5000;																// 그룹4의 멤버6은 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(7) = 5000;																// 그룹4의 멤버7은 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(8) = 5000;																// 그룹4의 멤버8은 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(9) = 5000;																// 그룹4의 멤버9은 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(10) = 5000;																// 그룹4의 멤버9는 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(11) = 5000;																// 그룹4의 멤버10는 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(12) = 5000;																// 그룹4의 멤버11는 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(13) = 5000;																// 그룹4의 멤버12는 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(14) = 5000;																// 그룹4의 멤버13는 #0
+//P_Recipe_G4_AH_Action_Time_Type_1(15) = 5000;																// 그룹4의 멤버15는 #0
+
+////----------------------------------------------------------------------------------------------------------------------------------------------------------
+//// 그룹 5번 
+////----------------------------------------------------------------------------------------------------------------------------------------------------------
+//P_Recipe_G5_AH_Action_Time_Type_1(0) = 5000;																// 그룹5의 멤버0은 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(1) = 5000;																// 그룹5의 멤버1은 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(2) = 5000;																// 그룹5의 멤버2은 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(3) = 5000;																// 그룹5의 멤버3은 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(4) = 5000;																// 그룹5의 멤버4은 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(5) = 5000;																// 그룹5의 멤버5은 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(6) = 5000;																// 그룹5의 멤버6은 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(7) = 5000;																// 그룹5의 멤버7은 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(8) = 5000;																// 그룹5의 멤버8은 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(9) = 5000;																// 그룹5의 멤버9은 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(10) = 5000;																// 그룹5의 멤버9는 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(11) = 5000;																// 그룹5의 멤버10는 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(12) = 5000;																// 그룹5의 멤버11는 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(13) = 5000;																// 그룹5의 멤버12는 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(14) = 5000;																// 그룹5의 멤버13는 #0
+//P_Recipe_G5_AH_Action_Time_Type_1(15) = 5000;																// 그룹5의 멤버15는 #0
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 7.4) 전체 홈 정지 Management 멤버별 타임아웃 시간 업데이트
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 1번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(0) = 1000;																// 그룹1의 멤버0은 #1
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(1) = 1000;																// 그룹1의 멤버1은 #2
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(2) = 1000;																// 그룹1의 멤버2은 #3
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(3) = 1000;																// 그룹1의 멤버3은 #4
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(4) = 1000;																// 그룹1의 멤버4은 #5
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(5) = 1000;																// 그룹1의 멤버5은 #6
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(6) = 1000;																// 그룹1의 멤버6은 #7
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(7) = 1000;																// 그룹1의 멤버7은 #8
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(8) = 1000;																// 그룹1의 멤버8은 #9
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(9) = 1000;																// 그룹1의 멤버9은 #10
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(10) = 1000;																// 그룹1의 멤버9는 #11
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(11) = 1000;																// 그룹1의 멤버10는 #12
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(12) = 1000;																// 그룹1의 멤버11는 #13
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(13) = 1000;																// 그룹1의 멤버12는 #14
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(14) = 1000;																// 그룹1의 멤버13는 #15
+P_Recipe_G1_AH_Action_Stop_Time_Type_1(15) = 1000;																// 그룹1의 멤버15는 #16
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 2번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(0) = 1000;																// 그룹2의 멤버0은 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(1) = 1000;																// 그룹2의 멤버1은 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(2) = 1000;																// 그룹2의 멤버2은 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(3) = 1000;																// 그룹2의 멤버3은 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(4) = 1000;																// 그룹2의 멤버4은 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(5) = 1000;																// 그룹2의 멤버5은 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(6) = 1000;																// 그룹2의 멤버6은 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(7) = 1000;																// 그룹2의 멤버7은 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(8) = 1000;																// 그룹2의 멤버8은 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(9) = 1000;																// 그룹2의 멤버9은 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(10) = 1000;																// 그룹2의 멤버9는 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(11) = 1000;																// 그룹2의 멤버10는 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(12) = 1000;																// 그룹2의 멤버11는 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(13) = 1000;																// 그룹2의 멤버12는 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(14) = 1000;																// 그룹2의 멤버13는 
+P_Recipe_G2_AH_Action_Stop_Time_Type_1(15) = 1000;																// 그룹2의 멤버15는 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 3번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(0) = 1000;																// 그룹3의 멤버0은 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(1) = 1000;																// 그룹3의 멤버1은 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(2) = 1000;																// 그룹3의 멤버2은 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(3) = 1000;																// 그룹3의 멤버3은 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(4) = 1000;																// 그룹3의 멤버4은 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(5) = 1000;																// 그룹3의 멤버5은 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(6) = 1000;																// 그룹3의 멤버6은 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(7) = 1000;																// 그룹3의 멤버7은 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(8) = 1000;																// 그룹3의 멤버8은 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(9) = 1000;																// 그룹3의 멤버9은 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(10) = 1000;																// 그룹3의 멤버9는 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(11) = 1000;																// 그룹3의 멤버10는 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(12) = 1000;																// 그룹3의 멤버11는 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(13) = 1000;																// 그룹3의 멤버12는 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(14) = 1000;																// 그룹3의 멤버13는 #0
+P_Recipe_G3_AH_Action_Stop_Time_Type_1(15) = 1000;																// 그룹3의 멤버15는 #0
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 4번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(0) = 1000;																// 그룹4의 멤버0은 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(1) = 1000;																// 그룹4의 멤버1은 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(2) = 1000;																// 그룹4의 멤버2은 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(3) = 1000;																// 그룹4의 멤버3은 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(4) = 1000;																// 그룹4의 멤버4은 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(5) = 1000;																// 그룹4의 멤버5은 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(6) = 1000;																// 그룹4의 멤버6은 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(7) = 1000;																// 그룹4의 멤버7은 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(8) = 1000;																// 그룹4의 멤버8은 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(9) = 1000;																// 그룹4의 멤버9은 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(10) = 1000;																// 그룹4의 멤버9는 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(11) = 1000;																// 그룹4의 멤버10는 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(12) = 1000;																// 그룹4의 멤버11는 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(13) = 1000;																// 그룹4의 멤버12는 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(14) = 1000;																// 그룹4의 멤버13는 #0
+P_Recipe_G4_AH_Action_Stop_Time_Type_1(15) = 1000;																// 그룹4의 멤버15는 #0
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+// 그룹 5번 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(0) = 1000;																// 그룹5의 멤버0은 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(1) = 1000;																// 그룹5의 멤버1은 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(2) = 1000;																// 그룹5의 멤버2은 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(3) = 1000;																// 그룹5의 멤버3은 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(4) = 1000;																// 그룹5의 멤버4은 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(5) = 1000;																// 그룹5의 멤버5은 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(6) = 1000;																// 그룹5의 멤버6은 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(7) = 1000;																// 그룹5의 멤버7은 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(8) = 1000;																// 그룹5의 멤버8은 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(9) = 1000;																// 그룹5의 멤버9은 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(10) = 1000;																// 그룹5의 멤버9는 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(11) = 1000;																// 그룹5의 멤버10는 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(12) = 1000;																// 그룹5의 멤버11는 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(13) = 1000;																// 그룹5의 멤버12는 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(14) = 1000;																// 그룹5의 멤버13는 #0
+P_Recipe_G5_AH_Action_Stop_Time_Type_1(15) = 1000;																// 그룹5의 멤버15는 #0
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 00.2) 전체 홈 Management 동작명령 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+global P_AH_Act_CMD_Complete_Bit(N_Max_Member_EA)		// 멤버별 동작명령 함수 완료 비트 
+P_AH_Act_CMD_Complete_Bit(0),N_Max_Member_EA,1 = 0;	
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 00.3) 전체 홈 Management 동작체크부  
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+global P_AH_Act_CHK_Complete_Bit(N_Max_Member_EA)  		// 멤버별 동작체크 함수 완료 비트 
+P_AH_Act_CHK_Complete_Bit(0),N_Max_Member_EA,1 = 0;	
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 00.4) 전체 홈 Management SKIP   
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//unit별 섹터표시.
+global P_AH_Unit_Sector(N_AH_Max_Unit);					// unit별 섹터 표시 변수 ( 원소 : unit )
+P_AH_Unit_Sector(0),N_AH_Max_Unit,1 = 0;
+P_AH_Unit_Sector(1)=1
+P_AH_Unit_Sector(2)=2
+P_AH_Unit_Sector(101)=1
+P_AH_Unit_Sector(102)=2
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 00.5) 전체 홈 Management 홈 종료 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//==========================================================================================================================================================================================================================================
+// 01.  전체 홈 정지 Management 
+//==========================================================================================================================================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 01.0) 전체 홈 정지 Management 정지 명령  
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+global P_AH_Stop_CMD_Complete_Bit(N_Max_Member_EA)		// 멤버별 정지명령 함수 완료 비트 
+P_AH_Stop_CMD_Complete_Bit(0),N_Max_Member_EA,1 = 0;
+
+global P_AH_Stop_MD_Cascade_Stop_Cmd_Skip=0;			// 전체홈 정지모듈 내 Cascade Off Cmd Skip 여부 표시 변수
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 01.1) 전체 홈 정지 Management 동작 정지 체크  
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+//================================================================================================================
+// 1. Pair_Low			P_Recipe_G1_Action_Target_Type_1(1) ~ P_Recipe_G1_Action_Target_Type_1(9)
+// 2. Pair_High			P_Recipe_G1_Action_Target_Type_1(11) ~ P_Recipe_G1_Action_Target_Type_1(19)
+// 3. Anode_High		P_Recipe_G1_Action_Target_Type_1(21) ~ P_Recipe_G1_Action_Target_Type_1(29)	
+// 4. Cathode_High		P_Recipe_G1_Action_Target_Type_1(31) ~ P_Recipe_G1_Action_Target_Type_1(39)
+//================================================================================================================
+
+//P_Recipe_G1_Action_Target_Type_1(0) = N_MAIN_Z;												// 그룹1의 멤버0 
+//P_Recipe_G1_Action_Target_Type_1(1) = N_FINAL_ROLL_Z;											// 그룹1의 멤버1 
+//P_Recipe_G1_Action_Target_Type_1(2) = N_1st_PnP_AN_Z;										// 그룹1의 멤버2 
+//P_Recipe_G1_Action_Target_Type_1(3) = N_1st_PnP_CA_Z;										// 그룹1의 멤버3
+//P_Recipe_G1_Action_Target_Type_1(4) = N_None_Motor;											// 그룹1의 멤버4
+//P_Recipe_G1_Action_Target_Type_1(5) = N_None_Motor;											// 그룹1의 멤버5
+//P_Recipe_G1_Action_Target_Type_1(6) = N_None_Motor;											// 그룹1의 멤버6
+//P_Recipe_G1_Action_Target_Type_1(7) = N_None_Motor;											// 그룹1의 멤버7
+//P_Recipe_G1_Action_Target_Type_1(8) = N_None_Motor;											// 그룹1의 멤버8
+//P_Recipe_G1_Action_Target_Type_1(9) = N_None_Motor;											// 그룹1의 멤버9
+//P_Recipe_G1_Action_Target_Type_1(10) =N_None_Motor;											// 그룹1의 멤버9
+//P_Recipe_G1_Action_Target_Type_1(11) =N_None_Motor;											// 그룹1의 멤버1
+//P_Recipe_G1_Action_Target_Type_1(12) =N_None_Motor;											// 그룹1의 멤버1
+//P_Recipe_G1_Action_Target_Type_1(13) =N_None_Motor;											// 그룹1의 멤버1
+//P_Recipe_G1_Action_Target_Type_1(14) =N_None_Motor;											// 그룹1의 멤버1
+//P_Recipe_G1_Action_Target_Type_1(15) =N_None_Motor;											// 그룹1의 멤버1
+*/

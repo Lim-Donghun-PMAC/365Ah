@@ -1,0 +1,141 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.09 김성중 선임
+// MSA 모듈화 프로그래밍 진행 - [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+// 25.07.28 김성중 선임 
+// Cal, Cleaning 위치 이동, Align 탈착 모드 프로그래밍 진행 - [ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ] 
+
+open subprog Manual_InterLock_Function(void)
+
+sub: MSA_InterLock(&rtn)	//MSA 인터락 조건 추가
+rtn = 0;	
+#ifdef F_Def_Stack_A	//A열 사용 시 
+if( P_Modbus_B_Connect_State == N_Modbus_Enable )																			// 모드버스가 연결 되어 있다면
+{
+		if( P_Modbus_B_PMAC_Cur_Mode == F_Current_Manual && P_Modbus_B_VISION_MSA_Status != F_Status_EXECUTE )	//B열이 Manual 상태이고 MSA 사용 중이 아닐 경우
+		{
+			if( P_Modbus_B_Anode_1st_Pos >= Init_Pos - P_Motor_Ready_Pos_Inpos_200um && P_Modbus_B_Cathode_1st_Pos >= Init_Pos - P_Motor_Ready_Pos_Inpos_200um )				//B열 양음극 1차 PNP T축이 45도 이상일 경우(대기 위치~얼라인)																
+			{
+				rtn = N_TRUE;																					// 통과
+			}
+			else																								//B열 양음극 1차 PNP T축이 45도 이하일 경우(벨트 방향)
+			{
+				P_PMAC_Commands = F_Command_Stop;																// 인터락
+				P_Stop_Cmd_Origin = 2
+				rtn = N_FALSE;																					
+			}
+		}
+		else if( P_Modbus_B_PMAC_Cur_Status == F_Status_STOPPED  )												//B열이 정지 상태일 경우																				
+		{
+			if( P_Modbus_B_Anode_1st_Pos >= Init_Pos - P_Motor_Ready_Pos_Inpos_200um && P_Modbus_B_Cathode_1st_Pos >= Init_Pos - P_Motor_Ready_Pos_Inpos_200um )				//B열 양음극 1차 PNP T축이 45도 이상일 경우(대기 위치~얼라인)																		
+			{
+				rtn = N_TRUE;																					// 통과
+			}	
+			else																								//B열 양음극 1차 PNP T축이 45도 이하일 경우(벨트 방향)
+			{
+				P_PMAC_Commands = F_Command_Stop;																// 인터락
+				P_Stop_Cmd_Origin = 3
+				rtn = N_FALSE;																					
+			}
+		}
+		else																									//B열이 오토 상태이거나 MSA 사용 중일 경우 
+		{
+			P_PMAC_Commands = F_Command_Stop;																	// 인터락	
+			P_Stop_Cmd_Origin = 4
+			rtn = N_FALSE;
+		}
+}
+else	// Modbus Data 안들어올때 , 즉 한쪽열만 사용할때
+{
+	if( M_X_Opposite_Cathode_1st_PNP_Collision_Detect_Sensor == 0 || M_X_Opposite_Anode_1st_PNP_Collision_Detect_Sensor == 0 )				// GPIO INTERLOCK SENSOR 1개라도 감지된다면
+	{
+		P_PMAC_Commands = F_Command_Stop;																		// 인터락
+		P_Stop_Cmd_Origin = 5
+		rtn = N_FALSE;	
+	}
+	else																										// GPIO SENSOR 감지가 안되면 gogo
+	{
+		rtn = N_TRUE;
+	}
+}
+#endif
+
+#ifdef F_Def_Stack_B
+if( P_Modbus_A_Connect_State == N_Modbus_Enable )																// 모드버스가 연결 되어 있다면
+{
+		if( P_Modbus_A_PMAC_Cur_Mode == F_Current_Manual && P_Modbus_A_VISION_MSA_Status != F_Status_EXECUTE )	//A열이 Manual 상태이고 MSA 사용 중이 아닐 경우
+		{
+			if( P_Modbus_A_Anode_1st_Pos >= Init_Pos - P_Motor_Ready_Pos_Inpos_200um && P_Modbus_A_Cathode_1st_Pos >= Init_Pos - P_Motor_Ready_Pos_Inpos_200um )				//A열 양음극 1차 PNP T축이 45도 이상일 경우(대기 위치~얼라인)																			
+			{
+				rtn = N_TRUE;																					//통과
+			}
+			else																								//A열 양음극 1차 PNP T축이 45도 이하일 경우(벨트 방향)
+			{
+				P_PMAC_Commands = F_Command_Stop;																//인터락
+				P_Stop_Cmd_Origin = 6
+				rtn = N_FALSE;
+			}
+		}
+		else if( P_Modbus_A_PMAC_Cur_Status == F_Status_STOPPED  )												//A열이 정지 상태일 경우																												
+		{
+			if( P_Modbus_A_Anode_1st_Pos >= Init_Pos - P_Motor_Ready_Pos_Inpos_200um && P_Modbus_A_Cathode_1st_Pos >= Init_Pos - P_Motor_Ready_Pos_Inpos_200um )				//A열 양음극 1차 PNP T축이 45도 이상일 경우(대기 위치~얼라인)																			
+			{
+				rtn = N_TRUE;																					//통과
+			}
+			else																								//A열 양음극 1차 PNP T축이 45도 이하일 경우(벨트 방향)
+			{
+				P_PMAC_Commands = F_Command_Stop;																//인터락
+				P_Stop_Cmd_Origin = 7
+				rtn = N_FALSE;
+			}
+		}
+		else if( P_Modbus_A_PMAC_Cur_Status == F_Status_RESETTING )  
+		{
+				P_PMAC_Commands = F_Command_Stop;																// 인터락
+				P_Stop_Cmd_Origin = 8
+				rtn = N_FALSE;	
+		}
+		else																									//A열이 오토 상태이거나 MSA 사용 중일 경우 
+		{
+			P_PMAC_Commands = F_Command_Stop;																	//인터락	
+			P_Stop_Cmd_Origin = 9
+			rtn = N_FALSE;
+		}
+}
+else																											// 모드버스가 연결 안되었을 시
+{
+	if( M_X_Opposite_Cathode_1st_PNP_Collision_Detect_Sensor == 0 || M_X_Opposite_Anode_1st_PNP_Collision_Detect_Sensor == 0  )				// GPIO INTERLOCK SENSOR 1개라도 감지된다면
+	{
+		P_PMAC_Commands = F_Command_Stop;																		// 인터락
+		P_Stop_Cmd_Origin = 10
+		rtn = N_FALSE;	
+	}
+	else																										// GPIO SENSOR 감지가 안되면 gogo
+	{
+		rtn = N_TRUE;
+	}
+}
+#endif
+			
+	
+return;
+
+//얼라인 탈착 모드 인터락 조건
+//sub: Align_Take_Off_InterLock(Bit_Pos,&rtn)	//얼라인 탈착 모드 인터락 조건 추가 필요 시 작성
+//rtn = 0;
+//
+//	switch( Bit_Pos )
+//	{
+//		case 1:							
+//			rtn = N_TRUE;
+//		break;			
+//	}
+//return;
+
+close
+
+
+
+
+

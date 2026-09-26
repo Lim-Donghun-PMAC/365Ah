@@ -1,0 +1,594 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+
+open subprog Sub_Execute_Automatic_Prod_Sequnce(void)
+
+			 
+// 1) Search    -  검색창에 Search 만 검색하시면 ↓ 하단부 함수 Start 부분 쉽게 찾기 가능
+//-----------------------------------------------------------------------------------------------------------------------------
+// [Set]							// [Execute]					//  [Precondition]	
+//-----------------------------------------------------------------------------------------------------------------------------
+//[세파 첫장 모듈]
+// Set_Execute_First_Sepa_Mode		// Execute_First_Sepa_Mode			// Precondition_Execute_Sepa_First_Mode				// 세파 첫장 모듈
+
+
+//========================================================//
+// 1.1) Set_Execute_First_Sepa_Mode
+//========================================================//
+	sub:Set_Execute_First_Sepa_Mode(Mode,&Set_Execute_First_Sepa_Mode_RTN)
+
+		//=========================================//
+		// 1.0)Init
+		//=========================================//
+		//P_Act_Execute_Complete_Bit(0),(10) = 0;
+		P_Act_Execute_Complete_Bit(0),N_Act_Execute_Define_Limit = 0;
+		Set_Execute_First_Sepa_Mode_RTN = 0;	
+
+		switch(Mode)
+		{
+			// 1.1) 일반 생산 모드 
+			case N_Normal_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(0)  = Mode;										// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(1)  = N_SEQ_Execute_First_Sepa_Mode_No_1			// 2) 세파 첫장 모드 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(2)  = N_SEQ_Execute_First_Sepa_Mode_No_2			// 3) 세파 첫장 모드 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(3)  = N_SEQ_Execute_First_Sepa_Mode_No_3			// 4) 세파 첫장 모드 - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(4)  = N_SEQ_Execute_First_Sepa_Mode_No_4			// 5) 세파 첫장 모드 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(5)  = N_SEQ_Execute_First_Sepa_Mode_No_5			// 6) 세파 첫장 모드 - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(6)  = N_SEQ_Execute_First_Sepa_Mode_No_6			// 7) 세파 첫장 모드 - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(7)  = N_SEQ_Execute_First_Sepa_Mode_No_7			// 8) 세파 첫장 모드 - 일반 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(8)  = N_SEQ_Execute_First_Sepa_Mode_No_8			// 9) 세파 첫장 모드 - 일반 모드	|| 여덟번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(9)  = N_SEQ_Execute_First_Sepa_Mode_No_9			// 10) 세파 첫장 모드 - 일반 모드 || 아홉번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(10)  = N_SEQ_Execute_First_Sepa_Mode_No_10		// 11) 세파 첫장 모드 - 일반 모드 || 시퀀스 완료 체크
+
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(11)  = N_COMPLETE;
+
+				Set_Execute_First_Sepa_Mode_RTN = N_TRUE;
+			break;
+
+			// 1.2) 세파 모드 
+			case N_Sepa_Consume_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(0)  = Mode;										// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(1)  = N_SEQ_Execute_First_Sepa_Mode_No_1			// 2) 세파 첫장 모드 - 세파 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(2)  = N_SEQ_Execute_First_Sepa_Mode_No_2			// 3) 세파 첫장 모드 - 세파 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(3)  = N_SEQ_Execute_First_Sepa_Mode_No_3			// 4) 세파 첫장 모드 - 세파 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(4)  = N_SEQ_Execute_First_Sepa_Mode_No_4			// 5) 세파 첫장 모드 - 세파 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(5)  = N_SEQ_Execute_First_Sepa_Mode_No_5			// 6) 세파 첫장 모드 - 세파 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(6)  = N_SEQ_Execute_First_Sepa_Mode_No_6			// 7) 세파 첫장 모드 - 세파 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(7)  = N_SEQ_Execute_First_Sepa_Mode_No_7			// 8) 세파 첫장 모드 - 세파 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(8)  = N_SEQ_Execute_First_Sepa_Mode_No_8			// 9) 세파 첫장 모드 - 세파 모드	|| 여덟번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(9)  = N_SEQ_Execute_First_Sepa_Mode_No_9			// 10) 세파 첫장 모드 - 세파 모드 || 아홉번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(10)  = N_SEQ_Execute_First_Sepa_Mode_No_10		// 11) 세파 첫장 모드 - 세파 모드 || 시퀀스 완료 체크
+
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(11)  = N_COMPLETE;
+
+				Set_Execute_First_Sepa_Mode_RTN = N_TRUE;
+			break;
+
+			// 1.3) 드라이 런 모드 
+			case N_Dryrun_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(0)  = Mode;										// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(1)  = N_SEQ_Execute_First_Sepa_Mode_No_1			// 2) 세파 첫장 모드 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(2)  = N_SEQ_Execute_First_Sepa_Mode_No_2			// 3) 세파 첫장 모드 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(3)  = N_SEQ_Execute_First_Sepa_Mode_No_3			// 4) 세파 첫장 모드 - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(4)  = N_SEQ_Execute_First_Sepa_Mode_No_4			// 5) 세파 첫장 모드 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(5)  = N_SEQ_Execute_First_Sepa_Mode_No_5			// 6) 세파 첫장 모드 - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(6)  = N_SEQ_Execute_First_Sepa_Mode_No_6			// 7) 세파 첫장 모드 - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(7)  = N_SEQ_Execute_First_Sepa_Mode_No_7			// 8) 세파 첫장 모드 - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(8)  = N_SEQ_Execute_First_Sepa_Mode_No_8;		// 9) 세파 첫장 모드 - 일반 모드 || 시퀀스 완료 체크
+				
+				P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(9)  = N_COMPLETE;
+
+				Set_Execute_First_Sepa_Mode_RTN = N_TRUE;
+			break;
+
+			default : 
+			
+			break;
+		}
+
+	return
+
+//===========================================================================//
+// 1.2) Management_Execute_First_Sepa_Mode - 시퀀스 실행 관리 함수 _ 인덱스에 맞는 동작 가져오기
+//===========================================================================//
+	sub:Management_Execute_First_Sepa_Mode(Mode,Index,&data,&Management_Execute_First_Sepa_Mode_RTN)
+		
+		Management_Execute_First_Sepa_Mode_RTN = 0;
+		if ( P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(0) == Mode )					// 1) 실행 전 모드 체크
+		{																	
+			if ( P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(Index) == N_COMPLETE )		// 1.1) 인덱스 배열값이 완료 일 경우
+			{																 
+				data = N_COMPLETE;															// 1.1.1) 데이터 완료값 반환
+				Management_Execute_First_Sepa_Mode_RTN = N_EXCEPT;							// 1.1.2) 예외값 반환
+			}																
+			else if ( P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(Index) != 0 )			// 1.1.3) 완료도 아니고 0값도 아닐 경우
+			{																 
+				data = P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(Index);				// 1.1.4) 인덱스 배열값 반환
+				Management_Execute_First_Sepa_Mode_RTN = N_TRUE;							// 1.1.5) True 반환
+			}																
+			else															
+			{																
+				data = 0;																	// 1.1.6) 인덱스 배열값 0값 반환
+				Management_Execute_First_Sepa_Mode_RTN = N_FALSE;							// 1.1.7) False  반환
+			}															
+		}
+
+	return
+
+//===========================================================================//
+// 1.3) Execute_First_Sepa_Mode - 동작
+//===========================================================================//
+	sub:Execute_First_Sepa_Mode(Mode,data,&Execute_First_Sepa_Mode_RTN) 
+
+		Execute_First_Sepa_Mode_RTN = 0;
+		switch( Mode )	// 모드구분.
+		{
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Normal_Status_Sequence :		
+					
+				switch(data)	// 시퀀스구분.
+				{
+					// 1. [ 세파 첫장 모드 - 일반 모드 ]
+					case N_SEQ_Execute_First_Sepa_Mode_No_1:	// 1. [ 일반 생산 모드 ] 
+						P_Module_Act_Execute_Command_Array(N_Act_Motor_Pos_Check)	= F_ACT_STATUS_ENABLE;			// 1. 모터 위치 확인.
+						
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;		
+		
+					// 2. [ 세파 첫장 모드 - 일반 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_2:	// 2. [ 일반 생산 모드 ]				
+						P_Module_Act_Execute_Command_Array(N_Act_FR_1st_Move)		= F_ACT_STATUS_ENABLE;			// 1. 파이널 롤 1차 이동.
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+
+					// 3. [ 세파 첫장 모드 - 일반 모드 ]
+					case N_SEQ_Execute_First_Sepa_Mode_No_3:	// 3. [ 일반 생산 모드 ] 
+						P_Module_Act_Execute_Command_Array(N_Act_FR_2nd_Move)		= F_ACT_STATUS_ENABLE;			// 1. 파이널 롤 2차 이동.
+						
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;		
+		
+					// 4. [ 세파 첫장 모드 - 일반 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_4:	// 4. [ 일반 생산 모드 ]				
+						P_Module_Act_Execute_Command_Array(N_Act_FR_Down)			= F_ACT_STATUS_ENABLE;			// 1. 파이널 롤 하강.
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+					// 5. [ 세파 첫장 모드 - 일반 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_5:	// 5. [ 일반 생산 모드 ]				
+						P_Module_Act_Execute_Command_Array(N_Act_Vision_Check)		= F_ACT_STATUS_ENABLE;			// 1. Vision 촬상.
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+
+					// 6. [ 세파 첫장 모드 - 일반 모드 ]
+					case N_SEQ_Execute_First_Sepa_Mode_No_6:	// 6. [ 일반 생산 모드 ] 
+						P_Module_Act_Execute_Command_Array(N_Act_Clamp_On)			= F_ACT_STATUS_ENABLE;			// 1. 클림프 ON.
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;		
+		
+					// 7. [ 세파 첫장 모드 - 일반 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_7:	// 7. [ 일반 생산 모드 ]						
+						P_Module_Act_Execute_Command_Array(N_Act_FR_Up)				= F_ACT_STATUS_ENABLE;			// 1. 파이널 롤 상승.
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+		
+					// 8. [ 세파 첫장 모드 - 일반 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_8:	// 8. [ 일반 생산 모드 ]						
+						P_Module_Act_Execute_Command_Array(N_Act_Host_ID)				= F_ACT_STATUS_ENABLE;		// 1. 호스트 생성.		// [ 참조 : 세파 첫장 모듈 수정 - 액팅 모튤 추가 ]
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;	
+						
+					// 9. [ 세파 첫장 모드 - 일반 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_9:	// 9. [ 일반 생산 모드 ]						
+						P_Module_Act_Execute_Command_Array(N_Act_EPC_Judge)				= F_ACT_STATUS_ENABLE;		// 1. EPC 보정 판단.		// [ 참조 : 세파 첫장 모듈 수정 - 액팅 모튤 추가 ]
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+
+					// 10. [ 세파 첫장 모드 - 일반 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_10:	// 10. [ 일반 생산 모드 ]						
+					
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+
+					default:	
+						Execute_First_Sepa_Mode_RTN = N_FALSE;	
+					break;
+				}	
+			break;
+
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Sepa_Consume_Status_Sequence :		
+					
+				switch(data)	// 시퀀스구분.
+				{
+					// 1. [ 세파 첫장 모드 - 세파 모드 ]
+					case N_SEQ_Execute_First_Sepa_Mode_No_1:	// 1. [ 세파 모드 ] 
+						P_Module_Act_Execute_Command_Array(N_Act_Motor_Pos_Check)	= F_ACT_STATUS_ENABLE;			// 1. 모터 위치 확인.
+						
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;		
+		
+					// 2. [ 세파 첫장 모드 - 세파 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_2:	// 2. [ 세파 모드 ]				
+						P_Module_Act_Execute_Command_Array(N_Act_FR_1st_Move)		= F_ACT_STATUS_ENABLE;			// 1. 파이널 롤 1차 이동.
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+
+					// 3. [ 세파 첫장 모드 - 세파 모드 ]
+					case N_SEQ_Execute_First_Sepa_Mode_No_3:	// 3. [ 세파 모드 ] 
+						P_Module_Act_Execute_Command_Array(N_Act_FR_2nd_Move)		= F_ACT_STATUS_ENABLE;			// 1. 파이널 롤 2차 이동.
+						
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;		
+		
+					// 4. [ 세파 첫장 모드 - 세파 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_4:	// 4. [ 세파 모드 ]				
+						P_Module_Act_Execute_Command_Array(N_Act_FR_Down)			= F_ACT_STATUS_ENABLE;			// 1. 파이널 롤 하강.
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+					// 5. [ 세파 첫장 모드 - 세파 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_5:	// 5. [ 세파 모드 ]				
+						P_Module_Act_Execute_Command_Array(N_Act_Vision_Check)		= F_ACT_STATUS_ENABLE;			// 1. Vision 촬상.
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+
+					// 6. [ 세파 첫장 모드 - 세파 모드 ]
+					case N_SEQ_Execute_First_Sepa_Mode_No_6:	// 6. [ 세파 모드 ] 
+						P_Module_Act_Execute_Command_Array(N_Act_Clamp_On)			= F_ACT_STATUS_ENABLE;			// 1. 클림프 ON.
+						
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;		
+		
+					// 7. [ 세파 첫장 모드 - 세파 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_7:	// 7. [ 세파 모드 ]						
+						P_Module_Act_Execute_Command_Array(N_Act_FR_Up)				= F_ACT_STATUS_ENABLE;			// 1. 파이널 롤 상승.
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+
+					// 8. [ 세파 첫장 모드 - 일반 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_8:	// 8. [ 일반 생산 모드 ]						
+						P_Module_Act_Execute_Command_Array(N_Act_Host_ID)				= F_ACT_STATUS_ENABLE;		// 1. 호스트 생성.		// [ 참조 : 세파 첫장 모듈 수정 - 액팅 모튤 추가 ]
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;	
+						
+					// 9. [ 세파 첫장 모드 - 일반 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_9:	// 9. [ 일반 생산 모드 ]						
+						P_Module_Act_Execute_Command_Array(N_Act_EPC_Judge)				= F_ACT_STATUS_ENABLE;		// 1. EPC 보정 판단.		// [ 참조 : 세파 첫장 모듈 수정 - 액팅 모튤 추가 ]
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+
+					// 10. [ 세파 첫장 모드 - 일반 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_10:	// 10. [ 일반 생산 모드 ]						
+					
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+
+					default:	
+						Execute_First_Sepa_Mode_RTN = N_FALSE;	
+					break;
+				}	
+			break;
+
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Dryrun_Status_Sequence :		
+					
+				switch(data)	// 시퀀스구분.
+				{
+					// 1. [ 세파 첫장 모드 - 드라이런 모드 ]
+					case N_SEQ_Execute_First_Sepa_Mode_No_1:	// 1. [ 드라이런 모드 ] 
+						P_Module_Act_Execute_Command_Array(N_Act_Motor_Pos_Check)	= F_ACT_STATUS_ENABLE;			// 1. 모터 위치 확인.
+						
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;		
+		
+					// 2. [ 세파 첫장 모드 - 드라이런 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_2:	// 2. [ 드라이런 모드 ]				
+						P_Module_Act_Execute_Command_Array(N_Act_FR_1st_Move)		= F_ACT_STATUS_ENABLE;			// 1. 파이널 롤 1차 이동.
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+
+					// 3. [ 세파 첫장 모드 - 드라이런 모드 ]
+					case N_SEQ_Execute_First_Sepa_Mode_No_3:	// 3. [ 드라이런 모드 ] 
+						P_Module_Act_Execute_Command_Array(N_Act_FR_2nd_Move)		= F_ACT_STATUS_ENABLE;			// 1. 파이널 롤 2차 이동.
+						
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;		
+		
+					// 4. [ 세파 첫장 모드 - 드라이런 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_4:	// 4. [ 드라이런 모드 ]				
+						P_Module_Act_Execute_Command_Array(N_Act_FR_Down)			= F_ACT_STATUS_ENABLE;			// 1. 파이널 롤 하강.
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+					// 5. [ 세파 첫장 모드 - 드라이런 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_5:	// 5. [ 드라이런 모드 ]				
+						P_Module_Act_Execute_Command_Array(N_Act_Vision_Check)		= F_ACT_STATUS_ENABLE;			// 1. Vision 촬상.
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+
+					// 6. [ 세파 첫장 모드 - 드라이런 모드 ]
+					case N_SEQ_Execute_First_Sepa_Mode_No_6:	// 6. [ 드라이런 모드 ] 
+						P_Module_Act_Execute_Command_Array(N_Act_Clamp_On)			= F_ACT_STATUS_ENABLE;			// 1. 클림프 ON.
+						
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;		
+		
+					// 7. [ 세파 첫장 모드 - 드라이런 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_7:	// 7. [ 드라이런 모드 ]						
+						P_Module_Act_Execute_Command_Array(N_Act_FR_Up)				= F_ACT_STATUS_ENABLE;			// 1. 파이널 롤 상승.
+
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+
+					// 7. [ 세파 첫장 모드 - 드라이런 모드 ]		
+					case N_SEQ_Execute_First_Sepa_Mode_No_8:	// 8. [ 드라이런 모드 ]						
+					
+						Execute_First_Sepa_Mode_RTN = N_TRUE;		
+					break;
+
+					default:	
+						Execute_First_Sepa_Mode_RTN = N_FALSE;	
+					break;
+				}	
+			break;
+
+			Default : 
+				Execute_First_Sepa_Mode_RTN = N_FALSE;	
+			break;
+		}
+
+	return
+//===========================================================================//
+// 1.4) Precondition_Execute_First_Seapa_Mode - 사전 조건 스킵 변수 부여, 감시 다음 시퀀스 실행 조건 보기
+//===========================================================================//
+
+	sub:Precondition_Execute_First_Seapa_Mode(Mode,Index,&Precondition_Execute_First_Seapa_Mode_RTN)	
+		// 실행 될 시퀀스의 실행 조건 입력 _ 실행 완료 상태 혹은 실행 스킵 상태를 확인
+		local L_Execute_First_Sepa_Mode_Cond = P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(Index);		// 다음 시작해야 할 동작
+		Precondition_Execute_First_Seapa_Mode_RTN = 0;					// 반환값 초기화.
+		switch(Mode)
+		{
+			case N_Normal_Status_Sequence :		
+				Switch(L_Execute_First_Sepa_Mode_Cond)
+				{
+					case N_SEQ_Execute_First_Sepa_Mode_No_1 : 
+						Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_2 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_Motor_Pos_Check) )			// 1. 모터 위치 확인.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Execute_First_Sepa_Mode_No_3 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_FR_1st_Move) )				// 1. 파이널 롤 1차 이동.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;		
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_4 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_FR_2nd_Move) )				// 1. 파이널 롤 2차 이동.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Execute_First_Sepa_Mode_No_5 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_FR_Down) )					// 1. 파이널 롤 하강.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;		
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_6 : 							
+						if( P_Act_Execute_Complete_Bit(N_Act_Vision_Check) )			// 1. Vision 촬상.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Execute_First_Sepa_Mode_No_7 : 							
+						if( P_Act_Execute_Complete_Bit(N_Act_Clamp_On) )				// 1. 클림프 ON.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;		
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_8 : 							
+						if( P_Act_Execute_Complete_Bit(N_Act_FR_Up) )					// 1. 파이널 롤 상승.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_9 : 							
+						if( P_Act_Execute_Complete_Bit(N_Act_Host_ID) )					// 1. 호스트 생성.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_10 : 							
+						if( P_Act_Execute_Complete_Bit(N_Act_EPC_Judge) )				// 1. EPC 보정 판단.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+
+					default :
+						Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;	
+					break;
+				}
+			break;
+
+			case N_Sepa_Consume_Status_Sequence :		
+				Switch(L_Execute_First_Sepa_Mode_Cond)
+				{
+					case N_SEQ_Execute_First_Sepa_Mode_No_1 : 
+						Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_2 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_Motor_Pos_Check) )			// 1. 모터 위치 확인.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Execute_First_Sepa_Mode_No_3 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_FR_1st_Move) )				// 1. 파이널 롤 1차 이동.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;		
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_4 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_FR_2nd_Move) )				// 1. 파이널 롤 2차 이동.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Execute_First_Sepa_Mode_No_5 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_FR_Down) )					// 1. 파이널 롤 하강.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;		
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_6 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_Vision_Check) )			// 1. Vision 촬상.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Execute_First_Sepa_Mode_No_7 :	
+						if( P_Act_Execute_Complete_Bit(N_Act_Clamp_On) )				// 1. 클림프 ON.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;		
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_8 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_FR_Up) )					// 1. 파이널 롤 상승.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Execute_First_Sepa_Mode_No_9 : 							
+						if( P_Act_Execute_Complete_Bit(N_Act_Host_ID) )					// 1. 호스트 생성.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_10 : 							
+						if( P_Act_Execute_Complete_Bit(N_Act_EPC_Judge) )				// 1. EPC 보정 판단.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+
+					default :
+						Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;	
+					break;
+				}
+			break;
+
+			case N_Dryrun_Status_Sequence :		
+				Switch(L_Execute_First_Sepa_Mode_Cond)
+				{
+					case N_SEQ_Execute_First_Sepa_Mode_No_1 : 
+						Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_2 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_Motor_Pos_Check) )			// 1. 모터 위치 확인.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Execute_First_Sepa_Mode_No_3 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_FR_1st_Move) )				// 1. 파이널 롤 1차 이동.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;		
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_4 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_FR_2nd_Move) )				// 1. 파이널 롤 2차 이동.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Execute_First_Sepa_Mode_No_5 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_FR_Down) )					// 1. 파이널 롤 하강.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;		
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_6 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_Vision_Check) )			// 1. Vision 촬상.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Execute_First_Sepa_Mode_No_7 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_Clamp_On) )				// 1. 클림프 ON.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;		
+								
+					case N_SEQ_Execute_First_Sepa_Mode_No_8 : 
+						if( P_Act_Execute_Complete_Bit(N_Act_FR_Up) )					// 1. 파이널 롤 상승.
+						{
+							Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;
+						}
+					break;
+
+					default :
+						Precondition_Execute_First_Seapa_Mode_RTN = N_TRUE;	
+					break;
+				}
+			break;
+
+			default :	
+				
+			break;
+		}
+	return
+close
+
+
+

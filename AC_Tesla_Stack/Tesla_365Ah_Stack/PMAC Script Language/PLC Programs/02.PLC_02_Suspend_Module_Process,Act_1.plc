@@ -1,0 +1,787 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.04 박성민 책임
+// 모듈화 프로그래밍 진행 (배출) - [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ]  
+// 25.06.04 김형진 책임
+// 모듈화 프로그래밍 진행 (ARC) - [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+// 25.06.04 박성민 책임
+// BCG PLC11 → PLC02 텍타임 단축 건 - [ 참조 : 25.10.20 배출, ARC, Host ID 부여 시 텍 단축을 위한 RTI BCG 교체 건] 
+
+
+open plc 2
+
+#define	L_System_Timer				Sys.Time		// 시스템 타이머
+
+Local L_PLC02_Time_Cycle_Up_Count_Start_Time;		// Plc[02].ldata.L[0]	시간 체크 시작 시간
+Local L_PLC02_Time_Cycle_Up_Count_End_Time;			// Plc[02].ldata.L[1]	시간 체크 종료 시간
+Local L_PLC02_Time_Cycle_Up_Count_Delta_Time;		// Plc[02].ldata.L[2]	시작과 종료 시간 사이의 시간
+Local L_PLC02_Flag_Cycle_Up_Count_Init_Flag;		// Plc[02].ldata.L[3]	타이머 초기화 플래그
+local L_Sub_Interval_Timer;							// Plc[02].ldata.L[4]	서브 프로그램 인터벌 타이머
+local L_Sub_Set_Interval_Time=5;					// Plc[02].ldata.L[5]	서브 프로그램 리드 주기 타임
+local L_Auto_Sub_Program_Active;					// Plc[02].ldata.L[6]	서브 프로그램 활성화
+
+// 시퀀스 발생 변수			
+local L_Discharge_Seq_Command_Occurs;				// Plc[02].ldata.L[7]	배출 시퀀스 발생 변수 
+local L_ARC_Seq_Command_Occurs;						// Plc[02].ldata.L[8]	ARC 시퀀스 발생 변수 
+local L_Anode_1TR_Supply_Seq_Command_Occurs;		// Plc[02].ldata.L[9]	음극1차PNP 극판 공급 시퀀스 발생 변수 
+
+// Acting 동작 번호 													
+local L_Discharge_Seq_Data;							// Plc[02].ldata.L[10]	배출 Acting 동작 번호
+local L_ARC_Seq_Data;								// Plc[02].ldata.L[11]	ARC Acting 동작 번호
+local L_Anode_1TR_Supply_Seq_Data;					// Plc[02].ldata.L[12]	음극1차PNP 극판 공급 동작 번호
+
+// 인터락 타이머 
+local L_Discharge_seq_InterLock_Timer;				// Plc[02].ldata.L[13]	배출 인터락 타이머 
+local L_ARC_seq_InterLock_Timer;					// Plc[02].ldata.L[14]	ARC 인터락 타이머 
+local L_Anode_1TR_Supply_InterLock_Timer;			// Plc[02].ldata.L[15]	음극1차PNP 극판 공급 인터락 타이머 
+
+// 액팅 동작 함수
+local L_Module_Interval_Timer;						// Plc[02].ldata.L[16]	서브 프로그램 인터벌 타이머
+local L_Module_Set_Interval_Time=5;					// Plc[02].ldata.L[17]	서브 프로그램 리드 주기 타임
+local L_Act_Management_Active;						// Plc[02].ldata.L[18]	서브 프로그램 활성화
+
+// 회피 동작 변수
+local L_Suspend_Anode_PnP_Avoid_Cmd;				// Plc[02].ldata.L[19]	서브 프로그램 활성화
+
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_PLC02_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_PLC02_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_PLC02_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_PLC02_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+
+// 00.2) 시간 체크
+if( L_PLC02_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_PLC02_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_PLC02_Time_Cycle_Up_Count_Delta_Time = (L_PLC02_Time_Cycle_Up_Count_End_Time - L_PLC02_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_PLC02_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_PLC02_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if (L_PLC02_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{		
+	L_Sub_Interval_Timer = L_Sub_Interval_Timer + L_PLC02_Time_Cycle_Up_Count_Delta_Time;
+
+	// 테스트용
+	P_Servo_Dancer_Cascading_Off_Timer = P_Servo_Dancer_Cascading_Off_Timer  + L_PLC02_Time_Cycle_Up_Count_Delta_Time;
+	P_Servo_Dancer_Cascading_Set_Timer = P_Servo_Dancer_Cascading_Set_Timer  + L_PLC02_Time_Cycle_Up_Count_Delta_Time;
+	P_Dancer_Frist_Home_Ready_Pos_Timer= P_Dancer_Frist_Home_Ready_Pos_Timer + L_PLC02_Time_Cycle_Up_Count_Delta_Time;
+	P_Suspend_Discharge_Timer = P_Suspend_Discharge_Timer + L_PLC02_Time_Cycle_Up_Count_Delta_Time;						// 배출 Tact Time 추가. [ 참조 : 25.07.04 배출 Tact Time 추가 ]
+	P_Suspend_ARC_Timer = P_Suspend_ARC_Timer + L_PLC02_Time_Cycle_Up_Count_Delta_Time;									// ARC Tact Time 추가. [ 참조 : 25.10.13 ARC Tact Time 추가 ]
+	P_Suspend_Anode_1TR_Cell_Supply_Timer = P_Suspend_Anode_1TR_Cell_Supply_Timer + L_PLC02_Time_Cycle_Up_Count_Delta_Time;
+	
+	L_Discharge_seq_InterLock_Timer = L_Discharge_seq_InterLock_Timer + L_PLC02_Time_Cycle_Up_Count_Delta_Time;	
+	P_Discharge_Unloader_Handover_Timer = P_Discharge_Unloader_Handover_Timer + L_PLC02_Time_Cycle_Up_Count_Delta_Time; // 2차 언로더 인계 대기 확인 시간 추가. [ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ]
+	L_ARC_seq_InterLock_Timer = L_ARC_seq_InterLock_Timer + L_PLC02_Time_Cycle_Up_Count_Delta_Time;	
+	L_Anode_1TR_Supply_InterLock_Timer = L_Anode_1TR_Supply_InterLock_Timer + L_PLC02_Time_Cycle_Up_Count_Delta_Time;
+
+	P_Suspend_Cutter_Heating_Timer = P_Suspend_Cutter_Heating_Timer + L_PLC02_Time_Cycle_Up_Count_Delta_Time;			// 커터 열선 히팅 타이머 	
+
+	L_Module_Interval_Timer = L_Module_Interval_Timer + L_PLC02_Time_Cycle_Up_Count_Delta_Time							// 액팅 모듈 인터벌 타이머 
+	L_PLC02_Time_Cycle_Up_Count_Start_Time = L_PLC02_Time_Cycle_Up_Count_End_Time;
+	L_PLC02_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+//-----------------------------------------------------------------------------------------------------//
+// 시퀀스 실행부 //
+// 1. Execute 기능실행_Main Process
+IF ( L_Sub_Interval_Timer > L_Sub_Set_Interval_Time )
+{
+	L_Sub_Interval_Timer = 0;		// 인터벌 타이머 초기화
+
+	// 1.1 오토 서브 프로그램 활성화 - 자동모드 시 활성화 
+	IF ( P_PMAC_Current_Mode == F_Current_Automatic )
+	{
+		L_Auto_Sub_Program_Active = F_Status_STARTING;								
+	}
+	// 1.2 Manual - 자동모드 정지
+	ELSE
+	{
+		L_Auto_Sub_Program_Active = F_Status_STOPPING;
+	}
+
+	// 1.3. 오토 메인 프로그램 - 상태별 서브 프로그램 실행
+	IF ( L_Auto_Sub_Program_Active == F_Status_STARTING )
+	{		
+		IF ( P_Suspend_Discharge_Cmd == F_Command_Start )							// 1) 배출	 모듈 실행 - PLC 1번에서 조건보고 실행 
+		{																			   
+			P_Suspend_Discharge_Cmd = 0;											// 1.1) 배출 모듈 - 커맨드 초기화 (재진입 방지) 
+			P_EXECUTE_Status_Prod_Sequence(N_Discharge_Module) = F_Status_STARTING;	// 1.2) 배출 모듈 - 시작 상태 대입
+																					   			
+			P_Suspend_Discharge_Status = N_TRUE;									// 1.3) 배출 모듈 - 시퀀스 모듈 실행 상태
+			L_Discharge_Seq_Command_Occurs = 1;										// 1.4) 배출 모듈 - 시퀀스 커맨드 발생 변수
+		}
+
+		IF ( P_Suspend_ARC_Cmd == F_Command_Start )									// 2)  ARC 모듈 실행 - PLC 1번에서 조건보고 실행 
+		{																				   
+			P_Suspend_ARC_Cmd = 0;													// 2.1) ARC 모듈 - 커맨드 초기화 (재진입 방지) 
+			P_EXECUTE_Status_Prod_Sequence(N_ARC_Module) = F_Status_STARTING;		// 2.2) ARC 모듈 - 시작 상태 대입
+																						   			
+			P_Suspend_ARC_Status = N_TRUE;											// 2.3) ARC 모듈 - 시퀀스 모듈 실행 상태
+			L_ARC_Seq_Command_Occurs = 1;											// 2.4) ARC 모듈 - 시퀀스 커맨드 발생 변수
+		}
+		// ↓ [ 참조 : 2025.10.28 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]
+		IF ( P_Suspend_Anode_1TR_Cell_Supply_Cmd == F_Command_Start )							// 3)  음극1TR 극판공급 모듈 실행 
+		{																				   
+			P_Suspend_Anode_1TR_Cell_Supply_Cmd = 0;											// 3.1) 음극1TR 극판공급 모듈 - 커맨드 초기화 (재진입 방지) 
+			P_EXECUTE_Status_Prod_Sequence(N_Anode_1TR_Supply_Module) = F_Status_STARTING;		// 3.2) 음극1TR 극판공급 모듈 - 시작 상태 대입
+																						   			
+			P_Suspend_Anode_1TR_Cell_Supply_Status = N_TRUE;									// 3.3) 음극1TR 극판공급 모듈 - 시퀀스 모듈 실행 상태
+			L_Anode_1TR_Supply_Seq_Command_Occurs = 1;											// 3.4) 음극1TR 극판공급 모듈 - 시퀀스 커맨드 발생 변수
+		}
+
+	}
+	// 1.3.2. 메인 프로그램 정지
+	ELSE IF ( L_Auto_Sub_Program_Active == F_Status_STOPPING )
+	{
+
+	}
+}
+
+//========================================================================================================================================================
+// 2) 배출 모듈
+//========================================================================================================================================================
+// 2.1 배출모듈  구동 시퀀스 - TRUE 일 경우 실행
+IF ( P_Suspend_Discharge_Status == N_TRUE )							
+{
+	// 2.1.1 배출모듈 시퀀스 발생 변수
+	IF ( L_Discharge_Seq_Command_Occurs == 1 )							
+	{	
+		// 2.1.1.1) 배출모듈 인덱스 초기화 
+		IF ( P_Suspend_Discharge_1st_Unloader_JR_Grip == 0 )				// 1차 언로더가 JR을 잡고 있지 않을 경우 (1차 언로더 0도 위치)		[ 참조 : 25.07.08 배출 재가동 진행 추가 ]
+			P_Suspend_Discharge_Seq_Index = 0;								// 인덱스 초기화.
+		ELSE																// 1차 언로더가 JR을 잡고 있을 경우 (1차 언로더 45도 위치) 
+			P_Suspend_Discharge_Seq_Index = N_SEQ_Normal_Discharge_No_11;	// 인덱스 업데이트. (45도 회전 인덱스 - Ready_Step에서 + 1 진행)
+		P_Except_Return_Array(N_PLC02_Discharge_Set_Seq_Occurs_RTN) = 0;	// 반환값 초기화.
+
+		// 2.1.1.2) 현재 모드에 맞는 배열값 셋
+		call Sub_Automatic_Prod_Sequnce.Set_Discharge(P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module),&P_Except_Return_Array(N_PLC02_Discharge_Set_Seq_Occurs_RTN))	 
+		IF ( P_Except_Return_Array(N_PLC02_Discharge_Set_Seq_Occurs_RTN) == N_TRUE )
+		{
+			L_Discharge_Seq_Command_Occurs = 0;						// 커맨드 초기화
+			P_Suspend_Discharge_Tact_Time_Array(0),20 = 0;			// 배출 시퀀스 총 Tact Time 초기화.	[ 참조 : 25.07.04 배출 Tact Time 추가 ]
+			P_Suspend_Discharge_State_Machine = N_Ready_Step;		// 배출모듈 구동 준비 스텝으로 이동		
+		}
+		// 2.1.1.3) 리턴값 오류시 - Error Step 이동
+		ELSE
+		{
+			L_Discharge_Seq_Command_Occurs = 0;						// 커맨드 초기화
+			P_Suspend_Discharge_State_Machine = N_Error_Step;		// 배출모듈 구동 준비 스텝으로 이동
+		}
+	}
+//=====================================================================================//
+// 배출 - READY STEP
+//=====================================================================================//
+	// 2.1.2 배출모듈 시퀀스 _ 동작 준비 스텝
+	IF ( P_Suspend_Discharge_State_Machine == N_Ready_Step )
+	{
+		// 2.1.2.0 시퀀스 Tact Time 측정.
+		P_Suspend_Discharge_Timer = 0;													// 배출 시퀀스 타이머 초기화.	[ 참조 : 25.07.04 배출 Tact Time 추가 ]
+		// 2.1.2.1 시퀀스 인덱스 증가 _ 시퀀스 실행시킬 인덱스 번호 증가		
+		P_Suspend_Discharge_Module_Status = F_Status_EXECUTE;							// 배출 진행 상태 업데이트.
+		P_Suspend_Discharge_Seq_Index = P_Suspend_Discharge_Seq_Index + 1;				// 인덱스 번호 증가.
+		// 2.1.2.2 시퀀스 겟 _ 실행시킬 동작 불러오기 
+		call Sub_Automatic_Prod_Sequnce.Management_Discharge(P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module), P_Suspend_Discharge_Seq_Index,&L_Discharge_Seq_Data,&P_Except_Return_Array(N_PLC02_Discharge_Manage_Get_RTN))		
+														
+		// 2.1.2.3 시퀀스 겟 결과 _ 실행 가능 or 시퀀스 완료 or 오류 시퀀스 동작 실행 (실행 인터락 포함)
+		IF ( P_Except_Return_Array(N_PLC02_Discharge_Manage_Get_RTN) == N_TRUE )																													
+		{
+			P_Except_Return_Array(N_PLC02_Discharge_Exe_Seq_RTN) = 0;
+
+			IF( P_Discharge_Seq_InterLock_Flag(P_Suspend_Discharge_Seq_Index) == N_TRUE )	
+			{ 
+				P_Except_Return_Array(N_PLC02_Discharge_Exe_Seq_RTN) = N_InterLock;						
+			}	
+			ELSE // 인터락에 해당되지 않으면 실행.
+			{
+				call Sub_Automatic_Prod_Sequnce.Execute_Discharge(P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module), L_Discharge_Seq_Data,&P_Except_Return_Array(N_PLC02_Discharge_Exe_Seq_RTN) );
+			}												
+			IF ( P_Except_Return_Array(N_PLC02_Discharge_Exe_Seq_RTN) == N_TRUE )		
+			{																		
+				P_Suspend_Discharge_State_Machine = N_Execute_Step;																									
+			}
+			ELSE IF( P_Except_Return_Array(N_PLC02_Discharge_Exe_Seq_RTN) == N_InterLock )																	
+			{			
+				L_Discharge_seq_InterLock_Timer = 0;																									
+				P_Suspend_Discharge_State_Machine = N_InterLock_Step;																					
+			}			
+			ELSE																																		
+				P_Suspend_Discharge_State_Machine = N_Error_Step;																						
+
+		}
+		// 2.1.2.4. 시퀀스 완료 _ 시퀀스 완료
+		ELSE IF ( P_Except_Return_Array(N_PLC02_Discharge_Manage_Get_RTN) == N_EXCEPT )																		
+		{
+			P_Suspend_Discharge_State_Machine = N_Complete_Step;																						
+		}																																	
+		// 2.1.2.5 시퀀스 에러 _ 시퀀스 실행 불가능 ( 실행 인터락에 걸림 )																		  
+		ELSE																																			
+		{
+			P_Suspend_Discharge_State_Machine = N_Error_Step;																							
+		}		
+	}
+//=====================================================================================//
+// 배출 - EXECUTE STEP
+//=====================================================================================//
+	// 2.1.3. 배출모듈 시퀀스 _ 동작 실행중 스텝
+	IF ( P_Suspend_Discharge_State_Machine == N_Execute_Step )																						
+	{			
+		P_Except_Return_Array(N_PLC02_Discharge_Pre_Seq_Complete_RTN) = 0;																					
+		P_Suspend_Discharge_Self_Index = P_Suspend_Discharge_Seq_Index + 1;	
+				
+		Call Sub_Automatic_Prod_Sequnce.Precondition_Discharge(P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module),P_Suspend_Discharge_Self_Index,&P_Except_Return_Array(N_PLC02_Discharge_Pre_Seq_Complete_RTN))
+		
+		IF ( P_Except_Return_Array(N_PLC02_Discharge_Pre_Seq_Complete_RTN) == N_TRUE )
+		{
+			IF ( P_PMAC_Status == F_Status_STOPPING && P_Discharge_Possibility_Bit(P_Suspend_Discharge_Seq_Index) == N_Enable_Cycle_Stop )		// 배출 진행 중 Stopping 진행 및 정지 가능 할 경우.
+			{
+				P_Suspend_Discharge_State_Machine = N_Error_Step;						// 에러스텝 이동.()
+			}
+			ELSE
+			{
+				P_Suspend_Discharge_Tact_Time_Array(P_Suspend_Discharge_Seq_Index) = P_Suspend_Discharge_Timer;		// 배출 시퀀스 Tact Time 업데이트.	[ 참조 : 25.07.04 배출 Tact Time 추가 ]
+				P_Suspend_Discharge_Tact_Time_Array(0) = P_Suspend_Discharge_Tact_Time_Array(0) + P_Suspend_Discharge_Tact_Time_Array(P_Suspend_Discharge_Seq_Index);		// 배출 시퀀스 총 Tact Time 업데이트.
+				P_Suspend_Discharge_State_Machine = N_Ready_Step;																						
+			}
+																				
+		}		
+	}
+
+//=====================================================================================//
+// 배출 - Complte STEP
+//=====================================================================================//
+	// 2.1.4 배출모듈 시퀀스 _ 동작 완료 스텝
+	IF ( P_Suspend_Discharge_State_Machine == N_Complete_Step )
+	{
+		P_Suspend_Discharge_Tact_Time = P_Suspend_Discharge_Tact_Time_Array(0);			// 배출 시퀀스 총 Tact Time 업데이트.	[ 참조 : 25.07.04 배출 Tact Time 추가 ]
+		P_EXECUTE_Status_Prod_Sequence(N_Discharge_Module) = F_Status_COMPLETE;			// 배출모듈 상태 변경 _ 완료
+		P_Suspend_Discharge_Module_Status = F_Status_COMPLETE;							// 배출 진행 상태 업데이트.
+		P_Suspend_Discharge_Status = N_NoValue;											// 기능 off
+		P_Suspend_Discharge_State_Machine = 0;											// 스텝 초기화
+	}
+//=====================================================================================//
+// 배출 - Error STEP
+//=====================================================================================//
+	// 2.1.5 배출모듈 시퀀스 _ 에러 처리 스텝
+	IF ( P_Suspend_Discharge_State_Machine == N_Error_Step )
+	{
+		P_EXECUTE_Status_Prod_Sequence(N_Discharge_Module) = F_Status_ABORTED;			// 배출모듈 상태 변경 _ 어볼트
+		P_PMAC_Commands = F_Command_Stop;												// Commands Stop 발생.	[ 참조 : 25.09.09 배출 프로그램 수정 ]
+		P_Suspend_Discharge_Module_Status = F_Status_STOPPED;							// 배출 진행 상태 업데이트.
+		P_Suspend_Discharge_Status = N_FALSE;											// 기능 실패.
+		P_Suspend_Discharge_State_Machine = 0;											// 스텝 초기화.
+	}
+//=====================================================================================//
+// 배출 -인터락 스텝
+//=====================================================================================//
+	// 2.1.6. 배출모듈 인터락 스텝 ( 대기 및 재가동 )
+	IF ( P_Suspend_Discharge_State_Machine == N_InterLock_Step )
+	{
+		P_EXECUTE_Status_Prod_Sequence(N_Discharge_Module) = F_Status_HOLD;				
+		IF( L_Discharge_seq_InterLock_Timer < P_Discharge_Seq_InterLock_Delay_Time( P_Suspend_Discharge_Seq_Index ) )
+		{ 
+			IF( P_Discharge_Seq_InterLock_Flag(P_Suspend_Discharge_Seq_Index) != N_TRUE )
+			{ // 인터락이 해지되면
+				P_Suspend_Discharge_State_Machine = N_Execute_Step;						// Execute Step으로 재가동.
+			}
+		}
+		ELSE
+		{
+			P_Suspend_Discharge_State_Machine = N_Error_Step;							// 에러스텝 이동.()
+		}
+	}
+}
+ELSE
+{
+	P_Suspend_Discharge_State_Machine = 0;												// 시퀀스 초기화
+}
+//=====================================================================================//
+// 배출 -1차 언로더 JR Grip 상태 초기화.		[ 참조 : 25.07.08 배출 재가동 진행 추가 ]
+//=====================================================================================//
+IF ( M_Y_1st_Unloader_Grip_Sol == 0 && M_Y_1st_Unloader_UnGrip_Sol == 1 )				// 1차 언로더 언그립 일 경우.
+	P_Suspend_Discharge_1st_Unloader_JR_Grip = 0;										// 1차 언로더 JR Grip 초기화. (JR 잡고 커팅 후 1 → 그런 와중 정지 후 Grip이 열릴 경우 초기화 필요)
+//=====================================================================================//
+// 배출 - Error 발생 시 디버깅 함수 실행.		[ 참조 : 25.09.12 Suspend 디버깅 함수 추가 ]
+//=====================================================================================//
+IF ( P_Suspend_Discharge_Module_Status == F_Status_STOPPED && P_Discharge_Debug_Edge == 1 )		// Error 발생 했을 경우.
+{
+	P_Suspend_Discharge_Debug_Value(0) = P_Suspend_Discharge_Seq_Index;					// 진행 중이던 Index 저장.
+	call Suspend_Debug.Suspend_Discharge_Debug_Save();									// Discharge 디버깅 함수 호출.
+	P_Discharge_Debug_Edge = 0;															// Edge 변수 업데이트.
+}
+IF ( P_Suspend_Discharge_Seq_Index != P_Old_Suspend_Discharge_Seq_Index )				// Index가 변경 될 경우.
+{
+	call Suspend_Debug.Discharge_Debug_Init(P_Suspend_Discharge_Seq_Index);				// 초기화.
+	P_Discharge_Debug_Edge = 1;															// Edge 변수 업데이트.
+}
+P_Old_Suspend_Discharge_Seq_Index = P_Suspend_Discharge_Seq_Index;
+//========================================================================================================================================================
+// 3) ARC 모듈
+//========================================================================================================================================================
+// 3.1 ARC 모듈  구동 시퀀스 - TRUE 일 경우 실행
+IF ( P_Suspend_ARC_Status == N_TRUE )							
+{
+	// 3.1.1 ARC 모듈 시퀀스 발생 변수
+	IF ( L_ARC_Seq_Command_Occurs == 1 )							
+	{	
+		// 3.1.1.1) ARC 모듈 인덱스 초기화 
+		P_Suspend_ARC_Seq_Index = 0;										
+		P_Except_Return_Array(N_PLC02_ARC_Set_Seq_Occurs_RTN) = 0;	
+
+		// 3.1.1.2) 현재 모드에 맞는 배열값 셋
+		call Sub_Automatic_Prod_Sequnce.Set_ARC(P_Buffer_Mode_Module_Status_Sequence(N_ARC_Module),&P_Except_Return_Array(N_PLC02_ARC_Set_Seq_Occurs_RTN))	 
+		IF ( P_Except_Return_Array(N_PLC02_ARC_Set_Seq_Occurs_RTN) == N_TRUE )
+		{
+			L_ARC_Seq_Command_Occurs = 0;						// 커맨드 초기화
+			P_Suspend_ARC_Tact_Time_Array(0),20 = 0;			// ARC 시퀀스 총 Tact Time 초기화.	[ 참조 : 25.10.13 ARC Tact Time 추가 ]
+			P_Suspend_ARC_State_Machine = N_Ready_Step;			// ARC 모듈 구동 준비 스텝으로 이동		
+		}
+		// 3.1.1.3) 리턴값 오류시 - Error Step 이동
+		ELSE
+		{
+			L_ARC_Seq_Command_Occurs = 0;						// 커맨드 초기화
+			P_Suspend_ARC_State_Machine = N_Error_Step;			// ARC 모듈 구동 준비 스텝으로 이동
+		}
+	}
+//=====================================================================================//
+// ARC - READY STEP
+//=====================================================================================//
+	// 3.1.2 ARC 모듈 시퀀스 _ 동작 준비 스텝
+	IF ( P_Suspend_ARC_State_Machine == N_Ready_Step )
+	{
+		// 3.1.2.0 시퀀스 Tact Time 측정.
+		P_Suspend_ARC_Timer = 0;
+		// 3.1.2.1 시퀀스 인덱스 증가 _ 시퀀스 실행시킬 인덱스 번호 증가		
+		P_Suspend_ARC_Module_Status = F_Status_EXECUTE;							// ARC 진행 상태 업데이트.
+		P_Suspend_ARC_Seq_Index = P_Suspend_ARC_Seq_Index + 1;
+
+		// 3.1.2.2 시퀀스 겟 _ 실행시킬 동작 불러오기 
+		call Sub_Automatic_Prod_Sequnce.Management_ARC(P_Buffer_Mode_Module_Status_Sequence(N_ARC_Module),P_Suspend_ARC_Seq_Index,&L_ARC_Seq_Data,&P_Except_Return_Array(N_PLC02_ARC_Manage_Get_RTN))		
+															
+		// 3.1.2.3 시퀀스 겟 결과 _ 실행 가능 or 시퀀스 완료 or 오류 시퀀스 동작 실행 (실행 인터락 포함)
+		IF ( P_Except_Return_Array(N_PLC02_ARC_Manage_Get_RTN) == N_TRUE )																													
+		{
+			P_Except_Return_Array(N_PLC02_ARC_Exe_Seq_RTN) = 0;
+
+			IF( P_ARC_Seq_InterLock_Flag(P_Suspend_ARC_Seq_Index) == N_TRUE )	
+			{ 
+				P_Except_Return_Array(N_PLC02_ARC_Exe_Seq_RTN) = N_InterLock;						
+			}	
+			ELSE // 인터락에 해당되지 않으면 실행.
+			{
+				call Sub_Automatic_Prod_Sequnce.Execute_ARC(P_Buffer_Mode_Module_Status_Sequence(N_ARC_Module), L_ARC_Seq_Data,&P_Except_Return_Array(N_PLC02_ARC_Exe_Seq_RTN) );
+			}												
+			IF ( P_Except_Return_Array(N_PLC02_ARC_Exe_Seq_RTN) == N_TRUE )		
+			{																		
+				P_Suspend_ARC_State_Machine = N_Execute_Step;																									
+			}
+			ELSE IF( P_Except_Return_Array(N_PLC02_ARC_Exe_Seq_RTN) == N_InterLock )																	
+			{			
+				L_ARC_seq_InterLock_Timer = 0;																									
+				P_Suspend_ARC_State_Machine = N_InterLock_Step;																					
+			}			
+			ELSE																																		
+				P_Suspend_ARC_State_Machine = N_Error_Step;																						
+
+		}
+		// 3.1.2.4. 시퀀스 완료 _ 시퀀스 완료
+		ELSE IF ( P_Except_Return_Array(N_PLC02_ARC_Manage_Get_RTN) == N_EXCEPT )																		
+		{
+			P_Suspend_ARC_State_Machine = N_Complete_Step;																						
+		}																																	
+		// 3.1.2.5 시퀀스 에러 _ 시퀀스 실행 불가능 ( 실행 인터락에 걸림 )																		  
+		ELSE																																			
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;																							
+		}		
+	}
+//=====================================================================================//
+// ARC - EXECUTE STEP
+//=====================================================================================//
+	// 3.1.3. ARC 모듈 시퀀스 _ 동작 실행중 스텝
+	IF ( P_Suspend_ARC_State_Machine == N_Execute_Step )																						
+	{	
+	
+		P_Except_Return_Array(N_PLC02_ARC_Pre_Seq_Complete_RTN) = 0;																					
+		P_Suspend_ARC_Self_Index = P_Suspend_ARC_Seq_Index + 1;	
+				
+		Call Sub_Automatic_Prod_Sequnce.Precondition_ARC(P_Buffer_Mode_Module_Status_Sequence(N_ARC_Module),P_Suspend_ARC_Self_Index,&P_Except_Return_Array(N_PLC02_ARC_Pre_Seq_Complete_RTN))		
+		IF ( P_Except_Return_Array(N_PLC02_ARC_Pre_Seq_Complete_RTN) == N_TRUE )																	
+		{	
+			if( P_PMAC_Status == F_Status_STOPPING )
+			P_Suspend_ARC_State_Machine = N_Error_Step;
+			else	
+			{																																	
+				P_Suspend_ARC_Tact_Time_Array(P_Suspend_ARC_Seq_Index) = P_Suspend_ARC_Timer;		// ARC 시퀀스 Tact Time 업데이트.	[ 참조 : 25.10.13 ARC Tact Time 추가 ]
+				P_Suspend_ARC_Tact_Time_Array(0) = P_Suspend_ARC_Tact_Time_Array(0) + P_Suspend_ARC_Tact_Time_Array(P_Suspend_ARC_Seq_Index);		// ARC 시퀀스 총 Tact Time 업데이트.
+				P_Suspend_ARC_State_Machine = N_Ready_Step;																						
+			}
+		}		
+	}
+
+//=====================================================================================//
+// ARC - Complte STEP
+//=====================================================================================//
+	// 3.1.4 ARC 모듈 시퀀스 _ 동작 완료 스텝
+	IF ( P_Suspend_ARC_State_Machine == N_Complete_Step )
+	{
+		P_EXECUTE_Status_Prod_Sequence(N_ARC_Module) = F_Status_COMPLETE;			// ARC 모듈 상태 변경 _ 완료
+		P_Suspend_ARC_Module_Status = F_Status_COMPLETE;							// ARC 진행 상태 업데이트.
+		P_Suspend_ARC_Status = N_NoValue;											// 기능 off
+		P_Suspend_ARC_State_Machine = 0;											// 스텝 초기화
+	}
+//=====================================================================================//
+// ARC - Error STEP
+//=====================================================================================//
+	// 3.1.5 ARC 모듈 시퀀스 _ 에러 처리 스텝
+	IF ( P_Suspend_ARC_State_Machine == N_Error_Step )
+	{
+		P_EXECUTE_Status_Prod_Sequence(N_ARC_Module) = F_Status_ABORTED;			// ARC 모듈 상태 변경 _ 어볼트
+		P_PMAC_Commands = F_Command_Stop;											// Commands Stop 발생.	[ 참조 : 25.09.09 ARC 프로그램 수정 ]
+		P_Suspend_ARC_Module_Status = F_Status_STOPPED;								// ARC 진행 상태 업데이트.
+		P_Suspend_ARC_Status = N_FALSE;												// 기능 실패
+		P_Suspend_ARC_State_Machine = 0;											// 스텝 초기화
+	}
+//=====================================================================================//
+// ARC - 인터락 스텝
+//=====================================================================================//
+	// 3.1.6. ARC 모듈 인터락 스텝 ( 대기 및 재가동 )
+	IF ( P_Suspend_ARC_State_Machine == N_InterLock_Step )
+	{
+		P_EXECUTE_Status_Prod_Sequence(N_ARC_Module) = F_Status_HOLD;				
+		IF( L_ARC_seq_InterLock_Timer < P_ARC_Seq_InterLock_Delay_Time( P_Suspend_ARC_Seq_Index ) )
+		{ 
+			IF( P_ARC_Seq_InterLock_Flag(P_Suspend_ARC_Seq_Index) != N_TRUE )
+			{ // 인터락이 해지되면
+				P_Suspend_ARC_State_Machine = N_Execute_Step;						// Execute Step으로 재가동.
+			}
+		}
+		ELSE
+		{
+			P_Suspend_ARC_State_Machine = N_Error_Step;								// 에러스텝 이동.()
+		}
+	}
+}
+ELSE
+{
+	P_Suspend_ARC_State_Machine = 0;												// 시퀀스 초기화
+}
+//=====================================================================================//
+// ARC - Error 발생 시 디버깅 함수 실행.		[ 참조 : 25.09.12 Suspend 디버깅 함수 추가 ]
+//=====================================================================================//
+IF ( P_Suspend_ARC_Module_Status == F_Status_STOPPED && P_ARC_Debug_Edge == 1 )	// Error 발생 했을 경우.
+{
+	P_Suspend_ARC_Debug_Value(0) = P_Suspend_ARC_Seq_Index;								// 진행 중이던 Index 저장.
+	call Suspend_Debug.Suspend_ARC_Debug_Save();										// ARC 디버깅 함수 호출.
+	P_ARC_Debug_Edge = 0;																// Edge 변수 업데이트.
+}
+IF ( P_Suspend_ARC_Seq_Index != P_Old_Suspend_ARC_Seq_Index )							// Index가 변경 될 경우.
+{
+	call Suspend_Debug.ARC_Debug_Init(P_Suspend_ARC_Seq_Index);							// 초기화.
+	P_ARC_Debug_Edge = 1;																// Edge 변수 업데이트.
+}
+P_Old_Suspend_ARC_Seq_Index = P_Suspend_ARC_Seq_Index;
+
+
+
+
+//========================================================================================================================================================
+// 3) 음극 1TR 극판 공급 모듈 PART	(Anode_1TR_Cell_Supply) - [ 참조 : 2025.10.28 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]
+//========================================================================================================================================================
+// 3.1 음극 1TR 극판 공급 모듈  구동 시퀀스 - TRUE 일 경우 실행
+IF ( P_Suspend_Anode_1TR_Cell_Supply_Status == N_TRUE )							
+{
+	// 3.1.1 음극 1TR 극판공급 모듈 시퀀스 발생 변수
+	IF ( L_Anode_1TR_Supply_Seq_Command_Occurs == 1 )							
+	{	
+		// 3.1.1.1) 음극 1TR 극판공급 모듈 인덱스 초기화 
+		P_Suspend_Anode_1TR_Cell_Supply_Seq_Index = 0;										
+		P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Set_Seq_Occurs_RTN) = 0;	
+
+		// 3.1.1.2) 현재 모드에 맞는 배열값 셋
+		call Sub_Automatic_Prod_Sequnce.Set_An_1TR_Supply(P_Buffer_Mode_Module_Status_Sequence(N_Anode_1TR_Supply_Module),&P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Set_Seq_Occurs_RTN))	 
+		IF ( P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Set_Seq_Occurs_RTN) == N_TRUE )
+		{
+			L_Anode_1TR_Supply_Seq_Command_Occurs = 0;								// 커맨드 초기화
+			P_Suspend_Anode_1TR_Cell_Supply_Tact_Time_Array(0),20 = 0;				// 음극 1TR 극판공급 시퀀스 총 Tact Time 초기화.	
+			P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Ready_Step;			// 음극 1TR 극판공급 모듈 구동 준비 스텝으로 이동		
+		}
+		// 3.1.1.3) 리턴값 오류시 - Error Step 이동
+		ELSE
+		{	
+			L_Anode_1TR_Supply_Seq_Command_Occurs = 0;								// 커맨드 초기화
+			P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step;			// 음극 1TR 극판공급 모듈 구동 준비 스텝으로 이동
+		}
+	}
+//=====================================================================================//
+// Anode_1TR_Cell_Supply - READY STEP
+//=====================================================================================//
+	// 3.1.2 음극 1TR 극판공급 모듈 시퀀스 _ 동작 준비 스텝
+	IF ( P_Suspend_Anode_1TR_Cell_Supply_State_Machine == N_Ready_Step )
+	{
+		// 3.1.2.0 시퀀스 Tact Time 측정.
+		P_Suspend_Anode_1TR_Cell_Supply_Timer = 0;
+		// 3.1.2.1 시퀀스 인덱스 증가 _ 시퀀스 실행시킬 인덱스 번호 증가		
+		P_Suspend_Anode_1TR_Cell_Supply_Module_Status = F_Status_EXECUTE;							// 음극 1TR 극판공급 진행 상태 업데이트.
+		P_Suspend_Anode_1TR_Cell_Supply_Seq_Index = P_Suspend_Anode_1TR_Cell_Supply_Seq_Index + 1;
+
+		// 3.1.2.2 시퀀스 겟 _ 실행시킬 동작 불러오기 
+		call Sub_Automatic_Prod_Sequnce.Management_An_1TR_Supply(P_Buffer_Mode_Module_Status_Sequence(N_Anode_1TR_Supply_Module),P_Suspend_Anode_1TR_Cell_Supply_Seq_Index,&L_Anode_1TR_Supply_Seq_Data,&P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Manage_Get_RTN))		
+															
+		// 3.1.2.3 시퀀스 겟 결과 _ 실행 가능 or 시퀀스 완료 or 오류 시퀀스 동작 실행 (실행 인터락 포함)
+		IF ( P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Manage_Get_RTN) == N_TRUE )																													
+		{
+			P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Exe_Seq_RTN) = 0;
+
+			IF( P_Anode_1TR_Cell_Supply_Seq_InterLock_Flag(P_Suspend_Anode_1TR_Cell_Supply_Seq_Index) == N_TRUE )	
+			{ 
+				P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Exe_Seq_RTN) = N_InterLock;						
+			}	
+			ELSE // 인터락에 해당되지 않으면 실행.
+			{
+				call Sub_Automatic_Prod_Sequnce.Execute_An_1TR_Supply(P_Buffer_Mode_Module_Status_Sequence(N_Anode_1TR_Supply_Module), L_Anode_1TR_Supply_Seq_Data,&P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Exe_Seq_RTN) );
+			}												
+			IF ( P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Exe_Seq_RTN) == N_TRUE )		
+			{																		
+				P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Execute_Step;																									
+			}
+			ELSE IF( P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Exe_Seq_RTN) == N_InterLock )																	
+			{			
+				L_Anode_1TR_Supply_InterLock_Timer = 0;																									
+				P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_InterLock_Step;																					
+			}			
+			ELSE																																		
+				P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step;																						
+
+		}
+		// 3.1.2.4. 시퀀스 완료 _ 시퀀스 완료
+		ELSE IF ( P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Manage_Get_RTN) == N_EXCEPT )																		
+		{
+			P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Complete_Step;																						
+		}																																	
+		// 3.1.2.5 시퀀스 에러 _ 시퀀스 실행 불가능 ( 실행 인터락에 걸림 )																		  
+		ELSE																																			
+		{
+			P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step;																							
+		}		
+	}
+//=====================================================================================//
+// Anode_1TR_Cell_Supply - EXECUTE STEP
+//=====================================================================================//
+	// 3.1.3. 음극 1TR 극판공급 모듈 시퀀스 _ 동작 실행중 스텝
+	IF ( P_Suspend_Anode_1TR_Cell_Supply_State_Machine == N_Execute_Step )																						
+	{	
+	
+		P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Pre_Seq_Complete_RTN) = 0;																					
+		P_Suspend_Anode_1TR_Cell_Supply_Self_Index = P_Suspend_Anode_1TR_Cell_Supply_Seq_Index + 1;	
+				
+		Call Sub_Automatic_Prod_Sequnce.Precondition_An_1TR_Supply(P_Buffer_Mode_Module_Status_Sequence(N_Anode_1TR_Supply_Module),P_Suspend_Anode_1TR_Cell_Supply_Self_Index,&P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Pre_Seq_Complete_RTN))		
+		IF ( P_Except_Return_Array(N_PLC02_Anode_1TR_Supply_Pre_Seq_Complete_RTN) == N_TRUE )																	
+		{	
+			if( P_PMAC_Status == F_Status_STOPPING )
+			P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step;
+			else	
+			{																																	
+				P_Suspend_Anode_1TR_Cell_Supply_Tact_Time_Array(P_Suspend_Anode_1TR_Cell_Supply_Seq_Index) = P_Suspend_Anode_1TR_Cell_Supply_Timer;		// 음극 1TR 극판공급 시퀀스 Tact Time 업데이트.
+				P_Suspend_Anode_1TR_Cell_Supply_Tact_Time_Array(0) = P_Suspend_Anode_1TR_Cell_Supply_Tact_Time_Array(0) + P_Suspend_Anode_1TR_Cell_Supply_Tact_Time_Array(P_Suspend_Anode_1TR_Cell_Supply_Seq_Index);		// 음극 1TR 극판공급 시퀀스 총 Tact Time 업데이트.
+				P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Ready_Step;																						
+			}
+		}		
+	}
+
+//=====================================================================================//
+// Anode_1TR_Cell_Supply - Complte STEP
+//=====================================================================================//
+	// 3.1.4 음극 1TR 극판공급 모듈 시퀀스 _ 동작 완료 스텝
+	IF ( P_Suspend_Anode_1TR_Cell_Supply_State_Machine == N_Complete_Step )
+	{
+		P_EXECUTE_Status_Prod_Sequence(N_Anode_1TR_Supply_Module) = F_Status_COMPLETE;			// 음극 1TR 극판공급 모듈 상태 변경 _ 완료
+		P_Suspend_Anode_1TR_Cell_Supply_Module_Status = F_Status_COMPLETE;						// 음극 1TR 극판공급 진행 상태 업데이트.
+		P_Suspend_Anode_1TR_Supply_Complete_Flag = N_TRUE;
+		P_Suspend_Anode_1TR_Cell_Supply_Status = N_NoValue;										// 기능 off
+		P_Suspend_Anode_1TR_Cell_Supply_State_Machine = 0;										// 스텝 초기화
+	}
+//=====================================================================================//
+// Anode_1TR_Cell_Supply - Error STEP
+//=====================================================================================//
+	// 3.1.5 음극 1TR 극판공급 모듈 시퀀스 _ 에러 처리 스텝
+	IF ( P_Suspend_Anode_1TR_Cell_Supply_State_Machine == N_Error_Step )
+	{
+		P_EXECUTE_Status_Prod_Sequence(N_Anode_1TR_Supply_Module) = F_Status_ABORTED;			// 음극 1TR 극판공급 모듈 상태 변경 _ 어볼트														
+		P_Suspend_Anode_1TR_Cell_Supply_Module_Status = F_Status_STOPPED;						// 음극 1TR 극판공급 진행 상태 업데이트.
+		P_Suspend_Anode_1TR_Cell_Supply_Status = N_FALSE;										// 기능 실패
+
+		// ↓ HOLD 에서 극판 공급 태우면 되므로 굳이 Stop 처리할 필요 없다.
+		L_Suspend_Anode_PnP_Avoid_Cmd = F_Command_Start;
+		//P_PMAC_Commands = F_Command_Stop;		
+
+		P_Suspend_Anode_1TR_Cell_Supply_State_Machine = 0;
+	}
+  
+//=====================================================================================//
+// Anode_1TR_Cell_Supply - 인터락 스텝
+//=====================================================================================//
+	// 3.1.6. 음극 1TR 극판공급 모듈 인터락 스텝 ( 대기 및 재가동 )
+	IF ( P_Suspend_Anode_1TR_Cell_Supply_State_Machine == N_InterLock_Step )
+	{
+		P_EXECUTE_Status_Prod_Sequence(N_Anode_1TR_Supply_Module) = F_Status_HOLD;				
+		IF( L_Anode_1TR_Supply_InterLock_Timer < P_Anode_1TR_Cell_Supply_Seq_InterLock_Delay_Time( P_Suspend_Anode_1TR_Cell_Supply_Seq_Index ) )
+		{ 
+			IF( P_Anode_1TR_Cell_Supply_Seq_InterLock_Flag(P_Suspend_Anode_1TR_Cell_Supply_Seq_Index) != N_TRUE )
+			{ // 인터락이 해지되면
+				P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Execute_Step;										// Execute Step으로 재가동.
+			}
+		}
+		ELSE
+		{
+			P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step;											// 에러스텝 이동.()
+		}
+	}
+}
+ELSE
+{
+	P_Suspend_Anode_1TR_Cell_Supply_State_Machine = 0;																// 시퀀스 초기화
+}
+//=====================================================================================//
+// Anode_1TR_Cell_Supply - Error 발생 시 디버깅 함수 실행.		
+//=====================================================================================//
+IF ( P_Suspend_Anode_1TR_Cell_Supply_Module_Status == F_Status_STOPPED && P_An_1TR_Supply_Debug_Edge == 1 )			// Error 발생 했을 경우.
+{
+	P_Suspend_An_1TR_Supply_Debug_Value(0) = P_Suspend_Anode_1TR_Cell_Supply_Seq_Index;								// 진행 중이던 Index 저장.
+	call Suspend_Debug.Suspend_An_1TR_Supply_Debug_Save();															// 음극 1TR 극판공급 디버깅 함수 호출.
+	P_ARC_Debug_Edge = 0;																							// Edge 변수 업데이트.
+}
+IF ( P_Suspend_Anode_1TR_Cell_Supply_Seq_Index != P_Old_Suspend_An_1TR_Supply_Seq_Index )							// Index가 변경 될 경우.
+{
+	call Suspend_Debug.An_1TR_Supply_Debug_Init(P_Suspend_Anode_1TR_Cell_Supply_Seq_Index);							// 초기화.
+	P_ARC_Debug_Edge = 1;																							// Edge 변수 업데이트.
+}
+P_Old_Suspend_An_1TR_Supply_Seq_Index = P_Suspend_Anode_1TR_Cell_Supply_Seq_Index;
+//==================================================================================================================================================================================================================================================================//
+//모듈화 프로세스 END
+//==================================================================================================================================================================================================================================================================//
+
+
+//======================================================================================================//
+// 모듈화 Acting START 
+//======================================================================================================//
+// 1. 메인 프로세스 _ 모듈 실행 관리 프로그램
+if ( L_Module_Interval_Timer > L_Module_Set_Interval_Time )
+{
+	L_Module_Interval_Timer = 0;		// 인터벌 타이머 초기화
+
+	// 1.1. 오토 서브 프로그램 활성화 - 자동모드 시 활성화 
+	if ( P_PMAC_Current_Mode == F_Current_Automatic )
+	{
+		L_Act_Management_Active = F_Status_STARTING;	// 오토 서브 프로그램 _ 동작 커맨드 관리 실행
+	}
+	else
+	{
+		L_Act_Management_Active = F_Status_STOPPING;	// 오토 서브 프로그램 _ 동작 커맨드 관리 정지
+	}
+}
+
+//-------------------------------------------------------------------------------------------------- //
+// 2. 동작 커맨드 감시 부분 _ 동작 커맨드 관리 -> 시퀀스에서 동작 살리면 
+if ( L_Act_Management_Active == F_Status_STARTING )
+{
+	// 2.1. 동작 커맨드 감시 _ 동작 커맨드 서치 (동작 활성화)
+	P_Except_Return_Array(N_PLC02_Sub_Act_Management_RTN) = 0;
+	call Subprog_Mainprocess_Act_Module.Management(&P_Except_Return_Array(N_PLC02_Sub_Act_Management_RTN))
+
+	if ( P_Except_Return_Array(N_PLC02_Sub_Act_Management_RTN) != N_TRUE )
+	{
+		// 동작 이상 알람 발생
+	}
+}
+//==================================================================================================================================================================================================================================================================//
+//모듈화 ACTING END
+//==================================================================================================================================================================================================================================================================//
+// [ 참조 : 2025.10.28 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]
+// ↓ 공급 구간에서 Error Step으로 빠졌다고 Stop으로 보내게 되면 Hold에서 처리할 수 있는 부분이 무효화 되므로... Stop 대신 최대한 조건 걸어서 대기위치로 안전하게 빼자
+if( L_Suspend_Anode_PnP_Avoid_Cmd == F_Command_Start )
+{
+	if( Motor[N_1st_PnP_AN_T].DesVelZero & Motor[N_1st_PnP_AN_Z].DesVelZero )				// 선행 모션이 끝났을때까지 대기
+	{
+		local L_individual_return = 0;						// 결과 변수 초기화
+		call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP,&P_Anode_1st_Unit_Status,&L_individual_return);
+		call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,&P_Anode_2nd_Unit_Status,&L_individual_return);
+		if( L_individual_return == N_TRUE )
+		{
+			if ( P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos)// 1차,2차 PNP 대기 상승 위치 일 경우
+			{
+
+				if( Coord[1].ProgRunning == 0  )													// 좌표계 Pause 상태 라면,
+					P_Suspend_Supply_Resume_Flag = 1;												// #B열의 가동을 위한 Resume CMD 발생
+				
+				P_Suspend_Anode_1TR_Supply_Complete_Flag = N_TRUE;
+				L_Suspend_Anode_PnP_Avoid_Cmd = F_Command_NonCommand;								// 스텝 초기화
+			}
+			else
+			{
+				P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion;								// 대기위치 이동 커맨드
+				P_Slave3_Motion_Command = N_2nd_PNP_Align_Up_Motion;								// 얼라인 상승
+			}
+		}
+	}
+}
+//======================================================================================================//
+// 세파 HOST ID 실행부 
+//======================================================================================================//
+// NG, 세파 배출이 아닐때 -> 정상 젤리롤 생산
+if( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence)
+{
+	// 세파 첫장 검사 OK 시에만 젤리롤 ID 생성
+	if(P_Flag_Stack_Work_Host_ID == 1 && P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag == 1)
+	{
+		P_Flag_Stack_Work_Host_ID = 0;
+		P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag = 0;
+		P_Sepa_Run_Completed_Flag = 1
+		//P_Sepa_Run_Completed_Status_Machine = 1;
+	}
+}
+
+if(P_Sepa_Run_Completed_Status_Machine == 1)
+{
+	M_Y_Host_JR_ID_Create_Request = 1;		// 세파 깔기 완료 신호 (젤리롤 Host ID 생성 타이밍)
+
+	P_Sepa_Run_Completed_Status_Machine = 2;
+}
+
+if(P_Sepa_Run_Completed_Status_Machine == 2)
+{
+	if(M_X_Host_JR_ID_Create_Complete == 1)	// 세파 깔기 신호 리턴 
+	{
+		M_Y_Host_JR_ID_Create_Request  = 0;			// 세파 깔기 신호 해제
+		P_Current_Cell_Memory_Jelly_Roll = 1;	// 젤리롤 유무 표시 
+
+		P_Sepa_Run_Completed_Status_Machine = 3;
+	}
+}
+
+if(P_Sepa_Run_Completed_Status_Machine == 3)
+{
+	if( M_X_Host_JR_ID_Create_Complete == 0 && M_Y_Host_JR_ID_Create_Request == 0 && P_Anode_Count > 1)
+	{
+		M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(0) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(0);
+		M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(1) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(1);
+		M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(2) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(2);
+		M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(3) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(3);
+		M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(4) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(4);
+		M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(5) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(5);
+		M_ASCII_Stack_Work_Host_Sepa_ID_Buffer(6) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(6);
+
+		P_Sepa_Run_Completed_Status_Machine = N_Complete_Step;
+	}
+}
+
+close

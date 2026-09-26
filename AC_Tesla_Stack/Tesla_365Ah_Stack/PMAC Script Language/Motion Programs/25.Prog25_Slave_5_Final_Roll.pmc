@@ -1,0 +1,186 @@
+
+
+&25
+#12-> 1000x		// 파이널롤러 x축
+#13-> 1000z		// 파이널롤러 z축
+
+//===============//
+
+
+
+open prog 25
+	
+	ABS					// 절대좌표모드
+	LINEAR
+	
+	while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(5) == 1 && P_Slave_Motion_Program_Flag(5) == 1 )
+	{	// 프로그램 허용 플래그
+	
+		Switch ( P_Slave5_Motion_Command )
+		{	
+			case 0 :
+
+			break;
+
+			// 커멘드별 모션
+
+			// case 1
+			case N_FR_Anode_Move_Motion :			// 음극방향으로 이동
+				P_FR_Anode_Motion = P_Master_Motion_Trigger
+				P_Slave5_Motion_Command = 0;
+				P_Tact_Time_Check(N_Final_Roller) == 1;		// Tact Time 측정 시작	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+				dwell(0)
+				//ta(80)ts(10)tm(140)					// 230ms
+				ta(P_FR_Ta)ts(P_FR_Ts)tm(P_FR_Tm)		// 230ms
+				x( P_Final_Roll_X_Anode_Move )	// -168mm
+				dwell(0)
+				P_Tact_Time_Check(N_Final_Roller) == 0;		// Tact Time 측정 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+				if ( P_SemiRun_Anode_Final_Roller_X_Axis_Flag == 1 )	// PV 항목 : 위치 값 보고 (세미 런 진입 + 모터 이동 완료 후 위치 값 저장)	[ 참조 : 26.09.14 MES PV 수정 ]
+				{
+					P_Motion_Anode_Final_Roller_X_Axis_Flag == 1;		// 위치 값 저장 Flag On.
+				}
+				dwell(0)
+			break;
+
+
+			// case 2
+			case N_FR_Cathode_Move_Motion :		// 양극방향으로 이동
+				P_FR_Cathode_Motion = P_Master_Motion_Trigger
+				P_Slave5_Motion_Command = 0;
+				P_Final_Roll_Cathode_Pos_Status == F_Status_EXECUTE;	// [ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+				P_Tact_Time_Check(N_Final_Roller) == 1;		// Tact Time 측정 시작	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+				P_Final_Start == 1
+				dwell(0)
+				//ta(80)ts(10)tm(140)					// 230ms
+				ta(P_FR_Ta)ts(P_FR_Ts)tm(P_FR_Tm)		// 230ms
+				x( P_Final_Roll_X_Cathode_Move )	// 168mm
+				dwell(0)
+				P_Tact_Time_Check(N_Final_Roller) == 0;		// Tact Time 측정 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+				P_Final_Roll_Cathode_Pos_Status == F_Status_COMPLETE;	// [ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+				P_Final_Start == 0
+				if ( P_SemiRun_Cathode_Final_Roller_X_Axis_Flag == 1 )	// PV 항목 : 위치 값 보고 (세미 런 진입 + 모터 이동 완료 후 위치 값 저장)	[ 참조 : 26.09.14 MES PV 수정 ]
+				{
+					P_Motion_Cathode_Final_Roller_X_Axis_Flag == 1;		// 위치 값 저장 Flag On.
+				}
+				dwell(0)
+			break;
+
+			// case 3
+			case N_FR_Discharge_Move_Motion:	// [3] 배출위치 이동
+				P_Slave5_Motion_Command = 0;
+				P_Final_Roll_Discharge_Status == F_Status_EXECUTE;
+				dwell(0)
+				ta(45)ts(10)tm(140)							// 200ms
+				x( P_Final_Roll_X_Discharge )				// -197mm
+				z( P_Final_Roll_Z_Ready_And_Cutting )		//  60.5mm
+				dwell(0)
+				P_Final_Roll_Discharge_Status == F_Status_COMPLETE;
+				dwell(0)
+			break;
+
+			// case 4
+			case N_FR_Stack_Pos_Motion:		// [4] 적층위치 복귀
+				P_Slave5_Motion_Command = 0;
+				P_Final_Roll_Stack_Pos_Status == F_Status_EXECUTE;
+				dwell(0)
+				ta(85)ts(10)tm(100)							// 200ms
+				x( P_Final_Roll_X_Anode_Move )				// -168mm
+				// 모션 수정 x축 이동 완료 후 z축 상승 260413
+				dwell(0)
+				z( P_Final_Roll_Z_Run_Pos )					// 58mm
+				dwell(0)
+				P_Final_Roll_Stack_Pos_Status == F_Status_COMPLETE;
+				dwell(0)
+			break;
+
+			// case 5
+			case N_FR_Stack_Down_Motion:		// 세파 첫장 촬상 위치 이동
+				P_Slave5_Motion_Command = 0;
+				P_Final_Roll_Vision_Pos_Status == F_Status_EXECUTE;  // [ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+				dwell(0)
+				//ta(85)ts(10)tm(100)					// 200ms
+				//z( 61.5 )		// 58mm
+				dwell(0)
+				P_Final_Roll_Vision_Pos_Status == F_Status_COMPLETE;  // [ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+				dwell(0)
+			break;
+
+			// case 6
+			case N_FR_Stack_UP_Motion:		// 파이널롤러 z축 적층 위치로 복귀
+				P_Slave5_Motion_Command = 0;
+				P_Final_Roll_Stack_Up_Pos_Status == F_Status_EXECUTE;
+				dwell(0)
+				//ta(85)ts(10)tm(100)					// 200ms
+				//z( P_Final_Roll_Z_Run_Pos )		// 58mm
+				dwell(0)
+				P_Final_Roll_Stack_Up_Pos_Status == F_Status_COMPLETE;
+				dwell(0)
+			break;
+
+			// case 7
+			case N_FR_Stack_UP_Motion2:		// 파이널롤러 z축 적층 위치로 복귀
+				P_Slave5_Motion_Command = 0;
+				P_Final_Roll_Stack_Up_Pos_Status == F_Status_EXECUTE;
+				dwell(0)
+				//ta(85)ts(10)tm(100)					// 200ms
+				//z( P_Final_Roll_Z_Run_Pos )		// 58mm
+				dwell(0)
+				P_Final_Roll_Stack_Up_Pos_Status == F_Status_COMPLETE;
+				dwell(0)
+			break;
+			// case 8
+			case N_FR_Last_Run_Motion://N_FR_Last_Run_Motion:					// 라스트런 배출 모션
+				P_FR_Last_Run_Motion = P_Master_Motion_Trigger
+				P_Slave5_Motion_Command = 0;
+				P_Tact_Time_Check(N_Final_Roller) == 1;		// Tact Time 측정 시작	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+				dwell(0)
+
+				//ta(90)ts(20)tm(15)
+				//x( P_Final_Roll_X_Anode_Move )
+				//ta(35)ts(20)tm(15)
+				//x( P_Final_Roll_X_Discharge ) z( P_Final_Roll_Z_Ready_And_Cutting )				
+				//250ms -> 300ms 
+				// 263mm 200ms
+				// 68.5mm 80ms
+				// 37.5 + 135 + 60 + 15
+				//ta(67)ts(8)tm(135)
+				//x( P_Final_Roll_X_Anode_Move )
+				//ta(20)ts(10)tm(60)
+				//x( P_Final_Roll_X_Discharge ) z( P_Final_Roll_Z_Ready_And_Cutting )		
+				// 37.5 + 135 + 90 + 35
+				ta(67)ts(8)tm(135)
+				x( P_Final_Roll_X_Anode_Move )
+				ta(60)ts(10)tm(90)
+				x( P_Final_Roll_X_Discharge ) z( P_Final_Roll_Z_Ready_And_Cutting )	
+												
+				P_Tact_Time_Check(N_Final_Roller) == 0;		// Tact Time 측정 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+				dwell(0)
+			break;
+
+			//--------------------------------드라이빙 모터를 사용한다면 -----------------------------------------------------
+
+			case 10:		// 적층 전 대기위치 복귀 ( 드라이빙 모터 사용 시 )
+				P_Slave5_Motion_Command = 0;
+				dwell(0)
+				ta(35)ts(10)tm(60)					// 100ms					
+				x( P_Final_Roll_X_Run_Wait_Pos )	// 165mm
+				z( P_Final_Roll_Z_Run_Pos )		// 58mm
+			break;
+
+			case 11:		// 세파 첫장 모션
+				P_Slave5_Motion_Command = 0;
+				dwell(0)
+				ta(55)ts(10)tm(130)					// 200ms					
+				x( P_Final_Roll_X_Cathode_Move )	// -168mm
+				dwell(0)
+			break;
+
+			default :
+
+			break;
+
+		}
+		
+	}
+
+close

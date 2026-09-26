@@ -1,0 +1,1529 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 2025.06.24 - 리팩토링 [ 2025.06.24 추가 ]
+//	-> 전체 간소화 및 오토,메뉴얼 리팩토링
+// 25.08.12 김성중 선임 
+// 1,2차 PNP 클랭크 Z축 수식 프로그램(Recipe to Count, Count to Recipe) 추가 [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] -김성중 선임
+
+//===============================================================================
+// 	00. 프로그램 설명                                                                     
+//===============================================================================
+// 서브프로세스 프로그램
+//	- 각 함수의 동작들을 실행해주는 프로그램
+//	- 함수호출은 plc8에서
+//	- 사용자는 각 함수의 스텟머신(P_array_CF_Function_State_Number)에 동작을 추가하여 프로그램 작성하면 됩니다.
+//===============================================================================+
+
+open plc 9
+
+P_MNTR_PLC9_Task_Time(0) = Sys.Time;
+
+   //01. 다이나믹 로컬 타이머 변수 선언 
+Local L_Time_Cycle_Up_Count_Start_Time;				// Plc[09].ldata.L[0] 시간 체크 시작 시간
+Local L_Time_Cycle_Up_Count_End_Time;				// Plc[09].ldata.L[1] 시간 체크 종료 시간
+Local L_Time_Cycle_Up_Count_Delta_Time;				// Plc[09].ldata.L[2] 시작과 종료 시간 사이의 시간
+Local L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[09].ldata.L[3] 타이머 초기화 플래그
+
+// Auto - RTN
+local	L_PLC09_Auto_Starting_RTN;					// Plc[09].ldata.L[4]	스타팅 결과값 변수
+local	L_PLC09_Auto_Stopping_RTN;					// Plc[09].ldata.L[5]	스타핑 결과값 변수
+local	L_PLC09_Auto_Aborting_RTN;					// Plc[09].ldata.L[6]	어볼팅 결과값 변수
+// Auto - Timer
+local	L_PLC09_Auto_Starting_Timer;				// Plc[09].ldata.L[7]	스타팅 타이머 변수
+local	L_PLC09_Auto_Stopping_Timer;				// Plc[09].ldata.L[8]	스타핑 타이머 변수
+local	L_PLC09_Auto_Aborting_Timer;				// Plc[09].ldata.L[9]	어볼팅 타이머 변수
+// Manual - RTN
+local	L_PLC09_Manual_Resetting_RTN;				// Plc[09].ldata.L[10]	리셋팅 결과값 변수
+local	L_PLC09_Manual_Stopping_RTN;				// Plc[09].ldata.L[11]	스타핑 결과값 변수
+local	L_PLC09_Manual_Aborting_RTN;				// Plc[09].ldata.L[12]	어볼팅 결과값 변수
+// Manual - Timer
+local	L_PLC09_Manual_Resetting_Timer;				// Plc[09].ldata.L[13]	스타팅 타이머 변수
+local	L_PLC09_Manual_Stopping_Timer;				// Plc[09].ldata.L[14]	스타핑 타이머 변수
+local	L_PLC09_Manual_Aborting_Timer;				// Plc[09].ldata.L[15]	어볼팅 타이머 변수
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+IF (L_Flag_Cycle_Up_Count_Init_Flag == 0)
+{
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+
+// 00.2) 시간 체크
+IF (L_Flag_Cycle_Up_Count_Init_Flag == 1)
+{
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+
+	IF( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+IF (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{
+	L_PLC09_Auto_Starting_Timer = L_PLC09_Auto_Starting_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_PLC09_Auto_Stopping_Timer = L_PLC09_Auto_Stopping_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_PLC09_Auto_Aborting_Timer = L_PLC09_Auto_Aborting_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	
+	L_PLC09_Manual_Resetting_Timer = L_PLC09_Manual_Resetting_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_PLC09_Manual_Stopping_Timer = L_PLC09_Manual_Stopping_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_PLC09_Manual_Aborting_Timer = L_PLC09_Manual_Aborting_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}	
+
+//=========================================================================================================================
+//	03. 서브 프로세스 프로그램 (공용화)
+//=========================================================================================================================
+// [명령부]
+IF ( P_PLC09_Common_Command_Flag == 1 )								// 1. 공통 명령부 플래그
+{		
+	P_PLC09_Common_Command_Flag = 0;								// 1.1 플래그 초기화
+			
+	P_PLC09_Common_Command_Complete_Bit = 0;						// 1.2 공통 명령부 함수호출 완료 비트 초기화
+																													   
+	Call Sub_Common_Function.Common_Command();						// 1.4 공통 명령부 함수호출
+	
+	IF ( P_PLC09_Common_Command_Complete_Bit == 1)					// 1.5 공통 명령부 완료 Bit 확인 되었다면	
+	{				
+		P_PLC09_Common_Command_Complete_Bit = 0;					// 1.6 초기화
+		
+		P_PLC09_Common_Execute_Complete_Bit = 0;					// 1.7 공통 실행부 함수호출 완료 비트 초기화 	
+		
+		// [실행부]													
+		Call Sub_Common_Function.Common_Excute();					// 1.8 공통 실행부 함수 호출		
+	
+		IF ( P_PLC09_Common_Execute_Complete_Bit == 1 ) 			// 1.9 공통 실행부 완료 Bit 확인
+		{			
+			P_PLC09_Common_Execute_Complete_Bit = 0;				// 1.10 공통 실행부 완료비트 초기화
+		}
+	}
+	
+	//	[옵저버] - 서브프로세스 프로그램 정상종료 및 알람 확인 상태부 
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag == 2 )
+	{		
+		P_array_CF_Function_Return_Flag = 1;						// 1.11 프로그램이 정상 종료되어 반환을 알림
+	}
+	//  1.12) 서브프로세스 프로그램 무한루프 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Time > N_Time_Over_Value )
+	{
+		// 서브프로그램이 무한루프 상태이므로 알람 발생
+		// call Alarm
+	}
+	//	1.13) 서브프로세스 프로그램 내부 문제 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Local_Alarm_Code != 0 )
+	{
+		// 서브 프로그램에서 문제가 생겨서 알람이 발생
+		// call Alarm
+	}
+}
+
+//==============================================================================================================================================================
+// 01. 오토 모드 ( Automatic Mode )
+//==============================================================================================================================================================
+//==========================================================================================================================
+// 01.1. Automatic Mode - IDLE
+//==========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_IDLE )	
+{	
+	IF ( P_array_CF_Function_Return_Flag != 1 )
+	{
+		P_PLC09_Status = 1;
+
+		P_PLC09_Common_Command_Flag = 1;							
+	}
+}
+
+//==========================================================================================================================
+//	2. STARTING
+//==========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_STARTING )
+{	
+	
+//------------------------------------------------------------
+// 1) 서브프로세스 프로그램 명령부
+//------------------------------------------------------------	
+	IF( P_array_CF_Function_Start_Flag == 0 && P_array_CF_Function_Run_Flag == 0 && P_array_CF_Function_Return_Flag == 0 )
+	{	// 프로그램 허용 플래그 ( 스타트,런,리턴 함수 플래그 모두 초기화 되었는지 확인.)
+		// 프로그램이 실행되었음을 표시
+		P_array_CF_Function_Start_Flag = 1;																			// 서브 프로그램 진입 플래그		
+		P_array_CF_Function_State_Number = N_PLC09_PackML_Num_1;													// [프로그램 스텟머신 1번] - 이동
+	}
+//------------------------------------------------------------
+// 2) 서브프로세스 프로그램 실행부
+//-----------------------------------------------------------			
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag < 2 )
+	{
+		switch( P_array_CF_Function_State_Number )	
+		{
+			case N_PLC09_PackML_Num_0: break;
+
+			case N_PLC09_PackML_Num_1:
+				P_array_CF_Function_Run_Flag = 1;																			// 서브 프로그램 시작을 알림
+				P_PLC01_Execute_Retry_Sepa_Mode_Count = 0;																	// 리트라이 세파모드 횟수 초기화	
+				// [ 참조 : 2025.08.21 A열 B열 Home 인터락 ]
+				// 반댓열 홈 진행중일때, Starting에서 홈 종료를 대기 함	( 1차 pnp 위험으로 인한 대기 )
+				#ifdef F_Def_Stack_A			// A열일때	
+				if( P_Modbus_B_All_Home_Status != F_Status_STARTING && P_Modbus_B_All_Home_Status != F_Status_EXECUTE )		// 반댓열 홈 진행 상태 여부 확인
+				{
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;												// 다음 스텝으로 이동
+				}
+				#else							// B열일때
+				if( P_Modbus_A_All_Home_Status != F_Status_STARTING && P_Modbus_A_All_Home_Status != F_Status_EXECUTE )		// 반댓열 홈 진행중이 아니라면
+				{			
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;												// 다음 스텝으로 이동		
+				}
+				#endif
+			break;
+
+			case N_PLC09_PackML_Num_2:		// 스타팅 필요 초기화 란
+				
+				P_EXECUTE_IsEnable_Firt_Stacking_Flag = 0;
+				/* NG 연속 발생 초기화 부분 필요 시 추가
+				*/
+				// 구준영책임 - [ Execute 에서 Starting 필요 초기화 란 ]
+				P_Mode_Command = 0;																					// 모드 커멘드 초기화.
+				P_Current_Mode = 0;																					// 현재모드 초기화.
+				Plc[0].Ldata.L[4] = 0;																				// PLC0 로컬변수 초기화. (L_Mode_Depth)
+				Plc[0].Ldata.L[5] = 0;																				// PLC0 로컬변수 초기화. (L_Command_Run_Flag)
+				P_Cathode_Cur_Mode = 0;																				// 양극 현재 모드 초기화
+				P_Anode_Cur_Mode = 0;																				// 음극 현재모드 초기화
+				P_Current_Mode = F_Wait_Mode;																		// 현재 모드 초기화
+				L_PLC09_Auto_Starting_Timer = 0;																	// 타이머 초기화
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_3;											// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_3:		// 타임베이스 ON 모니터링 램프 OFF 함수 호출
+				if( L_PLC09_Auto_Starting_Timer > 50 )
+				{
+					L_PLC09_Auto_Starting_RTN = 0;																		// 결과 변수 초기화
+					call Sub_Common_Function.Timebase_On(&L_PLC09_Auto_Starting_RTN);									// 타임 베이스 ON
+					if( L_PLC09_Auto_Starting_RTN == N_TRUE )				
+					{
+						L_PLC09_Auto_Starting_RTN = 0;																	// 결과 변수 초기화
+						call Sub_Common_Function.Monitoring_Lamp_off(&L_PLC09_Auto_Starting_RTN);						// 모니터링 시퀀스 Lamp OFF [함수 호출]
+						if( L_PLC09_Auto_Starting_RTN == N_TRUE )
+						{
+							L_PLC09_Auto_Starting_Timer = 0;															// 타이머 초기화
+							P_array_CF_Function_State_Number = N_PLC09_PackML_Num_4;									// 다음 스텝으로 이동
+						}
+					}
+				}	
+			break;
+
+			case N_PLC09_PackML_Num_4:		//	타임베이스 동기화 확인 후 마스터 플래그 on
+				if( L_PLC09_Auto_Starting_Timer > 50 )
+				{
+					L_PLC09_Auto_Starting_RTN = 0;																		// 결과 변수 초기화
+					call Sub_Common_Function.Timbase_ON_Check(&L_PLC09_Auto_Starting_RTN);								// 타임베이스 동기화 확인
+					if( L_PLC09_Auto_Starting_RTN == N_TRUE )
+					{
+						L_PLC09_Auto_Starting_RTN = 0;
+						call Sub_Common_Function.Master_Motion_Program_On(&L_PLC09_Auto_Starting_RTN);					// 모션 프로그램 플래그 ON
+						P_array_CF_Function_State_Number = N_PLC09_PackML_Num_5;										// 다음 스텝으로 이동
+					}
+				}					
+			break;
+
+			case N_PLC09_PackML_Num_5:		// Hold 필요 변수 선언
+				// 박찬호선임 - [ Hold 에서 Starting 필요 ]
+				P_Anode_1st_Motion_Complete = 1;
+				P_Anode_2nd_Motion_Complete = 1;
+				P_Anode_NG_PNP_Motion_Complete = 1;
+				P_Anode_1st_Picker_Motion_Complete = 1;
+				
+				P_Cathode_1st_Motion_Complete = 1;
+				P_Cathode_2nd_Motion_Complete = 1;
+				P_Cathode_NG_PNP_Motion_Complete = 1;
+				P_Cathode_1st_Picker_Motion_Complete = 1;
+				P_Memory_Tower_Err_Pos_Save(0),55,1 = 0;
+				P_Hold_Existence_Insp_Enqueue_Flag = 1
+				L_PLC09_Auto_Starting_Timer = 0;																		// 타이머 초기화
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_6;												// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_6:		// clamp Down pos cal
+				if( L_PLC09_Auto_Starting_Timer > 50 )
+				{
+					// Clamp On 후 극판 두께만큼 하강 위치값 추가
+					if( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence )										// Normal Run
+					{
+						P_AN_Clamp_Cell_Down_Pos = P_Recipe_M26_POS(4) - ( P_Anode_Thickness + P_Sepa_Thickness );
+						P_CA_Clamp_Cell_Down_Pos = P_Recipe_M25_POS(4) - ( P_Cathode_Thickness + P_Sepa_Thickness );
+					}
+					else if( P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence )							// Sepa Run
+					{
+						P_AN_Clamp_Cell_Down_Pos = P_Recipe_M26_POS(4) - P_Sepa_Thickness;
+						P_CA_Clamp_Cell_Down_Pos = P_Recipe_M25_POS(4) - P_Sepa_Thickness;
+					}
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_7;											// 다음 스텝으로 이동
+				}
+			break;
+
+			case N_PLC09_PackML_Num_7:		//	서브 마스터 초기화
+				P_SubMaster_Sub_Old_Command(0),15,1=0;
+				P_SubMaster_Sub_Old_Mode(0),15,1=0;
+				P_SubMaster_Sub_Old_Trigger(0),15,1=0;
+				P_SubMaster_Sub_Mode_Command(0),15,1=0;
+				L_PLC09_Auto_Starting_Timer = 0;																		// 타이머 초기화
+				if ( P_Anode_Count == 0 )																				// 음극 적층 개수가 0일 경우.	[ 참조 : 25.09.12 중간 배출 무시 조건 추가 ]
+					P_Stack_Table_NG_Flag = 0;																			// Stack Table NG Flag 초기화. 
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_8;												// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_8:		//	파이널 롤러 언클램프 확인 구간
+				if( L_PLC09_Auto_Starting_Timer > 50 )
+				{
+					//if( P_Anode_Count != 0 && P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )				// 적층을 했고, 드라이런 모드가 아니라면
+					//{
+					//	if( M_X_FR_Sepa_UnClamp_Front_Sensor && M_X_FR_Sepa_UnClamp_Rear_Sensor )						// 언클램프 센서가 감지가 되었다면
+					//	{
+					//		L_PLC09_Auto_Starting_Timer = 0;															// 타이머 초기화
+					//		P_array_CF_Function_State_Number = N_PLC09_PackML_Num_9;									// 다음 스텝으로 이동
+					//	}
+					//	else																							// 언클램프 센서가 감지가 안된다면
+					//	{
+					//		M_Y_FR_Sepa_Clamp_FWD_Sol = 0;																//	파이널롤러 언클램프 
+					//		M_Y_FR_Sepa_Clamp_BWD_Sol = 1;																//	파이널롤러 언클램프 
+					//	}
+					//}
+					//else																								// 적층을 안했다면 클램프 상태일테니
+					//{
+						// ↓ [ 참고 : 2025.10.15 미비 사항 추가 건 ]
+						P_System_CamTable_ON_Cmd = F_Command_Start;														// 캠테이블 On
+						if(P_PMAC_Master_Following_Use_Flag == 1 )														// 마스터 팔로잉 사용하겠다면
+							P_System_Master_Following_ON_Cmd = F_Command_Start;											// 마스터 팔로잉 On
+
+						L_PLC09_Auto_Starting_Timer = 0;																// 타이머 초기화
+						P_array_CF_Function_State_Number = N_PLC09_PackML_Num_9;										// 다음 스텝으로 이동
+					//}
+				}
+			break;
+
+			case N_PLC09_PackML_Num_9:		// 비전 레디 트리거 ON
+				if( L_PLC09_Auto_Starting_Timer > 50 )
+				{
+					M_Y_Vision_Anode_Align_Ready = 1;																	// 음극 얼라인 비젼 레디 트리거 발생
+					M_Y_Vision_Cathode_Align_Ready = 1;																	// 양극 얼라인 비젼 레디 트리거 발생
+					M_Y_Vision_Stack_Ready = 1;																			// 스텍 테이블 비젼 레디 트리거 발생
+					L_PLC09_Auto_Starting_Timer = 0;																	// 타이머 초기화
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_10;											// 다음 스텝으로 이동
+				}
+			break;
+
+			case N_PLC09_PackML_Num_10:		// 세파 텐션 필요 란
+				if( L_PLC09_Auto_Starting_Timer > 50 )
+				{
+					/*
+						1. 모터 루프 확인 후 오픈루프 변경
+						2. 모터 
+					
+					*/
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_11;											// 다음 스텝으로 이동
+				}
+			break;
+
+			case N_PLC09_PackML_Num_11:		// 생산속도 설정 
+				Coord[1].DesTimeBase = Sys.ServoPeriod * ( P_Recipe_Speed_Value / 100 );								// 속도 동기화
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_12;												// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_12:		// 좌표계 ON
+				P_Stack_Heart_Bit_Sync_State_Machine = 1;																// 좌표계 ON
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_13;												// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_13:		// 큐 사이즈 지정
+				if( P_Stack_Heart_Bit_Sync_State_Machine == 999 )														// 좌표계 ON 확인 후
+				{
+					P_DryRun_Timer = 0;																					// 드라이런 진행 경과 타이머 초기화.	[ 참조 : 25.07.15 드라이런 진행 경과 타이머 수정 ]
+					local L_Set_QueueSize = 0;
+					call Sub_Automation_Circular_Queue.SizeQueue(N_StackBuffer_UseSize,&L_Set_QueueSize);
+					if ( L_Set_QueueSize == N_CirQueue_TRUE )
+					{
+						//P_array_CF_Function_State_Number = N_PLC09_PackML_Num_14;										// 다음 스텝으로 이동
+					}
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_14;											// 다음 스텝으로 이동
+				}				
+			break;
+
+			case N_PLC09_PackML_Num_14:		// Sepa Line 필요 사항 
+				/*
+					1. 캠테이블 on
+					2. 마스터 팔로잉 on
+					3. 케스케이딩 on
+				*/
+				local L_PNP_Z_Cnt_Read = 0;
+				call Initialize.PNP_Z_Axis_Recipe_to_Cnt(&L_PNP_Z_Cnt_Read);			//모터 위치 레시피에 따른 모터 카운트 계산 함수 호출	
+				if(L_PNP_Z_Cnt_Read == 1)												//모터 카운트 값 계산 완료 
+				{
+					L_PNP_Z_Cnt_Read = 0;
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_15;			// 다음 스텝으로 이동
+				}												
+			break;
+
+			case N_PLC09_PackML_Num_15:		// Tact Time 초기화.	[ 참조 : 25.09.09 
+				P_Tact_Time_Check(0),N_Tact_Time_Value_End = 0;							// 초기화.
+				P_Old_Tact_Time_Check(0),N_Tact_Time_Value_End = 0;						// 초기화.
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_16;				// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_16:		// Sepa Line 필요 사항 
+				P_array_CF_Function_Run_Flag = 2;										// 서브프로그램이 완료를 알림
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_0;				// 스텝 초기화
+			break;
+		}
+	}
+//-----------------------------------------------------------------------------------------------------
+// 3) 서브프로세스 프로그램 정상종료 및 알람 확인 상태부 ( Observe )
+//-----------------------------------------------------------------------------------------------------
+	// 3-1) 정상 종료 표시.		
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag == 2 )
+	{
+		// 프로그램이 정상 종료되어 반환을 알림
+		P_array_CF_Function_Return_Flag = 1;	
+	}
+	// 3-2) 서브프로세스 프로그램 무한루프 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Time > N_Time_Over_Value )
+	{
+		// 서브프로그램이 무한루프 상태이므로 알람 발생
+		// call Alarm
+	}
+	// 3-3) 서브프로세스 프로그램 내부 문제 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Local_Alarm_Code != 0 )
+	{
+		// 서브 프로그램에서 문제가 생겨서 알람이 발생
+		// call Alarm
+	}		
+}
+
+//=========================================================================================================================
+//	01.3. Automatic Mode - EXECUTE
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_EXECUTE )
+{	
+	IF ( P_array_CF_Function_Return_Flag != 1 )
+	{
+		P_PLC09_Common_Command_Flag = 1;
+		P_PLC09_Status = F_Status_EXECUTE;	
+	}
+}
+
+//=========================================================================================================================
+//	01.4. Automatic Mode - COMPLETING
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_COMPLETING )
+{	
+	IF ( P_array_CF_Function_Return_Flag != 1 )
+	{
+		P_PLC09_Common_Command_Flag = 1;
+		P_PLC09_Status = F_Status_COMPLETING;	
+	}
+}
+//=========================================================================================================================
+//	01.5. Automatic Mode - COMPLETE
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_COMPLETE )
+{	
+	IF ( P_array_CF_Function_Return_Flag != 1 )
+	{
+		P_PLC09_Common_Command_Flag = 1;
+		P_PLC09_Status = F_Status_COMPLETE;	
+	}
+}
+
+//===============================================================================
+//	6. Automatic Mode - RESETTING
+//=====================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_RESETTING )
+{	
+//------------------------------------------------------------
+// 1) 서브프로세스 프로그램 명령부
+//------------------------------------------------------------	
+	IF( P_array_CF_Function_Start_Flag == 0 && P_array_CF_Function_Run_Flag == 0 && P_array_CF_Function_Return_Flag == 0 )	// 프로그램 허용 플래그 ( 스타트,런,리턴 함수 플래그 모두 초기화 되었는지 확인.)
+	{	
+		P_array_CF_Function_Start_Flag = 1;																					// 서브 프로그램 진입 플래그 (프로그램이 실행되었음을 표시)
+		P_array_CF_Function_State_Number = N_PLC09_PackML_Num_1;															// 서브 프로그램 스텟머신 활성화
+	}
+//------------------------------------------------------------
+// 2) 서브프로세스 프로그램 실행부
+//-----------------------------------------------------------			
+// 1. 타겟 포지션 업데이트
+// 2. 타임 베이스 설정
+// 3. 케스케이딩 확인
+// 4. 정위치 확인
+// 5. 가상축 확인
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag < 2 )											//  서브프로그램 진입
+	{		
+		switch( P_array_CF_Function_State_Number )
+		{
+			case N_PLC09_PackML_Num_0: break;
+
+			case N_PLC09_PackML_Num_1:
+				P_array_CF_Function_Run_Flag = 1;																			// 서브 프로그램 시작됨을 알림
+				P_Motion_Target_Position_Complete = 0;																		// 변수 초기화 
+				//call Sub_Motion_Target_Position();																			// 타겟 포지션 함수 호출
+				if( P_Motion_Target_Position_Complete == 1 )
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;												// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_2:
+				
+			break;
+		}
+		
+	}
+//-----------------------------------------------------------------------------------------------------
+// 3) 서브프로세스 프로그램 정상종료 및 알람 확인 상태부 ( Observe )
+//-----------------------------------------------------------------------------------------------------
+	// 3-1) 정상 종료 표시.		
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag == 2 )
+	{
+		// 프로그램이 정상 종료되어 반환을 알림
+		P_array_CF_Function_Return_Flag = 1;
+	
+	}
+	// 3-2) 서브프로세스 프로그램 무한루프 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Time > N_Time_Over_Value )
+	{
+		// 서브프로그램이 무한루프 상태이므로 알람 발생
+		// call Alarm
+	}
+	// 3-3) 서브프로세스 프로그램 내부 문제 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Local_Alarm_Code != 0 )
+	{
+		// 서브 프로그램에서 문제가 생겨서 알람이 발생
+		// call Alarm
+	}		
+}
+//=====================================================================================================		
+//=========================================================================================================================
+//	01.7. Automatic Mode - HOLDING
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_HOLDING )
+{	
+	IF ( P_array_CF_Function_Return_Flag != 1 )
+	{
+		P_PLC09_Common_Command_Flag = 1;
+		P_PLC09_Status = F_Status_HOLDING;	
+	}
+}
+//=========================================================================================================================
+//	01.8. Automatic Mode - HOLD
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_HOLD )
+{	
+	IF ( P_array_CF_Function_Return_Flag != 1 )
+	{
+		P_PLC09_Common_Command_Flag = 1;
+		P_PLC09_Status = F_Status_HOLD;
+	}	
+}
+//=========================================================================================================================
+//	01.9. Automatic Mode - UNHOLDING
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_UNHOLDING )
+{	
+//------------------------------------------------------------
+// 1) 서브프로세스 프로그램 명령부
+//------------------------------------------------------------	
+	IF( P_array_CF_Function_Start_Flag == 0 && P_array_CF_Function_Run_Flag == 0 && P_array_CF_Function_Return_Flag == 0 )
+	{	// 프로그램 허용 플래그 ( 스타트,런,리턴 함수 플래그 모두 초기화 되었는지 확인.)
+		// 프로그램이 실행되었음을 표시
+		P_array_CF_Function_Start_Flag = 1;																// 서브 프로그램 진입 플래그
+
+		P_array_CF_Function_State_Number = N_PLC09_PackML_Num_1;										// 서브 프로그램 스텟머신 활성화
+	}
+	
+	//-----------------------------------------------------------------------------------------------------
+	//코드 추가로 들어가는 부분
+//------------------------------------------------------------
+// 2) 서브프로세스 프로그램 실행부
+//-----------------------------------------------------------			
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag < 2 )
+	{
+		switch( P_array_CF_Function_State_Number )
+		{
+			case N_PLC09_PackML_Num_0: break;
+
+			case N_PLC09_PackML_Num_1:
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;
+			break;
+
+			case N_PLC09_PackML_Num_2:
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_3;
+			break;
+
+			case N_PLC09_PackML_Num_3:
+				P_array_CF_Function_Run_Flag = 2;															// 서브프로그램이 완료를 알림
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_0;
+			break;
+		}	
+	}
+	//-----------------------------------------------------------------------------------------------------
+//------------------------------------------------------------
+// 3) 서브프로세스 프로그램 정상종료 및 알람 확인 상태부 ( Observe )
+//------------------------------------------------------------	
+	// 3-1) 정상 종료 표시.		
+	if ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag == 2 )
+	{
+		// 프로그램이 정상 종료되어 반환을 알림
+		P_array_CF_Function_Return_Flag = 1;
+	
+	}
+	// 3-2) 서브프로세스 프로그램 무한루프 알람.
+	if ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Time > N_Time_Over_Value )
+	{
+		// 서브프로그램이 무한루프 상태이므로 알람 발생
+		// call Alarm
+	}
+	// 3-3) 서브프로세스 프로그램 내부 문제 알람.
+	if ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Local_Alarm_Code != 0 )
+	{
+		// 서브 프로그램에서 문제가 생겨서 알람이 발생
+		// call Alarm
+	}		
+}
+
+//=========================================================================================================================
+//	01.10. Automatic Mode - SUSPENDING
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_SUSPENDING )
+{	
+//------------------------------------------------------------
+// 1) 서브프로세스 프로그램 명령부
+//------------------------------------------------------------	
+	IF( P_array_CF_Function_Start_Flag == 0 && P_array_CF_Function_Run_Flag == 0 && P_array_CF_Function_Return_Flag == 0 )
+	{	// 프로그램 허용 플래그 ( 스타트,런,리턴 함수 플래그 모두 초기화 되었는지 확인.)
+		// 프로그램이 실행되었음을 표시
+		P_array_CF_Function_Start_Flag = 1;																			// 서브 프로그램 진입 플래그
+
+		P_array_CF_Function_State_Number = N_PLC09_PackML_Num_1;													// 서브 프로그램 스텟머신 활성화
+	}
+	
+//-----------------------------------------------------------------------------------------------------
+	//코드 추가로 들어가는 부분
+//------------------------------------------------------------
+// 2) 서브프로세스 프로그램 실행부
+//-----------------------------------------------------------			
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag < 2 )
+	{
+		switch( P_array_CF_Function_State_Number )
+		{
+			case N_PLC09_PackML_Num_0: break;
+
+			case N_PLC09_PackML_Num_1:
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;
+			break;
+
+			case N_PLC09_PackML_Num_2:
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_3;
+			break;
+
+			case N_PLC09_PackML_Num_3:
+				P_array_CF_Function_Run_Flag = 2;																// 서브프로그램이 완료를 알림
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_0;
+			break;
+		}	
+	}
+	//-----------------------------------------------------------------------------------------------------
+//------------------------------------------------------------
+// 3) 서브프로세스 프로그램 정상종료 및 알람 확인 상태부 ( Observe )
+//------------------------------------------------------------	
+	// 3-1) 정상 종료 표시.		
+	if ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag == 2 )
+	{
+		// 프로그램이 정상 종료되어 반환을 알림
+		P_array_CF_Function_Return_Flag = 1;
+	
+	}
+	// 3-2) 서브프로세스 프로그램 무한루프 알람.
+	if ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Time > N_Time_Over_Value )
+	{
+		// 서브프로그램이 무한루프 상태이므로 알람 발생
+		// call Alarm
+	}
+	// 3-3) 서브프로세스 프로그램 내부 문제 알람.
+	if ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Local_Alarm_Code != 0 )
+	{
+		// 서브 프로그램에서 문제가 생겨서 알람이 발생
+		// call Alarm
+	}		
+}
+//=========================================================================================================================
+//	01.11. Automatic Mode - SUSPENDED
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_SUSPENDED )
+{	
+	IF ( P_array_CF_Function_Return_Flag != 1 )
+	{
+		P_PLC09_Common_Command_Flag = 1;
+		P_PLC09_Status = F_Status_SUSPENDED;	
+	}
+}
+//=========================================================================================================================
+//	01.12. Automatic Mode - UNSUSPENDING
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_UNSUSPENDING )
+{	
+//------------------------------------------------------------
+// 1) 서브프로세스 프로그램 명령부
+//------------------------------------------------------------	
+	IF( P_array_CF_Function_Start_Flag == 0 && P_array_CF_Function_Run_Flag == 0 && P_array_CF_Function_Return_Flag == 0 )
+	{	// 프로그램 허용 플래그 ( 스타트,런,리턴 함수 플래그 모두 초기화 되었는지 확인.)
+		// 프로그램이 실행되었음을 표시
+		P_array_CF_Function_Start_Flag = 1;																		// 서브 프로그램 진입 플래그
+
+		P_array_CF_Function_State_Number = N_PLC09_PackML_Num_1;												// 서브 프로그램 스텟머신 활성화
+	}
+	
+	//-----------------------------------------------------------------------------------------------------
+	//코드 추가로 들어가는 부분
+//------------------------------------------------------------
+// 2) 서브프로세스 프로그램 실행부
+//-----------------------------------------------------------			
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag < 2 )
+	{
+		switch( P_array_CF_Function_State_Number )
+		{
+			case N_PLC09_PackML_Num_0: break;
+
+			case N_PLC09_PackML_Num_1:
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;
+			break;
+
+			case N_PLC09_PackML_Num_2:
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_3;
+			break;
+
+			case N_PLC09_PackML_Num_3:
+				P_array_CF_Function_Run_Flag = 2;																// 서브프로그램이 완료를 알림
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_0;
+			break;
+		}	
+	}
+	//-----------------------------------------------------------------------------------------------------
+//------------------------------------------------------------
+// 3) 서브프로세스 프로그램 정상종료 및 알람 확인 상태부 ( Observe )
+//------------------------------------------------------------	
+	// 3-1) 정상 종료 표시.		
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag == 2 )
+	{
+		// 프로그램이 정상 종료되어 반환을 알림
+		P_array_CF_Function_Return_Flag = 1;
+	
+	}
+	// 3-2) 서브프로세스 프로그램 무한루프 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Time > N_Time_Over_Value )
+	{
+		// 서브프로그램이 무한루프 상태이므로 알람 발생
+		// call Alarm
+	}
+	// 3-3) 서브프로세스 프로그램 내부 문제 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Local_Alarm_Code != 0 )
+	{
+		// 서브 프로그램에서 문제가 생겨서 알람이 발생
+		// call Alarm
+	}		
+}
+
+
+//=========================================================================================================================
+//	13. Automatic Mode - STOPPING
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_STOPPING )
+{	
+//------------------------------------------------------------
+// 1) 서브프로세스 프로그램 명령부
+//------------------------------------------------------------	
+	IF( P_array_CF_Function_Start_Flag == 0 && P_array_CF_Function_Run_Flag == 0 && P_array_CF_Function_Return_Flag == 0 )
+	{	// 프로그램 허용 플래그 ( 스타트,런,리턴 함수 플래그 모두 초기화 되었는지 확인.)
+		// 프로그램이 실행되었음을 표시
+		P_array_CF_Function_Start_Flag = 1;																			// 서브 프로그램 진입 플래그
+		P_array_CF_Function_State_Number = N_PLC09_PackML_Num_1;													// 서브 프로그램 스텟머신 활성화
+	}
+//------------------------------------------------------------
+// 2) 서브프로세스 프로그램 실행부
+//-----------------------------------------------------------			
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag < 2 )
+	{
+		switch( P_array_CF_Function_State_Number )
+		{
+			case N_PLC09_PackML_Num_0: break;
+
+			case N_PLC09_PackML_Num_1:			// 프로그램 시작
+				P_array_CF_Function_Run_Flag = 1;																	// 서브프로그램이 시작됨을 알림
+
+				P_Stop_Save_RTN(0),4 = 0;		// 디버깅 프로그램 반환값 초기화.	[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
+				P_Stop_Debug_Flag = 1;			// 디버깅 프로그램 실행.
+
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;											// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_2:			// EPC 보정 필요 사항?
+				//M_Y_Vision_Stack_EPC_Align_Vision_Trigger = 0;													// EPC 보정 스텍 촬상 신호 초기화
+				//P_Virtical_EPC_Saved_Pos = P_Motor_Current_Pos(27);												// EPC 위치값 저장
+				if ( P_Stop_Save_Total_RTN )	// 디버깅 프로그램 실행 확인.	[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_3;											// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_3:			// STOP QUEUE 완료 확인 
+				if( P_PLC01_STOP_Queue_Complete_Flag == 1 || (P_PLC01_STOP_Queue_Complete_Flag == 1 && P_BTN_Mode_Change_Stop_Bit == 1) || P_PackML_Auto_Stop_Bit == 1 || P_PackML_Auto_Stop_Switch_Bit == 1 || P_BTN_IDLE_Motor_Not_Pos == 1 )			// Queue 완료 || Queue 완료 && 오토에서 메뉴얼로 전환 시 || (IDLE, RESETTING) 오토에서 메뉴얼로 전환 시 || (IDLE, RESETTING) Auto + 정지 버튼 누를 시. || (IDLE) 모터 위치가 바뀔 시. [ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+				//if( P_PLC01_STOP_Queue_Complete_Flag == 1 )															// Stop Queue 종료 확인
+				{
+					P_BTN_Mode_Change_Stop_Bit = 0;					// 초기화. (진행 중 Auto → Manual로 로터리 스위치를 돌릴 경우)
+					P_PackML_Auto_Stop_Bit = 0;						// 초기화. (IDLE, RESETTING 진행 중 Auto → Manual로 로터리 스위치를 돌릴 경우)
+					P_PackML_Auto_Stop_Switch_Bit = 0;				// 초기화. (IDLE, RESETTING 진행 중 Auto + Stop 버튼을 누를 경우)
+					P_BTN_IDLE_Motor_Not_Pos = 0;					// 초기화. (IDLE 상태에서 모터 위치가 바뀔 경우)
+					P_PLC01_STOP_Queue_Complete_Flag = 0;															// Stop Queue 종료 Flag 초기화
+					L_PLC09_Auto_Stopping_RTN = 0;
+					call Sub_Common_Function.Master_Motion_Program_OFF(&L_PLC09_Auto_Stopping_RTN)					// 모션 OFF 함수 호출
+					if( L_PLC09_Auto_Stopping_RTN == N_TRUE )
+						P_array_CF_Function_State_Number = N_PLC09_PackML_Num_4;									// 다음 스텝으로 이동
+				}
+				
+			break;
+
+			case N_PLC09_PackML_Num_4:			// 타임베이스 원복 
+				L_PLC09_Auto_Stopping_RTN = 0;																		// 결과값 초기화
+				call Sub_Common_Function.Timbase_OFF(&L_PLC09_Auto_Stopping_RTN);									// 타임베이스 off 함수 호출
+				if(	L_PLC09_Auto_Stopping_RTN == N_TRUE )		
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_5;										// 다음 스텝으로 이동
+				
+			break; 
+
+			case N_PLC09_PackML_Num_5:			// 슬레이브 커맨드 초기화 
+				L_PLC09_Auto_Stopping_RTN = 0;																		// 결과값 초기화
+				call Sub_Common_Function.Slave_Motion_Command_Init(&L_PLC09_Auto_Stopping_RTN);						// 슬레이브 초기화 함수 호출
+				if(	L_PLC09_Auto_Stopping_RTN == N_TRUE )
+				{
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_6;										// 다음 스텝으로 이동
+				}
+			break; 
+
+			case N_PLC09_PackML_Num_6:			// 마스터 팔로잉 및 캠테이블 종료  및 케스케이딩 종료
+				P_System_Cascading_OFF_Cmd = F_Command_Start;														// 케스케이딩 OFF 커맨드 
+				P_System_Master_Following_OFF_Cmd = F_Command_Start;												// 마스터팔로잉 OFF 커맨드 	
+				P_System_CamTable_OFF_Cmd = F_Command_Start;														// 캠테이블 OFF 커맨드
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_7;											// 다음 스텝으로 이동
+				cmd"#19,20hmz"					// Picker T축 hmz 진행. [ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+			break; 
+
+			case N_PLC09_PackML_Num_7:			// 마스터 팔로잉 및 캠테이블 종료  및 케스케이딩 종료 확인
+				if( P_System_Master_Following_OFF_Complete_Flag & P_System_CamTable_OFF_Complete_Flag & P_System_Cascading_OFF_Complete_Flag )
+				{
+					if ( P_Motor_Current_Pos(N_1st_Picker_CA_T) ~ 0 && P_Motor_Current_Pos(N_1st_Picker_AN_T) ~ 0 )		// Picker T축 현재 위치 확인. [ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+					{
+						P_System_Master_Following_OFF_Complete_Flag = 0;
+						P_System_CamTable_OFF_Complete_Flag = 0;
+						P_System_Cascading_OFF_Complete_Flag = 0;
+						// HOME PLC Script 초기화 필요 시 
+						P_array_CF_Function_State_Number = N_PLC09_PackML_Num_8;										// 다음 스텝으로 이동
+					}
+				}
+			break; 
+
+			case N_PLC09_PackML_Num_8:			// 종료
+				P_array_CF_Function_Run_Flag = 2;																	// 서브프로그램이 완료를 알림
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_0;											// 스텝 초기화
+			break; 
+		}
+	}
+//------------------------------------------------------------
+// 3) 서브프로세스 프로그램 정상종료 및 알람 확인 상태부 ( Observe )
+//------------------------------------------------------------	
+	// 3-1) 정상 종료 표시.		
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag == 2 )
+	{
+		// 프로그램이 정상 종료되어 반환을 알림
+		P_array_CF_Function_Return_Flag = 1;
+	
+	}
+	// 3-2) 서브프로세스 프로그램 무한루프 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Time > N_Time_Over_Value )
+	{
+		// 서브프로그램이 무한루프 상태이므로 알람 발생
+		// call Alarm
+	}
+	// 3-3) 서브프로세스 프로그램 내부 문제 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Local_Alarm_Code != 0 )
+	{
+		// 서브 프로그램에서 문제가 생겨서 알람이 발생
+		// call Alarm
+	}		
+}
+
+//=========================================================================================================================
+//	01.14. Automatic Mode - STOPPED
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_STOPPED )
+{	
+	IF ( P_array_CF_Function_Return_Flag != 1 )
+	{
+		P_PLC09_Common_Command_Flag = 1;
+		P_PLC09_Status = F_Status_STOPPED;
+	}
+}
+//=========================================================================================================================
+//	01.15. Automatic Mode - ABORTING
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_ABORTING )
+{	
+//------------------------------------------------------------
+// 1) 서브프로세스 프로그램 명령부
+//------------------------------------------------------------	
+	IF( P_array_CF_Function_Start_Flag == 0 && P_array_CF_Function_Run_Flag == 0 && P_array_CF_Function_Return_Flag == 0 )	// 프로그램 허용 플래그 ( 스타트,런,리턴 함수 플래그 모두 초기화 되었는지 확인)
+	{			
+		P_array_CF_Function_Start_Flag = 1;																					// 서브 프로그램 진입 플래그
+		P_array_CF_Function_State_Number = N_PLC09_PackML_Num_1;															// 서브 프로그램 스텟머신 활성화
+	}
+//------------------------------------------------------------
+// 2) 서브프로세스 프로그램 실행부
+//-----------------------------------------------------------			
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag < 2 )
+	{
+		switch( P_array_CF_Function_State_Number )
+		{
+			case N_PLC09_PackML_Num_0: break;
+
+			case N_PLC09_PackML_Num_1:
+				P_array_CF_Function_Run_Flag = 1;																			// 서브 프로그램 시작
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;													// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_2:				// 좌표계 OFF
+				cmd"&1..60a"																								// 좌표계 OFF
+				sendallcmds																									// 모든 커맨드문 버퍼를 비워냄
+				while (Ldata.CmdStatus == 1) {}																				// 모든 커맨드문 버퍼가 비워질 때 까지 대기	
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_3;													// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_3:			// 모터 Kill
+				cmd"#*k";																									// 모터 전체 Off - kill 1..31전체 축 Servo Off
+				sendallcmds																									// 모든 커맨드문 버퍼를 비워냄
+				while (Ldata.CmdStatus == 1) {}																				// 모든 커맨드문 버퍼가 비워질 때 까지 대기	
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_4;													// 다음 스텝으로 이동
+			break; 
+
+			case N_PLC09_PackML_Num_4:			// 마스터 팔로잉 및 캠테이블 종료  및 케스케이딩 종료
+				P_System_Cascading_OFF_Cmd = F_Command_Start;																// 케스케이딩 OFF 커맨드 
+				P_System_Master_Following_OFF_Cmd = F_Command_Start;														// 마스터팔로잉 OFF 커맨드 	
+				P_System_CamTable_OFF_Cmd = F_Command_Start;																// 캠테이블 OFF 커맨드
+
+				P_Stop_Save_RTN(0),4 = 0;	// 디버깅 프로그램 반환값 초기화.	[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
+				P_Stop_Debug_Flag = 1;		// 디버깅 프로그램 실행.
+
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_5;													// 다음 스텝으로 이동
+			break; 
+
+			case N_PLC09_PackML_Num_5:			// 마스터 팔로잉 및 캠테이블 종료  및 케스케이딩 종료 확인
+				if( P_System_Master_Following_OFF_Complete_Flag & P_System_CamTable_OFF_Complete_Flag & P_System_Cascading_OFF_Complete_Flag )
+				{
+					// HOME PLC Script 초기화 필요 시 
+					if ( P_Stop_Save_Total_RTN )	// 디버깅 프로그램 실행 확인.	[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_6;												// 다음 스텝으로 이동
+				}
+			break; 
+
+			case N_PLC09_PackML_Num_6:			// 마스터 모션 프로그램 플래그 OFF
+				L_PLC09_Auto_Aborting_RTN = 0;
+				call Sub_Common_Function.Master_Motion_Program_OFF(&L_PLC09_Auto_Aborting_RTN)								// 모션 OFF 함수 호출
+				if( L_PLC09_Auto_Aborting_RTN == N_TRUE )
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_7;												// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_7:			// 타임 베이스 OFF
+				L_PLC09_Auto_Aborting_RTN = 0;
+				call Sub_Common_Function.Timbase_OFF(&L_PLC09_Auto_Aborting_RTN);											// 타임베이스 off 함수 호출
+				if(	L_PLC09_Auto_Aborting_RTN == N_TRUE )	
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_8;												// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_8:			// 스테이터스 클리어 후 종료
+				//P_Completion_Watch_Variable(0),N_Serach_Limit,1 = 1;
+				P_Hold_NG_PNP_Remove,11 = 1;
+				P_Status_Clear_Flag = 1;																					// 스테이터스 클리어 
+				P_array_CF_Function_Run_Flag = 2;
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_0;													// 스텝 초기화
+			break;
+		}
+	}
+	//-----------------------------------------------------------------------------------------------------
+//------------------------------------------------------------
+// 3) 서브프로세스 프로그램 정상종료 및 알람 확인 상태부 ( Observe )
+//------------------------------------------------------------	
+	// 3-1) 정상 종료 표시.		
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag == 2 )
+	{
+		// 프로그램이 정상 종료되어 반환을 알림
+		P_array_CF_Function_Return_Flag = 1;
+	
+	}
+	// 3-2) 서브프로세스 프로그램 무한루프 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Time > N_Time_Over_Value )
+	{
+		// 서브프로그램이 무한루프 상태이므로 알람 발생
+		// call Alarm
+	}
+	// 3-3) 서브프로세스 프로그램 내부 문제 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Local_Alarm_Code != 0 )
+	{
+		// 서브 프로그램에서 문제가 생겨서 알람이 발생
+		// call Alarm
+	}		
+}
+//=========================================================================================================================
+//	01.16. Automatic Mode - ABORTED
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_ABORTED )
+{	
+	IF ( P_array_CF_Function_Return_Flag != 1 )
+	{
+		P_PLC09_Common_Command_Flag = 1;
+		P_PLC09_Status = F_Status_ABORTED;	
+	}
+}
+//=========================================================================================================================
+//	01.17. Automatic Mode - CLEARING
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_CLEARING )
+{	
+	IF ( P_array_CF_Function_Return_Flag != 1 )
+	{
+		P_PLC09_Common_Command_Flag = 1;
+		P_PLC09_Status = P_Check_CLEARING_CF;	
+	}
+}
+
+//[ 참조 : 25.07.04 EPC 프로그램 신규 추가 ]
+//==============================================================================================================================================================
+// 02. 메뉴얼 모드 ( MANUAL Mode )
+//==============================================================================================================================================================
+//=========================================================================================================================
+// 02.1. MANUAL Mode - RESETTING ( 운전준비 )
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Manual && P_PMAC_Status == F_Status_RESETTING )
+{	
+//------------------------------------------------------------
+// 1) 서브프로세스 프로그램 명령부
+//------------------------------------------------------------	
+	IF( P_array_CF_Function_Start_Flag == 0 && P_array_CF_Function_Run_Flag == 0 && P_array_CF_Function_Return_Flag == 0 )		// 프로그램 허용 플래그 ( 스타트,런,리턴 함수 플래그 모두 초기화 되었는지 확인.)
+	{	
+		P_array_CF_Function_Start_Flag = 1;																						// 서브 프로그램 진입 플래그																												
+		P_array_CF_Function_State_Number = N_PLC09_PackML_Num_1;																// 서브 프로그램 스텟머신 활성화
+	}
+//------------------------------------------------------------
+// 2) 서브프로세스 프로그램 실행부
+//-----------------------------------------------------------			
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag < 2 )
+	{
+		switch( P_array_CF_Function_State_Number )
+		{
+			case N_PLC09_PackML_Num_0: break;
+
+			case N_PLC09_PackML_Num_1:			// 매뉴얼 - 리셋팅 시작 
+			
+				P_array_CF_Function_Run_Flag = 1;																				// 서브 프로그램 시작을 알리는 Flag
+				P_Motion_Target_Position_Complete = 0;																			// 타켓 포지션 레시피값 함수호출 완료비트 초기화
+				//call Sub_Motion_Target_Position();																			// 타겟포지션에 레시피값 받아오는 함수 실행.
+				
+				if( P_Motion_Target_Position_Complete == 1 || P_PLC09_Test_Temp == 1 )											// 타겟포지션 레시피값 완료 비트 확인
+				{
+					if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )			// 드라이런 모드가 아니라면
+					{
+						if( P_PMAC_Homing_CHK(N_Align_CA_X) & P_PMAC_Homing_CHK(N_Align_CA_Y) & P_PMAC_Homing_CHK(N_Align_CA_T) & P_PMAC_Homing_CHK(N_Align_AN_X) & P_PMAC_Homing_CHK(N_Align_AN_Y) & P_PMAC_Homing_CHK(N_Align_AN_T) )	
+						{	//  ↑ 얼라인 테이블 홈 체크 확인 추가
+							L_PLC09_Manual_Resetting_RTN = 0;
+							call Sub_Common_Function.PackML_Resetting_SheetID_Check(&L_PLC09_Manual_Resetting_RTN);					// 판정 된 얼라인 데이터 삭제 후 원점 복귀 하는 부분이 없으므로 처리하는 함수 
+							if( L_PLC09_Manual_Resetting_RTN == N_TRUE )
+							{
+								P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;											// 다음 스텝으로 이동
+							}
+						}
+						else // 얼라인 테이블 홈 체크가 없다면, 홈잡으러 가야하므로 다음스텝으로 이동
+						{
+							P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;												// 다음 스텝으로 이동
+						}
+					}
+					else
+					{
+						// 드라이런 모드라면, Spool j/
+						cmd"#%d j/",N_UNWINDER_UPPER;
+						cmd"#%d j/",N_UNWINDER_LOWER;
+						P_array_CF_Function_State_Number = N_PLC09_PackML_Num_3;
+					}																																													 
+				}
+			break;	
+			
+			case N_PLC09_PackML_Num_2:		// ARC 정위치 체크, 댄서 홈 동작 
+				P_ARC_Home_Check_RTN = 0;
+				call ARC_Motion_State_Function.ARC_Home_Check(&P_ARC_Home_Check_RTN)											// ARC 홈 상태 확인 함수 호출.
+				if( P_ARC_Home_Check_RTN == N_TRUE )
+				{
+					
+					if( P_PMAC_Homing_CHK(N_SERVO_DANCER) == 0 )																// 홈 체크 변수가 없다면 
+					{
+						P_System_Spool_Home_Ready_Pos_Cmd = F_Command_Start;													// 언와인더 풀어주는 모듈 시작
+						P_array_CF_Function_State_Number = N_PLC09_PackML_Dancer_Pre_Wait_Num;									// 선행동작 대기 스텟머신으로 이동
+					}
+					else
+						P_array_CF_Function_State_Number = N_PLC09_PackML_Num_3;												// 다음 스텝으로 이동
+				}
+				else
+				{
+					// ARC 매뉴얼 홈 필요 팝업
+					//P_SepaArcing_Popup_Flag = 1;
+					P_Suspend_ARC_Request_Flag = 0;																				// 수동으로 처리 
+					P_PMAC_Commands = F_Command_Stop;																			// ARC 홈 안되어있으면 사이클 스탑
+				}
+			break;									
+	//---------------Cascading 으로 인하여 Resetting 부분에서 처리 --------------------------------------//		
+			case N_PLC09_PackML_Dancer_Pre_Wait_Num:		// 세파 찢어짐 방지 선행 동작 대기 구간
+				if( P_System_Spool_Home_Ready_Pos_Complete_Flag == 1 )															// 선행 동작 완료
+				{
+					P_System_Spool_Home_Ready_Pos_Complete_Flag = 0;
+					P_Home_Command(N_SERVO_DANCER)= F_Command_Start;															// 댄서 홈 시작
+					P_PMAC_Homing_CHK(N_SERVO_DANCER) = 1;	// test 
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Dancer_Home_Wait_Num;										// 댄서 홈 대기 스텝으로 이동
+				}
+			break;
+
+			case N_PLC09_PackML_Dancer_Home_Wait_Num:		// 세파 찢어짐 방지 댄서 호밍 대기 구간
+				if( P_PMAC_Homing_CHK(N_SERVO_DANCER) == 1 )																	// 홈 완료
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_3;													// 다음 스텝으로 이동
+			break;
+	// ------------------------------------------------------------------------------------------------//
+		case N_PLC09_PackML_Num_3:		// 초기화 필요 부분 초기화
+			P_Master_Motion_Program_Flag = 0;																					// 마스터 모션 Flag OFF 
+			P_Master_Motion_CycleStop_Flag = 0;																					// 마스터 모션 사이클 정지 플래그 초기화
+			
+			call Sub_Common_Function.Timbase_OFF(&P_Common_Function_Timbase_OFF_Complete_Bit);									// 타임베이스 해제
+			if( P_Common_Function_Timbase_OFF_Complete_Bit == N_TRUE )
+			{
+				P_Common_Function_Timbase_OFF_Complete_Bit = 0;
+				if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )													// 드라이런이 아닐때
+				{
+					P_System_Cascading_ON_Cmd = F_Command_Start;																// 케스케이딩 커맨드 
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_4;													// 다음 스텝으로 이동
+				}
+				else																											// 드라이런 이라면
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_5;													// 5번 스텝으로 이동
+			}
+		break;
+
+		case N_PLC09_PackML_Num_4:		// 케스케이딩 완료 확인
+			if( P_System_Cascading_ON_Complete_Flag == 1 )																		// 케스케이딩 완료 확인 
+			{
+				P_System_Cascading_ON_Complete_Flag = 0;																		// 플래그 초기화
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_5;														// 다음 스텝으로 이동
+			}
+		break;
+
+		case N_PLC09_PackML_Num_5:		// [ 참 조 : 2025.11.04 Vision, EPC, Sheetpaper Home check 추가 ]
+			
+			if( P_Stack_Judgement_Memory != N_TRUE )
+			{
+				if( P_PMAC_Homing_CHK(N_SHEET_PAPER_X) == 0 )						// 홈 체크변수가 없다면
+				{
+					P_Home_Command(N_SHEET_PAPER_X) = F_Command_Start;
+				}
+				// else 진공 흡착 신호가 없다면 어떻게 처리할지 생각필요
+			}
+			else
+			{
+				// 적층중인데 시트페이퍼 홈 체크변수가 없다? 이거 어마무시한 일이 생긴거임...
+			}
+			P_array_CF_Function_State_Number = N_PLC09_PackML_Num_6;	
+		break;
+
+		case N_PLC09_PackML_Num_6:		// [ 참 조 : 2025.11.04 Vision, EPC, Sheetpaper Home check 추가 ]
+			if( P_PMAC_Homing_CHK(N_STACK_VISION) == 0 )
+				P_Home_Command(N_STACK_VISION) = F_Command_Start;
+			
+			if( P_PMAC_Homing_CHK(N_EPC_SENSOR) == 0 )
+				P_Home_Command(N_EPC_SENSOR) = F_Command_Start;
+
+			P_array_CF_Function_State_Number = N_PLC09_PackML_Num_7;
+		break;
+
+		case N_PLC09_PackML_Num_7:		// [ 참 조 : 2025.11.04 Vision, EPC, Sheetpaper Home check 추가 ]
+			if( P_PMAC_Homing_CHK(N_STACK_VISION) & P_PMAC_Homing_CHK(N_SHEET_PAPER_X) & P_PMAC_Homing_CHK(N_EPC_SENSOR) )
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_8;
+		break;
+
+		// ( P_Modbus_B_All_Home_Status != F_Status_STARTING && P_Modbus_B_All_Home_Status != F_Status_EXECUTE )
+		case N_PLC09_PackML_Num_8:		// 모터 전체 홈 커맨드 및 EPC 수동 요청 DIO 처리
+		// [ 참조 : 2025.11.06 A열 B열 Home 인터락 ]
+		#ifdef F_Def_Stack_A			// A열일때
+			if( P_Modbus_B_Connect_State == N_Modbus_Enable )																			// 모드버스가 연결 되어 있다면
+			{
+				if( P_Modbus_B_PMAC_Cur_Mode == F_Current_Manual )																		// 매뉴얼 상태라면
+				{
+					if( P_Modbus_B_Anode_1st_Pos >= PnP_Belt_Waring_Pos && P_Modbus_B_Cathode_1st_Pos >= PnP_Belt_Waring_Pos )			// 반댓열 1차 PnP 위치가 안전 위치라면 → 안전 GPIO 신호도 여기서 같이 볼까?
+					{
+						if( P_Modbus_B_All_Home_Status != F_Status_STARTING && P_Modbus_B_All_Home_Status != F_Status_EXECUTE )			// 반댓열 홈 진행중이 아니라면
+						{
+							M_Y_EPC_Vertical_Panel_Manual_Signal = 0;																	// EPC 0 수동 1 자동 전환요청 DIO
+							P_AH_Home_Status = F_Status_IDLE;																			// 홈 상태 IDLE
+							P_Resetting_All_Home_Command = F_Command_Start;																// 전체 홈 커맨드 
+							P_array_CF_Function_State_Number = N_PLC09_PackML_Num_9;													// 다음 스텝으로 이동
+						}
+						else																											// 반댓열 홈 진행중일때
+						{
+							if( P_Modbus_B_Anode_1st_HCK == N_TRUE && P_Modbus_B_Cathode_1st_HCK == N_TRUE )							// 반댓열 1차 PnP 홈 체크가 되어 있다면 반댓열 1차 PnP가 벨트로 안올테니
+							{
+								M_Y_EPC_Vertical_Panel_Manual_Signal = 0;																// EPC 0 수동 1 자동 전환요청 DIO
+								P_AH_Home_Status = F_Status_IDLE;																		// 홈 상태 IDLE
+								P_Resetting_All_Home_Command = F_Command_Start;															// 전체 홈 커맨드 
+								P_array_CF_Function_State_Number = N_PLC09_PackML_Num_9;												// 다음 스텝으로 이동
+							}
+						}
+					}
+				}
+				else																													// 반댓열이 오토모드 즉 장비 가동을 한다고 생각
+				{
+					if( P_PMAC_Homing_CHK(N_1st_PnP_CA_T) == N_TRUE && P_PMAC_Homing_CHK(N_1st_PnP_AN_T) == N_TRUE )					// 본인열 1차 PnP 개별 홈이 확인 된다면 벨트로 안갈 테니
+					{
+						M_Y_EPC_Vertical_Panel_Manual_Signal = 0;																		// EPC 0 수동 1 자동 전환요청 DIO
+						P_AH_Home_Status = F_Status_IDLE;																				// 홈 상태 IDLE
+						P_Resetting_All_Home_Command = F_Command_Start;																	// 전체 홈 커맨드 	
+						P_array_CF_Function_State_Number = N_PLC09_PackML_Num_9;														// 다음 스텝으로 이동
+					}	
+				} 
+			}
+			else																														// B열 PMAC Power OFF or ERROR 상태
+			{
+				if( M_X_Cathode_1st_PNP_Collision_Detect_Sensor != N_TRUE && M_X_Anode_1st_PNP_Collision_Detect_Sensor != N_TRUE )		// GPIO 인터락 신호 둘다 감지 안되어있다면
+				{
+					M_Y_EPC_Vertical_Panel_Manual_Signal = 0;																			// EPC 0 수동 1 자동 전환요청 DIO
+					P_AH_Home_Status = F_Status_IDLE;																					// 홈 상태 IDLE
+					P_Resetting_All_Home_Command = F_Command_Start;																		// 전체 홈 시작
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_9;															// 다음 스텝으로 이동
+				}
+			}
+		#else							// B열일때
+			if( P_Modbus_A_Connect_State == N_Modbus_Enable )																			// 모드버스가 연결 되어 있다면
+			{
+				if( P_Modbus_A_PMAC_Cur_Mode == F_Current_Manual )																		// 매뉴얼 상태라면
+				{
+					if( P_Modbus_A_Anode_1st_Pos >= PnP_Belt_Waring_Pos && P_Modbus_A_Cathode_1st_Pos >= PnP_Belt_Waring_Pos )			// 반댓열 1차 PnP 위치가 안전 위치라면 → 안전 GPIO 신호도 여기서 같이 볼까?
+					{
+						if( P_Modbus_A_All_Home_Status != F_Status_STARTING && P_Modbus_A_All_Home_Status != F_Status_EXECUTE )			// 반댓열 홈 진행중이 아니라면
+						{
+							M_Y_EPC_Vertical_Panel_Manual_Signal = 0;																	// EPC 0 수동 1 자동 전환요청 DIO
+							P_AH_Home_Status = F_Status_IDLE;
+							P_Resetting_All_Home_Command = F_Command_Start;																// 전체 홈 커맨드 
+							P_array_CF_Function_State_Number = N_PLC09_PackML_Num_9;													// 다음 스텝으로 이동
+						}
+						else																											// 반댓열 홈 진행중일때
+						{
+							if( P_Modbus_A_Anode_1st_HCK == N_TRUE && P_Modbus_A_Cathode_1st_HCK == N_TRUE )							// 반댓열 1차 PnP 홈 체크가 되어 있다면 반댓열 1차 PnP가 벨트로 안올테니
+							{
+								M_Y_EPC_Vertical_Panel_Manual_Signal = 0;																// EPC 0 수동 1 자동 전환요청 DIO
+								P_AH_Home_Status = F_Status_IDLE;
+								P_Resetting_All_Home_Command = F_Command_Start;															// 전체 홈 커맨드 
+								P_array_CF_Function_State_Number = N_PLC09_PackML_Num_9;												// 다음 스텝으로 이동
+							}
+						}
+					}
+				}
+				else																													// 반댓열이 오토모드 즉 장비 가동을 한다고 생각
+				{
+					if( P_PMAC_Homing_CHK(N_1st_PnP_CA_T) == N_TRUE && P_PMAC_Homing_CHK(N_1st_PnP_AN_T) == N_TRUE )					// 본인열 1차 PnP 개별 홈이 확인 된다면 벨트로 안갈 테니
+					{
+						M_Y_EPC_Vertical_Panel_Manual_Signal = 0;																		// EPC 0 수동 1 자동 전환요청 DIO
+						P_AH_Home_Status = F_Status_IDLE;																				// 홈 상태 IDLE
+						P_Resetting_All_Home_Command = F_Command_Start;																	// 전체 홈 커맨드 	
+						P_array_CF_Function_State_Number = N_PLC09_PackML_Num_9;														// 다음 스텝으로 이동
+					}	
+				} 
+			}
+			else																														// B열 PMAC Power OFF or ERROR 상태
+			{
+				if( M_X_Cathode_1st_PNP_Collision_Detect_Sensor != N_TRUE && M_X_Anode_1st_PNP_Collision_Detect_Sensor != N_TRUE )		// GPIO 인터락 신호 둘다 감지 안되어있다면
+				{
+					M_Y_EPC_Vertical_Panel_Manual_Signal = 0;																			// EPC 0 수동 1 자동 전환요청 DIO
+					P_AH_Home_Status = F_Status_IDLE;																					// 홈 상태 IDLE
+					P_Resetting_All_Home_Command = F_Command_Start;																		// 전체 홈 시작
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_9;															// 다음 스텝으로 이동
+				}
+			}
+		#endif															
+		break;
+
+		case N_PLC09_PackML_Num_9:		// 전체 홈 완료 확인 후 가상축 서보 온
+			if( P_AH_Home_Status == F_Status_COMPLETE )																			// 전체 홈 완료 되었다면
+			{
+				//call Sub_Common_Function.Virtual_Servo_On();																	// 가상축 서보 온 함수 호출
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_10;														// 다음 스텝으로 이동
+			}
+		break;
+
+		case N_PLC09_PackML_Num_10:		// 가상축 서보 온 확인
+			L_PLC09_Manual_Resetting_RTN = 0; 
+			call Sub_Common_Function.Virtual_Servo_On_Chk(&L_PLC09_Manual_Resetting_RTN);										// 가상축 서보 온 체크 함수 호출
+			//if( L_PLC09_Manual_Resetting_RTN == N_TRUE )																		// 리턴값이 참이라면	
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_11;														// 다음 스텝으로 이동
+			
+			//else																												// 리턴값이 거짓이라면
+			//	P_PMAC_Commands = F_Command_Stop;																				// 사이클 스탑	
+		break;
+
+		case N_PLC09_PackML_Num_11:		// Suspend & Hold & Execute 초기화 부분
+			
+			call Discharge_Sub_Prog.Interface_Init();																			// PMAC → PLC Interface 초기화.
+			
+			call Discharge_Sub_Prog.Module_Init();																				// Discharge Module 초기화.
+			P_array_CF_Function_State_Number = N_PLC09_PackML_Num_12;
+		break;
+
+		case N_PLC09_PackML_Num_12:		// MSA 변수 초기화
+				P_VISION_MSA_Status = 0;																						// 상태 초기화
+				P_VISION_MSA_Seq_Index = 0;																						// 인덱스 초기화	
+				P_Align_Take_Off_Status = 0;																						// 상태 초기화
+				P_Align_Take_Off_Seq_Index = 0;																						// 인덱스 초기화																				// 인덱스 초기화
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_13;														// 다음 스텝으로 이동
+		break;
+
+		case N_PLC09_PackML_Num_13:		// 위치 메모리 ON
+			P_Memory_Tower_Search_Flag = 1;																						// 설비 위치 업데이트 플래그 on
+			P_MemTow_integrated_return = 0;															
+			L_PLC09_Manual_Resetting_Timer = 0;
+			/*
+				세파 라인 추가 필요
+			*/
+			P_array_CF_Function_State_Number = N_PLC09_PackML_Num_14;															// 다음 스텝으로 이동
+		break;
+
+		case N_PLC09_PackML_Num_14:		// 위치 메모리 확인 후 종료
+			if( L_PLC09_Manual_Resetting_Timer > 100 )
+			{
+				if( P_Unit_integrated_Status == F_Equipment_Initial_Ready_Pos || P_Unit_integrated_Status == F_Equipment_Anode_Side_Pos || P_Unit_integrated_Status == F_Equipment_Cathode_Side_Pos || P_Unit_integrated_Status == F_First_Sepa_On_Pos || P_Unit_integrated_Status == F_Equipment_Isenable_Discharge_Pos || P_Unit_integrated_Status == F_Equipment_Frist_Sepa_Stop_Pos )				
+				{
+					P_array_CF_Function_Run_Flag = 2;																				// 서브프로그램 완료
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_0;														// 스텟머신 초기화
+				}
+				else
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_13;														// 위치메모리 새로 읽기
+			}
+		break;
+		}
+
+	}
+	//-----------------------------------------------------------------------------------------------------
+//------------------------------------------------------------
+// 3) 서브프로세스 프로그램 정상종료 및 알람 확인 상태부 ( Observe )
+//------------------------------------------------------------	
+	// 3-1) 정상 종료 표시.		
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag == 2 )
+	{
+		// 프로그램이 정상 종료되어 반환을 알림
+		P_array_CF_Function_Return_Flag = 1;
+	
+	}
+	// 3-2) 서브프로세스 프로그램 무한루프 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Time > N_Time_Over_Value )
+	{
+		// 서브프로그램이 무한루프 상태이므로 알람 발생
+		// call Alarm
+	}
+	// 3-3) 서브프로세스 프로그램 내부 문제 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Local_Alarm_Code != 0 )
+	{
+		// 서브 프로그램에서 문제가 생겨서 알람이 발생
+		// call Alarm
+	}		
+}
+//=========================================================================================================================
+//	02.2 MANUAL-STOPPING
+//=========================================================================================================================
+IF ( P_array_CF_Mode_Name == F_Current_Manual && P_PMAC_Status == F_Status_STOPPING )
+{	
+//------------------------------------------------------------
+// 1) 서브프로세스 프로그램 명령부
+//------------------------------------------------------------	
+	IF( P_array_CF_Function_Start_Flag == 0 && P_array_CF_Function_Run_Flag == 0 && P_array_CF_Function_Return_Flag == 0 )	// 프로그램 허용 플래그 (스타트,런,리턴 함수 플래그 모두 초기화 되었는지 확인.)
+	{	
+		P_array_CF_Function_Start_Flag = 1;																					// 서브 프로그램 진입 플래그
+		P_array_CF_Function_State_Number = N_PLC09_PackML_Num_1;															// 서브 프로그램 스텟머신 활성화
+	}
+	
+//------------------------------------------------------------
+// 2) 서브프로세스 프로그램 실행부
+//-----------------------------------------------------------			
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag < 2 )
+	{
+		switch( P_array_CF_Function_State_Number )
+		{
+			case N_PLC09_PackML_Num_0: break;
+			
+			case N_PLC09_PackML_Num_1:		// 매뉴얼-스타핑 시작
+				P_array_CF_Function_Run_Flag = 1;																			// 서브 프로그램이 시작을 알림
+				
+				P_Stop_Save_RTN(0),4 = 0;	// 디버깅 프로그램 반환값 초기화.	[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
+				P_Stop_Debug_Flag = 1;		// 디버깅 프로그램 실행.
+				
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;													// 다음 스텝으로 이동
+			break;
+
+			case N_PLC09_PackML_Num_2:		// MSA 미동작 및 종료 확인
+				if( P_VISION_MSA_Status == F_Status_EXECUTE || P_VISION_MSA_Status_Prod_Sequence(N_PLC21_VISION_MSA) == F_Status_STARTING || P_Align_Take_Off_Status == F_Status_EXECUTE || P_Align_Take_Off_Status_Prod_Sequence(N_PLC21_Align_Take_Off) == F_Status_STARTING )		// MSA 실행중이라면 Stop point 까지 대기
+				{}
+				else
+				{
+					if( P_Suspend_Discharge_Module_Status != F_Status_EXECUTE )														// 배출 진행 중이 아닐 경우 모션 프로그램 종료. [ 참조 : 25.07.18 배출 프로그램 조건 수정 ]
+					{
+						/*
+							Sepa Line 유저들 필요시 넣으세요
+							Comp_Disable = 1;
+						*/
+						if ( P_Stop_Save_Total_RTN )	// 디버깅 프로그램 실행 확인.	[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
+						P_array_CF_Function_State_Number = N_PLC09_PackML_Num_3;													// 다음 스텝으로 이동
+					}
+				}
+			break;
+
+			case N_PLC09_PackML_Num_3:		// 모션 프로그램 OFF
+				call Sub_Common_Function.Master_Motion_Program_OFF(&P_Master_Motion_Program_OFF_Complete_Bit);
+				if( P_Master_Motion_Program_OFF_Complete_Bit == N_TRUE )
+				{
+					P_Master_Motion_Program_OFF_Complete_Bit = 0;
+					// 배출 I/O 초기화
+					L_PLC09_Manual_Stopping_RTN = 0;
+					call Discharge_Sub_Prog.Discharge_PackML_Reset(&L_PLC09_Manual_Stopping_RTN);
+					if( L_PLC09_Manual_Stopping_RTN == N_TRUE )
+					{
+						P_array_CF_Function_State_Number = N_PLC09_PackML_Num_4;
+					}
+				}
+			break;
+
+			case N_PLC09_PackML_Num_4:
+				call Sub_Common_Function.Timbase_OFF(&P_Common_Function_Timbase_OFF_Complete_Bit);									// 타임베이스 해제
+				if( P_Common_Function_Timbase_OFF_Complete_Bit == N_TRUE )
+				{
+					// Spool 좌표계 잡아야함. Spool 타임베이스 맞춰야 조그 속도 가능함
+					P_Common_Function_Timbase_OFF_Complete_Bit = 0;
+					Coord[1].DesTimeBase = Sys.ServoPeriod * ( 100 / 100 );
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_5;
+				}
+			break;
+
+			case N_PLC09_PackML_Num_5:		// 홈 정지 명령 추가 
+				if( P_AH_Home_Status == F_Status_Nonseatus || P_AH_Home_Status == F_Status_COMPLETE )
+				{
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_7;
+				}
+				else
+				{
+					// [ 참조 : 2025.08.18 홈 시퀀스 스탑 보안 ]
+					P_Resetting_All_Home_Command = F_Command_Stop;							
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_6;
+				}
+			break;
+
+			case N_PLC09_PackML_Num_6:		// 홈 정지 명령 추가 
+				if( P_AH_Home_Status == F_Status_STOPPED )
+				{ 
+					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_7;
+				}
+			break;
+
+			case N_PLC09_PackML_Num_7:		// Stopping 종료
+				P_array_CF_Function_Run_Flag = 2;																				// 종료 
+				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_0;
+			break;
+			
+	
+		}
+	}
+//------------------------------------------------------------
+// 3) 서브프로세스 프로그램 정상종료 및 알람 확인 상태부 ( Observe )
+//------------------------------------------------------------	
+	// 3-1) 정상 종료 표시.		
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag == 2 )
+	{
+		// 프로그램이 정상 종료되어 반환을 알림
+		P_array_CF_Function_Return_Flag = 1;
+	
+	}
+	// 3-2) 서브프로세스 프로그램 무한루프 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Time > N_Time_Over_Value )
+	{
+		// 서브프로그램이 무한루프 상태이므로 알람 발생
+		// call Alarm
+	}
+	// 3-3) 서브프로세스 프로그램 내부 문제 알람.
+	IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Local_Alarm_Code != 0 )
+	{
+		// 서브 프로그램에서 문제가 생겨서 알람이 발생
+		// call Alarm
+	}		
+}
+
+
+//IF ( P_PLC09_Init_Flag == 1)
+//{
+//	P_PLC09_Init_Flag = 0;
+//	P_PLC09_Status = 0;
+//	P_Check_IDLE_CF = 0;
+//    P_Check_EXECUTE_CF = 0;
+//    P_Check_COMPLETING_CF = 0;
+//    P_Check_COMPLETE_CF = 0;
+//    P_Check_HOLDING_CF = 0;
+//    P_Check_HOLD_CF = 0;
+//    P_Check_UNHOLDING_CF = 0;
+//    P_Check_SUSPENDING_CF = 0;
+//    P_Check_SUSPENDED_CF = 0;
+//    P_Check_UNSUSPENDING_CF = 0;
+//    P_Check_STOPPED_CF = 0;
+//    P_Check_ABORTED_CF = 0;
+//    P_Check_CLEARING_CF = 0;
+//    P_Check_STOPPING_CF = 0;
+//    P_Check_STARTING_CF = 0;
+//	P_Master_Motion_Program_ON_Flag = 0;								
+//    P_Master_Motion_Program_ON_Complete_Bit = 0;						    
+//    P_Master_Motion_Program_OFF_Flag = 0;								
+//    P_Master_Motion_Program_OFF_Complete_Bit = 0;						    																	
+//    P_Common_Function_Timbase_ON_Flag = 0;								
+//    P_Common_Function_Timbase_ON_Complete_Bit = 0;						   																	
+//    P_Common_Function_Timbase_OFF_Flag = 0;								
+//    P_Common_Function_Timbase_OFF_Complete_Bit = 0;						    																	
+//    P_Common_Function_Monitoring_Lamp_OFF_Flag = 0;						
+//    P_Common_Function_Monitoring_Lamp_OFF_Complete_Bit = 0;				   																	
+//    P_Common_Function_Slave_Motion_Common_Init_Flag = 0;				
+//    P_Common_Function_Slave_Motion_Common_Init_Complete_Bit = 0;		   																	
+//    P_Common_Function_OlD_Jog_Speed_Save_ON_Flag = 0;					
+//    P_Common_Function_OlD_Jog_Speed_Save_ON_Complete_Bit = 0;																				
+//    P_Auto_Resetting_Sum_Ready_Pos_Check_Flag = 0;						
+//    P_Auto_Resetting_Sum_Ready_Pos_Check_Complete_bit = 0;																					
+//    P_Manual_Resetting_Sum_Ready_Pos_Check_Flag = 0;					
+//    P_Manual_Resetting_Sum_Ready_Pos_Check_Complete_bit = 0;			    																	
+//    P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Flag = 0;			
+//    P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Complete_Bit = 0;	    																	
+//    P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Flag = 0;			
+//    P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Complete_Bit = 0;	
+//}	
+
+
+P_MNTR_PLC9_Task_Time(1) = (Sys.Time - P_MNTR_PLC9_Task_Time(0))*N_Task_Scale;	
+	
+
+IF ( P_MNTR_PLC9_Task_Time(1) > P_MNTR_PLC9_Task_Max_Time )
+{
+	P_MNTR_PLC9_Task_Max_Time = P_MNTR_PLC9_Task_Time(1);
+}
+
+close
+
+
+
+
+

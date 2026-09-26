@@ -1,0 +1,77 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.10 김준수 선임
+// 모듈화 Cycle Stop  [ 2025.07.11 Cycle Stop 추가 ]
+// Cycle Stop Global & Define ===========================================================================
+
+//1. 모듈화 Define 선언
+#define N_CycleStop_Module				11			// P_EXECUTE_Status_Prod_Sequence(N_CycleStop_Module)
+
+#define N_SEQ_CycleStop_No_1		1
+#define N_SEQ_CycleStop_No_2		2
+#define N_SEQ_CycleStop_No_3		3
+#define N_SEQ_CycleStop_No_4		4
+#define N_SEQ_CycleStop_No_5		5
+#define N_SEQ_CycleStop_No_6		6
+#define N_SEQ_CycleStop_No_7		7
+#define N_SEQ_CycleStop_No_8		8
+#define N_SEQ_CycleStop_No_9		9
+#define N_SEQ_CycleStop_No_10		10
+
+// 모듈화 Action Define 선언
+#define	N_CycleStop_1st_Action			1
+#define N_CycleStop_2nd_Action			2
+#define N_CycleStop_3rd_Action			3
+#define N_CycleStop_4th_Action			4
+#define	N_CycleStop_5th_Action			5
+#define	N_CycleStop_6th_Action			6
+#define N_CycleStop_7th_Action			7
+#define	N_CycleStop_8th_Action			8
+#define	N_CycleStop_9th_Action			9
+#define N_CycleStop_10th_Action			10
+
+// 리턴 함수 Define 
+#define N_PLC15_CycleStop_Set_Seq_Occurs_RTN				100
+#define N_PLC15_CycleStop_Manage_Get_RTN					101
+#define N_PLC15_CycleStop_Exe_Seq_RTN						102
+#define N_PLC15_CycleStop_Pre_Seq_Complete_RTN				103
+
+#define N_Com_Master_Motion_Program_OFF_Complete_RTN		50
+#define N_Com_Timbase_OFF_Complete_RTN						51
+#define N_Com_Slave_Motion_Common_Init_Complete_RTN			52
+#define N_Com_Timbase_OFF_Check_Complete_RTN				53
+#define N_Stop_Cathode_Anode_1st_Z_Ready_Move_RTN			54
+#define N_Stop_Cathode_Anode_1st_Z_Ready_Move_Check_RTN		55
+#define N_Stop_Cathode_Anode_1st_T_Ready_Move_RTN			56
+#define N_Stop_Cathode_Anode_1st_T_Ready_Move_Check_RTN		57
+#define	N_Stop_Cathode_Anode_NG_PNP_Z_Ready_Move_RTN		58
+#define N_Stop_Cathode_Anode_NG_PNP_Z_Ready_Move_Check_RTN	59
+#define N_Stop_Cathode_Anode_NG_PNP_T_Ready_Move_RTN		60
+#define	N_Stop_Cathode_Anode_NG_PNP_T_Ready_Move_Check_RTN	61
+#define N_Stop_Cathode_Anode_2nd_Z_Ready_Move_RTN			62
+#define N_Stop_Cathode_Anode_2nd_Z_Ready_Move_Check_RTN		63
+#define N_Stop_Cathode_Anode_2nd_T_Ready_Move_RTN			64
+#define N_Stop_Cathode_Anode_2nd_T_Ready_Move_Check_RTN		65
+#define N_Stop_CycleStop_Motor_Original_Speed_RTN			66
+#define N_Stop_CycleStop_Motor_New_Speed_RTN				67
+															
+// 2. 모듈화 필요 Global 
+global P_Stopping_CycleStop_Status = 0;						// 시퀀스 실행 상태
+global P_Stopping_CycleStop_Seq_Index = 0;					// Cycle Stop 시퀀스 인덱스
+global P_Stopping_CycleStop_Precondition_Seq_Index = 0;		// precondition 시퀀스 인덱스
+global P_Stopping_CycleStop_Module_Status = 0;				// Cycle Stop 진행 상태
+global P_Stopping_CycleStop_Cmd = 0;						// cycle stop cmd
+global P_Stopping_CycleStop_State_Machine = 0;				// State Machine
+global P_Buffer_Seqdata_CycleStop_Array(N_STEP_END)			// Cycle Stop 인덱스 저장 버퍼
+P_Buffer_Seqdata_CycleStop_Array(0),N_STEP_END = 0;
+
+global P_Stopping_CycleStop_Act_State_Machine(N_CycleStop_Module)	// act state machine
+P_Stopping_CycleStop_Act_State_Machine(0),N_CycleStop_Module = 0;
+ 
+//=======================================================================================================
+
+
+// MSA Global & Define ==================================================================================
+
+//=======================================================================================================

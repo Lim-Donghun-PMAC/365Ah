@@ -1,0 +1,2662 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.04 임동훈 선임
+// 모듈화 프로그래밍 진행 (배출) - [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+// 25.06.04 김형진 책임
+// 모듈화 프로그래밍 진행 (ARC) - [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+// 26.03.25 박성민 책임
+// 배출 인덱스 최적화 - [ 참조 : 26.03.25 동작 인덱스 간소화 ] 
+// 26.03.27 
+// 일반모드 진행을 위한 리뉴얼 작업 진행 - [ 참조 : 26.03.27 일반모드 진행을 위한 리뉴얼 작업 진행] 	
+open subprog Sub_Automatic_Prod_Sequnce(void)
+			 
+
+// [ 참고 : 240702 모드별 시퀀스 추가]
+// 1) Search    -  검색창에 Search 만 검색하시면 ↓ 하단부 함수 Start 부분 쉽게 찾기 가능
+//-------------------------------------------------------------------------------
+// [Set]					// [Execute]					//  [Precondition]	
+//-------------------------------------------------------------------------------
+// Set_Discharge			// Execute_Discharge			//	Precondition_Discharge	
+// Set_ARC					// Execute_ARC					//	Precondition_ARC
+// Set_An_1TR_Supply		// Execute_An_1TR_Supply		//	Precondition_An_1TR_Supply
+// ------------------------------------------------------------------------------------------------------------------------------------ //
+
+
+	sub:Set_Mode(Machine_Mode,&rtn)	// 24.07.05 시퀀스별 모드분류작업 _각 Seq별 모드설정 서브함수.	
+
+		//P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module) =  P_Buffer_Mode_Module_Status_Sequence(N_STEP_Machine);		
+				
+		rtn = N_TRUE;
+
+	return
+
+//========================================================//
+// 1.1) Set_Discharge
+//========================================================//
+	sub:Set_Discharge(Mode,&Set_Discharge_rtn)
+
+		//=========================================//
+		// 1.0)Init
+		//=========================================//
+		//P_Act_Complete_Bit(N_Act_FW_Mandrel_P1),(N_Act_BW_Cathode_FR_Clutch - N_Act_Rotor_Holder_FWD + 1 ) = 0; // 7 ~ 31			 
+		P_Act_Complete_Bit(0),N_Act_Define_Limit = 0;
+		Set_Discharge_rtn = 0;	
+
+		switch(Mode)
+		{
+			// 1.1) 일반 생산 모드 
+			case N_Normal_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Discharge_Array(0)  = Mode;								// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Discharge_Array(1)  = N_SEQ_Normal_Discharge_No_1;			// 2) 배출 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(2)  = N_SEQ_Normal_Discharge_No_2;			// 3) 배출 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Discharge_Array(3)  = N_SEQ_Normal_Discharge_No_3;			// 4) 배출 - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Discharge_Array(4)  = N_SEQ_Normal_Discharge_No_4;			// 5) 배출 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(5)  = N_SEQ_Normal_Discharge_No_5;			// 6) 배출 - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(6)  = N_SEQ_Normal_Discharge_No_6;			// 7) 배출 - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(7)  = N_SEQ_Normal_Discharge_No_7;         // 8) 배출 - 일반 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(8)  = N_SEQ_Normal_Discharge_No_8;         // 9) 배출 - 일반 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(9)  = N_SEQ_Normal_Discharge_No_9;         // 10) 배출 - 일반 모드 || 아홉번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(10) = N_SEQ_Normal_Discharge_No_10;        // 11) 배출 - 일반 모드 || 열번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(11) = N_SEQ_Normal_Discharge_No_11;        // 12) 배출 - 일반 모드 || 열하나번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(12) = N_SEQ_Normal_Discharge_No_12;        // 13) 배출 - 일반 모드 || 열둘번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(13) = N_SEQ_Normal_Discharge_No_13;        // 14) 배출 - 일반 모드 || 열세번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(14) = N_SEQ_Normal_Discharge_No_14;        // 15) 배출 - 일반 모드 || 열네번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(15) = N_SEQ_Normal_Discharge_No_15;        // 16) 배출 - 일반 모드 || 열다섯번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(16) = N_SEQ_Normal_Discharge_No_16;        // 17) 배출 - 일반 모드 || 열여섯번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(17) = N_SEQ_Normal_Discharge_No_17;		// 18) 배출 - 일반 모드 || 열일곱번째 시퀀스
+
+				P_Buffer_Seqdata_Discharge_Array(18) = N_COMPLETE;							// 19) 배출 - 일반 모드 || 시퀀스 완료 체크
+
+				Set_Discharge_rtn = N_TRUE;
+			break;
+
+			// 1.2) 세파 모드
+			case N_Sepa_Consume_Status_Sequence :
+
+				// 1.2.1 시퀀스 배열
+				P_Buffer_Seqdata_Discharge_Array(0)  = Mode;								// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Discharge_Array(1)  = N_SEQ_Sepa_Discharge_No_1;			// 2) 배출 - 세파 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(2)  = N_SEQ_Sepa_Discharge_No_2;			// 3) 배출 - 세파 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Discharge_Array(3)  = N_SEQ_Sepa_Discharge_No_3;			// 4) 배출 - 세파 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Discharge_Array(4)  = N_SEQ_Sepa_Discharge_No_4;			// 5) 배출 - 세파 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(5)  = N_SEQ_Sepa_Discharge_No_5;			// 6) 배출 - 세파 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(6)  = N_SEQ_Sepa_Discharge_No_6;			// 7) 배출 - 세파 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(7)  = N_SEQ_Sepa_Discharge_No_7;			// 8) 배출 - 세파 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(8)  = N_SEQ_Sepa_Discharge_No_8;			// 9) 배출 - 세파 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(9)  = N_SEQ_Sepa_Discharge_No_9;			// 10) 배출 - 세파 모드 || 아홉번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(10) = N_SEQ_Sepa_Discharge_No_10;			// 11) 배출 - 세파 모드 || 열번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(11) = N_SEQ_Sepa_Discharge_No_11;			// 12) 배출 - 세파 모드 || 열하나번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(12) = N_SEQ_Sepa_Discharge_No_12;			// 13) 배출 - 세파 모드 || 열둘번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(13) = N_SEQ_Sepa_Discharge_No_13;			// 14) 배출 - 세파 모드 || 열세번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(14) = N_SEQ_Sepa_Discharge_No_14;			// 15) 배출 - 세파 모드 || 열네번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(15) = N_SEQ_Sepa_Discharge_No_15;			// 16) 배출 - 세파 모드 || 열다섯번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(16) = N_SEQ_Sepa_Discharge_No_16;			// 17) 배출 - 세파 모드 || 열여섯번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(17) = N_SEQ_Sepa_Discharge_No_17;			// 18) 배출 - 일반 모드 || 열일곱번째 시퀀스
+
+				P_Buffer_Seqdata_Discharge_Array(18) = N_COMPLETE;							// 19) 배출 - 일반 모드 || 시퀀스 완료 체크
+
+				Set_Discharge_rtn = N_TRUE;
+			break;
+
+			// 1.3)  드라이런 모드
+			case N_Dryrun_Status_Sequence :
+				// 1.3.1 시퀀스 배열
+				P_Buffer_Seqdata_Discharge_Array(0)  = Mode;								// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Discharge_Array(1)  = N_SEQ_DryRun_Discharge_No_1;			// 2) 배출 - 드라이런 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(2)  = N_SEQ_DryRun_Discharge_No_2;			// 3) 배출 - 드라이런 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Discharge_Array(3)  = N_SEQ_DryRun_Discharge_No_3;			// 4) 배출 - 드라이런 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Discharge_Array(4)  = N_SEQ_DryRun_Discharge_No_4;			// 5) 배출 - 드라이런 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(5)  = N_SEQ_DryRun_Discharge_No_5;			// 6) 배출 - 드라이런 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(6)  = N_SEQ_DryRun_Discharge_No_6;			// 7) 배출 - 드라이런 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(7)  = N_SEQ_DryRun_Discharge_No_7;			// 8) 배출 - 드라이런 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(8)  = N_SEQ_DryRun_Discharge_No_8;			// 9) 배출 - 드라이런 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(9)  = N_SEQ_DryRun_Discharge_No_9;			// 10) 배출 - 드라이런 모드 || 아홉번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(10) = N_SEQ_DryRun_Discharge_No_10;		// 11) 배출 - 드라이런 모드 || 열번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(11) = N_SEQ_DryRun_Discharge_No_11;		// 12) 배출 - 드라이런 모드 || 열하나번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(12) = N_SEQ_DryRun_Discharge_No_12;		// 13) 배출 - 드라이런 모드 || 열둘번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(13) = N_SEQ_DryRun_Discharge_No_13;		// 14) 배출 - 드라이런 모드 || 열세번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(14) = N_SEQ_DryRun_Discharge_No_14;		// 15) 배출 - 드라이런 모드 || 열네번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(15) = N_SEQ_DryRun_Discharge_No_15;		// 16) 배출 - 드라이런 모드 || 열다섯번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(16) = N_SEQ_DryRun_Discharge_No_16;		// 17) 배출 - 드라이런 모드 || 열여섯번째 시퀀스
+				P_Buffer_Seqdata_Discharge_Array(17) = N_SEQ_DryRun_Discharge_No_17;		// 18) 배출 - 일반 모드 || 열일곱번째 시퀀스
+
+				P_Buffer_Seqdata_Discharge_Array(18) = N_COMPLETE;							// 19) 배출 - 일반 모드 || 시퀀스 완료 체크
+
+				Set_Discharge_rtn = N_TRUE;
+			break;
+		}
+
+	return
+
+
+//===========================================================================//
+// 1.2) Management - 시퀀스 실행 관리 함수 _ 인덱스에 맞는 동작 가져오기
+//===========================================================================//
+	sub:Management_Discharge(Mode,Index,&data,&Manage_Discharge_RTN)
+		
+		Manage_Discharge_RTN = 0;
+		//if ( P_Buffer_Seqdata_Discharge_Array(0) == Mode )					// 1) 실행 전 모드 체크
+		//{																	
+			if ( P_Buffer_Seqdata_Discharge_Array(Index) == N_COMPLETE )	// 1.1) 인덱스 배열값이 완료 일 경우
+			{																 
+				data = N_COMPLETE;											// 1.1.1) 데이터 완료값 반환
+				Manage_Discharge_RTN = N_EXCEPT;												// 1.1.2) 예외값 반환
+			}																
+			else if ( P_Buffer_Seqdata_Discharge_Array(Index) != 0 )		// 1.1.3) 완료도 아니고 0값도 아닐 경우
+			{																 
+				data = P_Buffer_Seqdata_Discharge_Array(Index);				// 1.1.4) 인덱스 배열값 반환
+				Manage_Discharge_RTN = N_TRUE;												// 1.1.5) True 반환
+			}																
+			else															
+			{																
+				data = 0;													// 1.1.6) 인덱스 배열값 0값 반환
+				Manage_Discharge_RTN = N_FALSE;												// 1.1.7) False  반환
+			}															
+		//}
+
+	return
+
+//===========================================================================//
+// 1.3) Execute_Discharge - 동작
+//===========================================================================//
+	sub:Execute_Discharge(Mode,data,&EXE_Discharge_RTN) 
+
+		EXE_Discharge_RTN = 0;
+		switch( Mode )	// 모드구분.
+		{
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Normal_Status_Sequence :		
+				switch(data)	// 시퀀스구분.
+				{		
+					// 1. [ 배출모듈_ 일반 모드 ]
+					case N_SEQ_Normal_Discharge_No_1:	// 1. [ 일반 생산 모드 ] 
+						P_Module_Act_Command_Array(N_Act_FR_Clamp_OFF)						= F_ACT_STATUS_ENABLE;		// 1. 파이널 롤러 클램프 OFF - (HOST ID + NG Code + JR 업데이트)	 				
+						// [ 참조 : 260420 SUSPEND 배출 시, 얼라인 재보정 기능 추가 ]
+						//P_Module_Act_Command_Array(N_Act_Ca_Align_Retry_Cal)				= F_ACT_STATUS_ENABLE;		// 2. 양극 얼라인 재보정		26.05.19 얼라인 재보정 주석
+						//P_Module_Act_Command_Array(N_Act_An_Align_Retry_Cal)				= F_ACT_STATUS_ENABLE;		// 3. 음극 얼라인 재보정
+
+						EXE_Discharge_RTN = N_TRUE;		
+		
+					break;		
+		
+					// 2. [ 배출모듈_ 일반 모드 ]		350ms
+					case N_SEQ_Normal_Discharge_No_2:	// 2. [ 일반 생산 모드 ]						
+						P_Module_Act_Command_Array(N_Act_FR_Discharge_Pos)					= F_ACT_STATUS_ENABLE;		// 1. 파이널 롤러 배출 위치. 200ms
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Grip_OFF)			= F_ACT_STATUS_ENABLE;		// 2. 1차 언로더 언그립.
+						P_Module_Act_Command_Array(N_Act_First_Unloader_UP)					= F_ACT_STATUS_ENABLE;		// 3. 1차 언로더 상승 - 스텍 위치 이동. 200ms
+		
+						EXE_Discharge_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ 배출모듈_ 일반 모드 ]		501ms
+					case N_SEQ_Normal_Discharge_No_3:	// 3. [ 일반 생산 모드 ] 		
+						P_Module_Act_Command_Array(N_Act_First_Unloader_FWD)				= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 전진 - 스텍 진입 이동. 500ms
+						P_Module_Act_Command_Array(N_Act_Sheet_Paper_BWD)					= F_ACT_STATUS_ENABLE;		// 2. Sheet Paper 후진.			100ms
+						P_Module_Act_Command_Array(N_Act_FR_Clamp_ON) = F_ACT_STATUS_ENABLE		
+						P_Module_Act_Command_Array(N_Act_Sepa_Cutter_Heating)				= F_ACT_STATUS_ENABLE;		// 2. 세파 커터 열선 ON.	
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 4. [ 배출모듈_ 일반 모드 ]		51ms
+					case N_SEQ_Normal_Discharge_No_4:	// 4. [ 일반 생산 모드 ] 
+		
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Grip_Cell_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 셀 부착 위치 이동.	50ms
+		
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 5. [ 배출모듈_ 일반 모드 ]		102ms
+					case N_SEQ_Normal_Discharge_No_5:	// 5. [ 일반 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Grip_ON)			= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 배출 그립 ON.
+						//P_Module_Act_Command_Array(N_Act_Sheet_Paper_BWD)					= F_ACT_STATUS_ENABLE;		// 2. Sheet Paper 후진.			100ms
+
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 6. [ 배출모듈_ 일반 모드 ]		104ms
+					case N_SEQ_Normal_Discharge_No_6:	// 6. [ 일반 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_Cathode_Clamp_OFF)					= F_ACT_STATUS_ENABLE;		// 1. 양극 클램프 OFF.
+
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 7. [ 배출모듈_ 일반 모드 ]		0ms
+					case N_SEQ_Normal_Discharge_No_7:	// 7. [ 일반 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_FR_Clamp_ON)						= F_ACT_STATUS_ENABLE;		// 1. 파이널 롤러 클램프.
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 8. [ 배출모듈_ 일반 모드 ]		0ms
+					case N_SEQ_Normal_Discharge_No_8:	// 8. [ 일반 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_Sepa_Cutter_Cylinder_FWD)			= F_ACT_STATUS_ENABLE;		// 1. 세파 커터 전진 
+						P_Module_Act_Command_Array(N_Act_Sheet_Paper_Vacuum_ON)				= F_ACT_STATUS_ENABLE;		// 2. 시트 페이퍼 진공 ON.						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 9. [ 배출모듈_ 일반 모드 ]		106ms
+					case N_SEQ_Normal_Discharge_No_9:	// 9. [ 일반 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_Sepa_Cutter_Cylinder_BWD)			= F_ACT_STATUS_ENABLE;		// 1. 세파 커터 후진.					100ms
+						P_Module_Act_Command_Array(N_Act_First_Unloader_BWD_Wait_Pos)		= F_ACT_STATUS_ENABLE;		// 2. 1차 언로더 그립 후 후진을 위한 대기 위치 이동.
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 10. [ 배출모듈_ 일반 모드 ]	650ms
+					case N_SEQ_Normal_Discharge_No_10:	// 10. [ 일반 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_BWD)				= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 그립 후 후진 위치 이동 + Main Z축 대기위치 이동 + Execute Flag 발생. 650ms
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 11. [ 배출모듈_ 일반 모드 ]	996ms
+					case N_SEQ_Normal_Discharge_No_11:	// 11. [ 일반 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Stack_Down)			= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 하강 위치 이동.		995ms
+						P_Module_Act_Command_Array(N_Act_FR_Stack_Pos)						= F_ACT_STATUS_ENABLE;		// 2. 파이널 롤러 스텍 위치 이동.
+						P_Module_Act_Command_Array(N_Act_After_Action_Init)					= F_ACT_STATUS_ENABLE;		// 3. J/R ID 전달 후 NG코드 초기화
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 12. [ 배출모듈_ 일반 모드 ]	305ms
+					case N_SEQ_Normal_Discharge_No_12:	// 12. [ 일반 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Turn)				= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 T축 45도 회전.					300ms
+							
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 13. [ 배출모듈_ 일반 모드 ]	0ms
+					case N_SEQ_Normal_Discharge_No_13:	// 13. [ 일반 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Pos_Chk)			= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 회피 위치 및 2차 언로더 인계 가능 확인.
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+
+					// 14. [ 배출모듈_ 일반 모드 ]		501ms
+					case N_SEQ_Normal_Discharge_No_14:	// 14. [ 일반 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Handover_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 인계 위치 이동. ( T축 90도 회전 )
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+
+					// 15. [ 배출모듈_ 일반 모드 ]	503ms
+					case N_SEQ_Normal_Discharge_No_15:	// 15. [ 일반 생산 모드 ]		
+						P_Module_Act_Command_Array(N_Act_Unloader_Grip_ON_to_Grip_Off)					= F_ACT_STATUS_ENABLE		// 1. 언로더 그립 요청. (A열 : 2차 언로더, B열 : 3차 언로더)
+						
+						EXE_Discharge_RTN = N_TRUE;	
+					break;
+					
+					// 16. [ 배출모듈_ 일반 모드 ]	602ms
+					case N_SEQ_Normal_Discharge_No_16:	// 16. [ 일반 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Wait_Pos)			= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 대기 위치 이동 후 T축 회전.
+
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 17. [ 배출모듈_ 일반 모드 ]	0ms
+					case N_SEQ_Normal_Discharge_No_17:	// 17. [ 일반 생산 모드 ]
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+															
+					default:	
+						EXE_Discharge_RTN = N_FALSE;	
+					break;
+				}
+			break;
+			
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Sepa_Consume_Status_Sequence :	
+				switch(data)
+				{
+					// 1. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_1:	// 1. [ 세파 생산 모드 ] 
+						P_Module_Act_Command_Array(N_Act_FR_Clamp_OFF)						= F_ACT_STATUS_ENABLE;		// 1. 파이널 롤러 클램프 OFF. - (HOST ID + NG Code + JR 업데이트)
+						
+		
+						EXE_Discharge_RTN = N_TRUE;		
+		
+					break;		
+		
+					// 2. [ 배출모듈_ 세파 모드 ]		
+					case N_SEQ_Sepa_Discharge_No_2:	// 2. [ 세파 생산 모드 ]						
+						P_Module_Act_Command_Array(N_Act_FR_Discharge_Pos)					= F_ACT_STATUS_ENABLE;		// 1. 파이널 롤러 배출 위치.
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Grip_OFF)			= F_ACT_STATUS_ENABLE;		// 2. 1차 언로더 언그립.
+						P_Module_Act_Command_Array(N_Act_First_Unloader_UP)					= F_ACT_STATUS_ENABLE;		// 3. 1차 언로더 상승 - 스텍 위치 이동.
+		
+						EXE_Discharge_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ 배출모듈_ 세파 모드 ]		
+					case N_SEQ_Sepa_Discharge_No_3:	// 3. [ 세파 생산 모드 ] 		
+						P_Module_Act_Command_Array(N_Act_First_Unloader_FWD)				= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 전진 - 스텍 진입 이동.	
+						P_Module_Act_Command_Array(N_Act_Sheet_Paper_BWD)					= F_ACT_STATUS_ENABLE;		// 2. Sheet Paper 후진.
+						P_Module_Act_Command_Array(N_Act_FR_Clamp_ON) = F_ACT_STATUS_ENABLE	
+						P_Module_Act_Command_Array(N_Act_Sepa_Cutter_Heating)				= F_ACT_STATUS_ENABLE;		// 2. 세파 커터 열선 ON.	
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 4. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_4:	// 4. [ 세파 생산 모드 ] 
+		
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Grip_Cell_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 셀 부착 위치 이동.
+		
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 5. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_5:	// 5. [ 세파 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Grip_ON)			= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 배출 그립 ON.
+						//P_Module_Act_Command_Array(N_Act_Sheet_Paper_BWD)					= F_ACT_STATUS_ENABLE;		// 2. Sheet Paper 후진.
+
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 6. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_6:	// 6. [ 세파 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_Cathode_Clamp_OFF)					= F_ACT_STATUS_ENABLE;		// 1. 양극 클램프 OFF.
+					
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 7. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_7:	// 7. [ 세파 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_FR_Clamp_ON)						= F_ACT_STATUS_ENABLE;		// 1. 파이널 롤러 클램프.
+						//P_Module_Act_Command_Array(N_Act_Sepa_Cutter_Heating)				= F_ACT_STATUS_ENABLE;		// 2. 세파 커터 열선 ON.
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 8. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_8:	// 8. [ 세파 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_Sepa_Cutter_Cylinder_FWD)			= F_ACT_STATUS_ENABLE;		// 1. 세파 커터 전진 (HOST ID + NG Code + JR 업데이트)
+						P_Module_Act_Command_Array(N_Act_Sheet_Paper_Vacuum_ON)				= F_ACT_STATUS_ENABLE;		// 2. 시트 페이퍼 진공 ON.
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 9. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_9:	// 9. [ 세파 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_Sepa_Cutter_Cylinder_BWD)			= F_ACT_STATUS_ENABLE;		// 1. 세파 커터 후진.				
+						P_Module_Act_Command_Array(N_Act_First_Unloader_BWD_Wait_Pos)		= F_ACT_STATUS_ENABLE;		// 2. 1차 언로더 그립 후 후진을 위한 대기 위치 이동.
+						
+
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 10. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_10:	// 10. [ 세파 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_BWD)				= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 그립 후 후진 위치 이동 + Main Z축 대기위치 이동 + Execute Flag 발생. 650ms
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 11. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_11:	// 11. [ 세파 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Stack_Down)			= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 하강 위치 이동.
+						P_Module_Act_Command_Array(N_Act_FR_Stack_Pos)						= F_ACT_STATUS_ENABLE;		// 2. 파이널 롤러 스텍 위치 이동.
+						P_Module_Act_Command_Array(N_Act_After_Action_Init)					= F_ACT_STATUS_ENABLE;		// 3. J/R ID 전달 후 NG코드 초기화
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 12. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_12:	// 12. [ 세파 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Turn)				= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 T축 45도 회전.			
+							
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 13. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_13:	// 13. [ 세파 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Pos_Chk)			= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 회피 위치 및 2차 언로더 인계 가능 확인.
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+
+					// 14. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_14:	// 14. [ 세파 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Handover_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 인계 위치 이동. ( T축 90도 회전 )
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+
+					// 15. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_15:	// 15. [ 세파 생산 모드 ]		
+						P_Module_Act_Command_Array(N_Act_Unloader_Grip_ON_to_Grip_Off)					= F_ACT_STATUS_ENABLE		// 1. 언로더 그립 요청. (A열 : 2차 언로더, B열 : 3차 언로더)
+						
+						EXE_Discharge_RTN = N_TRUE;	
+					break;
+					
+					// 16. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_16:	// 16. [ 세파 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Wait_Pos)			= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 대기 위치 이동 후 T축 회전.
+
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 17. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_Discharge_No_17:	// 17. [ 세파 생산 모드 ]
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+															
+					default:	
+						EXE_Discharge_RTN = N_FALSE;	
+					break;
+				}
+			break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Dryrun_Status_Sequence :		// 드라이런 모드
+				switch(data)
+				{
+					// 1. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_1:	// 1. [ 드라이런 생산 모드 ] 
+						P_Module_Act_Command_Array(N_Act_FR_Clamp_OFF)						= F_ACT_STATUS_ENABLE;		// 1. 파이널 롤러 클램프 OFF.
+								
+						EXE_Discharge_RTN = N_TRUE;		
+		
+					break;		
+		
+					// 2. [ 배출모듈_ 드라이런 모드 ]		
+					case N_SEQ_DryRun_Discharge_No_2:	// 2. [ 드라이런 생산 모드 ]						
+						P_Module_Act_Command_Array(N_Act_FR_Discharge_Pos)					= F_ACT_STATUS_ENABLE;		// 1. 파이널 롤러 배출 위치.
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Grip_OFF)			= F_ACT_STATUS_ENABLE;		// 2. 1차 언로더 언그립.
+						P_Module_Act_Command_Array(N_Act_First_Unloader_UP)					= F_ACT_STATUS_ENABLE;		// 3. 1차 언로더 상승 - 스텍 위치 이동.
+		
+						EXE_Discharge_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ 배출모듈_ 드라이런 모드 ]		
+					case N_SEQ_DryRun_Discharge_No_3:	// 3. [ 드라이런 생산 모드 ] 	
+							
+						P_Module_Act_Command_Array(N_Act_First_Unloader_FWD)				= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 전진 - 스텍 진입 이동.		
+						P_Module_Act_Command_Array(N_Act_FR_Clamp_ON) = F_ACT_STATUS_ENABLE		// 2. 파이널롤러 클램프
+
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 4. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_4:	// 4. [ 드라이런 생산 모드 ] 
+		
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Grip_Cell_Pos)		= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 셀 부착 위치 이동.
+		
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 5. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_5:	// 5. [ 드라이런 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Grip_ON)			= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 배출 그립 ON.
+						//P_Module_Act_Command_Array(N_Act_Sheet_Paper_BWD)					= F_ACT_STATUS_ENABLE;		// 2. Sheet Paper 후진.
+
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 6. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_6:	// 6. [ 드라이런 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_Cathode_Clamp_OFF)					= F_ACT_STATUS_ENABLE;		// 1. 양극 클램프 OFF.
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 7. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_7:	// 7. [ 드라이런 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_FR_Clamp_ON)						= F_ACT_STATUS_ENABLE;		// 1. 파이널 롤러 클램프.
+						P_Module_Act_Command_Array(N_Act_Sepa_Cutter_Heating)				= F_ACT_STATUS_ENABLE;		// 2. 세파 커터 열선 ON.
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 8. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_8:	// 8. [ 드라이런 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_Sepa_Cutter_Cylinder_FWD)			= F_ACT_STATUS_ENABLE;		// 1. 세파 커터 전진
+						P_Module_Act_Command_Array(N_Act_Sheet_Paper_Vacuum_ON)				= F_ACT_STATUS_ENABLE;		// 2. 시트 페이퍼 진공 ON.
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 9. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_9:	// 9. [ 드라이런 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_Sepa_Cutter_Cylinder_BWD)			= F_ACT_STATUS_ENABLE;		// 1. 세파 커터 후진.				
+						P_Module_Act_Command_Array(N_Act_First_Unloader_BWD_Wait_Pos)		= F_ACT_STATUS_ENABLE;		// 2. 1차 언로더 그립 후 후진을 위한 대기 위치 이동.
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 10. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_10:	// 10. [ 드라이런 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_BWD)				= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 그립 후 후진 위치 이동.
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 11. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_11:	// 11. [ 드라이런 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Stack_Down)			= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 하강 위치 이동.
+						P_Module_Act_Command_Array(N_Act_FR_Stack_Pos)						= F_ACT_STATUS_ENABLE;		// 2. 파이널 롤러 스텍 위치 이동.
+						P_Module_Act_Command_Array(N_Act_After_Action_Init)					= F_ACT_STATUS_ENABLE;		// 3. J/R ID 전달 후 NG코드 초기화
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+		
+					// 12. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_12:	// 12. [ 드라이런 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Turn)				= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 T축 45도 회전.			
+							
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 13. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_13:	// 13. [ 드라이런 생산 모드 ]
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+
+					// 14. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_14:	// 14. [ 드라이런 생산 모드 ]
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+
+					// 15. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_15:	// 15. [ 드라이런 생산 모드 ]		
+						EXE_Discharge_RTN = N_TRUE;	
+					break;
+					
+					// 16. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_16:	// 16. [ 드라이런 생산 모드 ]
+						P_Module_Act_Command_Array(N_Act_First_Unloader_Wait_Pos)			= F_ACT_STATUS_ENABLE;		// 1. 1차 언로더 대기 위치 이동 후 T축 회전.
+
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+					
+					// 17. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_Discharge_No_17:	// 17. [ 드라이런 생산 모드 ]
+						
+						EXE_Discharge_RTN = N_TRUE;
+					break;
+															
+					default:	
+						EXE_Discharge_RTN = N_FALSE;	
+					break;
+				}
+			break;
+			
+			default:	
+				EXE_Discharge_RTN = N_FALSE;	
+			break;
+		}
+	return
+//===========================================================================//
+// 1.4) Precondition_Discharge - 사전 조건 스킵 변수 부여, 감시 다음 시퀀스 실행 조건 보기
+//===========================================================================//
+
+	sub:Precondition_Discharge(Mode,Index,&Discharge_Pre_RTN)	
+		// 실행 될 시퀀스의 실행 조건 입력 _ 실행 완료 상태 혹은 실행 스킵 상태를 확인
+		local L_Discharge_Index_Cond = P_Buffer_Seqdata_Discharge_Array(Index);		// 다음 시작해야 할 동작
+		Discharge_Pre_RTN = 0;					// 반환값 초기화.
+		switch(Mode)
+		{
+			case N_Normal_Status_Sequence :		
+				Switch(L_Discharge_Index_Cond)
+				{
+					case N_SEQ_Normal_Discharge_No_1 : 
+						Discharge_Pre_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Normal_Discharge_No_2 : 
+						if( P_Act_Complete_Bit(N_Act_FR_Clamp_OFF) )
+						{
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_Discharge_No_3 :
+						if( P_Act_Complete_Bit(N_Act_FR_Discharge_Pos) & P_Act_Complete_Bit(N_Act_First_Unloader_Grip_OFF) & P_Act_Complete_Bit(N_Act_First_Unloader_UP) )		
+						{	
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Normal_Discharge_No_4 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_FWD) & P_Act_Complete_Bit(N_Act_FR_Clamp_ON) & P_Act_Complete_Bit(N_Act_Sheet_Paper_BWD) )			
+						{
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+					case N_SEQ_Normal_Discharge_No_5 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Grip_Cell_Pos) )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Discharge_No_6 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Grip_ON) )	
+						{	
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_Discharge_No_7 :
+						if( P_Act_Complete_Bit(N_Act_Cathode_Clamp_OFF) )
+						{
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_Discharge_No_8 :
+						if( P_Act_Complete_Bit(N_Act_FR_Clamp_ON) == 1 && P_Act_Complete_Bit(N_Act_Sepa_Cutter_Heating) )
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_Discharge_No_9 :
+						if( P_Act_Complete_Bit(N_Act_Sepa_Cutter_Cylinder_FWD) & P_Act_Complete_Bit(N_Act_Sheet_Paper_Vacuum_ON))		
+						{	
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_Discharge_No_10 :
+						if( P_Act_Complete_Bit(N_Act_Sepa_Cutter_Cylinder_BWD) & P_Act_Complete_Bit(N_Act_First_Unloader_BWD_Wait_Pos) )		
+						{		
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_Discharge_No_11 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_BWD) )		
+						{		
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_Discharge_No_12 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Stack_Down) & P_Act_Complete_Bit(N_Act_FR_Stack_Pos) & P_Act_Complete_Bit(N_Act_After_Action_Init) )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+					
+					case N_SEQ_Normal_Discharge_No_13 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Turn) == 1 )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+
+					case N_SEQ_Normal_Discharge_No_14 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Pos_Chk) == 1 )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}						
+					break;
+					
+					case N_SEQ_Normal_Discharge_No_15 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Handover_Pos) == 1 )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}						
+					break;
+					
+					
+					case N_SEQ_Normal_Discharge_No_16 :
+						if( P_Act_Complete_Bit(N_Act_Unloader_Grip_ON_to_Grip_Off))		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}					
+					break;
+
+					case N_SEQ_Normal_Discharge_No_17 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Wait_Pos) )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}					
+					break;
+					
+					default:
+						 Discharge_Pre_RTN = N_TRUE;	
+					break;
+				}
+			break;
+		
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Sepa_Consume_Status_Sequence :			//  모드	
+				Switch(L_Discharge_Index_Cond)
+				{
+					case N_SEQ_Sepa_Discharge_No_1 : 
+						Discharge_Pre_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Sepa_Discharge_No_2 : 
+						if( P_Act_Complete_Bit(N_Act_FR_Clamp_OFF) )
+						{
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Sepa_Discharge_No_3 :
+						if( P_Act_Complete_Bit(N_Act_FR_Discharge_Pos) & P_Act_Complete_Bit(N_Act_First_Unloader_Grip_OFF) & P_Act_Complete_Bit(N_Act_First_Unloader_UP) )
+						{	
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Sepa_Discharge_No_4 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_FWD) & P_Act_Complete_Bit(N_Act_FR_Clamp_ON) & P_Act_Complete_Bit(N_Act_Sheet_Paper_BWD) )			
+						{
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Sepa_Discharge_No_5 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Grip_Cell_Pos) )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Sepa_Discharge_No_6 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Grip_ON)  )	
+						{	
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Sepa_Discharge_No_7 :
+				
+						if( P_Act_Complete_Bit(N_Act_Cathode_Clamp_OFF) )
+						{
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Sepa_Discharge_No_8 :
+				
+						if( P_Act_Complete_Bit(N_Act_FR_Clamp_ON) == 1 && P_Act_Complete_Bit(N_Act_Sepa_Cutter_Heating) )
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Sepa_Discharge_No_9 :
+						if( P_Act_Complete_Bit(N_Act_Sepa_Cutter_Cylinder_FWD) & P_Act_Complete_Bit(N_Act_Sheet_Paper_Vacuum_ON))			
+						{	
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Sepa_Discharge_No_10 :
+						if( P_Act_Complete_Bit(N_Act_Sepa_Cutter_Cylinder_BWD) & P_Act_Complete_Bit(N_Act_First_Unloader_BWD_Wait_Pos) )		
+						{		
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Sepa_Discharge_No_11 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_BWD) )		
+						{		
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Sepa_Discharge_No_12 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Stack_Down) & P_Act_Complete_Bit(N_Act_FR_Stack_Pos) & P_Act_Complete_Bit(N_Act_After_Action_Init) )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;									
+						}
+					
+					break;
+					
+					case N_SEQ_Sepa_Discharge_No_13 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Turn) == 1 )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+
+					case N_SEQ_Sepa_Discharge_No_14 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Pos_Chk) == 1 )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}						
+					break;
+					
+					case N_SEQ_Sepa_Discharge_No_15 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Handover_Pos) == 1 )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}						
+					break;
+					
+					
+					case N_SEQ_Sepa_Discharge_No_16 :
+						if( P_Act_Complete_Bit(N_Act_Unloader_Grip_ON_to_Grip_Off) )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}					
+					break;
+
+					case N_SEQ_Sepa_Discharge_No_17 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Wait_Pos) )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}					
+					break;
+					
+					default:
+						 Discharge_Pre_RTN = N_TRUE;	
+					break;
+				}
+			break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Dryrun_Status_Sequence :		// 드라이런 모드	
+				Switch(L_Discharge_Index_Cond)
+				{
+					case N_SEQ_DryRun_Discharge_No_1 : 
+						Discharge_Pre_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_DryRun_Discharge_No_2 : 
+						if( P_Act_Complete_Bit(N_Act_FR_Clamp_OFF) )
+						{
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_DryRun_Discharge_No_3 :
+						if( P_Act_Complete_Bit(N_Act_FR_Discharge_Pos) & P_Act_Complete_Bit(N_Act_First_Unloader_Grip_OFF) & P_Act_Complete_Bit(N_Act_First_Unloader_UP) )
+						{	
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_DryRun_Discharge_No_4 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_FWD) & P_Act_Complete_Bit(N_Act_FR_Clamp_ON) & P_Act_Complete_Bit(N_Act_Sheet_Paper_BWD) )			
+						{
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+					case N_SEQ_DryRun_Discharge_No_5 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Grip_Cell_Pos) )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_DryRun_Discharge_No_6 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Grip_ON) )	
+						{	
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_Discharge_No_7 :
+					
+						if( P_Act_Complete_Bit(N_Act_Cathode_Clamp_OFF) )
+						{
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_Discharge_No_8 :
+					
+						if( P_Act_Complete_Bit(N_Act_FR_Clamp_ON) == 1 && P_Act_Complete_Bit(N_Act_Sepa_Cutter_Heating) )
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					break;
+		
+					case N_SEQ_DryRun_Discharge_No_9 :
+						if( P_Act_Complete_Bit(N_Act_Sepa_Cutter_Cylinder_FWD) & P_Act_Complete_Bit(N_Act_Sheet_Paper_Vacuum_ON))			
+						{	
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_DryRun_Discharge_No_10 :
+						if( P_Act_Complete_Bit(N_Act_Sepa_Cutter_Cylinder_BWD) & P_Act_Complete_Bit(N_Act_First_Unloader_BWD_Wait_Pos) )		
+						{		
+								Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_DryRun_Discharge_No_11 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_BWD) )		
+						{		
+								Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_DryRun_Discharge_No_12 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Stack_Down) & P_Act_Complete_Bit(N_Act_FR_Stack_Pos) & P_Act_Complete_Bit(N_Act_After_Action_Init) )		
+						{			
+								Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+					
+					case N_SEQ_DryRun_Discharge_No_13 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Turn) == 1 )		
+						{			
+							Discharge_Pre_RTN = N_TRUE;
+						}
+					
+					break;
+
+					case N_SEQ_DryRun_Discharge_No_14 :
+						Discharge_Pre_RTN = N_TRUE;
+					break;
+					
+					case N_SEQ_DryRun_Discharge_No_15 :
+						Discharge_Pre_RTN = N_TRUE;
+					break;
+					
+					
+					case N_SEQ_DryRun_Discharge_No_16 :
+						Discharge_Pre_RTN = N_TRUE;
+					break;
+
+					case N_SEQ_DryRun_Discharge_No_17 :
+						if( P_Act_Complete_Bit(N_Act_First_Unloader_Wait_Pos) )		
+						{			
+							if ( M_X_1st_Unloader_Grip_Detect_Sensor == 0)// && M_X_1st_Unloader_UnGrip_Detect_Sensor == 0 && P_First_Unloader_Turn_Status == F_Status_COMPLETE )
+								Discharge_Pre_RTN = N_TRUE;
+						}					
+					break;
+					
+					default:
+						 Discharge_Pre_RTN = N_TRUE;	
+					break;
+				}
+			break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			default:	break;
+		}
+	return
+
+
+
+
+//========================================================//
+// 2.1) Set_ARC
+//========================================================//
+	sub:Set_ARC(Mode,&Set_ARC_RTN)
+
+		//=========================================//
+		// 1.0)Init
+		//=========================================//
+		//P_Act_Complete_Bit(N_Act_FW_Mandrel_P1),(N_Act_BW_Cathode_FR_Clutch - N_Act_Rotor_Holder_FWD + 1 ) = 0; // 7 ~ 31			 
+		//P_Act_Complete_Bit(0),N_Act_Define_Limit = 0;		// 배출 진행 중 ARC 진행 시 ARC Set에서 배출 완료 비트까지 초기화하여 주석 처리 진행	[ 참조 : 26.04.24 ARC 모듈 수정 ]
+		Set_ARC_RTN = 0;	
+
+		switch(Mode)
+		{
+			// 1.1) 일반 생산 모드 
+			case N_Normal_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_ARC_Array(0)  = Mode;							// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_ARC_Array(1)  = N_SEQ_Normal_ARC_No_1;			// 2) ARC - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(2)  = N_SEQ_Normal_ARC_No_2;			// 3) ARC - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_ARC_Array(3)  = N_SEQ_Normal_ARC_No_3;			// 4) ARC - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_ARC_Array(4)  = N_SEQ_Normal_ARC_No_4;			// 5) ARC - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(5)  = N_SEQ_Normal_ARC_No_5;			// 6) ARC - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(6)  = N_SEQ_Normal_ARC_No_6;			// 7) ARC - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(7)  = N_SEQ_Normal_ARC_No_7;         // 8) ARC - 일반 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(8)  = N_SEQ_Normal_ARC_No_8;         // 9) ARC - 일반 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(9)  = N_SEQ_Normal_ARC_No_9;         // 10) ARC - 일반 모드 || 아홉번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(10) = N_SEQ_Normal_ARC_No_10;        // 11) ARC - 일반 모드 || 열번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(11) = N_SEQ_Normal_ARC_No_11;        // 12) ARC - 일반 모드 || 열하나번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(12) = N_SEQ_Normal_ARC_No_12;        // 13) ARC - 일반 모드 || 열둘번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(13) = N_SEQ_Normal_ARC_No_13;        // 14) ARC - 일반 모드 || 열세번째 시퀀스
+				//P_Buffer_Seqdata_ARC_Array(14) = N_SEQ_Normal_ARC_No_14;        // 15) ARC - 일반 모드 || 열네번째 시퀀스
+				//P_Buffer_Seqdata_ARC_Array(15) = N_SEQ_Normal_ARC_No_15;        // 16) ARC - 일반 모드 || 열다섯번째 시퀀스
+				//P_Buffer_Seqdata_ARC_Array(16) = N_SEQ_Normal_ARC_No_16;        // 17) ARC - 일반 모드 || 열여섯번째 시퀀스
+				//P_Buffer_Seqdata_ARC_Array(17) = N_SEQ_Normal_ARC_No_17;		// 18) ARC - 일반 모드 || 열일곱번째 시퀀스
+
+				P_Buffer_Seqdata_ARC_Array(14) = N_COMPLETE;					// 19) ARC - 일반 모드 || 시퀀스 완료 체크
+
+				Set_ARC_RTN = N_TRUE;
+			break;
+
+			// 1.2) 세파 모드
+			case N_Sepa_Consume_Status_Sequence :
+
+				// 1.2.1 시퀀스 배열
+				P_Buffer_Seqdata_ARC_Array(0)  = Mode;							// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_ARC_Array(1)  = N_SEQ_Sepa_ARC_No_1;			// 2) ARC - 세파 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(2)  = N_SEQ_Sepa_ARC_No_2;			// 3) ARC - 세파 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_ARC_Array(3)  = N_SEQ_Sepa_ARC_No_3;			// 4) ARC - 세파 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_ARC_Array(4)  = N_SEQ_Sepa_ARC_No_4;			// 5) ARC - 세파 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(5)  = N_SEQ_Sepa_ARC_No_5;			// 6) ARC - 세파 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(6)  = N_SEQ_Sepa_ARC_No_6;			// 7) ARC - 세파 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(7)  = N_SEQ_Sepa_ARC_No_7;			// 8) ARC - 세파 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(8)  = N_SEQ_Sepa_ARC_No_8;			// 9) ARC - 세파 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(9)  = N_SEQ_Sepa_ARC_No_9;			// 10) ARC - 세파 모드 || 아홉번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(10) = N_SEQ_Sepa_ARC_No_10;			// 11) ARC - 세파 모드 || 열번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(11) = N_SEQ_Sepa_ARC_No_11;			// 12) ARC - 세파 모드 || 열하나번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(12) = N_SEQ_Sepa_ARC_No_12;			// 13) ARC - 세파 모드 || 열둘번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(13) = N_SEQ_Sepa_ARC_No_13;			// 14) ARC - 세파 모드 || 열세번째 시퀀스
+				//P_Buffer_Seqdata_ARC_Array(14) = N_SEQ_Sepa_ARC_No_14;			// 15) ARC - 세파 모드 || 열네번째 시퀀스
+				//P_Buffer_Seqdata_ARC_Array(15) = N_SEQ_Sepa_ARC_No_15;			// 16) ARC - 세파 모드 || 열다섯번째 시퀀스
+				//P_Buffer_Seqdata_ARC_Array(16) = N_SEQ_Sepa_ARC_No_16;			// 17) ARC - 세파 모드 || 열여섯번째 시퀀스
+												 
+				P_Buffer_Seqdata_ARC_Array(14) = N_COMPLETE;					// 18) ARC - 세파 모드 || 시퀀스 완료 체크
+
+				Set_ARC_RTN = N_TRUE;
+			break;
+
+			// 1.3)  드라이런 모드
+			case N_Dryrun_Status_Sequence :
+				// 1.3.1 시퀀스 배열
+				P_Buffer_Seqdata_ARC_Array(0)  = Mode;							// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_ARC_Array(1)  = N_SEQ_DryRun_ARC_No_1;			// 2) ARC - 드라이런 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(2)  = N_SEQ_DryRun_ARC_No_2;			// 3) ARC - 드라이런 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_ARC_Array(3)  = N_SEQ_DryRun_ARC_No_3;			// 4) ARC - 드라이런 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_ARC_Array(4)  = N_SEQ_DryRun_ARC_No_4;			// 5) ARC - 드라이런 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(5)  = N_SEQ_DryRun_ARC_No_5;			// 6) ARC - 드라이런 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(6)  = N_SEQ_DryRun_ARC_No_6;			// 7) ARC - 드라이런 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(7)  = N_SEQ_DryRun_ARC_No_7;			// 8) ARC - 드라이런 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(8)  = N_SEQ_DryRun_ARC_No_8;			// 9) ARC - 드라이런 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(9)  = N_SEQ_DryRun_ARC_No_9;			// 10) ARC - 드라이런 모드 || 아홉번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(10) = N_SEQ_DryRun_ARC_No_10;		// 11) ARC - 드라이런 모드 || 열번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(11) = N_SEQ_DryRun_ARC_No_11;		// 12) ARC - 드라이런 모드 || 열하나번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(12) = N_SEQ_DryRun_ARC_No_12;		// 13) ARC - 드라이런 모드 || 열둘번째 시퀀스
+				P_Buffer_Seqdata_ARC_Array(13) = N_SEQ_DryRun_ARC_No_13;		// 14) ARC - 드라이런 모드 || 열세번째 시퀀스
+				//P_Buffer_Seqdata_ARC_Array(14) = N_SEQ_DryRun_ARC_No_14;		// 15) ARC - 드라이런 모드 || 열네번째 시퀀스
+				//P_Buffer_Seqdata_ARC_Array(15) = N_SEQ_DryRun_ARC_No_15;		// 16) ARC - 드라이런 모드 || 열다섯번째 시퀀스
+				//P_Buffer_Seqdata_ARC_Array(16) = N_SEQ_DryRun_ARC_No_16;		// 17) ARC - 드라이런 모드 || 열여섯번째 시퀀스
+												 
+				P_Buffer_Seqdata_ARC_Array(14) = N_COMPLETE;					// 18) ARC - 드라이런 모드 || 시퀀스 완료 체크
+
+				Set_ARC_RTN = N_TRUE;
+			break;
+		}
+
+	return
+
+
+//===========================================================================//
+// 2.2) Management_ARC - 시퀀스 실행 관리 함수 _ 인덱스에 맞는 동작 가져오기
+//===========================================================================//
+	sub:Management_ARC(Mode,Index,&data,&Manage_ARC_RTN)
+		
+		Manage_ARC_RTN = 0;
+		if ( P_Buffer_Seqdata_ARC_Array(Index) == N_COMPLETE )		// 2.2.1) 인덱스 배열값이 완료 일 경우
+		{																 
+			data = N_COMPLETE;										// 2.2.1.1) 데이터 완료값 반환
+			Manage_ARC_RTN = N_EXCEPT;								// 2.2.1.2) 예외값 반환
+		}																
+		else if ( P_Buffer_Seqdata_ARC_Array(Index) != 0 )			// 2.2.3) 완료도 아니고 0값도 아닐 경우
+		{																 
+			data = P_Buffer_Seqdata_ARC_Array(Index);				// 2.2.4) 인덱스 배열값 반환
+			Manage_ARC_RTN = N_TRUE;								// 2.2.5) True 반환
+		}																
+		else															
+		{																
+			data = 0;												// 2.2.6) 인덱스 배열값 0값 반환
+			Manage_ARC_RTN = N_FALSE;								// 2.2.7) False  반환
+		}															
+
+	return
+
+//===========================================================================//
+// 2.3) Execute_ARC - 동작
+//===========================================================================//
+	sub:Execute_ARC(Mode,data,&EXE_ARC_RTN) 
+
+		EXE_ARC_RTN = 0;
+		switch( Mode )	// 모드구분.
+		{
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Normal_Status_Sequence :		
+				switch(data)	// 시퀀스구분.
+				{		
+					// 1. [ Auto Reel Change_ 일반 모드 ]
+					case N_SEQ_Normal_ARC_No_1:	// 1. [ 사전작업 ] 
+						P_Module_Act_Command_Array(N_Act_ARC_Pre_Act)						= F_ACT_STATUS_ENABLE;		// 1. 사전 작업
+								
+						EXE_ARC_RTN = F_TRUE;		
+		
+					break;		
+		
+					// 2. [ Auto Reel Change_ 일반 모드 ]		
+					case N_SEQ_Normal_ARC_No_2:	// 2. [ 닙롤전진 ]	닙롤 삭제로 인하여 CloseLoop					
+						P_Module_Act_Command_Array(N_Dancer_Closed)							= F_ACT_STATUS_ENABLE;		// 1. CloseLoop	 닙롤 전진
+						
+						EXE_ARC_RTN = F_TRUE;		
+					break;		
+				
+					// 3. [ Auto Reel Change_ 일반 모드 ]		
+					case N_SEQ_Normal_ARC_No_3:	// 3. [ 플레이트 전진 ] 		
+						P_Module_Act_Command_Array(N_Act_Use_Plate_FWD)						= F_ACT_STATUS_ENABLE;		// 1. 플레이트 전진		
+		
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					// 4. [ Auto Reel Change_ 일반 모드 ]
+					case N_SEQ_Normal_ARC_No_4:	// 4. [ 플레이트 블로우 ON ] 
+						P_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_ON)				= F_ACT_STATUS_ENABLE;		// 1. 플레이트 블로우 on
+		
+						EXE_ARC_RTN = F_TRUE;
+					break;
+
+					// 5. [ Auto Reel Change_ 일반 모드 ]
+					case N_SEQ_Normal_ARC_No_5:	// 5. [ 플레이트 클램프 ] 
+						P_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_ON)				= F_ACT_STATUS_ENABLE;		// 1. 플레이트 클램프
+		
+						EXE_ARC_RTN = F_TRUE;
+					break;
+		
+					// 6. [ Auto Reel Change_ 일반 모드 ]
+					case N_SEQ_Normal_ARC_No_6:	// 6. [ 커터 전진 ( 커팅 ) ]
+						P_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_FWD)				= F_ACT_STATUS_ENABLE;		// 1. 커터 전진
+
+						EXE_ARC_RTN = F_TRUE;
+					break;
+		
+					// 7. [ Auto Reel Change_ 일반 모드 ]
+					case N_SEQ_Normal_ARC_No_7:	// 7. [ 커터 후진 ( 커팅 ) ]
+						P_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_BWD)				= F_ACT_STATUS_ENABLE;		// 1. 커터 후진
+		
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					
+					// 8. [ Auto Reel Change_ 일반 모드 ]
+					case N_SEQ_Normal_ARC_No_8:	// 8. [ 플레이트 언클램프 ]
+						P_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_OFF)				= F_ACT_STATUS_ENABLE;		// 1. 플레이트 언클램프
+						
+						EXE_ARC_RTN = F_TRUE;
+					break;
+		
+					// 9. [ Auto Reel Change_ 일반 모드 ]
+					case N_SEQ_Normal_ARC_No_9:	// 9. [ 플레이트 후진 ]
+						P_Module_Act_Command_Array(N_Act_Use_Plate_BWD)						= F_ACT_STATUS_ENABLE;		// 1. 플레이트 후진
+						
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					
+					// 10. [ Auto Reel Change_ 일반 모드 ]
+					case N_SEQ_Normal_ARC_No_10:	// 10. [ 플레이트 블로우 OFF, 닙롤 후진  ] 닙롤 삭제로 인하여 Open loop 
+						P_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_OFF)			= F_ACT_STATUS_ENABLE;		// 1. 플레이트 블로우 off			
+						P_Module_Act_Command_Array(N_Dancer_Open)							= F_ACT_STATUS_ENABLE;		// 2.  Open loop 닙롤 후진 	
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					
+					// 11. [ Auto Reel Change_ 일반 모드 ]
+					case N_SEQ_Sepa_ARC_No_11:	// 11. [ Spool 교체, 사후 작업 ]
+						P_Module_Act_Command_Array(N_Act_Spool_Change)						= F_ACT_STATUS_ENABLE;		// 1. Spool 교체
+
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					
+					// 12. [ Auto Reel Change_ 일반 모드 ]
+					case N_SEQ_Sepa_ARC_No_12:	// 12. [ 사후 작업 ]
+						P_Module_Act_Command_Array(N_Act_ARC_Post_Act)						= F_ACT_STATUS_ENABLE;		// 1. 사후 작업
+						EXE_ARC_RTN = F_TRUE;
+					break;
+		
+					// 13. [ Auto Reel Change_ 일반 모드 ]
+					case N_SEQ_Sepa_ARC_No_13:	// 13. [ 잔량 감기 ]
+						P_Module_Act_Command_Array(N_Act_Previous_Spool_Remain_Winding)		= F_ACT_STATUS_ENABLE;		// 1. 잔량 감기
+							
+						EXE_ARC_RTN = F_TRUE;
+					break;
+				
+					// 14. [ Auto Reel Change_ 일반 모드 ]
+					case N_SEQ_Normal_ARC_No_14:	// 14. [  ]
+						
+						EXE_ARC_RTN = F_TRUE;
+					break;
+															
+					default:	
+						EXE_ARC_RTN = N_FALSE;	
+					break;
+				}
+			break;
+			
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Sepa_Consume_Status_Sequence :	
+				switch(data)
+				{		
+					// 1. [ Auto Reel Change_ 세파 모드 ]
+					case N_SEQ_Sepa_ARC_No_1:	// 1. [ 사전작업 ] 
+						P_Module_Act_Command_Array(N_Act_ARC_Pre_Act)						= F_ACT_STATUS_ENABLE;		// 1. 사전 작업
+								
+						EXE_ARC_RTN = F_TRUE;		
+		
+					break;		
+		
+					// 2. [ Auto Reel Change_ 세파 모드 ]		
+					case N_SEQ_Sepa_ARC_No_2:	// 2. [ 닙롤전진 ]						
+						P_Module_Act_Command_Array(N_Dancer_Closed)							= F_ACT_STATUS_ENABLE;		// 1. CloseLoop	 닙롤 전진
+		
+						EXE_ARC_RTN = F_TRUE;		
+					break;		
+				
+					// 3. [ Auto Reel Change_ 세파 모드 ]		
+					case N_SEQ_Sepa_ARC_No_3:	// 3. [ 플레이트 전진 ] 		
+						P_Module_Act_Command_Array(N_Act_Use_Plate_FWD)						= F_ACT_STATUS_ENABLE;		// 1. 플레이트 전진		
+		
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					// 4. [ Auto Reel Change_ 세파 모드 ]
+					case N_SEQ_Sepa_ARC_No_4:	// 4. [ 플레이트 블로우 ON ] 
+						P_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_ON)				= F_ACT_STATUS_ENABLE;		// 1. 플레이트 블로우 on
+		
+						EXE_ARC_RTN = F_TRUE;
+					break;
+
+					// 5. [ Auto Reel Change_ 세파 모드 ]
+					case N_SEQ_Sepa_ARC_No_5:	// 5. [ 플레이트 클램프 ] 
+						P_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_ON)				= F_ACT_STATUS_ENABLE;		// 1. 플레이트 클램프
+		
+						EXE_ARC_RTN = F_TRUE;
+					break;
+		
+					// 6. [ Auto Reel Change_ 세파 모드 ]
+					case N_SEQ_Sepa_ARC_No_6:	// 6. [ 커터 전진 ( 커팅 ) ]
+						P_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_FWD)				= F_ACT_STATUS_ENABLE;		// 1. 커터 전진
+
+						EXE_ARC_RTN = F_TRUE;
+					break;
+		
+					// 7. [ Auto Reel Change_ 세파 모드 ]
+					case N_SEQ_Sepa_ARC_No_7:	// 7. [ 커터 후진 ( 커팅 ) ]
+						P_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_BWD)				= F_ACT_STATUS_ENABLE;		// 1. 커터 후진
+		
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					
+					// 8. [ Auto Reel Change_ 세파 모드 ]
+					case N_SEQ_Sepa_ARC_No_8:	// 8. [ 플레이트 언클램프 ]
+						P_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_OFF)				= F_ACT_STATUS_ENABLE;		// 1. 플레이트 언클램프
+						
+						EXE_ARC_RTN = F_TRUE;
+					break;
+		
+					// 9. [ Auto Reel Change_ 세파 모드 ]
+					case N_SEQ_Sepa_ARC_No_9:	// 9. [ 플레이트 후진 ]
+						P_Module_Act_Command_Array(N_Act_Use_Plate_BWD)						= F_ACT_STATUS_ENABLE;		// 1. 플레이트 후진.
+						
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					
+					// 10. [ Auto Reel Change_ 세파 모드 ]
+					case N_SEQ_Sepa_ARC_No_10:	// 10. [ 플레이트 블로우 OFF, 닙롤 후진 ]
+						P_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_OFF)			= F_ACT_STATUS_ENABLE;		// 1. 플레이트 블로우 off			
+						P_Module_Act_Command_Array(N_Dancer_Open)							= F_ACT_STATUS_ENABLE;		// 2. Open Loop 닙롤 후진
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					
+					// 11. [ Auto Reel Change_ 세파 모드 ]
+					case N_SEQ_Sepa_ARC_No_11:	// 11. [ Spool 교체, 사후 작업 ]
+						P_Module_Act_Command_Array(N_Act_Spool_Change)						= F_ACT_STATUS_ENABLE;		// 1. Spool 교체
+
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					
+					// 12. [ Auto Reel Change_ 세파 모드 ]
+					case N_SEQ_Sepa_ARC_No_12:	// 12. [ 사후 작업 ]
+						P_Module_Act_Command_Array(N_Act_ARC_Post_Act)						= F_ACT_STATUS_ENABLE;		// 1. 사후 작업
+						EXE_ARC_RTN = F_TRUE;
+					break;
+		
+					// 13. [ Auto Reel Change_ 세파 모드 ]
+					case N_SEQ_Sepa_ARC_No_13:	// 13. [ 잔량 감기 ]
+						P_Module_Act_Command_Array(N_Act_Previous_Spool_Remain_Winding)		= F_ACT_STATUS_ENABLE;		// 1. 잔량 감기
+							
+						EXE_ARC_RTN = F_TRUE;
+					break;
+				
+					// 14. [ Auto Reel Change_ 세파 모드 ]
+					case N_SEQ_Sepa_ARC_No_14:	// 14. [  ]
+						
+						EXE_ARC_RTN = F_TRUE;
+					break;
+															
+					default:	
+						EXE_ARC_RTN = N_FALSE;	
+					break;
+				}
+			break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Dryrun_Status_Sequence :		// 드라이런 모드
+				switch(data)
+				{		
+					// 1. [ Auto Reel Change_ 공운전 모드 ]
+					case N_SEQ_DryRun_ARC_No_1:	// 1. [ 사전작업 ] 
+						P_Module_Act_Command_Array(N_Act_ARC_Pre_Act)						= F_ACT_STATUS_ENABLE;		// 1. 사전 작업
+								
+						EXE_ARC_RTN = F_TRUE;		
+		
+					break;		
+		
+					// 2. [ Auto Reel Change_ 공운전 모드 ]		
+					case N_SEQ_DryRun_ARC_No_2:	// 2. [ 닙롤전진 ]						
+						P_Module_Act_Command_Array(N_Dancer_Closed)							= F_ACT_STATUS_ENABLE;		// 1. CloseLoop	 닙롤 전진
+						
+						EXE_ARC_RTN = F_TRUE;		
+					break;		
+				
+					// 3. [ Auto Reel Change_ 공운전 모드 ]		
+					case N_SEQ_DryRun_ARC_No_3:	// 3. [ 플레이트 전진 ] 		
+						P_Module_Act_Command_Array(N_Act_Use_Plate_FWD)						= F_ACT_STATUS_ENABLE;		// 1. 플레이트 전진		
+		
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					// 4. [ Auto Reel Change_ 공운전 모드 ]
+					case N_SEQ_DryRun_ARC_No_4:	// 4. [ 플레이트 블로우 ON ] 
+						P_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_ON)				= F_ACT_STATUS_ENABLE;		// 1. 플레이트 블로우 on
+		
+						EXE_ARC_RTN = F_TRUE;
+					break;
+
+					// 5. [ Auto Reel Change_ 공운전 모드 ]
+					case N_SEQ_DryRun_ARC_No_5:	// 5. [ 플레이트 클램프 ] 
+						P_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_ON)				= F_ACT_STATUS_ENABLE;		// 1. 플레이트 클램프
+		
+						EXE_ARC_RTN = F_TRUE;
+					break;
+		
+					// 6. [ Auto Reel Change_ 공운전 모드 ]
+					case N_SEQ_DryRun_ARC_No_6:	// 6. [ 커터 전진 ( 커팅 ) ]
+						P_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_FWD)				= F_ACT_STATUS_ENABLE;		// 1. 커터 전진
+
+						EXE_ARC_RTN = F_TRUE;
+					break;
+		
+					// 7. [ Auto Reel Change_ 공운전 모드 ]
+					case N_SEQ_DryRun_ARC_No_7:	// 7. [ 커터 후진 ( 커팅 ) ]
+						P_Module_Act_Command_Array(N_Act_Use_Plate_Cutter_BWD)				= F_ACT_STATUS_ENABLE;		// 1. 커터 후진
+		
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					
+					// 8. [ Auto Reel Change_ 공운전 모드 ]
+					case N_SEQ_DryRun_ARC_No_8:	// 8. [ 플레이트 언클램프 ]
+						P_Module_Act_Command_Array(N_Act_Use_Plate_Clamp_OFF)				= F_ACT_STATUS_ENABLE;		// 1. 플레이트 언클램프
+						
+						EXE_ARC_RTN = F_TRUE;
+					break;
+		
+					// 9. [ Auto Reel Change_ 공운전 모드 ]
+					case N_SEQ_DryRun_ARC_No_9:	// 9. [ 플레이트 후진 ]
+						P_Module_Act_Command_Array(N_Act_Use_Plate_BWD)						= F_ACT_STATUS_ENABLE;		// 1. 플레이트 후진
+						
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					
+					// 10.[ Auto Reel Change_ 공운전 모드 ]
+					case N_SEQ_DryRun_ARC_No_10:	// 10. [ 플레이트 블로우 OFF, 닙롤 후진  ]
+						P_Module_Act_Command_Array(N_Act_Replace_Plate_Blow_OFF)			= F_ACT_STATUS_ENABLE;		// 1. 플레이트 블로우 off			
+						P_Module_Act_Command_Array(N_Dancer_Open)							= F_ACT_STATUS_ENABLE;		// 2. Open Loop 닙롤 후진
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					
+					// 11.[ Auto Reel Change_ 공운전 모드 ]
+					case N_SEQ_DryRun_ARC_No_11:	// 11. [ Spool 교체, 사후 작업 ]
+						P_Module_Act_Command_Array(N_Act_Spool_Change)						= F_ACT_STATUS_ENABLE;		// 1. Spool 교체
+	
+						EXE_ARC_RTN = F_TRUE;
+					break;
+					
+					// 12. [ Auto Reel Change_ 공운전 모드 ]
+					case N_SEQ_DryRun_ARC_No_12:	// 12. [ 사후 작업 ]
+						
+						P_Module_Act_Command_Array(N_Act_ARC_Post_Act)						= F_ACT_STATUS_ENABLE;		// 1. 사후 작업
+						EXE_ARC_RTN = F_TRUE;
+					break;
+		
+					// 13. [ Auto Reel Change_ 공운전 모드 ]
+					case N_SEQ_DryRun_ARC_No_13:	// 13.
+						P_Module_Act_Command_Array(N_Act_Previous_Spool_Remain_Winding)		= F_ACT_STATUS_ENABLE;		// 1. 잔량 감기
+							
+						EXE_ARC_RTN = F_TRUE;
+					break;
+				
+					// 14. [ Auto Reel Change_ 공운전 모드 ]
+					case N_SEQ_DryRun_ARC_No_14:	// 14. [  ]
+						
+						EXE_ARC_RTN = F_TRUE;
+					break;
+															
+					default:	
+						EXE_ARC_RTN = N_FALSE;	
+					break;
+				}
+			break;
+			
+			default:	
+				EXE_ARC_RTN = N_FALSE;	
+			break;
+		}
+	return
+//===========================================================================//
+// 2.4) Precondition_ARC - 사전 조건 스킵 변수 부여, 감시 다음 시퀀스 실행 조건 보기
+//===========================================================================//
+
+	sub:Precondition_ARC(Mode,Index,&ARC_Pre_RTN)	
+		// 실행 될 시퀀스의 실행 조건 입력 _ 실행 완료 상태 혹은 실행 스킵 상태를 확인
+		local L_ARC_Index_Cond = P_Buffer_Seqdata_ARC_Array(Index);		// 다음 시작해야 할 동작
+		ARC_Pre_RTN = 0;					// 반환값 초기화.
+		switch(Mode)
+		{
+			case N_Normal_Status_Sequence :		
+				Switch(L_ARC_Index_Cond)
+				{
+					case N_SEQ_Normal_ARC_No_1 : 
+						ARC_Pre_RTN = F_TRUE;
+					break;		
+								
+					case N_SEQ_Normal_ARC_No_2 : // 1. 사전 작업
+						if( P_Act_Complete_Bit(N_Act_ARC_Pre_Act) )
+						{
+								ARC_Pre_RTN = F_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_ARC_No_3 :
+						if( P_Act_Complete_Bit(N_Dancer_Closed) )	// 2. 닙롤전진		
+						{	
+							//if( M_X_Sepa_Driving_Roll_Clamp_Sensor == 1 && M_X_Sepa_Driving_Roll_UnClamp_Sensor == 0 )		// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Normal_ARC_No_4 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_FWD) )	// 3. 플레이트 전진		
+						{
+							//if( M_X_Sepa_Lower_ARC_Up_Sensor == 1 && M_X_Sepa_Lower_ARC_Dn_Sensor == 0 )						// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					break;
+					case N_SEQ_Normal_ARC_No_5 :
+						if( P_Act_Complete_Bit(N_Act_Replace_Plate_Blow_ON) )	// 4. 플레이트 블로우
+						{			
+							//if( M_X_ARC_NP_Upper_Plate_Vac_On == 0 )															// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Normal_ARC_No_6 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_Clamp_ON) )	// 5. 플레이트 클램프
+						{	
+							//if( M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor == 0 && M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor == 0 && M_X_Sepa_Upper_ARC_Stopper_Front_Sensor == 1 && M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor == 1 )			// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_ARC_No_7 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_Cutter_FWD) )	// 6. 커터 전진		
+						{			
+							//if( M_X_Sepa_Lower_ARC_Cutting_FWD_Sensor == 1 && M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor == 0 )	// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_ARC_No_8 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_Cutter_BWD) )	// 7. 커터 후진
+						{			
+							//if( M_X_Sepa_Upper_ARC_Cutting_FWD_Sensor == 0 && M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor == 1 )	// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_ARC_No_9 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_Clamp_OFF)  )	// 8. 언클램프	
+						{	
+							//if ( M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor == 1 && M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor == 1 && M_X_Sepa_Upper_ARC_Stopper_Front_Sensor == 0 && M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor == 0 )									// 완료 상태 한번 더 체크	
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_ARC_No_10 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_BWD) )		// 9. 플레이트 후진
+						{		
+							//if ( M_X_Sepa_Upper_ARC_Up_Sensor == 1 && M_X_Sepa_Upper_ARC_Dn_Sensor == 0 )			// 완료 상태 한번 더 체크	
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_ARC_No_11 :
+						if( P_Act_Complete_Bit(N_Act_Replace_Plate_Blow_OFF) & P_Act_Complete_Bit(N_Dancer_Open) )	// 10. 블로우 OFF, 닙롤 후진	
+						{		
+							//if( M_X_ARC_NP_Upper_Plate_Vac_On == 0 )												// 완료 상태 한번 더 체크		
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Normal_ARC_No_12 :
+						if( P_Act_Complete_Bit(N_Act_Spool_Change)  )												// 11. Spool 교체
+						{			
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+
+					case N_SEQ_Normal_ARC_No_13 :																	// 12. 사후작업
+						if( P_Act_Complete_Bit(N_Act_ARC_Post_Act) )
+						{
+							ARC_Pre_RTN = F_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_ARC_No_14 :
+						if( P_Act_Complete_Bit(N_Act_Previous_Spool_Remain_Winding) )								// 13. 잔량감기	
+						{			
+						
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+
+					//case N_SEQ_Normal_ARC_No_14 :
+					//					
+					//	ARC_Pre_RTN = F_TRUE;
+					//							
+					//break;
+										
+					default:
+						 ARC_Pre_RTN = F_TRUE;	
+					break;
+				}
+			break;
+		
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Sepa_Consume_Status_Sequence :			//  모드	
+				Switch(L_ARC_Index_Cond)
+				{
+					case N_SEQ_Sepa_ARC_No_1 : 
+						ARC_Pre_RTN = F_TRUE;
+					break;		
+								
+					case N_SEQ_Sepa_ARC_No_2 : // 1. 사전 작업
+						if( P_Act_Complete_Bit(N_Act_ARC_Pre_Act) )
+						{
+								ARC_Pre_RTN = F_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Sepa_ARC_No_3 :
+						if( P_Act_Complete_Bit(N_Dancer_Closed) )	// 2. 닙롤전진		 
+						{	
+							//if( M_X_Sepa_Driving_Roll_Clamp_Sensor == 1 && M_X_Sepa_Driving_Roll_UnClamp_Sensor == 0 )		// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Sepa_ARC_No_4 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_FWD) )	// 3. 플레이트 전진		
+						{
+							//if( M_X_Sepa_Lower_ARC_Up_Sensor == 1 && M_X_Sepa_Lower_ARC_Dn_Sensor == 0 )						// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					break;
+					case N_SEQ_Sepa_ARC_No_5 :
+						if( P_Act_Complete_Bit(N_Act_Replace_Plate_Blow_ON) )	// 4. 플레이트 블로우
+						{			
+							//if( M_X_ARC_NP_Upper_Plate_Vac_On == 0 )															// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					break;
+		
+					case N_SEQ_Sepa_ARC_No_6 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_Clamp_ON) )	// 5. 플레이트 클램프
+						{	
+							//if( M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor == 0 && M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor == 0 && M_X_Sepa_Upper_ARC_Stopper_Front_Sensor == 1 && M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor == 1 )			// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Sepa_ARC_No_7 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_Cutter_FWD) )	// 6. 커터 전진		
+						{			
+							//if( M_X_Sepa_Lower_ARC_Cutting_FWD_Sensor == 1 && M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor == 0 )	// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Sepa_ARC_No_8 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_Cutter_BWD) )	// 7. 커터 후진
+						{			
+							//if( M_X_Sepa_Upper_ARC_Cutting_FWD_Sensor == 0 && M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor == 1 )	// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Sepa_ARC_No_9 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_Clamp_OFF)  )	// 8. 언클램프	
+						{	
+							//if ( M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor == 1 && M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor == 1 && M_X_Sepa_Upper_ARC_Stopper_Front_Sensor == 0 && M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor == 0 )									// 완료 상태 한번 더 체크	
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Sepa_ARC_No_10 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_BWD) )		// 9. 플레이트 후진
+						{		
+							//if ( M_X_Sepa_Upper_ARC_Up_Sensor == 1 && M_X_Sepa_Upper_ARC_Dn_Sensor == 0 )		// 완료 상태 한번 더 체크	
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Sepa_ARC_No_11 :
+						if( P_Act_Complete_Bit(N_Act_Replace_Plate_Blow_OFF) & P_Act_Complete_Bit(N_Dancer_Open) )		// 10. 블로우 OFF, 닙롤 후진	
+						{		
+							//if( M_X_ARC_NP_Upper_Plate_Vac_On == 0 )												// 완료 상태 한번 더 체크		
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_Sepa_ARC_No_12 :
+						if( P_Act_Complete_Bit(N_Act_Spool_Change) )												// 11. Spool 교체 
+						{			
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+
+					case N_SEQ_Sepa_ARC_No_13 :
+						if( P_Act_Complete_Bit(N_Act_ARC_Post_Act) )												// 12. 사후작업
+						{			
+						
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+								
+					case N_SEQ_Sepa_ARC_No_14 :
+						if( P_Act_Complete_Bit(N_Act_Previous_Spool_Remain_Winding) )								// 13. 잔량감기	
+						{			
+						
+								ARC_Pre_RTN = F_TRUE;
+						}				
+					break;
+
+					//case N_SEQ_Sepa_ARC_No_14 :
+					//	
+					//		ARC_Pre_RTN = F_TRUE;
+					//					
+					//break;
+										
+					default:
+						 ARC_Pre_RTN = F_TRUE;	
+					break;
+				}
+
+			break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Dryrun_Status_Sequence :		// 드라이런 모드	
+				Switch(L_ARC_Index_Cond)
+				{
+					case N_SEQ_DryRun_ARC_No_1 : 
+						ARC_Pre_RTN = F_TRUE;
+					break;		
+								
+					case N_SEQ_DryRun_ARC_No_2 : // 1. 사전 작업
+						if( P_Act_Complete_Bit(N_Act_ARC_Pre_Act) )
+						{
+								ARC_Pre_RTN = F_TRUE;
+						}
+					break;
+					
+					case N_SEQ_DryRun_ARC_No_3 :
+						if( P_Act_Complete_Bit(N_Dancer_Closed) )	// 2. 닙롤전진		
+						{	
+							//if( M_X_Sepa_Driving_Roll_Clamp_Sensor == 1 && M_X_Sepa_Driving_Roll_UnClamp_Sensor == 0 )		// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					break;
+										
+					case N_SEQ_DryRun_ARC_No_4 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_FWD) )	// 3. 플레이트 전진		
+						{
+							//if( M_X_Sepa_Lower_ARC_Up_Sensor == 1 && M_X_Sepa_Lower_ARC_Dn_Sensor == 0 )						// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					break;
+					case N_SEQ_DryRun_ARC_No_5 :
+						if( P_Act_Complete_Bit(N_Act_Replace_Plate_Blow_ON) )	// 4. 플레이트 블로우
+						{			
+							//if( M_X_ARC_NP_Upper_Plate_Vac_On == 0 )															// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					break;
+		
+					case N_SEQ_DryRun_ARC_No_6 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_Clamp_ON) )	// 5. 플레이트 클램프
+						{	
+							//if( M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor == 0 && M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor == 0 && M_X_Sepa_Upper_ARC_Stopper_Front_Sensor == 1 && M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor == 1 )			// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_DryRun_ARC_No_7 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_Cutter_FWD) )	// 6. 커터 전진		
+						{			
+							//if( M_X_Sepa_Lower_ARC_Cutting_FWD_Sensor == 1 && M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor == 0 )	// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_DryRun_ARC_No_8 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_Cutter_BWD) )	// 7. 커터 후진
+						{			
+							//if( M_X_Sepa_Upper_ARC_Cutting_FWD_Sensor == 0 && M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor == 1 )	// 완료 상태 한번 더 체크
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_DryRun_ARC_No_9 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_Clamp_OFF)  )	// 8. 언클램프	
+						{	
+							//if ( M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor == 1 && M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor == 1 && M_X_Sepa_Upper_ARC_Stopper_Front_Sensor == 0 && M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor == 0 )									// 완료 상태 한번 더 체크	
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_DryRun_ARC_No_10 :
+						if( P_Act_Complete_Bit(N_Act_Use_Plate_BWD) )		// 9. 플레이트 후진
+						{		
+							//if ( M_X_Sepa_Upper_ARC_Up_Sensor == 1 && M_X_Sepa_Upper_ARC_Dn_Sensor == 0 )		// 완료 상태 한번 더 체크	
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_DryRun_ARC_No_11 :
+						if( P_Act_Complete_Bit(N_Act_Replace_Plate_Blow_OFF) & P_Act_Complete_Bit(N_Dancer_Open) )		// 10. 블로우 OFF, 닙롤 후진	
+						{		
+							//if( M_X_ARC_NP_Upper_Plate_Vac_On == 0 )												// 완료 상태 한번 더 체크		
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+		
+					case N_SEQ_DryRun_ARC_No_12 :
+						if( P_Act_Complete_Bit(N_Act_Spool_Change) )												// 11. Spool 교체 
+						{			
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+
+					case N_SEQ_DryRun_ARC_No_13 :
+						if( P_Act_Complete_Bit(N_Act_ARC_Post_Act) )												// 12. 사후작업
+						{			
+								ARC_Pre_RTN = F_TRUE;
+						}
+					
+					break;
+								
+					case N_SEQ_DryRun_ARC_No_14 :
+						if( P_Act_Complete_Bit(N_Act_Previous_Spool_Remain_Winding) )								// 13. 잔량감기	
+						{			
+								ARC_Pre_RTN = F_TRUE;
+						}				
+					break;
+										
+					default:
+						 ARC_Pre_RTN = F_TRUE;	
+					break;
+				}
+					
+			break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			default:	break;
+		}
+	return
+
+
+//========================================================//
+// 3.1) Set_An_1TR_Supply
+//========================================================//
+	sub:Set_An_1TR_Supply(Mode,&Set_An_1TR_Supply_rtn)
+
+		//=========================================//
+		// 1.0)Init
+		//=========================================//
+		//P_Act_Complete_Bit(N_Act_FW_Mandrel_P1),(N_Act_BW_Cathode_FR_Clutch - N_Act_Rotor_Holder_FWD + 1 ) = 0; // 7 ~ 31			 
+		P_Act_Complete_Bit(0),N_Act_Define_Limit = 0;
+		Set_An_1TR_Supply_rtn = 0;	
+
+		switch(Mode)
+		{
+			// 1.1) 일반 생산 모드 
+			case N_Normal_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(0)  = Mode;									// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(1)  = N_SEQ_Normal_AN_1TR_Supply_Cell_No_1;	// 2) 음극 1TR 공급 - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(2)  = N_SEQ_Normal_AN_1TR_Supply_Cell_No_2;	// 3) 음극 1TR 공급 - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(3)  = N_SEQ_Normal_AN_1TR_Supply_Cell_No_3;	// 4) 음극 1TR 공급 - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(4)  = N_SEQ_Normal_AN_1TR_Supply_Cell_No_4;	// 5) 음극 1TR 공급 - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(5)  = N_COMPLETE;								// 6) 음극 1TR 공급 - 일반 모드  || 다섯번째 시퀀스			
+																						  
+				Set_An_1TR_Supply_rtn = N_TRUE;
+			break;
+
+			// 1.2) 세파 모드
+			case N_Sepa_Consume_Status_Sequence :
+
+				// 1.2.1 시퀀스 배열
+				P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(0)  = Mode;								// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(1)  = N_COMPLETE;							// 2) Sepa Mode 는 1차 PnP 불필요
+				Set_An_1TR_Supply_rtn = N_TRUE;
+			break;
+
+			// 1.3)  드라이런 모드
+			case N_Dryrun_Status_Sequence :
+				// 1.3.1 시퀀스 배열
+				P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(0)  = Mode;									// 1) 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(1)  = N_COMPLETE;								// 2) 드라이런은 불필요
+				
+				Set_An_1TR_Supply_rtn = N_TRUE;
+			break;
+		}
+
+	return
+
+
+//===========================================================================//
+// 3.2) Management - 시퀀스 실행 관리 함수 _ 인덱스에 맞는 동작 가져오기
+//===========================================================================//
+	sub:Management_An_1TR_Supply(Mode,Index,&data,&Management_An_1TR_Supply_RTN)
+		
+		Management_An_1TR_Supply_RTN = 0;
+		if ( P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(0) == Mode )					// 1) 실행 전 모드 체크
+		{																	
+			if ( P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(Index) == N_COMPLETE )	// 1.1) 인덱스 배열값이 완료 일 경우
+			{																 
+				data = N_COMPLETE;														// 1.1.1) 데이터 완료값 반환
+				Management_An_1TR_Supply_RTN = N_EXCEPT;								// 1.1.2) 예외값 반환
+			}																
+			else if ( P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(Index) != 0 )		// 1.1.3) 완료도 아니고 0값도 아닐 경우
+			{																 
+				data = P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(Index);				// 1.1.4) 인덱스 배열값 반환
+				Management_An_1TR_Supply_RTN = N_TRUE;									// 1.1.5) True 반환
+			}																
+			else															
+			{																
+				data = 0;																// 1.1.6) 인덱스 배열값 0값 반환
+				Management_An_1TR_Supply_RTN = N_FALSE;									// 1.1.7) False  반환
+			}															
+		}
+
+	return
+
+//===========================================================================//
+// 3.3) Execute_An_1TR_Supply - 동작
+//===========================================================================//
+	sub:Execute_An_1TR_Supply(Mode,data,&Execute_An_1TR_Supply_RTN) 
+
+		Execute_An_1TR_Supply_RTN = 0;
+		switch( Mode )	// 모드구분.
+		{
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Normal_Status_Sequence :		
+				switch(data)	// 시퀀스구분.
+				{		
+					// 1. [ 음극 1TR 공급모듈 - 일반 모드 ]
+					case N_SEQ_Normal_AN_1TR_Supply_Cell_No_1:	// 1. [ 일반 생산 모드 ] 
+						P_Module_Act_Command_Array(N_Act_1st_Anode_Mem_Pos)					= F_ACT_STATUS_ENABLE;	// 1. 위치메모리 확인
+							
+						Execute_An_1TR_Supply_RTN = N_TRUE;		
+		
+					break;		
+		
+					// 2. [ 음극 1TR 공급모듈 일반 모드 ]		
+					case N_SEQ_Normal_AN_1TR_Supply_Cell_No_2:	// 2. [ 일반 생산 모드 ]						
+						P_Module_Act_Command_Array(N_Act_Motion_to_Belt)					= F_ACT_STATUS_ENABLE;	// 1. 벨트 진입 및 퍼즈
+		
+						Execute_An_1TR_Supply_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ 음극 1TR 공급모듈 일반 모드 ]		
+					case N_SEQ_Normal_AN_1TR_Supply_Cell_No_3:	// 3. [ 일반 생산 모드 ] 		
+						P_Module_Act_Command_Array(N_Act_Motion_to_PickUp)					= F_ACT_STATUS_ENABLE;	// 1. Belt 픽업
+		
+						Execute_An_1TR_Supply_RTN = N_TRUE;
+					break;
+		
+					// 4. [ 음극 1TR 공급모듈 일반 모드 ]
+					case N_SEQ_Normal_AN_1TR_Supply_Cell_No_4:	// 4. [ 일반 생산 모드 ] 
+		
+						P_Module_Act_Command_Array(N_Act_Motion_to_Ready)					= F_ACT_STATUS_ENABLE;	// 1. 대기위치 이동
+		
+						Execute_An_1TR_Supply_RTN = N_TRUE;
+					break;
+		
+					// 5. [ 음극 1TR 공급모듈 일반 모드 ]
+					case N_SEQ_Normal_AN_1TR_Supply_Cell_No_5:	// 5. [ 일반 생산 모드 ]
+						Execute_An_1TR_Supply_RTN = N_TRUE;
+					break;
+															
+					default:	
+						Execute_An_1TR_Supply_RTN = N_FALSE;	
+					break;
+				}
+			break;
+			
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Sepa_Consume_Status_Sequence :	
+				switch(data)
+				{
+					// 1. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_AN_1TR_Supply_Cell_No_1:	// 1. [ 세파 생산 모드 ] 
+						
+						Execute_An_1TR_Supply_RTN = N_TRUE;		
+		
+					break;		
+		
+					// 2. [ 배출모듈_ 세파 모드 ]		
+					case N_SEQ_Sepa_AN_1TR_Supply_Cell_No_2:	// 2. [ 세파 생산 모드 ]						
+	
+						Execute_An_1TR_Supply_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ 배출모듈_ 세파 모드 ]		
+					case N_SEQ_Sepa_AN_1TR_Supply_Cell_No_3:	// 3. [ 세파 생산 모드 ] 		
+						
+						Execute_An_1TR_Supply_RTN = N_TRUE;
+					break;
+		
+					// 4. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_AN_1TR_Supply_Cell_No_4:	// 4. [ 세파 생산 모드 ] 
+		
+						Execute_An_1TR_Supply_RTN = N_TRUE;
+					break;
+		
+					// 5. [ 배출모듈_ 세파 모드 ]
+					case N_SEQ_Sepa_AN_1TR_Supply_Cell_No_5:	// 5. [ 세파 생산 모드 ]
+	
+						Execute_An_1TR_Supply_RTN = N_TRUE;
+					break;
+															
+					default:	
+						Execute_An_1TR_Supply_RTN = N_FALSE;	
+					break;
+				}
+			break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Dryrun_Status_Sequence :		// 드라이런 모드
+				switch(data)
+				{
+					// 1. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_AN_1TR_Supply_Cell_No_1:	// 1. [ 드라이런 생산 모드 ] 
+						
+						Execute_An_1TR_Supply_RTN = N_TRUE;		
+		
+					break;		
+		
+					// 2. [ 배출모듈_ 드라이런 모드 ]		
+					case N_SEQ_DryRun_AN_1TR_Supply_Cell_No_2:	// 2. [ 드라이런 생산 모드 ]						
+		
+						Execute_An_1TR_Supply_RTN = N_TRUE;		
+					break;		
+				
+					// 3. [ 배출모듈_ 드라이런 모드 ]		
+					case N_SEQ_DryRun_AN_1TR_Supply_Cell_No_3:	// 3. [ 드라이런 생산 모드 ] 		
+							
+		
+						Execute_An_1TR_Supply_RTN = N_TRUE;
+					break;
+		
+					// 4. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_AN_1TR_Supply_Cell_No_4:	// 4. [ 드라이런 생산 모드 ] 
+		
+						
+		
+						Execute_An_1TR_Supply_RTN = N_TRUE;
+					break;
+		
+					// 5. [ 배출모듈_ 드라이런 모드 ]
+					case N_SEQ_DryRun_AN_1TR_Supply_Cell_No_5:	// 5. [ 드라이런 생산 모드 ]
+						
+						Execute_An_1TR_Supply_RTN = N_TRUE;
+					break;
+		
+									
+					default:	
+						Execute_An_1TR_Supply_RTN = N_FALSE;	
+					break;
+				}
+			break;
+			
+			default:	
+				Execute_An_1TR_Supply_RTN = N_FALSE;	
+			break;
+		}
+	return
+//===========================================================================//
+// 3.4) Precondition_An_1TR_Supply - 사전 조건 스킵 변수 부여, 감시 다음 시퀀스 실행 조건 보기
+//===========================================================================//
+
+	sub:Precondition_An_1TR_Supply(Mode,Index,&Precondition_An_1TR_Supply_RTN)	
+		// 실행 될 시퀀스의 실행 조건 입력 _ 실행 완료 상태 혹은 실행 스킵 상태를 확인
+		local L_An_1TR_Supply_Index_Cond = P_Buffer_Seqdata_Discharge_Array(Index);		// 다음 시작해야 할 동작
+		Precondition_An_1TR_Supply_RTN = 0;					// 반환값 초기화.
+		switch(Mode)
+		{
+			case N_Normal_Status_Sequence :		
+				Switch(L_An_1TR_Supply_Index_Cond)
+				{
+					case N_SEQ_Normal_AN_1TR_Supply_Cell_No_1 : 
+						Precondition_An_1TR_Supply_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Normal_AN_1TR_Supply_Cell_No_2 : 
+						//if( P_Act_Complete_Bit(N_Act_1st_Anode_Mem_Pos) == 1 && ( P_Act_Complete_Bit(N_Act_An_Align_Retry_Cal) == 1 || P_An_AT_Retry_Cal_Pass == 1 ) )		// [ 참조 : 260420 SUSPEND 배출 시, 얼라인 재보정 기능 추가 ]
+						if( P_Act_Complete_Bit(N_Act_1st_Anode_Mem_Pos) == 1 )		// 26.05.19 얼라인 재보정 주석
+						{
+							Precondition_An_1TR_Supply_RTN = N_TRUE;
+						}
+					break;
+					
+					case N_SEQ_Normal_AN_1TR_Supply_Cell_No_3 :
+						if( P_Act_Complete_Bit(N_Act_Motion_to_Belt) )		
+						{	
+							Precondition_An_1TR_Supply_RTN = N_TRUE;
+						}
+					break;
+										
+					case N_SEQ_Normal_AN_1TR_Supply_Cell_No_4 : 
+						// 기존
+						//if( P_Act_Complete_Bit(N_Act_Motion_to_PickUp) & P_Act_Complete_Bit(N_Act_Motion_to_PickUp_2nd) )		
+						// 변경 후 - [ 참조 : 26.06.08 1,2차 공급모듈 변경 ]
+						if( P_Act_Complete_Bit(N_Act_Motion_to_PickUp) )		
+						{	
+							Precondition_An_1TR_Supply_RTN = N_TRUE;
+						}
+					break;
+
+					case N_SEQ_Normal_AN_1TR_Supply_Cell_No_5 :
+						if( P_Act_Complete_Bit(N_Act_Motion_to_Ready) )		
+						{	
+							Precondition_An_1TR_Supply_RTN = N_TRUE;
+						}
+					break;
+				
+					default:
+						 Precondition_An_1TR_Supply_RTN = N_TRUE;	
+					break;
+				}
+			break;
+		
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Sepa_Consume_Status_Sequence :			//  모드	
+				Switch(L_An_1TR_Supply_Index_Cond)
+				{
+					case N_SEQ_Sepa_AN_1TR_Supply_Cell_No_1 : 
+						Precondition_An_1TR_Supply_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_Sepa_AN_1TR_Supply_Cell_No_2 : 
+						if( P_Act_Complete_Bit(N_Act_1st_Anode_Mem_Pos) == 1 )			
+						{
+							Precondition_An_1TR_Supply_RTN = N_TRUE;
+						}
+					break;
+					
+					default:
+						 Precondition_An_1TR_Supply_RTN = N_TRUE;	
+					break;
+				}
+			break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			case N_Dryrun_Status_Sequence :		// 드라이런 모드	
+				Switch(L_An_1TR_Supply_Index_Cond)
+				{
+					case N_SEQ_DryRun_AN_1TR_Supply_Cell_No_1 : 
+						Precondition_An_1TR_Supply_RTN = N_TRUE;
+					break;		
+								
+					case N_SEQ_DryRun_AN_1TR_Supply_Cell_No_2 : 
+						if( P_Act_Complete_Bit(N_Act_1st_Anode_Mem_Pos) == 1 )			
+						{
+							Precondition_An_1TR_Supply_RTN = N_TRUE;
+						}
+					break;
+		
+					default:
+						 Precondition_An_1TR_Supply_RTN = N_TRUE;	
+					break;
+				}
+			break;
+			//-------------------------------------------------------------------------------------------------------------------------------------------------//
+			default:	break;
+		}
+	return
+
+
+// 2025.07.04 Cycle Stop SET 추가
+		// 2025.07.04 Cycle Stop SET 추가
+	sub: Set_CycleStop(Mode,&CycleStop_RTN)
+	//=========================================//
+		// 1.0)Init
+		//=========================================//
+		//P_Act_Complete_Bit(N_Act_FW_Mandrel_P1),(N_Act_BW_Cathode_FR_Clutch - N_Act_Rotor_Holder_FWD + 1 ) = 0; // 7 ~ 31			 
+		CycleStop_RTN = 0;	
+		P_Stopping_CycleStop_Act_State_Machine(0),N_CycleStop_Module = 0;						// 행위 스텟머신 초기화
+		P_Module_Cycle_Stop_Act_Complete_Bit(0),N_CycleStop_Module = 0;
+		switch(Mode)
+		{
+			// 1.1) 일반 생산 모드 
+			case N_Normal_Status_Sequence : 
+	
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_CycleStop_Array(0)  = Mode;							// 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_CycleStop_Array(1)  = N_SEQ_CycleStop_No_1;			// CycleStop - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(2)  = N_SEQ_CycleStop_No_2;			// CycleStop - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_CycleStop_Array(3)  = N_SEQ_CycleStop_No_3;			// CycleStop - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_CycleStop_Array(4)  = N_SEQ_CycleStop_No_4;			// CycleStop - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(5)  = N_SEQ_CycleStop_No_5;			// CycleStop - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(6)  = N_SEQ_CycleStop_No_6;			// CycleStop - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(7)  = N_SEQ_CycleStop_No_7;	        // CycleStop - 일반 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(8)  = N_SEQ_CycleStop_No_8;	        // CycleStop - 일반 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(9)  = N_SEQ_CycleStop_No_9;	        // CycleStop - 일반 모드  || 아홉번째 시퀀스
+				
+				P_Buffer_Seqdata_CycleStop_Array(10) = N_COMPLETE;						// CycleStop - 일반 모드 || 시퀀스 완료 체크
+
+				CycleStop_RTN = F_TRUE;
+			break;
+
+			// 1.2) 세파 모드
+			case N_Sepa_Consume_Status_Sequence :
+
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_CycleStop_Array(0)  = Mode;							// 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_CycleStop_Array(1)  = N_SEQ_CycleStop_No_1;			// CycleStop - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(2)  = N_SEQ_CycleStop_No_2;			// CycleStop - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_CycleStop_Array(3)  = N_SEQ_CycleStop_No_3;			// CycleStop - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_CycleStop_Array(4)  = N_SEQ_CycleStop_No_4;			// CycleStop - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(5)  = N_SEQ_CycleStop_No_5;			// CycleStop - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(6)  = N_SEQ_CycleStop_No_6;			// CycleStop - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(7)  = N_SEQ_CycleStop_No_7;	        // CycleStop - 일반 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(8)  = N_SEQ_CycleStop_No_8;	        // CycleStop - 일반 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(9)  = N_SEQ_CycleStop_No_9;	        // CycleStop - 일반 모드  || 아홉번째 시퀀스
+				
+				P_Buffer_Seqdata_CycleStop_Array(10) = N_COMPLETE;						// CycleStop - 일반 모드 || 시퀀스 완료 체크
+
+				CycleStop_RTN = F_TRUE;
+			break;
+
+			// 1.3)  드라이런 모드
+			case N_Dryrun_Status_Sequence :
+				// 1.3.1 시퀀스 배열
+				//1.1.1 시퀀스 배열
+				P_Buffer_Seqdata_CycleStop_Array(0)  = Mode;							// 실행 모드 Check -> 시퀀스 부여 단계
+				P_Buffer_Seqdata_CycleStop_Array(1)  = N_SEQ_CycleStop_No_1;			// CycleStop - 일반 모드  || 첫번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(2)  = N_SEQ_CycleStop_No_2;			// CycleStop - 일반 모드  || 두번째 시퀀스 
+				P_Buffer_Seqdata_CycleStop_Array(3)  = N_SEQ_CycleStop_No_3;			// CycleStop - 일반 모드  || 세번째 시퀀스 
+				P_Buffer_Seqdata_CycleStop_Array(4)  = N_SEQ_CycleStop_No_4;			// CycleStop - 일반 모드  || 네번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(5)  = N_SEQ_CycleStop_No_5;			// CycleStop - 일반 모드  || 다섯번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(6)  = N_SEQ_CycleStop_No_6;			// CycleStop - 일반 모드  || 여섯번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(7)  = N_SEQ_CycleStop_No_7;	        // CycleStop - 일반 모드  || 일곱번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(8)  = N_SEQ_CycleStop_No_8;	        // CycleStop - 일반 모드  || 여덟번째 시퀀스
+				P_Buffer_Seqdata_CycleStop_Array(9)  = N_SEQ_CycleStop_No_9;	        // CycleStop - 일반 모드  || 아홉번째 시퀀스
+				
+				P_Buffer_Seqdata_CycleStop_Array(10) = N_COMPLETE;						// CycleStop - 일반 모드 || 시퀀스 완료 체크
+
+				CycleStop_RTN = F_TRUE;
+			break;
+		}
+	return;
+
+sub:Management_Cycle_Stop(Mode,Index,&data,&Manage_Cycle_Stop_RTN)
+		
+		Manage_Cycle_Stop_RTN = 0;
+		if ( P_Buffer_Seqdata_CycleStop_Array(0) == Mode )					// 2.2.1) 실행 전 모드 체크
+		{																	
+			if ( P_Buffer_Seqdata_CycleStop_Array(Index) == N_COMPLETE )	// 2.2.1) 인덱스 배열값이 완료 일 경우
+			{																 
+				data = N_COMPLETE;											// 2.2.1.1) 데이터 완료값 반환
+				Manage_Cycle_Stop_RTN = N_EXCEPT;							// 2.2.1.2) 예외값 반환
+			}																
+			else if ( P_Buffer_Seqdata_CycleStop_Array(Index) != 0 )		// 2.2.3) 완료도 아니고 0값도 아닐 경우
+			{																 
+				data = P_Buffer_Seqdata_CycleStop_Array(Index);				// 2.2.4) 인덱스 배열값 반환
+				Manage_Cycle_Stop_RTN = F_TRUE;								// 2.2.5) True 반환
+			}																
+			else															
+			{																
+				data = 0;													// 2.2.6) 인덱스 배열값 0값 반환
+				Manage_Cycle_Stop_RTN = N_FALSE;							// 2.2.7) False  반환
+			}															
+		}
+	return;
+
+
+
+	sub: Execute_Cycle_Stop(Mode,data,&Manage_Cycle_Stop_RTN)
+	Manage_Cycle_Stop_RTN = 0;
+	switch( Mode )
+	{
+		// 1.1) 일반 생산 모드 
+		case N_Normal_Status_Sequence :
+			switch(data)
+			{
+				case N_SEQ_CycleStop_No_1: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_1st_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_2: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_2nd_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_3: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_3rd_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_4: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_4th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;					
+				break;
+
+				case N_SEQ_CycleStop_No_5: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_5th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;	
+				break;
+
+				case N_SEQ_CycleStop_No_6: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_6th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_7: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_7th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_8: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_8th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_9:							// [ 참조 : 26.01.19 사이클 정지 모듈 수정 ]
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+			}
+
+		// 1.2) 세파 소비 모드 
+		case N_Sepa_Consume_Status_Sequence :
+			switch(data)
+			{
+				case N_SEQ_CycleStop_No_1: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_1st_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_2: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_2nd_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_3: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_3rd_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_4: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_4th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;					
+				break;
+
+				case N_SEQ_CycleStop_No_5: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_5th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;	
+				break;
+
+				case N_SEQ_CycleStop_No_6: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_6th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_7: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_7th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_8: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_8th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_9:							// [ 참조 : 26.01.19 사이클 정지 모듈 수정 ]						
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+			}
+
+		// 1.3)  드라이런 모드
+		case N_Dryrun_Status_Sequence :
+			switch(data)
+			{
+				case N_SEQ_CycleStop_No_1: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_1st_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_2: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_2nd_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_3: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_3rd_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_4: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_4th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;					
+				break;
+
+				case N_SEQ_CycleStop_No_5: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_5th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;	
+				break;
+
+				case N_SEQ_CycleStop_No_6: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_6th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_7: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_7th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_8: 
+					P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_8th_Action) = F_ACT_STATUS_ENABLE;										
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+
+				case N_SEQ_CycleStop_No_9:							// [ 참조 : 26.01.19 사이클 정지 모듈 수정 ]						
+					Manage_Cycle_Stop_RTN = N_TRUE;
+				break;
+			}
+		break;
+	}
+	return;
+
+
+
+	sub: Precondition_CycleStop(Mode,Index,&rtn)									
+	rtn = 0;
+	switch( Mode )
+	{
+		case N_Normal_Status_Sequence:
+			switch( Index )
+			{
+				case N_SEQ_Normal_MSA_No_1:									
+					rtn = N_TRUE;
+				break;
+				
+				case N_SEQ_Normal_MSA_No_2:
+					if(P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_1st_Action) )			
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_1st_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_3:
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_2nd_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_2nd_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_4:
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_3rd_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_3rd_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_5:		
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_4th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_4th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+				
+				case N_SEQ_Normal_MSA_No_6:
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_5th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_5th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_7:		
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_6th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_6th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_8:		
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_7th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_7th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_9:		
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_8th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_8th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+		 		case N_SEQ_Normal_MSA_No_10:
+			
+					rtn = N_TRUE;
+				break;
+			}
+		break;
+
+		// 1.2) 세파 소비 모드 
+		case N_Sepa_Consume_Status_Sequence :
+			switch( Index )
+			{
+				case N_SEQ_Normal_MSA_No_1:									
+					rtn = N_TRUE;
+				break;
+				
+				case N_SEQ_Normal_MSA_No_2:
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_1st_Action) )			
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_1st_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_3:
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_2nd_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_2nd_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_4:
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_3rd_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_3rd_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_5:		
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_4th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_4th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+				
+				case N_SEQ_Normal_MSA_No_6:
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_5th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_5th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_7:		
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_6th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_6th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_8:		
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_7th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_7th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_9:		
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_8th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_8th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+		 		case N_SEQ_Normal_MSA_No_10:
+			
+					rtn = N_TRUE;
+				break;
+			}
+		break;
+
+		// 1.3)  드라이런 모드
+		case N_Dryrun_Status_Sequence :
+			switch( Index )
+			{
+				case N_SEQ_Normal_MSA_No_1:									
+					rtn = N_TRUE;
+				break;
+				
+				case N_SEQ_Normal_MSA_No_2:
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_1st_Action) )			
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_1st_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_3:
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_2nd_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_2nd_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_4:
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_3rd_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_3rd_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_5:		
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_4th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_4th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+				
+				case N_SEQ_Normal_MSA_No_6:
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_5th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_5th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_7:		
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_6th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_6th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_8:		
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_7th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_7th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+				case N_SEQ_Normal_MSA_No_9:		
+					if( P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_8th_Action) )
+					{
+						P_Module_Cycle_Stop_Act_Complete_Bit(N_CycleStop_8th_Action) = 0;
+						rtn = N_TRUE;
+					}
+				break;
+
+		 		case N_SEQ_Normal_MSA_No_10:
+			
+					rtn = N_TRUE;
+				break;
+			}
+		break;
+	}
+	return;
+
+close

@@ -1,0 +1,416 @@
+
+global P_IL_ON_OFF_Flag = 0;
+global P_IL_Coord_Robot = 0;
+global  P_IL_Robot_Bit = 0;
+global P_IL_Outer_Status = 0;
+global P_Robot_Unit_Serch_Flag = 0;
+
+global P_Limit_PosData(3)
+P_Limit_PosData(0),3=0;
+
+#define	N_Nan		-999
+
+#define Hex_IL_Plus		$1	//1
+#define Hex_IL_Minus	$2	//2
+
+
+#define N_IL_Normal_Pos			11
+#define N_IL_Upper_Pos			22
+#define N_IL_Align_Pos			33
+#define N_IL_Stack_Pos			44
+#define N_IL_Belt_Pos			55
+#define IL_Out_Close			99
+#define N_Home_Miss				444
+#define N_JR_Prod_Popup			445
+#define N_Door_Open				555			//[참조 : 260513 : 양음극 릴컷부 도어 오픈 시 1차 PNP 인터락 ]
+#define N_NG_Box_Open			666			//[참조 : 260601 : 양음극 NG BOX 도어 오픈 시 조그 인터락 ]
+#define N_1st_Cell_Existence	777			//[참조 : 20260716 1차 PNP에 극판 존재 시 피커 T축 인터락 ]
+
+global P_IL_Sprint = 0;
+global P_IL_length = 0;
+global P_IL_Strcat = 0;
+global P_IL_Popup_Motor = 0;
+global P_IL_Motor_Page = 0;
+
+#define N_IL_memset_size	192
+
+#define F_IL_Cdata			84800	//21200 * 4
+#define F_IL_Cdata2			84828
+#define F_IL_Cdata3			84856
+#define F_IL_Cdata4			84884
+
+global P_IL_Recipe_Bit = 0;
+
+
+global P_Interlock_Popup_On_Flag = 0;
+
+global P_Motor_Page = 0;
+// 모터 번호
+#define N_Other_Side_Cathode_1ST_PNP_T			49
+#define N_Other_Side_Anode_1ST_PNP_T			50
+
+
+
+
+
+// 인터락 On 비트
+
+#define N_Hex_POS1_Interlock_On					$1
+#define N_Hex_POS2_Interlock_On					$2
+#define N_Hex_POS3_Interlock_On					$4
+#define N_Hex_POS4_Interlock_On					$8
+#define N_Hex_POS5_Interlock_On					$10
+#define N_Hex_POS6_Interlock_On					$20
+#define N_Hex_POS7_Interlock_On					$40
+#define N_Hex_POS8_Interlock_On					$80
+#define N_Hex_POS9_Interlock_On					$100
+#define N_Hex_POS10_Interlock_On				$200
+
+#define N_Hex_Pos_All_InterLock_On				$3FF
+
+// 인터락 Off 비트
+
+#define N_Hex_POS1_Interlock_Off				$3FE
+#define N_Hex_POS2_Interlock_Off				$3FD
+#define N_Hex_POS3_Interlock_Off				$3FB
+#define N_Hex_POS4_Interlock_Off				$3F7
+#define N_Hex_POS5_Interlock_Off				$3EF
+#define N_Hex_POS6_Interlock_Off				$3DF
+#define N_Hex_POS7_Interlock_Off				$3BF
+#define N_Hex_POS8_Interlock_Off				$37F
+#define N_Hex_POS9_Interlock_Off				$2FF
+#define N_Hex_POS10_Interlock_Off				$1FF
+
+// 간섭되는 축 비트 On 연산
+#define N_Hex_Cathode_1ST_PNP_T					$000000000001	//1
+#define N_Hex_Anode_1ST_PNP_T					$000000000002	//2
+#define N_Hex_Cathode_2ND_PNP_T					$000000000004	//3
+#define N_Hex_Anode_2ND_PNP_T					$000000000008	//4
+#define N_Hex_Cathode_Clamp_Y1					$000000000010	//5
+#define N_Hex_Anode_Clamp_Y1					$000000000020	//6
+#define N_Hex_Cathode_Clamp_Y2					$000000000040	//7
+#define N_Hex_Anode_Clamp_Y2					$000000000080	//8
+//#define N_Hex_Cathode_Clamp_Z1				$000000000100	//9
+//#define N_Hex_Anode_Clamp_Z1					$000000000200	//10
+#define N_Hex_Main_Z							$000000000400	//11
+#define N_Hex_Final_Roll_X						$000000000800	//12
+#define N_Hex_Final_Roll_Z						$000000001000	//13
+#define N_Hex_Sub_Feeding_Roll					$000000002000	//14
+#define N_Hex_Driving_Roll						$000000004000	//15
+#define N_Hex_Servo_Dancer						$000000008000	//16
+#define N_Hex_Cathode_1ST_PNP_Z					$000000010000	//17
+#define N_Hex_Anode_1ST_PNP_Z					$000000020000	//18
+#define N_Hex_Cathode_1ST_Picker_T				$000000040000	//19
+#define N_Hex_Anode_1ST_Picker_T				$000000080000	//20
+#define N_Hex_Cathode_2ND_PNP_Z					$000000100000	//21
+#define N_Hex_Anode_2ND_PNP_Z					$000000200000	//22
+#define N_Hex_Unwinder_Upper					$000000400000	//23
+#define N_Hex_Unwinder_Lower					$000000800000	//24
+#define N_Hex_Cathode_Clamp_Z2					$000001000000	//25
+#define N_Hex_Anode_Clamp_Z2					$000002000000	//26
+#define N_Hex_Cathode_Clamp_Z1					$000004000000	//27
+#define N_Hex_Anode_Clamp_Z1					$000008000000	//28
+#define N_Hex_EPC_Sensor						$000100000000	//33
+#define N_Hex_Stack_Vision						$000200000000	//34
+#define N_Hex_Sheet_Paper_X						$000400000000	//35
+#define N_Hex_Cathode_Align_X					$000800000000	//36
+#define N_Hex_Cathode_Align_Y					$001000000000	//37
+#define N_Hex_Cathode_Align_T					$002000000000	//38
+#define N_Hex_Anode_Align_X						$004000000000	//39
+#define N_Hex_Anode_Align_Y						$008000000000	//40
+#define N_Hex_Anode_Align_T						$010000000000	//41
+#define N_Hex_Cathode_NG_PNP_T					$020000000000	//42
+#define N_Hex_Anode_NG_PNP_T					$040000000000	//43
+#define N_Hex_Cathode_NG_PNP_Z					$080000000000	//44
+#define N_Hex_Anode_NG_PNP_Z					$100000000000	//45
+#define N_Hex_1ST_Unloader_X					$200000000000	//46
+#define N_Hex_1ST_Unloader_Z					$400000000000	//47
+#define N_Hex_1ST_Unloader_T					$800000000000	//48
+
+//#define N_Hex_Other_Side_Cathode_1ST_PNP_T		$1000000000000
+//#define N_Hex_Other_Side_Anode_1ST_PNP_T			$2000000000000
+//#define N_Hex_Home_Miss							$4000000000000
+
+ptr M_Motor_BTN_Info(50)->*;
+M_Motor_BTN_Info(1)->u.user:$00A8C8.00.16;
+M_Motor_BTN_Info(2)->u.user:$00A8E4.00.16;
+M_Motor_BTN_Info(3)->u.user:$00A900.00.16;
+M_Motor_BTN_Info(4)->u.user:$00A91C.00.16;
+M_Motor_BTN_Info(5)->u.user:$00A938.00.16;
+M_Motor_BTN_Info(6)->u.user:$00A954.00.16;
+M_Motor_BTN_Info(7)->u.user:$00A970.00.16;
+M_Motor_BTN_Info(8)->u.user:$00A98C.00.16;
+M_Motor_BTN_Info(9)->u.user:$00A9A8.00.16;
+M_Motor_BTN_Info(10)->u.user:$00A9C4.00.16;
+M_Motor_BTN_Info(11)->u.user:$00A9E0.00.16;
+M_Motor_BTN_Info(12)->u.user:$00A9FC.00.16;
+M_Motor_BTN_Info(13)->u.user:$00AA18.00.16;
+M_Motor_BTN_Info(14)->u.user:$00AA34.00.16;
+M_Motor_BTN_Info(15)->u.user:$00AA50.00.16;
+M_Motor_BTN_Info(16)->u.user:$00AA6C.00.16;
+M_Motor_BTN_Info(17)->u.user:$00AA88.00.16;
+M_Motor_BTN_Info(18)->u.user:$00AAA4.00.16;
+M_Motor_BTN_Info(19)->u.user:$00AAC0.00.16;
+M_Motor_BTN_Info(20)->u.user:$00AADC.00.16;
+M_Motor_BTN_Info(21)->u.user:$00AAF8.00.16;
+M_Motor_BTN_Info(22)->u.user:$00AB14.00.16;
+M_Motor_BTN_Info(23)->u.user:$00AB30.00.16;
+M_Motor_BTN_Info(24)->u.user:$00AB4C.00.16;
+M_Motor_BTN_Info(25)->u.user:$00AB68.00.16;
+M_Motor_BTN_Info(26)->u.user:$00AB84.00.16;
+M_Motor_BTN_Info(27)->u.user:$00ABA0.00.16;
+M_Motor_BTN_Info(28)->u.user:$00ABBC.00.16;
+M_Motor_BTN_Info(29)->u.user:$00ABD8.00.16;
+M_Motor_BTN_Info(30)->u.user:$00ABF4.00.16;
+M_Motor_BTN_Info(31)->u.user:$00AC10.00.16;
+M_Motor_BTN_Info(32)->u.user:$00AC2C.00.16;
+M_Motor_BTN_Info(33)->u.user:$00AC48.00.16;
+M_Motor_BTN_Info(34)->u.user:$00AC64.00.16;
+M_Motor_BTN_Info(35)->u.user:$00AC80.00.16;
+M_Motor_BTN_Info(36)->u.user:$00AC9C.00.16;
+M_Motor_BTN_Info(37)->u.user:$00ACB8.00.16;
+M_Motor_BTN_Info(38)->u.user:$00ACD4.00.16;
+M_Motor_BTN_Info(39)->u.user:$00ACF0.00.16;
+M_Motor_BTN_Info(40)->u.user:$00AD0C.00.16;
+M_Motor_BTN_Info(41)->u.user:$00AD28.00.16;
+M_Motor_BTN_Info(42)->u.user:$00AD44.00.16;
+M_Motor_BTN_Info(43)->u.user:$00AD60.00.16;
+M_Motor_BTN_Info(44)->u.user:$00AD7C.00.16;
+M_Motor_BTN_Info(45)->u.user:$00AD98.00.16;
+M_Motor_BTN_Info(46)->u.user:$00ADB4.00.16;
+M_Motor_BTN_Info(47)->u.user:$00ADD0.00.16;
+M_Motor_BTN_Info(48)->u.user:$00ADEC.00.16;
+M_Motor_BTN_Info(49)->u.user:$00AE08.00.16;
+
+
+#define BTN_Jog_Forward_Pushed					$001
+#define BTN_Jog_Backward_Pushed					$002
+#define BTN_Servo_ON_Pushed						$004
+#define BTN_Homing_Pushed						$008
+#define BTN_Motor_STOP_Pushed					$010
+#define BTN_Alarm_Reset_Pushed					$020
+#define BTN_Recipe_Pos_Run_Pushed				$040
+#define BTN_Jog_INC_Run_Pushed					$080
+#define BTN_Jog_ABS_Run_Pushed					$100
+
+
+#define P_Y_Interlock_Popup_On_Request		u.user:$014C04.00.1
+#define P_X_Interlock_Popup_On_Request_Ack	u.user:$00AE8C.00.1
+
+
+global	P_OP_Side_Ca_PNP_Pos = 0;
+global	P_OP_Side_An_PNP_Pos = 0;
+global	P_OP_Side_PMAC_Cur_Mode = 0;
+
+global	P_Abs_Trans_Cur_Pos = 0;
+
+global	P_Minus_IL_Offset = 0;
+global	P_Plus_IL_Offset = 0;
+
+
+global	P_2nd_PNP_Arm_Radius = 587
+global	P_IL_Enable_Flag = 0;
+
+global	P_Plus_Interlock_Bit = 0;
+global	P_Minus_Interlock_Bit = 0;
+//global	P_Coord_Idx = 0;
+//global	P_Motor_Num = 0;
+
+
+//global	ReadyPos = 0;		// 레디
+global	UPPos = 0;
+global	Unloader_In_StackPos = 0;	
+global	FR_AnodePos = 0;
+global	FR_CathodePos = 0;
+global	Before_In_Stack = 0;
+global	In_Stack = 0;
+
+
+
+// Robot Define
+
+#define N_IL_Robot_CA_1st_PNP			1
+#define N_IL_Robot_AN_1st_PNP			2
+#define N_IL_Robot_CA_2nd_PNP			3
+#define N_IL_Robot_AN_2nd_PNP			4
+#define N_IL_Robot_CA_Clamp1			5
+#define N_IL_Robot_AN_Clamp1			6
+#define N_IL_Robot_CA_Clamp2			7
+#define N_IL_Robot_AN_Clamp2			8
+#define N_IL_Robot_Main					9
+#define N_IL_Robot_Final_Roller			10
+#define N_IL_Robot_CA_Align				11
+#define N_IL_Robot_AN_Align				12
+#define N_IL_Robot_CA_NG_PNP			13
+#define N_IL_Robot_AN_NG_PNP			14
+#define N_IL_Robot_1st_Unloader			15
+#define N_IL_Robot_Sheet_Paper			16
+
+global	P_Collision_Risk_Motor(2);
+P_Collision_Risk_Motor(0),2 = 0;
+
+global	P_Minus_Collision_Risk_Motor = 0;
+
+
+global P_IL_Clamp_Y = 0;
+global P_IL_Clamp_Z = 0;
+global P_IL_Clamp_Pos = 0;
+global P_IL_Use_FR_Clamp_Pos = 0;		// [ 참조 : 26.06.19 모터 인터락 수정 ]
+#define N_IL_Cathode_Pos   66
+#define N_IL_Anode_Pos      77
+
+global	P_P_IL_Normal_Pos_Offset(50);
+global	P_M_IL_Normal_Pos_Offset(50);
+
+global	P_P_IL_Upper_Pos_Offset(50);
+global	P_M_IL_Upper_Pos_Offset(50);
+
+global	P_P_IL_Align_Pos_Offset(50);
+global	P_M_IL_Align_Pos_Offset(50);
+
+global	P_P_IL_Stack_Pos_Offset(50);
+global	P_M_IL_Stack_Pos_Offset(50);
+// 양극 1차 pnp 인터락 오프셋 값
+global P_Ca_1st_Plus_IL_Offset = -40;
+global P_Ca_1st_Minus_IL_Offset = 40;
+// 음극 1차 pnp 인터락 오프셋 값
+global P_An_1st_Plus_IL_Offset = -40;
+global P_An_1st_Minus_IL_Offset = 40;
+
+// 양극 2차 pnp T 플러스 인터락 오프셋 값
+global P_Ca_2nd_T_Plus_IL_Offset(3); 
+P_Ca_2nd_T_Plus_IL_Offset(0) = 0;
+P_Ca_2nd_T_Plus_IL_Offset(1) = 0;
+P_Ca_2nd_T_Plus_IL_Offset(2) = 0;
+// 양극 2차 pnp T 마이너스 인터락 오프셋 값
+global P_Ca_2nd_T_Minus_IL_Offset(3);
+P_Ca_2nd_T_Minus_IL_Offset(0) = 35;
+P_Ca_2nd_T_Minus_IL_Offset(1) = 40;
+P_Ca_2nd_T_Minus_IL_Offset(2) = 70;
+
+// 양극 2차 pnp Z 플러스 인터락 오프셋 값
+global P_Ca_2nd_Z_Plus_IL_Offset(2);
+// 양극 2차 pnp Z 마이너스 인터락 오프셋 값
+global P_Ca_2nd_Z_Minus_IL_Offset(2);
+
+P_Ca_2nd_Z_Minus_IL_Offset(0) = 50;
+P_Ca_2nd_Z_Minus_IL_Offset(1) = 5;
+
+
+// 음극 2차 pnp T 플러스 인터락 오프셋 값
+global P_An_2nd_T_Plus_IL_Offset(3); 
+P_An_2nd_T_Plus_IL_Offset(0) = 0;
+P_An_2nd_T_Plus_IL_Offset(1) = 0;
+P_An_2nd_T_Plus_IL_Offset(2) = 0;
+// 음극 2차 pnp T 마이너스 인터락 오프셋 값
+global P_An_2nd_T_Minus_IL_Offset(3);
+P_An_2nd_T_Minus_IL_Offset(0) = 35;
+P_An_2nd_T_Minus_IL_Offset(1) = 35;
+P_An_2nd_T_Minus_IL_Offset(2) = 70;
+
+global P_An_2nd_Z_Minus_IL_Offset(2);
+P_An_2nd_Z_Minus_IL_Offset(0) = 50;
+P_An_2nd_Z_Minus_IL_Offset(1) = 5;
+
+global	P_Z_Pos_Data = 0;
+
+
+global	P_Clamp_Z_Plus_IL_Offset = -3
+
+global	P_FR_X_Plus_IL_Offset(2);
+
+P_FR_X_Plus_IL_Offset(0) = -200;
+P_FR_X_Plus_IL_Offset(1) = -20;
+
+global	P_FR_X_Minus_IL_Offset(2)
+
+P_FR_X_Minus_IL_Offset(0) = 200;
+P_FR_X_Minus_IL_Offset(1) = -2;
+
+global	P_FR_Z_Minus_IL_Offset = 2;
+
+
+// Cathode NG pnp 인터락 오프셋 값
+global P_Ca_NG_PNP_Plus_IL_Offset(4);
+P_Ca_NG_PNP_Plus_IL_Offset(0) = -40;
+P_Ca_NG_PNP_Plus_IL_Offset(1) = -30;
+P_Ca_NG_PNP_Plus_IL_Offset(2) = -30;
+P_Ca_NG_PNP_Plus_IL_Offset(3) = -20;
+
+global P_Ca_NG_PNP_Minus_IL_Offset(4);
+P_Ca_NG_PNP_Minus_IL_Offset(0) = 0;
+P_Ca_NG_PNP_Minus_IL_Offset(1) = 0;
+P_Ca_NG_PNP_Minus_IL_Offset(2) = 30;
+P_Ca_NG_PNP_Minus_IL_Offset(3) = 0;
+
+// Anode NG pnp 인터락 오프셋 값
+global P_An_NG_PNP_Plus_IL_Offset(4);
+P_An_NG_PNP_Plus_IL_Offset(0) = -30;
+P_An_NG_PNP_Plus_IL_Offset(1) = -30;
+P_An_NG_PNP_Plus_IL_Offset(2) = -20;
+P_An_NG_PNP_Plus_IL_Offset(3) = 0;
+
+global P_An_NG_PNP_Minus_IL_Offset(4);
+P_An_NG_PNP_Minus_IL_Offset(0) = 30;
+P_An_NG_PNP_Minus_IL_Offset(1) = 0;
+P_An_NG_PNP_Minus_IL_Offset(2) = 0;
+P_An_NG_PNP_Minus_IL_Offset(3) = 0;
+
+
+global P_Unloader_X_Plus_IL_Offset(4);
+P_Unloader_X_Plus_IL_Offset(0) = -50;
+P_Unloader_X_Plus_IL_Offset(1) = -5;
+P_Unloader_X_Plus_IL_Offset(2) = -200;
+P_Unloader_X_Plus_IL_Offset(3) = 0;
+
+
+global P_Unloader_X_Minus_IL_Offset(4);
+P_Unloader_X_Minus_IL_Offset(0) = 330;
+P_Unloader_X_Minus_IL_Offset(1) = 0;
+
+global P_Unloader_Z_Plus_IL_Offset(3);
+P_Unloader_Z_Plus_IL_Offset(0) = -70;
+P_Unloader_Z_Plus_IL_Offset(1) = -55;
+P_Unloader_Z_Plus_IL_Offset(2) = 0;
+
+global P_Unloader_Z_Minus_IL_Offset(3);
+P_Unloader_Z_Minus_IL_Offset(0) = 1;
+
+global P_IL_In_Offset(25)					// [ 참조 : 26.06.19 모터 인터락 수정 ]	
+P_IL_In_Offset(0) = 15;
+P_IL_In_Offset(1) = 15;
+P_IL_In_Offset(2) = 35;
+P_IL_In_Offset(3) = 15;
+P_IL_In_Offset(4) = 35;
+P_IL_In_Offset(5) = 15;
+P_IL_In_Offset(6) = 0.5;
+P_IL_In_Offset(7) = 1;
+P_IL_In_Offset(8) = 0.5;
+P_IL_In_Offset(9) = 0.2;
+P_IL_In_Offset(10) = 0.3;
+P_IL_In_Offset(11) = 20;
+P_IL_In_Offset(12) = 20;
+P_IL_In_Offset(13) = 1;
+P_IL_In_Offset(14) = 0.5;
+P_IL_In_Offset(15) = 0.5;
+P_IL_In_Offset(16) = 5;
+P_IL_In_Offset(17) = 1;
+P_IL_In_Offset(18) = 1;
+P_IL_In_Offset(19) = 0;
+P_IL_In_Offset(20) = 0.5;
+
+global P_X_PLC_InterLock = 1;
+#define N_2nd_UNLOADER	53
+
+global P_IL_Home_Chk = 0;						// 홈 확인 변수.		[ 참조 : 26.06.09 인터락 정리 ]
+global P_IL_Home_Chk_Motor_Num(20);				// 홈 확인 모터 번호.
+P_IL_Home_Chk_Motor_Num(0),20 = 0;				// 홈 확인 모터 번호.
+global P_IL_Home_Chk_Motor_Update = 0;			// 홈 확인 모터 업데이트.
+global P_IL_Inside_Home_Chk_Complete = 0;		// 내부 홈 확인 완료 변수.
+global P_IL_Outside_Home_Chk_Complete = 0;		// 외부 홈 확인 완료 변수.
+#define N_IL_Moter_Update	1
+#define N_IL_Motor_Skip		2
+
+global P_IL_Motor_Home_Chk_RTN = 0;
+global P_IL_Function_Cnt = 0;
+global P_IL_Function_Motor_Num = 0;

@@ -1,0 +1,162 @@
+global P_Clamp_Motion_VER1 = 0;
+
+&24
+#6-> 1000y		// 음극 클램프 Y축 1
+#8-> 1000yy		// 음극 클램프 Y축 2
+//#10-> 1000z		// 음극 클램프 Z축 1
+#28-> 1000z		// 음극 클램프 Z축 1			// [ 참조 : 클램프 Z1 모터 번호 변경 2025.10.16 ]
+#26-> 1000zz	// 음극 클램프 Z축 2
+//===============//
+
+
+
+open prog 24
+	
+	ABS					// 절대좌표모드
+	LINEAR
+	
+	while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(4) == 1 && P_Slave_Motion_Program_Flag(4) == 1 )
+	{	// 프로그램 허용 플래그
+	
+		Switch ( P_Slave4_Motion_Command )
+		{	
+			case 0 :
+
+			break;
+
+			// 커멘드별 모션
+
+			// case 1
+			case N_Clamp_Off_Motion :		// clamp off
+				P_Anode_Clamp_Off = P_Master_Motion_Trigger
+				P_Slave4_Motion_Command == 0;
+				//if( P_Anode_Count > 1 || P_Buffer_Mode_Status_Sequence == N_Dryrun_Status_Sequence )		[ 참조 : 26.01.12 세파 첫장 모듈 수정 - 음극 클램프만 ON ]
+				//{							// ↑ 드라이런일때 클램프 off 추가
+					dwell(0)
+					//[ 참조 : 26.02.25 클램프 모션 변경 ]
+					ta(10) ts(5) tm(10)			// 	Z축 Only 30ms 
+					y(P_Anode_Clmap_Y1_Clamp_Pos)yy(P_Anode_Clmap_Y2_Clamp_Pos)z(P_Anode_Clamp_Z1_Ready_Pos)zz(P_Anode_Clamp_Z2_Ready_Pos)		// 상승
+	
+					dwell(0)
+	
+					ta(40) ts(20) tm(40)		// Y축 Only 120ms		
+					y(P_Anode_Clmap_Y1_Ready_Pos)yy(P_Anode_Clmap_Y2_Ready_Pos)z(P_Anode_Clamp_Z1_Ready_Pos)zz(P_Anode_Clamp_Z2_Ready_Pos)			// 원위치
+					
+					dwell(0)
+					P_An_Clamp_Y_Move == 0;			// [ 참조 : 260630 클램프 동작 횟수 PMAC ↔ PLC I/F 추가 ]	
+					P_Anode_Clamp_OFF_Status == F_Status_COMPLETE;
+					P_Tact_Time_Check(N_Anode_Clamp) == 0;		// Tact Time 측정 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+					dwell(0)
+				//}
+			break;
+
+			// case 2
+			case N_Clamp_On_Motion :		// clamp on
+				P_Anode_Clamp_On = P_Master_Motion_Trigger
+				// 140ms
+				P_Slave4_Motion_Command == 0;
+				P_Tact_Time_Check(N_Anode_Clamp) == 1;		// Tact Time 측정 시작	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+				P_Anode_Clamp_On_Time == Sys.Time
+					dwell(0)
+					//[ 참조 : 26.02.25 클램프 모션 변경 ]
+	//				
+	//				// 모션 동작 + 극판 두께 만큼 추가 하강
+	//				#VER1 (이송시간 : 130ms)    +     (이송시간 : 20ms)
+	//				(13,6.6)    (43,6.6)
+	//				  _________                           
+	//				 /		   |		
+	//	    (0,0.5)	/		   |(43,1.6)                            
+	//			 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ|
+	//														  (43,-0.6)
+	//				
+					if( P_Clamp_Motion_VER1 == 1 )
+					{
+						ta(15) ts(10) tm(0) td(15) tsd(10)		// 가속 (25) + 12.5 = 37.5
+						y(P_Anode_Clmap_Y1_Ready_Pos+12) yy(P_Anode_Clmap_Y2_Ready_Pos+12) z(P_Anode_Clamp_Z1_Ready_Pos+6) zz(P_Anode_Clamp_Z2_Ready_Pos+6)
+				
+						ta(15) ts(10) tm(0) td(30) tsd(15)		// 등속(12.5) + 감속 (45) = 57.5
+						y(P_Anode_Clmap_Y1_Clamp_Pos) yy(P_Anode_Clmap_Y2_Clamp_Pos) z(P_Anode_Clamp_Z1_Ready_Pos+6) zz(P_Anode_Clamp_Z2_Ready_Pos+6)
+						
+						//dwell(0)
+						
+						ta(10) ts(5) tm(10)						// Z축 하강 Only (30)
+						y(P_Anode_Clmap_Y1_Clamp_Pos) yy(P_Anode_Clmap_Y2_Clamp_Pos) z(P_Anode_Clamp_Z1_Clamp_Pos) zz(P_Anode_Clamp_Z2_Clamp_Pos)
+					}
+					
+	//				// 모션 동작 하나로 극판두께 까지 하강
+	//				// #VER1 (이송시간 : 140ms)
+	//			(13,6.6)        (43,6.6)
+	//				  _________                           
+	//				 /		   |		
+	//	    (0,0.5)	/		   |                           
+	//			 ㅡㅡㅡㅡㅡㅡㅡ |
+	//			                (43,-0.6)
+	//						
+					else
+					{ 
+						//ta(15) ts(10) tm(0) td(20) tsd(10)			// 가속 (25) + 12.5 = 37.5
+						//y(13) yy(13) z(6.1) zz(6.1)
+						//
+						//ta(20) ts(10) tm(0) td(25) tsd(10)			// 등속(12.5) + 감속 (45) = 57.5
+						//y(P_Anode_Clmap_Y1_Clamp_Pos) yy(P_Anode_Clmap_Y2_Clamp_Pos) z(6.1) zz(6.1)
+						//
+						////dwell(0)
+						//
+						//tm(0)ta(25)ts(10)							// Z축 하강 Only (40)
+						//y(P_Anode_Clmap_Y1_Clamp_Pos) yy(P_Anode_Clmap_Y2_Clamp_Pos) z(P_Anode_Clamp_Z1_Cell_Down) zz(P_Anode_Clamp_Z2_Cell_Down)
+					
+						ta(15) ts(10) tm(0) td(30) tsd(10)				// 가속 (25) + 12.5 = 37.5
+
+						//y(P_Anode_Clmap_Y1_Ready_Pos+9) yy(P_Anode_Clmap_Y2_Ready_Pos+9) z(P_Anode_Clamp_Z1_Ready_Pos+6) zz(P_Anode_Clamp_Z2_Ready_Pos+6)
+						y(P_Anode_Clmap_Y1_Ready_Pos+P_Offset) yy(P_Anode_Clmap_Y2_Ready_Pos+P_Offset) z(P_Anode_Clamp_Z1_Ready_Pos+6) zz(P_Anode_Clamp_Z2_Ready_Pos+6)
+
+						
+						ta(30) ts(10) tm(0) td(25) tsd(10)			// 등속(12.5) + 감속 (45) = 57.5
+						y(P_Anode_Clmap_Y1_Clamp_Pos) yy(P_Anode_Clmap_Y2_Clamp_Pos) z(P_Anode_Clamp_Z1_Ready_Pos+6) zz(P_Anode_Clamp_Z2_Ready_Pos+6)
+
+						//dwell(0)
+
+						ta(25) ts(10) tm(0) td(15) tsd(10)							// Z축 하강 Only (40)
+						y(P_Anode_Clmap_Y1_Clamp_Pos) yy(P_Anode_Clmap_Y2_Clamp_Pos) z(P_Anode_Clamp_Z1_Cell_Down) zz(P_Anode_Clamp_Z2_Cell_Down)
+					}
+					dwell(0)	
+					if ( P_SemiRun_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag == 1 )		// PV 항목 : 위치 값 보고 (세미 런 진입 + 모터 이동 완료 후 위치 값 저장)	[ 참조 : 26.09.14 MES PV 수정 ]
+					{
+						P_Motion_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag == 1;			// 위치 값 저장 Flag On.
+					}
+					if ( P_SemiRun_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag == 1 )		// PV 항목 : 위치 값 보고 (세미 런 진입 + 모터 이동 완료 후 위치 값 저장)	[ 참조 : 26.09.14 MES PV 수정 ]
+					{
+						P_Motion_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag == 1;			// 위치 값 저장 Flag On.
+					}
+					P_Anode_Clamp_On_Time2 == Sys.Time - P_Anode_Clamp_On_Time	
+					P_An_Clamp_Y_Move == 1;			// [ 참조 : 260630 클램프 동작 횟수 PMAC ↔ PLC I/F 추가 ]			
+					P_Anode_Clamp_ON_Status == F_Status_COMPLETE;	// [ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+					dwell(0)
+			break;
+
+			// case 3
+			case N_Clamp_Down_Motion:		// 극판두께만큼 하강
+				P_Anode_Clamp_Down = P_Master_Motion_Trigger
+				P_Slave4_Motion_Command == 0;
+				linear
+				dwell(0)
+				// [ 참조 : 2025.09.26 Frax(Vector) 모션 변경 ]
+				P_Anode_Clamp_Down_MNTR++;
+				tm(12) ta(5) ts(3)		
+				// -0.6으로 해야함 수정필요!!
+				z(P_Anode_Clamp_Z1_Cell_Down)zz(P_Anode_Clamp_Z2_Cell_Down)		// -0.8 - (0.016+0.19)( 극판두께란 가정 )
+				//tm(10) ta(5) ts(3)
+				//z(-2 - (P_Anode_Thickness + P_Sepa_Thickness) )	// -2는 나중에 레시피값으로 변경 필요
+				////z(P_Anode_Clamp_Z1_Down - (P_Anode_Thickness + P_Sepa_Thickness))   // [ 참조 : 25.09.01 추후 레시피로 받을때 상수->레시피변수로변경 ]
+			
+			break;
+
+			default:
+
+			break;
+
+		}
+		
+	}
+
+close

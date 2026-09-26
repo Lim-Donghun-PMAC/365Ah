@@ -1,0 +1,476 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+global P_Anode_NG_Unit_Status = 0;
+global P_Cathode_NG_Unit_Status = 0;
+#define N_Time_Scale 1000
+#define N_Range_Update_Interval 5
+///////////////////////////////////////////////////////////////////////////
+
+global P_ParsingRtn = 0
+global P_CurPosData = 0
+global P_Hold_MNTR_Supply_1st = 0
+
+global P_TimeOutNumb = 0;
+//global P_ParsingRtn = 0;
+global P_PosRtn = 0;
+global P_MotionRtn = 0;
+global P_CmdData = 0;
+
+global P_Interval = 0
+global P_Cont_Ret = 0
+global P_Cur_Idx = 0;
+global P_NextID = 0
+global P_Cur_Size = 0;
+
+#define N_Stop_Step					666
+
+// Hold 모듈 진행 확인 구문 추가.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+global P_Hold_Exist_Insp = 0;		// 극판 유무검사 모듈
+global P_Hold_Remove_NG_PNP = 0;	// NG_PNP_제거 모듈
+global P_Hold_Remove_Align = 0;		// Algin 제거 모듈
+global P_Hold_Remove_2TR = 0;		// 2차 PNP 제거 모듈
+global P_Hold_Supply_1TR = 0;		// 1차 PNP 공급 모듈
+global P_Hold_Supply_Align = 0;		// Align 공급 모듈
+global P_Hold_Supply_2TR = 0;		// 2차 PNP 공급 모듈
+global P_Hold_Semi_Run = 0;			// 세미런 위치 이동 모듈
+
+// [ 모듈 하나라도 실행 중일 경우 1, 모듈이 모두 끝났을 경우 0 ]
+#define Hold_Status		P_Hold_Exist_Insp | P_Hold_Remove_NG_PNP | P_Hold_Remove_Align | P_Hold_Remove_2TR | P_Hold_Supply_1TR | P_Hold_Supply_Align | P_Hold_Supply_2TR | P_Hold_Semi_Run
+#define F_Hold_Complete	0
+
+
+
+// Hold List Apc 추가 건으로 변수 선언  (추후 제거 필요)
+#define P_Hold_NG_PNP_Remove			P180
+//#define P_Hold_Remove_Align				P181
+#define P_Hold_Remove_2nd				P182
+#define P_Hold_Supply_1st				P183
+//#define P_Hold_Supply_Align				P184
+#define P_Hold_Supply_2nd				P185
+#define P_Hold_Data_process				P186
+#define P_Hold_Semi_Run_Enable_Pos		P187
+#define P_Hold_Existence_Insp			P188
+#define P_Hold_1st_Belt_Move			P189
+#define P_Hold_Motion					P190
+//
+//#define Hold_Status		P_Hold_NG_PNP_Remove&P_Hold_Remove_Align&P_Hold_Remove_2nd&P_Hold_Supply_1st&P_Hold_Supply_Align&P_Hold_Supply_2nd&P_Hold_Data_process&P_Hold_Semi_Run_Enable_Pos&P_Hold_Existence_Insp&P_Hold_1st_Belt_Move&P_Hold_Motion
+//#define F_Hold_Complete 1
+
+// 1. Hold while문 조건
+//#define N_NG_PNP_Remove			1
+//#define N_Remove_Align			2
+//#define N_Remove_2nd				3
+//#define N_Supply_1st				4
+//#define N_Supply_Align			5
+//#define N_Supply_2nd				6
+//#define N_Data_process			7
+//#define N_Semi_Run_Enable_Pos		8
+//#define N_Existence_Insp			10
+//#define N_1st_Belt_Move			11
+//#define N_Hold_Motion				12
+// 추가되는 HOLD 기능 있을 경우 N_Serach_Limit 개수 맞춰줘야 While문 풀림
+//#define N_Serach_Limit			13
+//global P_Completion_Watch_Variable(N_Serach_Limit)
+//P_Completion_Watch_Variable(0),N_Serach_Limit,1 = 1;
+
+// #define Hold_Status P_Completion_Watch_Variable(0)&P_Completion_Watch_Variable(1)&P_Completion_Watch_Variable(2)&P_Completion_Watch_Variable(3)&P_Completion_Watch_Variable(4)&P_Completion_Watch_Variable(5)&P_Completion_Watch_Variable(6)&P_Completion_Watch_Variable(7)&P_Completion_Watch_Variable(8)&P_Completion_Watch_Variable(9)&P_Completion_Watch_Variable(10)&P_Completion_Watch_Variable(11)&P_Completion_Watch_Variable(12)
+//#define F_Hold_Complete 1
+
+// 2. Hold 진행 변수
+global P_Hold_Data_process_State_Machine = 0;
+global P_Hold_Align_Remove_State_Machine = 0;
+global P_Hold_2nd_Remove_State_Machine = 0;
+global P_Hold_Supply_1st_State_Machine = 0;
+global P_Hold_Supply_2nd_State_Machine = 0;
+global P_Hold_Existence_Insp_State_Machine = 0;
+global P_Hold_NG_PNP_Remove_State_Machine = 0;
+global P_Hold_Data_Process_Complete = 0;
+global P_Hold_Semi_Run_Enable_Pos_State_Machine = 0;
+global P_HOLD_Existence_Insp_Queue_State_Machine = 0;
+global P_Hold_Stop_Existence_Insp_STEP = 0;
+
+global P_SubMaster_Status_Err = 0;
+
+// 3. Hold 리턴 변수
+global P_Data_Process_Rtn = 0;
+
+
+
+// 4. Hold 실행 함수
+global	P_Hold_Set_Trigger = 0;
+global	P_Hold_Get_Trigger = 0;
+
+
+global	P_Anode_2nd_Data = 0;
+global	P_Anode_Align_Data = 0;
+global	P_Hold_Remove_Step = 0;
+
+global	P_HList_Head_Idx = 0;
+global	P_Hold_Next_ID = 0;
+#define	N_List_Idx			20
+
+global	P_HCmd_List(N_List_Idx);
+P_HCmd_List(0),N_List_Idx,1 = 0;
+
+
+global	P_Hold_Data_Value = 0;
+global	P_Comb_Bitwise = 0;
+global	P_Target_Cmd = 0;
+global	P_Temp_Bit = 0;
+global	P_Get_ErrorCode = 0;
+global	P_Rtn_Code = 0;
+global	P_Complete_Hold_Bit = 0;
+global	P_HoldMtion_Flag = 0;
+global	P_Ret_BitWise = 0;
+global	P_NotEnough_GetSpace = 0;
+global	P_NotEnough_SetSpace = 0;
+global	P_Check_SetSpace = 0;
+global	P_Hold_Get_Data = 0;
+global	P_Err_NextID_Flag = 0;
+
+#define	N_Elec		0
+#define	N_Obj		1
+#define	N_Cmd		2
+#define	N_Dst		3
+#define	N_Cur		4
+#define N_Hold_Data 5
+#define N_Hold_Motion_TimeOut 6
+#define N_Hold_CMD_Pos_Mismatch	7
+
+
+#define	N_Cell_Interval		1
+global	P_Elec_Bit = 0;
+global	P_MotionData = 0;
+global	P_DataList(5);
+P_DataList(0),5,1 = 0;
+
+global P_Hold_Data_Err(10)
+P_Hold_Data_Err(0),10 = 0
+
+
+
+//6. Hold Data
+/* 
+							Queue Data Info 
+						<< 총 32bit로 이루어 짐 >>
+	Elec, 1, 2, NG	|	Cmd		|	Destination Pos		|	Current Pos
+	 	 0000		|   0000	|	0000 0000 0000		|	0000 0000 0000
+	
+*/
+
+
+// 선택하지 않는 파라미터에 대한 값
+#define	Hex_Elec_Masking			$80000000			// 10진수 : 2,147,483,648
+#define	Hex_Unit_Masking			$F0000000			// 10진수 : 4,026,531,840
+#define	Hex_Obj_Masking				$70000000			// 10진수 : 1,879,048,192
+
+#define	Hex_Cmd_Masking				$0F000000			// 10진수 : 251,658,240
+#define	Hex_Dst_Masking				$00FFF000			// 10진수 : 16,773,120
+#define	Hex_Cur_Masking				$00000FFF			// 10진수 : 4,095
+
+
+#define	N_NaN					-1
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+/* << PNP 선택 정보 >> */
+#define Hex_Elec						$80000000		// On시 Anode, Off 시 Cathode ,				 10진수 : 2,147,483,648
+#define Hex_Anode_Unit					$80000000		// 음극 유닛 선택 ,							 10진수 : 2,147,483,648
+#define Hex_Cathode_Unit				0				// 양극 유닛 선택 ,							 10진수 : 0
+#define	Hex_NgPNP						$40000000		// 0100 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 1,073,741,824
+#define	Hex_2ndPNP						$20000000		// 0010 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 536,870,912
+#define	Hex_1stPNP						$10000000		// 0001 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 268,435,456
+
+#define	Hex_An_NgPNP					$C0000000		// 1100 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 3,221,225,472
+#define	Hex_An_2ndPNP					$A0000000		// 1010 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 2,684,354,560
+#define	Hex_An_1stPNP					$90000000		// 1001 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 2,415,919,104
+
+#define	Hex_Ca_NgPNP					$40000000		// 0100 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 1,073,741,824
+#define	Hex_Ca_2ndPNP					$20000000		// 0010 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 536,870,912
+#define	Hex_Ca_1stPNP					$10000000		// 0001 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 268,435,456
+
+
+// << PNP 조합 >>
+// dual
+
+#define	Hex_12PNP						$30000000		// 0011 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 805,306,368
+#define	Hex_1NGPNP						$50000000		// 0101 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 1,342,177,280
+#define	Hex_2NGPNP						$60000000		// 0110 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 1,610,612,736
+
+#define	Hex_An_12PNP					$B0000000		// 1011 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 2,952,790,016
+#define	Hex_An_1NGPNP					$D0000000		// 1101 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 3,489,660,928
+#define	Hex_An_2NGPNP					$E0000000		// 1110 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 3,758,096,384
+
+#define	Hex_Ca_12PNP					$30000000		// 0011 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 805,306,368
+#define	Hex_Ca_1NGPNP					$50000000		// 0101 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 1,342,177,280
+#define	Hex_Ca_2NGPNP					$60000000		// 0110 0000 0000 0000 0000 0000 0000 0000 , 10진수 : 1,610,612,736
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* << Command 정보 >> */
+#define Hex_Cmd_Vertical				$8000000		// 0000 1000 0000 0000 0000 0000 0000 0000  , 10진수 : 134,217,728
+#define Hex_Cmd_Horizontal				$4000000		// 0000 0100 0000 0000 0000 0000 0000 0000  , 10진수 : 67,108,864
+#define Hex_Cmd_Vac						$2000000		// 0000 0010 0000 0000 0000 0000 0000 0000  , 10진수 : 33,554,432
+#define Hex_Cmd_Blow					$1000000		// 0000 0001 0000 0000 0000 0000 0000 0000  , 10진수 : 16,777,216
+#define	Hex_Cmd_Stop					$F000000		// 0000 1111 0000 0000 0000 0000 0000 0000  , 10진수 : 251,658,240
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* << Destination Pos X 정보 >> */
+#define Hex_DstPosX_Belt				$800000			// 0000 0000 1000 0000 0000 0000 0000 0000  , 10진수 : 8,388,608
+#define Hex_DstPosX_1stReady			$400000			// 0000 0000 0100 0000 0000 0000 0000 0000  , 10진수 : 4,194,304
+#define Hex_DstPosX_Align				$200000			// 0000 0000 0010 0000 0000 0000 0000 0000  , 10진수 : 2,097,152
+#define Hex_DstPosX_Dodge				$100000			// 0000 0000 0001 0000 0000 0000 0000 0000  , 10진수 : 1,048,576
+#define Hex_DstPosX_Stack				$80000			// 0000 0000 0000 1000 0000 0000 0000 0000  , 10진수 : 524,288  
+#define Hex_DstPosX_NGReady				$40000			// 0000 0000 0000 0100 0000 0000 0000 0000  , 10진수 : 262,144   
+//#define Hex_DstPosX_					$20000
+//#define Hex_DstPosX_					$10000
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* << Destination Pos Z 정보 >> */
+
+//#define Hex_DstZ_					$8000
+//#define Hex_DstZ_					$4000
+#define Hex_DstPosZ_Up					$2000			// 0000 0000 0000 0000 0010 0000 0000 0000  , 10진수 : 8,192
+#define Hex_DstPosZ_Dn					$1000			// 0000 0000 0000 0000 0001 0000 0000 0000  , 10진수 : 4,096
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* << Current Pos X 정보 >> */
+#define Hex_CurPosX_Belt				$800			// 0000 0000 0000 0000 0000 1000 0000 0000 , 10진수 :  2,048
+#define Hex_CurPosX_1stReady			$400			// 0000 0000 0000 0000 0000 0100 0000 0000 , 10진수 :  1,024
+#define Hex_CurPosX_Align				$200			// 0000 0000 0000 0000 0000 0010 0000 0000 , 10진수 :  512
+#define Hex_CurPosX_Dodge				$100			// 0000 0000 0000 0000 0000 0001 0000 0000 , 10진수 :  256
+#define Hex_CurPosX_Stack				$80				// 0000 0000 0000 0000 0000 0000 1000 0000 , 10진수 :  128
+#define Hex_CurPosX_NGReady				$40				// 0000 0000 0000 0000 0000 0000 0100 0000 , 10진수 :  64
+//#define Hex_CurPosX_					$20
+//#define Hex_CurPosX_					$10
+
+/* << Current Pos Z 정보 >> */
+//#define Hex_CurPosZ_					$8
+//#define Hex_CurPosZ_					$4
+#define Hex_CurPosZ_Up					$2				// 0000 0000 0000 0000 0000 0000 0000 0010 , 10진수 :  2
+#define Hex_CurPosZ_Dn					$1				// 0000 0000 0000 0000 0000 0000 0000 0001 , 10진수 :  1
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* << Dest Combination Pos 정보 >> */
+
+#define Comb_DstComb_BeltUp				$802000			// 0000 0000 1000 0000 0010 0000 0000 0000 , 10진수 :  8,396,800
+#define Comb_DstComb_BeltDn				$801000			// 0000 0000 1000 0000 0001 0000 0000 0000 , 10진수 :  8,392,704
+		
+#define Comb_DstComb_1stReadyUP			$402000			// 0000 0000 0100 0000 0010 0000 0000 0000 , 10진수 : 4,202,496
+#define Comb_DstComb_1stReadyDn			$401000			// 0000 0000 0100 0000 0001 0000 0000 0000 , 10진수 : 4,198,400
+		
+#define Comb_DstComb_AlignUp			$202000			// 0000 0000 0010 0000 0010 0000 0000 0000 , 10진수 : 2,105,344
+#define Comb_DstComb_AlignDn			$201000			// 0000 0000 0010 0000 0001 0000 0000 0000 , 10진수 : 2,101,248
+		
+#define Comb_DstComb_DodgeUp			$102000			// 0000 0000 0001 0000 0010 0000 0000 0000 , 10진수 : 1,056,768
+#define Comb_DstComb_DodgeDn			$101000			// 0000 0000 0001 0000 0001 0000 0000 0000 , 10진수 : 1,052,672
+		
+#define Comb_DstComb_StackUp			$82000			// 0000 0000 0000 1000 0010 0000 0000 0000 , 10진수 : 532,480
+#define Comb_DstComb_StackDn			$81000			// 0000 0000 0000 1000 0001 0000 0000 0000 , 10진수 : 528,384
+		
+#define Comb_DstComb_NGReadyUp			$42000			// 0000 0000 0000 0100 0010 0000 0000 0000 , 10진수 : 270,336
+#define Comb_DstComb_NGReadyDn			$41000			// 0000 0000 0000 0100 0001 0000 0000 0000 , 10진수 : 266,240
+
+#define Comb_DstComb_Dn					$1000			// 0000 0000 0000 0000 0001 0000 0000 0000 , 10진수 : 4096
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* << Cur Combination 정보 >> */
+
+#define Comb_CurComb_BeltUp				$802			// 0000 0000 0000 0000 0000 1000 0000 0010 , 10진수 : 2,050
+#define Comb_CurComb_BeltDn				$801			// 0000 0000 0000 0000 0000 1000 0000 0001 , 10진수 : 2,049
+			 	
+#define Comb_CurComb_1stReadyUP			$402			// 0000 0000 0000 0000 0000 0100 0000 0010 , 10진수 : 1,026
+#define Comb_CurComb_1stReadyDn			$401			// 0000 0000 0000 0000 0000 0100 0000 0001 , 10진수 : 1,025
+			 	
+#define Comb_CurComb_AlignUp			$202			// 0000 0000 0000 0000 0000 0010 0000 0010 , 10진수 : 514
+#define Comb_CurComb_AlignDn			$201			// 0000 0000 0000 0000 0000 0010 0000 0001 , 10진수 : 513
+			 	
+#define Comb_CurComb_DodgeUp			$102			// 0000 0000 0000 0000 0000 0001 0000 0010 , 10진수 : 258
+#define Comb_CurComb_DodgeDn			$101			// 0000 0000 0000 0000 0000 0001 0000 0001 , 10진수 : 257
+			 	
+#define Comb_CurComb_StackUp			$82				// 0000 0000 0000 0000 0000 0000 1000 0010 , 10진수 : 130
+#define Comb_CurComb_StackDn			$81				// 0000 0000 0000 0000 0000 0000 1000 0001 , 10진수 : 129
+			 	
+#define Comb_CurComb_NGReadyUp			$42				// 0000 0000 0000 0000 0000 0000 0100 0010 , 10진수 : 66
+#define Comb_CurComb_NGReadyDn			$41				// 0000 0000 0000 0000 0000 0000 0100 0001 , 10진수 : 65
+
+#define	Comb_CurComb_Up_Pos				$2				// 0000 0000 0000 0000 0000 0000 0000 0010 , 10진수 : 2
+#define	Comb_CurComb_Dn_Pos				$1				// 0000 0000 0000 0000 0000 0000 0000 0001 , 10진수 : 1
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+global	P_Cur_PosX1 = 0;
+global	P_Cur_PosZ1 = 0;
+
+global	P_Cur_PosX2 = 0;
+global	P_Cur_PosZ2 = 0;
+
+
+
+global	P_Dest_PosX = 0;
+global	P_Dest_PosZ = 0;
+
+global	P_FailToParse = 0;
+
+#define	X_Pos_Masking				$FF
+#define	Z_Pos_Masking				$FF00
+
+global	P_CurTrigger = 0;
+global	P_TimeOutTrigger = 0;
+global	P_CalcTime = 0;
+global	P_Cycle_Count = 0;
+global	P_MotionTimeOutFlag = 0;
+global	P_Set_Data = 0;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+global P_Rtn = 0;
+
+global	P_CurPosTestBit = 1;
+
+
+
+
+
+// MotionSequence Return Code // 
+
+
+#define	N_Err_CurPosParsing			2
+#define	N_Err_Check_SamePos			3
+#define	N_Err_Action				4
+#define	N_Err_NotSelectedElec		5
+#define N_Empty_Next_Data			6
+#define	N_Err_MtionAction			7
+#define	N_Stop_Point				44
+#define N_Motion_Err				55
+#define N_Err_EmptyID		8
+#define N_Not_An_Error 9
+#define N_SamePos	10
+
+
+global P_Hold_Anode_Pause_CHK = 0
+global P_Hold_Cathode_Pause_CHK = 0
+global P_Surface_Complete_To_Hold = 0;
+global P_Hold_Motion_Arr(20)
+P_Hold_Motion_Arr(0),20,1=0 
+global P_Hold_Pause_Trg = 0;
+global P_From_Staring_Flag = 0;
+global P_Hold_Existence_Insp_Enqueue_Flag = 0;
+#define N_Hold_Pause_Timing	19
+#define SubMaster_Status		P_SubMaster_Sub_Old_Mode(1)|P_SubMaster_Sub_Old_Mode(3)|P_SubMaster_Sub_Old_Mode(4)|P_SubMaster_Sub_Old_Mode(5)|P_SubMaster_Sub_Old_Mode(6)|P_SubMaster_Sub_Old_Mode(7)|P_SubMaster_Sub_Old_Mode(8)|P_SubMaster_Sub_Old_Mode(10)
+global P_Hold_Rtn = 0;
+global P_Debug_Existence_Insp_STEP = 0;
+global P_Hold_Align_Sheet_CHK = 0
+global P_Hold_Cathode_Exception_Empty_Flag = 0;
+global P_Hold_Anode_Exception_Empty_Flag = 0
+global P_HOLD_Hold_Process_State_Machine = 0;
+global P_Hold_Stop_Sheet_Process_STEP = 0;
+global P_Hold_Debug_Sheet_Process_STEP = 0;
+global P_Hold_Stop_Point = 0;
+global P_Hold_CHK = 0
+global P_Hold_Test= 0;
+
+global P_Anode_1st_Motion_Complete = 1
+global P_Anode_2nd_Motion_Complete = 1
+global P_Anode_NG_PNP_Motion_Complete = 1
+global P_Cathode_1st_Motion_Complete = 1
+global P_Cathode_2nd_Motion_Complete = 1
+global P_Cathode_NG_PNP_Motion_Complete = 1
+global P_Anode_1st_Picker_Motion_Complete = 1
+global P_Cathode_1st_Picker_Motion_Complete = 1
+
+
+#define Hold_Motion_Complete	P_Anode_1st_Motion_Complete&P_Anode_2nd_Motion_Complete&P_Anode_NG_PNP_Motion_Complete&P_Cathode_1st_Motion_Complete&P_Cathode_2nd_Motion_Complete&P_Cathode_NG_PNP_Motion_Complete&P_Anode_1st_Picker_Motion_Complete&P_Cathode_1st_Picker_Motion_Complete
+
+
+
+global P_individual_return = 0;
+global P_individual_return2 = 0;
+global P_HoldCurPosBit1 = 0;
+global P_HoldCurPosBit2 = 0;
+global P_Parsing_Status = 0;
+global P_Sel_Obj = 0
+global P_Sel_Elec = 0
+global P_Error = 0;
+
+#define N_Hold_Anode_Belt_Move_Timing 67
+#define N_Hold_Cathode_Belt_Move_Timing 22
+
+global P_Vision_FirstSepa_Complete = 0
+
+global P_NG_PNP_Turn_TM = 160
+global P_NG_PNP_Turn_TS = 55
+global P_NG_PNP_Turn_TA = 75
+global P_NG_PNP_Up_TM = 150
+global P_NG_PNP_Up_TS = 75
+global P_NG_PNP_Up_TA = 75
+global P_NG_PNP_Down_TM = 150
+global P_NG_PNP_Down_TS = 75
+global P_NG_PNP_Down_TA = 75
+global P_NG_PNP_Vac_Time = 200
+global P_NG_PNP_Blow_Time = 200
+global P_Slow_NG_Mode_Btn = 0
+
+
+
+global P_HOLD_Memory_Tower_Offset = 2
+global P_Hold_Pause_Use = 1
+
+#define N_Hold_Action_Err 1
+#define N_Memory_Tower_Err 2
+#define N_Hold_Data_Err	3
+
+global P_Hold_Err_MNTR(4)
+P_Hold_Err_MNTR(0),4 = 0
+global P_Hold_Err_Data_Save(8)
+P_Hold_Err_Data_Save(0),8 = 0
+global P_Hold_Err_Action_Data_Save(8)
+P_Hold_Err_Action_Data_Save(0),8 = 0
+global P_Hold_Motion_Err_Chk = 0
+global P_Hold_Memory_Tower_Err_Pos(15)
+P_Hold_Memory_Tower_Err_Pos(0),15 = 0
+global P_Hold_Motion_TimeOut = 0
+global P_Hold_Data_OK = 0
+
+///////////////////////////비전 검사 임시 선엄//////////////
+global P_VISION_TRG_PLC4_AnodeSurface_Ins_Shoot = 0;
+global P_VISION_TRG_PLC4_CathodeSurface_Ins_Shoot = 0;
+global P_Memory_Tower_Test = 0;
+global P_Temp_Run_Mode = 0;
+
+#ifdef F_Debug_Mode
+P_Memory_Tower_Test = 1;
+P_Recipe_1st_MotorNo(12) = -168
+P_Recipe_2nd_MotorNo(12) = 168
+P_Surface_Complete_To_Hold=1
+//P_Hold_Align_Sheet_CHK=1
+P_Temp_Run_Mode=1
+P_Final_Roll_Z_Run_Pos = 58
+P_Recipe_M12_POS(3)=-197
+P_Vision_Pass = 1
+#endif
+
+
+global P_Data_Idx = 0
+global P_Get_Data_Idx = 0
+
+global P_HOLD_Data_Err_Queue = 0
+global P_HOLD_Data_Err_State_Machine = 0
+global P_HOLD_Err_Set_Data = 0
+global P_HOLD_Err_Save = 0
+
+global P_Sepa_Run_Completed_Flag = 0

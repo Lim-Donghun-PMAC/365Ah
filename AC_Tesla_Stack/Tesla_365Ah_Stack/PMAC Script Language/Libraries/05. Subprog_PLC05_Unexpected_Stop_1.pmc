@@ -1,0 +1,107 @@
+/*======================================================//
+search [ㄴㄷㅁㄱ]
+Save_Program		:	좌표계 상태, Flag, 모터 상태 확인 후 문제가 있을 경우 저장
+Hex_Conversion		:	메모리 타워 Total Bit 16진수 → 10진수 변형 및 저장.
+PNP_Process_Set		:	1,2차 PNP 중 대기 위치가 아닐 경우 스텟 머신 업데이트.
+*/
+//======================================================//
+open subprog Unexp_Stop_Module(void)
+
+	sub:Save_Program(Size,Type,Check_Address,Save_Address,&Save_Program_RTN)	// 인자 (사이즈, 타입, 확인 주소값, 저장 주소값)
+	
+		Save_Program_RTN = 0;										// 반환값 초기화.
+		P(Save_Address),Size = 0;									// 초기값 초기화.
+		local L_Check_Cnt = 1;										// 확인 카운트.
+		local L_Save_Cnt = 0;										// 저장 카운트. (저장이 필요할 경우 0에서 부터 차근차근 저장)
+		if ( Type == F_Type_Motor )									// Motor 타입 일 경우.
+		{
+			while ( L_Check_Cnt <= Size )							// 확인 카운트가 Size보다 작을 경우.
+			{
+				if ( Motor[L_Check_Cnt].AmpEna == 0 )				// Motor Servo가 죽어 있을 경우.
+				{
+					P(Save_Address + L_Save_Cnt) = L_Check_Cnt;		// 저장 변수에 저장.
+					L_Check_Cnt++;									// 확인 카운트 증가.
+					L_Save_Cnt++;									// 저장 카운트 증가. (저장을 진행하였기 때문에 카운트 증가)
+					if ( L_Check_Cnt == 27 )						// 확인 카운트가 27일 경우. (#27~32 미사용)
+						L_Check_Cnt = 33;							// 확인 카운트 재설정.
+				}
+				else												// Motor Servo가 살아있을 경우.
+				{
+					L_Check_Cnt++;									// 확인 카운트 증가.
+					if ( L_Check_Cnt == 27 )						// 확인 카운트가 27일 경우. (#27~32 미사용)
+						L_Check_Cnt = 33;							// 확인 카운트 재설정.
+				}
+			}
+		}
+		if ( Type == F_Type_Coord )									// Coord 타입 일 경우.
+		{
+			while ( L_Check_Cnt <= Size )							// 확인 카운트가 Size보다 작을 경우.
+			{
+				if ( Coord[L_Check_Cnt].ProgRunning == 0 )			// 확인 변수의 값이 0일 경우.
+				{
+					P(Save_Address + L_Save_Cnt) = L_Check_Cnt;		// 저장 변수에 저장.
+					L_Check_Cnt++;									// 확인 카운트 증가.
+					L_Save_Cnt++;									// 저장 카운트 증가. (저장을 진행하였기 때문에 카운트 증가)
+					if ( L_Check_Cnt == 2 )							// 좌표계 4 ~ 7 미사용, 2 ~ 3 Align Table로 미확인.
+						L_Check_Cnt = 8								
+					else if ( L_Check_Cnt == 9 )					// 좌표계 9 ~ 10 미사용.
+						L_Check_Cnt = 11							
+				}
+				else												// 확인 변수의 값이 0이 아닐 경우.
+				{
+					L_Check_Cnt++;									// 확인 카운트 증가.
+					if ( L_Check_Cnt == 2 )							// 좌표계 4 ~ 7 미사용, 2 ~ 3 Align Table로 미확인.
+						L_Check_Cnt = 8								
+					else if ( L_Check_Cnt == 9 )					// 좌표계 9 ~ 10 미사용.
+						L_Check_Cnt = 11							
+				}
+			}
+		}			
+		if ( Type == F_Type_Flag )									// Flag 타입 일 경우.
+		{
+			while ( L_Check_Cnt < Size )							// 확인 카운트가 Size보다 작을 경우.
+			{
+				if ( P(Check_Address + L_Check_Cnt) == 0 )			// 확인 변수의 값이 0일 경우.
+				{
+					P(Save_Address + L_Save_Cnt) = L_Check_Cnt;		// 저장 변수에 저장.
+					L_Check_Cnt++;									// 확인 카운트 증가.
+					L_Save_Cnt++;									// 저장 카운트 증가. (저장을 진행하였기 때문에 카운트 증가)
+				}
+				else												// 확인 변수의 값이 0이 아닐 경우.
+					L_Check_Cnt++;									// 확인 카운트 증가.
+			}
+		}
+		Save_Program_RTN = N_TRUE;									// 반환값 업데이트.
+
+	return;
+
+	// 16진수 → 10진수 문자 그대로 변환.
+	sub:Hex_Conversion(Total_Bit,&Pos_Memory_RTN)					// 인자 (통합 비트, &결과 반환값)
+
+		local L_Result = 0;						// 결과 초기화.
+		local L_Multiple = 1;					// 배수 설정.
+		local L_Cnt = 1;						// 실행 카운트.
+		local L_Timer = 0;						// 타이머.
+		local L_State_Machine = 0;				// 스텟 머신.
+		while ( Total_Bit > 0.5 )				// 메모리타워 토탈 비트가 0.5 초과 일 경우.
+		{										
+			if ( L_State_Machine == 0 )			// 16진수 → 10진수로 추출.
+			{
+				L_Result = L_Result + ( Total_Bit & $F ) * L_Multiple;	// 결과 변수에 4Bit 추출하여 저장.
+				L_Timer = Sys.Time;				// 타이머 초기화.
+				L_State_Machine = 1;			// 스텟 머신 증가.
+			}
+			if ( L_State_Machine == 1 && Sys.Time > L_Timer + 0.001 )	// 토탈 비트 Shift 및 모터 위치 저장.
+			{
+				Total_Bit = Total_Bit >> 4;		// 토탈 비트 Shift.
+				P_Stop_Motor_Pos(L_Cnt) = int(L_Result / L_Multiple);	// 자리 수를 높여가며 저장.
+				L_Multiple = L_Multiple * 10;	// 10배수 증가.
+				L_Cnt += 1;						// 카운트 증가.
+				L_State_Machine = 0;			// 스텟 머신 초기화.
+			}
+		}
+		Pos_Memory_RTN = L_Result;				// 결과값 반환.
+
+	return;
+
+close

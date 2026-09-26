@@ -1,0 +1,2213 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.09 김성중 선임
+// MSA 모듈화 프로그래밍 진행 - [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+// 25.07.28 김성중 선임 
+// Cal, Cleaning 위치 이동, Align 탈착 모드 프로그래밍 진행 - [ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ] 
+// 25.12.09 김성중 선임
+// Cycle Stop 모듈화 작업 진행
+
+open plc 13
+P_MNTR_PLC13_Task_Time(0) =  Sys.Time;
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+
+Local L_Time_Cycle_Up_Count_Start_Time;						// Plc[13].ldata.L[0] 시간 체크 시작 시간
+Local L_Time_Cycle_Up_Count_End_Time;						// Plc[13].ldata.L[1] 시간 체크 종료 시간
+Local L_Time_Cycle_Up_Count_Delta_Time;						// Plc[13].ldata.L[2] 시작과 종료 시간 사이의 시간
+Local L_Flag_Cycle_Up_Count_Init_Flag;						// Plc[13].ldata.L[3] 타이머 초기화 플래그
+local L_PLC13_MSA_InterLock_Program_Active;					// Plc[13].ldata.L[4] 상태에 따른 프로그램 
+local L_MSA_InterLock_MNTR;									// Plc[13].ldata.L[5] MSA Interlock 모니터링 
+local L_Old_BTN_AN_Align_MSA;								// Plc[13].ldata.L[6] 음극 얼라인 MSA 버튼 상태 
+local L_Old_BTN_CA_Align_MSA;								// Plc[13].ldata.L[7] 양극 얼라인 MSA 버튼 상태
+local L_Old_BTN_AN_Stack_MSA;								// Plc[13].ldata.L[8] 음극 Stack MSA 버튼 상태 
+local L_Old_BTN_CA_Stack_MSA;								// Plc[13].ldata.L[9] 양극 Stack MSA 버튼 상태 
+local L_VISION_MSA_InterLock_Check_Assy_Bit;				// Plc[13].ldata.L[10] MSA 인터락 비트 변화 감지
+local L_MSA_Check_Bit_Rtn;									// Plc[13].ldata.L[11] MSA 체크 비트 리턴 값 
+local L_MSA_InterLock_Check_Rtn;							// Plc[13].ldata.L[12] MSA 인터락 비트 리턴 값 
+local L_MSA_InterLock_Bit_Add_Rtn;							// Plc[13].ldata.L[13] 비트 삽입 함수 결과값 리턴 값
+local L_Module_Interval_Timer;								// Plc[13].ldata.L[14] 인터벌 타이머
+
+local L_Old_BTN_Align_AN_Take_OFF;							// Plc[13].ldata.L[15] 음극 얼라인 탈착 모드 버튼 이전 값 
+Local L_Old_BTN_Align_CA_Take_OFF;							// Plc[13].ldata.L[16] 양극 얼라인 탈착 모드 버튼 이전 값 
+
+local L_Align_Take_Off_InterLock_Check_Assy_Bit;			// Plc[13].ldata.L[17] 양극 얼라인 탈착 모드 비트 변화 감지 
+Local L_Align_Take_Off_InterLock_MNTR;						// Plc[13].ldata.L[18] 음극 얼라인 탈착 모드 Interlock 모니터링
+local L_Align_Take_Off_Check_Bit_Rtn;						// Plc[13].ldata.L[19] 양극 얼라인 탈착 모드 체크 비트 리턴 값  
+Local L_Align_Take_Off_InterLock_Check_Rtn;					// Plc[13].ldata.L[20] 음극 얼라인 탈착 모드 인터락 비트 리턴 값  
+local L_Align_Take_Off_InterLock_Bit_Add_Rtn;				// Plc[13].ldata.L[21] 양극 얼라인 탈착 모드 비트 삽입 함수 결과값 리턴 값
+Local L_Pos_Mem_Rtn;										// Plc[13].ldata.L[22] 개별 위치메모리 리턴값 
+
+// 모니터링 변수 
+local L_PLC13_Stopping_CycleStop_Precondtion_MNTR;			// Plc[13].ldata.L[23]
+local L_PLC13_Cycle_Stop_Act_Management_Active;				// Plc[13].ldata.L[24]	서브 프로그램 활성화
+local L_PLC13_Manual_Act_Management_Active;					// Plc[13].ldata.L[25]	서브 프로그램 활성화
+Local L_PLC13_Manual_ARC_Act_Management_Active				// Plc[13].ldata.L[25]	매뉴얼 ARC 동작 프로그램 활성화
+
+Local L_Old_BTN_Stack_2nd_PNP_Cleaning_Mode;				// Plc[13].ldata.L[26]	2차 클리닝 모드 버튼 이전 값 
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+	
+// 00.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{		
+	
+	L_Module_Interval_Timer = L_Module_Interval_Timer +	L_Time_Cycle_Up_Count_Delta_Time;
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	P_MSA_Chk_Pos_Timer = P_MSA_Chk_Pos_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Align_Take_Off_Chk_Pos_Timer = P_Align_Take_Off_Chk_Pos_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Anode_Align_MSA_Execute_Timer = P_Anode_Align_MSA_Execute_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Cathode_Align_MSA_Execute_Timer = P_Cathode_Align_MSA_Execute_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Anode_Stack_MSA_Execute_Timer = P_Anode_Stack_MSA_Execute_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Cathode_Stack_MSA_Execute_Timer = P_Cathode_Stack_MSA_Execute_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	P_MSA_Timer = P_MSA_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+//===========================================================================================================================================================
+// 1. Manual & IDLE 프로그램 활성화 
+//===========================================================================================================================================================
+if( P_PMAC_Current_Mode == F_Current_Manual)			//현재 Manual & Idle 상태일 경우
+{
+	L_PLC13_MSA_InterLock_Program_Active = F_Status_STARTING;							// MSA 인터락 프로그램 Start
+	L_PLC13_Manual_Act_Management_Active = F_Status_STARTING;
+	L_PLC13_Cycle_Stop_Act_Management_Active = F_Status_STOPPING						// Stop 프로그램 Stop
+	L_PLC13_Manual_ARC_Act_Management_Active = F_Status_STARTING;						// 메뉴얼 강제 자동 ARC 시작 - [ 참조 : 25.12.23 매뉴얼 ARC 동작부 보완 ]
+}
+else if ( P_PMAC_Current_Mode == F_Current_Automatic )									//오토일 경우
+{
+	L_PLC13_MSA_InterLock_Program_Active = F_Status_STOPPING;							// MSA 인터락 프로그램 Stop
+	L_PLC13_Manual_Act_Management_Active = F_Status_STOPPING;
+	L_PLC13_Cycle_Stop_Act_Management_Active = F_Status_STARTING						// Stop 프로그램 Start
+	L_PLC13_Manual_ARC_Act_Management_Active = F_Status_STOPPING;						// 메뉴얼 강제 자동 ARC 정지
+}
+else																					
+{	
+	L_PLC13_MSA_InterLock_Program_Active = F_Status_STOPPING							// MSA 인터락 프로그램 Stop
+	L_PLC13_Manual_Act_Management_Active = F_Status_STOPPING;
+	L_PLC13_Cycle_Stop_Act_Management_Active = F_Status_STOPPING;						// Stop 프로그램 Stop
+	L_PLC13_Manual_ARC_Act_Management_Active = F_Status_STOPPING;						// 메뉴얼 강제 자동 ARC 해제 
+}
+
+// Total Push BTN 변수 대입 ( 감시창 용이 )
+ P_BTN_MSA_Total_Value = N_BTN_MAS_Total_Value;			
+ P_BTN_Align_Off_Total_Value = N_BTN_Align_Off_Total_Value;
+
+
+//==============================================================================================================================================
+//2-2  양음극 얼라인테이블 탈착 모드 버튼 이중 커맨드 처리 
+//=============================================================================================================================================
+if( P_BTN_Align_Off_Total_Value == N_TRUE )																			// 하나의 버튼만 눌렸을 시 N_TRUE
+{
+	// 대기위치 개별 메모리 구간
+	call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP,& P_Anode_1st_Unit_Status,&L_Pos_Mem_Rtn);			//음극 1차 PNP 대기 위치 확인 
+	call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,& P_Anode_2nd_Unit_Status,&L_Pos_Mem_Rtn);			//음극 2차 PNP 대기 위치 확인 
+	call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP,&P_Cathode_1st_Unit_Status,&L_Pos_Mem_Rtn);		//양극 1차 PNP 대기 위치 확인
+	call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,& P_Cathode_2nd_Unit_Status,&L_Pos_Mem_Rtn);		//양극 2차 PNP 대기 위치 확인
+	call Sub_Unit_Memory_Status.individual_mode(F_Final_Roll,&P_FinalRoll_Unit_Status,&L_Pos_Mem_Rtn);				//파이널롤 대기 위치 확인
+	// 대기위치 확인
+	if( P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos  )			//대기 위치 확인
+	{
+		// 1. 음극 탈착 모드
+		//[참조 : 260724 2차 클리닝 위치 이동, 얼라인 탈착 모드 시퀀스 수정 ]
+		//[참조 : 260116 페이징 안된 모터 j/ 막기]
+		if( M_Func_BTN.Anode_Align_Take_OFF == 1 && M_Func_BTN.Anode_Align_Take_OFF != L_Old_BTN_Align_AN_Take_OFF )				// 상승엣지
+		{
+			if( (Motor[N_1st_PnP_CA_T].PhaseFound & Motor[N_1st_PnP_AN_T].PhaseFound & Motor[N_2nd_PnP_CA_T].PhaseFound & Motor[N_2nd_PnP_AN_T].PhaseFound) )
+			{
+				M_Func_BTN.Anode_Align_Take_OFF = 0;																			// 푸쉬버튼이면 초기화가 필요 없지만 일단 넣자
+				P_Align_Take_Off_Cmd(N_Align_AN_Take_Off) = F_Command_Start;											//음극 얼라인 테이블 탈착 모드 커멘드 Start
+				P_Align_Take_Off_BTN_ON = N_TRUE;
+			}
+		}
+		//2. 양극 탈착 모드 
+		//[참조 : 260116 페이징 안된 모터 j/ 막기]
+		else if( M_Func_BTN.Cathode_Align_Take_OFF == 1 && M_Func_BTN.Cathode_Align_Take_OFF != L_Old_BTN_Align_CA_Take_OFF  )			// 상승엣지 
+		{
+			if((Motor[N_1st_PnP_CA_T].PhaseFound & Motor[N_1st_PnP_AN_T].PhaseFound & Motor[N_2nd_PnP_CA_T].PhaseFound & Motor[N_2nd_PnP_AN_T].PhaseFound))
+			{
+				M_Func_BTN.Cathode_Align_Take_OFF = 0;																			// 푸쉬버튼이면 초기화가 필요 없지만 일단 넣자
+				P_Align_Take_Off_Cmd(N_Align_CA_Take_Off) = F_Command_Start;											//양극 얼라인 테이블 탈착 모드 커멘드 Start
+				P_Align_Take_Off_BTN_ON = N_TRUE;
+			}
+		}
+	}
+}	
+L_Old_BTN_Align_AN_Take_OFF = M_Func_BTN.Anode_Align_Take_OFF;					// Old Data
+L_Old_BTN_Align_CA_Take_OFF = M_Func_BTN.Cathode_Align_Take_OFF;					// Old Data
+
+//============================================================================================================================================== //
+// 2-3. Stop 동작 커맨드 감시 부분 _ 동작 커맨드 관리 -> 시퀀스에서 동작 살리면 
+//==============================================================================================================================================
+// 2.3.1 동작 커맨드 감시 부분 _ 동작 커맨드 관리 -> 시퀀스에서 동작 살리면 
+if ( L_PLC13_Manual_Act_Management_Active == F_Status_STARTING )
+{
+	// 2.3.1.1 동작 커맨드 감시 _ 동작 커맨드 서치 (동작 활성화)
+	P_Except_Return_Array(N_Vision_Manual_Management_RTN) = 0;
+	call Subprog_Mainprocess_VISION_Manual_Act_Module.Management(&P_Except_Return_Array(N_Vision_Manual_Management_RTN))
+
+	if ( P_Except_Return_Array(N_Vision_Manual_Management_RTN) != N_TRUE )
+	{
+		// 동작 이상 알람 발생
+	}
+}
+IF ( L_PLC13_Cycle_Stop_Act_Management_Active == F_Status_STARTING )
+{
+	// 2.3.1.2 동작 커맨드 감시 _ 동작 커맨드 서치 (동작 활성화)
+	P_Except_Return_Array(N_PLC13_Sub_Cycle_Stop_Act_Management_RTN) = 0;
+	call Subprog_Mainprocess_Cycle_Stop_Act_Module.Management(&P_Except_Return_Array(N_PLC13_Sub_Cycle_Stop_Act_Management_RTN))
+	if ( P_Except_Return_Array(N_PLC13_Sub_Cycle_Stop_Act_Management_RTN) != N_TRUE )
+	{
+		// 동작 이상 알람 발생
+	}
+}
+IF ( L_PLC13_Manual_ARC_Act_Management_Active == F_Status_STARTING ) 
+{
+		// 2.3.1.3 동작 커맨드 감시 _ 동작 커맨드 서치 (동작 활성화) - [ 참조 : 25.12.23 매뉴얼 ARC 동작부 보완 ]
+	P_Except_Return_Array(N_PLC13_Manual_ARC_Management_RTN) = 0;
+	call Subprog_Mainprocess_Manual_ARC_Act_Module.Management(&P_Except_Return_Array(N_PLC13_Manual_ARC_Management_RTN))
+	IF ( P_Except_Return_Array(N_PLC13_Manual_ARC_Management_RTN) != N_TRUE )
+	{
+		// 동작 이상 알람 발생
+	}
+}
+
+								
+////=============================================================================================================================================================
+//// 3. MSA 인터락 검사(Check) 
+////=============================================================================================================================================================
+//if( L_PLC13_MSA_InterLock_Program_Active == F_Status_STARTING )
+//{
+//	if( L_MSA_InterLock_MNTR == N_TRUE )
+//	{
+//		L_MSA_InterLock_Check_Rtn = 0;
+//		call Manual_InterLock_Function.MSA_InterLock(&L_MSA_InterLock_Check_Rtn);
+//		if( L_MSA_InterLock_Check_Rtn == N_TRUE )
+//			P_Vision_MSA_Interlock_Status = F_Status_COMPLETE;
+//		else
+//		{
+//			L_MSA_InterLock_MNTR = N_FALSE;
+//			P_Vision_MSA_Interlock_Status = F_Status_ABORTED;
+//		}
+//	}
+//}
+//else if( L_PLC13_MSA_InterLock_Program_Active == F_Status_STOPPING )
+//{
+//	L_MSA_InterLock_MNTR = N_FALSE;
+//	P_Vision_MSA_Interlock_Status = F_Status_ABORTED;
+//}
+
+
+//==============================================================================================================================================
+//2. 비전 오토 캘 모듈 ( 극판 선택이 완료 되어 있다면 실행 명령부 가능)
+//==============================================================================================================================================
+//2.1) 자동 캘리브레이션일 경우 
+IF ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Cathode || P_Vision_AutoCal_Mode == N_AutoCal_Mode_Anode )	//오토 캘 양극, 음극 선택
+{
+	//2.1.1)비전 오토 캘 시작
+	if( P_Vision_AutoCal_Command == F_Command_Start )				//비전 오토 캘 시작 커맨드 
+	{
+		P_Vision_AutoCal_Command = 0;
+		if ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Cathode )		//양극 비전 오토 캘 일 경우 
+		{
+			P_Cathode_Align_Table_Move = F_Align_AutoCal_Move_Mode;	//양극 얼라인 캘 무브 설정 
+		}
+		else if ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Anode )	//음극 비전 오토 캘 일 경우 
+		{
+			P_Anode_Align_Table_Move = F_Align_AutoCal_Move_Mode;	//음극 얼라인 캘 무브 설정 
+		}
+		P_CMD_Align_Complete = 0;							
+		P_CMD_Cell_Align(P_Vision_AutoCal_Mode) = 1;				
+	}	
+	//2.1.2)비전 오토 스탑
+	if( P_Vision_AutoCal_Command == F_Command_Stop )				 //비전 오토 캘 스탑 커맨드 
+	{
+		P_Vision_AutoCal_Command = 0;
+		if ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Cathode )		 //양극 비전 오토 캘 일 경우 
+		{															 
+			P_Cathode_Align_Table_Move = F_Align_AutoCal_Move_Mode;	 //양극 얼라인 캘 무브 설정 
+		}															 
+		else if ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Anode )	 //음극 비전 오토 캘 일 경우 
+		{															 
+			P_Anode_Align_Table_Move = F_Align_AutoCal_Move_Mode;	 //음극 얼라인 캘 무브 설정 
+		} 
+		P_CMD_Align_Complete = 0;									 //얼라인 캘 무브 시작	
+		P_CMD_Cell_Stop(P_Vision_AutoCal_Mode) = 1;		
+	}
+	//2.1.3)비전 리셋 시작
+	if( P_Vision_AutoCal_Command == F_Command_Reset )				//비전 오토 캘 리셋 커맨드 
+	{
+		P_Vision_AutoCal_Command = 0;								//얼라인 캘 무브 설정 
+		P_CMD_Cell_Reset(P_Vision_AutoCal_Mode) = 1;				//얼라인 캘 무브 시작	
+		P_Vision_Cal_Reset_Count = 1;
+	}
+}
+//==============================================================================================================================================
+//3. 2차 PNP 클리닝 위치 이동 
+//==============================================================================================================================================
+//[참조 : 260724 2차 클리닝 위치 이동, 얼라인 탈착 모드 시퀀스 수정 ]
+if ( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status == F_Status_IDLE && P_Stack_Judgement_Memory == 0 )		// 메뉴얼, IDEL 젤리롤 적층 아닐 경우에서만 가능
+{ 
+	if ( M_Func_BTN.Stack_2nd_PNP_Cleaning_Mode == 1 && M_Func_BTN.Stack_2nd_PNP_Cleaning_Mode != L_Old_BTN_Stack_2nd_PNP_Cleaning_Mode  )	// 2차 PNP 클리닝 위치 이동 시작 
+	{
+		P_2nd_PNP_Cleaning_Mode_Cmd = F_Command_Start;		//2차 PNP 클린이 위치 이동 커멘드 시작 
+	}
+}
+L_Old_BTN_Stack_2nd_PNP_Cleaning_Mode = M_Func_BTN.Stack_2nd_PNP_Cleaning_Mode;			// Old Data	
+//=============================================================================================================================================
+
+
+//#ifdef F_Def_Stack_A	//A열 사용 시 
+//if( P_Modbus_B_Connect_State == N_Modbus_Enable )																			// 모드버스가 연결 되어 있다면
+//{
+//		if( P_Modbus_B_PMAC_Cur_Mode == F_Current_Manual && P_Modbus_B_VISION_MSA_Status != F_Status_EXECUTE )	//B열이 Manual 상태이고 MSA 사용 중이 아닐 경우
+//		{
+//			//if( P_Modbus_B_Anode_1st_Pos >= 45 - P_Motor_Ready_Pos_Inpos_200um && P_Modbus_B_Cathode_1st_Pos >= 45 - P_Motor_Ready_Pos_Inpos_200um )				//B열 양음극 1차 PNP T축이 45도 이상일 경우(대기 위치~얼라인)																
+//			if( P_Modbus_B_Anode_1st_Pos > P_Opposite_Lane_1ST_TR_Safe_Pos || P_Modbus_B_Cathode_1st_Pos > P_Opposite_Lane_1ST_TR_Safe_Pos )//|| M_X_Cathode_1st_PNP_Collision_Detect_Sensor == 1 || M_X_Anode_1st_PNP_Collision_Detect_Sensor == 1 )
+//			{
+//				P_MSA_Interlock = 0;																					// 통과
+//			}
+//			else																								//B열 양음극 1차 PNP T축이 45도 이하일 경우(벨트 방향)
+//			{
+//				P_MSA_Interlock = 1
+//			}
+//		}
+//		else																									//B열이 오토 상태이거나 MSA 사용 중일 경우 
+//		{
+//			P_MSA_Interlock = 1																	// 인터락	
+//		}
+//}
+//else	// Modbus Data 안들어올때 , 즉 한쪽열만 사용할때
+//{
+//	//조건 수정 필요
+//	//if( M_X_Cathode_1st_PNP_Collision_Detect_Sensor | M_X_Anode_1st_PNP_Collision_Detect_Sensor )				// GPIO INTERLOCK SENSOR 1개라도 감지된다면
+//	//{
+//	//	P_MSA_Interlock = 1
+//	//}
+//	//else																										// GPIO SENSOR 감지가 안되면 gogo
+//	//{
+//	//	P_MSA_Interlock = 0
+//	//}
+//}
+//#endif
+//
+//#ifdef F_Def_Stack_B
+//if( P_Modbus_A_Connect_State == N_Modbus_Enable )																// 모드버스가 연결 되어 있다면
+//{
+//		if( P_Modbus_A_PMAC_Cur_Mode == F_Current_Manual && P_Modbus_A_VISION_MSA_Status != F_Status_EXECUTE )	//A열이 Manual 상태이고 MSA 사용 중이 아닐 경우
+//		{
+//			if( P_Modbus_A_Anode_1st_Pos > P_Opposite_Lane_1ST_TR_Safe_Pos || P_Modbus_A_Cathode_1st_Pos > P_Opposite_Lane_1ST_TR_Safe_Pos )//|| M_X_Cathode_1st_PNP_Collision_Detect_Sensor == 1 || M_X_Anode_1st_PNP_Collision_Detect_Sensor == 1 )
+//			{
+//				P_MSA_Interlock = 0																					//통과
+//			}
+//			else																								//A열 양음극 1차 PNP T축이 45도 이하일 경우(벨트 방향)
+//			{
+//				P_MSA_Interlock = 1
+//			}
+//		}
+//		else																									//A열이 오토 상태이거나 MSA 사용 중일 경우 
+//		{
+//			P_MSA_Interlock = 1
+//		}
+//}
+//else																											// 모드버스가 연결 안되었을 시
+//{
+//	//조건 수정 필요
+//	//if( M_X_Cathode_1st_PNP_Collision_Detect_Sensor | M_X_Anode_1st_PNP_Collision_Detect_Sensor )				// GPIO INTERLOCK SENSOR 1개라도 감지된다면
+//	//{
+//	//	P_MSA_Interlock = 1
+//	//}
+//	//else																										// GPIO SENSOR 감지가 안되면 gogo
+//	//{
+//	//	P_MSA_Interlock = 0
+//	//}
+//}
+//#endif
+
+// 260715 MSA Interlock 조건 수정
+if( M_X_Opposite_Cathode_1st_PNP_Collision_Detect_Sensor == 1 && M_X_Opposite_Anode_1st_PNP_Collision_Detect_Sensor == 1 )
+	P_MSA_Interlock = 0
+else
+	P_MSA_Interlock = 1
+
+
+
+if( P_MSA_Interlock == 1 )
+{
+	// MSA 수정!!!!!!!!!!!
+	if( P_SM_Anode_Align_MSA != 0 && P_Anode_Align_Interlock_Blocked == 0  )
+	{
+		P_Anode_Align_Interlock_Blocked = 1
+		P_SM_Anode_Align_MSA = 41
+	}
+	
+	if( P_SM_Cathode_Align_MSA != 0 && P_Cathode_Align_Interlock_Blocked == 0  )
+	{
+		P_Cathode_Align_Interlock_Blocked = 1
+		P_SM_Cathode_Align_MSA = 41
+	}
+
+	if( P_SM_Cathode_Stack_MSA != 0 && P_Cathode_Stack_Interlock_Blocked == 0 )
+	{
+		P_Cathode_Stack_Interlock_Blocked = 1
+		P_SM_Cathode_Stack_MSA = 44
+	}
+
+	if( P_SM_Anode_Stack_MSA != 0 && P_Anode_Stack_Interlock_Blocked == 0 )
+	{
+		P_Anode_Stack_Interlock_Blocked = 1
+		P_SM_Anode_Stack_MSA = 44
+	}
+}
+
+
+
+
+// MSA 수정!!!!!!!!!!!
+if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status == F_Status_IDLE )
+{
+	// 음극 얼라인 MSA 실행 가능 Lamp ON
+	if( ( P_Unit_integrated_Status == F_Equipment_Initial_Ready_Pos|| P_Unit_integrated_Status == F_Equipment_IDLE_Initial_Ready_Pos) && P_SM_Anode_Align_MSA == 0 && P_MSA_Interlock == 0 )
+	{
+		P_Mode_Run_Enable_Flag(F_Anode_Align_MSA) = 1;
+	}
+	// 음극 얼라인 MSA 실행중 Lamp ON
+	else if( P_SM_Anode_Align_MSA != 0 && P_Anode_Align_MSA_Execute_Timer > 500 )
+	{
+		P_Anode_Align_MSA_Execute_Timer = 0
+		P_Mode_Run_Enable_Flag(F_Anode_Align_MSA) ^= $1;
+	}
+	else
+	{
+		P_Mode_Run_Enable_Flag(F_Anode_Align_MSA) = 0;
+	}
+
+	// 양극 얼라인 MSA 실행 가능 Lamp ON
+	if( ( P_Unit_integrated_Status == F_Equipment_Initial_Ready_Pos|| P_Unit_integrated_Status == F_Equipment_IDLE_Initial_Ready_Pos) && P_SM_Cathode_Align_MSA == 0 && P_MSA_Interlock == 0 )
+	{
+		P_Mode_Run_Enable_Flag(F_Cathode_Align_MSA) = 1;
+	}
+	// 양극 얼라인 MSA 실행중 Lamp ON
+	else if( P_SM_Cathode_Align_MSA != 0 && P_Cathode_Align_MSA_Execute_Timer > 500 )
+	{
+		P_Cathode_Align_MSA_Execute_Timer = 0
+		P_Mode_Run_Enable_Flag(F_Cathode_Align_MSA) ^= $1;
+	}
+	else
+	{
+		P_Mode_Run_Enable_Flag(F_Cathode_Align_MSA) = 0;
+	}
+
+	// 음극 스택 MSA 실행 가능 Lamp ON
+	if( (P_Unit_integrated_Status == F_Equipment_Anode_Side_Pos || P_Unit_integrated_Status == F_Equipment_IDLE_Anode_Side_Pos ) && P_SM_Anode_Stack_MSA == 0 && P_MSA_Interlock == 0 )
+	{
+		P_Mode_Run_Enable_Flag(F_Anode_Stack_MSA) = 1;
+	}
+	// 음극 스택 MSA 실행중 Lamp ON
+	else if( P_SM_Anode_Stack_MSA != 0 && P_Anode_Stack_MSA_Execute_Timer > 500 )
+	{
+		P_Anode_Stack_MSA_Execute_Timer = 0
+		P_Mode_Run_Enable_Flag(F_Anode_Stack_MSA) ^= $1;
+	}
+	else
+	{
+		P_Mode_Run_Enable_Flag(F_Anode_Stack_MSA) = 0
+	}
+	
+	// 양극 스택 MSA 실행 가능 Lamp ON
+	if( (P_Unit_integrated_Status == F_Equipment_Cathode_Side_Pos || P_Unit_integrated_Status == F_Equipment_IDLE_Cathode_Side_Pos )&& P_SM_Cathode_Stack_MSA == 0 && P_MSA_Interlock == 0 )
+	{
+		P_Mode_Run_Enable_Flag(F_Cathode_Stack_MSA) = 1
+	}
+	// 양극 스택 MSA 실행중 Lamp ON
+	else if( P_SM_Cathode_Stack_MSA != 0 && P_Anode_Stack_MSA_Execute_Timer > 500 )
+	{
+		P_Anode_Stack_MSA_Execute_Timer = 0
+		P_Mode_Run_Enable_Flag(F_Cathode_Stack_MSA) ^= $1;
+	}
+	else
+	{
+		P_Mode_Run_Enable_Flag(F_Cathode_Stack_MSA) = 0
+	}
+
+
+	// 모든 MSA 동작이 진행중이지 않을 경우 MSA 실행 가능
+	if( P_SM_Cathode_Stack_MSA == 0 && P_SM_Anode_Stack_MSA == 0 && P_SM_Cathode_Align_MSA == 0 && P_SM_Anode_Align_MSA == 0 )
+	{		
+		#ifdef F_Def_Stack_A // A열인 경우
+		P_Modbus_A_VISION_MSA_Status = 0	
+		#endif
+
+		#ifdef F_Def_Stack_B // B열인 경우
+		P_Modbus_B_VISION_MSA_Status = 0 
+		#endif
+
+		// MSA 버튼 중 하나만 들어올 때만 동작 가능, 여러개가 들어오면 실행 안함
+		if((N_BTN_CA_Stack_MSA + N_BTN_AN_Stack_MSA + N_BTN_CA_Align_MSA + N_BTN_AN_Align_MSA) == 1 && P_PMAC_Current_Mode == F_Current_Manual )
+		{
+			// MSA 인터락이 걸리지 않을 경우 실행 가능
+			if( P_MSA_Interlock == 0 )
+			{
+				if( P_Mode_Run_Enable_Flag(F_Anode_Align_MSA) == 1 && N_BTN_AN_Align_MSA == 1 && N_BTN_AN_Align_MSA != L_Old_BTN_AN_Align_MSA )			// 1. 음극 얼라인 MSA 버튼
+				{
+					//[참조 : 260116 페이징 안된 모터 j/ 막기]
+					if( Motor[N_1st_PnP_CA_T].PhaseFound & Motor[N_1st_PnP_AN_T].PhaseFound & Motor[N_2nd_PnP_CA_T].PhaseFound & Motor[N_2nd_PnP_AN_T].PhaseFound)
+					{
+						P_SM_Anode_Align_MSA = 1
+
+						#ifdef F_Def_Stack_A // A열인 경우
+						P_Modbus_A_VISION_MSA_Status = F_Status_EXECUTE	//A열 MSA 진행 중 상태 EXECUTE
+						#endif
+
+						#ifdef F_Def_Stack_B // B열인 경우
+						P_Modbus_B_VISION_MSA_Status = F_Status_EXECUTE //B열 MSA 진행 중 상태 EXECUTE
+						#endif
+					}
+				}
+				else if( P_Mode_Run_Enable_Flag(F_Cathode_Align_MSA) == 1 && N_BTN_CA_Align_MSA == 1 && N_BTN_CA_Align_MSA != L_Old_BTN_CA_Align_MSA )		// 2. 양극 얼라인 MSA 버튼 
+				{
+					//[참조 : 260116 페이징 안된 모터 j/ 막기]
+					if( Motor[N_1st_PnP_CA_T].PhaseFound & Motor[N_1st_PnP_AN_T].PhaseFound & Motor[N_2nd_PnP_CA_T].PhaseFound & Motor[N_2nd_PnP_AN_T].PhaseFound)
+					{
+						P_SM_Cathode_Align_MSA = 1
+
+						#ifdef F_Def_Stack_A // A열인 경우
+						P_Modbus_A_VISION_MSA_Status = F_Status_EXECUTE	//A열 MSA 진행 중 상태 EXECUTE
+						#endif
+
+						#ifdef F_Def_Stack_B // B열인 경우
+						P_Modbus_B_VISION_MSA_Status = F_Status_EXECUTE //B열 MSA 진행 중 상태 EXECUTE
+						#endif
+					}
+				}
+				else if( P_Mode_Run_Enable_Flag(F_Anode_Stack_MSA) == 1 && N_BTN_AN_Stack_MSA == 1 && N_BTN_AN_Stack_MSA != L_Old_BTN_AN_Stack_MSA )		// 3. 음극 스텍 MSA 버튼
+				{
+					//[참조 : 260116 페이징 안된 모터 j/ 막기]
+					if( Motor[N_1st_PnP_CA_T].PhaseFound & Motor[N_1st_PnP_AN_T].PhaseFound & Motor[N_2nd_PnP_CA_T].PhaseFound & Motor[N_2nd_PnP_AN_T].PhaseFound)
+					{
+						P_SM_Anode_Stack_MSA = 1
+
+						P_MSA_Sample_Flag = 1; // Stack MSA 후 MSA 샘플로 배출
+						#ifdef F_Def_Stack_A // A열인 경우
+						P_Modbus_A_VISION_MSA_Status = F_Status_EXECUTE	//A열 MSA 진행 중 상태 EXECUTE
+						#endif
+
+						#ifdef F_Def_Stack_B // B열인 경우
+						P_Modbus_B_VISION_MSA_Status = F_Status_EXECUTE //B열 MSA 진행 중 상태 EXECUTE
+						#endif
+					}
+				}
+				else if( P_Mode_Run_Enable_Flag(F_Cathode_Stack_MSA) == 1 && N_BTN_CA_Stack_MSA == 1 && N_BTN_CA_Stack_MSA != L_Old_BTN_CA_Stack_MSA )		// 4. 양극 스텍 MSA 버튼
+				{
+					//[참조 : 260116 페이징 안된 모터 j/ 막기]
+					if( Motor[N_1st_PnP_CA_T].PhaseFound & Motor[N_1st_PnP_AN_T].PhaseFound & Motor[N_2nd_PnP_CA_T].PhaseFound & Motor[N_2nd_PnP_AN_T].PhaseFound)
+					{
+						P_SM_Cathode_Stack_MSA = 1
+
+						#ifdef F_Def_Stack_A // A열인 경우
+						P_Modbus_A_VISION_MSA_Status = F_Status_EXECUTE	//A열 MSA 진행 중 상태 EXECUTE
+						#endif
+
+						#ifdef F_Def_Stack_B // B열인 경우
+						P_Modbus_B_VISION_MSA_Status = F_Status_EXECUTE //B열 MSA 진행 중 상태 EXECUTE
+						#endif
+					}
+				}
+			}
+			
+		}
+	}
+	// 버튼이 동시에 2개 이상 들어왔을 경우
+	else if((N_BTN_CA_Stack_MSA + N_BTN_AN_Stack_MSA + N_BTN_CA_Align_MSA + N_BTN_AN_Align_MSA) > 1)
+	{
+		// 어떤 버튼이 2개 이상 들어왔는지 저장
+		P_MSA_Err_Save_CA_Stack_MSA = N_BTN_CA_Stack_MSA
+		P_MSA_Err_Save_AN_Stack_MSA = N_BTN_AN_Stack_MSA
+		P_MSA_Err_Save_CA_Align_MSA = N_BTN_CA_Align_MSA
+		P_MSA_Err_Save_AN_Align_MSA = N_BTN_AN_Align_MSA
+		P_MSA_BTN_Err++
+
+	}
+}
+else //[참조 : 260806 MSA 활성화 램프 IDEL 아닌 경우 초기화 ]
+{
+	P_Mode_Run_Enable_Flag(F_Cathode_Stack_MSA) = 0;
+	P_Mode_Run_Enable_Flag(F_Anode_Stack_MSA) = 0;
+	P_Mode_Run_Enable_Flag(F_Cathode_Align_MSA) = 0;
+	P_Mode_Run_Enable_Flag(F_Anode_Align_MSA) = 0;
+}
+L_Old_BTN_AN_Align_MSA = N_BTN_AN_Align_MSA;	// Old Data 
+L_Old_BTN_CA_Align_MSA = N_BTN_CA_Align_MSA;	// Old Data 
+L_Old_BTN_AN_Stack_MSA = N_BTN_AN_Stack_MSA;	// Old Data 
+L_Old_BTN_CA_Stack_MSA = N_BTN_CA_Stack_MSA;	// Old Data 
+
+
+// 음극 얼라인 MSA 실행부
+switch( P_SM_Anode_Align_MSA )
+{
+	case 0 :
+		P_Anode_Align_Interlock_Blocked = 0
+		P_Anode_Align_Stop_Blocked = 0
+	break;
+
+	// 모터 서보 ON
+	case 1 :
+		P_Anode_Align_MSA_Count = 0
+		call MSA_SubProg.Motor_Servo_ON(&P_Anode_Algin_MSA_RTN)
+		if( P_Anode_Algin_MSA_RTN == 1)
+		{
+			P_SM_Anode_Align_MSA = 777
+		}
+	break;
+
+	case 777 :
+		Coord[1].DesTimeBase = Sys.ServoPeriod * ( P_Recipe_Speed_Value / 100 );
+		call Sub_Common_Function.Timebase_On(&P_MSA_TimeBase_Rtn);									// 타임 베이스 ON
+		if( P_MSA_TimeBase_Rtn == 1 )
+		{
+			P_SM_Anode_Align_MSA = 2
+		}
+	break;
+
+	case 2 :
+		call Sub_Common_Function.Master_Motion_Program_On(&P_Anode_Algin_MSA_RTN);					//마스터 모션, 서브마스터, 슬레이브 ON
+		P_SM_Anode_Align_MSA = 3
+	break;
+
+	case 3 :
+		cmd"&23b23r"		// 음극 2차 PNP T축 좌표계 ON
+		cmd"&38b38r"		// 음극 2차 PNP Z축 좌표계 ON
+		cmd"&21b21r"		// 음극 1차 PNP T축 좌표계 ON
+		cmd"&37b37r"		// 음극 1차 PNP Z축 좌표계 ON
+		cmd"&25b25r"		// 파이널롤러 좌표계 ON
+		cmd"&33b33r"		// NG PNP 좌표계 ON
+		//cmd"&22b22r"		// 음극 1차 PNP Picker 좌표계 ON
+
+		P_MSA_Timer = 0
+		P_SM_Anode_Align_MSA = 4
+	break;
+
+	case 4 :
+		if( P_MSA_Timer > 100 )
+		{
+			if( Coord[23].ProgActive & Coord[38].ProgActive & Coord[21].ProgActive & Coord[37].ProgActive & Coord[25].ProgActive & Coord[33].ProgActive ) //PickerT PNP에 묶음으로 인하여 주석처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]//& Coord[22].ProgActive )
+			{
+				P_SM_Anode_Align_MSA = 888
+			}
+			else
+			{
+				P_SM_Anode_Align_MSA = 3
+			}
+		}
+	break;
+
+	case 888 :
+		P_Slave5_Motion_Command = N_FR_Stack_Pos_Motion
+		P_SM_Anode_Align_MSA = 889
+		P_MSA_Timer = 0
+	break;
+
+	case 889 :
+		call MSA_SubProg.Motor_Pos_CHK(N_FINAL_ROLL_X, P_Final_Roll_X_Anode_Move, &P_Anode_Algin_MSA_RTN)
+		call MSA_SubProg.Motor_Pos_CHK(N_FINAL_ROLL_Z, P_Final_Roll_Z_Run_Pos, &P_Anode_Algin_MSA_RTN2)
+		if( P_Anode_Algin_MSA_RTN == 1 && P_Anode_Algin_MSA_RTN2 == 1 )
+		{
+			P_SM_Anode_Align_MSA = 5
+			P_MSA_Timer = 0
+		}
+	break;
+
+
+	// 파이널롤러 회피, 양극 방향 이동
+	case 5 :
+		P_Slave5_Motion_Command = N_FR_Cathode_Move_Motion
+		P_SM_Anode_Align_MSA = 6
+		P_MSA_Timer = 0
+	break;
+
+	// 파이널롤러 양극 방향 이동 완료 확인
+	case 6 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_FINAL_ROLL_X, P_Final_Roll_X_Cathode_Move, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 7
+			}
+		}
+	break;
+
+	// 음극 2차 PNP 얼라인 하강
+	case 7 : 
+		IF( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )
+		{
+			P_Slave17_Motion_Command = N_2nd_PNP_Align_Down_Motion
+			P_SM_Anode_Align_MSA = 8
+			P_MSA_Timer = 0
+		}
+		else
+		{
+			P_SM_Anode_Align_MSA = 13
+		}
+	break;
+
+	// 음극 2차 PNP 얼라인 하강 완료 확인
+	case 8 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_AN_Z, P_Anode_2nd_Z_Align_Down, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 9
+			}
+		}	
+	break;
+
+	// 음극 2차 PNP 얼라인 흡착
+	case 9 : 
+		P_Slave17_Motion_Command = N_2nd_PNP_Align_Vac
+		P_SM_Anode_Align_MSA = 10
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 2차 PNP 얼라인 흡착 대기
+	case 10 :
+		if( P_MSA_Timer > 100 )
+		{
+			P_SM_Anode_Align_MSA = 11
+		}	
+	break;
+
+	// 음극 2차 PNP 얼라인 상승
+	case 11 : 
+		P_Slave17_Motion_Command = N_2nd_PNP_Align_Up_Motion
+		P_SM_Anode_Align_MSA = 12
+		P_MSA_Timer = 0
+	break;
+
+	/// 음극 2차 PNP 얼라인 상승 확인
+	case 12 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_AN_Z, P_Anode_2nd_Z_Align_Up, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 13
+			}
+		}	
+	break;
+
+	// 음극 2차 PNP 스택 이동
+	case 13 : 
+		P_Slave3_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion
+		P_Slave17_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;
+		P_SM_Anode_Align_MSA = 14
+		P_MSA_Timer = 0
+	break;
+
+
+	/// 음극 2차 PNP 스택 이동 확인
+	case 14 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_AN_T, P_Anode_2TR_T_Stack_POS, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 15
+			}
+		}	
+	break;
+
+
+	// 음극 1차 PNP 벨트 이동
+	case 15 : 
+		P_Slave1_Motion_Command = N_1st_PNP_Ready_To_Belt_Motion
+		P_Slave16_Motion_Command = N_1st_PNP_Ready_To_Belt_Motion;
+		P_SM_Anode_Align_MSA = 16
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 벨트 이동 확인
+	case 16 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_AN_T, P_Anode_1TR_T_Belt_POS, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 17
+			}
+		}	
+	break;
+
+
+	// 음극 1차 PNP 벨트 하강
+	case 17 : 
+		if( M_X_PLC_Anode_Sheet_Ready == 1 )
+		{
+			P_Slave16_Motion_Command = N_1st_PNP_Belt_Down_Motion
+			P_SM_Anode_Align_MSA = 18
+			P_MSA_Timer = 0
+		}
+	break;
+
+
+	// 음극 1차 PNP 벨트 하강 이동 확인
+	case 18 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_AN_Z, P_Anode_1st_Z_Belt_Down, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 19
+			}
+		}	
+	break;
+
+
+	// 음극 1차 PNP 벨트 흡착
+	case 19 : 
+		P_Slave16_Motion_Command = N_1st_PNP_Belt_Vac
+		P_SM_Anode_Align_MSA = 20
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 벨트 흡착 대기
+	case 20 :
+		if( P_MSA_Timer > 100 )
+		{
+			P_SM_Anode_Align_MSA = 21
+		}	
+	break;
+
+
+	// 음극 1차 PNP 벨트 상승
+	case 21 : 
+		P_Slave16_Motion_Command = N_1st_PNP_Belt_Up_Motion
+		P_SM_Anode_Align_MSA = 22
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 벨트 상승 이동 확인
+	case 22 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_AN_Z, P_Anode_1st_Z_Belt_Up, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 23
+			}
+		}	
+	break;
+
+	// 음극 1차 PNP 얼라인 이동, 피커 회전
+	case 23 :
+		//P_Slave2_Motion_Command = N_1st_Picker_Turn								//PickerT PNP에 묶음으로 인하여 주석처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]
+		P_Slave1_Motion_Command = N_1st_PNP_Belt_To_Align_Motion
+		P_Slave16_Motion_Command = N_1st_PNP_Belt_To_Align_Motion;
+		P_SM_Anode_Align_MSA = 24
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 이동 확인, 피커 회전 확인
+	case 24 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_AN_T, P_Anode_1TR_T_Align_POS, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 && P_First_PNP_Picker_T_Turn_Status == F_Status_COMPLETE )
+			{
+				P_SM_Anode_Align_MSA = 25
+			}
+
+		}
+	break;
+
+	// 음극 1차 PNP 얼라인 하강
+	case 25 :
+		P_Slave16_Motion_Command = N_1st_PNP_Align_Down_Motion
+		P_SM_Anode_Align_MSA = 26
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 하강 확인
+	case 26 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_AN_Z, P_Anode_1st_Z_Align_Down, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 27
+			}
+		}
+	break;
+
+	// 음극 1차 PNP 얼라인 블로우
+	case 27 :
+		P_Slave16_Motion_Command = N_1st_PNP_Align_Blow
+		P_SM_Anode_Align_MSA = 28
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 블로우 대기
+	case 28 :
+		if( P_MSA_Timer > 100 )
+		{
+			P_Anode_Align_MSA_Count++
+			if( P_Anode_Align_MSA_Count >= P_MSA_Run_Repeat_Num(F_Anode_Align_MSA))
+			{
+				P_SM_Anode_Align_MSA = 37
+			}
+			else
+			{
+				P_SM_Anode_Align_MSA = 29
+			}
+		}
+	break;
+
+	// 음극 1차 PNP 얼라인 흡착
+	case 29 :
+		P_Slave16_Motion_Command = N_1st_PNP_Align_Vac
+		P_SM_Anode_Align_MSA = 30
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 흡착 대기
+	case 30 :
+		if( P_MSA_Timer > 100 )
+		{
+			P_SM_Anode_Align_MSA = 31
+		}
+	break;
+
+
+	// 음극 1차 PNP 얼라인 상승
+	case 31 :
+		P_Slave16_Motion_Command = N_1st_PNP_Align_Up_Motion
+		P_SM_Anode_Align_MSA = 32
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 상승 확인
+	case 32 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_AN_Z, P_Anode_1st_Z_Align_Up, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 33
+			}
+		}
+	break;
+
+	// 음극 1차 PNP 벨트 이동
+	case 33 :
+		P_Slave1_Motion_Command = N_1st_PNP_Align_To_Belt_Motion
+		P_Slave16_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;
+		P_SM_Anode_Align_MSA = 34
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 벨트 이동 확인
+	case 34 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_AN_T, P_Anode_1TR_T_Belt_POS, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 35
+			}
+		}
+	break;
+
+
+	// 음극 1차 PNP 얼라인 이동
+	case 35 :
+		P_Slave1_Motion_Command = N_1st_PNP_Belt_To_Align_Motion
+		P_Slave16_Motion_Command = N_1st_PNP_Belt_To_Align_Motion;
+		P_SM_Anode_Align_MSA = 36
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 이동 확인
+	case 36 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_AN_T, P_Anode_1TR_T_Align_POS, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 25
+			}
+
+		}
+	break;
+
+
+	// 음극 1차 PNP 얼라인 상승
+	case 37 :
+		P_Slave16_Motion_Command = N_1st_PNP_Align_Up_Motion
+		P_SM_Anode_Align_MSA = 38
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 상승 확인
+	case 38 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_AN_Z, P_Anode_1st_Z_Align_Up, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 39
+			}
+		}
+	break;
+
+	// 음극 1차 PNP 얼라인 대기위치 이동
+	case 39 :
+		P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion
+		P_Slave16_Motion_Command = N_1st_PNP_Ready_Pos_Motion;
+		P_SM_Anode_Align_MSA = 40
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 대기위치 이동 확인
+	case 40 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_AN_T, P_Anode_1TR_T_Ready_POS, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 90
+			}
+		}
+	break;
+
+	// 음극 ng pnp 얼라인 이동
+	case 90 :
+		P_Slave13_Motion_Command = N_NG_PNP_NG_To_Align_Motion
+		P_SM_Anode_Align_MSA = 91
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 ng pnp 얼라인 이동 확인
+	case 91 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_NG_PnP_AN_T, P_Anode_NG_T_NG_To_Align, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 93
+			}
+		}
+	break;
+
+	// 음극 ng pnp 얼라인 하강
+	case 93 :
+		P_Slave13_Motion_Command = N_NG_PNP_Align_Down_Motion
+		P_SM_Anode_Align_MSA = 94
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 ng pnp 얼라인 하강 확인
+	case 94 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_NG_PnP_AN_Z, P_Anode_NG_Z_Align_Down, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 95
+			}
+		}
+	break;
+
+	// 음극 ng pnp 얼라인 흡착
+	case 95 :
+		P_Slave13_Motion_Command = N_NG_PNP_Align_Vac
+		P_SM_Anode_Align_MSA = 96
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 ng pnp 얼라인 흡착 대기
+	case 96 :
+		if( P_MSA_Timer > 200 )
+		{
+			P_SM_Anode_Align_MSA = 97
+		}
+	break;
+
+	// 음극 ng pnp 얼라인 상승
+	case 97 :
+		P_Slave13_Motion_Command = N_NG_PNP_Align_UP_Motion
+		P_SM_Anode_Align_MSA = 98
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 ng pnp 얼라인 상승 확인
+	case 98 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_NG_PnP_AN_Z, P_Anode_NG_Z_Align_Up, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 99
+			}
+		}
+	break;
+
+	// 음극 ng pnp 얼라인 이동
+	case 99 :
+		P_Slave13_Motion_Command = N_NG_PNP_Align_To_NG_Motion
+		P_SM_Anode_Align_MSA = 100
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 ng pnp 얼라인 이동 확인
+	case 100 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_NG_PnP_AN_T, P_Anode_NG_T_Align_To_NG, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				// ng PNP 블로우
+				M_Y_Anode_NG_PNP_Ejector_Vac_On = 0
+				M_Y_Anode_NG_PNP_Ejector_Vac_Off = 1 
+				// 260708 MSA 종료 중 NG PNP 블로우를 했는데 Data가 삭제되지 않아 재가동 시 진공알람 발생하여 수정
+				Sys_Anode_NG_TR_Sheet_Data = 0
+				P_SM_Anode_Align_MSA = 41
+			}
+		}
+	break;
+
+
+	case 41 :
+		if( Motor[N_1st_PnP_AN_T].DesVel == 0 && Motor[N_1st_PnP_AN_Z].DesVel == 0 && Motor[N_2nd_PnP_AN_Z].DesVel == 0 && Motor[N_2nd_PnP_AN_T].DesVel == 0 )
+		{
+			P_Slave16_Motion_Command = N_1st_PNP_Ready_Pos_Motion
+			P_SM_Anode_Align_MSA = 42
+			P_MSA_Timer = 0
+		}
+	break;
+
+	case 42 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_AN_Z, P_Anode_1st_Z_Ready_Up, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 43
+			}
+		}
+	break;
+
+	case 43 :
+		P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion
+		P_Slave16_Motion_Command = N_1st_PNP_Ready_Pos_Motion;
+		P_SM_Anode_Align_MSA = 44
+		P_MSA_Timer = 0
+	break;
+
+	case 44 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_AN_T, P_Anode_1TR_T_Ready_POS, &P_Anode_Algin_MSA_RTN)
+
+			if( P_Anode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Align_MSA = 45
+			}
+		}
+	break;
+
+	case 45 :
+
+		P_Slave1_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave2_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave3_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave4_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave5_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave6_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave7_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave8_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave9_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave10_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave11_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave12_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave13_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave14_Motion_Command = 0;	// 슬레이브축 커멘드		
+		cmd"&1..60a"
+		call Sub_Common_Function.Master_Motion_Program_OFF(&P_Anode_Algin_MSA_RTN);
+		P_SM_Anode_Align_MSA = 0
+		P_Status_Clear_Flag = 1
+		P_Anode_Align_MSA_Count = 0
+	break;
+
+	default :
+	break;
+}
+
+
+
+// 양극 얼라인 MSA 실행부
+switch( P_SM_Cathode_Align_MSA )
+{
+	case 0 :
+		P_Cathode_Align_Interlock_Blocked = 0
+		P_Cathode_Align_Stop_Blocked = 0
+	break;
+
+	// 모터 서보 ON
+	case 1 :
+		P_Cathode_Align_MSA_Count = 0
+		call MSA_SubProg.Motor_Servo_ON(&P_Cathode_Algin_MSA_RTN)
+		if( P_Cathode_Algin_MSA_RTN == 1)
+		{
+			P_SM_Cathode_Align_MSA = 777
+		}
+	break;
+
+	case 777 :
+		Coord[1].DesTimeBase = Sys.ServoPeriod * ( P_Recipe_Speed_Value / 100 );
+		call Sub_Common_Function.Timebase_On(&P_MSA_TimeBase_Rtn);									// 타임 베이스 ON
+		if( P_MSA_TimeBase_Rtn == 1 )
+		{
+			P_SM_Cathode_Align_MSA = 2
+		}
+	break;
+
+	case 2 :
+		call Sub_Common_Function.Master_Motion_Program_On(&P_Cathode_Algin_MSA_RTN);					//마스터 모션, 서브마스터, 슬레이브 ON
+		P_SM_Cathode_Align_MSA = 3
+	break;
+
+	case 3 :
+		cmd"&28b28r"		// 양극 2차 PNP T축 좌표계 ON
+		cmd"&39b39r"		// 양극 2차 PNP Z축 좌표계 ON
+		cmd"&30b30r"		// 양극 1차 PNP T축 좌표계 ON
+		cmd"&40b40r"		// 양극 1차 PNP Z축 좌표계 ON
+		cmd"&25b25r"		// 파이널롤러 좌표계 ON
+		cmd"&32b32r"		// NG PNP 좌표계 ON
+		//cmd"&29b29r"		// 양극 1차 PNP Picker 좌표계 ON
+
+		P_MSA_Timer = 0
+		P_SM_Cathode_Align_MSA = 4
+	break;
+
+	case 4 :
+		if( P_MSA_Timer > 100 )
+		{
+			if( Coord[28].ProgActive & Coord[39].ProgActive & Coord[30].ProgActive & Coord[40].ProgActive & Coord[25].ProgActive ) //PickerT PNP에 묶음으로 인하여 주석처리 [ 참조 : 26.08.14 PickerT 모션 변경 ] //& Coord[29].ProgActive )
+			{
+				P_SM_Cathode_Align_MSA = 5
+			}
+			else
+			{
+				P_SM_Cathode_Align_MSA = 3
+			}
+		}
+	break;
+
+	// 파이널롤러 회피, 양극 방향 이동
+	case 5 :
+		//P_Slave5_Motion_Command = N_FR_Cathode_Move_Motion
+		P_SM_Cathode_Align_MSA = 6
+		//P_MSA_Timer = 0
+	break;
+
+	// 파이널롤러 양극 방향 이동 완료 확인
+	case 6 :
+		//if( P_MSA_Timer > 100 )
+		//{
+		//	call MSA_SubProg.Motor_Pos_CHK(N_FINAL_ROLL_X, P_Final_Roll_X_Cathode_Move, &P_Cathode_Algin_MSA_RTN)
+		//
+		//	if( P_Cathode_Algin_MSA_RTN == 1 )
+		//	{
+				P_SM_Cathode_Align_MSA = 7
+		//	}
+		//}
+	break;
+
+	// 양극 2차 PNP 얼라인 하강
+	case 7 : 
+		// 얼라인에 극판이 존재 시에만 하강
+		if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )
+		{
+			P_Slave18_Motion_Command = N_2nd_PNP_Align_Down_Motion
+			P_SM_Cathode_Align_MSA = 8
+			P_MSA_Timer = 0
+		}
+		// 얼라인에 극판 미존재 시 2차 PNP 스택 전진 스탭으로 이동
+		else
+		{
+			P_SM_Cathode_Align_MSA = 13
+		}
+	break;
+
+	// 양극 2차 PNP 얼라인 하강 완료 확인
+	case 8 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_CA_Z, P_Cathode_2nd_Z_Align_Down, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 9
+			}
+		}	
+	break;
+
+	// 양극 2차 PNP 얼라인 흡착
+	case 9 : 
+		P_Slave18_Motion_Command = N_2nd_PNP_Align_Vac
+		P_SM_Cathode_Align_MSA = 10
+		P_MSA_Timer = 0
+	break;
+
+	// 양극 2차 PNP 얼라인 흡착 대기
+	case 10 :
+		if( P_MSA_Timer > 100 )
+		{
+			P_SM_Cathode_Align_MSA = 11
+		}	
+	break;
+
+	// 음극 2차 PNP 얼라인 상승
+	case 11 : 
+		P_Slave18_Motion_Command = N_2nd_PNP_Align_Up_Motion
+		P_SM_Cathode_Align_MSA = 12
+		P_MSA_Timer = 0
+	break;
+
+	/// 양극 2차 PNP 얼라인 상승 확인
+	case 12 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_CA_Z, P_Cathode_2nd_Z_Align_Up, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 13
+			}
+		}	
+	break;
+
+	// 양극 2차 PNP 스택 이동
+	case 13 : 
+		P_Slave8_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion
+		P_Slave18_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;	
+		P_SM_Cathode_Align_MSA = 14
+		P_MSA_Timer = 0
+	break;
+
+
+	/// 음극 2차 PNP 스택 이동 확인
+	case 14 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_CA_T, P_Cathode_2TR_T_Stack_POS, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 15
+			}
+		}	
+	break;
+
+
+	// 음극 1차 PNP 벨트 이동
+	case 15 : 
+		P_Slave10_Motion_Command = N_1st_PNP_Ready_To_Belt_Motion
+		P_SM_Cathode_Align_MSA = 16
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 벨트 이동 확인
+	case 16 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_CA_T, P_Cathode_1TR_T_Belt_POS, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 17
+			}
+		}	
+	break;
+
+
+	// 음극 1차 PNP 벨트 하강
+	case 17 : 
+		if( M_X_PLC_Cathode_Sheet_Ready == 1 )
+		{
+			P_Slave19_Motion_Command = N_1st_PNP_Belt_Down_Motion
+			P_SM_Cathode_Align_MSA = 18
+			P_MSA_Timer = 0
+		}
+	break;
+
+
+	// 음극 1차 PNP 벨트 하강 이동 확인
+	case 18 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_CA_Z, P_Cathode_1st_Z_Belt_Down, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 19
+			}
+		}	
+	break;
+
+
+	// 음극 1차 PNP 벨트 흡착
+	case 19 : 
+		P_Slave19_Motion_Command = N_1st_PNP_Belt_Vac
+		P_SM_Cathode_Align_MSA = 20
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 벨트 흡착 대기
+	case 20 :
+		if( P_MSA_Timer > 100 )
+		{
+			P_SM_Cathode_Align_MSA = 21
+		}	
+	break;
+
+
+	// 음극 1차 PNP 벨트 상승
+	case 21 : 
+		P_Slave19_Motion_Command = N_1st_PNP_Belt_Up_Motion
+		P_SM_Cathode_Align_MSA = 22
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 벨트 상승 이동 확인
+	case 22 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_CA_Z, P_Cathode_1st_Z_Belt_Up, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 23
+			}
+		}	
+	break;
+
+	// 음극 1차 PNP 얼라인 이동, 피커 회전
+	case 23 :
+		//P_Slave9_Motion_Command = N_1st_Picker_Turn							//PickerT PNP에 묶음으로 인하여 주석처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]
+		P_Slave10_Motion_Command = N_1st_PNP_Belt_To_Align_Motion
+		P_Slave19_Motion_Command = N_1st_PNP_Belt_To_Align_Motion;														// 음극 1차 PNP Z축 얼라인 위치 이동.
+		P_SM_Cathode_Align_MSA = 24
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 이동 확인, 피커 회전 확인
+	case 24 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_CA_T, P_Cathode_1TR_T_Align_POS, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 && P_First_PNP_Picker_T_Turn_Status == F_Status_COMPLETE )
+			{
+				P_SM_Cathode_Align_MSA = 25
+			}
+
+		}
+	break;
+
+	// 음극 1차 PNP 얼라인 하강
+	case 25 :
+		P_Slave19_Motion_Command = N_1st_PNP_Align_Down_Motion
+		P_SM_Cathode_Align_MSA = 26
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 하강 확인
+	case 26 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_CA_Z, P_Cathode_1st_Z_Align_Down, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 27
+			}
+		}
+	break;
+
+	// 음극 1차 PNP 얼라인 블로우
+	case 27 :
+		P_Slave19_Motion_Command = N_1st_PNP_Align_Blow
+		P_SM_Cathode_Align_MSA = 28
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 블로우 대기
+	case 28 :
+		if( P_MSA_Timer > 100 )
+		{
+			P_Cathode_Align_MSA_Count++
+			if( P_Cathode_Align_MSA_Count >= P_MSA_Run_Repeat_Num(F_Cathode_Align_MSA))
+			{
+				P_SM_Cathode_Align_MSA = 37
+			}
+			else
+			{
+				P_SM_Cathode_Align_MSA = 29
+			}
+		}
+	break;
+
+	// 음극 1차 PNP 얼라인 흡착
+	case 29 :
+		P_Slave19_Motion_Command = N_1st_PNP_Align_Vac
+		P_SM_Cathode_Align_MSA = 30
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 흡착 대기
+	case 30 :
+		if( P_MSA_Timer > 100 )
+		{
+			P_SM_Cathode_Align_MSA = 31
+		}
+	break;
+
+
+	// 음극 1차 PNP 얼라인 상승
+	case 31 :
+		P_Slave19_Motion_Command = N_1st_PNP_Align_Up_Motion
+		P_SM_Cathode_Align_MSA = 32
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 상승 확인
+	case 32 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_CA_Z, P_Cathode_1st_Z_Align_Up, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 33
+			}
+		}
+	break;
+
+	// 음극 1차 PNP 벨트 이동
+	case 33 :
+		P_Slave10_Motion_Command = N_1st_PNP_Align_To_Belt_Motion
+		P_Slave19_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;
+		P_SM_Cathode_Align_MSA = 34
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 벨트 이동 확인
+	case 34 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_CA_T, P_Cathode_1TR_T_Belt_POS, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 35
+			}
+		}
+	break;
+
+
+	// 음극 1차 PNP 얼라인 이동
+	case 35 :
+		P_Slave10_Motion_Command = N_1st_PNP_Belt_To_Align_Motion
+		P_Slave19_Motion_Command = N_1st_PNP_Belt_To_Align_Motion;
+		P_SM_Cathode_Align_MSA = 36
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 이동 확인
+	case 36 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_CA_T, P_Cathode_1TR_T_Align_POS, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 25
+			}
+
+		}
+	break;
+
+
+	// 음극 1차 PNP 얼라인 상승
+	case 37 :
+		P_Slave19_Motion_Command = N_1st_PNP_Align_Up_Motion
+		P_SM_Cathode_Align_MSA = 38
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 상승 확인
+	case 38 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_CA_Z, P_Cathode_1st_Z_Align_Up, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 39
+			}
+		}
+	break;
+
+	// 음극 1차 PNP 얼라인 대기위치 이동
+	case 39 :
+		P_Slave10_Motion_Command = N_1st_PNP_Ready_Pos_Motion
+		P_Slave19_Motion_Command = N_1st_PNP_Ready_Pos_Motion
+		P_SM_Cathode_Align_MSA = 40
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 1차 PNP 얼라인 대기위치 이동 확인
+	case 40 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_CA_T, P_Cathode_1TR_T_Ready_POS, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 90
+			}
+		}
+	break;
+
+	// 양극 ng pnp 얼라인 이동
+	case 90 :
+		P_Slave12_Motion_Command = N_NG_PNP_NG_To_Align_Motion
+		P_SM_Cathode_Align_MSA = 91
+		P_MSA_Timer = 0
+	break;
+
+	// 양극 ng pnp 얼라인 이동 확인
+	case 91 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_NG_PnP_CA_T, P_Cathode_NG_T_NG_To_Align, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 93
+			}
+		}
+	break;
+
+	// 양극 ng pnp 얼라인 하강
+	case 93 :
+		P_Slave12_Motion_Command = N_NG_PNP_Align_Down_Motion
+		P_SM_Cathode_Align_MSA = 94
+		P_MSA_Timer = 0
+	break;
+
+	// 양극 ng pnp 얼라인 하강 확인
+	case 94 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_NG_PnP_CA_Z, P_Cathode_NG_Z_Align_Down, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 95
+			}
+		}
+	break;
+
+	// 양극 ng pnp 얼라인 흡착
+	case 95 :
+		P_Slave12_Motion_Command = N_NG_PNP_Align_Vac
+		P_SM_Cathode_Align_MSA = 96
+		P_MSA_Timer = 0
+	break;
+
+	// 양극 ng pnp 얼라인 흡착 대기
+	case 96 :
+		if( P_MSA_Timer > 200 )
+		{
+			P_SM_Cathode_Align_MSA = 97
+		}
+	break;
+
+	// 양극 ng pnp 얼라인 상승
+	case 97 :
+		P_Slave12_Motion_Command = N_NG_PNP_Align_UP_Motion
+		P_SM_Cathode_Align_MSA = 98
+		P_MSA_Timer = 0
+	break;
+
+	// 양극 ng pnp 얼라인 상승 확인
+	case 98 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_NG_PnP_CA_Z, P_Cathode_NG_Z_Align_Up, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 99
+			}
+		}
+	break;
+
+	// 양극 ng pnp 얼라인 이동
+	case 99 :
+		P_Slave12_Motion_Command = N_NG_PNP_Align_To_NG_Motion
+		P_SM_Cathode_Align_MSA = 100
+		P_MSA_Timer = 0
+	break;
+
+	// 양극 ng pnp 얼라인 이동 확인
+	case 100 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_NG_PnP_CA_T, P_Cathode_NG_T_Align_To_NG, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{	
+				//ng pnp 블로우
+				M_Y_Cathode_NG_PNP_Ejector_Vac_On = 0
+				M_Y_Cathode_NG_PNP_Ejector_Vac_Off = 1 
+				// 260708 MSA 종료 중 NG PNP 블로우를 했는데 Data가 삭제되지 않아 재가동 시 진공알람 발생하여 수정
+				Sys_Cathode_NG_TR_Sheet_Data = 0
+				P_SM_Cathode_Align_MSA = 41
+			}
+		}
+	break;
+
+
+	case 41 :
+		if( Motor[N_1st_PnP_CA_T].DesVel == 0 && Motor[N_1st_PnP_CA_Z].DesVel == 0 && Motor[N_2nd_PnP_CA_Z].DesVel == 0 && Motor[N_2nd_PnP_CA_T].DesVel == 0 )
+		{
+			P_Slave19_Motion_Command = N_1st_PNP_Ready_Pos_Motion
+			P_SM_Cathode_Align_MSA = 42
+			P_MSA_Timer = 0
+		}
+	break;
+
+	case 42 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_CA_Z, P_Cathode_1st_Z_Ready_Up, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 43
+			}
+		}
+	break;
+
+	case 43 :
+		P_Slave10_Motion_Command = N_1st_PNP_Ready_Pos_Motion
+		P_Slave19_Motion_Command = N_1st_PNP_Ready_Pos_Motion;
+		P_SM_Cathode_Align_MSA = 44
+		P_MSA_Timer = 0
+	break;
+
+	case 44 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_1st_PnP_CA_T, P_Cathode_1TR_T_Ready_POS, &P_Cathode_Algin_MSA_RTN)
+
+			if( P_Cathode_Algin_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Align_MSA = 45
+			}
+		}
+	break;
+
+	case 45 :
+
+		P_Slave10_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave2_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave8_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave4_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave5_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave6_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave7_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave8_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave9_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave10_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave11_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave12_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave13_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave14_Motion_Command = 0;	// 슬레이브축 커멘드		
+		cmd"&1..60a"
+		call Sub_Common_Function.Master_Motion_Program_OFF(&P_Cathode_Algin_MSA_RTN);
+		P_SM_Cathode_Align_MSA = 0
+		P_Status_Clear_Flag = 1
+		P_Cathode_Align_MSA_Count = 0
+	break;
+
+	default :
+	break;
+}
+
+
+
+// 양극 Stack MSA 실행부
+switch( P_SM_Cathode_Stack_MSA )
+{
+	case 0 :
+		P_Cathode_Stack_Interlock_Blocked = 0
+		P_Cathode_Stack_Stop_Blocked = 0
+	break;
+
+	// 모터 서보 ON
+	case 1 :
+		P_Cathode_Stack_MSA_Count = 0
+		call MSA_SubProg.Motor_Servo_ON(&P_Cathode_Stack_MSA_RTN)
+		if( P_Cathode_Stack_MSA_RTN == 1)
+		{
+			P_SM_Cathode_Stack_MSA = 777
+		}
+	break;
+
+	case 777 :
+		Coord[1].DesTimeBase = Sys.ServoPeriod * ( P_Recipe_Speed_Value / 100 );
+		call Sub_Common_Function.Timebase_On(&P_MSA_TimeBase_Rtn);									// 타임 베이스 ON
+		if( P_MSA_TimeBase_Rtn == 1 )
+		{
+			P_SM_Cathode_Stack_MSA = 2
+		}
+	break;
+
+
+	case 2 :
+		call Sub_Common_Function.Master_Motion_Program_On(&P_Cathode_Stack_MSA_RTN);					//마스터 모션, 서브마스터, 슬레이브 ON
+		P_SM_Cathode_Stack_MSA = 3
+	break;
+
+	case 3 :
+		cmd"&28b28r"		// 양극 2차 PNP T축 좌표계 ON
+		cmd"&39b39r"		// 양극 2차 PNP Z축 좌표계 ON
+
+		P_MSA_Timer = 0
+		P_SM_Cathode_Stack_MSA = 4
+	break;
+
+	case 4 :
+		if( P_MSA_Timer > 100 )
+		{
+			if( Coord[28].ProgActive & Coord[39].ProgActive )
+			{
+				P_SM_Cathode_Stack_MSA = 5
+			}
+			else
+			{
+				P_SM_Cathode_Stack_MSA = 3
+			}
+		}
+	break;
+
+	// 양극 2차 PNP 스택 이동
+	case 5 : 
+		P_Slave8_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion
+		P_Slave18_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;	
+		P_SM_Cathode_Stack_MSA = 6
+		P_MSA_Timer = 0
+	break;
+
+	// 양극 2차 PNP 스택 이동 확인
+	case 6 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_CA_T, P_Cathode_2TR_T_Stack_POS, &P_Cathode_Stack_MSA_RTN)
+
+			if( P_Cathode_Stack_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Stack_MSA = 7
+			}
+		}	
+	break;
+
+	// 양극 2차 PNP 스택 하강
+	case 7 : 
+		P_Slave18_Motion_Command = N_2nd_PNP_Stack_Down_Motion
+		P_SM_Cathode_Stack_MSA = 8
+		P_MSA_Timer = 0
+	break;
+	
+	// 양극 2차 PNP 스택 하강 확인
+	case 8 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_CA_Z, P_Cathode_2nd_Z_Stack_Down, &P_Cathode_Stack_MSA_RTN)
+
+			if( P_Cathode_Stack_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Stack_MSA = 9
+			}
+		}	
+	break;
+	
+	// 스택 촬상
+	case 9 :
+		M_Y_Vision_Stack_Cathode_Trigger = 1
+		P_MSA_Timer = 0
+		P_SM_Cathode_Stack_MSA = 10
+	break
+	
+	// 스택 촬상 신호 초기화
+	case 10:
+		if( P_MSA_Timer > 100 )
+		{
+			M_Y_Vision_Stack_Cathode_Trigger = 0
+			P_SM_Cathode_Stack_MSA = 11
+		}
+	break
+	
+	// 양극 2차 PNP 스택 상승
+	case 11 : 
+		P_Slave18_Motion_Command = N_2nd_PNP_Stack_Up_Motion
+		P_SM_Cathode_Stack_MSA = 12
+		P_MSA_Timer = 0
+	break;
+	
+	// 양극 2차 PNP 스택 상승 확인
+	case 12 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_CA_Z, P_Cathode_2nd_Z_Stack_Up, &P_Cathode_Stack_MSA_RTN)
+
+			if( P_Cathode_Stack_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Stack_MSA = 13
+			}
+		}	
+	break;
+	
+	// 양극 2차 PNP 얼라인 이동
+	case 13 : 
+		P_Slave8_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion
+		P_Slave18_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;	
+		P_SM_Cathode_Stack_MSA = 14
+		P_MSA_Timer = 0
+	break;
+
+	// 양극 2차 PNP 스택 얼라인 확인
+	case 14 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_CA_T, P_Cathode_2TR_T_Align_POS, &P_Cathode_Stack_MSA_RTN)
+
+			if( P_Cathode_Stack_MSA_RTN == 1 )
+			{
+				P_SM_Cathode_Stack_MSA = 15
+			}
+		}	
+	break;
+	
+	// 양극 Stack MSA 반복 회수 판단
+	case 15 :
+		P_Cathode_Stack_MSA_Count++
+		if( P_Cathode_Stack_MSA_Count < P_MSA_Run_Repeat_Num(F_Cathode_Stack_MSA))
+		{
+			P_SM_Cathode_Stack_MSA = 5
+		}
+		else
+		{
+			P_SM_Cathode_Stack_MSA = 44
+		}
+	break;
+
+	case 44 :
+		if( Motor[N_2nd_PnP_CA_Z].DesVel == 0 && Motor[N_2nd_PnP_CA_T].DesVel == 0 )
+		{
+			P_SM_Cathode_Stack_MSA = 45
+			P_MSA_Timer = 0
+		}
+	break;
+
+	case 45 :
+		if( P_MSA_Timer > 500 )
+		{
+			P_SM_Cathode_Stack_MSA = 16
+		}
+	break; 
+
+	// 종료
+	case 16 :
+		P_Slave1_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave2_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave3_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave4_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave5_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave6_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave7_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave8_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave9_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave10_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave11_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave12_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave13_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave14_Motion_Command = 0;	// 슬레이브축 커멘드		
+		cmd"&1..60a"
+		call Sub_Common_Function.Master_Motion_Program_OFF(&P_Anode_Algin_MSA_RTN);
+		P_PMAC_Commands = F_Command_Stop
+		P_Stop_Cmd_Origin = 31
+		P_SM_Cathode_Stack_MSA = 0	
+		P_Cathode_Stack_MSA_Count = 0
+	break;
+}
+
+
+// 음극 Stack MSA 실행부
+switch( P_SM_Anode_Stack_MSA )
+{
+	case 0 :
+		P_Anode_Stack_Interlock_Blocked = 0
+		P_Anode_Stack_Stop_Blocked = 0
+	break;
+
+	// 모터 서보 ON
+	case 1 :
+		P_Anode_Stack_MSA_Count = 0
+		call MSA_SubProg.Motor_Servo_ON(&P_Anode_Stack_MSA_RTN)
+		if( P_Anode_Stack_MSA_RTN == 1)
+		{
+			P_SM_Anode_Stack_MSA = 777
+		}
+	break;
+
+	case 777 :
+		Coord[1].DesTimeBase = Sys.ServoPeriod * ( P_Recipe_Speed_Value / 100 );
+		call Sub_Common_Function.Timebase_On(&P_MSA_TimeBase_Rtn);									// 타임 베이스 ON
+		if( P_MSA_TimeBase_Rtn == 1 )
+		{
+			P_SM_Anode_Stack_MSA = 2
+		}
+	break;
+
+
+	case 2 :
+		call Sub_Common_Function.Master_Motion_Program_On(&P_Anode_Stack_MSA_RTN);					//마스터 모션, 서브마스터, 슬레이브 ON
+		P_SM_Anode_Stack_MSA = 3
+	break;
+
+	case 3 :
+		cmd"&23b23r"		// 음극 2차 PNP T축 좌표계 ON
+		cmd"&38b38r"		// 음극 2차 PNP Z축 좌표계 ON
+
+		P_MSA_Timer = 0
+		P_SM_Anode_Stack_MSA = 4
+	break;
+
+	case 4 :
+		if( P_MSA_Timer > 100 )
+		{
+			if( Coord[23].ProgActive & Coord[38].ProgActive )
+			{
+				P_SM_Anode_Stack_MSA = 5
+			}
+			else
+			{
+				P_SM_Anode_Stack_MSA = 3
+			}
+		}
+	break;
+
+	// 음극 2차 PNP 스택 이동
+	case 5 : 
+		P_Slave3_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion
+		P_Slave17_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;	
+		P_SM_Anode_Stack_MSA = 6
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 2차 PNP 스택 이동 확인
+	case 6 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_AN_T, P_Anode_2TR_T_Stack_POS, &P_Anode_Stack_MSA_RTN)
+
+			if( P_Anode_Stack_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Stack_MSA = 7
+			}
+		}	
+	break;
+
+	// 음극 2차 PNP 스택 하강
+	case 7 : 
+		P_Slave17_Motion_Command = N_2nd_PNP_Stack_Down_Motion
+		P_SM_Anode_Stack_MSA = 8
+		P_MSA_Timer = 0
+	break;
+	
+	// 음극 2차 PNP 스택 하강 확인
+	case 8 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_AN_Z, P_Anode_2nd_Z_Stack_Down, &P_Anode_Stack_MSA_RTN)
+
+			if( P_Anode_Stack_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Stack_MSA = 9
+			}
+		}	
+	break;
+	
+	// 스택 촬상
+	case 9 :
+		M_Y_Vision_Stack_Anode_Trigger = 1
+		P_MSA_Timer = 0
+		P_SM_Anode_Stack_MSA = 10
+	break
+	
+	// 스택 촬상 신호 초기화
+	case 10:
+		if( P_MSA_Timer > 100 )
+		{
+			M_Y_Vision_Stack_Anode_Trigger = 0
+			P_SM_Anode_Stack_MSA = 11
+		}
+	break
+	
+	// 음극 2차 PNP 스택 상승
+	case 11 : 
+		P_Slave17_Motion_Command = N_2nd_PNP_Stack_Up_Motion
+		P_SM_Anode_Stack_MSA = 12
+		P_MSA_Timer = 0
+	break;
+	
+	// 음극 2차 PNP 스택 상승 확인
+	case 12 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_AN_Z, P_Anode_2nd_Z_Stack_Up, &P_Anode_Stack_MSA_RTN)
+
+			if( P_Anode_Stack_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Stack_MSA = 13
+			}
+		}	
+	break;
+	
+	// 음극 2차 PNP 얼라인 이동
+	case 13 : 
+		P_Slave3_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion
+		P_Slave17_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;	
+		P_SM_Anode_Stack_MSA = 14
+		P_MSA_Timer = 0
+	break;
+
+	// 음극 2차 PNP 스택 얼라인 확인
+	case 14 :
+		if( P_MSA_Timer > 100 )
+		{
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_AN_T, P_Anode_2TR_T_Align_POS, &P_Anode_Stack_MSA_RTN)
+
+			if( P_Anode_Stack_MSA_RTN == 1 )
+			{
+				P_SM_Anode_Stack_MSA = 15
+			}
+		}	
+	break;
+	
+	// 음극 Stack MSA 반복 회수 판단
+	case 15 :
+		P_Anode_Stack_MSA_Count++
+		if( P_Anode_Stack_MSA_Count < P_MSA_Run_Repeat_Num(F_Anode_Stack_MSA))
+		{
+			P_SM_Anode_Stack_MSA = 5
+		}
+		else
+		{
+			P_SM_Anode_Stack_MSA = 44
+		}
+	break;
+
+	case 44 :
+		if( Motor[N_2nd_PnP_AN_Z].DesVel == 0 && Motor[N_2nd_PnP_AN_T].DesVel == 0 )
+		{
+			P_SM_Anode_Stack_MSA = 45
+			P_MSA_Timer = 0
+		}
+	break;
+
+	case 45 :
+		if( P_MSA_Timer > 500 )
+		{
+			P_SM_Anode_Stack_MSA = 16
+		}
+	break; 
+	
+	// 종료
+	case 16 :
+		P_Slave1_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave2_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave3_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave4_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave5_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave6_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave7_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave3_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave9_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave10_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave11_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave12_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave13_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave14_Motion_Command = 0;	// 슬레이브축 커멘드		
+		cmd"&1..60a"
+		call Sub_Common_Function.Master_Motion_Program_OFF(&P_Anode_Algin_MSA_RTN);
+		P_PMAC_Commands = F_Command_Stop
+		P_Stop_Cmd_Origin = 32
+		P_SM_Anode_Stack_MSA = 0	
+		P_Anode_Stack_MSA_Count = 0
+	break;
+}
+
+P_MNTR_PLC13_Task_Time(1) = (Sys.Time - P_MNTR_PLC13_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC13_Task_Time(1) > P_MNTR_PLC13_Task_Max_Time )
+{
+	P_MNTR_PLC13_Task_Max_Time = P_MNTR_PLC13_Task_Time(1);
+}
+
+close
+

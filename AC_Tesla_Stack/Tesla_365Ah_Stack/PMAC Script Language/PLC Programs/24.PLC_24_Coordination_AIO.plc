@@ -1,0 +1,721 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.04 김형진 책임
+// Motion Coordination - [ 참조 : 25.06.04 모션 조정 신규 추가 ]  
+// System Module PLC Program
+// 25.10.22 AIO Cal Program 추가 
+
+open plc 24
+P_MNTR_PLC24_Task_Time(0) = Sys.Time;
+#define	L_System_Timer				Sys.Time				// 시스템 타이머
+
+Local	L_Time_Cycle_Up_Count_Start_Time;					// Plc[24].ldata.L[0]	시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;						// Plc[24].ldata.L[1]	시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;					// Plc[24].ldata.L[2]	시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;					// Plc[24].ldata.L[3]	타이머 초기화 플래그
+
+// 엣지변수
+Local	L_Old_Sepa_To_Sensor_Min_Distance_mm;				// Plc[24].ldata.L[4]	Min Distance 이전값
+Local	L_Old_Sepa_To_Sensor_Max_Distance_mm;				// Plc[24].ldata.L[5]	Max Distacne 이전값
+Local	L_Old_Sensor_Min_Analog_Data;						// Plc[24].ldata.L[6]	Min AI 이전값
+Local	L_Old_Sensor_Max_Analog_Data;						// Plc[24].ldata.L[7]	Max AI 이전값
+Local	L_Old_AO_Cathode_Clamp_Damper;						// Plc[24].ldata.L[8]	양극 댐퍼 Out 이전값
+Local	L_Old_AO_Anode_Clamp_Damper;						// Plc[24].ldata.L[9]	음극 댐퍼 Out 이전값
+Local	L_AI_Cathode_Clamp_Damper_Old;						// Plc[24].ldata.L[10]	양극 댐퍼 In 이전값
+Local	L_AI_Anode_Clamp_Damper_Old;						// Plc[24].ldata.L[11]	음극 댐퍼 In 이전값
+Local	L_Old_Regul_Max_kPa_Value;							// Plc[24].ldata.L[12]	레귤레이터 Max 이전값
+Local	L_Old_Regul_Min_kPa_Value;							// Plc[24].ldata.L[13]	레귤레이터 Min 이전값
+Local	L_Old_Regul_Max_AD;									// Plc[24].ldata.L[14]	레귤레이터 Analog Max 이전값 
+Local	L_Old_Regul_Min_AD;									// Plc[24].ldata.L[15]	레귤레이터 Analog Min 이전값 
+Local	L_Old_Low_Sepa_To_Sensor_Min_Distance_mm;			// Plc[24].ldata.L[16]	Min Distance 이전값
+Local	L_Old_Low_Sepa_To_Sensor_Max_Distance_mm;			// Plc[24].ldata.L[17]	Max Distacne 이전값
+Local	L_Old_Low_Sensor_Min_Analog_Data; 					// Plc[24].ldata.L[18]	Min AI 이전값
+Local	L_Old_Low_Sensor_Max_Analog_Data; 					// Plc[24].ldata.L[19]	Max AI 이전값
+// Avg 변수
+Local	L_PLC24_CA_Damper_AI_Data;							// Plc[24].ldata.L[20]	순환 평균 데이터 변수 
+Local	L_PLC24_AN_Damper_AI_Data;							// Plc[24].ldata.L[21]	순환 평균 데이터 변수 
+Local	L_PLC24_CA_Damper_AI_Cnt;							// Plc[24].ldata.L[22]	순환 평균 데이터 변수 
+Local	L_PLC24_AN_Damper_AI_Cnt;							// Plc[24].ldata.L[23]	순환 평균 데이터 변수 
+// timer
+local	L_PLC24_CA_Damper_AI_Timer;							// Plc[24].ldata.L[24]	순환평균에 사용 되는 타이머
+local	L_PLC24_AN_Damper_AI_Timer;							// Plc[24].ldata.L[25]	순환평균에 사용 되는 타이머
+
+local	L_Heart_Bit_Timer
+local	L_Slave_Index
+local	L_Slave_Max_Index
+
+local	L_Old_MC_Protocol_HeartBit;
+local	L_X_Trigger_1s_Cycle_HeartBit;
+local	L_MC_Protocol_MNTR_Timer;
+local	L_Reentry_Arr(2);
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if(L_Flag_Cycle_Up_Count_Init_Flag == 0)
+{
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 00.2) 시간 체크
+if(L_Flag_Cycle_Up_Count_Init_Flag == 1)
+{
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * 1000
+	if(L_Time_Cycle_Up_Count_Delta_Time < 0)
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+// 00.3) 시간 업데이트
+if(L_Time_Cycle_Up_Count_Delta_Time > 0.1)
+{
+	L_PLC24_CA_Damper_AI_Timer = L_PLC24_CA_Damper_AI_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_PLC24_AN_Damper_AI_Timer = L_PLC24_AN_Damper_AI_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Ecat_Reconnection_Timer = P_Ecat_Reconnection_Timer + L_Time_Cycle_Up_Count_Delta_Time
+	L_Heart_Bit_Timer = L_Heart_Bit_Timer + L_Time_Cycle_Up_Count_Delta_Time
+	P_Sepa_Cutter_Heating_Timer = P_Sepa_Cutter_Heating_Timer + L_Time_Cycle_Up_Count_Delta_Time
+	P_Force_BTN_Force_Mode_Timer = P_Force_BTN_Force_Mode_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_MC_Protocol_MNTR_Timer = L_MC_Protocol_MNTR_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+//================================================================================================================
+// 1. Dancer_Cascading Module 명령 ================================================================================================================
+if( P_System_Cascading_ON_Cmd == F_Command_Start)
+{
+	P_System_Cascading_ON_Cmd = 0;
+	P_System_Cascading_ON_Status = F_Status_STARTING;
+}
+// 서보댄서 홈 모듈 
+if( P_System_Cascading_ON_Status == F_Status_STARTING || P_System_Cascading_ON_Status == F_Status_EXECUTE )
+{
+	call System_Module.Servo_Dancer_Cascading_Set();
+}
+//=====================================================================================================================================================
+
+// 2. Dancer_Cascading Off Module 명령 ================================================================================================================
+if( P_System_Cascading_OFF_Cmd == F_Command_Start)
+{
+	P_System_Cascading_OFF_Cmd = 0;
+	P_System_Cascading_OFF_Status = F_Status_STARTING;
+}
+// 케스케이딩 오프 액팅
+if( P_System_Cascading_OFF_Status == F_Status_STARTING || P_System_Cascading_OFF_Status == F_Status_EXECUTE )
+{
+	call System_Module.Servo_Dancer_Cascading_Off();
+}
+//====================================================================================================================================================
+
+// 3. 마스터 팔로잉 명령 ===============================================================================================================================
+if( P_System_Master_Following_ON_Cmd == F_Command_Start )
+{
+	P_System_Master_Following_ON_Cmd = 0;
+	P_System_Master_Following_ON_Status = F_Status_STARTING;
+	//P_Master_Following_state_machine = 1;
+}
+
+// 마스터 팔로잉 ON 액팅
+if( P_System_Master_Following_ON_Status == F_Status_STARTING || P_System_Master_Following_ON_Status == F_Status_EXECUTE )
+{
+	call System_Module.Master_Following_Sequence_Module();
+}
+//====================================================================================================================================================
+
+// 4. 마스터 팔로잉 Off 명령 ===========================================================================================================================
+if( P_System_Master_Following_OFF_Cmd == F_Command_Start )
+{
+	P_System_Master_Following_OFF_Cmd = 0;
+	P_System_Master_Following_OFF_Status = F_Status_STARTING;
+	//P_Master_Following_Off_state_machine = 1;
+}
+// 마스터 팔로잉 off 액팅
+if( P_System_Master_Following_OFF_Status == F_Status_STARTING || P_System_Master_Following_OFF_Status == F_Status_EXECUTE )
+{
+	call System_Module.Master_Following_Sequence_Off_Module();
+}
+
+//====================================================================================================================================================
+
+
+// 5.캠테이블 on ==============================================================================================================================
+if( P_System_CamTable_ON_Cmd == F_Command_Start )
+{
+	P_System_CamTable_ON_Cmd = 0;
+	P_System_CamTable_ON_Status = F_Status_STARTING;
+}
+// 캠테이블 on 액팅
+if( P_System_CamTable_ON_Status == F_Status_STARTING || P_System_CamTable_ON_Status == F_Status_EXECUTE )
+{
+	call System_Module.Sepa_Line_Speed_CamTable_On();
+}
+//=====================================================================================================================================================
+
+// 6.캠테이블 해제 ==============================================================================================================================
+if( P_System_CamTable_OFF_Cmd == F_Command_Start )
+{
+	P_System_CamTable_OFF_Cmd = 0;
+	P_System_CamTable_OFF_Status = F_Status_STARTING;
+}
+// 캠테이블 off 액팅
+if( P_System_CamTable_OFF_Status == F_Status_STARTING || P_System_CamTable_OFF_Status == F_Status_EXECUTE )
+{
+	call System_Module.Sepa_Line_Speed_CamTable_Off();
+}
+
+//====================================================================================================================================================
+
+// 7. 댄서 텐션 언와인더 풀어주기 모듈 ==================================================================================================================
+if( P_System_Spool_Home_Ready_Pos_Cmd == F_Command_Start )
+{
+	P_System_Spool_Home_Ready_Pos_Cmd = 0;
+	P_System_Spool_Home_Ready_Pos_Status = F_Status_STARTING;
+}
+// 댄서 첫 홈시 텐션 언와인더 풀어주기 액팅
+if( P_System_Spool_Home_Ready_Pos_Status == F_Status_STARTING || P_System_Spool_Home_Ready_Pos_Status == F_Status_EXECUTE )
+{
+	call System_Module.Frist_Dancer_Home_Ready_Pos();
+}
+//====================================================================================================================================================
+
+// [ 참조 : 2026.02.12 텐션레디 추가 ]
+// 8. 텐션레디 2026.02.12 신규 추가 ====================================================================================================================
+if( P_Tension_Ready_Pos_Cmd == F_Command_Start )
+{
+	P_Tension_Ready_Pos_Cmd = F_Command_NonCommand;
+	P_Tension_Ready_State_Machine = 1;
+	P_Tension_Ready_Pos_Status = F_Status_STARTING;
+}
+if( P_Tension_Ready_Pos_Status == F_Status_STARTING )
+{
+	call System_Module.tension_ready();
+}
+//====================================================================================================================================================
+// [ 참조 : 2025.10.22 AIO Cal Prog Add ] 
+//====================================================================================================================================================
+// ↓ 상부 세파 센싱 거리 및 AI Data 수정 시 자동 기울기 계산 프로그램
+if( P_Upper_Sepa_To_Sensor_Max_Dis != L_Old_Sepa_To_Sensor_Max_Distance_mm || P_Upper_Sepa_To_Sensor_Min_Dis != L_Old_Sepa_To_Sensor_Min_Distance_mm || P_Upper_Sensor_Max_AD != L_Old_Sensor_Max_Analog_Data || P_Upper_Sensor_Min_AD != L_Old_Sensor_Min_Analog_Data )
+{
+	// ↓ 계수가 양수라면
+	if( P_Upper_Sepa_To_Sensor_Max_Dis >= P_Upper_Sepa_To_Sensor_Min_Dis && P_Upper_Sensor_Max_AD >= P_Upper_Sensor_Min_AD )
+		P_Upper_Sepa_Cal_Inclination = abs((P_Upper_Sepa_To_Sensor_Max_Dis - P_Upper_Sepa_To_Sensor_Min_Dis) / (P_Upper_Sensor_Max_AD - P_Upper_Sensor_Min_AD)) * P_Upper_Sensor_Max_AD - P_Upper_Sepa_To_Sensor_Max_Dis;
+	// ↓ 계수가 음수라면
+	else
+		P_Upper_Sepa_Cal_Inclination = abs((P_Upper_Sepa_To_Sensor_Max_Dis - P_Upper_Sepa_To_Sensor_Min_Dis) / (P_Upper_Sensor_Max_AD - P_Upper_Sensor_Min_AD)) * P_Upper_Sensor_Max_AD + P_Upper_Sepa_To_Sensor_Max_Dis;
+	
+	L_Old_Sepa_To_Sensor_Min_Distance_mm = P_Upper_Sepa_To_Sensor_Min_Dis;	
+	L_Old_Sepa_To_Sensor_Max_Distance_mm = P_Upper_Sepa_To_Sensor_Max_Dis;	
+	L_Old_Sensor_Min_Analog_Data = P_Upper_Sensor_Min_AD;			
+	L_Old_Sensor_Max_Analog_Data = P_Upper_Sensor_Max_AD;			
+}
+// ↓ 하부 세파 센싱 거리 및 AI Data 수정 시 자동 기울기 계산 프로그램
+if( P_Lower_Sepa_To_Sensor_Max_Dis != L_Old_Low_Sepa_To_Sensor_Max_Distance_mm || P_Lower_Sepa_To_Sensor_Min_Dis != L_Old_Low_Sepa_To_Sensor_Min_Distance_mm || P_Lower_Sensor_Max_AD != L_Old_Low_Sensor_Max_Analog_Data || P_Lower_Sensor_Min_AD != L_Old_Low_Sensor_Min_Analog_Data )
+{
+	// ↓ 계수가 양수라면
+	if( P_Lower_Sepa_To_Sensor_Max_Dis >= P_Lower_Sepa_To_Sensor_Min_Dis && P_Lower_Sensor_Max_AD >= P_Lower_Sensor_Min_AD )
+		P_Lower_Sepa_Cal_Inclination = abs((P_Lower_Sepa_To_Sensor_Max_Dis - P_Lower_Sepa_To_Sensor_Min_Dis) / (P_Lower_Sensor_Max_AD - P_Lower_Sensor_Min_AD)) * P_Lower_Sensor_Max_AD - P_Lower_Sepa_To_Sensor_Max_Dis;
+	// ↓ 계수가 음수라면
+	else
+		P_Lower_Sepa_Cal_Inclination = abs((P_Lower_Sepa_To_Sensor_Max_Dis - P_Lower_Sepa_To_Sensor_Min_Dis) / (P_Lower_Sensor_Max_AD - P_Lower_Sensor_Min_AD)) * P_Lower_Sensor_Max_AD + P_Lower_Sepa_To_Sensor_Max_Dis;
+	
+	L_Old_Low_Sepa_To_Sensor_Min_Distance_mm = P_Lower_Sepa_To_Sensor_Min_Dis;	
+	L_Old_Low_Sepa_To_Sensor_Max_Distance_mm = P_Lower_Sepa_To_Sensor_Max_Dis;	
+	L_Old_Low_Sensor_Min_Analog_Data = P_Lower_Sensor_Min_AD;			
+	L_Old_Low_Sensor_Max_Analog_Data = P_Lower_Sensor_Max_AD;			
+}
+
+// ↓ 세파 센싱 거리 및 AI Data 수정 시 자동 기울기 계산 프로그램
+//if( P_Sepa_To_Sensor_Max_Distance_mm != L_Old_Sepa_To_Sensor_Max_Distance_mm || P_Sepa_To_Sensor_Min_Distance_mm != L_Old_Sepa_To_Sensor_Min_Distance_mm || P_Sensor_Max_Analog_Data != L_Old_Sensor_Max_Analog_Data || P_Sensor_Min_Analog_Data != L_Old_Sensor_Min_Analog_Data )
+//{
+//	// ↓ 계수가 양수라면
+//	if( P_Sepa_To_Sensor_Max_Distance_mm >= P_Sepa_To_Sensor_Min_Distance_mm && P_Sensor_Max_Analog_Data >= P_Sensor_Min_Analog_Data )
+//		P_Sepa_Cal_Inclination = abs((P_Sepa_To_Sensor_Max_Distance_mm - P_Sepa_To_Sensor_Min_Distance_mm) / (P_Sensor_Max_Analog_Data - P_Sensor_Min_Analog_Data)) * P_Sensor_Max_Analog_Data - P_Sepa_To_Sensor_Max_Distance_mm;
+//	// ↓ 계수가 음수라면
+//	else
+//		P_Sepa_Cal_Inclination = abs((P_Sepa_To_Sensor_Max_Distance_mm - P_Sepa_To_Sensor_Min_Distance_mm) / (P_Sensor_Max_Analog_Data - P_Sensor_Min_Analog_Data)) * P_Sensor_Max_Analog_Data + P_Sepa_To_Sensor_Max_Distance_mm;
+//	
+//	L_Old_Sepa_To_Sensor_Min_Distance_mm = P_Sepa_To_Sensor_Min_Distance_mm;	
+//	L_Old_Sepa_To_Sensor_Max_Distance_mm = P_Sepa_To_Sensor_Max_Distance_mm;	
+//	L_Old_Sensor_Min_Analog_Data = P_Sensor_Min_Analog_Data;			
+//	L_Old_Sensor_Max_Analog_Data = P_Sensor_Max_Analog_Data;			
+//}
+
+// ↓ 레귤레이터 센싱 압력 및 AI Data 수정 시 자동 기울기 계산 프로그램
+if( P_Regul_Max_kPa_Value != L_Old_Regul_Max_kPa_Value || P_Regul_Min_kPa_Value != L_Old_Regul_Min_kPa_Value || P_Regul_Max_AD != L_Old_Regul_Max_AD || P_Regul_Min_AD != L_Old_Regul_Min_AD )
+{
+	// ↓ 계수가 양수라면
+	if( P_Regul_Max_kPa_Value >= P_Regul_Min_kPa_Value && P_Regul_Max_AD >= P_Regul_Min_AD )
+		P_Regul_Cal_Inclination = abs((P_Regul_Max_kPa_Value - P_Regul_Min_kPa_Value) / (P_Regul_Max_AD - P_Regul_Min_AD)) * P_Regul_Max_AD - P_Regul_Max_kPa_Value;
+	// ↓ 계수가 음수라면
+	else
+		P_Regul_Cal_Inclination = abs((P_Regul_Max_kPa_Value - P_Regul_Min_kPa_Value) / (P_Regul_Max_AD - P_Regul_Min_AD)) * P_Regul_Max_AD + P_Regul_Max_kPa_Value;
+
+	L_Old_Regul_Max_kPa_Value = P_Regul_Max_kPa_Value;
+	L_Old_Regul_Min_kPa_Value = P_Regul_Min_kPa_Value;
+	L_Old_Regul_Max_AD = P_Regul_Max_AD;
+	L_Old_Regul_Min_AD = P_Regul_Min_AD;
+}
+//====================================================================================================================================================
+// AO Cal Program → Clamp Damper
+if( P_AO_Cathode_Clamp_Damper != L_Old_AO_Cathode_Clamp_Damper )
+{
+	call AIO_Calc.AO_Regulator(P_AO_Cathode_Clamp_Damper, &M_AO_Cathode_Clamp_Regulator);
+	L_Old_AO_Cathode_Clamp_Damper = P_AO_Cathode_Clamp_Damper;
+}
+if( P_AO_Anode_Clamp_Damper != L_Old_AO_Anode_Clamp_Damper )
+{
+	call AIO_Calc.AO_Regulator(P_AO_Anode_Clamp_Damper, &M_AO_Anode_Clamp_Regulator);
+	L_Old_AO_Anode_Clamp_Damper = P_AO_Anode_Clamp_Damper;
+}
+//========================================================================================================================================================
+// AI Cal Program → Clamp Damper
+if( P_AI_Cathode_Clamp_Damper_AVG != L_AI_Cathode_Clamp_Damper_Old )
+{
+	call AIO_Calc.AI_Regulator(P_AI_Cathode_Clamp_Damper_AVG, &P_AI_Cathode_Clamp_Damper_Mpa);
+	L_AI_Cathode_Clamp_Damper_Old = P_AI_Cathode_Clamp_Damper_AVG;
+}
+if( P_AI_Anode_Clamp_Damper_AVG != L_AI_Anode_Clamp_Damper_Old )
+{
+	call AIO_Calc.AI_Regulator(P_AI_Anode_Clamp_Damper_AVG, &P_AI_Anode_Clamp_Damper_Mpa);
+	L_AI_Anode_Clamp_Damper_Old = P_AI_Anode_Clamp_Damper_AVG;
+}
+//========================================================================================================================================================
+// AI Cathode Damper Avg
+if( L_PLC24_CA_Damper_AI_Timer >= 10 )			// 10ms 마다 업데이트
+{
+	P_AI_Cathode_Clamp_Damper_AVG = L_PLC24_CA_Damper_AI_Data / L_PLC24_CA_Damper_AI_Cnt;
+	L_PLC24_CA_Damper_AI_Timer = 0;				// 초기화
+	L_PLC24_CA_Damper_AI_Data = 0;				// 초기화
+	L_PLC24_CA_Damper_AI_Cnt = 0;				// 초기화
+}
+else	// 아날로그 데이터 순환평균 시작
+{
+	L_PLC24_CA_Damper_AI_Data =  L_PLC24_CA_Damper_AI_Data + M_AI_Cathode_Clamp_Regulator;
+	L_PLC24_CA_Damper_AI_Cnt++;
+}
+// AI Anode Damper Avg
+if( L_PLC24_AN_Damper_AI_Timer >= 10 )			// 10ms 마다 업데이트
+{
+	P_AI_Anode_Clamp_Damper_AVG = L_PLC24_AN_Damper_AI_Data / L_PLC24_AN_Damper_AI_Cnt;
+	L_PLC24_AN_Damper_AI_Timer = 0;				// 초기화
+	L_PLC24_AN_Damper_AI_Data = 0;				// 초기화
+	L_PLC24_AN_Damper_AI_Cnt = 0;				// 초기화
+}
+else	// 아날로그 데이터 순환평균 시작
+{
+	L_PLC24_AN_Damper_AI_Data =  L_PLC24_AN_Damper_AI_Data + M_AI_Anode_Clamp_Regulator;
+	L_PLC24_AN_Damper_AI_Cnt++;
+}	
+//========================================================================================================================================================
+// 260605 세파 커터 열선 계산
+if( P_Sepa_Cutter_Heating_Timer > 50 )
+{
+	P_Sepa_Cutter_Heating_Timer = 0;
+	if( M_AI_Cutter_Heat_Meter < 50000 )
+		P_Sepa_Cutter_Heat_Meter = M_AI_Cutter_Heat_Meter / 6000;
+	else
+		P_Sepa_Cutter_Heat_Meter = 0;
+}
+
+
+//========================================================================================================================================================
+
+switch( P_Dancer_Out_Slew_Seq )
+{
+	case 1:
+		Motor[67].MasterPosSf = ( Motor[N_SERVO_DANCER].Servoout / Motor[N_SERVO_DANCER].MaxDac ) * 100;
+		Motor[67].SlewMasterPosSf = 0;
+		P_OutValue = ( Motor[N_SERVO_DANCER].Servoout / Motor[N_SERVO_DANCER].MaxDac ) * 100;
+		P_OutChangeValue = P_Rot_OutValue;		//30;
+		P_Dancer_Out_Slew_Seq++
+	break;
+
+	case 2 :
+		if ( abs(Motor[67].MasterPosSf - P_OutChangeValue ) > 0 )
+		{
+			Motor[67].SlewMasterPosSf = Sys.ServoPeriod * abs(Motor[67].MasterPosSf - P_OutChangeValue ) / P_OutChangeTime;
+			Motor[67].MasterPosSf = P_OutChangeValue;
+		}
+		P_OutValue = Motor[67].ActiveMasterPosSf;
+		cout N_SERVO_DANCER:(P_OutValue);	// 18번 모터(로터리댄서)의 out을 P_OutValue만큼 출력 내보낸다.
+		if ( P_OutValue == P_OutChangeValue )
+			P_Dancer_Out_Slew_Seq = 0;
+	break;
+
+	default :
+
+	break;
+}
+
+// [ 참조 : 2026.06.18 현재 Dacout 값을 kgf 변환 프로그램 ]
+
+// Dancer Spec.
+// Dancer Length = 0.21[m]	210[mm]					#define N_Dancer_Length					0.21
+// Motor Gear : 3									#define N_Dancer_Gear					3
+// Dancer Motor Rated torque = 2.39[N.m]			#define N_Dancer_Motor_Rated_Torque		2.39
+// Dancer Drive Rated Voltage = 3[Vdc]				#define N_Dancer_Drive_Rated_Torque		3
+// Torque Cal -> 2.39[N.m] / 3[Vdc] * CurVdc		#define N_Newton_to_Kgf_Const			9.807					
+// CurVdc -> ( Dacout * 10 ) / 32767				#define N_Max_Dacout					32767
+// Torque / Length = F[N]							#define N_Max_Vdc						10
+// N -> Kgf 변환 : 9.807 
+// kgf * Gear : 최종 걸리는 kgf
+
+if( Motor[N_SERVO_DANCER].AmpEna == 1 && Motor[N_SERVO_DANCER].ClosedLoop != 0 )	// Open Loop 활성화 시 
+{
+	if( Motor[N_SERVO_DANCER].Servoout != 0 )		
+	{
+		P_Dancer_Cur_Vdc = ( Motor[N_SERVO_DANCER].Servoout * N_Max_Vdc ) / N_Max_Dacout;
+		P_Dancer_Cur_Torque = N_Dancer_Motor_Rated_Torque / N_Dancer_Drive_Rated_Torque * P_Dancer_Cur_Vdc;
+		P_Dancer_Cur_Newton = P_Dancer_Cur_Torque / N_Dancer_Length;
+		P_Dancer_Cur_Kgf =  P_Dancer_Cur_Newton * N_Newton_to_Kgf_Const * N_Dancer_Gear;
+	}	
+}
+else
+	P_Dancer_Cur_Kgf = 0;
+
+
+// [ 참 조 : 서보댄서 on off 버튼 기능 추가 ]
+if( M_CYL_BTN_1.Servo_Dancer_On == 1 && L_Reentry_Arr(0) == 0 )
+{
+	P_Dancer_Out_Slew_Seq = 1;
+	L_Reentry_Arr(0) = 1;
+}
+else if( M_CYL_BTN_1.Servo_Dancer_On == 0 )
+	L_Reentry_Arr(0) = 0;
+	
+
+if(  M_CYL_BTN_1.Servo_Dancer_OFF == 1 && L_Reentry_Arr(1) == 0 )
+{
+	L_Reentry_Arr(1) = 1;
+	Motor[N_SERVO_DANCER].ServoOut = 0;
+}
+else if(  M_CYL_BTN_1.Servo_Dancer_OFF == 0 )
+	L_Reentry_Arr(1) = 0;
+	
+
+if ( M_X_MC_Reconnect_BTN_Signal == 1 )		// [ 참조 : 26.07.17 MC Protocol 재연결 신호 수정 ]
+	P_MC_Reconn_Chk_Lamp = 1;
+else
+	P_MC_Reconn_Chk_Lamp = 0;
+
+// [참조 : 260520 ECAT 재연결 프로그램 추가]
+if ( P_PMAC_Current_Mode == F_Current_Manual )
+{
+	if ( P_X_Ecat_Reconnection_BTN == 1 && P_Ecat_ReConnetion_State_Machine == 0 && Ecat_Total_Slave_State != 8 )
+	{
+		P_Ecat_ReConnetion_State_Machine = 1;
+	}
+
+	if( M_X_MC_Reconnect_BTN_Signal == 1 && P_X_Old_MC_Reconnect_BTN_Signal == 0)
+	{
+		P_Cur_Try_Reconnect_MC = 0;		// 자동 MC 연결 카운트 초기화
+		system "killall -9 mc.out";		//프로세스 강제 종료
+
+		system "killall -e Manual.out"; //이름이 정확히 일치할 때만 종료
+
+		call Timer.msec(100);
+		system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/mc.out -u";
+		#ifdef F_Def_Stack_A
+			system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/mc.out -a";
+		#else	// F_Def_Stack_B
+			system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/mc.out -b";
+		#endif 
+		
+		call Timer.msec(100);
+		
+		system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/Manual.out";
+	}
+	P_X_Old_MC_Reconnect_BTN_Signal = M_X_MC_Reconnect_BTN_Signal;
+}
+
+
+switch(P_Ecat_ReConnetion_State_Machine)
+{
+	case 0 :
+		P_Y_Ecat_Reconnecting = 0
+		P_Ecat_Reconn_Chk_Lamp = 0;						// 이더캣 활성화 진행 확인 버튼 램프 ON.	[ 참조 : 26.07.10 Ecat MC Reconnect 프로그램 수정 ]
+	break;
+
+	case 1 :
+		P_PLC31_Ecat_Retry_Cnt = 0;
+		P_Ecat_Slave_Error = 0;
+		P_Y_Ecat_Reconnecting = 1						// 리커넥션 중 팝업
+		P_Ecat_Reconn_Chk_Lamp = 1;						// 이더캣 활성화 진행 확인 버튼 램프 ON.	[ 참조 : 26.07.10 Ecat MC Reconnect 프로그램 수정 ]
+		P_Ecat_ReConnetion_State_Machine++;
+	break;
+
+	case 2 :
+		ECAT[0].Enable = 0;
+		P_Ecat_Reconnection_Timer = 0;
+
+		P_Ecat_ReConnetion_State_Machine++;
+	break;
+
+	case 3 :	// Ecat Reset
+		if(P_Ecat_Reconnection_Timer > 1000)		// 1초 딜레이.
+		{
+			Ldata.CmdStatus = 1;
+			cmd "ecat reset";
+			sendallcmds
+			while(Ldata.CmdStatus > 0) {}
+
+			P_Ecat_Reconnection_Timer = 0;
+			P_Ecat_ReConnetion_State_Machine++;
+		}
+	break;
+
+	case 4 :	// Ecat 활성화
+		if(P_Ecat_Reconnection_Timer > 10000)		// 10초 딜레이.
+		{
+			if(ECAT[0].MasterReady == 1)
+			{
+				ECAT[0].Enable = 1;
+				P_Ecat_Reconnection_Timer = 0;
+				P_Ecat_ReConnetion_State_Machine++;
+			}
+			else
+			{
+				if(P_PLC31_Ecat_Retry_Cnt < 5)
+				{
+					P_Ecat_Reconnection_Timer = 0
+					P_PLC31_Ecat_Retry_Cnt++;
+					P_Ecat_ReConnetion_State_Machine = 3;
+				}
+				else
+				{
+					P_Ecat_Reconnection_Timer = 0
+					P_Y_Ecat_ReConnection_Fail = 1			// ecat 활성화 실패 팝업
+					P_Ecat_ReConnetion_State_Machine = 0;
+				}
+			}
+		}
+	break;
+
+	case 5 :	// Ecat 활성화 확인 
+		if(ECAT[0].Enable == 1 && ECAT[0].MasterState == 8)
+		{
+			P_Ecat_ReConnetion_State_Machine++;
+		}
+	break;
+
+	case 6 :	// Slave 활성화 확인
+		L_Slave_Index = 0;
+		while(L_Slave_Index < N_Ecat_Slave_Max_Index)
+		{
+			if(ECAT[0].Slave[L_Slave_Index].State != 8)
+			{
+				P_Ecat_Slave_Error = L_Slave_Index;
+				break;
+			}
+			L_Slave_Index++;
+		}
+
+		if(P_Ecat_Slave_Error != 0)
+		{
+			P_Y_Ecat_ReConnection_Fail = 1				// ecat 활성화 실패 팝업
+			P_Ecat_ReConnetion_State_Machine = 0;
+		}
+		else
+		{
+			P_Y_Ecat_ReConnection_Complete = 1			// ecat 활성화 성공 팝업
+			P_Ecat_ReConnetion_State_Machine = 0;		
+		}
+	break;
+}
+
+if ( M_X_BTN_CMD_Reset == 1 )
+{
+	P_Y_Ecat_ReConnection_Fail= 0
+	P_Y_Ecat_ReConnection_Complete = 0
+}
+
+//=========================================================================================================================================================//
+// PMAC ↔ PLC 하트비트 IO On, Off 진행 - [ 참조 : 26.01.19 하트비트 점멸 추가 ]
+//=========================================================================================================================================================//
+// 셋업 모드 사용 시 하트비트 점멸하지 않아 위치 수정 260520
+IF ( L_Heart_Bit_Timer >= P_Heart_Bit_Time && Ecat_Total_Slave_State == 8 )
+{
+	M_Y_1s_Cycle_HeartBit = M_Y_1s_Cycle_HeartBit^$1;
+	L_Heart_Bit_Timer = 0;
+}
+
+
+P_MNTR_PLC24_Task_Time(1) = (Sys.Time - P_MNTR_PLC24_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC24_Task_Time(1) > P_MNTR_PLC24_Task_Max_Time )
+{
+	P_MNTR_PLC24_Task_Max_Time = P_MNTR_PLC24_Task_Time(1);
+}
+
+//========================//
+// 강제 출력 버튼 추가 // [ 참조 : 25.09.25 DIO 강제 출력 버튼 추가 ]
+//========================//
+// [ 강제 출력 명령부 ] //
+//--------------------//
+// 일반 출력 모드 실행 //
+//--------------------//
+if ( P_Force_BTN_Force_Mode_Status == F_Status_COMPLETE )				// 강제 출력 모드 완료. [강제 출력 모드 진행 중 일반 출력 모드 진행을 막기 위함]
+{
+	if ( M_Func_BTN.Forcibly_DIO_Output_Mode == 0 && P_Old_Force_BTN_Mode == 1 )	// 강제 출력 버튼 하강 Edge 일 경우.
+	{
+		P_Force_BTN_Force_Mode_Status = F_Status_IDLE;					// 강제 출력 모드 상태 초기화.
+		P_Force_BTN_Force_Mode_Complete_Flag = 0;						// 강제 출력 모드 완료 플래그 초기화.
+		P_Force_BTN_Normal_Mode_State_Machine = 1;						// 일반 출력 모드 실행.
+		P_Old_Force_BTN_Mode = M_Func_BTN.Forcibly_DIO_Output_Mode;		// Edge 업데이트.
+	}
+}
+//--------------------//
+// 강제 출력 모드 실행 //
+//--------------------//
+if ( P_Force_BTN_Normal_Mode_Status == F_Status_Nonseatus || P_Force_BTN_Normal_Mode_Status == F_Status_COMPLETE ) // 일반 출력 모드 IDLE (강제 출력 중 재빌드) + 일반 출력 모드 완료 일 경우.  [일반 출력 모드 진행 중 강제 출력 모드 진행을 막기 위함]
+{ 
+	if ( M_Func_BTN.Forcibly_DIO_Output_Mode == 1 && P_Old_Force_BTN_Mode == 0 )	//  강제 출력 버튼 상승 Edge 일 경우.
+	{
+		P_Force_BTN_Normal_Mode_Status = F_Status_IDLE;					// 일반 출력 모드 상태 초기화.
+		P_Force_BTN_Normal_Mode_Complete_Flag = 0;						// 일반 출력 모드 완료 플래그 초기화.
+		P_Force_BTN_Force_Mode_State_Machine = 1;						// 강제 출력 모드 실행.
+		P_Old_Force_BTN_Mode = M_Func_BTN.Forcibly_DIO_Output_Mode;		// Edge 업데이트.
+	}
+}
+//==================================================================//
+// [ 강제 출력 실행부 ] //
+//--------------------//
+// 일반 출력 모드 실행 //
+//--------------------//
+switch( P_Force_BTN_Normal_Mode_State_Machine )
+{
+	case 0 :	break;
+	case 1 : // 카운트 초기화.
+		P_Force_BTN_Normal_Mode_Status = F_Status_EXECUTE;				// 일반 출력 모드 진행 상태. [진행 중]
+		P_Interval_Read_Time(5) = 5000;									// 일반 출력 모드 시 Sector 읽는 시간 설정 (5s)
+		P_Force_BTN_Address_Count = 0;									// 주소 업데이트 카운트 초기화.
+		P_Force_BTN_M_Variable_Save_Count = 0;							// M변수 저장 불러오기 초기화.
+		P_Force_BTN_Normal_Mode_State_Machine++;						// 다음 스텟 머신으로 이동.
+	break;
+
+	case 2 : // DIO 출력 M변수 기본 주소 설정.
+		P_Force_BTN_Normal_Mode_Status = F_Status_EXECUTE;				// 일반 출력 모드 진행 상태. [진행 중]
+
+		call Force_BTN_Function.Normal_Mode_Address_Config();			// 일반 출력 모드 주소 설정.
+		if ( P_Force_BTN_Address_Count > P_Force_BTN_Condition_Count )	// 일반 출력 모드 주소 설정 완료.
+		{
+			P_Force_BTN_Normal_Mode_State_Machine++;					// 다음 스텟 머신으로 이동.
+		}
+	break;
+
+	case 3 : // DIO 출력 M변수 저장 값 불러오기.
+		P_Force_BTN_Normal_Mode_Status = F_Status_EXECUTE;				// 일반 출력 모드 진행 상태. [진행 중]
+
+		call Force_BTN_Function.Normal_Mode_Retrieve_M_Variable();		// 일반 출력 모드 M변수 저장 값 불러오기.
+		if ( P_Force_BTN_M_Variable_Save_Count > P_Force_BTN_Condition_Count )	// 일반 출력 모드 M변수 저장 값 불러오기 완료.
+		{
+			P_Force_BTN_Normal_Mode_State_Machine = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+		}
+	break;
+
+	case N_Complete_Step :
+		P_Force_BTN_Normal_Mode_Status = F_Status_COMPLETE;				// 일반 출력 모드 진행 상태. [완료]
+
+		P_Force_BTN_Normal_Mode_Complete_Flag = 1;						// 일반 출력 모드 완료 플래그.
+		P_Force_BTN_Normal_Mode_State_Machine = 0;						// 스텟 머신 초기화.
+	break;
+}
+//--------------------//
+// 강제 출력 모드 실행 //
+//--------------------//
+switch( P_Force_BTN_Force_Mode_State_Machine )
+{
+	case 0 :	break;
+	case 1 : // 타이머, 카운트 초기화 + 케스케이딩 해제.
+		P_Force_BTN_Force_Mode_Status = F_Status_EXECUTE;				// 강제 출력 모드 진행 상태. [진행 중]
+
+		//Motor[L_Selected_Spool_Number].MasterCtrl = 0;				// 케스케이딩 해제.
+		P_Interval_Read_Time(5) = 200;									// 일반 출력 모드 시 Sector 읽는 시간 설정 (0.2s)
+		P_Force_BTN_Force_Mode_Timer = 0;								// 타이머 초기화.
+		P_Force_BTN_Address_Count = 0;									// 주소 업데이트 카운트 초기화.
+		P_Force_BTN_M_Variable_Save_Count = 0;							// M변수 저장 카운트 초기화.
+		P_Force_BTN_Force_Mode_State_Machine++;							// 다음 스텟 머신으로 이동.
+	break;
+
+	case 2 : // 2초 딜레이 후 다음 스텟 머신 이동. ( DIO 강제 출력 사용 버튼이 활성화 된 상태에서 프로그램 다운로드 시 바로 강제 출력 모드 진입 전 M변수를 저장할 대기 시간 부여 )
+		P_Force_BTN_Force_Mode_Status = F_Status_EXECUTE;				// 강제 출력 모드 진행 상태. [진행 중]
+
+		if ( P_Force_BTN_Force_Mode_Timer > P_Force_BTN_Force_Mode_Delay_Time )	// 2초 딜레이 이후.
+		{
+			P_Force_BTN_Force_Mode_State_Machine++;						// 다음 스텟 머신으로 이동.
+		}
+	break;
+
+	case 3 : // DIO 출력 M변수 저장.
+		P_Force_BTN_Force_Mode_Status = F_Status_EXECUTE;				// 강제 출력 모드 진행 상태. [진행 중]
+
+		call Force_BTN_Function.Force_Mode_Save_M_Variable();			// 강제 출력 모드 M변수 저장.
+		if ( P_Force_BTN_M_Variable_Save_Count > P_Force_BTN_Condition_Count )	// 강제 출력 모드 M변수 저장 완료.
+		{
+			P_Force_BTN_Force_Mode_State_Machine++;						// 다음 스텟 머신으로 이동.
+		}
+	break;
+
+	case 4 : // DIO 출력 M변수 기본 주소 설정.
+		P_Force_BTN_Force_Mode_Status = F_Status_EXECUTE;				// 강제 출력 모드 진행 상태. [진행 중]
+
+		call Force_BTN_Function.Force_Mode_Address_Config();			// 강제 출력 모드 주소 설정.
+		if ( P_Force_BTN_Address_Count > P_Force_BTN_Address_Clear_Count )	// 강제 출력 모드 주소 설정 완료.
+		{
+			P_Force_BTN_Force_Mode_State_Machine = N_Complete_Step;		// 완료 스텟 머신으로 이동.
+		}
+	break;
+
+	case N_Complete_Step :
+		P_Force_BTN_Force_Mode_Status = F_Status_COMPLETE;				// 강제 출력 모드 진행 상태. [완료]
+
+		P_Force_BTN_Force_Mode_Complete_Flag = 1;						// 강제 출력 완료 플래그.
+		P_Force_BTN_Force_Mode_State_Machine = 0;						// 스텟 머신 초기화.
+	break;
+}
+//=========================================================================================================================================================//
+// MC Protocol 끊어진 경우, 재 연결 가능 구문 
+if( Sys_MC_Protocol_HeartBit != L_Old_MC_Protocol_HeartBit )				// 하트비트가 변경된다면
+{
+	L_Old_MC_Protocol_HeartBit = Sys_MC_Protocol_HeartBit;					// MC Protocol 값 동기화
+	L_MC_Protocol_MNTR_Timer = 0;
+}
+
+if( L_MC_Protocol_MNTR_Timer > 5000 )
+{
+	if( M_X_Trigger_1s_Cycle_HeartBit != L_X_Trigger_1s_Cycle_HeartBit )	// 하트비트엣지에 반응
+	{
+		if( P_Max_Try_Reconnect_MC > P_Cur_Try_Reconnect_MC )				// 최대 횟수 > 현재 카운팅 횟수
+		{
+			system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/mc.out -u"
+			call Timer.sec(0.5);
+			#ifdef F_Def_Stack_A // A열인 경우
+				system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/mc.out -a";
+			#endif
+			#ifdef F_Def_Stack_B // B열인 경우
+				system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/mc.out -b"
+			#endif
+			P_Cur_Try_Reconnect_MC++;
+			L_MC_Protocol_MNTR_Timer = 0;
+		}
+	}
+}
+L_X_Trigger_1s_Cycle_HeartBit = M_X_Trigger_1s_Cycle_HeartBit;
+
+
+//if(P_Insert_Phase_Flag ==  1)
+//{
+//	P_Insert_Phase_Flag = 0;
+//	P_Ca_1st_PNP_ABSPhasing_Pos(15)	= P_ABS_Phasing_Data(1);
+//	P_An_1st_PNP_ABSPhasing_Pos(15)	= P_ABS_Phasing_Data(2);
+//	P_Ca_2nd_PNP_ABSPhasing_Pos(15)	= P_ABS_Phasing_Data(3);
+//	P_An_2nd_PNP_ABSPhasing_Pos(15)	= P_ABS_Phasing_Data(4);
+//}
+
+
+
+close
+

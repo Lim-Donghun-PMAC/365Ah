@@ -1,0 +1,193 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.11.04 
+// 통신 관련 PLC 
+// 내용 - [ 참조 : Protocol PLC ] 
+
+open plc 10
+P_MNTR_PLC10_Task_Time(0) = Sys.Time;
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+#define ECAT_Slave_Max_Index	16
+// --------------------User Code Goes Here------------------------
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[10].ldata.L[0]	시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[10].ldata.L[1]	시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[10].ldata.L[2]	시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[10].ldata.L[3]	타이머 초기화 플래그
+
+//test
+local L_Modbus_Connect_Check_Timer;						// Plc[10].ldata.L[4]
+local L_Modbus_HeartBit;								// Plc[10].ldata.L[5]
+// Ecat_Reconnecting
+local L_Ecat_Reconn_Slave_Index;						// Plc[10].ldata.L[6]
+// MC Reconnecting
+local ECAT_Slave_Index = 0;								// Plc[10].ldata.L[10]
+	
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if(L_Flag_Cycle_Up_Count_Init_Flag == 0)
+{
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 00.2) 시간 체크
+if(L_Flag_Cycle_Up_Count_Init_Flag == 1)
+{
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * 1000
+	if(L_Time_Cycle_Up_Count_Delta_Time < 0)
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+// 00.3) 시간 업데이트
+if(L_Time_Cycle_Up_Count_Delta_Time > 0.1)
+{
+	
+	//여기에 원하는 타이머 추가 
+	P_Modbus_Delay_Timer = P_Modbus_Delay_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+//========================================================================================================================
+
+// Modbus Program==================================================================================================
+// [ 참조 : 2025.08.18 Modbus Reconnecting ]
+#ifdef F_Def_Stack_B
+// Slave 모니터용
+//local L_Modbus_HeartBit;
+//local L_Modbus_Connect_Check_Timer;
+if(P_Opposite_Lane_P_PMAC_Status != 0)
+{
+	// B열 상태 A열 Write값 넣어주기
+	 P_Modbus_B_Connect_State	= N_Modbus_Enable;
+	 P_Modbus_B_PMAC_Cur_Mode	= P_PMAC_Current_Mode;
+	 P_Modbus_B_PMAC_Cur_Status	= P_PMAC_Status;
+	 P_Modbus_B_Anode_1st_Pos	= F_Anode_1st_T_Axis;
+	 P_Modbus_B_Cathode_1st_Pos	= F_Cathode_1st_T_Axis;
+	 P_Modbus_B_All_Home_Status = P_AH_Home_Status;
+	 P_Modbus_B_VISION_MSA_Status = P_VISION_MSA_Status;
+	 P_Modbus_B_Anode_1st_HCK	= N_1st_PnP_AN_T_Home_Chk;
+	 P_Modbus_B_Cathode_1st_HCK	= N_1st_PnP_CA_T_Home_Chk;
+	
+	call Modbus_Interface.ReadData();	
+	call Modbus_Interface.WriteData();
+	
+	// ↓ 실제 장비 생기면 사라질 구문 ===================================================================================
+	call Modbus_Interface.Debug_Pos_WriteData();
+	
+	p8000 = P_PMAC_Status;
+	p8001 = P_Current_Mode;
+	p8002 = P_Master_Motion_Trigger;
+	p8003 = (Sys_Cathode_NG_Place_Sheet_LO_Vision_BYTE&128/128)<<9 + (Sys_Cathode_NG_TR_Sheet_LO_Vision_BYTE&128/128)<<8 + (Sys_Cathode_2nd_Sheet_LO_Vision_BYTE&128/128)<<7 + (Sys_Cathode_Align_Sheet_LO_Vision_BYTE&128/128)<<6 + (Sys_Cathode_1st_Sheet_LO_Vision_BYTE&128/128)<<5 + (Sys_Anode_NG_Place_Sheet_LO_Vision_BYTE&128/128)<<4 + (Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE&128/128)<<3 + (Sys_Anode_2nd_Sheet_LO_Vision_BYTE&128/128)<<2 + (Sys_Anode_Align_Sheet_LO_Vision_BYTE&128/128)<<1 + (Sys_Anode_1st_Sheet_LO_Vision_BYTE&128/128)<<0;
+	//==================================================================================================================
+	
+	// ===== Slave 모니터링 =============================================================================================
+	if ( P_Modbus_HeartBit != L_Modbus_HeartBit )											// 모드버스 heart bit != 이전 모드버스 하트비트 값
+	{
+	    L_Modbus_HeartBit = P_Modbus_HeartBit;												// 값 넣어줌
+	    L_Modbus_Connect_Check_Timer  = Sys.Time;											// 현재 시간 저장
+		//P_Modbus_Reconnect_MNTR = 0;														// 모니터링 변수 초기화
+	    P_Modbus_Connect_Status = F_Status_EXECUTE;											// 모드버스 커넥트 상태 = Execute
+	}
+	else if ( (Sys.Time - L_Modbus_Connect_Check_Timer) > 5.0 )								// 모드버스 하트비트 = 이전 모드버스 하트비트 
+	{			//	↑ 5초 이상 요청 없음
+	     P_Modbus_Connect_Status = F_Status_STOPPED;										// 모드버스 커넥트 상태 = Stopped
+		 // ↓ A열 B열 가동중에 A열이 무슨 이유인지 모르겠지만 PMAC끊어졌다면, 잔여 값이 남을테니..
+		 P_Modbus_A_Connect_State	= 0;													// 데이터 초기화 
+		 P_Modbus_A_PMAC_Cur_Mode	= 0;													// 데이터 초기화 
+		 P_Modbus_A_PMAC_Cur_Status	= 0;													// 데이터 초기화 
+		 P_Modbus_A_Anode_1st_Pos	= 0;													// 데이터 초기화 
+		 P_Modbus_A_Cathode_1st_Pos	= 0;													// 데이터 초기화 
+		 P_Modbus_A_All_Home_Status = 0;													// 데이터 초기화 
+		 P_Modbus_A_VISION_MSA_Status = 0;													// 데이터 초기화 
+		 P_Modbus_A_Anode_1st_HCK	= 0;													// 데이터 초기화 
+		 P_Modbus_A_Cathode_1st_HCK	= 0;													// 데이터 초기화 										
+	}
+	
+	if( P_Modbus_Connect_Status == F_Status_STOPPED && P_Modbus_Delay_Timer > 5000 )		// 모드벼스 커넥트 상태가 Stopped이며 딜레이타임 5초 초과라면
+	{
+		P_Modbus_Connected_Flag = 0;														// 모드 버스 커넥트
+		call Modbus_Interface.ModBus_Connect();												// 모드버스 연결 함수 호출
+		P_Modbus_Delay_Timer = 0;															// 딜레이 타이머 초기화
+		P_Modbus_Reconnect_MNTR++;															// 모니터링 변수 증가
+	}
+}
+// ===== Master Heart Bit =============================================================================================
+#else	// Master Modbus Heartbit ( A열 )
+// [ 참조 : 2025.08.18 Modbus Reconnecting ]
+if( P_Modbus_Delay_Timer >= 500 )														// A열 ( 마스터 or 서버 ) 500ms 주기마다
+{
+	P_Modbus_HeartBit ^= 1;																// 하트비트 
+	P_Modbus_Delay_Timer = 0;															// 딜레이 타이머 초기화
+}
+
+// A열 상태 B열 Read값 넣어주기
+ P_Modbus_A_Connect_State	= N_Modbus_Enable;
+ P_Modbus_A_PMAC_Cur_Mode	= P_PMAC_Current_Mode;
+ P_Modbus_A_PMAC_Cur_Status	= P_PMAC_Status;
+ P_Modbus_A_Anode_1st_Pos	= F_Anode_1st_T_Axis;
+ P_Modbus_A_Cathode_1st_Pos	= F_Cathode_1st_T_Axis;
+ P_Modbus_A_All_Home_Status = P_AH_Home_Status;
+ P_Modbus_A_VISION_MSA_Status = P_VISION_MSA_Status;
+ P_Modbus_A_Anode_1st_HCK =	N_1st_PnP_AN_T_Home_Chk;
+ P_Modbus_A_Cathode_1st_HCK = N_1st_PnP_CA_T_Home_Chk;
+ 
+
+ // 서버 측 Modbus Data 처리
+ // ↓ Code 추가 : A열 B열이 정상적으로 구동 하다가, B열이 알 수 없는 이유로 PMAC ERROR가 난다면, 서버 측에서 B열 상태를 알 수가 없음 ( 이전값이 남기 떄문에 )
+//if( ModbusServer[1].State != Modbus_Enable )
+//{
+//	P_Modbus_B_Connect_State	= 0;				// 데이터 초기화 
+//	P_Modbus_B_PMAC_Cur_Mode	= 0;				// 데이터 초기화 
+//	P_Modbus_B_PMAC_Cur_Status	= 0;				// 데이터 초기화 
+//	P_Modbus_B_Anode_1st_Pos	= 0;				// 데이터 초기화 
+//	P_Modbus_B_Cathode_1st_Pos	= 0;				// 데이터 초기화 
+//	P_Modbus_B_All_Home_Status = 0;					// 데이터 초기화 
+//	P_Modbus_B_VISION_MSA_Status = 0;				// 데이터 초기화 
+//	P_Modbus_B_Anode_1st_HCK	= 0;				// 데이터 초기화 
+//	P_Modbus_B_Cathode_1st_HCK	= 0;				// 데이터 초기화 
+//
+#endif
+
+
+if ( P_PMAC_Current_Mode == F_Current_Automatic ||P_PMAC_Status == F_Status_IDLE || P_PMAC_Status == F_Status_RESETTING )								
+{
+	if(ECAT[0].Enable != 1 || ECAT[0].Error != 0 || ECAT[0].MasterState != 8)
+	{
+//		call Alarm.Insert_Alarm(N_Alarm_Ecat_Connection_Error, N_High_Alarm_Cycle_Stop);
+//		M_Ecat_Connection_Error_Alarm = 1;															//[이더캣 소프트웨어 통신오류] 소프트웨어 오류
+	}
+
+	while( ECAT_Slave_Index < ECAT_Slave_Max_Index )
+	{
+		if( ECAT[0].Slave[ECAT_Slave_Index].State != 8 )
+		{ // 이더캣 슬레이브 중에 정상상태가 아닌 슬레이브가 존재하면
+			P_ECAT_Slave_Err_Bit = ECAT_Slave_Index;	// 이캣 에러비트 On.
+			ECAT_Slave_Index = 999;	// while문 탈출.
+		}
+		else				// 이캣 정상상태면 다음 슬레이브 검색.
+			ECAT_Slave_Index++;	// 이더캣슬레이브 인덱스 증가.
+	}
+}		
+
+
+// MC 떨어질 경우 전체 킬 + Status Clear
+if(P_MC_Power_Down_Flag == 0 && P_Old_MC_Power_Down_Flag == 1)
+{
+	cmd"#*k";							// Motor All Kill
+	P_Status_Clear_Flag = 1;
+}
+P_Old_MC_Power_Down_Flag = P_MC_Power_Down_Flag;
+
+
+P_MNTR_PLC10_Task_Time(1) = (Sys.Time - P_MNTR_PLC10_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC10_Task_Time(1) > P_MNTR_PLC10_Task_Max_Time )
+{
+	P_MNTR_PLC10_Task_Max_Time = P_MNTR_PLC10_Task_Time(1);
+}
+close

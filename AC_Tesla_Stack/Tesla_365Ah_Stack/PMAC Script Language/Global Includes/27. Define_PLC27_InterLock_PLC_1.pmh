@@ -1,0 +1,754 @@
+global P_PLC29_First_Cycle = F_True;
+
+global P_PLC29_Count  = 0;
+
+global P_Motor_Count = 0;
+global M_X_Door_Open = 0;
+
+global P_Jog_Move_Distance_M(60);
+P_Jog_Move_Distance_M(0),60 = 0;
+
+global P_Wait_Pos_M(60);
+P_Wait_Pos_M(0),60 = 0;
+
+global P_Interlock_Motor_Arr(60);
+P_Interlock_Motor_Arr(0),60 = 0;
+
+global P_Interlock_Status_Motor_Arr(60);
+P_Interlock_Status_Motor_Arr(0),60 = 0;
+
+global P_Interlock_Use_Motor_Arr(60);
+P_Interlock_Use_Motor_Arr(0),60 = $FFFFF;
+
+global P_Interlock_Info_Target_Pos_Upper(500);
+P_Interlock_Info_Target_Pos_Upper(0),500 = 0;
+
+global P_Interlock_Info_Target_Motor_Home_Miss_Status(500);
+P_Interlock_Info_Target_Motor_Home_Miss_Status(0),500 = 0;
+
+global P_Interlock_Info_Ref_Pos_Upper(500);
+P_Interlock_Info_Ref_Pos_Upper(0),500 = 0;
+
+global P_Interlock_Info_type_Upper(500);
+P_Interlock_Info_type_Upper(0),500 = 0;
+
+global P_Interlock_Info_Target_Pos(500);
+P_Interlock_Info_Target_Pos(0),500 = 0;
+
+global P_Interlock_Info_Ref_M(500);
+P_Interlock_Info_Ref_M(0),500 = 0;
+
+global P_Interlock_Info_Ref_Pos(500);
+P_Interlock_Info_Ref_Pos(0),500 = 0;
+
+global P_Interlock_Info_type(500);
+P_Interlock_Info_type(0),500 = 0;
+
+global P_Interlock_Info_Bit(500);
+P_Interlock_Info_Bit(0),500 = 0;
+
+global P_Interlcok_Info_Result(500);
+P_Interlcok_Info_Result(0),500 = 0;
+
+global P_Interlcok_Result_M(51);
+P_Interlcok_Result_M(0),51 = 0;
+
+global P_Update_Result_Flag = 0;
+
+global P_Interlock_Popup_On_Flag = 0;
+
+global P_Interlcok_Bump_Result_M(51);
+P_Interlcok_Bump_Result_M(0),51 = 0;
+
+global P_Hex_Bit = 1;
+global P_Hex_Shift_Count = 0;//1;
+global P_Idx_Count = 0;
+
+global P_Motor_Page = 0;
+// 모터 번호
+#define N_Other_Side_Cathode_1ST_PNP_T			49
+#define N_Other_Side_Anode_1ST_PNP_T			50
+
+// 인터락 사용 설정
+#define N_Hex_Inc_P_Interlcok_Use				$00000000001
+#define N_Hex_Inc_M_Interlcok_Use				$00000000002
+#define N_Hex_Abs_P_Interlcok_Use				$00000000004
+#define N_Hex_Abs_M_Interlcok_Use				$00000000008
+#define N_Hex_JogP_Interlcok_Use				$00000000010
+#define N_Hex_JogM_Interlcok_Use				$00000000020
+#define N_Hex_Home_Interlcok_Use				$00000000040
+#define N_Hex_POS1_Interlcok_Use				$00000000080
+#define N_Hex_POS2_Interlcok_Use				$00000000100
+#define N_Hex_POS3_Interlcok_Use				$00000000200
+#define N_Hex_POS4_Interlcok_Use				$00000000400
+#define N_Hex_POS5_Interlcok_Use				$00000000800
+#define N_Hex_POS6_Interlcok_Use				$00000001000
+#define N_Hex_POS7_Interlcok_Use				$00000002000
+#define N_Hex_POS8_Interlcok_Use				$00000004000
+#define N_Hex_POS9_Interlcok_Use				$00000008000
+#define N_Hex_POS10_Interlcok_Use				$00000010000
+#define N_Hex_Home_Miss_Interlock_Use			$00000020000
+#define N_Hex_Door_Opened_Interlock_Use			$00000040000
+#define N_Hex_Machine_Auto_Interlcok_Use		$00000080000
+
+// 인터락 미사용 설정
+#define N_Hex_Inc_P_Interlcok_Unuse				$FFFFFFFFFFE
+#define N_Hex_Inc_M_Interlcok_Unuse				$FFFFFFFFFFD
+#define N_Hex_Abs_P_Interlcok_Unuse				$FFFFFFFFFFB
+#define N_Hex_Abs_M_Interlcok_Unuse				$FFFFFFFFFF7
+#define N_Hex_JogP_Interlcok_Unuse				$FFFFFFFFFEF
+#define N_Hex_JogM_Interlcok_Unuse				$FFFFFFFFFDF
+#define N_Hex_Home_Interlcok_Unuse				$FFFFFFFFFBF
+#define N_Hex_POS1_Interlcok_Unuse				$FFFFFFFFF7F
+#define N_Hex_POS2_Interlcok_Unuse				$FFFFFFFFEFF
+#define N_Hex_POS3_Interlcok_Unuse				$FFFFFFFFDFF
+#define N_Hex_POS4_Interlcok_Unuse				$FFFFFFFFBFF
+#define N_Hex_POS5_Interlcok_Unuse				$FFFFFFFF7FF
+#define N_Hex_POS6_Interlcok_Unuse				$FFFFFFFEFFF
+#define N_Hex_POS7_Interlcok_Unuse				$FFFFFFFDFFF
+#define N_Hex_POS8_Interlcok_Unuse				$FFFFFFFBFFF
+#define N_Hex_POS9_Interlcok_Unuse				$FFFFFFF7FFF
+#define N_Hex_POS10_Interlcok_Unuse				$FFFFFFEFFFF
+#define N_Hex_Home_Miss_Interlock_Unuse			$FFFFFFDFFFF
+#define N_Hex_Door_Opened_Interlock_Unuse		$FFFFFFBFFFF
+#define N_Hex_Machine_Auto_Interlcok_Unuse		$FFFFFF7FFFF
+
+// 인터락 On 비트
+#define N_Hex_Inc_P_Interlcok_On				$00000000001
+#define N_Hex_Inc_M_Interlcok_On				$00000000002
+#define N_Hex_Abs_P_Interlcok_On				$00000000004
+#define N_Hex_Abs_M_Interlcok_On				$00000000008
+#define N_Hex_JogP_Interlcok_On					$00000000010
+#define N_Hex_JogM_Interlcok_On					$00000000020
+#define N_Hex_Home_Interlcok_On					$00000000040
+#define N_Hex_POS1_Interlcok_On					$00000000080
+#define N_Hex_POS2_Interlcok_On					$00000000100
+#define N_Hex_POS3_Interlcok_On					$00000000200
+#define N_Hex_POS4_Interlcok_On					$00000000400
+#define N_Hex_POS5_Interlcok_On					$00000000800
+#define N_Hex_POS6_Interlcok_On					$00000001000
+#define N_Hex_POS7_Interlcok_On					$00000002000
+#define N_Hex_POS8_Interlcok_On					$00000004000
+#define N_Hex_POS9_Interlcok_On					$00000008000
+#define N_Hex_POS10_Interlcok_On				$00000010000
+#define N_Hex_Home_Miss_Interlock_On			$00000020000
+#define N_Hex_Door_Opened_Interlock_On			$00000040000
+#define N_Hex_Machine_Auto_Interlcok_On			$00000080000
+
+// 인터락 Off 비트
+#define N_Hex_Inc_P_Interlcok_Off				$FFFFFFFFFFE
+#define N_Hex_Inc_M_Interlcok_Off				$FFFFFFFFFFD
+#define N_Hex_Abs_P_Interlcok_Off				$FFFFFFFFFFB
+#define N_Hex_Abs_M_Interlcok_Off				$FFFFFFFFFF7
+#define N_Hex_JogP_Interlcok_Off				$FFFFFFFFFEF
+#define N_Hex_JogM_Interlcok_Off				$FFFFFFFFFDF
+#define N_Hex_Home_Interlcok_Off				$FFFFFFFFFBF
+#define N_Hex_POS1_Interlcok_Off				$FFFFFFFFF7F
+#define N_Hex_POS2_Interlcok_Off				$FFFFFFFFEFF
+#define N_Hex_POS3_Interlcok_Off				$FFFFFFFFDFF
+#define N_Hex_POS4_Interlcok_Off				$FFFFFFFFBFF
+#define N_Hex_POS5_Interlcok_Off				$FFFFFFFF7FF
+#define N_Hex_POS6_Interlcok_Off				$FFFFFFFEFFF
+#define N_Hex_POS7_Interlcok_Off				$FFFFFFFDFFF
+#define N_Hex_POS8_Interlcok_Off				$FFFFFFFBFFF
+#define N_Hex_POS9_Interlcok_Off				$FFFFFFF7FFF
+#define N_Hex_POS10_Interlcok_Off				$FFFFFFEFFFF
+#define N_Hex_Home_Miss_Interlock_Off			$FFFFFFDFFFF
+#define N_Hex_Door_Opened_Interlock_Off			$FFFFFFBFFFF
+#define N_Hex_Machine_Auto_Interlcok_Off		$FFFFFF7FFFF
+
+// 간섭되는 축 비트 On 연산
+#define N_Hex_Cathode_1ST_PNP_T					$00000000001
+#define N_Hex_Anode_1ST_PNP_T					$00000000002
+#define N_Hex_Cathode_2ND_PNP_T					$00000000004
+#define N_Hex_Anode_2ND_PNP_T					$00000000008
+#define N_Hex_Cathode_Clamp_Y1					$00000000010
+#define N_Hex_Anode_Clamp_Y1					$00000000020
+#define N_Hex_Cathode_Clamp_Y2					$00000000040
+#define N_Hex_Anode_Clamp_Y2					$00000000080
+#define N_Hex_Cathode_Clamp_Z1					$00000000100
+#define N_Hex_Anode_Clamp_Z1					$00000000200
+#define N_Hex_Main_Z							$00000000400
+#define N_Hex_Final_Roll_X						$00000000800
+#define N_Hex_Final_Roll_Z						$00000001000
+#define N_Hex_Sub_Feeding_Roll					$00000002000
+#define N_Hex_Driving_Roll						$00000004000
+#define N_Hex_Servo_Dancer						$00000008000
+#define N_Hex_Cathode_1ST_PNP_Z					$00000010000
+#define N_Hex_Anode_1ST_PNP_Z					$00000020000
+#define N_Hex_Cathode_1ST_Picker_T				$00000040000
+#define N_Hex_Anode_1ST_Picker_T				$00000080000
+#define N_Hex_Cathode_2ND_PNP_Z					$00000100000
+#define N_Hex_Anode_2ND_PNP_Z					$00000200000
+#define N_Hex_Unwinder_Upper					$00000400000
+#define N_Hex_Unwinder_Lower					$00000800000
+#define N_Hex_Cathode_Clamp_Z2					$00001000000
+#define N_Hex_Anode_Clamp_Z2					$00002000000
+#define N_Hex_EPC_Sensor						$00004000000
+#define N_Hex_Stack_Vision						$00008000000
+#define N_Hex_Sheet_Paper_X						$00010000000
+#define N_Hex_Cathode_Align_X					$00020000000
+#define N_Hex_Cathode_Align_Y					$00040000000
+#define N_Hex_Cathode_Align_T					$00080000000
+#define N_Hex_Anode_Align_X						$00100000000
+#define N_Hex_Anode_Align_Y						$00200000000
+#define N_Hex_Anode_Align_T						$00400000000
+#define N_Hex_Cathode_NG_PNP_T					$00800000000
+#define N_Hex_Anode_NG_PNP_T					$01000000000
+#define N_Hex_Cathode_NG_PNP_Z					$02000000000
+#define N_Hex_Anode_NG_PNP_Z					$04000000000
+#define N_Hex_1ST_Unloader_X					$08000000000
+#define N_Hex_1ST_Unloader_Y					$10000000000
+#define N_Hex_1ST_Unloader_T					$20000000000
+#define N_Hex_Other_Side_Cathode_1ST_PNP_T		$40000000000
+#define N_Hex_Other_Side_Anode_1ST_PNP_T		$80000000000
+
+// 간섭되는 축 비트 Off 연산
+#define N_Hex_Cathode_1ST_PNP_T_Bit_Off			$FFFFFFFFFFE  
+#define N_Hex_Anode_1ST_PNP_T_Bit_Off			$FFFFFFFFFFD
+#define N_Hex_Cathode_2ND_PNP_T_Bit_Off			$FFFFFFFFFFB
+#define N_Hex_Anode_2ND_PNP_T_Bit_Off			$FFFFFFFFFF7
+#define N_Hex_Cathode_Clamp_Y1_Bit_Off			$FFFFFFFFFEF
+#define N_Hex_Anode_Clamp_Y1_Bit_Off			$FFFFFFFFFDF
+#define N_Hex_Cathode_Clamp_Y2_Bit_Off			$FFFFFFFFFBF
+#define N_Hex_Anode_Clamp_Y2_Bit_Off			$FFFFFFFFF7F
+#define N_Hex_Cathode_Clamp_Z1_Bit_Off			$FFFFFFFFEFF
+#define N_Hex_Anode_Clamp_Z1_Bit_Off			$FFFFFFFFDFF
+#define N_Hex_Main_Z_Bit_Off					$FFFFFFFFBFF
+#define N_Hex_Final_Roll_X_Bit_Off				$FFFFFFFF7FF
+#define N_Hex_Final_Roll_Z_Bit_Off				$FFFFFFFEFFF
+#define N_Hex_Sub_Feeding_Roll_Bit_Off			$FFFFFFFDFFF
+#define N_Hex_Driving_Roll_Bit_Off				$FFFFFFFBFFF
+#define N_Hex_Servo_Dancer_Bit_Off				$FFFFFFF7FFF
+#define N_Hex_Cathode_1ST_PNP_Z_Bit_Off			$FFFFFFEFFFF
+#define N_Hex_Anode_1ST_PNP_Z_Bit_Off			$FFFFFFDFFFF
+#define N_Hex_Cathode_1ST_Picker_T_Bit_Off		$FFFFFFBFFFF
+#define N_Hex_Anode_1ST_Picker_T_Bit_Off		$FFFFFF7FFFF
+#define N_Hex_Cathode_2ND_PNP_Z_Bit_Off			$FFFFFEFFFFF
+#define N_Hex_Anode_2ND_PNP_Z_Bit_Off			$FFFFFDFFFFF
+#define N_Hex_Unwinder_Upper_Bit_Off			$FFFFFBFFFFF
+#define N_Hex_Unwinder_Lower_Bit_Off			$FFFFF7FFFFF
+#define N_Hex_Cathode_Clamp_Z2_Bit_Off			$FFFFEFFFFFF
+#define N_Hex_Anode_Clamp_Z2_Bit_Off			$FFFFDFFFFFF
+#define N_Hex_EPC_Sensor_Bit_Off				$FFFFBFFFFFF
+#define N_Hex_Stack_Vision_Bit_Off				$FFFF7FFFFFF
+#define N_Hex_Sheet_Paper_X_Bit_Off				$FFFEFFFFFFF
+#define N_Hex_Cathode_Align_X_Bit_Off			$FFFDFFFFFFF
+#define N_Hex_Cathode_Align_Y_Bit_Off			$FFFBFFFFFFF
+#define N_Hex_Cathode_Align_T_Bit_Off			$FFF7FFFFFFF
+#define N_Hex_Anode_Align_X_Bit_Off				$FFEFFFFFFFF
+#define N_Hex_Anode_Align_Y_Bit_Off				$FFDFFFFFFFF
+#define N_Hex_Anode_Align_T_Bit_Off				$FFBFFFFFFFF
+#define N_Hex_Cathode_NG_PNP_T_Bit_Off			$FF7FFFFFFFF
+#define N_Hex_Anode_NG_PNP_T_Bit_Off			$FEFFFFFFFFF
+#define N_Hex_Cathode_NG_PNP_Z_Bit_Off			$FDFFFFFFFFF
+#define N_Hex_Anode_NG_PNP_Z_Bit_Off			$FBFFFFFFFFF
+#define N_Hex_1ST_Unloader_X_Bit_Off			$F7FFFFFFFFF
+#define N_Hex_1ST_Unloader_Y_Bit_Off			$EFFFFFFFFFF
+#define N_Hex_1ST_Unloader_T_Bit_Off			$DFFFFFFFFFF
+#define N_Hex_Other_Side_Cathode_1ST_PNP_T_Bit_Off	$BFFFFFFFFFF
+#define N_Hex_Other_Side_Anode_1ST_PNP_T_Bit_Off	$7FFFFFFFFFF
+						
+#define N_Hex_POS_All_Interlock_On	$1FF80
+
+#define N_Hex_POS_All_Interlock_Use	N_Hex_POS1_Interlcok_Use | N_Hex_POS2_Interlcok_Use | N_Hex_POS3_Interlcok_Use | N_Hex_POS4_Interlcok_Use | N_Hex_POS5_Interlcok_Use | N_Hex_POS6_Interlcok_Use | N_Hex_POS7_Interlcok_Use | N_Hex_POS8_Interlcok_Use | N_Hex_POS9_Interlcok_Use | N_Hex_POS10_Interlcok_Use	
+	
+#define high 			1	//초과
+#define low 			2	//미만
+#define high_and_equal 	3	//이상
+#define low_and_equal 	4	//이하
+
+#define M_X_Other_Side_Cathode_1ST_PNP_T_Interlcok	m2000
+#define M_X_Other_Side_Anode_1ST_PNP_T_Interlcok	m2001
+
+#define M_M1_Motor_BTN_Info				u.user:$00A8C8
+ptr M_Motor_BTN_Info(50)->*;
+M_Motor_BTN_Info(1)->u.user:$00A8C8.00.16;
+M_Motor_BTN_Info(2)->u.user:$00A8E4.00.16;
+
+
+#define BTN_Jog_Forward_Pushed					$001
+#define BTN_Jog_Backward_Pushed					$002
+#define BTN_Servo_ON_Pushed						$004
+#define BTN_Homing_Pushed						$008
+#define BTN_Motor_STOP_Pushed					$010
+#define BTN_Alarm_Reset_Pushed					$020
+#define BTN_Recipe_Pos_Run_Pushed				$040
+#define BTN_Jog_INC_Run_Pushed					$080
+#define BTN_Jog_ABS_Run_Pushed					$100
+
+#define N_Interlock_String_First_Useridx				5000
+#define N_Interlock_String_ASCII_Length					7
+
+#define N_Dummy_Data									0
+
+#define P_Y_Interlock_Popup_On_Request		u.user:$014C04.00.1
+#define P_X_Interlock_Popup_On_Request_Ack	u.user:$00AE8C.00.1
+
+ptr M_ASCII_Popup_Buffer_Line1(N_Interlock_String_ASCII_Length)->*
+M_ASCII_Popup_Buffer_Line1(0),N_Interlock_String_ASCII_Length = 0;
+ptr M_ASCII_Popup_Buffer_Line2(N_Interlock_String_ASCII_Length)->*
+M_ASCII_Popup_Buffer_Line2(0),N_Interlock_String_ASCII_Length = 0;
+ptr M_ASCII_Popup_Buffer_Line3(N_Interlock_String_ASCII_Length)->*
+M_ASCII_Popup_Buffer_Line3(0),N_Interlock_String_ASCII_Length = 0;
+ptr M_ASCII_Popup_Buffer_Line4(N_Interlock_String_ASCII_Length)->*
+M_ASCII_Popup_Buffer_Line4(0),N_Interlock_String_ASCII_Length = 0;
+ptr M_ASCII_Popup_Buffer_Line5(N_Interlock_String_ASCII_Length)->*
+M_ASCII_Popup_Buffer_Line5(0),N_Interlock_String_ASCII_Length = 0;
+ptr M_ASCII_Popup_Buffer_Line6(N_Interlock_String_ASCII_Length)->*
+M_ASCII_Popup_Buffer_Line6(0),N_Interlock_String_ASCII_Length = 0;
+ptr M_ASCII_Popup_Buffer_Line7(N_Interlock_String_ASCII_Length)->*
+M_ASCII_Popup_Buffer_Line7(0),N_Interlock_String_ASCII_Length = 0;
+
+M_ASCII_Popup_Buffer_Line1(0) -> Sys.Udata[21200];
+M_ASCII_Popup_Buffer_Line1(1) -> Sys.Udata[21201];
+M_ASCII_Popup_Buffer_Line1(2) -> Sys.Udata[21202];
+M_ASCII_Popup_Buffer_Line1(3) -> Sys.Udata[21203];
+M_ASCII_Popup_Buffer_Line1(4) -> Sys.Udata[21204];
+M_ASCII_Popup_Buffer_Line1(5) -> Sys.Udata[21205];
+M_ASCII_Popup_Buffer_Line1(6) -> Sys.Udata[21206];
+
+M_ASCII_Popup_Buffer_Line2(0) -> Sys.Udata[21207];
+M_ASCII_Popup_Buffer_Line2(1) -> Sys.Udata[21208];
+M_ASCII_Popup_Buffer_Line2(2) -> Sys.Udata[21209];
+M_ASCII_Popup_Buffer_Line2(3) -> Sys.Udata[21210];
+M_ASCII_Popup_Buffer_Line2(4) -> Sys.Udata[21211];
+M_ASCII_Popup_Buffer_Line2(5) -> Sys.Udata[21212];
+M_ASCII_Popup_Buffer_Line2(6) -> Sys.Udata[21213];
+
+M_ASCII_Popup_Buffer_Line3(0) -> Sys.Udata[21214];
+M_ASCII_Popup_Buffer_Line3(1) -> Sys.Udata[21215];
+M_ASCII_Popup_Buffer_Line3(2) -> Sys.Udata[21216];
+M_ASCII_Popup_Buffer_Line3(3) -> Sys.Udata[21217];
+M_ASCII_Popup_Buffer_Line3(4) -> Sys.Udata[21218];
+M_ASCII_Popup_Buffer_Line3(5) -> Sys.Udata[21219];
+M_ASCII_Popup_Buffer_Line3(6) -> Sys.Udata[21220];
+
+M_ASCII_Popup_Buffer_Line4(0) -> Sys.Udata[21221];
+M_ASCII_Popup_Buffer_Line4(1) -> Sys.Udata[21222];
+M_ASCII_Popup_Buffer_Line4(2) -> Sys.Udata[21223];
+M_ASCII_Popup_Buffer_Line4(3) -> Sys.Udata[21224];
+M_ASCII_Popup_Buffer_Line4(4) -> Sys.Udata[21225];
+M_ASCII_Popup_Buffer_Line4(5) -> Sys.Udata[21226];
+M_ASCII_Popup_Buffer_Line4(6) -> Sys.Udata[21227];
+
+M_ASCII_Popup_Buffer_Line5(0) -> Sys.Udata[21228];
+M_ASCII_Popup_Buffer_Line5(1) -> Sys.Udata[21229];
+M_ASCII_Popup_Buffer_Line5(2) -> Sys.Udata[21230];
+M_ASCII_Popup_Buffer_Line5(3) -> Sys.Udata[21231];
+M_ASCII_Popup_Buffer_Line5(4) -> Sys.Udata[21232];
+M_ASCII_Popup_Buffer_Line5(5) -> Sys.Udata[21233];
+M_ASCII_Popup_Buffer_Line5(6) -> Sys.Udata[21234];
+
+M_ASCII_Popup_Buffer_Line6(0) -> Sys.Udata[21235];
+M_ASCII_Popup_Buffer_Line6(1) -> Sys.Udata[21236];
+M_ASCII_Popup_Buffer_Line6(2) -> Sys.Udata[21237];
+M_ASCII_Popup_Buffer_Line6(3) -> Sys.Udata[21238];
+M_ASCII_Popup_Buffer_Line6(4) -> Sys.Udata[21239];
+M_ASCII_Popup_Buffer_Line6(5) -> Sys.Udata[21240];
+M_ASCII_Popup_Buffer_Line6(6) -> Sys.Udata[21241];
+
+M_ASCII_Popup_Buffer_Line7(0) -> Sys.Udata[21242];
+M_ASCII_Popup_Buffer_Line7(1) -> Sys.Udata[21243];
+M_ASCII_Popup_Buffer_Line7(2) -> Sys.Udata[21244];
+M_ASCII_Popup_Buffer_Line7(3) -> Sys.Udata[21245];
+M_ASCII_Popup_Buffer_Line7(4) -> Sys.Udata[21246];
+M_ASCII_Popup_Buffer_Line7(5) -> Sys.Udata[21247];
+M_ASCII_Popup_Buffer_Line7(6) -> Sys.Udata[21248];
+
+// "Cathode 1ST PNP T"
+Sys.Udata[5000] =	1752457539;
+Sys.Udata[5001] =	543515759;
+Sys.Udata[5002] =	542397233;
+Sys.Udata[5003] =	542133840;
+Sys.Udata[5004] =	84;
+Sys.Udata[5005] =	N_Dummy_Data;
+Sys.Udata[5006] =	N_Dummy_Data;
+
+// "Anode 1ST PNP T"
+Sys.Udata[5007] =	1685024321;
+Sys.Udata[5008] =	1395728485;
+Sys.Udata[5009] =	1313874004;
+Sys.Udata[5010] =	5513296;
+Sys.Udata[5011] =	N_Dummy_Data;
+Sys.Udata[5012] =	N_Dummy_Data;
+Sys.Udata[5013] =	N_Dummy_Data;
+
+// "Cathode 2ND PNP T"
+Sys.Udata[5014] =	1752457539;
+Sys.Udata[5015] =	543515759;
+Sys.Udata[5016] =	541347378;
+Sys.Udata[5017] =	542133840;
+Sys.Udata[5018] =	84;
+Sys.Udata[5019] =	N_Dummy_Data;
+Sys.Udata[5020] =	N_Dummy_Data;
+
+// "Anode 2ND PNP T"
+Sys.Udata[5021] =	1685024321;
+Sys.Udata[5022] =	1311907941;
+Sys.Udata[5023] =	1313873988;
+Sys.Udata[5024] =	5513296;
+Sys.Udata[5025] =	N_Dummy_Data;
+Sys.Udata[5026] =	N_Dummy_Data;
+Sys.Udata[5027] =	N_Dummy_Data;
+
+// "Cathode Clamp Y1"
+Sys.Udata[5028] =	1752457539;
+Sys.Udata[5029] =	543515759;
+Sys.Udata[5030] =	1835101251;
+Sys.Udata[5031] =	827924592;
+Sys.Udata[5032] =	N_Dummy_Data;
+Sys.Udata[5033] =	N_Dummy_Data;
+Sys.Udata[5034] =	N_Dummy_Data;
+
+// "Anode Clamp Y1"
+Sys.Udata[5035] =	1685024321;
+Sys.Udata[5036] =	1816338533;
+Sys.Udata[5037] =	544238945;
+Sys.Udata[5038] =	12633;
+Sys.Udata[5039] =	N_Dummy_Data;
+Sys.Udata[5040] =	N_Dummy_Data;
+Sys.Udata[5041] =	N_Dummy_Data;
+
+// "Cathode Clamp Y2"
+Sys.Udata[5042] =	1752457539;
+Sys.Udata[5043] =	543515759;
+Sys.Udata[5044] =	1835101251;
+Sys.Udata[5045] =	844701808;
+Sys.Udata[5046] =	N_Dummy_Data;
+Sys.Udata[5047] =	N_Dummy_Data;
+Sys.Udata[5048] =	N_Dummy_Data;
+
+// "Anode Clamp Y2"
+Sys.Udata[5049] =	1685024321;
+Sys.Udata[5050] =	1816338533;
+Sys.Udata[5051] =	544238945;
+Sys.Udata[5052] =	12889;
+Sys.Udata[5053] =	N_Dummy_Data;
+Sys.Udata[5054] =	N_Dummy_Data;
+Sys.Udata[5055] =	N_Dummy_Data;
+
+// "Cathode Clamp Z1"
+Sys.Udata[5056] =	1752457539;
+Sys.Udata[5057] =	543515759;
+Sys.Udata[5058] =	1835101251;
+Sys.Udata[5059] =	827990128;
+Sys.Udata[5060] =	N_Dummy_Data;
+Sys.Udata[5061] =	N_Dummy_Data;
+Sys.Udata[5062] =	N_Dummy_Data;
+
+// "Anode Clamp Z1"
+Sys.Udata[5063] =	1685024321;
+Sys.Udata[5064] =	1816338533;
+Sys.Udata[5065] =	544238945;
+Sys.Udata[5066] =	12634;
+Sys.Udata[5067] =	N_Dummy_Data;
+Sys.Udata[5068] =	N_Dummy_Data;
+Sys.Udata[5069] =	N_Dummy_Data;
+
+// "Main Z"
+Sys.Udata[5070] =	1852399949;
+Sys.Udata[5071] =	23072;
+Sys.Udata[5072] =	N_Dummy_Data;
+Sys.Udata[5073] =	N_Dummy_Data;
+Sys.Udata[5074] =	N_Dummy_Data;
+Sys.Udata[5075] =	N_Dummy_Data;
+Sys.Udata[5076] =	N_Dummy_Data;
+
+// "Final Roll X"
+Sys.Udata[5077] =	1634625862;
+Sys.Udata[5078] =	1867653228;
+Sys.Udata[5079] =	1478519916;
+Sys.Udata[5080] =	N_Dummy_Data;
+Sys.Udata[5081] =	N_Dummy_Data;
+Sys.Udata[5082] =	N_Dummy_Data;
+Sys.Udata[5083] =	N_Dummy_Data;
+
+// "Final Roll Z"
+Sys.Udata[5084] =	1634625862;
+Sys.Udata[5085] =	1867653228;
+Sys.Udata[5086] =	1512074348;
+Sys.Udata[5087] =	N_Dummy_Data;
+Sys.Udata[5088] =	N_Dummy_Data;
+Sys.Udata[5089] =	N_Dummy_Data;
+Sys.Udata[5090] =	N_Dummy_Data;
+
+// "Sub Feeding Roll"
+Sys.Udata[5091] =	543323475;
+Sys.Udata[5092] =	543649385;
+Sys.Udata[5093] =	1819045714;
+Sys.Udata[5094] =	N_Dummy_Data;
+Sys.Udata[5095] =	N_Dummy_Data;
+Sys.Udata[5096] =	N_Dummy_Data;
+Sys.Udata[5097] =	N_Dummy_Data;
+
+// "Driving Roll"
+Sys.Udata[5098] =	1986622020;
+Sys.Udata[5099] =	543649385;
+Sys.Udata[5100] =	1819045714;
+Sys.Udata[5101] =	N_Dummy_Data;
+Sys.Udata[5102] =	N_Dummy_Data;
+Sys.Udata[5103] =	N_Dummy_Data;
+Sys.Udata[5104] =	N_Dummy_Data;
+
+// "Servo Dancer"
+Sys.Udata[5105] =	1987208531;
+Sys.Udata[5106] =	1631854703;
+Sys.Udata[5107] =	1919247214;
+Sys.Udata[5108] =	N_Dummy_Data;
+Sys.Udata[5109] =	N_Dummy_Data;
+Sys.Udata[5110] =	N_Dummy_Data;
+Sys.Udata[5111] =	N_Dummy_Data;
+
+// "Cathode 1ST PNP Z"
+Sys.Udata[5112] =	1752457539;
+Sys.Udata[5113] =	543515759;
+Sys.Udata[5114] =	542397233;
+Sys.Udata[5115] =	542133840;
+Sys.Udata[5116] =	90;
+Sys.Udata[5117] =	N_Dummy_Data;
+Sys.Udata[5118] =	N_Dummy_Data;
+
+// "Anode 1ST PNP Z"
+Sys.Udata[5119] =	1685024321;
+Sys.Udata[5120] =	1395728485;
+Sys.Udata[5121] =	1313874004;
+Sys.Udata[5122] =	5906512;
+Sys.Udata[5123] =	N_Dummy_Data;
+Sys.Udata[5124] =	N_Dummy_Data;
+Sys.Udata[5125] =	N_Dummy_Data;
+
+// "Cathode 1ST Picker T"
+Sys.Udata[5126] =	1752457539;
+Sys.Udata[5127] =	543515759;
+Sys.Udata[5128] =	542397233;
+Sys.Udata[5129] =	1801677136;
+Sys.Udata[5130] =	1411412581;
+Sys.Udata[5131] =	N_Dummy_Data;
+Sys.Udata[5132] =	N_Dummy_Data;
+
+// "Anode 1ST Picker T"
+Sys.Udata[5133] =	1685024321;
+Sys.Udata[5134] =	1395728485;
+Sys.Udata[5135] =	1766858836;
+Sys.Udata[5136] =	1919249251;
+Sys.Udata[5137] =	21536;
+Sys.Udata[5138] =	N_Dummy_Data;
+Sys.Udata[5139] =	N_Dummy_Data;
+
+// "Cathode 2ND PNP Z"
+Sys.Udata[5140] =	1752457539;
+Sys.Udata[5141] =	543515759;
+Sys.Udata[5142] =	541347378;
+Sys.Udata[5143] =	542133840;
+Sys.Udata[5144] =	90;
+Sys.Udata[5145] =	N_Dummy_Data;
+Sys.Udata[5146] =	N_Dummy_Data;
+
+// "Anode 2ND PNP Z"
+Sys.Udata[5147] =	1685024321;
+Sys.Udata[5148] =	1311907941;
+Sys.Udata[5149] =	1313873988;
+Sys.Udata[5150] =	5906512;
+Sys.Udata[5151] =	N_Dummy_Data;
+Sys.Udata[5152] =	N_Dummy_Data;
+Sys.Udata[5153] =	N_Dummy_Data;
+
+// "Unwinder Upper"
+Sys.Udata[5154] =	1769434709;
+Sys.Udata[5155] =	1919247470;
+Sys.Udata[5156] =	1886410016;
+Sys.Udata[5157] =	29285;
+Sys.Udata[5158] =	N_Dummy_Data;
+Sys.Udata[5159] =	N_Dummy_Data;
+Sys.Udata[5160] =	N_Dummy_Data;
+
+// "Unwinder Lower"
+Sys.Udata[5161] =	1769434709;
+Sys.Udata[5162] =	1919247470;
+Sys.Udata[5163] =	2003782688;
+Sys.Udata[5164] =	29285;
+Sys.Udata[5165] =	N_Dummy_Data;
+Sys.Udata[5166] =	N_Dummy_Data;
+Sys.Udata[5167] =	N_Dummy_Data;
+
+// "Cathode Clamp Z2"
+Sys.Udata[5168] =	1752457539;
+Sys.Udata[5169] =	543515759;
+Sys.Udata[5170] =	1835101251;
+Sys.Udata[5171] =	844767344;
+Sys.Udata[5172] =	N_Dummy_Data;
+Sys.Udata[5173] =	N_Dummy_Data;
+Sys.Udata[5174] =	N_Dummy_Data;
+
+// "Anode Clamp Z2"
+Sys.Udata[5175] =	1685024321;
+Sys.Udata[5176] =	1816338533;
+Sys.Udata[5177] =	544238945;
+Sys.Udata[5178] =	12890;
+Sys.Udata[5179] =	N_Dummy_Data;
+Sys.Udata[5180] =	N_Dummy_Data;
+Sys.Udata[5181] =	N_Dummy_Data;
+
+// "EPC Sensor"
+Sys.Udata[5182] =	541282373;
+Sys.Udata[5183] =	1936614739;
+Sys.Udata[5184] =	29295;
+Sys.Udata[5185] =	N_Dummy_Data;
+Sys.Udata[5186] =	N_Dummy_Data;
+Sys.Udata[5187] =	N_Dummy_Data;
+Sys.Udata[5188] =	N_Dummy_Data;
+
+// "Stack Vision"
+Sys.Udata[5189] =	1667331155;
+Sys.Udata[5190] =	1767252075;
+Sys.Udata[5191] =	1852795251;
+Sys.Udata[5192] =	N_Dummy_Data;
+Sys.Udata[5193] =	N_Dummy_Data;
+Sys.Udata[5194] =	N_Dummy_Data;
+Sys.Udata[5195] =	N_Dummy_Data;
+
+// "Sheet Paper X"
+Sys.Udata[5196] =	1701144659;
+Sys.Udata[5197] =	1632641140;
+Sys.Udata[5198] =	544367984;
+Sys.Udata[5199] =	88;
+Sys.Udata[5200] =	N_Dummy_Data;
+Sys.Udata[5201] =	N_Dummy_Data;
+Sys.Udata[5202] =	N_Dummy_Data;
+
+// "Cathode Align X"
+Sys.Udata[5203] =	1752457539;
+Sys.Udata[5204] =	543515759;
+Sys.Udata[5205] =	1734962241;
+Sys.Udata[5206] =	5775470;
+Sys.Udata[5207] =	N_Dummy_Data;
+Sys.Udata[5208] =	N_Dummy_Data;
+Sys.Udata[5209] =	N_Dummy_Data;
+
+// "Cathode Align Y"
+Sys.Udata[5210] =	1752457539;
+Sys.Udata[5211] =	543515759;
+Sys.Udata[5212] =	1734962241;
+Sys.Udata[5213] =	5841006;
+Sys.Udata[5214] =	N_Dummy_Data;
+Sys.Udata[5215] =	N_Dummy_Data;
+Sys.Udata[5216] =	N_Dummy_Data;
+
+// "Cathode Align T"
+Sys.Udata[5217] =	1752457539;
+Sys.Udata[5218] =	543515759;
+Sys.Udata[5219] =	1734962241;
+Sys.Udata[5220] =	5513326;
+Sys.Udata[5221] =	N_Dummy_Data;
+Sys.Udata[5222] =	N_Dummy_Data;
+Sys.Udata[5223] =	N_Dummy_Data;
+
+// "Anode Align X"
+Sys.Udata[5224] =	1685024321;
+Sys.Udata[5225] =	1816207461;
+Sys.Udata[5226] =	544106345;
+Sys.Udata[5227] =	88;
+Sys.Udata[5228] =	N_Dummy_Data;
+Sys.Udata[5229] =	N_Dummy_Data;
+Sys.Udata[5230] =	N_Dummy_Data;
+
+// "Anode Align Y"
+Sys.Udata[5231] =	1685024321;
+Sys.Udata[5232] =	1816207461;
+Sys.Udata[5233] =	544106345;
+Sys.Udata[5234] =	89;
+Sys.Udata[5235] =	N_Dummy_Data;
+Sys.Udata[5236] =	N_Dummy_Data;
+Sys.Udata[5237] =	N_Dummy_Data;
+
+// "Anode Align T"
+Sys.Udata[5238] =	1685024321;
+Sys.Udata[5239] =	1816207461;
+Sys.Udata[5240] =	544106345;
+Sys.Udata[5241] =	84;
+Sys.Udata[5242] =	N_Dummy_Data;
+Sys.Udata[5243] =	N_Dummy_Data;
+Sys.Udata[5244] =	N_Dummy_Data;
+
+// "Cathode NG PNP T"
+Sys.Udata[5245] =	1752457539;
+Sys.Udata[5246] =	543515759;
+Sys.Udata[5247] =	1344292686;
+Sys.Udata[5248] =	1411403854;
+Sys.Udata[5249] =	N_Dummy_Data;
+Sys.Udata[5250] =	N_Dummy_Data;
+Sys.Udata[5251] =	N_Dummy_Data;
+
+// "Anode NG PNP T"
+Sys.Udata[5252] =	1685024321;
+Sys.Udata[5253] =	1196302437;
+Sys.Udata[5254] =	1347309600;
+Sys.Udata[5255] =	21536;
+Sys.Udata[5256] =	N_Dummy_Data;
+Sys.Udata[5257] =	N_Dummy_Data;
+Sys.Udata[5258] =	N_Dummy_Data;
+
+// "Cathode NG PNP Z"
+Sys.Udata[5259] =	1752457539;
+Sys.Udata[5260] =	543515759;
+Sys.Udata[5261] =	1344292686;
+Sys.Udata[5262] =	1512067150;
+Sys.Udata[5263] =	N_Dummy_Data;
+Sys.Udata[5264] =	N_Dummy_Data;
+Sys.Udata[5265] =	N_Dummy_Data;
+
+// "Anode NG PNP Z"
+Sys.Udata[5266] =	1685024321;
+Sys.Udata[5267] =	1196302437;
+Sys.Udata[5268] =	1347309600;
+Sys.Udata[5269] =	23072;
+Sys.Udata[5270] =	N_Dummy_Data;
+Sys.Udata[5271] =	N_Dummy_Data;
+Sys.Udata[5272] =	N_Dummy_Data;
+
+// "1ST Unloader X"
+Sys.Udata[5273] =	542397233;
+Sys.Udata[5274] =	1869377109;
+Sys.Udata[5275] =	1919247457;
+Sys.Udata[5276] =	22560;
+Sys.Udata[5277] =	N_Dummy_Data;
+Sys.Udata[5278] =	N_Dummy_Data;
+Sys.Udata[5279] =	N_Dummy_Data;
+
+// "1ST Unloader Y"
+Sys.Udata[5280] =	542397233;
+Sys.Udata[5281] =	1869377109;
+Sys.Udata[5282] =	1919247457;
+Sys.Udata[5283] =	22816;
+Sys.Udata[5284] =	N_Dummy_Data;
+Sys.Udata[5285] =	N_Dummy_Data;
+Sys.Udata[5286] =	N_Dummy_Data;
+
+// "1ST Unloader T"
+Sys.Udata[5287] =	542397233;
+Sys.Udata[5288] =	1869377109;
+Sys.Udata[5289] =	1919247457;
+Sys.Udata[5290] =	21536;
+Sys.Udata[5291] =	N_Dummy_Data;
+Sys.Udata[5292] =	N_Dummy_Data;
+Sys.Udata[5293] =	N_Dummy_Data;
+
+// "Other Side Cathode 1ST PNP T"
+Sys.Udata[5294] =	1701344335;
+Sys.Udata[5295] =	1767055474;
+Sys.Udata[5296] =	1126196580;
+Sys.Udata[5297] =	1869116513;
+Sys.Udata[5298] =	824206692;
+Sys.Udata[5299] =	1344296019;
+Sys.Udata[5300] =	1411403854;
+
+// "Other Side Anode 1ST PNP T"
+Sys.Udata[5301] =	1701344335;
+Sys.Udata[5302] =	1767055474;
+Sys.Udata[5303] =	1092642148;
+Sys.Udata[5304] =	1701080942;
+Sys.Udata[5305] =	1414738208;
+Sys.Udata[5306] =	1347309600;
+Sys.Udata[5307] =	21536;
+

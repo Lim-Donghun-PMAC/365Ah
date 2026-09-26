@@ -1,0 +1,81 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.09 김성중 선임
+// MSA 모듈화 프로그래밍 진행 - [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+// 25.07.28 김성중 선임 
+// Cal, Cleaning 위치 이동, Align 탈착 모드 프로그래밍 진행 - [ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ] 
+
+open plc 23
+
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+	
+Local L_Time_Cycle_Up_Count_Start_Time;						// Plc[23].ldata.L[0] 시간 체크 시작 시간
+Local L_Time_Cycle_Up_Count_End_Time;						// Plc[23].ldata.L[1] 시간 체크 종료 시간
+Local L_Time_Cycle_Up_Count_Delta_Time;						// Plc[23].ldata.L[2] 시작과 종료 시간 사이의 시간
+Local L_Flag_Cycle_Up_Count_Init_Flag;						// Plc[23].ldata.L[3] 타이머 초기화 플래그
+local L_Module_Interval_Timer;								// Plc[23].ldata.L[4] 인터벌 타이머
+local L_Act_Management_Active;								// Plc[23].ldata.L[5] 동작 커맨드 관리
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+	
+// 00.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{		
+	
+	L_Module_Interval_Timer = L_Module_Interval_Timer +	L_Time_Cycle_Up_Count_Delta_Time;
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+//-----------------------------------------------------------------------------------------------------------------
+
+if ( L_Module_Interval_Timer > 5 )
+{
+	L_Module_Interval_Timer = 0;						// 인터벌 타이머 초기화
+
+	// 1.2. 서브 프로그램 활성화 
+	if ( P_PMAC_Current_Mode == F_Current_Manual )
+	{
+		L_Act_Management_Active = F_Status_STARTING;	// 오토 서브 프로그램 _ 동작 커맨드 관리 실행
+	}
+	else
+	{
+		L_Act_Management_Active = F_Status_STOPPING;	// 오토 서브 프로그램 _ 동작 커맨드 관리 정지
+	}
+}
+
+//-------------------------------------------------------------------------------------------------- //
+
+// 2. 동작 커맨드 감시 부분 _ 동작 커맨드 관리 -> 시퀀스에서 동작 살리면 
+if ( L_Act_Management_Active == F_Status_STARTING )
+{
+	// 2.1. 동작 커맨드 감시 _ 동작 커맨드 서치 (동작 활성화)
+	P_Except_Return_Array(N_Vision_Manual_Management_RTN) = 0;
+	call Subprog_Mainprocess_VISION_Manual_Act_Module.Management(&P_Except_Return_Array(N_Vision_Manual_Management_RTN))
+
+	if ( P_Except_Return_Array(N_Vision_Manual_Management_RTN) != N_TRUE )
+	{
+		// 동작 이상 알람 발생
+	}
+}
+
+Close

@@ -1,0 +1,57 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+//#define N_NIPROLL				0
+//#define N_PLATE				1
+//#define N_PLATE_Clamp			2
+//#define N_Cutter				3
+//#define N_Plate_Vac			4
+//
+//global P_ARC_TEST_Flag = 0;
+//global P_ARC_Frist_Start = 0;
+//global P_BTN_Program_Test = 0;
+
+global P_Mem_Save_Error_Bit = 0;		// save 잘 되었는지 모니터링 변수
+global P_ABS_Phasing_Data(5);			// ABS Phasing Data
+global P_ABS_Home_Offset_Data(5);		// ABS Home Offset Data
+global P_Servo_Gain_Save_Command = 0;	// 저장 커맨드
+global P_Servo_Gain_Load_Command = 0;	// 불러오기 커맨드
+global P_Servo_Gain_Save_Flag = 0;		// 저장 플래그
+global P_Servo_Gain_Load_Flag = 0;		// 불러오기 플래그
+
+global P_Servo_Gain_Kp(30)
+P_Servo_Gain_Kp(0),30 = 0;				
+global P_Servo_Gain_Kvfb(30)
+P_Servo_Gain_Kvfb(0),30 = 0;
+global P_Servo_Gain_Kvff(30)
+P_Servo_Gain_Kvff(0),30 = 0;
+global P_Servo_Gain_Ki(30)
+P_Servo_Gain_Ki(0),30 = 0;
+global P_Servo_Gain_SwZvInt(30)
+P_Servo_Gain_SwZvInt(0),30 = 0;
+global P_Servo_Gain_Kaff(30)
+P_Servo_Gain_Kaff(0),30 = 0;
+
+P_ABS_Phasing_Data(1) = 0;		//2224453;	16a
+P_ABS_Phasing_Data(2) = 0;		//4618573;	16a
+P_ABS_Phasing_Data(3) = 0;		//4617955;	16a
+P_ABS_Phasing_Data(4) = 0;		//2815166;	16a
+
+#ifdef F_Def_Stack_A
+	P_ABS_Home_Offset_Data(1) = 52248;		
+	P_ABS_Home_Offset_Data(2) = -249646;
+	P_ABS_Home_Offset_Data(3) = 165157;
+	P_ABS_Home_Offset_Data(4) = -135542;
+#endif
+
+#ifdef F_Def_Stack_B
+	P_ABS_Home_Offset_Data(1) = -248573;		
+	P_ABS_Home_Offset_Data(2) = 49734;		
+	P_ABS_Home_Offset_Data(3) = -138514;	
+	P_ABS_Home_Offset_Data(4) = 164728;		
+#endif
+
+global P_Insert_Phase_Flag = 0;

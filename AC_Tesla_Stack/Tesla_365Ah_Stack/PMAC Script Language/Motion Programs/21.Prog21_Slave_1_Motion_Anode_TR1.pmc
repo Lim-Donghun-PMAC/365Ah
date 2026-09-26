@@ -1,0 +1,155 @@
+
+
+&21
+#2-> 1000tt		// 음극 1차 PNP T축
+//#18-> 1000z		// 음극 1차 PNP Z축
+#20->1000pp		//음극 1차 PICKER T축 신규 추가.	[ 참조 : 26.08.14 PickerT 모션 변경 ]
+//===============//
+
+
+
+open prog 21
+	
+	ABS					// 절대좌표모드
+	LINEAR
+	
+	while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(1) == 1 && P_Slave_Motion_Program_Flag(1) == 1 )
+	{	// 프로그램 허용 플래그
+	
+		Switch ( P_Slave1_Motion_Command )
+		{	
+			// 커멘드별 모션
+			case 0:
+			break;
+
+			// case 1
+			case N_1st_PNP_Belt_To_Align_Motion :								// 음극 1차 PNP 벨트 -> 얼라인 이동
+				P_Anode_1TR_T_Belt_To_Align = P_Master_Motion_Trigger
+				P_Slave1_Motion_Command == 0;
+				P_A_1st_PNP_FWD_Abort_Calc_Bit == 1;							// Abort Calc 진행 Bit.		[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+				P_A_1st_PNP_FWD_Restore_Bit == 1;								// Abort 완료 후 원복 Bit.	[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+				P_First_PNP_T_Belt_To_Align_Status == F_Status_EXECUTE;			// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				P_First_PNP_Picker_T_Turn_Status == F_Status_EXECUTE;			// PickerT 모션 동작 상태 추가						[ 참조 : 26.08.14 PickerT 모션 변경 ]	
+				dwell(0)
+				linear
+				tm(115) ta(80) ts(30)		// 230ms
+				tt(P_Anode_1TR_T_Align_POS) pp(P_Anode_1TR_Picker_T_Align_POS)	// 음극 PickerT 벨트 -> 얼라인 위치 이동 모션 추가.	[ 참조 : 26.08.14 PickerT 모션 변경 ]				
+				// tt(P_Anode_1st_T_Belt_To_Align) z(P_Anode_1st_Z_Ready_Up)	// [ 참조 : 25.09.01 추후 레시피로 받을때 상수->레시피변수로변경 ]
+				dwell(0)
+				if ( P_SemiRun_Anode_1th_AT_T_Axis_Pos_Flag == 1 )				// PV 항목 : 위치 값 보고 (세미 런 진입 + 모터 이동 완료 후 위치 값 저장)	[ 참조 : 26.09.14 MES PV 수정 ]
+				{
+					P_Motion_Anode_1th_AT_T_Axis_Pos_Flag == 1;					// 위치 값 저장 Flag On.
+				}
+				P_Anode_1st_Motion_Complete == 1
+				P_A_1st_PNP_FWD_Abort_Calc_Bit == 0;							// Abort Calc 진행 Bit.		[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+				P_First_PNP_T_Belt_To_Align_Status == F_Status_COMPLETE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				P_First_PNP_Picker_T_Turn_Status == F_Status_COMPLETE;			// PickerT 모션 동작 상태 추가						[ 참조 : 26.08.14 PickerT 모션 변경 ]	
+				dwell(0)
+			break;
+
+			// case 2
+			case N_1st_PNP_Align_To_Belt_Motion :								// 음극 1차 PNP 얼라인 -> 벨트 이동
+				P_Anode_1TR_T_Align_To_Belt = P_Master_Motion_Trigger
+				P_Slave1_Motion_Command == 0;
+				P_A_1st_PNP_BWD_Abort_Calc_Bit == 1;							// Abort Calc 진행 Bit.		[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+				P_A_1st_PNP_BWD_Restore_Bit == 1;								// Abort 완료 후 원복 Bit.	[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+				P_First_PNP_T_Align_To_Belt_Status == F_Status_EXECUTE;			// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				P_First_PNP_Picker_T_Turn_Status == F_Status_EXECUTE;			// PickerT 모션 동작 상태 추가						[ 참조 : 26.08.14 PickerT 모션 변경 ]	
+				// [ 참조 : 26.05.06 1,2차,NG PNP 및 얼라인 흡착 해제 타이밍 수정 ]
+				if( (Sys_Anode_1st_Sheet_LO_Vision_BYTE & Hex_Cell_Existence) == 0 )
+				{
+					M_Y_Anode_1st_Vac_Sol_On == 0;						// 흡착 ON
+					M_Y_Anode_1st_Vac_Sol_Off == 0;						// 흡착 OFF
+				}
+				dwell(0)
+				linear
+				tm(115) ta(80) ts(30)		// 230ms
+				tt(P_Anode_1TR_T_Belt_POS) pp(P_Anode_1TR_Picker_T_Belt_POS)	// 음극 PickerT 얼라인 -> 벨트 위치 이동 모션 추가.	[ 참조 : 26.08.14 PickerT 모션 변경 ]	
+				//tt(P_Anode_1st_T_Align_To_Belt) z(P_Anode_1st_Z_Ready_Up)     // [ 참조 : 25.09.01 추후 레시피로 받을때 상수->레시피변수로변경 ]
+				dwell(0)
+				if ( P_SemiRun_Anode_1th_CV_T_Axis_Pos_Flag == 1 )				// PV 항목 : 위치 값 보고 (세미 런 진입 + 모터 이동 완료 후 위치 값 저장)	[ 참조 : 26.09.14 MES PV 수정 ]
+				{
+					P_Motion_Anode_1th_CV_T_Axis_Pos_Flag == 1;					// 위치 값 저장 Flag On.
+				}
+				P_Anode_1st_Motion_Complete == 1
+				P_A_1st_PNP_BWD_Abort_Calc_Bit == 0;							// Abort Calc 진행 Bit.		[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+				P_First_PNP_T_Align_To_Belt_Status == F_Status_COMPLETE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				P_First_PNP_Picker_T_Turn_Status == F_Status_COMPLETE;			// PickerT 모션 동작 상태 추가						[ 참조 : 26.08.14 PickerT 모션 변경 ]
+				dwell(0)
+			break;
+
+			// case 9
+			case N_1st_PNP_Ready_Pos_Motion :				// 음극 1차 PNP 대기위치 이동
+				P_Anode_1TR_T_Ready_Pos = P_Master_Motion_Trigger
+				P_Slave1_Motion_Command = 0
+				P_First_PNP_T_Wait_Status == F_Status_EXECUTE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				linear
+				//ta(90) ts(20) tm(115) 						// 230ms		
+				//ta(50) ts(15) tm(100) 						// 170ms
+				tm(P_PNP_Ready_TM) ta(P_PNP_Ready_TA) ts(P_PNP_Ready_TS) 							// 170ms	
+				tt(P_Anode_1TR_T_Ready_POS) //z(24)
+				// tt(P_Anode_1st_T_Ready) z(P_Anode_1st_Z_Ready_Up)  // [ 참조 : 25.09.01 추후 레시피로 받을때 상수->레시피변수로변경 ]
+				P_Anode_1st_Motion_Complete == 1
+				P_Anode_Suspend_Supply_Complete(N_Supply_to_Ready) == 1;
+				P_First_PNP_T_Wait_Status == F_Status_COMPLETE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				dwell(0)
+			break;
+
+			// case 10
+			case N_1st_PNP_Ready_To_Align_Motion :								// 음극 1차 PNP 대기 -> 얼라인 이동
+				P_Anode_1TR_T_Ready_To_Align = P_Master_Motion_Trigger
+				P_Slave1_Motion_Command = 0
+				P_First_PNP_T_Wait_To_Align_Status == F_Status_EXECUTE;			// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				P_First_PNP_Picker_T_Turn_Status == F_Status_EXECUTE;			// PickerT 모션 동작 상태 추가						[ 참조 : 26.08.14 PickerT 모션 변경 ]	
+				linear
+				tm(P_PNP_45_Deg_TM) ta(P_PNP_45_Deg_TA) ts(P_PNP_45_Deg_TS)	
+				tt(P_Anode_1TR_T_Align_POS) pp(P_Anode_1TR_Picker_T_Align_POS)	// 음극 PickerT 대기 -> 얼라인 위치 이동 모션 추가.	[ 참조 : 26.08.14 PickerT 모션 변경 ]	
+				dwell(0)
+				if ( P_SemiRun_Anode_1th_AT_T_Axis_Pos_Flag == 1 )				// PV 항목 : 위치 값 보고 (세미 런 진입 + 모터 이동 완료 후 위치 값 저장)	[ 참조 : 26.09.14 MES PV 수정 ]
+				{
+					P_Motion_Anode_1th_AT_T_Axis_Pos_Flag == 1;					// 위치 값 저장 Flag On.
+				}
+				P_Anode_1st_Motion_Complete == 1
+				P_First_PNP_T_Wait_To_Align_Status == F_Status_COMPLETE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				P_First_PNP_Picker_T_Turn_Status == F_Status_COMPLETE;			// PickerT 모션 동작 상태 추가						[ 참조 : 26.08.14 PickerT 모션 변경 ]
+				dwell(0)
+			break;
+
+			// case 11
+			case N_1st_PNP_Ready_To_Belt_Motion :						// 음극 1차 PNP 대기 -> 벨트 이동
+				P_Anode_1TR_T_Ready_To_Belt = P_Master_Motion_Trigger
+				P_Slave1_Motion_Command = 0
+				P_First_PNP_T_Wait_To_Belt_Status == F_Status_EXECUTE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				P_First_PNP_Picker_T_Turn_Status == F_Status_EXECUTE;			// PickerT 모션 동작 상태 추가						[ 참조 : 26.08.14 PickerT 모션 변경 ]	
+				// [ 참조 : 26.05.06 1,2차,NG PNP 및 얼라인 흡착 해제 타이밍 수정 ]
+				if( (Sys_Anode_1st_Sheet_LO_Vision_BYTE & Hex_Cell_Existence) == 0 )
+				{
+					M_Y_Anode_1st_Vac_Sol_On == 0;						// 흡착 ON
+					M_Y_Anode_1st_Vac_Sol_Off == 0;						// 흡착 OFF
+				}
+				dwell(0)
+				linear
+				tm(P_PNP_45_Deg_TM) ta(P_PNP_45_Deg_TA) ts(P_PNP_45_Deg_TS)	
+				tt(P_Anode_1TR_T_Belt_POS) pp(P_Anode_1TR_Picker_T_Belt_POS)	// 음극 PickerT 대기 -> 벨트 위치 이동 모션 추가.	[ 참조 : 26.08.14 PickerT 모션 변경 ]	
+				dwell(0)
+				if ( P_SemiRun_Anode_1th_CV_T_Axis_Pos_Flag == 1 )				// PV 항목 : 위치 값 보고 (세미 런 진입 + 모터 이동 완료 후 위치 값 저장)	[ 참조 : 26.09.14 MES PV 수정 ]
+				{
+					P_Motion_Anode_1th_CV_T_Axis_Pos_Flag == 1;					// 위치 값 저장 Flag On.
+				}
+				P_Anode_1st_Motion_Complete == 1
+				P_Anode_Suspend_Supply_Complete(N_Supply_to_Belt) == 1;
+				P_First_PNP_T_Wait_To_Belt_Status == F_Status_COMPLETE;			// Hold 모듈 모션 동작 상태 확인.					[ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				P_First_PNP_Picker_T_Turn_Status == F_Status_COMPLETE;			// PickerT 모션 동작 상태 추가					[ 참조 : 26.08.14 PickerT 모션 변경 ]
+				dwell(0)
+			break;
+
+
+			default :
+				P_Slave1_Motion_Command = 0;
+			break;
+
+		}
+		
+	}
+
+close

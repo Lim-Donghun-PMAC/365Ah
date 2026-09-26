@@ -1,0 +1,453 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 2025.08.26 MES PV 영역 보고 추가 [ 참조 : 2025.08.26 MES PV 영역 보고 추가 ] - 김성중 선임
+
+open plc 16
+P_MNTR_PLC20_Task_Time(0) = Sys.Time;
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[20].ldata.L[0]	시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[20].ldata.L[1]	시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[20].ldata.L[2]	시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[20].ldata.L[3]	타이머 초기화 플래그
+
+Local	L_MES_Comunication_Timer;						// Plc[20].ldata.L[4]	MES 1,2차 실시간 영역 타이머
+local	L_CA_Cmd_Z_Deg;									// Plc[20].ldata.L[5]	PnP Z축 Command Deg 값 저장 변수
+local	L_AN_Cmd_Z_Deg;									// Plc[20].ldata.L[6]	PnP Z축 Command Deg 값 저장 변수
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if(L_Flag_Cycle_Up_Count_Init_Flag == 0)
+{
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 00.2) 시간 체크
+if(L_Flag_Cycle_Up_Count_Init_Flag == 1)
+{
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * 1000
+
+	if(L_Time_Cycle_Up_Count_Delta_Time < 0)
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+// 00.3) 시간 업데이트
+if(L_Time_Cycle_Up_Count_Delta_Time > 0.1)
+{
+	
+	L_MES_Comunication_Timer = L_MES_Comunication_Timer + L_Time_Cycle_Up_Count_Delta_Time; 
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+// --------------------User Code Goes Here------------------------
+
+// 명령부
+// 세미 런 모드 진입 시 캡쳐 플래그 ON
+If ( P_PLC01_SemiRun_PV_Flag == 1 )							// MES PV영역 보고 플래그  ) 
+{ 
+	P_PLC01_SemiRun_PV_Flag = 0;
+	// 압력 체크
+	P_SemiRun_Separator_Dancer_Pressure_Flag = 1;		// Semi Run 모드 시 Separator_Dancer_압력_B열 캡쳐 플래그
+	P_SemiRun_Cathode_Clamp_Pressure_Flag = 1;			// Semi Run 모드 시 Clamp 압력_양극??항_B열 캡쳐 플래그
+    P_SemiRun_Anoode_Clamp_Pressure_Flag = 1;			// Semi Run 모드 시 Clamp 압력_음극??항_B열 캡쳐 플래그
+	// 모터 위치 
+	P_SemiRun_Cathode_Final_Roller_X_Axis_Flag = 1;			// Final Roller 양극방향 X축 위치_B열 캡쳐 플래그
+	P_SemiRun_Anode_Final_Roller_X_Axis_Flag = 1;			// Final Roller 음극방향 X축 위치_B열 캡쳐 플래그
+	P_SemiRun_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag = 1;		// Clamp 전진(X1,Z1축) 위치_양극뱡항_B열 캡쳐 플래그
+	P_SemiRun_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag = 1;		// Clamp 전진(X2,Z2축) 위치_양극뱡항_B열 캡쳐 플래그
+	P_SemiRun_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag = 1;		// Clamp 전진(X1,Z1축) 위치_음극뱡항_B열 캡쳐 플래그
+	P_SemiRun_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag = 1;		// Clamp 전진(X2,Z2축) 위치_음극뱡항_B열 캡쳐 플래그
+	P_SemiRun_Cathode_2th_AT_T_Axis_Pos_Flag = 1;			// 양극 2차 PNP T축 Align 위치_B열 캡쳐 플래그
+	P_SemiRun_Cathode_2th_ST_T_Axis_Pos_Flag = 1;			// 양극 2차 PNP T축 Stack table 위치_B열 캡쳐 플래그
+	P_SemiRun_Cathode_2th_AT_Z_Axis_Pos_Flag = 1;			// 양극 2차 PNP Z축 Align 위치_B열 캡쳐 플래그
+	P_SemiRun_Cathode_2th_ST_Z_Axis_Pos_Flag = 1;			// 양극 2차 PNP Z축 Stack 위치_B열 캡쳐 플래그
+	P_SemiRun_Anode_2th_AT_T_Axis_Pos_Flag = 1;				// 음극 2차 PNP T축 Align 위치_B열 캡쳐 플래그
+	P_SemiRun_Anode_2th_ST_T_Axis_Pos_Flag = 1;				// 음극 2차 PNP T축 Stack 위치_B열 캡쳐 플래그
+	P_SemiRun_Anode_2th_AT_Z_Axis_Pos_Flag = 1;				// 음극 2차 PNP Z축 Align 위치_B열 캡쳐 플래그
+	P_SemiRun_Anode_2th_ST_Z_Axis_Pos_Flag = 1;				// 음극 2차 PNP Z축 Stack 위치_B열 캡쳐 플래그
+	P_SemiRun_Cathode_1th_Ready_T_Axis_Pos_Flag = 1;		// 양극 1차 PNP T축 대기 위치_B열 캡쳐 플래그
+	P_SemiRun_Cathode_1th_CV_T_Axis_Pos_Flag = 1;			// 양극 1차 PNP T축 컨베이어 위치_B열 캡쳐 플래그
+	P_SemiRun_Cathode_1th_AT_T_Axis_Pos_Flag = 1;			// 양극 1차 PNP T축 Align 위치_B열 캡쳐 플래그
+	P_SemiRun_Cathode_1th_Ready_Z_Axis_Pos_Flag = 1;		// 양극 1차 PNP Z축 대기 위치_B열 캡쳐 플래그
+	P_SemiRun_Cathode_1th_CV_Z_Axis_Pos_Flag = 1;			// 양극 1차 PNP Z축 컨베이어 위치_B열 캡쳐 플래그
+	P_SemiRun_Cathode_1th_AT_Z_Axis_Pos_Flag = 1;			// 양극 1차 PNP Z축 Align 위치_B열 캡쳐 플래그
+	P_SemiRun_Anode_1th_Ready_T_Axis_Pos_Flag = 1;			// 음극 1차 PNP T축 대기 위치_B열 캡쳐 플래그
+	P_SemiRun_Anode_1th_CV_T_Axis_Pos_Flag = 1;				// 음극 1차 PNP T축 컨베이어 위치_B열 캡쳐 플래그
+	P_SemiRun_Anode_1th_AT_T_Axis_Pos_Flag = 1;				// 음극 1차 PNP T축 Align 위치_B열 캡쳐 플래그
+	P_SemiRun_Anode_1th_Ready_Z_Axis_Pos_Flag = 1;			// 음극 1차 PNP Z축 대기 위치_B열 캡쳐 플래그
+	P_SemiRun_Anode_1th_CV_Z_Axis_Pos_Flag = 1;				// 음극 1차 PNP Z축 컨베이어 위치_B열 캡쳐 플래그
+	P_SemiRun_Anode_1th_AT_Z_Axis_Pos_Flag = 1;				// 음극 1차 PNP Z축 Align 위치_B열 캡쳐 플래그 
+	P_SemiRun_Cathode_NG_AT_T_Axis_Pos_Flag = 1;			// 양극 NG PNP T축 Align 위치 캡쳐 플래그
+	P_SemiRun_Cathode_NG_Box_T_Axis_Pos_Flag = 1;			// 양극 NG PNP T축 NG BOX 위치 캡쳐 플래그
+	P_SemiRun_Anode_NG_AT_T_Axis_Pos_Flag = 1;				// 음극 NG PNP T축 Align 위치 캡쳐 플래그
+	P_SemiRun_Anode_NG_Box_T_Axis_Pos_Flag = 1;				// 음극 NG PNP T축 NG BOX 위치 캡쳐 플래그
+}
+
+//=======================================================================================================================================
+// [2]. 모터 위치 [실행부]
+//=======================================================================================================================================
+// [파이널 롤러 양극방향 X축 위치]																											
+IF ( P_SemiRun_Cathode_Final_Roller_X_Axis_Flag == 1 && P_Motion_Cathode_Final_Roller_X_Axis_Flag == 1 )			// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Cathode_Final_Roller_X_Axis_Flag = 0;																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_Final_Roller_X_Axis_Flag = 0;																	// 1.3) 재진입 방지 위한 플래그 초기화
+	P_PV_Cathode_Final_Roller_X_Axis =  Motor[12].DesPos - Motor[12].Homepos;										// 1.4) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21137] = P_PV_Cathode_Final_Roller_X_Axis * 10;														// 1.5) Write 영역 보고
+}
+
+// [파이널 롤러 음극방향 X축 위치]
+IF ( P_SemiRun_Anode_Final_Roller_X_Axis_Flag == 1 && P_Motion_Anode_Final_Roller_X_Axis_Flag == 1 )				// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Anode_Final_Roller_X_Axis_Flag = 0;																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_Final_Roller_X_Axis_Flag = 0;    																// 1.3) 재진입 방지 위한 플래그 초기화
+	P_PV_Anode_Final_Roller_X_Axis =  Motor[12].DesPos - Motor[12].Homepos;											// 1.4) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21138] = P_PV_Anode_Final_Roller_X_Axis * 10;															// 1.5) Write 영역 보고
+}
+
+// [양극 클램프 ON Y1 Z1 위치]
+IF ( P_SemiRun_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag == 1 && P_Motion_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag == 1 )	// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면	
+{
+	P_SemiRun_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag = 0;																// 1.2) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag = 0; 																// 1.3) 재진입 방지 위한 플래그 초기화
+	P_PV_Cathode_Clamp_ON_Y1_Axis_Pos = Motor[5].DesPos - Motor[5].Homepos; 										// 1.4) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21139] = P_PV_Cathode_Clamp_ON_Y1_Axis_Pos * 10;														// 1.5) Write 영역 보고
+	P_PV_Cathode_Clamp_ON_Z1_Axis_Pos = Motor[27].DesPos - Motor[27].Homepos; 	
+	Sys.Idata[21141] = P_PV_Cathode_Clamp_ON_Z1_Axis_Pos * 10;
+}
+
+// [양극 클램프 ON Y2 Z2 위치]
+IF ( P_SemiRun_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag == 1 && P_Motion_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag == 1 )	// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면	
+{
+	P_SemiRun_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag = 0;																// 1.2) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag = 0; 																// 1.3) 재진입 방지 위한 플래그 초기화
+	P_PV_Cathode_Clamp_ON_Y2_Axis_Pos = Motor[7].DesPos - Motor[7].Homepos; 										// 1.4) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21140] = P_PV_Cathode_Clamp_ON_Y2_Axis_Pos * 10;														// 1.5) Write 영역 보고
+	P_PV_Cathode_Clamp_ON_Z2_Axis_Pos = Motor[25].DesPos - Motor[25].Homepos; 	
+	Sys.Idata[21142] = P_PV_Cathode_Clamp_ON_Z2_Axis_Pos * 10;
+}
+			
+// [음극 클램프 ON Y1 Z1 위치]
+IF ( P_SemiRun_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag == 1 && P_Motion_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag == 1 )		// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면	
+{
+	P_SemiRun_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag = 0;																// 1.2) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag = 0; 																// 1.3) 재진입 방지 위한 플래그 초기화
+	P_PV_Anode_Clamp_ON_Y1_Axis_Pos = Motor[6].DesPos - Motor[6].Homepos; 											// 1.4) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21143] = P_PV_Anode_Clamp_ON_Y1_Axis_Pos * 10;														// 1.5) Write 영역 보고
+	P_PV_Anode_Clamp_ON_Z1_Axis_Pos = Motor[28].DesPos - Motor[28].Homepos; 	
+	Sys.Idata[21145] = P_PV_Anode_Clamp_ON_Z1_Axis_Pos * 10;
+}
+
+// [음극 클램프 ON Y2 Z2 위치]
+IF ( P_SemiRun_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag == 1 && P_Motion_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag == 1 )		// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면	
+{
+	P_SemiRun_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag = 0;																// 1.2) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag = 0; 																// 1.3) 재진입 방지 위한 플래그 초기화
+	P_PV_Anode_Clamp_ON_Y2_Axis_Pos = Motor[8].DesPos - Motor[8].Homepos; 											// 1.4) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21144] = P_PV_Anode_Clamp_ON_Y2_Axis_Pos * 10;														// 1.5) Write 영역 보고
+	P_PV_Anode_Clamp_ON_Z2_Axis_Pos = Motor[26].DesPos - Motor[26].Homepos; 	
+	Sys.Idata[21146] = P_PV_Anode_Clamp_ON_Z2_Axis_Pos * 10;
+}			
+			
+// [양극 2차 P&P 얼라인 테이블 T축 위치]
+IF ( P_SemiRun_Cathode_2th_AT_T_Axis_Pos_Flag == 1 && P_Motion_Cathode_2th_AT_T_Axis_Pos_Flag == 1 )				// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면	
+{
+	P_SemiRun_Cathode_2th_AT_T_Axis_Pos_Flag = 0;																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_2th_AT_T_Axis_Pos_Flag = 0;  																	// 1.3) 재진입 방지 위한 플래그 초기화
+	P_PV_Cathode_2th_AT_T_Axis_Pos = Motor[3].DesPos - Motor[3].Homepos; 											// 1.4) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21147] = P_PV_Cathode_2th_AT_T_Axis_Pos * 10;															// 1.6) Write 영역 보고 (양극 얼라인테이블 보정값 미포함) 					
+}																															
+
+
+// [양극 2차 P&P 스텍 테이블 T축 위치]
+IF ( P_SemiRun_Cathode_2th_ST_T_Axis_Pos_Flag == 1 && P_Motion_Cathode_2th_ST_T_Axis_Pos_Flag == 1 )				// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Anode_2th_ST_T_Axis_Pos_Flag = 0;																		// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_2th_ST_T_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Cathode_2th_ST_T_Axis_Pos = Motor[3].DesPos - Motor[3].Homepos; 											// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21148] = P_PV_Cathode_2th_ST_T_Axis_Pos * 10;															// 1.6) Write 영역 보고
+}																													
+
+// [양극 2차 P&P 얼라인 테이블 Z축 위치]
+IF ( P_SemiRun_Cathode_2th_AT_Z_Axis_Pos_Flag == 1 && P_Motion_Cathode_2th_AT_Z_Axis_Pos_Flag == 1 )				// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Cathode_2th_AT_Z_Axis_Pos_Flag = 0;																	// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_2th_AT_Z_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Cathode_2th_AT_Z_Axis_Pos = Motor[21].DesPos - Motor[21].Homepos;											// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21149] = P_PV_Cathode_2th_AT_Z_Axis_Pos * 10;															// 1.4) Write 영역 보고
+}																												
+
+// [양극 2차 P&P 스텍 테이블 Z축 위치]
+IF ( P_SemiRun_Cathode_2th_ST_Z_Axis_Pos_Flag  == 1 && P_Motion_Cathode_2th_ST_Z_Axis_Pos_Flag == 1 )				// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{	
+	P_SemiRun_Cathode_2th_ST_Z_Axis_Pos_Flag = 0;																	// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_2th_ST_Z_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Cathode_2th_ST_Z_Axis_Pos = Motor[21].DesPos - Motor[21].Homepos; 											// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21150] = P_PV_Cathode_2th_ST_Z_Axis_Pos * 10;															// 1.4) Write 영역 보고
+}
+
+// [음극 2차 P&P 얼라인 테이블 T축 위치]
+IF ( P_SemiRun_Anode_2th_AT_T_Axis_Pos_Flag == 1 && P_Motion_Anode_2th_AT_T_Axis_Pos_Flag == 1 )					// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면	
+{
+	P_SemiRun_Anode_2th_AT_T_Axis_Pos_Flag = 0;																		// 1.2) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_2th_AT_T_Axis_Pos_Flag = 0;  																	// 1.3) 재진입 방지 위한 플래그 초기화
+	P_PV_Anode_2th_AT_T_Axis_Pos = Motor[4].DesPos - Motor[4].Homepos; 												// 1.4) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21151] = P_PV_Anode_2th_AT_T_Axis_Pos * 10;															// 1.6) Write 영역 보고 (양극 얼라인테이블 보정값 미포함)																							
+}																															
+
+// [음극 2차 P&P 스텍 테이블 T축 위치]
+IF ( P_SemiRun_Anode_2th_ST_T_Axis_Pos_Flag == 1 && P_Motion_Anode_2th_ST_T_Axis_Pos_Flag == 1 )					// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Anode_2th_ST_T_Axis_Pos_Flag = 0;																		// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_2th_ST_T_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Anode_2th_ST_T_Axis_Pos = Motor[4].DesPos - Motor[4].Homepos; 												// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21152] = P_PV_Anode_2th_ST_T_Axis_Pos * 10;															// 1.6) Write 영역 보고
+}																													
+
+// [음극 2차 P&P 얼라인 테이블 Z축 위치]
+IF ( P_SemiRun_Anode_2th_AT_Z_Axis_Pos_Flag == 1 && P_Motion_Anode_2th_AT_Z_Axis_Pos_Flag == 1 )					// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Anode_2th_AT_Z_Axis_Pos_Flag = 0;																		// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_2th_AT_Z_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Anode_2th_AT_Z_Axis_Pos = Motor[22].DesPos - Motor[22].Homepos; 											// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21153] = P_PV_Anode_2th_AT_Z_Axis_Pos * 10;															// 1.4) Write 영역 보고
+}
+
+// [음극 2차 P&P 스텍 테이블 Z축 위치]
+IF ( P_SemiRun_Anode_2th_ST_Z_Axis_Pos_Flag == 1 && P_Motion_Anode_2th_ST_Z_Axis_Pos_Flag == 1 )					// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Anode_2th_ST_Z_Axis_Pos_Flag = 0;																		// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_2th_ST_Z_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Anode_2th_ST_Z_Axis_Pos = Motor[22].DesPos - Motor[22].Homepos; 											// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21154] = P_PV_Anode_2th_ST_Z_Axis_Pos * 10;															// 1.4) Write 영역 보고
+}
+
+		
+// [양극 1차 P&P 대기 위치 T축 위치]
+IF ( P_SemiRun_Cathode_1th_Ready_T_Axis_Pos_Flag == 1 && P_Motion_Cathode_1th_Ready_T_Axis_Pos_Flag == 1 )			// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Cathode_1th_Ready_T_Axis_Pos_Flag = 0;																// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_1th_Ready_T_Axis_Pos_Flag = 0;  																// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Cathode_1th_Ready_T_Axis_Pos = Motor[1].DesPos - Motor[1].Homepos; 										// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21155] = P_PV_Cathode_1th_Ready_T_Axis_Pos * 10;														// 1.4) Write 영역 보고
+}
+	
+	
+// [양극 1차 P&P 컨베이어 T축 위치]
+IF ( P_SemiRun_Cathode_1th_CV_T_Axis_Pos_Flag == 1 && P_Motion_Cathode_1th_CV_T_Axis_Pos_Flag == 1 )				// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Cathode_1th_CV_T_Axis_Pos_Flag = 0;																	// 1.1) 재진입 방지 위한 플래그 초기화	
+	P_Motion_Cathode_1th_CV_T_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Cathode_1th_CV_T_Axis_Pos = Motor[1].DesPos - Motor[1].Homepos; 											// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21156] = P_PV_Cathode_1th_CV_T_Axis_Pos * 10;															// 1.4) Write 영역 보고									
+}
+
+// [양극 1차 P&P 얼라인 T축 위치]
+IF ( P_SemiRun_Cathode_1th_AT_T_Axis_Pos_Flag == 1 && P_Motion_Cathode_1th_AT_T_Axis_Pos_Flag == 1 )				// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Cathode_1th_AT_T_Axis_Pos_Flag = 0;																	// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_1th_AT_T_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Cathode_1th_AT_T_Axis_Pos = Motor[1].DesPos - Motor[1].Homepos; 											// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21157] = P_PV_Cathode_1th_AT_T_Axis_Pos * 10;															// 1.4) Write 영역 보고
+}
+
+// [양극 1차 P&P 대기 Z축 위치]
+IF ( P_SemiRun_Cathode_1th_Ready_Z_Axis_Pos_Flag == 1 && P_Motion_Cathode_1th_Ready_Z_Axis_Pos_Flag == 1 )			// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Cathode_1th_Ready_Z_Axis_Pos_Flag = 0;																// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_1th_Ready_Z_Axis_Pos_Flag = 0;  																// 1.2) 재진입 방지 위한 플래그 초기화
+	L_CA_Cmd_Z_Deg = (Motor[17].DesPos - Motor[17].Homepos)/1000; 														// 1.3) 현재 포지션 저장 단위 [um]
+	call Initialize.PV_PnP_Z_mm_Cal(N_1st_PnP_CA_Z,L_CA_Cmd_Z_Deg,&P_PV_Cathode_1th_Ready_Z_Axis_Pos);
+	// ↓ mm 보고하기 위하여 각도에서 mm 치환
+	Sys.Idata[21158] = P_PV_Cathode_1th_Ready_Z_Axis_Pos * 10 * 1000;												// 1.4) Write 영역 보고	
+}
+
+// [양극 1차 P&P 컨베이어 Z축 위치]
+IF ( P_SemiRun_Cathode_1th_CV_Z_Axis_Pos_Flag == 1 && P_Motion_Cathode_1th_CV_Z_Axis_Pos_Flag == 1 )				// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Cathode_1th_CV_Z_Axis_Pos_Flag = 0;																	// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_1th_CV_Z_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	L_CA_Cmd_Z_Deg = (Motor[17].DesPos - Motor[17].Homepos) / 1000; 												// 1.3) 현재 포지션 저장 단위 [um]
+	call Initialize.PV_PnP_Z_mm_Cal(N_1st_PnP_CA_Z,L_CA_Cmd_Z_Deg,&P_PV_Cathode_1th_CV_Z_Axis_Pos);
+	// ↓ mm 보고하기 위하여 각도에서 mm 치환
+	Sys.Idata[21159] = P_PV_Cathode_1th_CV_Z_Axis_Pos * 10 * 1000;													// 1.4) Write 영역 보고
+}
+
+// [양극 1차 P&P 얼라인 테이블 Z축 위치]
+IF ( P_SemiRun_Cathode_1th_AT_Z_Axis_Pos_Flag == 1 && P_Motion_Cathode_1th_AT_Z_Axis_Pos_Flag == 1 )				// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Cathode_1th_AT_Z_Axis_Pos_Flag = 0;																	// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_1th_AT_Z_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	L_CA_Cmd_Z_Deg = (Motor[17].DesPos - Motor[17].Homepos) / 1000; 													// 1.3) 현재 포지션 저장 단위 [um]
+	call Initialize.PV_PnP_Z_mm_Cal(N_1st_PnP_CA_Z,L_CA_Cmd_Z_Deg,&P_PV_Cathode_1th_AT_Z_Axis_Pos);
+	// ↓ mm 보고하기 위하여 각도에서 mm 치환
+	Sys.Idata[21160] = P_PV_Cathode_1th_AT_Z_Axis_Pos * 10 * 1000;													// 1.4) Write 영역 보고
+}
+
+		
+// [음극 1차 P&P 대기 위치 T축 위치]
+IF ( P_SemiRun_Anode_1th_Ready_T_Axis_Pos_Flag == 1 && P_Motion_Anode_1th_Ready_T_Axis_Pos_Flag == 1 )				// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Anode_1th_Ready_T_Axis_Pos_Flag = 0;																	// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_1th_Ready_T_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Anode_1th_Ready_T_Axis_Pos = Motor[2].DesPos - Motor[2].Homepos; 											// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21161] = P_PV_Anode_1th_Ready_T_Axis_Pos * 10;														// 1.4) Write 영역 보고
+}
+	
+	
+// [음극 1차 P&P 컨베이어 T축 위치]
+IF ( P_SemiRun_Anode_1th_CV_T_Axis_Pos_Flag == 1 && P_Motion_Anode_1th_CV_T_Axis_Pos_Flag == 1 )					// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Anode_1th_CV_T_Axis_Pos_Flag = 0;																		// 1.1) 재진입 방지 위한 플래그 초기화	
+	P_Motion_Anode_1th_CV_T_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Anode_1th_CV_T_Axis_Pos = Motor[2].DesPos - Motor[2].Homepos; 												// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21162] = P_PV_Anode_1th_CV_T_Axis_Pos * 10;															// 1.4) Write 영역 보고											
+}
+
+// [음극 1차 P&P 얼라인 T축 위치]
+IF ( P_SemiRun_Anode_1th_AT_T_Axis_Pos_Flag == 1 && P_Motion_Anode_1th_AT_T_Axis_Pos_Flag == 1 )					// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Anode_1th_AT_T_Axis_Pos_Flag = 0;																		// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_1th_AT_T_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Anode_1th_AT_T_Axis_Pos = Motor[2].DesPos - Motor[2].Homepos; 												// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21163] = P_PV_Anode_1th_AT_T_Axis_Pos * 10;															// 1.4) Write 영역 보고
+}
+
+
+// [음극 1차 P&P 대기 Z축 위치]
+IF ( P_SemiRun_Anode_1th_Ready_Z_Axis_Pos_Flag == 1 && P_Motion_Anode_1th_Ready_Z_Axis_Pos_Flag == 1 )				// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Anode_1th_Ready_Z_Axis_Pos_Flag = 0;																	// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_1th_Ready_Z_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	L_AN_Cmd_Z_Deg = (Motor[18].DesPos - Motor[18].Homepos) / 1000; 												// 1.3) 현재 포지션 저장 단위 [um]
+	call Initialize.PV_PnP_Z_mm_Cal(N_1st_PnP_AN_Z,L_AN_Cmd_Z_Deg,&P_PV_Anode_1th_Ready_Z_Axis_Pos);
+	// ↓ mm 보고하기 위하여 각도에서 mm 치환
+	Sys.Idata[21164] = P_PV_Anode_1th_Ready_Z_Axis_Pos * 10 * 1000;													// 1.4) Write 영역 보고	
+}
+
+// [음극 1차 P&P 컨베이어 Z축 위치]
+IF ( P_SemiRun_Anode_1th_CV_Z_Axis_Pos_Flag == 1 && P_Motion_Anode_1th_CV_Z_Axis_Pos_Flag == 1 )					// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Anode_1th_CV_Z_Axis_Pos_Flag = 0;																		// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_1th_CV_Z_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	L_AN_Cmd_Z_Deg = (Motor[18].DesPos - Motor[18].Homepos) / 1000; 												// 1.3) 현재 포지션 저장 단위 [um]
+	call Initialize.PV_PnP_Z_mm_Cal(N_1st_PnP_AN_Z,L_AN_Cmd_Z_Deg,&P_PV_Anode_1th_CV_Z_Axis_Pos);
+	// ↓ mm 보고하기 위하여 각도에서 mm 치환
+	Sys.Idata[21165] = P_PV_Anode_1th_CV_Z_Axis_Pos * 10 * 1000;;													// 1.4) Write 영역 보고
+}
+
+
+// [음극 1차 P&P 얼라인 테이블 Z축 위치]
+IF ( P_SemiRun_Anode_1th_AT_Z_Axis_Pos_Flag == 1 && P_Motion_Anode_1th_AT_Z_Axis_Pos_Flag == 1 )					// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Anode_1th_AT_Z_Axis_Pos_Flag = 0;																		// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_1th_AT_Z_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	L_AN_Cmd_Z_Deg = (Motor[18].DesPos - Motor[18].Homepos) / 1000; 												// 1.3) 현재 포지션 저장 단위 [um]
+	call Initialize.PV_PnP_Z_mm_Cal(N_1st_PnP_AN_Z,L_AN_Cmd_Z_Deg,&P_PV_Anode_1th_AT_Z_Axis_Pos);
+	// ↓ mm 보고하기 위하여 각도에서 mm 치환
+	Sys.Idata[21166] = P_PV_Anode_1th_AT_Z_Axis_Pos * 10 * 1000;;													// 1.4) Write 영역 보고
+}
+		
+		
+// [양극 NG P&P 얼라인 T축 위치]
+IF ( P_SemiRun_Cathode_NG_AT_T_Axis_Pos_Flag == 1 && P_Motion_Cathode_NG_AT_T_Axis_Pos_Flag == 1 )					// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Cathode_NG_AT_T_Axis_Pos_Flag = 0;																	// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_NG_AT_T_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Cathode_NG_AT_T_Axis_Pos = Motor[42].DesPos - Motor[42].Homepos; 											// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21167] = P_PV_Cathode_NG_AT_T_Axis_Pos * 10;															// 1.4) Write 영역 보고
+}
+
+
+// [양극 NG P&P Box T축 위치]
+IF ( P_SemiRun_Cathode_NG_Box_T_Axis_Pos_Flag == 1 && P_Motion_Cathode_NG_Box_T_Axis_Pos_Flag == 1 )				// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Cathode_NG_Box_T_Axis_Pos_Flag = 0;																	// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Cathode_NG_Box_T_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Cathode_NG_Box_T_Axis_Pos = Motor[42].DesPos - Motor[42].Homepos; 											// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21168] = P_PV_Cathode_NG_Box_T_Axis_Pos * 10;															// 1.4) Write 영역 보고	
+}
+
+// [음극 NG P&P 얼라인 T축 위치]
+IF ( P_SemiRun_Anode_NG_AT_T_Axis_Pos_Flag == 1 && P_Motion_Anode_NG_AT_T_Axis_Pos_Flag == 1 )						// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Anode_NG_AT_T_Axis_Pos_Flag = 0;																		// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_NG_AT_T_Axis_Pos_Flag = 0;  																		// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Anode_NG_AT_T_Axis_Pos = Motor[43].DesPos - Motor[43].Homepos; 											// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21169] = P_PV_Anode_NG_AT_T_Axis_Pos * 10;															// 1.4) Write 영역 보고
+}
+
+
+// [음극 NG P&P Box T축 위치]
+IF ( P_SemiRun_Anode_NG_Box_T_Axis_Pos_Flag == 1 && P_Motion_Anode_NG_Box_T_Axis_Pos_Flag == 1 )					// 1)명령부 플래그 및 모션 동기화 플래그 ON 이라면
+{
+	P_SemiRun_Anode_NG_Box_T_Axis_Pos_Flag = 0;																		// 1.1) 재진입 방지 위한 플래그 초기화
+	P_Motion_Anode_NG_Box_T_Axis_Pos_Flag = 0;  																	// 1.2) 재진입 방지 위한 플래그 초기화
+	P_PV_Anode_NG_Box_T_Axis_Pos = Motor[43].DesPos - Motor[43].Homepos; 											// 1.3) 현재 포지션 저장 단위 [um]
+	Sys.Idata[21170] = P_PV_Anode_NG_Box_T_Axis_Pos * 10;															// 1.4) Write 영역 보고
+}
+//=======================================================================================================================================
+// [3]. 압력 Part
+//=======================================================================================================================================
+
+//IF ( P_SemiRun_Cathode_Clamp_Pressure_Flag == 1 )											// 양극 클램프 압력 값 PV
+//{
+//	P_SemiRun_Cathode_Clamp_Pressure_Flag = 0;												// 재진입 방지 위한 플래그 초기화
+//	P_PV_Cathode_Clamp_Pressure = M_AI_Cathode_Clamp_Damper;								// P_AO_Cathode_Clamp_Damper;  값 저장 단위 [kgf]
+//	Sys.Idata[20936] = P_PV_Cathode_Clamp_Pressure;
+//}
+//
+//
+//IF ( P_SemiRun_Anoode_Clamp_Pressure_Flag == 1 )											// 음극 클램프 압력 값 PV
+//{
+//	P_SemiRun_Anoode_Clamp_Pressure_Flag = 0;												// 재진입 방지 위한 플래그 초기화
+//	P_PV_Anoode_Clamp_Pressure =  M_AI_Anode_Clamp_Damper;									//P_AO_Anode_Clamp_Damper; 		 값 저장 단위 [kgf]
+//	Sys.Idata[20937] = P_PV_Anoode_Clamp_Pressure;
+//}
+
+//=======================================================================================================================================
+// [4]. 실시간 위치 PV값 [1차,2차 P&P]
+//=======================================================================================================================================
+IF ( L_MES_Comunication_Timer > 10 )
+{	
+	L_MES_Comunication_Timer = 0;		// 10ms마다 위치값 업데이트
+
+	// 1. 양극 1차 PNP
+	// 1.1. 양극 1차 PNP 실시간 지령 위치
+	Sys.Idata[21171] = ((Motor[1].Despos - Motor[1].HomePos) / (Motor[1].PosSf)) / P_Cathode_1PNP_Sacle_Value;
+	// 1.2. 양극 1차 PNP 실시간 현재 위치
+	Sys.Idata[21172] = ((Motor[1].Actpos - Motor[1].HomePos) / (Motor[1].PosSf)) / P_Cathode_1PNP_Sacle_Value;
+
+	// 2. 양극 2차 PNP
+	// 2.1. 양극 2차 PNP 실시간 지령 위치
+	Sys.Idata[21173] = ((Motor[3].Despos - Motor[3].HomePos) / (Motor[3].PosSf)) / P_Cathode_2PNP_Sacle_Value;	
+	// 2.1. 양극 2차 PNP 실시간 현재 위치
+	Sys.Idata[21174] = ((Motor[3].Actpos - Motor[3].HomePos) / (Motor[3].PosSf)) / P_Cathode_2PNP_Sacle_Value;
+
+	// 3. 음극 1차 PNP
+	// 3.1. 음극 1차 PNP 실시간 지령 위치
+	Sys.Idata[21175] = ((Motor[2].Despos - Motor[2].HomePos) / (Motor[2].PosSf)) / P_Anode_1PNP_Sacle_Value;
+	// 3.2. 음극 1차 PNP 실시간 현재 위치
+	Sys.Idata[21176] = ((Motor[2].Actpos - Motor[2].HomePos) / (Motor[2].PosSf)) / P_Anode_1PNP_Sacle_Value;
+
+	// 4. 음극 2차 PNP
+	// 4.1. 음극 2차 PNP 실시간 지령 위치
+	Sys.Idata[21177] = ((Motor[4].Despos - Motor[4].HomePos) / (Motor[4].PosSf)) / P_Anode_2PNP_Sacle_Value;
+    // 4.1. 양극 2차 PNP 실시간 현재 위치
+	Sys.Idata[21178] = ((Motor[4].Actpos - Motor[4].HomePos) / (Motor[4].PosSf)) / P_Anode_2PNP_Sacle_Value;
+}
+
+
+P_MNTR_PLC20_Task_Time(1) = (Sys.Time - P_MNTR_PLC20_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC20_Task_Time(1) > P_MNTR_PLC20_Task_Max_Time )
+{
+	P_MNTR_PLC20_Task_Max_Time = P_MNTR_PLC20_Task_Time(1);
+}
+
+CLOSE

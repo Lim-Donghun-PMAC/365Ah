@@ -1,0 +1,1253 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 26.04.29
+// 격벽 안전장치 추가 검증을 위한 I.O 업데이트 건 [참조 : 26.04.29 격벽 I.O 업데이트 추가 건]
+
+
+//=========================================================================//
+//================================= INPUT =================================//
+//=========================================================================//
+//---------------------------------------------//
+// GPIO[0] (PMAC #A ↔ PMAC #B : 정지, 재시작)
+//---------------------------------------------//
+#define M_X_Pause_Anode_Signal 						M4000	// X4000  음극 퍼즈 신호 
+#define M_X_Pause_Cathode_Signal                	M4001   // X4001  양극 퍼즈 신호 
+#define M_X_Pause_to_Sequence_Signal                M4002   // X4002  홀드 퍼즈 신호
+#define M_X_Pause_Ack_Signal                    	M4003   // X4003  퍼즈 아크 신호
+#define M_X_Pause_Status_Complete_Signal        	M4004   // X4004  퍼즈 완료 신호 
+#define M_X_Resume_Stop_Signal                  	M4005   // X4005  리줌 정지 신호 
+#define M_X_Pause_Opposite_Status               	M4006   // X4006  반댓열 상태 신호 
+#define M_X_Opposite_Lane_Status1					M4007   // X4007  Status GPIO 1 INPUT
+#define M_X_Opposite_Lane_Status2					M4008   // X4008  Status GPIO 2 INPUT
+#define M_X_Opposite_Lane_Status3					M4009   // X4009  Status GPIO 3 INPUT
+#define M_X_Opposite_Lane_Status4					M4010   // X400A  Status GPIO 4 INPUT
+#define M_X_Opposite_Lane_Status5					M4011   // X400B  Status GPIO 5 INPUT
+#define M_X_Abort_Command 						    M4012   // X400C  Abort Command GPIO INPUT
+#define M_X_Opposite_Resume_Not_Free		       	M4013   // X400D  반대열 리줌 자율도 [ 0 : 자유롭게 리줌 가능, 1 : 퍼즈 필요함 ]
+#define M_X_EMO_Signal						        M4014   // X400E  EMO 입력 신호	// [ 참조 : 260406 EMO 눌렀을 때 모터 정지 ]
+//#define Spare						            	M4015   // X400F  Spare
+//---------------------------------------------//
+// GPIO[1] (PMAC ↔ Vision : Anode)
+//---------------------------------------------//
+#define M_X_Vision_Anode_Align_Ready				M4016	// X4010  음극 얼라인 비전 준비 완료
+#define M_X_Vision_Anode_Align_Busy                 M4017   // X4011  음극 얼라인 비전 트리거 받고 연산 중
+#define M_X_Vision_Anode_Align_HeartBit             M4018   // X4012  음극 얼라인 비전 하트 비트
+#define M_X_Vision_Anode_Align_OK                   M4019   // X4013  음극 얼라인 비전 양품 표시
+#define M_X_Vision_Anode_Align_NG                   M4020   // X4014  음극 얼라인 비전 불량 표시
+#define M_X_Vision_Anode_Surface_OK                 M4021   // X4015  음극 얼라인 비전 표면검사 양품 표시
+#define M_X_Vision_Anode_Surface_NG                 M4022   // X4016  음극 얼라인 비전 표면검사 불량 표시
+#define M_X_Vision_Anode_Exist_OK                   M4023   // X4017  음극 얼라인 비전 유무검사 OK 표시
+#define M_X_Vision_Anode_Exist_NG                   M4024   // X4018  음극 얼라인 비전 유무검사 NG 표시
+#define M_X_Vision_Anode_Empty_OK                   M4025   // X4019  음극 얼라인 비전 빈테이블 검사 OK 표시
+#define M_X_Vision_Anode_Empty_NG                   M4026   // X401A  음극 얼라인 비전 빈테이블 검사 NG 표시
+#define M_X_Vision_Anode_Align_Start_ACK            M4027   // X401B  음극 얼라인 시트 시작 알림 신호 리턴
+//#define Spare									    M4028   // X401C  Spare
+//#define Spare										M4029   // X401D  Spare
+//#define Spare										M4030   // X401E  Spare
+//#define Spare										M4031   // X401F  Spare
+//---------------------------------------------//
+// GPIO[2] (PMAC ↔ Vision : Cathode)
+//---------------------------------------------//
+#define M_X_Vision_Cathode_Align_Ready				M4032	// X4020  양극 얼라인 비전 준비 완료
+#define M_X_Vision_Cathode_Align_Busy               M4033   // X4021  양극 얼라인 비전 트리거 받고 연산 중
+#define M_X_Vision_Cathode_Align_HeartBit           M4034   // X4022  양극 얼라인 비전 하트 비트
+#define M_X_Vision_Cathode_Align_OK                 M4035   // X4023  양극 얼라인 비전 양품 표시
+#define M_X_Vision_Cathode_Align_NG                 M4036   // X4024  양극 얼라인 비전 불량 표시
+#define M_X_Vision_Cathode_Surface_OK               M4037   // X4025  양극 얼라인 비전 리트라이 양품 표시
+#define M_X_Vision_Cathode_Surface_NG               M4038   // X4026  양극 얼라인 비전 리트라이 불량 표시
+#define M_X_Vision_Cathode_Exist_OK                 M4039   // X4027  양극 얼라인 비전 유무검사 OK 표시
+#define M_X_Vision_Cathode_Exist_NG                 M4040   // X4028  양극 얼라인 비전 유무검사 NG 표시
+#define M_X_Vision_Cathode_Empty_OK                 M4041   // X4029  양극 얼라인 비전 빈테이블 검사 OK 표시
+#define M_X_Vision_Cathode_Empty_NG                 M4042   // X402A  양극 얼라인 비전 빈테이블 검사 NG 표시
+#define M_X_Vision_Cathode_Align_Start_ACK          M4043   // X402B  양극 얼라인 시트 시작 알림 신호 리턴
+//#define Spare										M4044   // X402C  Spare
+//#define Spare										M4045   // X402D  Spare
+//#define Spare										M4046   // X402E  Spare
+//#define Spare										M4047   // X402F  Spare
+//---------------------------------------------//
+// GPIO[3] (PMAC ↔ Vision : Stack)
+//---------------------------------------------//
+#define M_X_Vision_Stack_Ready						M4048	// X4030  스텍 얼라인 비전 준비 완료
+#define M_X_Vision_Stack_Busy                       M4049   // X4031  스텍 얼라인 비전 트리거 받고 연산 중
+#define M_X_Vision_Stack_HeartBit                   M4050   // X4032  스텍 얼라인 비전 하트 비트
+#define M_X_Vision_Stack_OK                         M4051   // X4033  스텍 얼라인 비전 양품 표시
+#define M_X_Vision_Stack_NG                         M4052   // X4034  스텍 얼라인 비전 불량 표시
+#define M_X_Vision_Stack_Start_Sheet_Ack            M4053   // X4035  스텍 첫장을 신호 리턴
+#define M_X_Vision_Stack_End_Sheet_Ack              M4054   // X4036  스텍 마지막장을 쌓아 올림신호를 받았다는 표시
+#define M_X_Vision_Stack_First_Sepa_OK              M4055   // X4037  스텍 첫장 검사 OK 표시
+#define M_X_Vision_Stack_First_Sepa_NG              M4056   // X4038  스텍 첫장 검사 NG 표시
+//#define Spare										M4057   // X4039  Spare
+#define M_X_Vision_Stack_EPC_Correction_Complete    M4058   // X403A  스텍 EPC 보정 완료 신호
+//#define Spare                                     M4059   // X403B  Spare
+//#define Spare                                     M4060   // X403C  Spare
+//#define Spare                                     M4061   // X403D  Spare
+//#define Spare                                     M4062   // X403E  Spare
+//#define Spare                                     M4063   // X403F  Spare
+//---------------------------------------------//
+// GPIO[4] (PMAC ↔ PLC : 시트, 배출)
+//---------------------------------------------//
+#define M_X_PLC_Anode_Sheet_Ready					M4064	// X4040  음극 시트 레디 신호(극판인터페이스)
+#define M_X_PLC_Anode_Sheet_Completed               M4065   // X4041  음극 시트 완료 신호
+//#define Spare                                     M4066   // X4042  음극 시트 Spare
+#define M_X_PLC_Cathode_Sheet_Ready                 M4067   // X4043  양극 시트 레디 신호(극판인터페이스)
+#define M_X_PLC_Cathode_Sheet_Completed             M4068   // X4044  양극 시트 완료 신호
+//#define Spare                                     M4069   // X4045  양극 시트 Spare
+#define M_X_PLC_2nd_Unloader_Ready_Pos              M4070   // X4046  PLC 2차 언로더 대기 위치
+#define M_X_PLC_2nd_Unloader_Grip                   M4071   // X4047  PLC 2차 언로더 그립 완료
+#define M_X_PLC_to_1st_Avoid_Request                M4072   // X4048  PLC 2차 언로더 → 1차 언로더 회피요청
+#define M_X_Discharge_Avoid_Complete_Ack            M4073   // X4049  1차 언로더 회피 위치 이동 완료 Ack신호
+#define M_X_PLC_2nd_Unloader_Grip_Request_Ack       M4074   // X404A  PLC 2차 언로더 그립 요청 Ack신호	
+#define M_X_1st_Unloader_UnGrip_Ack                 M4075   // X404B  1차 언로더 언그립 완료 Ack신호
+//#define Spare									    M4076   // X404C  Spare
+#define M_X_Memory_Data_Parsing_Complete			M4077   // X404D  PLC (PMAC에게) 메모리 데이터 수신 완료 
+#define M_X_Emergency_Stop_From_PLC					M4078   // X404E  Emergency_From_PLC
+#define M_X_PLC_Sync_Heart_Bit                      M4079   // X404F  PMAC ↔ PLC Sync Heart Bit 
+//---------------------------------------------//
+// GPIO[5] (PMAC : 진공)
+//---------------------------------------------//
+#define M_X_First_Sheet_Paper_Plate_Vac_Sensor		M4080	// X4050  시트페이퍼 진공 센서
+#define M_X_First_Sheet_Paper_Plate_FWD_CYL_Sensor  M4081   // X4051  시트페이퍼 전진 센서
+#define M_X_First_Sheet_Paper_Plate_BWD_CYL_Sensor  M4082   // X4052  시트페이퍼 후진 센서
+//#define Spare                                     M4083   // X4053  
+//#define Spare								        M4084   // X4054  
+//#define Spare								        M4085   // X4055  
+#define M_X_ST_Center_CYL_Up_Sensor_1               M4086   // X4056  스텍 테이블 상승 센서			
+#define M_X_ST_Center_CYL_Dn_Sensor_1               M4087   // X4057  스텍 테이블 하강 센서
+#define M_X_ST_Vac_Detect_Sensor					M4088   // X4058  스텍 테이블 진공 감지 센서
+// 사용 안함 - 용도파악 필요 M4089							     
+#define M_X_First_Sheet_Paper_Main_Position			M4089	// X4059  시트페이퍼 정위치 감지 센서		// [ 참조 : 260414 통신문서 최신화에 따른 IO 변경 ]
+//#define											M4090   // X405A  
+#define M_X_ST_Center_CYL_Up_Sensor_2               M4091   // X405B  스텍 테이블 상승 센서2		
+#define M_X_ST_Center_CYL_Dn_Sensor_2               M4092   // X405C  스텍 테이블 하강 센서2		
+//#define Spare                                     M4093   // X405D  
+//#define Spare                                     M4094   // X405E  
+//#define Spare                                     M4095   // X405F
+//---------------------------------------------//
+// GPIO[6] (PMAC : 진공)
+//---------------------------------------------//
+#define M_X_Cathode_AT_Vac_Sensor								M4096	// X4060   양극 Align Vac ( 진공 센서 )
+#define M_X_Anode_AT_Vac_Sensor									M4097   // X4061   음극 Align Vac ( 진공 센서 )
+#define M_X_Cathode_1st_PNP_Vac_Sensor							M4098   // X4062   양극 1차 PnP Vac ( 진공 센서 )
+#define M_X_Cathode_1st_PNP_Collision_Detect_Sensor				M4099   // X4063   양극 1차 PnP 충돌 감지 센서
+#define M_X_Cathode_2nd_PNP_Vac_Sensor							M4100   // X4064   양극 2차 PnP Vac ( 진공 센서 )
+//#define Spare													M4101   // X4065   
+#define M_X_Anode_1st_PNP_Vac_Sensor							M4102   // X4066   음극 1차 PnP Vac ( 진공 센서 )
+#define M_X_Anode_1st_PNP_Collision_Detect_Sensor				M4103   // X4067   음극 1차 PnP 충돌 감지 센서
+#define M_X_Anode_2nd_PNP_Vac_Sensor							M4104   // X4068   음극 2차 PnP Vac ( 진공 센서 )
+//#define Spare													M4105   // X4069   Spare
+//#define Spare													M4106   // X406A   Spare
+//#define Spare													M4107   // X406B   Spare
+#define M_X_Opposite_Cathode_1st_PNP_Collision_Detect_Sensor	M4108   // X406C   B열 양극 1차 PNP 충돌 감지 센서
+#define M_X_Opposite_Anode_1st_PNP_Collision_Detect_Sensor		M4109   // X406D   B열 음극 1차 PNP 충돌 감지 센서
+//#define Spare													M4110   // X406E   Spare
+//#define Spare													M4111   // X406F   Spare
+//---------------------------------------------//
+// Ecat[0] (Drive Alarm)
+//---------------------------------------------//
+#define M_X_SERVO_DRIVE_ALARM_1						M4112 	// X5000   서보 1 드라이브 알람				
+#define M_X_SERVO_DRIVE_ALARM_2                     M4113 	// X5001   서보 2 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_3                     M4114 	// X5002   서보 3 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_4                     M4115 	// X5003   서보 4 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_5                     M4116 	// X5004   서보 5 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_6                     M4117 	// X5005   서보 6 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_7                     M4118 	// X5006   서보 7 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_8                     M4119 	// X5007   서보 8 드라이브 알람
+//#define Spare										M4120 	// X5008   서보 9 드라이브 알람
+//#define Spare					                    M4121 	// X5009   서보 10 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_11                    M4122 	// X500A   서보 11 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_12                    M4123 	// X500B   서보 12 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_13                    M4124 	// X500C   서보 13 드라이브 알람
+//#define Spare					                    M4125 	// X500D   서보 14 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_15                    M4126 	// X500E   서보 15 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_16                    M4127 	// X500F   서보 16 드라이브 알람
+//---------------------------------------------//
+// Ecat[1] (Drive Alarm)
+//---------------------------------------------//
+#define M_X_SERVO_DRIVE_ALARM_17					M4128 	// X5010    서보 17 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_18                    M4129 	// X5011    서보 18 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_19                    M4130 	// X5012    서보 19 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_20                    M4131 	// X5013    서보 20 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_21                    M4132 	// X5014    서보 21 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_22                    M4133 	// X5015    서보 22 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_23                    M4134 	// X5016    서보 23 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_24                    M4135 	// X5017    서보 24 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_25                    M4136 	// X5018    서보 25 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_26                    M4137 	// X5019    서보 26 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_27                    M4138 	// X501A    서보 27 드라이브 알람
+#define M_X_SERVO_DRIVE_ALARM_28                    M4139 	// X501B    서보 28 드라이브 알람
+//#define Spare                                     M4140 	// X501C    Spare
+//#define Spare                                     M4141 	// X501D    Spare
+//#define Spare                                     M4142 	// X501E    Spare
+//#define Spare                                     M4143 	// X501F    Spare
+//---------------------------------------------//
+// Ecat[2] (Spare)
+//---------------------------------------------//
+//#define Spare										M4144 	// X5020    Spare
+//#define Spare										M4145 	// X5021    Spare
+//#define Spare										M4146 	// X5022    Spare
+//#define Spare										M4147 	// X5023    Spare
+//#define Spare										M4148 	// X5024    Spare
+//#define Spare										M4149 	// X5025    Spare
+//#define Spare										M4150 	// X5026    Spare
+//#define Spare										M4151 	// X5027    Spare
+//#define Spare										M4152 	// X5028    Spare
+//#define Spare										M4153 	// X5029    Spare
+//#define Spare										M4154 	// X502A    Spare
+//#define Spare										M4155 	// X502B    Spare
+//#define Spare										M4156 	// X502C    Spare
+//#define Spare										M4157 	// X502D    Spare
+//#define Spare										M4158 	// X502E    Spare
+//#define Spare										M4159 	// X502F    Spare
+//---------------------------------------------//
+// Ecat[3] (BTN)
+//---------------------------------------------//
+#define M_X_BTN_CMD_Select_Switch					M4160 	// X5030    장비 모드표시
+#define M_X_BTN_CMD_Auto_Start						M4161 	// X5031    자동운전 시작
+#define M_X_BTN_CMD_Auto_Stop						M4162 	// X5032    자동운전 정지
+#define M_X_BTN_CMD_Ready							M4163 	// X5033    전체 원점복귀
+#define M_X_BTN_CMD_Reset							M4164 	// X5034    리셋
+#define M_X_BTN_Status_Safety_Enable				M4165 	// X5035    안전감지 세이프티
+#define M_X_BTN_Press_Jog_Plus						M4166 	// X5036    왼쪽
+#define M_X_BTN_Press_Jog_Minus						M4167 	// X5037    오른쪽
+#define M_X_Trigger_1s_Cycle_HeartBit				M4168 	// X5038    하트 비트
+#define M_X_Host_JR_ID_Create_Complete				M4169 	// X5039    젤리롤 아이디 생성 완료 확인 신호
+#define M_X_Other_Door_Open_Signal					M4170 	// X503A    다른 도어 열림 신호
+#define M_X_Trg_SV_Enable_From_PLC					M4171 	// X503B    QCP Save 허가 신호 
+#define M_X_Sepa_Upper_Unwinder_Status				M4172 	// X503C    상부 언와인더 선택			[ 참조 : 25.10.13 UI 선택에 따른 언와인더 Number 설정 ]
+#define M_X_Sepa_Lower_Unwinder_Status				M4173 	// X503D    하부 언와인더 선택
+//#define Spare										M4174 	// X503E    Spare
+#define M_X_MC_Reconnect_BTN_Signal					M4175 	// X503F    MC Protocol 재연결 버튼 신호	[ 참조 : 26.07.17 MC Protocol 재연결 신호 수정 ]
+//---------------------------------------------//
+// Ecat[4] (Spare)		
+//---------------------------------------------//
+#define M_X_PLC_Trans_IN_Ack						M4176 	// X5040    Trans Ack 				
+#define M_X_PLC_JR_Data_Produce_Signal              M4177 	// X5041    배출 시, 세파 커팅 후 JR 신규 생성 타이밍 요청 신호
+#define M_X_PLC_Trans_OK							M4178 	// X5042    Trans OK
+#define M_X_PLC_Trans_NG							M4179 	// X5043    Trans NG
+#define M_X_ARC_Door_Signal							M4180 	// X5044    ARC 자재교체 진행중 
+#define M_X_PLC_ULD_Home_Interlock_Signal           M4181 	// X5045    Spare
+//#define M_X_PLC_ULD_Home_UnGrip_Signal            M4182 	// X5046    Spare
+#define M_X_PLC_Work_Confirm_Operation_Flag         M4183 	// X5047    Work Confirm 실행 신호	// [ 참조 : 260414 Reel Work Confirm 관련 PMAC ↔ Vision,PLC I/F ]
+#define M_X_PLC_ULD_Home_UnGrip_Signal              M4184 	// X5048    Spare
+#define M_X_PLC_Cathode_ReelCut_Door_Interlock      M4185 	// X5049    양극 릴컷부 도어 오픈 인터락 신호 [ 열림 : 0, 닫힘 : 1 ] //[ 참조 : 260513 : 양음극 릴컷부 도어 오픈 시 1차 PNP 인터락 ]
+#define M_X_PLC_Anode_ReelCut_Door_Interlock        M4186 	// X504A    음극 릴컷부 도어 오픈 인터락 신호 [ 열림 : 0, 닫힘 : 1 ] //[ 참조 : 260513 : 양음극 릴컷부 도어 오픈 시 1차 PNP 인터락 ]
+#define M_X_PLC_Cathode_Small_Door_Close_Signal     M4187 	// X504B    양극 스택부 작은 도어 신호	[ 열림 : 0, 닫힘 : 1 ]	//[ 참조 : 260513 : 양음극 릴컷부 도어 오픈 시 1차 PNP 인터락 ]
+#define M_X_PLC_Anode_Small_Door_Close_Signal       M4188 	// X504C    음극 스택부 작은 도어 신호	[ 열림 : 0, 닫힘 : 1 ]	//[ 참조 : 260513 : 양음극 릴컷부 도어 오픈 시 1차 PNP 인터락 ]
+//#define Spare                                     M4189 	// X504D    Spare
+//#define Spare                                     M4190 	// X504E    Spare
+//#define Spare                                     M4191 	// X504F    Spare
+//---------------------------------------------//
+// Ecat[5] (Spare)
+//---------------------------------------------//
+//#define Spare										M4192 	// X5050    Spare
+//#define Spare                                     M4193 	// X5051    Spare
+//#define Spare                                     M4194 	// X5052    Spare
+//#define Spare                                     M4195 	// X5053    Spare
+//#define Spare                                     M4196 	// X5054    Spare
+//#define Spare                                     M4197 	// X5055    Spare
+//#define Spare                                     M4198 	// X5056    Spare
+//#define Spare                                     M4199 	// X5057    Spare
+//#define Spare                                     M4200 	// X5058    Spare
+//#define Spare                                     M4201 	// X5059    Spare
+//#define Spare                                     M4202 	// X505A    Spare
+//#define Spare                                     M4203 	// X505B    Spare
+//#define Spare                                     M4204 	// X505C    Spare
+//#define Spare                                     M4205 	// X505D    Spare
+//#define Spare                                     M4206 	// X505E    Spare
+//#define Spare                                     M4207 	// X505F    Spare
+//---------------------------------------------//
+// Ecat[6] (VAC)
+//---------------------------------------------//
+//#define Spare										M4208	// X5060    
+//#define Spare										M4209	// X5061    
+//#define Spare										M4210	// X5062    
+//#define Spare										M4211	// X5063    
+//#define Spare										M4212	// X5064    
+//#define Spare										M4213	// X5065    
+//#define Spare										M4214	// X5066    
+//#define Spare										M4215	// X5067    
+// 용도 파악 필요 M4216, M4217								    
+#define M_X_Cathode_NG_PNP_Location_Sensor			M4216	// X5068   양극 NG PnP 위치 감지 센서		// [ 참조 : 260414 통신문서 최신화에 따른 IO 변경 ]
+#define M_X_Anode_NG_PNP_Location_Sensor			M4217	// X5069   음극 NG PnP 위치 감지 센서		// [ 참조 : 260414 통신문서 최신화에 따른 IO 변경 ]
+#define M_X_Cathode_NG_PNP_Vac_Sensor				M4218	// X506A   양극 NG PnP Vac ( 진공 센서 )
+#define M_X_Cathode_NG_Box_Sheet_Full_Detect_Sensor	M4219	// X506B   양극 NG Box 가득여부 판단		
+#define M_X_Anode_NG_PNP_Vac_Sensor					M4220	// X506C   음극 NG PnP Vac ( 진공 센서 )
+#define M_X_Anode_NG_Box_Sheet_Full_Detect_Sensor	M4221	// X506D   음극 NG Box 가득여부 판단
+#define M_X_Cathode_NG_Box_Detect_Sensor			M4222	// X506E   양극 NG 감지센서
+#define M_X_Anode_NG_Box_Detect_Sensor				M4223	// X506F   음극 NG 감지센서
+//---------------------------------------------//
+// Ecat[7] (VAC+ARC)
+//---------------------------------------------//
+#define M_X_Cathode_AT_FWD_Detect_Sensor			M4224 	// X5070     양극 얼라인 전진 감지 센서
+//#define Spare           							M4225 	// X5071     
+#define M_X_Anode_AT_FWD_Detect_Sensor             	M4226 	// X5072     음극 얼라인 전진 감지 센서
+//#define Spare										M4227 	// X5073     
+//#define Spare                                    	M4228 	// X5074     
+#define M_X_1st_Unloader_JR_Grip_Pressure_Sensor   	M4229 	// X5075     1차 언로더 그립 센서
+#define M_X_1st_Unloader_Grip_Detect_Sensor			M4230 	// X5076     1차 언로더 그립 감지 센서
+#define M_X_1st_Unloader_UnGrip_Detect_Sensor      	M4231 	// X5077     1차 언로더 언그립 감지 센서  
+#define M_X_ARC_NP_Two_Btn_Signal                   M4232 	// X5078     네임플레이트 인터락 투 버튼
+#define M_X_ARC_NP_Upper_Plate_Vac_On               M4233 	// X5079     네임 플레이트 상부 진공 감지 센서
+#define M_X_ARC_NP_Lower_Plate_Vac_On               M4234 	// X507A     네임 플레이트 하부 진공 감지 센서
+#define M_X_ARC_NP_BTN_Reset                        M4235 	// X507B     네임 플레이트 리셋
+#define M_X_ARC_NP_BTN_Unwinder_Spool_Home          M4236 	// X507C     네임 플레이트 Spool 홈 
+#define M_X_ARC_NP_BTN_Ready                        M4237 	// X507D     네임 플레이트 준비 
+#define M_X_ARC_NP_BTN_Unwinder_Auto_Alignment      M4238 	// X507E     네임 플레이트 자동 정렬
+#define M_X_ARC_NP_BTN_Plate_Tilting                M4239 	// X507F     네임 플레이트 틸팅
+//---------------------------------------------//
+// Ecat[8] (ARC)		
+//---------------------------------------------//
+#define M_X_ARC_NP_BTN_Unwinder_Lock_Unlock   		M4240 	// X5080     네임 플레이트 척 언척					
+#define M_X_ARC_NP_BTN_Unwinder_Rotation      	    M4241 	// X5081     네임 플레이트 정방향 구동
+#define M_X_ARC_NP_BTN_Unwinder_Re_Rotation         M4242 	// X5082     네임 플레이트 역방향 구동
+#define M_X_ARC_NP_BTN_Plate_Vac_On_Off             M4243 	// X5083     네임 플레이트 진공 온 오프
+#define M_X_ARC_NP_BTN_Plate_Sepa_Cutting           M4244 	// X5084     네임 플레이트 세파 커팅
+#define M_X_ARC_NP_BTN_Plate_Stopper_Clamp          M4245 	// X5085     네임 플레이트 클램프
+#define M_X_ARC_NP_BTN_Plate_Up_Dn                 	M4246 	// X5086     네임 플레이트 상승/하강
+//#define Spare                                    	M4247 	// X5087     
+#define M_X_ARC_NP_Auto_Reel_Change_Upper          	M4248 	// X5088     네임 플레이트 상부 선택
+#define M_X_ARC_NP_Auto_Reel_Change_Lower          	M4249 	// X5089     네임 플레이트 하부 선택
+//#define Spare                                    	M4250 	// X508A     
+#define M_X_Heat_Cable_Meter_GO                     M4251 	// X508B     Cutter Heating 상태 Input
+#define M_X_Heat_Cable_Meter_HI                     M4252 	// X508C     Cutter Heating 상태 Input
+#define M_X_Heat_Cable_Meter_LO                     M4253 	// X508D     Cutter Heating 상태 Input
+//#define Spare                                    	M4254 	// X508E     
+//#define Spare                                    	M4255 	// X508F     
+
+//---------------------------------------------//
+// Ecat[11] (VAC)
+//---------------------------------------------//
+#define M_X_FR_Sepa_Cutter_Up_Sensor				M4288 	// X50B0     파이널 롤러 커터 상승 센서
+#define M_X_FR_Sepa_Cutter_Dn_Sensor                M4289 	// X50B1     파이널 롤러 커터 하강 센서
+//#define Spare										M4290 	// X50B2     
+//#define Spare										M4291 	// X50B3     
+#define M_X_FR_Sepa_Clamp_Front_Sensor              M4292 	// X50B4     파이널 롤러 클램프 전면 센서
+#define M_X_FR_Sepa_UnClamp_Front_Sensor            M4293 	// X50B5     파이널 롤러 언클램프 전면 센서
+#define M_X_FR_Sepa_Clamp_Rear_Sensor               M4294 	// X50B6     파이널 롤러 클램프 후면 센서
+#define M_X_FR_Sepa_UnClamp_Rear_Sensor             M4295 	// X50B7     파이널 롤러 언클램프 후면 센서
+//#define Spare                                     M4296 	// X50B8     
+//#define Spare										M4297 	// X50B9     
+//#define Spare										M4298 	// X50BA     
+//#define Spare                                     M4299 	// X50BB     
+#define M_X_Cathode_Belt_Partition_Up_Sensor		M4300 	// X50BC     양극 벨트 파티션 상승 센서		// [참조 : 26.04.29 격벽 I.O 업데이트 추가 건]
+#define M_X_Cathode_Belt_Partition_Down_Sensor		M4301 	// X50BD     양극 벨트 파티션 하강 센서		// [참조 : 26.04.29 격벽 I.O 업데이트 추가 건]
+#define M_X_Anode_Belt_Partition_Up_Sensor			M4302 	// X50BE     음극 벨트 파티션 상승 센서		// [참조 : 26.04.29 격벽 I.O 업데이트 추가 건]
+#define M_X_Anode_Belt_Partition_Down_Sensor		M4303 	// X50BF     음극 벨트 파티션 하강 센서		// [참조 : 26.04.29 격벽 I.O 업데이트 추가 건]
+
+//---------------------------------------------//
+// Ecat[12] (ARC Vac)
+//---------------------------------------------//
+#define M_X_FR_Clamping_Sub_Roller_UnClamp_1		M4304 	// X50C0     파이널 서브 클램핑 롤러 상부 센서 1		Btn.c 추가필요
+#define M_X_FR_Clamping_Sub_Roller_Clamp_1			M4305 	// X50C1     파이널 서브 클램핑 롤러 하부 센서 1		Btn.c 추가필요
+#define M_X_FR_Clamping_Sub_Roller_UnClamp_2		M4306 	// X50C2     파이널 서브 클램핑 롤러 상부 센서 2		Btn.c 추가필요
+#define M_X_FR_Clamping_Sub_Roller_Clamp_2          M4307 	// X50C3     파이널 서브 클램핑 롤러 하부 센서 2		Btn.c 추가필요
+#define M_X_Sepa_ARC_Upper_Ejector_Vac_Sensor       M4308 	// X50C4     상단 언와인더 ARC 이젝터 진공 센서	26.04.17 사용 미사용 판단 필요
+#define M_X_Sepa_ARC_Lower_Ejector_Vac_Sensor		M4309 	// X50C5     하단 언와인더 ARC 이젝터 진공 센서 	26.04.17 사용 미사용 판단 필요
+//#define Spare										M4310 	// X50C6     
+//#define Spare										M4311 	// X50C7     
+#define M_X_Sepa_Upper_ARC_Up_Sensor                M4312 	// X50C8     상부 플레이트 상승 센서
+#define M_X_Sepa_Upper_ARC_Dn_Sensor                M4313 	// X50C9     상부 플레이트 하강 센서
+#define M_X_Sepa_Upper_ARC_UnTilting_Sensor_Front   M4314 	// X50CA     상부 언틸팅 전면 센서
+#define M_X_Sepa_Upper_ARC_Tilting_Sensor_Front		M4315 	// X50CB     상부 틸팅 전면 센서
+#define M_X_Sepa_Upper_ARC_UnTilting_Sensor_Rear    M4316	// X50CC     상부 언틸팅 후면 센서
+#define M_X_Sepa_Upper_ARC_Tilting_Sensor_Rear		M4317 	// X50CD     상부 틸팅 후면 센서
+#define M_X_Sepa_Upper_ARC_Cutting_FWD_Sensor       M4318 	// X50CE     상부 커팅 전진 센서
+#define M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor       M4319 	// X50CF     상부 커팅 후진 센서
+//---------------------------------------------//
+// Ecat[13] (ARC Vac)
+//---------------------------------------------//
+#define M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor	M4320 	// X50D0     상부 언클램프 전면 센서
+#define M_X_Sepa_Upper_ARC_Stopper_Front_Sensor		M4321 	// X50D1     상부 클램프 후면 센서
+#define M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor    M4322 	// X50D2     상부 언클램프 후면센서
+#define M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor		M4323 	// X50D3     상부 클램프 후면센서
+#define M_X_Sepa_Lower_ARC_Up_Sensor                M4324 	// X50D4     하부 플레이트 상승 센서
+#define M_X_Sepa_Lower_ARC_Dn_Sensor                M4325 	// X50D5     하부 플레이트 하강 센서
+#define M_X_Sepa_Lower_ARC_UnTilting_Sensor_Front	M4326 	// X50D6     하부 언틸팅 전면 센서
+#define M_X_Sepa_Lower_ARC_Tilting_Sensor_Front		M4327 	// X50D7     하부 틸팅 전면 센서
+#define M_X_Sepa_Lower_ARC_UnTilting_Sensor_Rear	M4328 	// X50D8     하부 언틸팅 후면 센서
+#define M_X_Sepa_Lower_ARC_Tilting_Sensor_Rear		M4329 	// X50D9     하부 틸팅 후면 센서
+#define M_X_Sepa_Lower_ARC_Cutting_FWD_Sensor		M4330 	// X50DA     하부 커팅 전진 센서
+#define M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor		M4331 	// X50DB     하부 커팅 후진 센서
+#define M_X_Sepa_Lower_ARC_UnStopper_Front_Sensor   M4332 	// X50DC     하부 언스토퍼 전면 센서
+#define M_X_Sepa_Lower_ARC_Stopper_Front_Sensor		M4333 	// X50DD     하부 스토퍼 전면 센서
+#define M_X_Sepa_Lower_ARC_UnStopper_Rear_Sensor    M4334 	// X50DE     하부 언스토퍼 후면 센서
+#define M_X_Sepa_Lower_ARC_Stopper_Rear_Sensor		M4335 	// X50DF     하부 스토퍼 후면 센서
+//---------------------------------------------//
+// Ecat[14] (IONIZER Vac)
+//---------------------------------------------//
+#define M_X_Sepa_Ionizer_1_Run                      M4336 	// X50E0     이오나이저_1 Run		// [ 참조 : 260414 통신문서 최신화에 따른 IO 변경 ]
+#define M_X_Sepa_Ionizer_1_Error                    M4337 	// X50E1     이오나이저_1 Error	// [ 참조 : 260414 통신문서 최신화에 따른 IO 변경 ]
+#define M_X_Sepa_Ionizer_2_Run                      M4338 	// X50E2     이오나이저_2 Run		// [ 참조 : 260414 통신문서 최신화에 따른 IO 변경 ]
+#define M_X_Sepa_Ionizer_2_Error                    M4339 	// X50E3     이오나이저_2 Error	// [ 참조 : 260414 통신문서 최신화에 따른 IO 변경 ]
+#define M_X_Sepa_Ionizer_3_Run                      M4340 	// X50E4     이오나이저_3 Run		// [ 참조 : 260414 통신문서 최신화에 따른 IO 변경 ]
+#define M_X_Sepa_Ionizer_3_Error                    M4341 	// X50E5     이오나이저_3 Error	// [ 참조 : 260414 통신문서 최신화에 따른 IO 변경 ]
+//#define Spare						                M4342 	// X50E6     
+//#define Spare						                M4343 	// X50E7     
+//#define Spare						                M4344 	// X50E8     
+//#define Spare						                M4345 	// X50E9     
+//#define Spare                                     M4346 	// X50EA     
+//#define Spare										M4347 	// X50EB     
+//#define Spare										M4348 	// X50EC     
+//#define Spare                                     M4349 	// X50ED     
+//#define Spare                                     M4350 	// X50EE     
+//#define Spare                                     M4351 	// X50EF     
+
+//=========================================================================//
+//================================= OUTPUT ================================//
+//=========================================================================//
+//---------------------------------------------//
+// GPIO[0] (PMAC #A ↔ PMAC #B : 정지, 재시작)
+//---------------------------------------------//
+#define M_Y_Pause_Anode_Signal						M5000 	// Y4000     음극 퍼즈 신호 
+#define M_Y_Pause_Cathode_Signal                    M5001 	// Y4001     양극 퍼즈 신호 
+#define M_Y_Pause_to_Sequence_Signal                M5002 	// Y4002     홀드 퍼즈 신호 
+#define M_Y_Pause_Ack_Signal                        M5003 	// Y4003     퍼즈 아크 신호 
+#define M_Y_Pause_Status_Complete_Signal            M5004 	// Y4004     퍼즈 완료 신호 
+#define M_Y_Resume_Stop_Signal                      M5005 	// Y4005     리줌 정지 신호 
+#define M_Y_Pause_Opposite_Status                   M5006 	// Y4006     반댓열 상태 확인 신호
+#define M_Y_P_PMAC_Status1                          M5007 	// Y4007     Status GPIO 1 OUTPUT
+#define M_Y_P_PMAC_Status2                          M5008 	// Y4008     Status GPIO 2 OUTPUT
+#define M_Y_P_PMAC_Status3                          M5009 	// Y4009     Status GPIO 3 OUTPUT
+#define M_Y_P_PMAC_Status4                          M5010 	// Y400A     Status GPIO 4 OUTPUT
+#define M_Y_P_PMAC_Status5                          M5011 	// Y400B     Status GPIO 5 OUTPUT
+#define M_Y_Abort_Command                           M5012 	// Y400C     Abort Command GPIO OUTPUT
+#define M_Y_Opposite_Resume_Not_Free                M5013 	// Y400D     반대열 리줌 자율도 [ 0 : 자유롭게 리줌 가능, 1 : 퍼즈 필요함 ]
+//#define Spare                                     M5014 	// Y400E     Spare
+//#define Spare                                     M5015 	// Y400F     Spare
+//---------------------------------------------//
+// GPIO[1] (PMAC ↔ Vision : Anode)	
+//---------------------------------------------//
+#define M_Y_Vision_Anode_Align_Ready				M5016 	// Y4010    음극 비전 통신 준비 완료
+#define M_Y_Vision_Anode_Align_Heartbit             M5017 	// Y4011    음극 제어기 하트비트
+#define M_Y_VisioN_Align_AN_Trigger					M5018 	// Y4012    음극 비전 얼라인 촬상 신호
+#define M_Y_Vision_Anode_Align_Result_Ack           M5019 	// Y4013    음극 비전 얼라인 결과 리턴
+#define M_Y_Vision_Anode_Surface_Trigger            M5020 	// Y4014    음극 표면 검사 촬상 트리거
+#define M_Y_Vision_Anode_Surface_Result_Ack         M5021 	// Y4015    음극 표면 검사 결과 리턴
+#define M_Y_Vision_Anode_Empty_Trigger              M5022 	// Y4016    음극 빈테이블 검사 촬상 트리거
+#define M_Y_Vision_Anode_Empty_Result_Ack           M5023 	// Y4017    음극 빈테이블 검사 결과 리턴
+#define M_Y_Vision_Anode_Exist_Trigger              M5024 	// Y4018    음극 유무검사 촬상 트리거
+#define M_Y_Vision_Anode_Exist_Result_Ack           M5025 	// Y4019    음극 유무검사 촬상 결과 리턴
+#define M_Y_Vision_Anode_Align_Start                M5026 	// Y401A    음극 얼라인 시트 시작 알림 신호
+#define M_Y_Vision_Anode_Data_Transfer_Trigger      M5027 	// Y401B    음극 Vision 데이터 전달 알림 신호 (기존 : M_Y_Vision_Anode_Memory_Parsing_Anode)
+#define M_Y_VisioN_Align_AN_TimeOut_Flag			M5028 	// Y401C    음극 얼라인 타임 아웃 플래그
+#define M_Y_Vision_Anode_Surface_TimeOut_Flag       M5029 	// Y401D    음극 표면검사 타임 아웃 플래그
+#define M_Y_Vision_Anode_Save_Sheet_Data            M5030 	// Y401E    음극 극판 데이터 저장 신호 (기존 리트라이 신호)
+#define M_Y_Vision_Anode_Aling_Move_Complete        M5031 	// Y401F    음극 얼라인 무브 완료 신호
+//---------------------------------------------//
+// GPIO[2] (PMAC ↔ Vision : Cathode)	
+//---------------------------------------------//
+#define M_Y_Vision_Cathode_Align_Ready				M5032 	// Y4020    양극 비전 통신 준비 완료
+#define M_Y_Vision_Cathode_Align_Heartbit           M5033 	// Y4021    양극 제어기 하트비트
+#define M_Y_VisioN_Align_CA_Trigger					M5034 	// Y4022    양극 비전 얼라인 촬상 신호
+#define M_Y_Vision_Cathode_Align_Result_Ack         M5035 	// Y4023    양극 비전 얼라인 결과 리턴
+#define M_Y_Vision_Cathode_Surface_Trigger          M5036 	// Y4024    양극 표면 검사 촬상 트리거
+#define M_Y_Vision_Cathode_Surface_Result_Ack       M5037 	// Y4025    양극 표면 검사 결과 리턴
+#define M_Y_Vision_Cathode_Empty_Trigger            M5038 	// Y4026    양극 빈테이블 검사 촬상 트리거
+#define M_Y_Vision_Cathode_Empty_Result_Ack         M5039 	// Y4027    양극 빈테이블 검사 결과 리턴
+#define M_Y_Vision_Cathode_Exist_Trigger            M5040 	// Y4028    양극 유무검사 촬상 트리거
+#define M_Y_Vision_Cathode_Exist_Result_Ack         M5041 	// Y4029    양극 유무검사 촬상 결과 리턴
+#define M_Y_Vision_Cathode_Align_Start              M5042 	// Y402A    양극 얼라인 시트 시작 알림 신호
+#define M_Y_Vision_Cathode_Data_Transfer_Trigger    M5043 	// Y402B    양극 Vision 데이터 전달 알림 신호 (기존 : M_Y_Vision_Cathode_Memory_Parsing_Anode)
+#define M_Y_VisioN_Align_CA_TimeOut_Flag			M5044 	// Y402C    양극 얼라인 타임 아웃 플래그
+#define M_Y_Vision_Cathode_Surface_TimeOut_Flag     M5045 	// Y402D    양극 표면검사 타임 아웃 플래그
+#define M_Y_Vision_Cathode_Save_Sheet_Data          M5046 	// Y402E    양극 극판 데이터 저장 신호 (기존 리트라이 신호)
+#define M_Y_Vision_Cathode_Aling_Move_Complete      M5047 	// Y402F    양극 얼라인 무브 완료 신호
+//---------------------------------------------//				  
+// GPIO[3] (PMAC ↔ Vision : Stack)	
+//---------------------------------------------//
+#define M_Y_Vision_Stack_Ready						M5048 	// Y4030     스텍 비전 통신 준비 완료
+#define M_Y_Vision_Stack_HeartBit                   M5049 	// Y4031     스텍 비전 하트비트
+#define M_Y_Vision_Stack_Anode_Trigger              M5050 	// Y4032     스택 음극 적재 트리거
+#define M_Y_Vision_Stack_Cathode_Trigger            M5051 	// Y4033     스택 양극 적재 트리거
+#define M_Y_Vision_Stack_Result_Ack                 M5052 	// Y4034     스택 검사 결과 Ack
+#define M_Y_Vision_Stack_Start_Sheet                M5053 	// Y4035     스택 시트 첫번째 장
+#define M_Y_Vision_Stack_End_Sheet                  M5054 	// Y4036     스택 시트 마지막 장
+#define M_Y_Vision_Stack_Sepa_Mode_Anode_Trigger	M5055	// Y4037     음극 세파 모드 촬상 신호
+#define M_Y_Vision_Stack_Sepa_Mode_Cathode_Trigger	M5056 	// Y4038     양극 세파 모드 촬상 신호
+#define M_Y_Vision_Stack_First_Sepa_Trigger         M5057 	// Y4039     스택 세파 첫장 트리거
+#define M_Y_Vision_Stack_First_Sepa_Result_Ack      M5058 	// Y403A     스택 세파 첫장 결과 Ack
+#define M_Y_Vision_Stack_TimeOut_Flag               M5059 	// Y403B     스택 검사 타임아웃 플래그
+#define M_Y_Vision_Stack_EPC_Correction_Trigger     M5060 	// Y403C     스텍 EPC 보정 요청 신호
+//#define Spare                                     M5061 	// Y403D     Spare
+//#define Spare                                     M5062 	// Y403E     Spare
+#define M_Y_Vision_Jelly_Roll_Not_Stacking_Flag     M5063 	// Y403F     J/R 미적층 중 트리거	// [ 참조 : 260414 Reel Work Confirm 관련 PMAC ↔ Vision,PLC I/F ]
+//---------------------------------------------//
+// GPIO[4] (PMAC ↔ PLC : 시트, 배출)	
+//---------------------------------------------//
+#define M_Y_PLC_A_Anode_Sheet_Start					M5064 	// Y4040     음극 시작 신호 (극판인터페이스)
+#define M_Y_PLC_A_Anode_Sheet_Completed             M5065 	// Y4041     음극 완료 신호
+#define M_Y_PLC_A_Anode_Interlock                   M5066 	// Y4042     음극 인터락 신호
+#define M_Y_PLC_A_Cathode_Sheet_Start               M5067 	// Y4043     양극 시작 신호 (극판인터페이스)
+#define M_Y_PLC_A_Cathode_Sheet_Completed           M5068 	// Y4044     양극 완료 신호
+#define M_Y_PLC_A_Cathode_Interlock                 M5069 	// Y4045     양극 인터락 신호
+#define M_Y_Discharge_Avoid_Complete                M5070 	// Y4046     1차 언로더 회피 위치 이동 완료
+#define M_Y_PLC_Unloader_Grip_Request               M5071 	// Y4047     PLC 언로더 그립 요청
+#define M_Y_1st_Unloader_UnGrip_Complete            M5072 	// Y4048     1차 언로더 언그립 완료
+#define M_Y_1st_Avoid_Pos_Discharge_Complete        M5073 	// Y4049     1차 언로더 JR 인계 후 회피 위치 이동 완료
+#define M_Y_PLC_Unloader_Ready_Pos_Ack              M5074 	// Y404A     PLC 언로더 대기 위치 Ack신호
+#define M_Y_PLC_Unloader_Grip_Ack                   M5075 	// Y404B     PLC 언로더 그립 완료 Ack신호
+#define M_Y_PLC_to_1st_Avoid_Request_Ack            M5076 	// Y404C     PLC 언로더 → 1차 언로더 회피요청 Ack신호
+#define M_Y_PLC_to_Memory_Data_Parsing_Request      M5077 	// Y404D     PMAC 언그립 완료, PLC 데이터 가져가라는 요청 신호
+#define M_Y_EtherCAT_Connected                      M5078 	// Y404E     EtherCAT Status		1 : True  0 : False
+#define M_Y_PLC_Sync_Heart_Bit                      M5079 	// Y404F     PMAC ↔ PLC Sync Heart Bit 
+//---------------------------------------------//
+// GPIO[5] (PMAC : 진공)	
+//---------------------------------------------//
+#define M_Y_ST_Center_Sol							M5080 	// Y4050     스텍 센터 진공 
+//#define Spare										M5081 	// Y4051     
+//#define Spare                                     M5082 	// Y4052     
+#define M_Y_First_Sheet_Paper_Plate_FWD_Sol			M5083 	// Y4053     시트 페이퍼 전진 신호
+#define M_Y_First_Sheet_Paper_Plate_BWD_Sol         M5084 	// Y4054     시트 페이퍼 후진 신호
+#define M_Y_First_Sheet_Paper_Plate_Ejector_Vac_On  M5085 	// Y4055     시트 페이퍼 진공 on
+#define M_Y_First_Sheet_Paper_Plate_Ejector_Vac_Off M5086 	// Y4056     시트 페이퍼 진공 off
+#define M_Y_ST_Center_Ejector_VAC_On                M5087 	// Y4057     스텍 테이블 진공 on
+#define M_Y_ST_Center_Ejector_VAC_Off               M5088 	// Y4058     스텍 테이블 진공 off
+//#define Spare										M5089 	// Y4059    
+//#define Spare										M5090 	// Y405A     
+//#define Spare                                     M5091 	// Y405B     
+#define M_Y_Cathode_AT_Vac_Ejector_Vac_On           M5092 	// Y405C     양극 Align Table 진공 on
+#define M_Y_Cathode_AT_Vac_Ejector_Vac_Off          M5093 	// Y405D     양극 Align Table 진공 off
+#define M_Y_Anode_AT_Vac_Ejector_Vac_On             M5094 	// Y405E     음극 Align Table 진공 on
+#define M_Y_Anode_AT_Vac_Ejector_Vac_Off            M5095 	// Y405F     음극 Align Table 진공 off
+//---------------------------------------------//
+// GPIO[6] (PMAC : 진공)		2026.02.24 영역 변경
+//---------------------------------------------//
+//#define Spare										M5096	// Y4060    
+//#define Spare										M5097	// Y4061    
+#define M_Y_Cathode_1st_Vac_Sol_On					M5098 	// Y4062    양극 1차 PnP 진공 on
+#define M_Y_Cathode_1st_Vac_Sol_Off                 M5099 	// Y4063    양극 1차 PnP 진공 off
+//#define Spare										M5100	// Y4064    
+//#define Spare										M5101	// Y4065    
+#define M_Y_Cathode_2nd_Vac_Sol_On                  M5102 	// Y4066    양극 2차 PnP 진공 on
+#define M_Y_Cathode_2nd_Vac_Sol_Off                 M5103 	// Y4067    양극 2차 PnP 진공 off
+//#define Spare										M5104	// Y4068    
+//#define Spare										M5105	// Y4069    
+#define M_Y_Anode_1st_Vac_Sol_On                    M5106 	// Y406A    음극 1차 PnP 진공 on
+#define M_Y_Anode_1st_Vac_Sol_Off                   M5107 	// Y406B    음극 1차 PnP 진공 off
+//#define Spare										M5108	// Y406C    
+//#define Spare										M5109	// Y406D    
+#define M_Y_Anode_2nd_Vac_Sol_On                    M5110 	// Y406E    음극 2차 PnP 진공 on
+#define M_Y_Anode_2nd_Vac_Sol_Off                   M5111 	// Y406F    음극 2차 PnP 진공 off
+//---------------------------------------------//
+// ECAT[100] (PMAC BTN)
+//---------------------------------------------//
+
+#define M_Y_Unwinder_Upper_Laser_Point				M5112 	// Y5000    상단 Spool Laser Point
+#define M_Y_Unwinder_Lower_Laser_Point              M5113 	// Y5001    하단 Spool Laser Point
+#define M_Y_Inner_Led_Lamp_On                       M5114 	// Y5002    LED Lamp ON
+#define M_Y_Sepa_Cutter_SSR_On                      M5115 	// Y5003    세파 Cutter SSR ON
+#define M_Y_Inovance_EMG_Signal						M5116	// Y5004    이노밴스 EMG Output
+//#define Spare                                     M5117 	// Y5005   
+#define M_Y_Servo_Driver_Reset_Motor_1				M5118 	// Y5006    드라이브 리셋 Motor_1		#1
+#define M_Y_Servo_Driver_Reset_Motor_2				M5119 	// Y5007    드라이브 리셋 Motor_2		#2
+#define M_Y_Servo_Driver_Reset_Motor_3              M5120 	// Y5008    드라이브 리셋 Motor_3		#3
+#define M_Y_Servo_Driver_Reset_Motor_4              M5121 	// Y5009    드라이브 리셋 Motor_4		#4
+#define M_Y_Servo_Driver_Reset_Motor_5              M5122 	// Y500A    드라이브 리셋 Motor_5		#5
+#define M_Y_Servo_Driver_Reset_Motor_6              M5123 	// Y500B    드라이브 리셋 Motor_6		#6
+#define M_Y_Servo_Driver_Reset_Motor_7              M5124 	// Y500C    드라이브 리셋 Motor_7		#7
+#define M_Y_Servo_Driver_Reset_Motor_8              M5125 	// Y500D    드라이브 리셋 Motor_8		#8
+#define M_Y_Servo_Driver_Reset_Motor_27	            M5126 	// Y500E    드라이브 리셋 Motor_27		#11
+#define M_Y_Servo_Driver_Reset_Motor_28             M5127 	// Y500F    드라이브 리셋 Motor_28		#12
+
+//---------------------------------------------//
+// ECAT[101] (PMAC RESET)	
+//---------------------------------------------//
+#define M_Y_Servo_Driver_Reset_Motor_11				M5128 	// Y5010   드라이브 리셋 Motor_11		#13
+#define M_Y_Servo_Driver_Reset_Motor_12             M5129 	// Y5011   드라이브 리셋 Motor_12		#14
+#define M_Y_Servo_Driver_Reset_Motor_13             M5130 	// Y5012   드라이브 리셋 Motor_13		#15
+#define M_Y_Servo_Driver_Reset_Motor_14             M5131 	// Y5013   드라이브 리셋 Motor_14		#16
+#define M_Y_Servo_Driver_Reset_Motor_15             M5132 	// Y5014   드라이브 리셋 Motor_15		#17
+#define M_Y_Servo_Driver_Reset_Motor_16             M5133 	// Y5015   드라이브 리셋 Motor_16		#18
+#define M_Y_Servo_Driver_Reset_Motor_17             M5134 	// Y5016   드라이브 리셋 Motor_17		#19
+#define M_Y_Servo_Driver_Reset_Motor_18             M5135 	// Y5017   드라이브 리셋 Motor_18		#20
+#define M_Y_Servo_Driver_Reset_Motor_19             M5136 	// Y5018   드라이브 리셋 Motor_19		#21
+#define M_Y_Servo_Driver_Reset_Motor_20             M5137 	// Y5019   드라이브 리셋 Motor_20		#22
+#define M_Y_Servo_Driver_Reset_Motor_21             M5138 	// Y501A   드라이브 리셋 Motor_21		#23
+#define M_Y_Servo_Driver_Reset_Motor_22             M5139 	// Y501B   드라이브 리셋 Motor_22		#24
+#define M_Y_Servo_Driver_Reset_Motor_23             M5140 	// Y501C   드라이브 리셋 Motor_23		#25
+#define M_Y_Servo_Driver_Reset_Motor_24             M5141 	// Y501D   드라이브 리셋 Motor_24		#26
+#define M_Y_Servo_Driver_Reset_Motor_25             M5142 	// Y501E   드라이브 리셋 Motor_25		#27
+#define M_Y_Servo_Driver_Reset_Motor_26             M5143 	// Y501F   드라이브 리셋 Motor_26		#28
+//---------------------------------------------//
+// ECAT[102] (BTN)		
+//---------------------------------------------//
+#define M_Y_Trigger_Display_Current_Mode_To_PLC						M5144 	// Y5020   현재 자동/수동 모드 표시 [ Auto: 1 Manu: 0 ]
+#define M_Y_Trigger_Display_Current_Execute_To_PLC					M5145 	// Y5021   현재 자동 운전 중 표시
+#define M_Y_Trigger_Display_Current_Stop_To_PLC						M5146 	// Y5022   현재 자동 운전 정지 표시
+#define M_Y_Trigger_Display_Enable_Alarm_To_PLC						M5147 	// Y5023   알람 발생표시
+#define M_Y_Trigger_Display_Selected_Motor_Status_To_PLC			M5148 	// Y5024   모터상태 표시
+#define M_Y_Host_JR_ID_Create_Request								M5149 	// Y5025   JR Host ID 생성 신호
+//#define Spare														M5150 	// Y5026   Spare
+//#define Spare														M5151 	// Y5027   Spare
+#define M_Y_1s_Cycle_HeartBit										M5152 	// Y5028   하트비트
+//#define Spare														M5153 	// Y5029   Spare
+//#define Spare														M5154 	// Y502A   Spare
+//#define Spare														M5155 	// Y502B   Spare
+//#define Spare														M5156 	// Y502C   Spare
+//#define Spare														M5157 	// Y502D   Spare
+//#define Spare														M5158 	// Y502E   Spare
+//#define Spare														M5159 	// Y502F   Spare
+//---------------------------------------------//
+// ECAT[103] (PMAC ↔ PLC Interface)	
+//---------------------------------------------//
+#define M_Y_PLC_Cathode_Sheet_NG					M5160	// Y5030   #define M_Y_PLC_Cathode_Align_NG					M5160 	// 배출 시, PMAC → PLC 양극 NG 신호( Cathode Align ) (기존 : M_Y_Trigger_Cathode_Align_NG_To_PLC)
+#define M_Y_PLC_Anode_Sheet_NG						M5161	// Y5031   #define M_Y_PLC_Anode_Align_NG						M5161 	// 배출 시, PMAC → PLC 음극 NG 신호( Anode Align )    (기존 : M_Y_Trigger_Anode_Align_NG_To_PLC)
+//Spare #define M_Y_PLC_Cathode_Surf_NG				M5162 	// Y5032   배출 시, PMAC → PLC 양극 NG 신호( Cathode Front )  (기존 : M_Y_Trigger_Cathode_Retry_NG_To_PLC)
+//Spare #define M_Y_PLC_Anode_Surf_NG				M5163 	// Y5033   배출 시, PMAC → PLC 음극 NG 신호( Anode Front )    (기존 : M_Y_Trigger_Anode_Retry_NG_To_PLC)
+//Spare #define M_Y_PLC_Stack_NG					M5164 	// Y5034   배출 시, PMAC → PLC 스텍 NG 신호 ( Stack )
+#define M_Y_EPC_Vertical_Panel_Manual_Signal		M5165 	// Y5035   [ 1 : EPC 자동→수동 전환 요청] / [ 0 : EPC 수동→자동 전환 요청] 
+#define M_Y_PLC_Stacking_OK_JR						M5166 	// Y5036   스텍 셀 양품 트리거 (정상 배출, 기존 : M_Y_Trigger_A_Stack_Cell_Good_To_PLC)
+#define M_Y_PLC_Stacking_NG_JR						M5167 	// Y5037   스텍 셀 불량 트리거 (불량 배출, 기존 : M_Y_Trigger_A_Stack_Cell_No_Good_To_PLC)
+#define M_Y_PLC_Full_Stacking_NG_JR_Unload			M5168 	// Y5038   NG 배출 정상 Cell 배출 (불량 - 스텍 완료, 기존 : M_Y_Trigger_A_Stack_NG_Stack_Complete_To_PLC)
+#define M_Y_PLC_NonFull_Stacking_NG_JR_Unload		M5169 	// Y5039   NG 배출 폐기 배출 (블량 - 스텍 중간, 기존 : M_Y_Trigger_A_Stack_NG_Stack_Fail_To_PLC)
+#define M_Y_PLC_Sepa_Stacking_Unload				M5170 	// Y503A   NG 배출 Sepa 배출 (세파 배출, 기존 : M_Y_Trigger_A_Sepa_Cell_To_PLC)
+#define M_Y_Trg_SV_Receive_Complete_To_PLC			M5171 	// Y503B   QCP Save 값 수신 완료 신호
+#define M_Y_Sepa_Upper_Unwinder_Status				M5172 	// Y503C   상부 언와인더 선택
+#define M_Y_Sepa_Lower_Unwinder_Status				M5173 	// Y503D   하부 언와인더 선택
+//#define Spare										M5174 	// Y503E   Spare
+//#define Spare										M5175 	// Y503F   Spare
+//---------------------------------------------//
+// ECAT[104] (Spare)		
+//---------------------------------------------//
+#define M_Y_PLC_Trans_IN_Signal                     M5176 	// Y5040   트랜스 IN 시점 
+#define M_Y_PLC_JR_Data_Produce_Signal              M5177 	// Y5041   배출 시, 세파 커팅 후 JR 신규 생성 타이밍 요청 신호
+#define M_Y_PLC_ULD_Home_Interlock_Signal           M5178 	// Y5042   Spare
+#define M_Y_Sheet_enable_Flag                       M5179 	// Y5043   Spare
+#define M_Y_PLC_Work_Confirm_Operation_Ack			M5180 	// Y5044   Work Confirm 실행 Ack 신호	// [ 참조 : 260414 Reel Work Confirm 관련 PMAC ↔ Vision,PLC I/F ]
+#define M_Y_PLC_1st_ULD_Wait_Pos                    M5181 	// Y5045   auto 상태 시 1차 언로더 t축 대기 위치 신호  // [참조 : 260507 1차 언로더 대기 위치 시 2차 언로더 대기 위치로 내려올 수 있게 안전 위치 라는 IO 추가]
+#define M_Y_PLC_ARC_EPC_Value_Apply_Signal			M5182 	// Y5046   ARC 진행 및 ARC 세파 소비 모드 이후 ARC EPC값 적용 신호	[ 참조 : 26.05.08 ARC 후 ARC EPC값 적용 인터페이스 추가 ]
+#define M_Y_1st_Grip_State                          M5183 	// Y5047   PLC에게 언로더 그립 상태 전송
+#define M_Y_1st_UnGrip_State						M5184 	// Y5048   PLC에게 언로더 언그립 상태 전송
+#define M_Y_PLC_ARC_1st_Sepa_Mode_Signal            M5185 	// Y5049   ARC 후 첫 세파모드 시 PLC에게 신호 (ARC 후 첫 세파모드 시 Vision에게 신호를 전달하기 위함)	[ 참조 : 26.05.22 ARC 후 첫 세파모드 신호 추가 ]
+#define M_Y_Cathode_1st_PNP_Sheet_Wait              M5186 	// Y504A   Spare
+#define M_Y_Anode_1st_PNP_Sheet_Wait                M5187 	// Y504B   Spare
+//#define Spare                                     M5188 	// Y504C   Spare
+//#define Spare                                     M5189 	// Y504D   Spare
+//#define Spare                                     M5190 	// Y504E   Spare
+//#define Spare                                     M5191 	// Y504F   Spare
+//---------------------------------------------//
+// ECAT[106] (Vac_1)
+//---------------------------------------------//
+#define M_Y_ST_Cathode_Clamp_Damper_Sol				M5208 	// Y5060   양극 댐퍼 SOL ON
+#define M_Y_ST_Anode_Clamp_Damper_Sol               M5209 	// Y5061   음극 댐퍼 SOL ON
+#define M_Y_ST_Center_Cyl_Up_Sol                    M5210 	// Y5062   스텍 센터 SOL ON
+#define M_Y_ST_Center_Cyl_Dn_Sol                    M5211 	// Y5063   스텍 센터 SOL ON
+#define M_Y_ST_Zero_Clamp_Sol                       M5212 	// Y5064   스텍 제로클램프 SOL ON
+//#define Spare                                     M5213 	// Y5065  
+#define M_Y_1st_Unloader_UnGrip_Sol                 M5214 	// Y5066   언로더 1차 언그립 SOL ON 
+#define M_Y_1st_Unloader_Grip_Sol					M5215 	// Y5067   언로더 1차 그립 SOL ON
+#define M_Y_1st_Unloader_JR_Grip_Blow_Sol           M5216 	// Y5068   언로더 젤리롤 블로우 SOL ON
+//#define Spare                                     M5217 	// Y5069   
+#define M_Y_Cathode_AT_Zero_Clamp_Sol               M5218 	// Y506A   양극 얼라인 테이블 제로 클램프 SOL ON
+#define M_Y_Anode_AT_Zero_Clamp_Sol                 M5219 	// Y506B   음극 얼라인 테이블 제로 클램프 SOL ON
+//#define Spare                                     M5220 	// Y506C   Spare
+//#define Spare                                     M5221 	// Y506D   Spare
+//#define Spare                                     M5222 	// Y506E   Spare
+//#define Spare                                     M5223 	// Y506F   Spare
+//---------------------------------------------//
+// ECAT[107] (Vac_2)	
+//---------------------------------------------//
+#define M_Y_Cathode_NG_PNP_Ejector_Vac_On			M5224 	// Y5070   양극 NG PnP 진공 on
+#define M_Y_Cathode_NG_PNP_Ejector_Vac_Off          M5225 	// Y5071   양극 NG PnP 진공 off
+#define M_Y_Anode_NG_PNP_Ejector_Vac_On             M5226 	// Y5072   음극 NG PnP 진공 on
+#define M_Y_Anode_NG_PNP_Ejector_Vac_Off            M5227 	// Y5073   음극 NG PnP 진공 off
+//#define Spare                                     M5228 	// Y5074   Spare
+//#define Spare                                     M5229 	// Y5075   Spare
+//#define Spare                                     M5230 	// Y5076   Spare
+//#define Spare                                     M5231 	// Y5077   Spare
+//#define Spare                                     M5232 	// Y5078   Spare
+//#define Spare                                     M5233 	// Y5079   Spare
+//#define Spare                                     M5234 	// Y507A   Spare
+//#define Spare                                     M5235 	// Y507B   Spare
+//#define Spare                                     M5236 	// Y507C   Spare
+//#define Spare                                     M5237 	// Y507D   Spare
+//#define Spare                                     M5238 	// Y507E   Spare
+//#define Spare                                     M5239 	// Y507F   Spare
+//---------------------------------------------//
+// ECAT[108] (ARC NP_2)		
+//---------------------------------------------//
+#define M_Y_NP_BTN_Reset							M5240 	// Y5080   네임 플레이트 리셋 버튼
+#define M_Y_NP_BTN_Spool_Home                       M5241 	// Y5081   네임 플레이트 원점 버튼
+#define M_Y_NP_BTN_Ready                            M5242 	// Y5082   네임 플레이트 레디 버튼
+#define M_Y_NP_BTN_Alignment                        M5243 	// Y5083   네임 플레이트 언와인더 자동 정렬 버튼
+#define M_Y_NP_BTN_Tilting							M5244 	// Y5084   네임 플레이트 틸팅/언틸팅 버튼
+#define M_Y_NP_BTN_Chuck_Unchuck                    M5245 	// Y5085   네임 플레이트 척,언척 버튼
+#define M_Y_NP_BTN_Rotation                         M5246 	// Y5086   네임 플레이트 언와인더 정방향 회전 버튼
+#define M_Y_NP_BTN_Re_Rotation                      M5247 	// Y5087   네임 플레이트 언와인더 역방향 회전 버튼
+#define M_Y_NP_BTN_Vacuum_On_OFF                    M5248 	// Y5088   네임 플레이트 진공 ON/OFF 버튼
+#define M_Y_NP_BTN_Sepa_Cutting                     M5249 	// Y5089   네임 플레이트 세파 커팅 버튼
+#define M_Y_NP_BTN_Clamp_On_OFF                     M5250 	// Y508A   네임 플레이트 클램프 ON/OFF 버튼
+#define M_Y_NP_BTN_Plate_Up_Down                    M5251 	// Y508B   네임 플레이트 상승/하강 버튼
+//#define Spare                                     M5252 	// Y508C   Spare
+#define M_Y_ARC_NP_Two_Btn_Signal                   M5253 	// Y508D   네임플레이터 인터락 투 버튼
+//#define Spare                                     M5254 	// Y508E   Spare
+//#define Spare                                     M5255 	// Y508F   Spare
+//---------------------------------------------//
+// ECAT[111] (ARC_1)	
+//---------------------------------------------//
+#define M_Y_Sepa_ARC_Upper_Dn_Sol					M5288 	// Y50B0   상부 플레이트 하강
+#define M_Y_Sepa_ARC_Upper_Up_Sol	                M5289 	// Y50B1   상부 플레이트 상승
+#define M_Y_Sepa_ARC_Upper_UnTilting_Sol			M5290 	// Y50B2   상부 언틸팅 
+#define M_Y_Sepa_ARC_Upper_Tilting_Sol				M5291 	// Y50B3   상부 틸팅
+#define M_Y_Sepa_ARC_Upper_Cutting_FWD_Sol          M5292 	// Y50B4   상부 커팅 전진
+#define M_Y_Sepa_ARC_Upper_Cutting_BWD_Sol          M5293 	// Y50B5   상부 커팅 후진
+#define M_Y_Sepa_ARC_Upper_Stopper_FWD_Sol          M5294 	// Y50B6   상부 스토퍼 전진 (실린더 기준 전진 - 동작 : 언클램프)
+#define M_Y_Sepa_ARC_Upper_Stopper_BWD_Sol			M5295 	// Y50B7   상부 스토퍼 후진 (실린더 기준 후진 - 동작 : 클램프)
+#define M_Y_Sepa_ARC_Lower_Up_Sol                   M5296 	// Y50B8   하부 플레이트 상승
+#define M_Y_Sepa_ARC_Lower_Dn_Sol                   M5297 	// Y50B9   하부 플레이트 하강
+#define M_Y_Sepa_ARC_Lower_UnTilting_Sol			M5298 	// Y50BA   하부 언틸팅
+#define M_Y_Sepa_ARC_Lower_Tilting_Sol				M5299 	// Y50BB   하부 틸팅
+#define M_Y_Sepa_ARC_Lower_Cutting_FWD_Sol          M5300 	// Y50BC   하부 커팅 전진
+#define M_Y_Sepa_ARC_Lower_Cutting_BWD_Sol          M5301 	// Y50BD   하부 커팅 후진
+#define M_Y_Sepa_ARC_Lower_Stopper_FWD_Sol          M5302 	// Y50BE   하부 스토퍼 전진 (실린더 기준 전진 - 동작 : 언클램프)   
+#define M_Y_Sepa_ARC_Lower_Stopper_BWD_Sol          M5303 	// Y50BF   하부 스토퍼 후진 (실린더 기준 후진 - 동작 : 클램프)
+//---------------------------------------------//
+// ECAT[112] (SOL_1)	
+//---------------------------------------------//
+#define M_Y_An_Ca_Partition_Down_Sol				M5304 	// Y50C0   음,양극 파티션 파티션 동시 하강		// [참조 : 26.04.29 격벽 I.O 업데이트 추가 건]
+#define M_Y_An_Ca_Partition_Up_Sol					M5305 	// Y50C1   음,양극 파티션 파티션 동시 상승		// [참조 : 26.04.29 격벽 I.O 업데이트 추가 건]
+//#define Spare										M5306 	// Y50C2   
+//#define Spare										M5307 	// Y50C3   
+#define M_Y_Upper_Unwinder_Lock_Sol					M5308 	// Y50C4   상부 스풀 척
+#define M_Y_Upper_Unwinder_UnLock_Sol               M5309 	// Y50C5   상부 스풀 언척
+#define M_Y_Lower_Unwinder_Lock_Sol                 M5310 	// Y50C6   하부 스풀 척
+#define M_Y_Lower_Unwinder_UnLock_Sol               M5311 	// Y50C7   하부 스풀 언척
+#define M_Y_Sepa_Ionizer_1_2_3_Blow_Off             M5312 	// Y50C8   세파 이오나이져 1,2,3 블로우
+#define M_Y_Stack_Vision_Camera_Clamp_Sol           M5313 	// Y50C9   Stack Vision 상부 카메라
+#define M_Y_Sepa_Ionizer_1_Remote_Off               M5314 	// Y50CA   세파 이오나이져 Remote_1 오프	// [ 참조 : 260414 통신문서 최신화에 따른 IO 변경 ]
+#define M_Y_Sepa_Ionizer_2_Remote_Off               M5315 	// Y50CB   세파 이오나이져 Remote_2 오프	// [ 참조 : 260414 통신문서 최신화에 따른 IO 변경 ]
+#define M_Y_Sepa_Ionizer_3_Remote_Off               M5316 	// Y50CC   세파 이오나이져 Remote_3 오프	// [ 참조 : 260414 통신문서 최신화에 따른 IO 변경 ]
+//#define Spare										M5317 	// Y50CD    
+//#define Spare										M5318 	// Y50CE   
+//#define Spare                                     M5319 	// Y50CF   
+
+//---------------------------------------------//
+// ECAT[113] (SOL_2)	
+//---------------------------------------------//
+// 임시로 서브 롤러 클램프 IO 변경
+#define M_Y_FR_Clamping_Sub_Roller_Clamp			M5320 	// Y50D0   파이널 서브 클램핑 롤 클램프
+#define M_Y_FR_Clamping_Sub_Roller_Unclamp			M5321 	// Y50D1   파이널 서브 클램핑 롤 언클램프
+//#define Spare										M5322   // Y50D2  
+//#define Spare                                     M5323 	// Y50D3  
+#define M_Y_FR_Sepa_Cutter_Dn_Sol                   M5324 	// Y50D4   파이널 롤러 세파 커터 하강
+#define M_Y_FR_Sepa_Cutter_Up_Sol                   M5325 	// Y50D5   파이널 롤러 세파 커터 상승
+#define M_Y_FR_Sepa_Clamp							M5326 	// Y50D6   파이널 롤러 클램핑 롤 클램프
+#define M_Y_FR_Sepa_UnClamp							M5327 	// Y50D7   파이널 롤러 클램핑 롤 언클램프
+//#define Spare                                     M5328 	// Y50D8  
+//#define Spare                                     M5329 	// Y50D9  
+//#define Spare                                     M5330 	// Y50DA  
+//#define Spare                                     M5331 	// Y50DB  
+//#define Spare                                     M5332 	// Y50DC  
+//#define Spare                                     M5333 	// Y50DD  
+//#define Spare                                     M5334 	// Y50DE  
+//#define Spare                                     M5335 	// Y50DF  
+//---------------------------------------------//
+// ECAT[114] (ARC_2)		
+//---------------------------------------------//
+#define M_Y_Sepa_Upper_ARC_Ejector_Vac_On			M5336 	// Y50E0   상부 플레이트 진공 ON
+#define M_Y_Sepa_Upper_ARC_Ejector_Vac_Off          M5337 	// Y50E1   상부 플레이트 진공 OFF
+#define M_Y_Sepa_Lower_ARC_Ejector_Vac_On           M5338 	// Y50E2   하부 플레이트 진공 ON
+#define M_Y_Sepa_Lower_ARC_Ejector_Vac_Off          M5339 	// Y50E3   하부 플레이트 진공 OFF
+//#define Spare                                     M5340 	// Y50E4   Spare
+//#define Spare                                     M5341 	// Y50E5   Spare
+//#define Spare                                     M5342 	// Y50E6   Spare
+//#define Spare                                     M5343 	// Y50E7   Spare
+//#define Spare                                     M5344 	// Y50E8   Spare
+//#define Spare                                     M5345 	// Y50E9   Spare
+//#define Spare                                     M5346 	// Y50EA   Spare
+//#define Spare                                     M5347 	// Y50EB   Spare
+//#define Spare                                     M5348 	// Y50EC   Spare
+//#define Spare                                     M5349 	// Y50ED   Spare
+//#define Spare                                     M5350 	// Y50EE   Spare
+//#define Spare                                     M5351 	// Y50EF   Spare
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//--------------------------Test----------------------------------------------------------------------//
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define M_X_Detect_1ST_TR_Anode_VAC_On M1000
+#define M_X_Detect_2ND_TR_Anode_VAC_On M1001 
+#define M_X_Detect_1ST_TR_Cathode_VAC_On M1002
+#define M_X_Detect_2ND_TR_Cathode_VAC_On M1003 
+#define M_X_Detect_Align_Anode_VAC_On M1004
+#define M_X_Detect_Align_Cathode_VAC_On M1005
+
+
+
+// AIO===================================================================================================
+
+// AI Board 1 ( 4mA ~ 20mA )  NX-AD3208
+#define M_AI_Sepa_Upper_Sensing						M5400				// AI-3-1  상단 언와인더 센싱값
+#define M_AI_Sepa_Lower_Sensing						M5401				// AI-3-2  하단 언와인더 센싱값
+#define M_AI_FR_Detect_Sensing						M5402				// AI-3-3  파이널롤러 반경 센서
+//#define Spare										M5403				// AI-3-4
+
+// AI Board 2 ( 1 ~ 5V )      NX-AD3608
+#define M_AI_Dancer_Regulator						M5404				// AI-2-5  댄서 레귤레이터 값 
+#define M_AI_Friction_Dancer						M5405				// AI-2-6  댄서 저마찰 AI 값
+#define M_AI_Cathode_Clamp_Regulator				M5406				// AI-2-7  양극 클램프 레귤레이터
+#define M_AI_Anode_Clamp_Regulator					M5407				// AI-2-8  음극 클램프 레귤레이터
+
+// AI Board 3 ( 4mA ~ 20mA )  NX-AD3208
+#define M_AI_1st_Unloader_Grip_Sensing				M5408				// AI-2-9  언로더 그립 센싱값
+//#define Spare										M5409 				// AI-2-10  
+#define M_AI_Cutter_Heat_Meter						M5410				// AI-2-11 커터 열선 AI 값
+//#define Spare										M5411 				   AI-2-12 
+
+// AO Board 1 ( 1 ~ 10V )     NX-3605
+#define M_AO_Cathode_Clamp_Regulator				M5412				// AI-2-1양극 클램프 레귤레이터
+#define M_AO_Anode_Clamp_Regulator					M5413				// AI-2-2음극 클램프 레귤레이터
+#define M_AO_Dancer_Regulator						M5414				// AI-2-3댄서 레귤레이터
+//#define Spare										M5415				// AI-2-4
+
+
+
+
+M4000,112->*
+M5000,112->*
+
+// 1번 IO 모듈 매칭
+// 입력   
+M4112->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.0	//Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits
+M4113->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.1
+M4114->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.2
+M4115->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.3
+M4116->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.4
+M4117->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.5
+M4118->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.6
+M4119->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.7
+M4120->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.8
+M4121->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.9
+M4122->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.10
+M4123->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.11
+M4124->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.12
+M4125->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.13
+M4126->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.14
+M4127->Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.15
+M4128->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.0  // Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits
+M4129->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.1
+M4130->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.2
+M4131->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.3
+M4132->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.4
+M4133->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.5
+M4134->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.6
+M4135->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.7
+M4136->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.8
+M4137->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.9
+M4138->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.10
+M4139->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.11
+M4140->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.12
+M4141->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.13
+M4142->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.14
+M4143->Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.15
+M4144->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.0	//Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits
+M4145->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.1
+M4146->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.2
+M4147->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.3
+M4148->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.4
+M4149->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.5
+M4150->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.6
+M4151->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.7
+M4152->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.8
+M4153->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.9
+M4154->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.10
+M4155->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.11
+M4156->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.12
+M4157->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.13
+M4158->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.14
+M4159->Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.15
+M4160->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.0	//Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits
+M4161->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.1
+M4162->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.2
+M4163->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.3
+M4164->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.4
+M4165->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.5
+M4166->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.6
+M4167->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.7
+M4168->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.8
+M4169->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.9
+M4170->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.10
+M4171->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.11
+M4172->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.12
+M4173->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.13
+M4174->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.14
+M4175->Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.15
+M4176->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.0 // Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits
+M4177->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.1
+M4178->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.2
+M4179->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.3
+M4180->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.4
+M4181->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.5
+M4182->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.6
+M4183->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.7
+M4184->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.8
+M4185->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.9
+M4186->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.10
+M4187->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.11
+M4188->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.12
+M4189->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.13
+M4190->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.14
+M4191->Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.15
+M4192->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.0  // Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits
+M4193->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.1
+M4194->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.2
+M4195->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.3
+M4196->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.4
+M4197->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.5
+M4198->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.6
+M4199->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.7
+M4200->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.8
+M4201->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.9
+M4202->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.10
+M4203->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.11
+M4204->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.12
+M4205->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.13
+M4206->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.14
+M4207->Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.15
+
+// 출력
+M5112->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.0  // Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits
+M5113->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.1
+M5114->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.2
+M5115->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.3
+M5116->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.4
+M5117->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.5
+M5118->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.6
+M5119->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.7
+M5120->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.8
+M5121->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.9
+M5122->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.10
+M5123->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.11
+M5124->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.12
+M5125->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.13
+M5126->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.14
+M5127->Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.15
+M5128->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.0  // Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits
+M5129->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.1
+M5130->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.2
+M5131->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.3
+M5132->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.4
+M5133->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.5
+M5134->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.6
+M5135->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.7
+M5136->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.8
+M5137->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.9
+M5138->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.10
+M5139->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.11
+M5140->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.12
+M5141->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.13
+M5142->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.14
+M5143->Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.15
+M5144->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.0  // Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits
+M5145->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.1
+M5146->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.2
+M5147->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.3
+M5148->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.4
+M5149->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.5
+M5150->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.6
+M5151->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.7
+M5152->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.8
+M5153->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.9
+M5154->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.10
+M5155->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.11
+M5156->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.12
+M5157->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.13
+M5158->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.14
+M5159->Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.15
+M5160->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.0 // Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits
+M5161->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.1
+M5162->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.2
+M5163->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.3
+M5164->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.4
+M5165->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.5
+M5166->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.6
+M5167->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.7
+M5168->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.8
+M5169->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.9
+M5170->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.10
+M5171->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.11
+M5172->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.12
+M5173->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.13
+M5174->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.14
+M5175->Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.15
+M5176->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.0  // Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits
+M5177->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.1
+M5178->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.2
+M5179->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.3
+M5180->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.4
+M5181->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.5
+M5182->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.6
+M5183->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.7
+M5184->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.8
+M5185->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.9
+M5186->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.10
+M5187->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.11
+M5188->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.12
+M5189->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.13
+M5190->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.14
+M5191->Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.15
+
+
+// 2번 io 모듈 매칭
+// 입력
+M4288->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.0  // Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits
+M4289->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.1
+M4290->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.2
+M4291->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.3
+M4292->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.4
+M4293->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.5
+M4294->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.6
+M4295->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.7
+M4296->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.8
+M4297->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.9
+M4298->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.10
+M4299->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.11
+M4300->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.12
+M4301->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.13
+M4302->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.14
+M4303->Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.15
+M4304->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.0   // Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits
+M4305->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.1
+M4306->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.2
+M4307->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.3
+M4308->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.4
+M4309->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.5
+M4310->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.6
+M4311->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.7
+M4312->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.8
+M4313->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.9
+M4314->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.10
+M4315->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.11
+M4316->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.12
+M4317->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.13
+M4318->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.14
+M4319->Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.15
+M4320->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.0   // Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits
+M4321->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.1
+M4322->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.2
+M4323->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.3
+M4324->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.4
+M4325->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.5
+M4326->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.6
+M4327->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.7
+M4328->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.8
+M4329->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.9
+M4330->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.10
+M4331->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.11
+M4332->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.12
+M4333->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.13
+M4334->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.14
+M4335->Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.15
+M4336->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.0  // Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits
+M4337->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.1
+M4338->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.2
+M4339->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.3
+M4340->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.4
+M4341->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.5
+M4342->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.6
+M4343->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.7
+M4344->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.8
+M4345->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.9
+M4346->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.10
+M4347->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.11
+M4348->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.12
+M4349->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.13
+M4350->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.14
+M4351->Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.15
+
+//출력
+M5288->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.0 // Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits
+M5289->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.1
+M5290->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.2
+M5291->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.3
+M5292->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.4
+M5293->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.5
+M5294->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.6
+M5295->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.7
+M5296->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.8
+M5297->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.9
+M5298->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.10
+M5299->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.11
+M5300->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.12
+M5301->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.13
+M5302->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.14
+M5303->Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.15
+M5304->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.0
+M5305->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.1   // Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits
+M5306->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.2
+M5307->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.3
+M5308->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.4
+M5309->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.5
+M5310->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.6
+M5311->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.7
+M5312->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.8
+M5313->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.9
+M5314->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.10
+M5315->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.11
+M5316->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.12
+M5317->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.13
+M5318->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.14
+M5319->Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.15
+M5320->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.0   // Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits
+M5321->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.1
+M5322->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.2
+M5323->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.3
+M5324->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.4
+M5325->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.5
+M5326->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.6
+M5327->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.7
+M5328->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.8
+M5329->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.9
+M5330->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.10
+M5331->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.11
+M5332->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.12
+M5333->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.13
+M5334->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.14
+M5335->Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.15
+M5336->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.0  // Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits
+M5337->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.1
+M5338->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.2
+M5339->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.3
+M5340->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.4
+M5341->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.5
+M5342->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.6
+M5343->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.7
+M5344->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.8
+M5345->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.9
+M5346->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.10
+M5347->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.11
+M5348->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.12
+M5349->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.13
+M5350->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.14
+M5351->Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.15
+
+
+
+// 3번 io모듈 매칭
+//입력
+M4208->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.0  // Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits
+M4209->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.1
+M4210->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.2
+M4211->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.3
+M4212->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.4
+M4213->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.5
+M4214->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.6
+M4215->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.7
+M4216->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.8
+M4217->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.9
+M4218->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.10
+M4219->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.11
+M4220->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.12
+M4221->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.13
+M4222->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.14
+M4223->Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.15
+M4224->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.0 // Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits
+M4225->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.1
+M4226->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.2
+M4227->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.3
+M4228->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.4
+M4229->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.5
+M4230->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.6
+M4231->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.7
+M4232->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.8
+M4233->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.9
+M4234->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.10
+M4235->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.11
+M4236->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.12
+M4237->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.13
+M4238->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.14
+M4239->Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.15
+M4240->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.0  // Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits
+M4241->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.1
+M4242->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.2
+M4243->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.3
+M4244->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.4
+M4245->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.5
+M4246->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.6
+M4247->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.7
+M4248->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.8
+M4249->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.9
+M4250->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.10
+M4251->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.11
+M4252->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.12
+M4253->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.13
+M4254->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.14
+M4255->Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.15
+
+//출력
+M5208->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.0 // Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits
+M5209->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.1
+M5210->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.2
+M5211->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.3
+M5212->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.4
+M5213->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.5
+M5214->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.6
+M5215->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.7
+M5216->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.8
+M5217->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.9
+M5218->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.10
+M5219->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.11
+M5220->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.12
+M5221->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.13
+M5222->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.14
+M5223->Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.15
+M5224->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.0   // Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits
+M5225->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.1
+M5226->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.2
+M5227->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.3
+M5228->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.4
+M5229->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.5
+M5230->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.6
+M5231->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.7
+M5232->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.8
+M5233->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.9
+M5234->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.10
+M5235->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.11
+M5236->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.12
+M5237->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.13
+M5238->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.14
+M5239->Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.15
+M5240->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.0   // Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits
+M5241->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.1
+M5242->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.2
+M5243->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.3
+M5244->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.4
+M5245->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.5
+M5246->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.6
+M5247->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.7
+M5248->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.8
+M5249->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.9
+M5250->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.10
+M5251->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.11
+M5252->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.12
+M5253->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.13
+M5254->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.14
+M5255->Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.15
+
+
+// aio 매칭
+M5400->Slave_1019_NX_ECC203_1019_6100_1_Ch1AnalogInputValue	// M_AI_Sepa_Upper_Sensing     Slave_1019_NX_ECC203_1019_6100_1_Ch1AnalogInputValue
+M5401->Slave_1019_NX_ECC203_1019_6100_2_Ch2AnalogInputValue	// M_AI_Sepa_Lower_Sensing     Slave_1019_NX_ECC203_1019_6100_2_Ch2AnalogInputValue
+M5402->Slave_1019_NX_ECC203_1019_6100_3_Ch3AnalogInputValue	// M_AI_FR_Detect_Sensing      Slave_1019_NX_ECC203_1019_6100_3_Ch3AnalogInputValue
+M5403->Slave_1019_NX_ECC203_1019_6100_4_Ch4AnalogInputValue	// SPARE						Slave_1019_NX_ECC203_1019_6100_4_Ch4AnalogInputValue
+
+M5404->Slave_1020_NX_ECC203_1020_60C0_1_Ch1AnalogInputValue	// SPARE							Slave_1020_NX_ECC203_1020_60C0_1_Ch1AnalogInputValue
+M5405->Slave_1020_NX_ECC203_1020_60C0_2_Ch2AnalogInputValue	// SPARE							Slave_1020_NX_ECC203_1020_60C0_2_Ch2AnalogInputValue
+M5406->Slave_1020_NX_ECC203_1020_60C0_3_Ch3AnalogInputValue	// M_AI_Cathode_Clamp_Regulator			Slave_1020_NX_ECC203_1020_60C0_3_Ch3AnalogInputValue
+M5407->Slave_1020_NX_ECC203_1020_60C0_4_Ch4AnalogInputValue	// M_AI_Anode_Clamp_Regulator			Slave_1020_NX_ECC203_1020_60C0_4_Ch4AnalogInputValue
+M5408->Slave_1020_NX_ECC203_1020_60E0_1_Ch1AnalogInputValue	// M_AI_1st_Unloader_Grip_Sensing		Slave_1020_NX_ECC203_1020_60E0_1_Ch1AnalogInputValue
+M5409->Slave_1020_NX_ECC203_1020_60E0_2_Ch2AnalogInputValue	// SPARE								Slave_1020_NX_ECC203_1020_60E0_2_Ch2AnalogInputValue
+M5410->Slave_1020_NX_ECC203_1020_60E0_3_Ch3AnalogInputValue	// M_AI_Cutter_Heat_Meter				Slave_1020_NX_ECC203_1020_60E0_3_Ch3AnalogInputValue
+M5011->Slave_1020_NX_ECC203_1020_60E0_4_Ch4AnalogInputValue	// SPARE								Slave_1020_NX_ECC203_1020_60E0_4_Ch4AnalogInputValue
+
+M5412->Slave_1020_NX_ECC203_1020_7100_1_Ch1AnalogOutputValue		// M_AO_Cathode_Clamp_Regulator			Slave_1020_NX_ECC203_1020_7100_1_Ch1AnalogOutputValue
+M5413->Slave_1020_NX_ECC203_1020_7100_2_Ch2AnalogOutputValue		// M_AO_Anode_Clamp_Regulator			Slave_1020_NX_ECC203_1020_7100_2_Ch2AnalogOutputValue
+M5414->Slave_1020_NX_ECC203_1020_7100_3_Ch3AnalogOutputValue		// SPARE								Slave_1020_NX_ECC203_1020_7100_3_Ch3AnalogOutputValue
+M5415->Slave_1020_NX_ECC203_1020_7100_4_Ch4AnalogOutputValue	    // SPARE								Slave_1020_NX_ECC203_1020_7100_4_Ch4AnalogOutputValue
+
+
+
+
+
+
+
+

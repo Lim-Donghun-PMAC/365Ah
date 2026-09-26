@@ -1,0 +1,1436 @@
+//==========================================================================================================================================================================================================================================
+// 프로그램 개정이력
+//==========================================================================================================================================================================================================================================
+// 01. 전체 홈 Management 
+//-----------------------------------------------------------------------------------------------------//
+// 25.06.23 이상준 S  
+// 내용 - 그룹정보업데이트, 동작명령, 동작체크, SKIP기능, 그룹체크기능, Management 감시모듈 - 액션 동작 체크 단계 타임아웃 체크 함수 추가 
+  
+//-----------------------------------------------------------------------------------------------------//
+// 02. 전체 홈 정지 Management 
+//-----------------------------------------------------------------------------------------------------//
+// 25.06.27 이상준 S  
+// 내용 - 전체 홈 Management 외부감시 모듈 타임아웃 타이머 정보 업데이트 추가 
+// 내용 - 그룹 내 멤버 정보업데이트 추가 
+// [ 참조 : 2025.07.23 홈 프로그램 추가 ] 
+/*
+open subprog Sub_All_Home_Action_Module(void)
+	//---------------------------------------------------------------------------------------------
+	// 01.그룹정보 업데이트  - initialize 
+	//---------------------------------------------------------------------------------------------
+	// 1.1.0) 전체 홈 동작단계 멤버 정보 업데이트 
+	sub:Group_Action_Target_Update( Group, &Result )	 
+		//if(드라이런모드 일떄만) 모드유닛별 조건을 적용하여 사용할것!
+		switch( Group )
+		{// 인자값으로 받아온 Group Index값으로 그룹에 대한 정보를 갱신한다.
+			case 1: //Group 1 : 그룹1 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				// 레시피로 변형 25.06.25  
+				P_AH_Action_Target(0) = P_Recipe_G1_Action_Target_Type_1(0)				// 그룹1의 멤버0은 #1
+				P_AH_Action_Target(1) = P_Recipe_G1_Action_Target_Type_1(1)				// 그룹1의 멤버1은 #2
+				P_AH_Action_Target(2) = P_Recipe_G1_Action_Target_Type_1(2)				// 그룹1의 멤버2은 #3
+				P_AH_Action_Target(3) =	P_Recipe_G1_Action_Target_Type_1(3)				// 그룹1의 멤버3은 #4
+				P_AH_Action_Target(4) =	P_Recipe_G1_Action_Target_Type_1(4)				// 그룹1의 멤버4은 #5
+				P_AH_Action_Target(5) =	P_Recipe_G1_Action_Target_Type_1(5)				// 그룹1의 멤버5은 #6
+				P_AH_Action_Target(6) =	P_Recipe_G1_Action_Target_Type_1(6)				// 그룹1의 멤버6은 #7
+				P_AH_Action_Target(7) =	P_Recipe_G1_Action_Target_Type_1(7)				// 그룹1의 멤버7은 #8
+				P_AH_Action_Target(8) =	P_Recipe_G1_Action_Target_Type_1(8)				// 그룹1의 멤버8은 #9
+				P_AH_Action_Target(9) =	P_Recipe_G1_Action_Target_Type_1(9)				// 그룹1의 멤버9은 #10
+				P_AH_Action_Target(10) = P_Recipe_G1_Action_Target_Type_1(10)			// 그룹1의 멤버9는 #11
+				P_AH_Action_Target(11) = P_Recipe_G1_Action_Target_Type_1(11)			// 그룹1의 멤버10는 #12
+				P_AH_Action_Target(12) = P_Recipe_G1_Action_Target_Type_1(12)			// 그룹1의 멤버11는 #13
+				P_AH_Action_Target(13) = P_Recipe_G1_Action_Target_Type_1(13)			// 그룹1의 멤버12는 #14
+				P_AH_Action_Target(14) = P_Recipe_G1_Action_Target_Type_1(14)			// 그룹1의 멤버13는 #15
+				P_AH_Action_Target(15) = P_Recipe_G1_Action_Target_Type_1(15)			// 그룹1의 멤버15는 #16
+
+				//P_AH_Group_Max_Num = 5;		
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 2: //Group 2 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Action_Target(0) = P_Recipe_G2_Action_Target_Type_1(0) 			// 그룹2의 멤버0은 
+				P_AH_Action_Target(1) = P_Recipe_G2_Action_Target_Type_1(1) 			// 그룹2의 멤버1은 
+				P_AH_Action_Target(2) = P_Recipe_G2_Action_Target_Type_1(2) 			// 그룹2의 멤버2은 
+				P_AH_Action_Target(3) =	P_Recipe_G2_Action_Target_Type_1(3) 			// 그룹2의 멤버3은 
+				P_AH_Action_Target(4) =	P_Recipe_G2_Action_Target_Type_1(4) 			// 그룹2의 멤버4은 
+				P_AH_Action_Target(5) =	P_Recipe_G2_Action_Target_Type_1(5) 			// 그룹2의 멤버5은 
+				P_AH_Action_Target(6) =	P_Recipe_G2_Action_Target_Type_1(6) 			// 그룹2의 멤버6은 
+				P_AH_Action_Target(7) =	P_Recipe_G2_Action_Target_Type_1(7) 			// 그룹2의 멤버7은 
+				P_AH_Action_Target(8) =	P_Recipe_G2_Action_Target_Type_1(8) 			// 그룹2의 멤버8은 
+				P_AH_Action_Target(9) =	P_Recipe_G2_Action_Target_Type_1(9) 			// 그룹2의 멤버9은 
+				P_AH_Action_Target(10) = P_Recipe_G2_Action_Target_Type_1(10)			// 그룹2의 멤버9는 
+				P_AH_Action_Target(11) = P_Recipe_G2_Action_Target_Type_1(11)			// 그룹2의 멤버10는 
+				P_AH_Action_Target(12) = P_Recipe_G2_Action_Target_Type_1(12)			// 그룹2의 멤버11는 
+				P_AH_Action_Target(13) = P_Recipe_G2_Action_Target_Type_1(13)			// 그룹2의 멤버12는 
+				P_AH_Action_Target(14) = P_Recipe_G2_Action_Target_Type_1(14)			// 그룹2의 멤버13는 
+				P_AH_Action_Target(15) = P_Recipe_G2_Action_Target_Type_1(15)			// 그룹2의 멤버15는 
+				//P_AH_Group_Max_Num = 5;	
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 3: //Group 3 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Action_Target(0) = P_Recipe_G3_Action_Target_Type_1(0) 			// 그룹3의 멤버0은 
+				P_AH_Action_Target(1) = P_Recipe_G3_Action_Target_Type_1(1) 			// 그룹3의 멤버1은 
+				P_AH_Action_Target(2) = P_Recipe_G3_Action_Target_Type_1(2) 			// 그룹3의 멤버2은 
+				P_AH_Action_Target(3) =	P_Recipe_G3_Action_Target_Type_1(3) 			// 그룹3의 멤버3은 
+				P_AH_Action_Target(4) =	P_Recipe_G3_Action_Target_Type_1(4) 			// 그룹3의 멤버4은 
+				P_AH_Action_Target(5) =	P_Recipe_G3_Action_Target_Type_1(5) 			// 그룹3의 멤버5은 
+				P_AH_Action_Target(6) =	P_Recipe_G3_Action_Target_Type_1(6) 			// 그룹3의 멤버6은 
+				P_AH_Action_Target(7) =	P_Recipe_G3_Action_Target_Type_1(7) 			// 그룹3의 멤버7은 
+				P_AH_Action_Target(8) =	P_Recipe_G3_Action_Target_Type_1(8) 			// 그룹3의 멤버8은 
+				P_AH_Action_Target(9) =	P_Recipe_G3_Action_Target_Type_1(9) 			// 그룹3의 멤버9은 
+				P_AH_Action_Target(10) = P_Recipe_G3_Action_Target_Type_1(10)			// 그룹3의 멤버9는 
+				P_AH_Action_Target(11) = P_Recipe_G3_Action_Target_Type_1(11)			// 그룹3의 멤버10는 
+				P_AH_Action_Target(12) = P_Recipe_G3_Action_Target_Type_1(12)			// 그룹3의 멤버11는 
+				P_AH_Action_Target(13) = P_Recipe_G3_Action_Target_Type_1(13)			// 그룹3의 멤버12는 
+				P_AH_Action_Target(14) = P_Recipe_G3_Action_Target_Type_1(14)			// 그룹3의 멤버13는 
+				P_AH_Action_Target(15) = P_Recipe_G3_Action_Target_Type_1(15)			// 그룹3의 멤버15는 
+				//P_AH_Group_Max_Num = 5;	
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 4: //Group 4 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Action_Target(0) = P_Recipe_G4_Action_Target_Type_1(0) 			// 그룹4의 멤버0은 
+				P_AH_Action_Target(1) = P_Recipe_G4_Action_Target_Type_1(1) 			// 그룹4의 멤버1은 
+				P_AH_Action_Target(2) = P_Recipe_G4_Action_Target_Type_1(2) 			// 그룹4의 멤버2은 
+				P_AH_Action_Target(3) =	P_Recipe_G4_Action_Target_Type_1(3) 			// 그룹4의 멤버3은 
+				P_AH_Action_Target(4) =	P_Recipe_G4_Action_Target_Type_1(4) 			// 그룹4의 멤버4은 
+				P_AH_Action_Target(5) =	P_Recipe_G4_Action_Target_Type_1(5) 			// 그룹4의 멤버5은 
+				P_AH_Action_Target(6) =	P_Recipe_G4_Action_Target_Type_1(6) 			// 그룹4의 멤버6은 
+				P_AH_Action_Target(7) =	P_Recipe_G4_Action_Target_Type_1(7) 			// 그룹4의 멤버7은 
+				P_AH_Action_Target(8) =	P_Recipe_G4_Action_Target_Type_1(8) 			// 그룹4의 멤버8은 
+				P_AH_Action_Target(9) =	P_Recipe_G4_Action_Target_Type_1(9) 			// 그룹4의 멤버9은 
+				P_AH_Action_Target(10) = P_Recipe_G4_Action_Target_Type_1(10)			// 그룹4의 멤버9는 
+				P_AH_Action_Target(11) = P_Recipe_G4_Action_Target_Type_1(11)			// 그룹4의 멤버10는 
+				P_AH_Action_Target(12) = P_Recipe_G4_Action_Target_Type_1(12)			// 그룹4의 멤버11는 
+				P_AH_Action_Target(13) = P_Recipe_G4_Action_Target_Type_1(13)			// 그룹4의 멤버12는 
+				P_AH_Action_Target(14) = P_Recipe_G4_Action_Target_Type_1(14)			// 그룹4의 멤버13는 
+				P_AH_Action_Target(15) = P_Recipe_G4_Action_Target_Type_1(15)			// 그룹4의 멤버15는 
+				//P_AH_Group_Max_Num = 5;	
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 5: //Group 5 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Action_Target(0) = P_Recipe_G5_Action_Target_Type_1(0) 			// 그룹5의 멤버0은 
+				P_AH_Action_Target(1) = P_Recipe_G5_Action_Target_Type_1(1) 			// 그룹5의 멤버1은 
+				P_AH_Action_Target(2) = P_Recipe_G5_Action_Target_Type_1(2) 			// 그룹5의 멤버2은 
+				P_AH_Action_Target(3) =	P_Recipe_G5_Action_Target_Type_1(3) 			// 그룹5의 멤버3은 
+				P_AH_Action_Target(4) =	P_Recipe_G5_Action_Target_Type_1(4) 			// 그룹5의 멤버4은 
+				P_AH_Action_Target(5) =	P_Recipe_G5_Action_Target_Type_1(5) 			// 그룹5의 멤버5은 
+				P_AH_Action_Target(6) =	P_Recipe_G5_Action_Target_Type_1(6) 			// 그룹5의 멤버6은 
+				P_AH_Action_Target(7) =	P_Recipe_G5_Action_Target_Type_1(7) 			// 그룹5의 멤버7은 
+				P_AH_Action_Target(8) =	P_Recipe_G5_Action_Target_Type_1(8) 			// 그룹5의 멤버8은 
+				P_AH_Action_Target(9) =	P_Recipe_G5_Action_Target_Type_1(9) 			// 그룹5의 멤버9은 
+				P_AH_Action_Target(10) = P_Recipe_G5_Action_Target_Type_1(10)			// 그룹5의 멤버9는 
+				P_AH_Action_Target(11) = P_Recipe_G5_Action_Target_Type_1(11)			// 그룹5의 멤버10는 
+				P_AH_Action_Target(12) = P_Recipe_G5_Action_Target_Type_1(12)			// 그룹5의 멤버11는 
+				P_AH_Action_Target(13) = P_Recipe_G5_Action_Target_Type_1(13)			// 그룹5의 멤버12는 
+				P_AH_Action_Target(14) = P_Recipe_G5_Action_Target_Type_1(14)			// 그룹5의 멤버13는 
+				P_AH_Action_Target(15) = P_Recipe_G5_Action_Target_Type_1(15)			// 그룹5의 멤버15는 
+				//P_AH_Group_Max_Num = 5;	
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 6:
+				P_AH_Action_Target(0) = P_Recipe_G6_Action_Target_Type_1(0);	
+				P_AH_Action_Target(1) = P_Recipe_G6_Action_Target_Type_1(1);	
+				P_AH_Action_Target(2) = P_Recipe_G6_Action_Target_Type_1(2);	
+				P_AH_Action_Target(3) =	P_Recipe_G6_Action_Target_Type_1(3);	
+				P_AH_Action_Target(4) =	P_Recipe_G6_Action_Target_Type_1(4);	
+				P_AH_Action_Target(5) =	P_Recipe_G6_Action_Target_Type_1(5);	
+				P_AH_Action_Target(6) =	P_Recipe_G6_Action_Target_Type_1(6);	
+				P_AH_Action_Target(7) =	P_Recipe_G6_Action_Target_Type_1(7);	
+				P_AH_Action_Target(8) =	P_Recipe_G6_Action_Target_Type_1(8);	
+				P_AH_Action_Target(9) =	P_Recipe_G6_Action_Target_Type_1(9);	
+				P_AH_Action_Target(10) = P_Recipe_G6_Action_Target_Type_1(10);
+				P_AH_Action_Target(11) = P_Recipe_G6_Action_Target_Type_1(11);
+				P_AH_Action_Target(12) = P_Recipe_G6_Action_Target_Type_1(12);
+				P_AH_Action_Target(13) = P_Recipe_G6_Action_Target_Type_1(13);
+				P_AH_Action_Target(14) = P_Recipe_G6_Action_Target_Type_1(14);
+				P_AH_Action_Target(15) = P_Recipe_G6_Action_Target_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 7:
+				P_AH_Action_Target(0) = P_Recipe_G7_Action_Target_Type_1(0);	
+				P_AH_Action_Target(1) = P_Recipe_G7_Action_Target_Type_1(1);	
+				P_AH_Action_Target(2) = P_Recipe_G7_Action_Target_Type_1(2);	
+				P_AH_Action_Target(3) =	P_Recipe_G7_Action_Target_Type_1(3);	
+				P_AH_Action_Target(4) =	P_Recipe_G7_Action_Target_Type_1(4);	
+				P_AH_Action_Target(5) =	P_Recipe_G7_Action_Target_Type_1(5);	
+				P_AH_Action_Target(6) =	P_Recipe_G7_Action_Target_Type_1(6);	
+				P_AH_Action_Target(7) =	P_Recipe_G7_Action_Target_Type_1(7);	
+				P_AH_Action_Target(8) =	P_Recipe_G7_Action_Target_Type_1(8);	
+				P_AH_Action_Target(9) =	P_Recipe_G7_Action_Target_Type_1(9);	
+				P_AH_Action_Target(10) = P_Recipe_G7_Action_Target_Type_1(10);
+				P_AH_Action_Target(11) = P_Recipe_G7_Action_Target_Type_1(11);
+				P_AH_Action_Target(12) = P_Recipe_G7_Action_Target_Type_1(12);
+				P_AH_Action_Target(13) = P_Recipe_G7_Action_Target_Type_1(13);
+				P_AH_Action_Target(14) = P_Recipe_G7_Action_Target_Type_1(14);
+				P_AH_Action_Target(15) = P_Recipe_G7_Action_Target_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 8:
+				P_AH_Action_Target(0) = P_Recipe_G8_Action_Target_Type_1(0);	
+				P_AH_Action_Target(1) = P_Recipe_G8_Action_Target_Type_1(1);	
+				P_AH_Action_Target(2) = P_Recipe_G8_Action_Target_Type_1(2);	
+				P_AH_Action_Target(3) =	P_Recipe_G8_Action_Target_Type_1(3);	
+				P_AH_Action_Target(4) =	P_Recipe_G8_Action_Target_Type_1(4);	
+				P_AH_Action_Target(5) =	P_Recipe_G8_Action_Target_Type_1(5);	
+				P_AH_Action_Target(6) =	P_Recipe_G8_Action_Target_Type_1(6);	
+				P_AH_Action_Target(7) =	P_Recipe_G8_Action_Target_Type_1(7);	
+				P_AH_Action_Target(8) =	P_Recipe_G8_Action_Target_Type_1(8);	
+				P_AH_Action_Target(9) =	P_Recipe_G8_Action_Target_Type_1(9);	
+				P_AH_Action_Target(10) = P_Recipe_G8_Action_Target_Type_1(10);
+				P_AH_Action_Target(11) = P_Recipe_G8_Action_Target_Type_1(11);
+				P_AH_Action_Target(12) = P_Recipe_G8_Action_Target_Type_1(12);
+				P_AH_Action_Target(13) = P_Recipe_G8_Action_Target_Type_1(13);
+				P_AH_Action_Target(14) = P_Recipe_G8_Action_Target_Type_1(14);
+				P_AH_Action_Target(15) = P_Recipe_G8_Action_Target_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 9:
+				P_AH_Action_Target(0) = P_Recipe_G9_Action_Target_Type_1(0);	
+				P_AH_Action_Target(1) = P_Recipe_G9_Action_Target_Type_1(1);	
+				P_AH_Action_Target(2) = P_Recipe_G9_Action_Target_Type_1(2);	
+				P_AH_Action_Target(3) =	P_Recipe_G9_Action_Target_Type_1(3);	
+				P_AH_Action_Target(4) =	P_Recipe_G9_Action_Target_Type_1(4);	
+				P_AH_Action_Target(5) =	P_Recipe_G9_Action_Target_Type_1(5);	
+				P_AH_Action_Target(6) =	P_Recipe_G9_Action_Target_Type_1(6);	
+				P_AH_Action_Target(7) =	P_Recipe_G9_Action_Target_Type_1(7);	
+				P_AH_Action_Target(8) =	P_Recipe_G9_Action_Target_Type_1(8);	
+				P_AH_Action_Target(9) =	P_Recipe_G9_Action_Target_Type_1(9);	
+				P_AH_Action_Target(10) = P_Recipe_G9_Action_Target_Type_1(10);
+				P_AH_Action_Target(11) = P_Recipe_G9_Action_Target_Type_1(11);
+				P_AH_Action_Target(12) = P_Recipe_G9_Action_Target_Type_1(12);
+				P_AH_Action_Target(13) = P_Recipe_G9_Action_Target_Type_1(13);
+				P_AH_Action_Target(14) = P_Recipe_G9_Action_Target_Type_1(14);
+				P_AH_Action_Target(15) = P_Recipe_G9_Action_Target_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 10:
+				P_AH_Action_Target(0) = P_Recipe_G10_Action_Target_Type_1(0);	
+				P_AH_Action_Target(1) = P_Recipe_G10_Action_Target_Type_1(1);	
+				P_AH_Action_Target(2) = P_Recipe_G10_Action_Target_Type_1(2);	
+				P_AH_Action_Target(3) =	P_Recipe_G10_Action_Target_Type_1(3);	
+				P_AH_Action_Target(4) =	P_Recipe_G10_Action_Target_Type_1(4);	
+				P_AH_Action_Target(5) =	P_Recipe_G10_Action_Target_Type_1(5);	
+				P_AH_Action_Target(6) =	P_Recipe_G10_Action_Target_Type_1(6);	
+				P_AH_Action_Target(7) =	P_Recipe_G10_Action_Target_Type_1(7);	
+				P_AH_Action_Target(8) =	P_Recipe_G10_Action_Target_Type_1(8);	
+				P_AH_Action_Target(9) =	P_Recipe_G10_Action_Target_Type_1(9);	
+				P_AH_Action_Target(10) = P_Recipe_G10_Action_Target_Type_1(10);
+				P_AH_Action_Target(11) = P_Recipe_G10_Action_Target_Type_1(11);
+				P_AH_Action_Target(12) = P_Recipe_G10_Action_Target_Type_1(12);
+				P_AH_Action_Target(13) = P_Recipe_G10_Action_Target_Type_1(13);
+				P_AH_Action_Target(14) = P_Recipe_G10_Action_Target_Type_1(14);
+				P_AH_Action_Target(15) = P_Recipe_G10_Action_Target_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 11:
+				P_AH_Action_Target(0) = P_Recipe_G11_Action_Target_Type_1(0);	
+				P_AH_Action_Target(1) = P_Recipe_G11_Action_Target_Type_1(1);	
+				P_AH_Action_Target(2) = P_Recipe_G11_Action_Target_Type_1(2);	
+				P_AH_Action_Target(3) =	P_Recipe_G11_Action_Target_Type_1(3);	
+				P_AH_Action_Target(4) =	P_Recipe_G11_Action_Target_Type_1(4);	
+				P_AH_Action_Target(5) =	P_Recipe_G11_Action_Target_Type_1(5);	
+				P_AH_Action_Target(6) =	P_Recipe_G11_Action_Target_Type_1(6);	
+				P_AH_Action_Target(7) =	P_Recipe_G11_Action_Target_Type_1(7);	
+				P_AH_Action_Target(8) =	P_Recipe_G11_Action_Target_Type_1(8);	
+				P_AH_Action_Target(9) =	P_Recipe_G11_Action_Target_Type_1(9);	
+				P_AH_Action_Target(10) = P_Recipe_G11_Action_Target_Type_1(10);
+				P_AH_Action_Target(11) = P_Recipe_G11_Action_Target_Type_1(11);
+				P_AH_Action_Target(12) = P_Recipe_G11_Action_Target_Type_1(12);
+				P_AH_Action_Target(13) = P_Recipe_G11_Action_Target_Type_1(13);
+				P_AH_Action_Target(14) = P_Recipe_G11_Action_Target_Type_1(14);
+				P_AH_Action_Target(15) = P_Recipe_G11_Action_Target_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 12:
+				P_AH_Action_Target(0) = P_Recipe_G12_Action_Target_Type_1(0);	
+				P_AH_Action_Target(1) = P_Recipe_G12_Action_Target_Type_1(1);	
+				P_AH_Action_Target(2) = P_Recipe_G12_Action_Target_Type_1(2);	
+				P_AH_Action_Target(3) =	P_Recipe_G12_Action_Target_Type_1(3);	
+				P_AH_Action_Target(4) =	P_Recipe_G12_Action_Target_Type_1(4);	
+				P_AH_Action_Target(5) =	P_Recipe_G12_Action_Target_Type_1(5);	
+				P_AH_Action_Target(6) =	P_Recipe_G12_Action_Target_Type_1(6);	
+				P_AH_Action_Target(7) =	P_Recipe_G12_Action_Target_Type_1(7);	
+				P_AH_Action_Target(8) =	P_Recipe_G12_Action_Target_Type_1(8);	
+				P_AH_Action_Target(9) =	P_Recipe_G12_Action_Target_Type_1(9);	
+				P_AH_Action_Target(10) = P_Recipe_G12_Action_Target_Type_1(10);
+				P_AH_Action_Target(11) = P_Recipe_G12_Action_Target_Type_1(11);
+				P_AH_Action_Target(12) = P_Recipe_G12_Action_Target_Type_1(12);
+				P_AH_Action_Target(13) = P_Recipe_G12_Action_Target_Type_1(13);
+				P_AH_Action_Target(14) = P_Recipe_G12_Action_Target_Type_1(14);
+				P_AH_Action_Target(15) = P_Recipe_G12_Action_Target_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			default: // 예외처리. ( 해당되지않는 그룹 Index가 들어오면 에러처리 ) 
+				Result = N_AH_FALSE;		// 리턴값 반환. ( 실패 )
+			break; 
+					
+		}
+	return
+	// 1.1.1) 동작 타입 멤버 정보 업데이트 
+	sub:Group_Action_Type_Update( Group, &Result )	 
+		switch( Group )
+		{// 인자값으로 받아온 Group Index값으로 그룹에 대한 정보를 갱신한다.
+			case 1: //Group 1 : 그룹1 배열변수에 담긴 정보를 동작정보 배열변수에 대입. ( 레시피 형태로 변환예정 )
+				P_AH_Action_Type(0) = P_Recipe_G1_Action_Type_Type_1(0) 				// 그룹1의 멤버0은 #1// 동작타입 없음 
+				P_AH_Action_Type(1) = P_Recipe_G1_Action_Type_Type_1(1) 				// 그룹1의 멤버1은 #2// +회피동작 
+				P_AH_Action_Type(2) = P_Recipe_G1_Action_Type_Type_1(2) 				// 그룹1의 멤버2은 #3// -회피동작 
+				P_AH_Action_Type(3) = P_Recipe_G1_Action_Type_Type_1(3) 				// 그룹1의 멤버3은 #4// IO On/Off.
+				P_AH_Action_Type(4) = P_Recipe_G1_Action_Type_Type_1(4) 				// 그룹1의 멤버4은 #5// 동작타입 없음 
+				P_AH_Action_Type(5) = P_Recipe_G1_Action_Type_Type_1(5) 				// 그룹1의 멤버5은 #6// 동작타입 없음 
+				P_AH_Action_Type(6) = P_Recipe_G1_Action_Type_Type_1(6) 				// 그룹1의 멤버6은 #7// 동작타입 없음 
+				P_AH_Action_Type(7) = P_Recipe_G1_Action_Type_Type_1(7) 				// 그룹1의 멤버7은 #8// 동작타입 없음 
+				P_AH_Action_Type(8) = P_Recipe_G1_Action_Type_Type_1(8) 				// 그룹1의 멤버8은 #9// 동작타입 없음 
+				P_AH_Action_Type(9) = P_Recipe_G1_Action_Type_Type_1(9) 				// 그룹1의 멤버9은 #10// 동작타입 없음 
+				P_AH_Action_Type(10) = P_Recipe_G1_Action_Type_Type_1(10)				// 그룹1의 멤버9는 #11// 동작타입 없음 
+				P_AH_Action_Type(11) = P_Recipe_G1_Action_Type_Type_1(11)				// 그룹1의 멤버10는 #12// 동작타입 없음 
+				P_AH_Action_Type(12) = P_Recipe_G1_Action_Type_Type_1(12)				// 그룹1의 멤버11는 #13
+				P_AH_Action_Type(13) = P_Recipe_G1_Action_Type_Type_1(13)				// 그룹1의 멤버12는 #14
+				P_AH_Action_Type(14) = P_Recipe_G1_Action_Type_Type_1(14)				// 그룹1의 멤버13는 #15
+				P_AH_Action_Type(15) = P_Recipe_G1_Action_Type_Type_1(15)				// 그룹1의 멤버15는 #16
+
+				//P_AH_Group_Max_Num = 5;		
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 2: //Group 2 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Action_Type(0) = P_Recipe_G2_Action_Type_Type_1(0) 				// 그룹2의 멤버0은 #1// 동작타입 없음 
+				P_AH_Action_Type(1) = P_Recipe_G2_Action_Type_Type_1(1) 				// 그룹2의 멤버1은 #2// +회피동작 
+				P_AH_Action_Type(2) = P_Recipe_G2_Action_Type_Type_1(2) 				// 그룹2의 멤버2은 #3// -회피동작 
+				P_AH_Action_Type(3) = P_Recipe_G2_Action_Type_Type_1(3) 				// 그룹2의 멤버3은 #4// IO On/Off.
+				P_AH_Action_Type(4) = P_Recipe_G2_Action_Type_Type_1(4) 				// 그룹2의 멤버4은 #5// 동작타입 없음 
+				P_AH_Action_Type(5) = P_Recipe_G2_Action_Type_Type_1(5) 				// 그룹2의 멤버5은 #6// 동작타입 없음 
+				P_AH_Action_Type(6) = P_Recipe_G2_Action_Type_Type_1(6) 				// 그룹2의 멤버6은 #7// 동작타입 없음 
+				P_AH_Action_Type(7) = P_Recipe_G2_Action_Type_Type_1(7) 				// 그룹2의 멤버7은 #8// 동작타입 없음 
+				P_AH_Action_Type(8) = P_Recipe_G2_Action_Type_Type_1(8) 				// 그룹2의 멤버8은 #9// 동작타입 없음 
+				P_AH_Action_Type(9) = P_Recipe_G2_Action_Type_Type_1(9) 				// 그룹2의 멤버9은 #10// 동작타입 없음 
+				P_AH_Action_Type(10) = P_Recipe_G2_Action_Type_Type_1(10)				// 그룹2의 멤버9는 #11// 동작타입 없음 
+				P_AH_Action_Type(11) = P_Recipe_G2_Action_Type_Type_1(11)				// 그룹2의 멤버10는 #12// 동작타입 없음
+				P_AH_Action_Type(12) = P_Recipe_G2_Action_Type_Type_1(12)				// 그룹2의 멤버11는 #13
+				P_AH_Action_Type(13) = P_Recipe_G2_Action_Type_Type_1(13)				// 그룹2의 멤버12는 #14
+				P_AH_Action_Type(14) = P_Recipe_G2_Action_Type_Type_1(14)				// 그룹2의 멤버13는 #15
+				P_AH_Action_Type(15) = P_Recipe_G2_Action_Type_Type_1(15)				// 그룹2의 멤버15는 #16	
+				//P_AH_Group_Max_Num = 5;				
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 3: //Group 3 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Action_Type(0) = P_Recipe_G3_Action_Type_Type_1(0) 				// 그룹3의 멤버0은 #1// 동작타입 없음 
+				P_AH_Action_Type(1) = P_Recipe_G3_Action_Type_Type_1(1) 				// 그룹3의 멤버1은 #2// +회피동작 
+				P_AH_Action_Type(2) = P_Recipe_G3_Action_Type_Type_1(2) 				// 그룹3의 멤버2은 #3// -회피동작 
+				P_AH_Action_Type(3) = P_Recipe_G3_Action_Type_Type_1(3) 				// 그룹3의 멤버3은 #4// IO On/Off.
+				P_AH_Action_Type(4) = P_Recipe_G3_Action_Type_Type_1(4) 				// 그룹3의 멤버4은 #5// 동작타입 없음 
+				P_AH_Action_Type(5) = P_Recipe_G3_Action_Type_Type_1(5) 				// 그룹3의 멤버5은 #6// 동작타입 없음 
+				P_AH_Action_Type(6) = P_Recipe_G3_Action_Type_Type_1(6) 				// 그룹3의 멤버6은 #7// 동작타입 없음 
+				P_AH_Action_Type(7) = P_Recipe_G3_Action_Type_Type_1(7) 				// 그룹3의 멤버7은 #8// 동작타입 없음 
+				P_AH_Action_Type(8) = P_Recipe_G3_Action_Type_Type_1(8) 				// 그룹3의 멤버8은 #9// 동작타입 없음 
+				P_AH_Action_Type(9) = P_Recipe_G3_Action_Type_Type_1(9) 				// 그룹3의 멤버9은 #10// 동작타입 없음 
+				P_AH_Action_Type(10) = P_Recipe_G3_Action_Type_Type_1(10)				// 그룹3의 멤버9는 #11// 동작타입 없음 
+				P_AH_Action_Type(11) = P_Recipe_G3_Action_Type_Type_1(11)				// 그룹3의 멤버10는 #12// 동작타입 없음
+				P_AH_Action_Type(12) = P_Recipe_G3_Action_Type_Type_1(12)				// 그룹3의 멤버11는 #13
+				P_AH_Action_Type(13) = P_Recipe_G3_Action_Type_Type_1(13)				// 그룹3의 멤버12는 #14
+				P_AH_Action_Type(14) = P_Recipe_G3_Action_Type_Type_1(14)				// 그룹3의 멤버13는 #15
+				P_AH_Action_Type(15) = P_Recipe_G3_Action_Type_Type_1(15)				// 그룹3의 멤버15는 #16
+				//P_AH_Group_Max_Num = 5;				
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 4: //Group 4 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Action_Type(0) = P_Recipe_G4_Action_Type_Type_1(0) 				// 그룹4의 멤버0은 #1// 동작타입 없음 
+				P_AH_Action_Type(1) = P_Recipe_G4_Action_Type_Type_1(1) 				// 그룹4의 멤버1은 #2// +회피동작 
+				P_AH_Action_Type(2) = P_Recipe_G4_Action_Type_Type_1(2) 				// 그룹4의 멤버2은 #3// -회피동작 
+				P_AH_Action_Type(3) = P_Recipe_G4_Action_Type_Type_1(3) 				// 그룹4의 멤버3은 #4// IO On/Off.
+				P_AH_Action_Type(4) = P_Recipe_G4_Action_Type_Type_1(4) 				// 그룹4의 멤버4은 #5// 동작타입 없음 
+				P_AH_Action_Type(5) = P_Recipe_G4_Action_Type_Type_1(5) 				// 그룹4의 멤버5은 #6// 동작타입 없음 
+				P_AH_Action_Type(6) = P_Recipe_G4_Action_Type_Type_1(6) 				// 그룹4의 멤버6은 #7// 동작타입 없음 
+				P_AH_Action_Type(7) = P_Recipe_G4_Action_Type_Type_1(7) 				// 그룹4의 멤버7은 #8// 동작타입 없음 
+				P_AH_Action_Type(8) = P_Recipe_G4_Action_Type_Type_1(8) 				// 그룹4의 멤버8은 #9// 동작타입 없음 
+				P_AH_Action_Type(9) = P_Recipe_G4_Action_Type_Type_1(9) 				// 그룹4의 멤버9은 #10// 동작타입 없음 
+				P_AH_Action_Type(10) = P_Recipe_G4_Action_Type_Type_1(10)				// 그룹4의 멤버9는 #11// 동작타입 없음 
+				P_AH_Action_Type(11) = P_Recipe_G4_Action_Type_Type_1(11)				// 그룹4의 멤버10는 #12// 동작타입 없음
+				P_AH_Action_Type(12) = P_Recipe_G4_Action_Type_Type_1(12)				// 그룹4의 멤버11는 #13
+				P_AH_Action_Type(13) = P_Recipe_G4_Action_Type_Type_1(13)				// 그룹4의 멤버12는 #14
+				P_AH_Action_Type(14) = P_Recipe_G4_Action_Type_Type_1(14)				// 그룹4의 멤버13는 #15
+				P_AH_Action_Type(15) = P_Recipe_G4_Action_Type_Type_1(15)				// 그룹4의 멤버15는 #16
+				//P_AH_Group_Max_Num = 5;		
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 5: //Group 5 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Action_Type(0) = P_Recipe_G5_Action_Type_Type_1(0) 				// 그룹5의 멤버0은 #1// 동작타입 없음 
+				P_AH_Action_Type(1) = P_Recipe_G5_Action_Type_Type_1(1) 				// 그룹5의 멤버1은 #2// +회피동작 
+				P_AH_Action_Type(2) = P_Recipe_G5_Action_Type_Type_1(2) 				// 그룹5의 멤버2은 #3// -회피동작 
+				P_AH_Action_Type(3) = P_Recipe_G5_Action_Type_Type_1(3) 				// 그룹5의 멤버3은 #4// IO On/Off.
+				P_AH_Action_Type(4) = P_Recipe_G5_Action_Type_Type_1(4) 				// 그룹5의 멤버4은 #5// 동작타입 없음 
+				P_AH_Action_Type(5) = P_Recipe_G5_Action_Type_Type_1(5) 				// 그룹5의 멤버5은 #6// 동작타입 없음 
+				P_AH_Action_Type(6) = P_Recipe_G5_Action_Type_Type_1(6) 				// 그룹5의 멤버6은 #7// 동작타입 없음 
+				P_AH_Action_Type(7) = P_Recipe_G5_Action_Type_Type_1(7) 				// 그룹5의 멤버7은 #8// 동작타입 없음 
+				P_AH_Action_Type(8) = P_Recipe_G5_Action_Type_Type_1(8) 				// 그룹5의 멤버8은 #9// 동작타입 없음 
+				P_AH_Action_Type(9) = P_Recipe_G5_Action_Type_Type_1(9) 				// 그룹5의 멤버9은 #10// 동작타입 없음 
+				P_AH_Action_Type(10) = P_Recipe_G5_Action_Type_Type_1(10)				// 그룹5의 멤버9는 #11// 동작타입 없음 
+				P_AH_Action_Type(11) = P_Recipe_G5_Action_Type_Type_1(11)				// 그룹5의 멤버10는 #12// 동작타입 없음
+				P_AH_Action_Type(12) = P_Recipe_G5_Action_Type_Type_1(12)				// 그룹5의 멤버11는 #13
+				P_AH_Action_Type(13) = P_Recipe_G5_Action_Type_Type_1(13)				// 그룹5의 멤버12는 #14
+				P_AH_Action_Type(14) = P_Recipe_G5_Action_Type_Type_1(14)				// 그룹5의 멤버13는 #15
+				P_AH_Action_Type(15) = P_Recipe_G5_Action_Type_Type_1(15)				// 그룹5의 멤버15는 #16	
+				//P_AH_Group_Max_Num = 5;	
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 6:
+				P_AH_Action_Type(0) = P_Recipe_G6_Action_Type_Type_1(0); 
+				P_AH_Action_Type(1) = P_Recipe_G6_Action_Type_Type_1(1); 
+				P_AH_Action_Type(2) = P_Recipe_G6_Action_Type_Type_1(2); 
+				P_AH_Action_Type(3) = P_Recipe_G6_Action_Type_Type_1(3); 
+				P_AH_Action_Type(4) = P_Recipe_G6_Action_Type_Type_1(4); 
+				P_AH_Action_Type(5) = P_Recipe_G6_Action_Type_Type_1(5); 
+				P_AH_Action_Type(6) = P_Recipe_G6_Action_Type_Type_1(6); 
+				P_AH_Action_Type(7) = P_Recipe_G6_Action_Type_Type_1(7); 
+				P_AH_Action_Type(8) = P_Recipe_G6_Action_Type_Type_1(8); 
+				P_AH_Action_Type(9) = P_Recipe_G6_Action_Type_Type_1(9); 
+				P_AH_Action_Type(10) = P_Recipe_G6_Action_Type_Type_1(10);
+				P_AH_Action_Type(11) = P_Recipe_G6_Action_Type_Type_1(11);
+				P_AH_Action_Type(12) = P_Recipe_G6_Action_Type_Type_1(12);
+				P_AH_Action_Type(13) = P_Recipe_G6_Action_Type_Type_1(13);
+				P_AH_Action_Type(14) = P_Recipe_G6_Action_Type_Type_1(14);
+				P_AH_Action_Type(15) = P_Recipe_G6_Action_Type_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 7:
+				P_AH_Action_Type(0) = P_Recipe_G7_Action_Type_Type_1(0); 
+				P_AH_Action_Type(1) = P_Recipe_G7_Action_Type_Type_1(1); 
+				P_AH_Action_Type(2) = P_Recipe_G7_Action_Type_Type_1(2); 
+				P_AH_Action_Type(3) = P_Recipe_G7_Action_Type_Type_1(3); 
+				P_AH_Action_Type(4) = P_Recipe_G7_Action_Type_Type_1(4); 
+				P_AH_Action_Type(5) = P_Recipe_G7_Action_Type_Type_1(5); 
+				P_AH_Action_Type(6) = P_Recipe_G7_Action_Type_Type_1(6); 
+				P_AH_Action_Type(7) = P_Recipe_G7_Action_Type_Type_1(7); 
+				P_AH_Action_Type(8) = P_Recipe_G7_Action_Type_Type_1(8); 
+				P_AH_Action_Type(9) = P_Recipe_G7_Action_Type_Type_1(9); 
+				P_AH_Action_Type(10) = P_Recipe_G7_Action_Type_Type_1(10);
+				P_AH_Action_Type(11) = P_Recipe_G7_Action_Type_Type_1(11);
+				P_AH_Action_Type(12) = P_Recipe_G7_Action_Type_Type_1(12);
+				P_AH_Action_Type(13) = P_Recipe_G7_Action_Type_Type_1(13);
+				P_AH_Action_Type(14) = P_Recipe_G7_Action_Type_Type_1(14);
+				P_AH_Action_Type(15) = P_Recipe_G7_Action_Type_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 8:
+				P_AH_Action_Type(0) = P_Recipe_G8_Action_Type_Type_1(0); 
+				P_AH_Action_Type(1) = P_Recipe_G8_Action_Type_Type_1(1); 
+				P_AH_Action_Type(2) = P_Recipe_G8_Action_Type_Type_1(2); 
+				P_AH_Action_Type(3) = P_Recipe_G8_Action_Type_Type_1(3); 
+				P_AH_Action_Type(4) = P_Recipe_G8_Action_Type_Type_1(4); 
+				P_AH_Action_Type(5) = P_Recipe_G8_Action_Type_Type_1(5); 
+				P_AH_Action_Type(6) = P_Recipe_G8_Action_Type_Type_1(6); 
+				P_AH_Action_Type(7) = P_Recipe_G8_Action_Type_Type_1(7); 
+				P_AH_Action_Type(8) = P_Recipe_G8_Action_Type_Type_1(8); 
+				P_AH_Action_Type(9) = P_Recipe_G8_Action_Type_Type_1(9); 
+				P_AH_Action_Type(10) = P_Recipe_G8_Action_Type_Type_1(10);
+				P_AH_Action_Type(11) = P_Recipe_G8_Action_Type_Type_1(11);
+				P_AH_Action_Type(12) = P_Recipe_G8_Action_Type_Type_1(12);
+				P_AH_Action_Type(13) = P_Recipe_G8_Action_Type_Type_1(13);
+				P_AH_Action_Type(14) = P_Recipe_G8_Action_Type_Type_1(14);
+				P_AH_Action_Type(15) = P_Recipe_G8_Action_Type_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+			
+			case 9:
+				P_AH_Action_Type(0) = P_Recipe_G9_Action_Type_Type_1(0); 
+				P_AH_Action_Type(1) = P_Recipe_G9_Action_Type_Type_1(1); 
+				P_AH_Action_Type(2) = P_Recipe_G9_Action_Type_Type_1(2); 
+				P_AH_Action_Type(3) = P_Recipe_G9_Action_Type_Type_1(3); 
+				P_AH_Action_Type(4) = P_Recipe_G9_Action_Type_Type_1(4); 
+				P_AH_Action_Type(5) = P_Recipe_G9_Action_Type_Type_1(5); 
+				P_AH_Action_Type(6) = P_Recipe_G9_Action_Type_Type_1(6); 
+				P_AH_Action_Type(7) = P_Recipe_G9_Action_Type_Type_1(7); 
+				P_AH_Action_Type(8) = P_Recipe_G9_Action_Type_Type_1(8); 
+				P_AH_Action_Type(9) = P_Recipe_G9_Action_Type_Type_1(9); 
+				P_AH_Action_Type(10) = P_Recipe_G9_Action_Type_Type_1(10);
+				P_AH_Action_Type(11) = P_Recipe_G9_Action_Type_Type_1(11);
+				P_AH_Action_Type(12) = P_Recipe_G9_Action_Type_Type_1(12);
+				P_AH_Action_Type(13) = P_Recipe_G9_Action_Type_Type_1(13);
+				P_AH_Action_Type(14) = P_Recipe_G9_Action_Type_Type_1(14);
+				P_AH_Action_Type(15) = P_Recipe_G9_Action_Type_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 10:
+				P_AH_Action_Type(0) = P_Recipe_G10_Action_Type_Type_1(0); 
+				P_AH_Action_Type(1) = P_Recipe_G10_Action_Type_Type_1(1); 
+				P_AH_Action_Type(2) = P_Recipe_G10_Action_Type_Type_1(2); 
+				P_AH_Action_Type(3) = P_Recipe_G10_Action_Type_Type_1(3); 
+				P_AH_Action_Type(4) = P_Recipe_G10_Action_Type_Type_1(4); 
+				P_AH_Action_Type(5) = P_Recipe_G10_Action_Type_Type_1(5); 
+				P_AH_Action_Type(6) = P_Recipe_G10_Action_Type_Type_1(6); 
+				P_AH_Action_Type(7) = P_Recipe_G10_Action_Type_Type_1(7); 
+				P_AH_Action_Type(8) = P_Recipe_G10_Action_Type_Type_1(8); 
+				P_AH_Action_Type(9) = P_Recipe_G10_Action_Type_Type_1(9); 
+				P_AH_Action_Type(10) = P_Recipe_G10_Action_Type_Type_1(10);
+				P_AH_Action_Type(11) = P_Recipe_G10_Action_Type_Type_1(11);
+				P_AH_Action_Type(12) = P_Recipe_G10_Action_Type_Type_1(12);
+				P_AH_Action_Type(13) = P_Recipe_G10_Action_Type_Type_1(13);
+				P_AH_Action_Type(14) = P_Recipe_G10_Action_Type_Type_1(14);
+				P_AH_Action_Type(15) = P_Recipe_G10_Action_Type_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+			
+			case 11:
+				P_AH_Action_Type(0) = P_Recipe_G11_Action_Type_Type_1(0); 
+				P_AH_Action_Type(1) = P_Recipe_G11_Action_Type_Type_1(1); 
+				P_AH_Action_Type(2) = P_Recipe_G11_Action_Type_Type_1(2); 
+				P_AH_Action_Type(3) = P_Recipe_G11_Action_Type_Type_1(3); 
+				P_AH_Action_Type(4) = P_Recipe_G11_Action_Type_Type_1(4); 
+				P_AH_Action_Type(5) = P_Recipe_G11_Action_Type_Type_1(5); 
+				P_AH_Action_Type(6) = P_Recipe_G11_Action_Type_Type_1(6); 
+				P_AH_Action_Type(7) = P_Recipe_G11_Action_Type_Type_1(7); 
+				P_AH_Action_Type(8) = P_Recipe_G11_Action_Type_Type_1(8); 
+				P_AH_Action_Type(9) = P_Recipe_G11_Action_Type_Type_1(9); 
+				P_AH_Action_Type(10) = P_Recipe_G11_Action_Type_Type_1(10);
+				P_AH_Action_Type(11) = P_Recipe_G11_Action_Type_Type_1(11);
+				P_AH_Action_Type(12) = P_Recipe_G11_Action_Type_Type_1(12);
+				P_AH_Action_Type(13) = P_Recipe_G11_Action_Type_Type_1(13);
+				P_AH_Action_Type(14) = P_Recipe_G11_Action_Type_Type_1(14);
+				P_AH_Action_Type(15) = P_Recipe_G11_Action_Type_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 12:
+				P_AH_Action_Type(0) = P_Recipe_G12_Action_Type_Type_1(0); 
+				P_AH_Action_Type(1) = P_Recipe_G12_Action_Type_Type_1(1); 
+				P_AH_Action_Type(2) = P_Recipe_G12_Action_Type_Type_1(2); 
+				P_AH_Action_Type(3) = P_Recipe_G12_Action_Type_Type_1(3); 
+				P_AH_Action_Type(4) = P_Recipe_G12_Action_Type_Type_1(4); 
+				P_AH_Action_Type(5) = P_Recipe_G12_Action_Type_Type_1(5); 
+				P_AH_Action_Type(6) = P_Recipe_G12_Action_Type_Type_1(6); 
+				P_AH_Action_Type(7) = P_Recipe_G12_Action_Type_Type_1(7); 
+				P_AH_Action_Type(8) = P_Recipe_G12_Action_Type_Type_1(8); 
+				P_AH_Action_Type(9) = P_Recipe_G12_Action_Type_Type_1(9); 
+				P_AH_Action_Type(10) = P_Recipe_G12_Action_Type_Type_1(10);
+				P_AH_Action_Type(11) = P_Recipe_G12_Action_Type_Type_1(11);
+				P_AH_Action_Type(12) = P_Recipe_G12_Action_Type_Type_1(12);
+				P_AH_Action_Type(13) = P_Recipe_G12_Action_Type_Type_1(13);
+				P_AH_Action_Type(14) = P_Recipe_G12_Action_Type_Type_1(14);
+				P_AH_Action_Type(15) = P_Recipe_G12_Action_Type_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			default: // 예외처리. ( 해당되지않는 그룹 Index가 들어오면 에러처리 ) 
+				Result = N_AH_FALSE;		// 리턴값 반환. ( 실패 )
+			break; 
+		}
+	return
+
+	// 1.1.2) 동작 타임아웃 시간 멤버 정보 업데이트 
+	sub:Group_Action_CHK_Time_Update( Group, &Result )	 
+		switch( Group )
+		{// 인자값으로 받아온 Group Index값으로 그룹에 대한 정보를 갱신한다.
+			case 1: //Group 1 : 그룹1 배열변수에 담긴 정보를 동작정보 배열변수에 대입. ( 레시피 형태로 변환예정 )
+				P_AH_Act_Time(0) = P_Recipe_G1_AH_Action_Time_Type_1(0)				// 그룹1의 멤버0은 #1    타임아웃 시간 업데이트
+				P_AH_Act_Time(1) = P_Recipe_G1_AH_Action_Time_Type_1(1)				// 그룹1의 멤버1은 #2    타임아웃 시간 업데이트
+				P_AH_Act_Time(2) = P_Recipe_G1_AH_Action_Time_Type_1(2)				// 그룹1의 멤버2은 #3    타임아웃 시간 업데이트
+				P_AH_Act_Time(3) = P_Recipe_G1_AH_Action_Time_Type_1(3)				// 그룹1의 멤버3은 #4    타임아웃 시간 업데이트
+				P_AH_Act_Time(4) = P_Recipe_G1_AH_Action_Time_Type_1(4)				// 그룹1의 멤버4은 #5    타임아웃 시간 업데이트
+				P_AH_Act_Time(5) = P_Recipe_G1_AH_Action_Time_Type_1(5)				// 그룹1의 멤버5은 #6    타임아웃 시간 업데이트
+				P_AH_Act_Time(6) = P_Recipe_G1_AH_Action_Time_Type_1(6)				// 그룹1의 멤버6은 #7    타임아웃 시간 업데이트
+				P_AH_Act_Time(7) = P_Recipe_G1_AH_Action_Time_Type_1(7)				// 그룹1의 멤버7은 #8    타임아웃 시간 업데이트
+				P_AH_Act_Time(8) = P_Recipe_G1_AH_Action_Time_Type_1(8)				// 그룹1의 멤버8은 #9    타임아웃 시간 업데이트
+				P_AH_Act_Time(9) = P_Recipe_G1_AH_Action_Time_Type_1(9)				// 그룹1의 멤버9은 #10   타임아웃 시간 업데이트
+				P_AH_Act_Time(10) =P_Recipe_G1_AH_Action_Time_Type_1(10)			// 그룹1의 멤버9는 #11   타임아웃 시간 업데이트
+				P_AH_Act_Time(11) =P_Recipe_G1_AH_Action_Time_Type_1(11)			// 그룹1의 멤버10는 #12  타임아웃 시간 업데이트
+				P_AH_Act_Time(12) =P_Recipe_G1_AH_Action_Time_Type_1(12)			// 그룹1의 멤버11는 #13
+				P_AH_Act_Time(13) =P_Recipe_G1_AH_Action_Time_Type_1(13)			// 그룹1의 멤버12는 #14
+				P_AH_Act_Time(14) =P_Recipe_G1_AH_Action_Time_Type_1(14)			// 그룹1의 멤버13는 #15
+				P_AH_Act_Time(15) =P_Recipe_G1_AH_Action_Time_Type_1(15)			// 그룹1의 멤버15는 #16								   
+				//P_AH_Group_Max_Num = 5;		
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 2: //Group 2 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Act_Time(0) = P_Recipe_G2_AH_Action_Time_Type_1(0)				// 그룹2의 멤버0은 #1    타임아웃 시간 업데이트
+				P_AH_Act_Time(1) = P_Recipe_G2_AH_Action_Time_Type_1(1)				// 그룹2의 멤버1은 #2    타임아웃 시간 업데이트
+				P_AH_Act_Time(2) = P_Recipe_G2_AH_Action_Time_Type_1(2)				// 그룹2의 멤버2은 #3    타임아웃 시간 업데이트
+				P_AH_Act_Time(3) = P_Recipe_G2_AH_Action_Time_Type_1(3)				// 그룹2의 멤버3은 #4    타임아웃 시간 업데이트
+				P_AH_Act_Time(4) = P_Recipe_G2_AH_Action_Time_Type_1(4)				// 그룹2의 멤버4은 #5    타임아웃 시간 업데이트
+				P_AH_Act_Time(5) = P_Recipe_G2_AH_Action_Time_Type_1(5)				// 그룹2의 멤버5은 #6    타임아웃 시간 업데이트
+				P_AH_Act_Time(6) = P_Recipe_G2_AH_Action_Time_Type_1(6)				// 그룹2의 멤버6은 #7    타임아웃 시간 업데이트
+				P_AH_Act_Time(7) = P_Recipe_G2_AH_Action_Time_Type_1(7)				// 그룹2의 멤버7은 #8    타임아웃 시간 업데이트
+				P_AH_Act_Time(8) = P_Recipe_G2_AH_Action_Time_Type_1(8)				// 그룹2의 멤버8은 #9    타임아웃 시간 업데이트
+				P_AH_Act_Time(9) = P_Recipe_G2_AH_Action_Time_Type_1(9)				// 그룹2의 멤버9은 #10   타임아웃 시간 업데이트
+				P_AH_Act_Time(10) =P_Recipe_G2_AH_Action_Time_Type_1(10)			// 그룹2의 멤버9는 #11   타임아웃 시간 업데이트
+				P_AH_Act_Time(11) =P_Recipe_G2_AH_Action_Time_Type_1(11)			// 그룹2의 멤버10는 #12  타임아웃 시간 업데이트
+				P_AH_Act_Time(12) =P_Recipe_G2_AH_Action_Time_Type_1(12)			// 그룹2의 멤버11는 #13
+				P_AH_Act_Time(13) =P_Recipe_G2_AH_Action_Time_Type_1(13)			// 그룹2의 멤버12는 #14
+				P_AH_Act_Time(14) =P_Recipe_G2_AH_Action_Time_Type_1(14)			// 그룹2의 멤버13는 #15
+				P_AH_Act_Time(15) =P_Recipe_G2_AH_Action_Time_Type_1(15)			// 그룹2의 멤버15는 #16
+				//P_AH_Group_Max_Num = 5;		
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 3: //Group 3 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Act_Time(0) = P_Recipe_G3_AH_Action_Time_Type_1(0)				// 그룹3의 멤버0은 #1    타임아웃 시간 업데이트
+				P_AH_Act_Time(1) = P_Recipe_G3_AH_Action_Time_Type_1(1)				// 그룹3의 멤버1은 #2    타임아웃 시간 업데이트
+				P_AH_Act_Time(2) = P_Recipe_G3_AH_Action_Time_Type_1(2)				// 그룹3의 멤버2은 #3    타임아웃 시간 업데이트
+				P_AH_Act_Time(3) = P_Recipe_G3_AH_Action_Time_Type_1(3)				// 그룹3의 멤버3은 #4    타임아웃 시간 업데이트
+				P_AH_Act_Time(4) = P_Recipe_G3_AH_Action_Time_Type_1(4)				// 그룹3의 멤버4은 #5    타임아웃 시간 업데이트
+				P_AH_Act_Time(5) = P_Recipe_G3_AH_Action_Time_Type_1(5)				// 그룹3의 멤버5은 #6    타임아웃 시간 업데이트
+				P_AH_Act_Time(6) = P_Recipe_G3_AH_Action_Time_Type_1(6)				// 그룹3의 멤버6은 #7    타임아웃 시간 업데이트
+				P_AH_Act_Time(7) = P_Recipe_G3_AH_Action_Time_Type_1(7)				// 그룹3의 멤버7은 #8    타임아웃 시간 업데이트
+				P_AH_Act_Time(8) = P_Recipe_G3_AH_Action_Time_Type_1(8)				// 그룹3의 멤버8은 #9    타임아웃 시간 업데이트
+				P_AH_Act_Time(9) = P_Recipe_G3_AH_Action_Time_Type_1(9)				// 그룹3의 멤버9은 #10   타임아웃 시간 업데이트
+				P_AH_Act_Time(10) =P_Recipe_G3_AH_Action_Time_Type_1(10)			// 그룹3의 멤버9는 #11   타임아웃 시간 업데이트
+				P_AH_Act_Time(11) =P_Recipe_G3_AH_Action_Time_Type_1(11)			// 그룹3의 멤버10는 #12  타임아웃 시간 업데이트
+				P_AH_Act_Time(12) =P_Recipe_G3_AH_Action_Time_Type_1(12)			// 그룹3의 멤버11는 #13
+				P_AH_Act_Time(13) =P_Recipe_G3_AH_Action_Time_Type_1(13)			// 그룹3의 멤버12는 #14
+				P_AH_Act_Time(14) =P_Recipe_G3_AH_Action_Time_Type_1(14)			// 그룹3의 멤버13는 #15
+				P_AH_Act_Time(15) =P_Recipe_G3_AH_Action_Time_Type_1(15)			// 그룹3의 멤버15는 #16	
+				//P_AH_Group_Max_Num = 5;	
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 4: //Group 4 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Act_Time(0) = P_Recipe_G4_AH_Action_Time_Type_1(0)				// 그룹4의 멤버0은 #1    타임아웃 시간 업데이트
+				P_AH_Act_Time(1) = P_Recipe_G4_AH_Action_Time_Type_1(1)				// 그룹4의 멤버1은 #2    타임아웃 시간 업데이트
+				P_AH_Act_Time(2) = P_Recipe_G4_AH_Action_Time_Type_1(2)				// 그룹4의 멤버2은 #3    타임아웃 시간 업데이트
+				P_AH_Act_Time(3) = P_Recipe_G4_AH_Action_Time_Type_1(3)				// 그룹4의 멤버3은 #4    타임아웃 시간 업데이트
+				P_AH_Act_Time(4) = P_Recipe_G4_AH_Action_Time_Type_1(4)				// 그룹4의 멤버4은 #5    타임아웃 시간 업데이트
+				P_AH_Act_Time(5) = P_Recipe_G4_AH_Action_Time_Type_1(5)				// 그룹4의 멤버5은 #6    타임아웃 시간 업데이트
+				P_AH_Act_Time(6) = P_Recipe_G4_AH_Action_Time_Type_1(6)				// 그룹4의 멤버6은 #7    타임아웃 시간 업데이트
+				P_AH_Act_Time(7) = P_Recipe_G4_AH_Action_Time_Type_1(7)				// 그룹4의 멤버7은 #8    타임아웃 시간 업데이트
+				P_AH_Act_Time(8) = P_Recipe_G4_AH_Action_Time_Type_1(8)				// 그룹4의 멤버8은 #9    타임아웃 시간 업데이트
+				P_AH_Act_Time(9) = P_Recipe_G4_AH_Action_Time_Type_1(9)				// 그룹4의 멤버9은 #10   타임아웃 시간 업데이트
+				P_AH_Act_Time(10) =P_Recipe_G4_AH_Action_Time_Type_1(10)			// 그룹4의 멤버9는 #11   타임아웃 시간 업데이트
+				P_AH_Act_Time(11) =P_Recipe_G4_AH_Action_Time_Type_1(11)			// 그룹4의 멤버10는 #12  타임아웃 시간 업데이트
+				P_AH_Act_Time(12) =P_Recipe_G4_AH_Action_Time_Type_1(12)			// 그룹4의 멤버11는 #13
+				P_AH_Act_Time(13) =P_Recipe_G4_AH_Action_Time_Type_1(13)			// 그룹4의 멤버12는 #14
+				P_AH_Act_Time(14) =P_Recipe_G4_AH_Action_Time_Type_1(14)			// 그룹4의 멤버13는 #15
+				P_AH_Act_Time(15) =P_Recipe_G4_AH_Action_Time_Type_1(15)			// 그룹4의 멤버15는 #16	
+				//P_AH_Group_Max_Num = 5;	
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 5: //Group 5 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Act_Time(0) = P_Recipe_G5_AH_Action_Time_Type_1(0)				// 그룹5의 멤버0은 #1    타임아웃 시간 업데이트
+				P_AH_Act_Time(1) = P_Recipe_G5_AH_Action_Time_Type_1(1)				// 그룹5의 멤버1은 #2    타임아웃 시간 업데이트
+				P_AH_Act_Time(2) = P_Recipe_G5_AH_Action_Time_Type_1(2)				// 그룹5의 멤버2은 #3    타임아웃 시간 업데이트
+				P_AH_Act_Time(3) = P_Recipe_G5_AH_Action_Time_Type_1(3)				// 그룹5의 멤버3은 #4    타임아웃 시간 업데이트
+				P_AH_Act_Time(4) = P_Recipe_G5_AH_Action_Time_Type_1(4)				// 그룹5의 멤버4은 #5    타임아웃 시간 업데이트
+				P_AH_Act_Time(5) = P_Recipe_G5_AH_Action_Time_Type_1(5)				// 그룹5의 멤버5은 #6    타임아웃 시간 업데이트
+				P_AH_Act_Time(6) = P_Recipe_G5_AH_Action_Time_Type_1(6)				// 그룹5의 멤버6은 #7    타임아웃 시간 업데이트
+				P_AH_Act_Time(7) = P_Recipe_G5_AH_Action_Time_Type_1(7)				// 그룹5의 멤버7은 #8    타임아웃 시간 업데이트
+				P_AH_Act_Time(8) = P_Recipe_G5_AH_Action_Time_Type_1(8)				// 그룹5의 멤버8은 #9    타임아웃 시간 업데이트
+				P_AH_Act_Time(9) = P_Recipe_G5_AH_Action_Time_Type_1(9)				// 그룹5의 멤버9은 #10   타임아웃 시간 업데이트
+				P_AH_Act_Time(10) =P_Recipe_G5_AH_Action_Time_Type_1(10)			// 그룹5의 멤버9는 #11   타임아웃 시간 업데이트
+				P_AH_Act_Time(11) =P_Recipe_G5_AH_Action_Time_Type_1(11)			// 그룹5의 멤버10는 #12  타임아웃 시간 업데이트
+				P_AH_Act_Time(12) =P_Recipe_G5_AH_Action_Time_Type_1(12)			// 그룹5의 멤버11는 #13
+				P_AH_Act_Time(13) =P_Recipe_G5_AH_Action_Time_Type_1(13)			// 그룹5의 멤버12는 #14
+				P_AH_Act_Time(14) =P_Recipe_G5_AH_Action_Time_Type_1(14)			// 그룹5의 멤버13는 #15
+				P_AH_Act_Time(15) =P_Recipe_G5_AH_Action_Time_Type_1(15)			// 그룹5의 멤버15는 #16	
+				//P_AH_Group_Max_Num = 5;	
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 6:
+				P_AH_Act_Time(0) = P_Recipe_G6_AH_Action_Time_Type_1(0);	
+				P_AH_Act_Time(1) = P_Recipe_G6_AH_Action_Time_Type_1(1);	
+				P_AH_Act_Time(2) = P_Recipe_G6_AH_Action_Time_Type_1(2);	
+				P_AH_Act_Time(3) = P_Recipe_G6_AH_Action_Time_Type_1(3);	
+				P_AH_Act_Time(4) = P_Recipe_G6_AH_Action_Time_Type_1(4);	
+				P_AH_Act_Time(5) = P_Recipe_G6_AH_Action_Time_Type_1(5);	
+				P_AH_Act_Time(6) = P_Recipe_G6_AH_Action_Time_Type_1(6);	
+				P_AH_Act_Time(7) = P_Recipe_G6_AH_Action_Time_Type_1(7);	
+				P_AH_Act_Time(8) = P_Recipe_G6_AH_Action_Time_Type_1(8);	
+				P_AH_Act_Time(9) = P_Recipe_G6_AH_Action_Time_Type_1(9);	
+				P_AH_Act_Time(10) =P_Recipe_G6_AH_Action_Time_Type_1(10);
+				P_AH_Act_Time(11) =P_Recipe_G6_AH_Action_Time_Type_1(11);
+				P_AH_Act_Time(12) =P_Recipe_G6_AH_Action_Time_Type_1(12);
+				P_AH_Act_Time(13) =P_Recipe_G6_AH_Action_Time_Type_1(13);
+				P_AH_Act_Time(14) =P_Recipe_G6_AH_Action_Time_Type_1(14);
+				P_AH_Act_Time(15) =P_Recipe_G6_AH_Action_Time_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 7:
+				P_AH_Act_Time(0) = P_Recipe_G7_AH_Action_Time_Type_1(0);	
+				P_AH_Act_Time(1) = P_Recipe_G7_AH_Action_Time_Type_1(1);	
+				P_AH_Act_Time(2) = P_Recipe_G7_AH_Action_Time_Type_1(2);	
+				P_AH_Act_Time(3) = P_Recipe_G7_AH_Action_Time_Type_1(3);	
+				P_AH_Act_Time(4) = P_Recipe_G7_AH_Action_Time_Type_1(4);	
+				P_AH_Act_Time(5) = P_Recipe_G7_AH_Action_Time_Type_1(5);	
+				P_AH_Act_Time(6) = P_Recipe_G7_AH_Action_Time_Type_1(6);	
+				P_AH_Act_Time(7) = P_Recipe_G7_AH_Action_Time_Type_1(7);	
+				P_AH_Act_Time(8) = P_Recipe_G7_AH_Action_Time_Type_1(8);	
+				P_AH_Act_Time(9) = P_Recipe_G7_AH_Action_Time_Type_1(9);	
+				P_AH_Act_Time(10) =P_Recipe_G7_AH_Action_Time_Type_1(10);
+				P_AH_Act_Time(11) =P_Recipe_G7_AH_Action_Time_Type_1(11);
+				P_AH_Act_Time(12) =P_Recipe_G7_AH_Action_Time_Type_1(12);
+				P_AH_Act_Time(13) =P_Recipe_G7_AH_Action_Time_Type_1(13);
+				P_AH_Act_Time(14) =P_Recipe_G7_AH_Action_Time_Type_1(14);
+				P_AH_Act_Time(15) =P_Recipe_G7_AH_Action_Time_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 8:
+				P_AH_Act_Time(0) = P_Recipe_G8_AH_Action_Time_Type_1(0);	
+				P_AH_Act_Time(1) = P_Recipe_G8_AH_Action_Time_Type_1(1);	
+				P_AH_Act_Time(2) = P_Recipe_G8_AH_Action_Time_Type_1(2);	
+				P_AH_Act_Time(3) = P_Recipe_G8_AH_Action_Time_Type_1(3);	
+				P_AH_Act_Time(4) = P_Recipe_G8_AH_Action_Time_Type_1(4);	
+				P_AH_Act_Time(5) = P_Recipe_G8_AH_Action_Time_Type_1(5);	
+				P_AH_Act_Time(6) = P_Recipe_G8_AH_Action_Time_Type_1(6);	
+				P_AH_Act_Time(7) = P_Recipe_G8_AH_Action_Time_Type_1(7);	
+				P_AH_Act_Time(8) = P_Recipe_G8_AH_Action_Time_Type_1(8);	
+				P_AH_Act_Time(9) = P_Recipe_G8_AH_Action_Time_Type_1(9);	
+				P_AH_Act_Time(10) =P_Recipe_G8_AH_Action_Time_Type_1(10);
+				P_AH_Act_Time(11) =P_Recipe_G8_AH_Action_Time_Type_1(11);
+				P_AH_Act_Time(12) =P_Recipe_G8_AH_Action_Time_Type_1(12);
+				P_AH_Act_Time(13) =P_Recipe_G8_AH_Action_Time_Type_1(13);
+				P_AH_Act_Time(14) =P_Recipe_G8_AH_Action_Time_Type_1(14);
+				P_AH_Act_Time(15) =P_Recipe_G8_AH_Action_Time_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 9:
+				P_AH_Act_Time(0) = P_Recipe_G9_AH_Action_Time_Type_1(0);	
+				P_AH_Act_Time(1) = P_Recipe_G9_AH_Action_Time_Type_1(1);	
+				P_AH_Act_Time(2) = P_Recipe_G9_AH_Action_Time_Type_1(2);	
+				P_AH_Act_Time(3) = P_Recipe_G9_AH_Action_Time_Type_1(3);	
+				P_AH_Act_Time(4) = P_Recipe_G9_AH_Action_Time_Type_1(4);	
+				P_AH_Act_Time(5) = P_Recipe_G9_AH_Action_Time_Type_1(5);	
+				P_AH_Act_Time(6) = P_Recipe_G9_AH_Action_Time_Type_1(6);	
+				P_AH_Act_Time(7) = P_Recipe_G9_AH_Action_Time_Type_1(7);	
+				P_AH_Act_Time(8) = P_Recipe_G9_AH_Action_Time_Type_1(8);	
+				P_AH_Act_Time(9) = P_Recipe_G9_AH_Action_Time_Type_1(9);	
+				P_AH_Act_Time(10) =P_Recipe_G9_AH_Action_Time_Type_1(10);
+				P_AH_Act_Time(11) =P_Recipe_G9_AH_Action_Time_Type_1(11);
+				P_AH_Act_Time(12) =P_Recipe_G9_AH_Action_Time_Type_1(12);
+				P_AH_Act_Time(13) =P_Recipe_G9_AH_Action_Time_Type_1(13);
+				P_AH_Act_Time(14) =P_Recipe_G9_AH_Action_Time_Type_1(14);
+				P_AH_Act_Time(15) =P_Recipe_G9_AH_Action_Time_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 10:
+				P_AH_Act_Time(0) = P_Recipe_G10_AH_Action_Time_Type_1(0);	
+				P_AH_Act_Time(1) = P_Recipe_G10_AH_Action_Time_Type_1(1);	
+				P_AH_Act_Time(2) = P_Recipe_G10_AH_Action_Time_Type_1(2);	
+				P_AH_Act_Time(3) = P_Recipe_G10_AH_Action_Time_Type_1(3);	
+				P_AH_Act_Time(4) = P_Recipe_G10_AH_Action_Time_Type_1(4);	
+				P_AH_Act_Time(5) = P_Recipe_G10_AH_Action_Time_Type_1(5);	
+				P_AH_Act_Time(6) = P_Recipe_G10_AH_Action_Time_Type_1(6);	
+				P_AH_Act_Time(7) = P_Recipe_G10_AH_Action_Time_Type_1(7);	
+				P_AH_Act_Time(8) = P_Recipe_G10_AH_Action_Time_Type_1(8);	
+				P_AH_Act_Time(9) = P_Recipe_G10_AH_Action_Time_Type_1(9);	
+				P_AH_Act_Time(10) =P_Recipe_G10_AH_Action_Time_Type_1(10);
+				P_AH_Act_Time(11) =P_Recipe_G10_AH_Action_Time_Type_1(11);
+				P_AH_Act_Time(12) =P_Recipe_G10_AH_Action_Time_Type_1(12);
+				P_AH_Act_Time(13) =P_Recipe_G10_AH_Action_Time_Type_1(13);
+				P_AH_Act_Time(14) =P_Recipe_G10_AH_Action_Time_Type_1(14);
+				P_AH_Act_Time(15) =P_Recipe_G10_AH_Action_Time_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 11:
+				P_AH_Act_Time(0) = P_Recipe_G11_AH_Action_Time_Type_1(0);	
+				P_AH_Act_Time(1) = P_Recipe_G11_AH_Action_Time_Type_1(1);	
+				P_AH_Act_Time(2) = P_Recipe_G11_AH_Action_Time_Type_1(2);	
+				P_AH_Act_Time(3) = P_Recipe_G11_AH_Action_Time_Type_1(3);	
+				P_AH_Act_Time(4) = P_Recipe_G11_AH_Action_Time_Type_1(4);	
+				P_AH_Act_Time(5) = P_Recipe_G11_AH_Action_Time_Type_1(5);	
+				P_AH_Act_Time(6) = P_Recipe_G11_AH_Action_Time_Type_1(6);	
+				P_AH_Act_Time(7) = P_Recipe_G11_AH_Action_Time_Type_1(7);	
+				P_AH_Act_Time(8) = P_Recipe_G11_AH_Action_Time_Type_1(8);	
+				P_AH_Act_Time(9) = P_Recipe_G11_AH_Action_Time_Type_1(9);	
+				P_AH_Act_Time(10) =P_Recipe_G11_AH_Action_Time_Type_1(10);
+				P_AH_Act_Time(11) =P_Recipe_G11_AH_Action_Time_Type_1(11);
+				P_AH_Act_Time(12) =P_Recipe_G11_AH_Action_Time_Type_1(12);
+				P_AH_Act_Time(13) =P_Recipe_G11_AH_Action_Time_Type_1(13);
+				P_AH_Act_Time(14) =P_Recipe_G11_AH_Action_Time_Type_1(14);
+				P_AH_Act_Time(15) =P_Recipe_G11_AH_Action_Time_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 12:
+				P_AH_Act_Time(0) = P_Recipe_G12_AH_Action_Time_Type_1(0);	
+				P_AH_Act_Time(1) = P_Recipe_G12_AH_Action_Time_Type_1(1);	
+				P_AH_Act_Time(2) = P_Recipe_G12_AH_Action_Time_Type_1(2);	
+				P_AH_Act_Time(3) = P_Recipe_G12_AH_Action_Time_Type_1(3);	
+				P_AH_Act_Time(4) = P_Recipe_G12_AH_Action_Time_Type_1(4);	
+				P_AH_Act_Time(5) = P_Recipe_G12_AH_Action_Time_Type_1(5);	
+				P_AH_Act_Time(6) = P_Recipe_G12_AH_Action_Time_Type_1(6);	
+				P_AH_Act_Time(7) = P_Recipe_G12_AH_Action_Time_Type_1(7);	
+				P_AH_Act_Time(8) = P_Recipe_G12_AH_Action_Time_Type_1(8);	
+				P_AH_Act_Time(9) = P_Recipe_G12_AH_Action_Time_Type_1(9);	
+				P_AH_Act_Time(10) =P_Recipe_G12_AH_Action_Time_Type_1(10);
+				P_AH_Act_Time(11) =P_Recipe_G12_AH_Action_Time_Type_1(11);
+				P_AH_Act_Time(12) =P_Recipe_G12_AH_Action_Time_Type_1(12);
+				P_AH_Act_Time(13) =P_Recipe_G12_AH_Action_Time_Type_1(13);
+				P_AH_Act_Time(14) =P_Recipe_G12_AH_Action_Time_Type_1(14);
+				P_AH_Act_Time(15) =P_Recipe_G12_AH_Action_Time_Type_1(15);
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			default: // 예외처리. ( 해당되지않는 그룹 Index가 들어오면 에러처리 ) 
+				Result = N_AH_FALSE;		// 리턴값 반환. ( 실패 )
+			break; 
+		}
+	return
+	// 1.1.3) 동작 정지 타임아웃 시간 멤버 정보 업데이트 
+	sub:Group_Action_Stop_CHK_Time_Update( Group, &Result )	 
+		switch( Group )
+		{// 인자값으로 받아온 Group Index값으로 그룹에 대한 정보를 갱신한다.
+			case 1: //Group 1 : 그룹1 배열변수에 담긴 정보를 동작정보 배열변수에 대입. ( 레시피 형태로 변환예정 )
+				P_AH_Act_Stop_Time(0) = P_Recipe_G1_AH_Action_Stop_Time_Type_1(0)			// 그룹1의 멤버0은 #1    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(1) = P_Recipe_G1_AH_Action_Stop_Time_Type_1(1)			// 그룹1의 멤버1은 #2    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(2) = P_Recipe_G1_AH_Action_Stop_Time_Type_1(2)			// 그룹1의 멤버2은 #3    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(3) = P_Recipe_G1_AH_Action_Stop_Time_Type_1(3)			// 그룹1의 멤버3은 #4    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(4) = P_Recipe_G1_AH_Action_Stop_Time_Type_1(4)			// 그룹1의 멤버4은 #5    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(5) = P_Recipe_G1_AH_Action_Stop_Time_Type_1(5)			// 그룹1의 멤버5은 #6    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(6) = P_Recipe_G1_AH_Action_Stop_Time_Type_1(6)			// 그룹1의 멤버6은 #7    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(7) = P_Recipe_G1_AH_Action_Stop_Time_Type_1(7)			// 그룹1의 멤버7은 #8    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(8) = P_Recipe_G1_AH_Action_Stop_Time_Type_1(8)			// 그룹1의 멤버8은 #9    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(9) = P_Recipe_G1_AH_Action_Stop_Time_Type_1(9)			// 그룹1의 멤버9은 #10   타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(10) =P_Recipe_G1_AH_Action_Stop_Time_Type_1(10)			// 그룹1의 멤버9는 #11   타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(11) =P_Recipe_G1_AH_Action_Stop_Time_Type_1(11)			// 그룹1의 멤버10는 #12  타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(12) =P_Recipe_G1_AH_Action_Stop_Time_Type_1(12)			// 그룹1의 멤버11는 #13
+				P_AH_Act_Stop_Time(13) =P_Recipe_G1_AH_Action_Stop_Time_Type_1(13)			// 그룹1의 멤버12는 #14
+				P_AH_Act_Stop_Time(14) =P_Recipe_G1_AH_Action_Stop_Time_Type_1(14)			// 그룹1의 멤버13는 #15
+				P_AH_Act_Stop_Time(15) =P_Recipe_G1_AH_Action_Stop_Time_Type_1(15)			// 그룹1의 멤버15는 #16								   
+				//P_AH_Group_Max_Num = 5;		
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break;
+
+			case 2: //Group 2 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Act_Stop_Time(0) = P_Recipe_G2_AH_Action_Stop_Time_Type_1(0)			// 그룹2의 멤버0은 #1    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(1) = P_Recipe_G2_AH_Action_Stop_Time_Type_1(1)			// 그룹2의 멤버1은 #2    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(2) = P_Recipe_G2_AH_Action_Stop_Time_Type_1(2)			// 그룹2의 멤버2은 #3    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(3) = P_Recipe_G2_AH_Action_Stop_Time_Type_1(3)			// 그룹2의 멤버3은 #4    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(4) = P_Recipe_G2_AH_Action_Stop_Time_Type_1(4)			// 그룹2의 멤버4은 #5    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(5) = P_Recipe_G2_AH_Action_Stop_Time_Type_1(5)			// 그룹2의 멤버5은 #6    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(6) = P_Recipe_G2_AH_Action_Stop_Time_Type_1(6)			// 그룹2의 멤버6은 #7    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(7) = P_Recipe_G2_AH_Action_Stop_Time_Type_1(7)			// 그룹2의 멤버7은 #8    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(8) = P_Recipe_G2_AH_Action_Stop_Time_Type_1(8)			// 그룹2의 멤버8은 #9    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(9) = P_Recipe_G2_AH_Action_Stop_Time_Type_1(9)			// 그룹2의 멤버9은 #10   타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(10) =P_Recipe_G2_AH_Action_Stop_Time_Type_1(10)			// 그룹2의 멤버9는 #11   타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(11) =P_Recipe_G2_AH_Action_Stop_Time_Type_1(11)			// 그룹2의 멤버10는 #12  타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(12) =P_Recipe_G2_AH_Action_Stop_Time_Type_1(12)			// 그룹2의 멤버11는 #13
+				P_AH_Act_Stop_Time(13) =P_Recipe_G2_AH_Action_Stop_Time_Type_1(13)			// 그룹2의 멤버12는 #14
+				P_AH_Act_Stop_Time(14) =P_Recipe_G2_AH_Action_Stop_Time_Type_1(14)			// 그룹2의 멤버13는 #15
+				P_AH_Act_Stop_Time(15) =P_Recipe_G2_AH_Action_Stop_Time_Type_1(15)			// 그룹2의 멤버15는 #16
+				//P_AH_Group_Max_Num = 5;		
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 3: //Group 3 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Act_Stop_Time(0) = P_Recipe_G3_AH_Action_Stop_Time_Type_1(0)			// 그룹3의 멤버0은 #1    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(1) = P_Recipe_G3_AH_Action_Stop_Time_Type_1(1)			// 그룹3의 멤버1은 #2    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(2) = P_Recipe_G3_AH_Action_Stop_Time_Type_1(2)			// 그룹3의 멤버2은 #3    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(3) = P_Recipe_G3_AH_Action_Stop_Time_Type_1(3)			// 그룹3의 멤버3은 #4    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(4) = P_Recipe_G3_AH_Action_Stop_Time_Type_1(4)			// 그룹3의 멤버4은 #5    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(5) = P_Recipe_G3_AH_Action_Stop_Time_Type_1(5)			// 그룹3의 멤버5은 #6    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(6) = P_Recipe_G3_AH_Action_Stop_Time_Type_1(6)			// 그룹3의 멤버6은 #7    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(7) = P_Recipe_G3_AH_Action_Stop_Time_Type_1(7)			// 그룹3의 멤버7은 #8    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(8) = P_Recipe_G3_AH_Action_Stop_Time_Type_1(8)			// 그룹3의 멤버8은 #9    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(9) = P_Recipe_G3_AH_Action_Stop_Time_Type_1(9)			// 그룹3의 멤버9은 #10   타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(10) =P_Recipe_G3_AH_Action_Stop_Time_Type_1(10)			// 그룹3의 멤버9는 #11   타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(11) =P_Recipe_G3_AH_Action_Stop_Time_Type_1(11)			// 그룹3의 멤버10는 #12  타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(12) =P_Recipe_G3_AH_Action_Stop_Time_Type_1(12)			// 그룹3의 멤버11는 #13
+				P_AH_Act_Stop_Time(13) =P_Recipe_G3_AH_Action_Stop_Time_Type_1(13)			// 그룹3의 멤버12는 #14
+				P_AH_Act_Stop_Time(14) =P_Recipe_G3_AH_Action_Stop_Time_Type_1(14)			// 그룹3의 멤버13는 #15
+				P_AH_Act_Stop_Time(15) =P_Recipe_G3_AH_Action_Stop_Time_Type_1(15)			// 그룹3의 멤버15는 #16	
+				//P_AH_Group_Max_Num = 5;	
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 4: //Group 4 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Act_Stop_Time(0) = P_Recipe_G4_AH_Action_Stop_Time_Type_1(0)			// 그룹4의 멤버0은 #1    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(1) = P_Recipe_G4_AH_Action_Stop_Time_Type_1(1)			// 그룹4의 멤버1은 #2    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(2) = P_Recipe_G4_AH_Action_Stop_Time_Type_1(2)			// 그룹4의 멤버2은 #3    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(3) = P_Recipe_G4_AH_Action_Stop_Time_Type_1(3)			// 그룹4의 멤버3은 #4    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(4) = P_Recipe_G4_AH_Action_Stop_Time_Type_1(4)			// 그룹4의 멤버4은 #5    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(5) = P_Recipe_G4_AH_Action_Stop_Time_Type_1(5)			// 그룹4의 멤버5은 #6    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(6) = P_Recipe_G4_AH_Action_Stop_Time_Type_1(6)			// 그룹4의 멤버6은 #7    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(7) = P_Recipe_G4_AH_Action_Stop_Time_Type_1(7)			// 그룹4의 멤버7은 #8    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(8) = P_Recipe_G4_AH_Action_Stop_Time_Type_1(8)			// 그룹4의 멤버8은 #9    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(9) = P_Recipe_G4_AH_Action_Stop_Time_Type_1(9)			// 그룹4의 멤버9은 #10   타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(10) =P_Recipe_G4_AH_Action_Stop_Time_Type_1(10)			// 그룹4의 멤버9는 #11   타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(11) =P_Recipe_G4_AH_Action_Stop_Time_Type_1(11)			// 그룹4의 멤버10는 #12  타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(12) =P_Recipe_G4_AH_Action_Stop_Time_Type_1(12)			// 그룹4의 멤버11는 #13
+				P_AH_Act_Stop_Time(13) =P_Recipe_G4_AH_Action_Stop_Time_Type_1(13)			// 그룹4의 멤버12는 #14
+				P_AH_Act_Stop_Time(14) =P_Recipe_G4_AH_Action_Stop_Time_Type_1(14)			// 그룹4의 멤버13는 #15
+				P_AH_Act_Stop_Time(15) =P_Recipe_G4_AH_Action_Stop_Time_Type_1(15)			// 그룹4의 멤버15는 #16	
+				//P_AH_Group_Max_Num = 5;	
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 5: //Group 5 : 그룹2 배열변수에 담긴 정보를 동작정보 배열변수에 대입.
+				P_AH_Act_Stop_Time(0) = P_Recipe_G5_AH_Action_Stop_Time_Type_1(0)			// 그룹5의 멤버0은 #1    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(1) = P_Recipe_G5_AH_Action_Stop_Time_Type_1(1)			// 그룹5의 멤버1은 #2    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(2) = P_Recipe_G5_AH_Action_Stop_Time_Type_1(2)			// 그룹5의 멤버2은 #3    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(3) = P_Recipe_G5_AH_Action_Stop_Time_Type_1(3)			// 그룹5의 멤버3은 #4    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(4) = P_Recipe_G5_AH_Action_Stop_Time_Type_1(4)			// 그룹5의 멤버4은 #5    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(5) = P_Recipe_G5_AH_Action_Stop_Time_Type_1(5)			// 그룹5의 멤버5은 #6    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(6) = P_Recipe_G5_AH_Action_Stop_Time_Type_1(6)			// 그룹5의 멤버6은 #7    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(7) = P_Recipe_G5_AH_Action_Stop_Time_Type_1(7)			// 그룹5의 멤버7은 #8    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(8) = P_Recipe_G5_AH_Action_Stop_Time_Type_1(8)			// 그룹5의 멤버8은 #9    타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(9) = P_Recipe_G5_AH_Action_Stop_Time_Type_1(9)			// 그룹5의 멤버9은 #10   타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(10) =P_Recipe_G5_AH_Action_Stop_Time_Type_1(10)			// 그룹5의 멤버9는 #11   타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(11) =P_Recipe_G5_AH_Action_Stop_Time_Type_1(11)			// 그룹5의 멤버10는 #12  타임아웃 시간 업데이트
+				P_AH_Act_Stop_Time(12) =P_Recipe_G5_AH_Action_Stop_Time_Type_1(12)			// 그룹5의 멤버11는 #13
+				P_AH_Act_Stop_Time(13) =P_Recipe_G5_AH_Action_Stop_Time_Type_1(13)			// 그룹5의 멤버12는 #14
+				P_AH_Act_Stop_Time(14) =P_Recipe_G5_AH_Action_Stop_Time_Type_1(14)			// 그룹5의 멤버13는 #15
+				P_AH_Act_Stop_Time(15) =P_Recipe_G5_AH_Action_Stop_Time_Type_1(15)			// 그룹5의 멤버15는 #16	
+				//P_AH_Group_Max_Num = 5;	
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 6: 
+				P_AH_Act_Stop_Time(0) = P_Recipe_G6_AH_Action_Stop_Time_Type_1(0);			
+				P_AH_Act_Stop_Time(1) = P_Recipe_G6_AH_Action_Stop_Time_Type_1(1);			
+				P_AH_Act_Stop_Time(2) = P_Recipe_G6_AH_Action_Stop_Time_Type_1(2);			
+				P_AH_Act_Stop_Time(3) = P_Recipe_G6_AH_Action_Stop_Time_Type_1(3);			
+				P_AH_Act_Stop_Time(4) = P_Recipe_G6_AH_Action_Stop_Time_Type_1(4);			
+				P_AH_Act_Stop_Time(5) = P_Recipe_G6_AH_Action_Stop_Time_Type_1(5);			
+				P_AH_Act_Stop_Time(6) = P_Recipe_G6_AH_Action_Stop_Time_Type_1(6);			
+				P_AH_Act_Stop_Time(7) = P_Recipe_G6_AH_Action_Stop_Time_Type_1(7);			
+				P_AH_Act_Stop_Time(8) = P_Recipe_G6_AH_Action_Stop_Time_Type_1(8);			
+				P_AH_Act_Stop_Time(9) = P_Recipe_G6_AH_Action_Stop_Time_Type_1(9);			
+				P_AH_Act_Stop_Time(10) =P_Recipe_G6_AH_Action_Stop_Time_Type_1(10);			
+				P_AH_Act_Stop_Time(11) =P_Recipe_G6_AH_Action_Stop_Time_Type_1(11);			
+				P_AH_Act_Stop_Time(12) =P_Recipe_G6_AH_Action_Stop_Time_Type_1(12);			
+				P_AH_Act_Stop_Time(13) =P_Recipe_G6_AH_Action_Stop_Time_Type_1(13);			
+				P_AH_Act_Stop_Time(14) =P_Recipe_G6_AH_Action_Stop_Time_Type_1(14);			
+				P_AH_Act_Stop_Time(15) =P_Recipe_G6_AH_Action_Stop_Time_Type_1(15);			
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 7: 
+				P_AH_Act_Stop_Time(0) = P_Recipe_G7_AH_Action_Stop_Time_Type_1(0);			
+				P_AH_Act_Stop_Time(1) = P_Recipe_G7_AH_Action_Stop_Time_Type_1(1);			
+				P_AH_Act_Stop_Time(2) = P_Recipe_G7_AH_Action_Stop_Time_Type_1(2);			
+				P_AH_Act_Stop_Time(3) = P_Recipe_G7_AH_Action_Stop_Time_Type_1(3);			
+				P_AH_Act_Stop_Time(4) = P_Recipe_G7_AH_Action_Stop_Time_Type_1(4);			
+				P_AH_Act_Stop_Time(5) = P_Recipe_G7_AH_Action_Stop_Time_Type_1(5);			
+				P_AH_Act_Stop_Time(6) = P_Recipe_G7_AH_Action_Stop_Time_Type_1(6);			
+				P_AH_Act_Stop_Time(7) = P_Recipe_G7_AH_Action_Stop_Time_Type_1(7);			
+				P_AH_Act_Stop_Time(8) = P_Recipe_G7_AH_Action_Stop_Time_Type_1(8);			
+				P_AH_Act_Stop_Time(9) = P_Recipe_G7_AH_Action_Stop_Time_Type_1(9);			
+				P_AH_Act_Stop_Time(10) =P_Recipe_G7_AH_Action_Stop_Time_Type_1(10);			
+				P_AH_Act_Stop_Time(11) =P_Recipe_G7_AH_Action_Stop_Time_Type_1(11);			
+				P_AH_Act_Stop_Time(12) =P_Recipe_G7_AH_Action_Stop_Time_Type_1(12);			
+				P_AH_Act_Stop_Time(13) =P_Recipe_G7_AH_Action_Stop_Time_Type_1(13);			
+				P_AH_Act_Stop_Time(14) =P_Recipe_G7_AH_Action_Stop_Time_Type_1(14);			
+				P_AH_Act_Stop_Time(15) =P_Recipe_G7_AH_Action_Stop_Time_Type_1(15);			
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 8: 
+				P_AH_Act_Stop_Time(0) = P_Recipe_G8_AH_Action_Stop_Time_Type_1(0);			
+				P_AH_Act_Stop_Time(1) = P_Recipe_G8_AH_Action_Stop_Time_Type_1(1);			
+				P_AH_Act_Stop_Time(2) = P_Recipe_G8_AH_Action_Stop_Time_Type_1(2);			
+				P_AH_Act_Stop_Time(3) = P_Recipe_G8_AH_Action_Stop_Time_Type_1(3);			
+				P_AH_Act_Stop_Time(4) = P_Recipe_G8_AH_Action_Stop_Time_Type_1(4);			
+				P_AH_Act_Stop_Time(5) = P_Recipe_G8_AH_Action_Stop_Time_Type_1(5);			
+				P_AH_Act_Stop_Time(6) = P_Recipe_G8_AH_Action_Stop_Time_Type_1(6);			
+				P_AH_Act_Stop_Time(7) = P_Recipe_G8_AH_Action_Stop_Time_Type_1(7);			
+				P_AH_Act_Stop_Time(8) = P_Recipe_G8_AH_Action_Stop_Time_Type_1(8);			
+				P_AH_Act_Stop_Time(9) = P_Recipe_G8_AH_Action_Stop_Time_Type_1(9);			
+				P_AH_Act_Stop_Time(10) =P_Recipe_G8_AH_Action_Stop_Time_Type_1(10);			
+				P_AH_Act_Stop_Time(11) =P_Recipe_G8_AH_Action_Stop_Time_Type_1(11);			
+				P_AH_Act_Stop_Time(12) =P_Recipe_G8_AH_Action_Stop_Time_Type_1(12);			
+				P_AH_Act_Stop_Time(13) =P_Recipe_G8_AH_Action_Stop_Time_Type_1(13);			
+				P_AH_Act_Stop_Time(14) =P_Recipe_G8_AH_Action_Stop_Time_Type_1(14);			
+				P_AH_Act_Stop_Time(15) =P_Recipe_G8_AH_Action_Stop_Time_Type_1(15);			
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 9: 
+				P_AH_Act_Stop_Time(0) = P_Recipe_G9_AH_Action_Stop_Time_Type_1(0);			
+				P_AH_Act_Stop_Time(1) = P_Recipe_G9_AH_Action_Stop_Time_Type_1(1);			
+				P_AH_Act_Stop_Time(2) = P_Recipe_G9_AH_Action_Stop_Time_Type_1(2);			
+				P_AH_Act_Stop_Time(3) = P_Recipe_G9_AH_Action_Stop_Time_Type_1(3);			
+				P_AH_Act_Stop_Time(4) = P_Recipe_G9_AH_Action_Stop_Time_Type_1(4);			
+				P_AH_Act_Stop_Time(5) = P_Recipe_G9_AH_Action_Stop_Time_Type_1(5);			
+				P_AH_Act_Stop_Time(6) = P_Recipe_G9_AH_Action_Stop_Time_Type_1(6);			
+				P_AH_Act_Stop_Time(7) = P_Recipe_G9_AH_Action_Stop_Time_Type_1(7);			
+				P_AH_Act_Stop_Time(8) = P_Recipe_G9_AH_Action_Stop_Time_Type_1(8);			
+				P_AH_Act_Stop_Time(9) = P_Recipe_G9_AH_Action_Stop_Time_Type_1(9);			
+				P_AH_Act_Stop_Time(10) =P_Recipe_G9_AH_Action_Stop_Time_Type_1(10);			
+				P_AH_Act_Stop_Time(11) =P_Recipe_G9_AH_Action_Stop_Time_Type_1(11);			
+				P_AH_Act_Stop_Time(12) =P_Recipe_G9_AH_Action_Stop_Time_Type_1(12);			
+				P_AH_Act_Stop_Time(13) =P_Recipe_G9_AH_Action_Stop_Time_Type_1(13);			
+				P_AH_Act_Stop_Time(14) =P_Recipe_G9_AH_Action_Stop_Time_Type_1(14);			
+				P_AH_Act_Stop_Time(15) =P_Recipe_G9_AH_Action_Stop_Time_Type_1(15);			
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 10: 
+				P_AH_Act_Stop_Time(0) = P_Recipe_G10_AH_Action_Stop_Time_Type_1(0);			
+				P_AH_Act_Stop_Time(1) = P_Recipe_G10_AH_Action_Stop_Time_Type_1(1);			
+				P_AH_Act_Stop_Time(2) = P_Recipe_G10_AH_Action_Stop_Time_Type_1(2);			
+				P_AH_Act_Stop_Time(3) = P_Recipe_G10_AH_Action_Stop_Time_Type_1(3);			
+				P_AH_Act_Stop_Time(4) = P_Recipe_G10_AH_Action_Stop_Time_Type_1(4);			
+				P_AH_Act_Stop_Time(5) = P_Recipe_G10_AH_Action_Stop_Time_Type_1(5);			
+				P_AH_Act_Stop_Time(6) = P_Recipe_G10_AH_Action_Stop_Time_Type_1(6);			
+				P_AH_Act_Stop_Time(7) = P_Recipe_G10_AH_Action_Stop_Time_Type_1(7);			
+				P_AH_Act_Stop_Time(8) = P_Recipe_G10_AH_Action_Stop_Time_Type_1(8);			
+				P_AH_Act_Stop_Time(9) = P_Recipe_G10_AH_Action_Stop_Time_Type_1(9);			
+				P_AH_Act_Stop_Time(10) =P_Recipe_G10_AH_Action_Stop_Time_Type_1(10);			
+				P_AH_Act_Stop_Time(11) =P_Recipe_G10_AH_Action_Stop_Time_Type_1(11);			
+				P_AH_Act_Stop_Time(12) =P_Recipe_G10_AH_Action_Stop_Time_Type_1(12);			
+				P_AH_Act_Stop_Time(13) =P_Recipe_G10_AH_Action_Stop_Time_Type_1(13);			
+				P_AH_Act_Stop_Time(14) =P_Recipe_G10_AH_Action_Stop_Time_Type_1(14);			
+				P_AH_Act_Stop_Time(15) =P_Recipe_G10_AH_Action_Stop_Time_Type_1(15);			
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 11: 
+				P_AH_Act_Stop_Time(0) = P_Recipe_G11_AH_Action_Stop_Time_Type_1(0);			
+				P_AH_Act_Stop_Time(1) = P_Recipe_G11_AH_Action_Stop_Time_Type_1(1);			
+				P_AH_Act_Stop_Time(2) = P_Recipe_G11_AH_Action_Stop_Time_Type_1(2);			
+				P_AH_Act_Stop_Time(3) = P_Recipe_G11_AH_Action_Stop_Time_Type_1(3);			
+				P_AH_Act_Stop_Time(4) = P_Recipe_G11_AH_Action_Stop_Time_Type_1(4);			
+				P_AH_Act_Stop_Time(5) = P_Recipe_G11_AH_Action_Stop_Time_Type_1(5);			
+				P_AH_Act_Stop_Time(6) = P_Recipe_G11_AH_Action_Stop_Time_Type_1(6);			
+				P_AH_Act_Stop_Time(7) = P_Recipe_G11_AH_Action_Stop_Time_Type_1(7);			
+				P_AH_Act_Stop_Time(8) = P_Recipe_G11_AH_Action_Stop_Time_Type_1(8);			
+				P_AH_Act_Stop_Time(9) = P_Recipe_G11_AH_Action_Stop_Time_Type_1(9);			
+				P_AH_Act_Stop_Time(10) =P_Recipe_G11_AH_Action_Stop_Time_Type_1(10);			
+				P_AH_Act_Stop_Time(11) =P_Recipe_G11_AH_Action_Stop_Time_Type_1(11);			
+				P_AH_Act_Stop_Time(12) =P_Recipe_G11_AH_Action_Stop_Time_Type_1(12);			
+				P_AH_Act_Stop_Time(13) =P_Recipe_G11_AH_Action_Stop_Time_Type_1(13);			
+				P_AH_Act_Stop_Time(14) =P_Recipe_G11_AH_Action_Stop_Time_Type_1(14);			
+				P_AH_Act_Stop_Time(15) =P_Recipe_G11_AH_Action_Stop_Time_Type_1(15);			
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			case 12: 
+				P_AH_Act_Stop_Time(0) = P_Recipe_G12_AH_Action_Stop_Time_Type_1(0);			
+				P_AH_Act_Stop_Time(1) = P_Recipe_G12_AH_Action_Stop_Time_Type_1(1);			
+				P_AH_Act_Stop_Time(2) = P_Recipe_G12_AH_Action_Stop_Time_Type_1(2);			
+				P_AH_Act_Stop_Time(3) = P_Recipe_G12_AH_Action_Stop_Time_Type_1(3);			
+				P_AH_Act_Stop_Time(4) = P_Recipe_G12_AH_Action_Stop_Time_Type_1(4);			
+				P_AH_Act_Stop_Time(5) = P_Recipe_G12_AH_Action_Stop_Time_Type_1(5);			
+				P_AH_Act_Stop_Time(6) = P_Recipe_G12_AH_Action_Stop_Time_Type_1(6);			
+				P_AH_Act_Stop_Time(7) = P_Recipe_G12_AH_Action_Stop_Time_Type_1(7);			
+				P_AH_Act_Stop_Time(8) = P_Recipe_G12_AH_Action_Stop_Time_Type_1(8);			
+				P_AH_Act_Stop_Time(9) = P_Recipe_G12_AH_Action_Stop_Time_Type_1(9);			
+				P_AH_Act_Stop_Time(10) =P_Recipe_G12_AH_Action_Stop_Time_Type_1(10);			
+				P_AH_Act_Stop_Time(11) =P_Recipe_G12_AH_Action_Stop_Time_Type_1(11);			
+				P_AH_Act_Stop_Time(12) =P_Recipe_G12_AH_Action_Stop_Time_Type_1(12);			
+				P_AH_Act_Stop_Time(13) =P_Recipe_G12_AH_Action_Stop_Time_Type_1(13);			
+				P_AH_Act_Stop_Time(14) =P_Recipe_G12_AH_Action_Stop_Time_Type_1(14);			
+				P_AH_Act_Stop_Time(15) =P_Recipe_G12_AH_Action_Stop_Time_Type_1(15);			
+				Result = N_AH_TRUE;		// 리턴값 반환. ( 성공 )
+			break; 
+
+			default: // 예외처리. ( 해당되지않는 그룹 Index가 들어오면 에러처리 ) 
+				Result = N_AH_FALSE;		// 리턴값 반환. ( 실패 )
+			break; 
+		}
+	return
+
+	//---------------------------------------------------------------------------------------------
+	// 1.2) 동작명령 
+	//---------------------------------------------------------------------------------------------
+	sub:Action(&rtn)
+		rtn = N_AH_FALSE
+		P_AH_Action_Num = 0
+		While( P_AH_Action_Num < N_Max_Member_EA )
+		{// 맴버 최대 갯수 보다 그룹내 맴버가 작을경우 
+			
+			switch(P_AH_Action_Type(P_AH_Action_Num))
+			{
+				case F_AH_None:	// Type 없는 경우( SKIP 가능한 경우)
+					P_AH_Act_CMD_Complete_Bit(P_AH_Action_Num) = 1;	
+				break;
+
+				case F_AH_Plus_Type :	// +, 회피동작. 1
+					call Sub_Action_CMD_Module.AH_Plus_Type_CMD( P_AH_Action_Num,&P_AH_Act_CMD_Complete_Bit(P_AH_Action_Num) );	// P_Member : 멤버번호.
+				break;
+
+				case F_AH_Minus_Type :	// - 회피동작. 2
+					
+					call Sub_Action_CMD_Module.AH_Minus_Type_CMD( P_AH_Action_Num,&P_AH_Act_CMD_Complete_Bit(P_AH_Action_Num) );	// P_Member : 멤버번호.
+				break;
+
+				case F_AH_Servo_ON_Type :	// servo on. 3
+					call Sub_Action_CMD_Module.AH_Servo_ON_Type_CMD( P_AH_Action_Num,&P_AH_Act_CMD_Complete_Bit(P_AH_Action_Num) );// P_Member : 멤버번호.
+				break;
+								
+				case F_AH_IO_Type :		// IO oN동작. 4
+					call Sub_Action_CMD_Module.AH_IO_Type_CMD( P_AH_Action_Num,&P_AH_Act_CMD_Complete_Bit(P_AH_Action_Num) );	// P_Member : 멤버번호.
+				break; 
+
+				case F_AH_Home_Type : // 홈 명령. 5
+					Call Sub_Action_CMD_Module.AH_Home_Type_CMD( P_AH_Action_Num,&P_AH_Act_CMD_Complete_Bit(P_AH_Action_Num));	// P_Member : 멤버번호.
+				break;	
+				
+				case F_AH_Cascade_Type : // 케스케이드 명령. 6  
+					call Sub_Action_CMD_Module.AH_Cascade_Type_CMD( P_AH_Action_Num,&P_AH_Act_CMD_Complete_Bit(P_AH_Action_Num) );	// P_Member : 멤버번호.									
+				break;
+
+				case F_AH_Jog_Type : // 조그 명령
+					call Sub_Action_CMD_Module.AH_Jog_Type_Cmd( P_AH_Action_Num,&P_AH_Act_CMD_Complete_Bit(P_AH_Action_Num) );	// P_Member : 멤버번호.		
+				break;
+
+				default: //동작이 없는 멤버는 동작은 Skip. 완료비트는 On.
+					P_AH_Act_CMD_Complete_Bit(P_AH_Action_Num) = 1;
+				break;
+			}
+			P_AH_Act_CMD_Complete_Bit(0) = P_AH_Act_CMD_Complete_Bit(0) & P_AH_Act_CMD_Complete_Bit(P_AH_Action_Num);	
+			// ↑ 첫번째 인덱스 완료비트에 현재 인덱스완료비트값을 &연산. 1과 1이어야 1을 출력. 
+			P_AH_Action_Num++;
+		}
+		if(P_AH_Act_CMD_Complete_Bit(0) == N_AH_TRUE)
+		{	
+			rtn = N_AH_TRUE;
+		}
+	return	
+	//---------------------------------------------------------------------------------------------
+	// 1.3) 동작 체크 
+	//---------------------------------------------------------------------------------------------
+	sub:Action_CHK(&rtn)
+		rtn = N_AH_Wait_Result;
+		P_AH_Action_CHK_Num = 0
+		//Local L_Total_Complete_Bit = 1; 
+		P_Total_Complete_Bit = 1;
+		
+		While( P_AH_Action_CHK_Num < N_Max_Member_EA )
+		{// 맴버 최대 갯수 보다 그룹내 맴버가 작을경우 
+			
+			switch(P_AH_Action_Type(P_AH_Action_CHK_Num))
+			{
+				case F_AH_None:	// Type 없는 경우( SKIP 가능한 경우)
+					P_AH_Act_CHK_Complete_Bit(P_AH_Action_CHK_Num) = 1;	
+				break;
+
+				case F_AH_Plus_Type :	// + 회피동작체크. 1
+					call Sub_Action_CHK_Module.AH_Plus_Type_CHK( P_AH_Action_CHK_Num,&P_AH_Act_CHK_Complete_Bit(P_AH_Action_CHK_Num) );	// P_Member : 멤버번호.
+				break;
+				case F_AH_Minus_Type :	// - 회피동작체크. 2
+					call Sub_Action_CHK_Module.AH_Minus_Type_CHK( P_AH_Action_CHK_Num,&P_AH_Act_CHK_Complete_Bit(P_AH_Action_CHK_Num) );	// P_Member : 멤버번호.
+				break;
+				case F_AH_Servo_ON_Type :	// servo on 회피동작완료체크. 3
+					call Sub_Action_CHK_Module.AH_Servo_ON_Type_CHK( P_AH_Action_CHK_Num,&P_AH_Act_CHK_Complete_Bit(P_AH_Action_CHK_Num) );	// P_Member : 멤버번호.
+				break;								
+				case F_AH_IO_Type :		// IO oN동작체크. 4
+					call Sub_Action_CHK_Module.AH_IO_Type_CHK( P_AH_Action_CHK_Num,&P_AH_Act_CHK_Complete_Bit(P_AH_Action_CHK_Num) );	// P_Member : 멤버번호.
+				break; 
+
+				case F_AH_Home_Type : // 홈 동작완료 체크 . 5 
+					Call Sub_Action_CHK_Module.AH_Home_Type_CHK( P_AH_Action_CHK_Num,&P_AH_Act_CHK_Complete_Bit(P_AH_Action_CHK_Num));	// P_Member : 멤버번호.
+				break;	
+
+				case F_AH_Cascade_Type : // 케스케이드 완료 체크. 6  
+					call Sub_Action_CHK_Module.AH_Cascade_Type_CHK( P_AH_Action_CHK_Num,&P_AH_Act_CHK_Complete_Bit(P_AH_Action_CHK_Num) );	// P_Member : 멤버번호.									
+				break;
+
+				case F_AH_Jog_Type : // 조그  명령
+					call Sub_Action_CHK_Module.AH_Jog_Type_Cmd_CHK( P_AH_Action_CHK_Num,&P_AH_Act_CHK_Complete_Bit(P_AH_Action_CHK_Num) );	// P_Member : 멤버번호.		
+				break;
+								
+				default: //동작이 없는 멤버는 동작은 Skip. 완료비트는 On.
+					P_AH_Act_CHK_Complete_Bit(P_AH_Action_CHK_Num) = 1;
+				break;
+			}
+			P_Total_Complete_Bit = P_Total_Complete_Bit & P_AH_Act_CHK_Complete_Bit(P_AH_Action_CHK_Num);	
+			// ↑ 첫번째 인덱스 완료비트에 현재 인덱스완료비트값을 &연산. 1과 1이어야 1을 출력. 
+			P_AH_Action_CHK_Num++;
+		}	
+		if(P_Total_Complete_Bit == N_AH_TRUE)
+		{
+			rtn = N_AH_TRUE;
+		}
+	return
+	//---------------------------------------------------------------------------------------------
+	// 1.4) Group 체크 기능 추가 
+	//---------------------------------------------------------------------------------------------	
+	sub:Group_CHK(Group_Cur_Num,&rtn)
+		if(Group_Cur_Num < P_AH_Group_Max_Num)
+		{
+			rtn = N_AH_TRUE;
+		}	
+		else 
+		{
+			rtn = N_AH_FALSE;
+		}
+	return	
+
+	//--------------------------------------------------------------------------------------------------------------------------------------		
+	// 1.5) 조그 속도 및 홈 속도 설정 
+	//--------------------------------------------------------------------------------------------------------------------------------------	 
+
+	Sub:Group_Jog_And_Home_Speed( &rtn )													// 조그 및 홈 속도 설정 함수  
+		Local L_motor_num = 0;																// 모터 번호	선언 및 초기화	
+		while( L_motor_num <= 100 && P_AH_Home_Status == F_Status_STARTING )
+		{// 모터 1~100까지 			
+			Motor[L_motor_num].JogSpeed  = P_Recipe_Homing_Speed(L_motor_num);				// 조그 속도 
+			L_motor_num = L_motor_num +1;													// 모터 번호 증가
+		}	
+		rtn = N_AH_TRUE;																	// 조그 및 홈 속도 변경 성공 
+
+	return	
+	//---------------------------------------------------------------------------------------------
+	// 1.6) SKIP 기능 추가 
+	//---------------------------------------------------------------------------------------------
+	sub:Skip_Member_CHK( Sector_Info, Sector_No, &rtn)
+	// 인자값 정보 - Sector_Info : Skip 가능여부 , Sector_No : Skip할 Sector 번호
+		P_Skip_Meber = 0;
+		rtn = 0;				// 함수 리턴값 초기화
+		if( Sector_Info == N_AH_TRUE )
+		{ // Skip여부가 참이면
+			while( P_Skip_Meber < N_Max_Member_EA )
+			{ // 멤버 max index까지
+				if( P_AH_Unit_Sector(P_AH_Action_Target(P_Skip_Meber)) == Sector_No )
+				{
+					P_AH_Action_Type(P_Skip_Meber) = 0;						// 동작 타입 0으로 변경 ( 동작 Skip 을 위함 )
+				}
+				P_Skip_Meber++		// 멤버 Index 증가	
+			}
+		}
+		rtn = N_AH_TRUE;				// 함수 동작완료 표시
+	return
+
+	//---------------------------------------------------------------------------------------------
+	// 1.7) Menagement 감시모듈 - 액션 동작 체크 단계 타임아웃 체크 함수 
+	//---------------------------------------------------------------------------------------------
+	sub:Act_Time_CHK( Member, Time, &rtn )
+		if( P_AH_Act_Timer(Member) < Time )
+		{ // 지정된 시간 내 
+			rtn = N_AH_Wait_Result;	// 
+		}
+		else
+		{ // 시간 초과 
+			if(P_AH_Act_CHK_Complete_Bit(Member))	// 완료비트 on
+				rtn = N_AH_TRUE;
+			else// 타임아웃 
+				rtn = N_AH_FALSE;
+		}
+	return
+
+	//---------------------------------------------------------------------------------------------
+	// 02.홈 정지 Management 
+	//---------------------------------------------------------------------------------------------
+	//---------------------------------------------------------------------------------------------
+	// 2.1) 동작 정지 명령 
+	//---------------------------------------------------------------------------------------------	
+	//---------------------------------------------------------------------------------------------
+	sub:Action_Stop(&rtn) 
+		rtn = N_AH_FALSE;
+		// 각 멤버들의 타입별로 정지 명령 
+		P_Action_Stop_Member = 0;
+		while(P_Action_Stop_Member < N_Max_Member_EA)
+		{
+			switch(P_AH_Action_Type(P_Action_Stop_Member))
+			{
+				case F_AH_Plus_Type : // +회피동작 타입	 - 정지		
+					call Sub_Action_CMD_Module.AH_Servo_ON_Type_CMD( P_Action_Stop_Member,&P_AH_Stop_CMD_Complete_Bit(P_Action_Stop_Member) );	// P_Action_Stop_Member : 멤버번호.																																											
+				break; 
+				
+				case F_AH_Minus_Type : // -회피동작타입 - 정지 
+					call Sub_Action_CMD_Module.AH_Servo_ON_Type_CMD( P_Action_Stop_Member,&P_AH_Stop_CMD_Complete_Bit(P_Action_Stop_Member) );	// P_Action_Stop_Member : 멤버번호.
+				break; 
+			
+				case F_AH_Home_Type : // 홈 명령 타입 - 정지  
+					call Sub_Action_CMD_Module.AH_Home_Type_Stop( P_Action_Stop_Member,&P_AH_Stop_CMD_Complete_Bit(P_Action_Stop_Member) );	// P_Action_Stop_Member : 멤버번호.	
+				break; 
+				
+				case F_AH_Cascade_Type : // 케스케이드 정지 타입 - Master KILL 
+					// 텐션 완료여부에 따른 정지커멘드 송출 여부 구분
+					P_Chk_Bit = 0
+					P_AH_Stop_MD_Cascade_Stop_Cmd_Skip = 0;
+					
+					call Sub_Action_CHK_Module.AH_Cascade_Type_CHK(P_Action_Stop_Member, &P_Chk_Bit);		// 케스케이드 상태 확인함수 호출		
+					if( P_Chk_Bit == N_AH_TRUE ) 						// Cascade 정상 상태인 경우
+					{												// Stop 함수를 호출하지 않음.
+						P_AH_Stop_MD_Cascade_Stop_Cmd_Skip = 1;		// Cascade Stop Function 호출 Skip표시
+						P_AH_Stop_CMD_Complete_Bit(P_Action_Stop_Member) = N_AH_TRUE; 			// 완료보고
+					}
+					else											// Cascade 비정상 상태인 경우
+						call Sub_Action_CMD_Module.AH_Cascade_Stop_Type_Cmd( P_Action_Stop_Member,&P_AH_Stop_CMD_Complete_Bit(P_Action_Stop_Member) );					
+				break;
+
+				case F_AH_Jog_Type:		// 조그  1차 2차 PNP 
+					call Sub_Action_CMD_Module.AH_Jog_Stop_Type_Cmd(P_Action_Stop_Member,&P_AH_Stop_CMD_Complete_Bit(P_Action_Stop_Member));
+				break;
+
+				default:// 예외처리 
+					
+				break; 			
+			}	
+			P_AH_Stop_CMD_Complete_Bit(0) = P_AH_Stop_CMD_Complete_Bit(0) & P_AH_Stop_CMD_Complete_Bit(P_Action_Stop_Member);	
+			// ↑ 첫번째 인덱스 완료비트에 현재 인덱스완료비트값을 &연산. 1과 1이어야 1을 출력.
+			P_Action_Stop_Member++;	
+		} 
+		if(P_AH_Stop_CMD_Complete_Bit(0) == N_AH_TRUE)
+		{
+			rtn = N_AH_TRUE;
+		}
+	return 
+	//---------------------------------------------------------------------------------------------
+	// 2.2) 동작 정지 체크  
+	//---------------------------------------------------------------------------------------------
+	sub:Action_Stop_CHK(&rtn) 		 
+		rtn = N_AH_FALSE;
+		P_Action_Stop_CHK_Member = 0
+		//local L_Total_AH_Stop_CHK_Complete_Bit = 1;
+		P_Total_AH_Stop_CHK_Complete_Bit = 1;
+		// 각 멤버들의 타입별로 동작 정지 체크 
+		while(P_Action_Stop_CHK_Member < N_Max_Member_EA)
+		{
+			switch(P_AH_Action_Type(P_Action_Stop_CHK_Member))
+			{
+				case F_AH_Plus_Type : // +회피동작 타입			
+					call Sub_Action_CHK_Module.AH_Action_Stop_Type_CHK( P_Action_Stop_CHK_Member,&P_AH_Stop_CHK_Complete_Bit(P_Action_Stop_CHK_Member) );	// P_Action_Stop_CHK_Member : 멤버번호.																																											
+				break; 
+				
+				case F_AH_Minus_Type : // -회피동작 타입 
+					call Sub_Action_CHK_Module.AH_Action_Stop_Type_CHK( P_Action_Stop_CHK_Member,&P_AH_Stop_CHK_Complete_Bit(P_Action_Stop_CHK_Member) );	// P_Action_Stop_CHK_Member : 멤버번호.
+				break; 
+			
+				case F_AH_Home_Type : // 홈 명령 타입 
+					call Sub_Action_CHK_Module.AH_Action_Stop_Type_CHK( P_Action_Stop_CHK_Member,&P_AH_Stop_CHK_Complete_Bit(P_Action_Stop_CHK_Member) );	// P_Action_Stop_CHK_Member : 멤버번호.	
+				break; 
+				
+				case F_AH_Cascade_Type : // 케스케이드 정지 타입 
+					if( P_AH_Stop_MD_Cascade_Stop_Cmd_Skip == 1 )					// Cascade 정지 명령 Skip한 경우
+						P_AH_Stop_CHK_Complete_Bit(P_Action_Stop_CHK_Member) = N_AH_TRUE; 			// 완료보고 ( 정지 확인 하지 않음 )
+					else															// Cascade 정지 명령을 송출한 경우
+						call Sub_Action_CHK_Module.AH_Cascade_Stop_Type_CHK( P_Action_Stop_CHK_Member,&P_AH_Stop_CHK_Complete_Bit(P_Action_Stop_CHK_Member) )
+				break;
+
+				case F_AH_Jog_Type:		// 조그  1차 2차 PNP 
+					call Sub_Action_CHK_Module.AH_Jog_Stop_Type_CHK(P_Action_Stop_CHK_Member,&P_AH_Stop_CHK_Complete_Bit(P_Action_Stop_CHK_Member));
+				break;
+
+				default:// 예외처리 
+					
+				break; 			
+			}	
+			P_Total_AH_Stop_CHK_Complete_Bit = P_Total_AH_Stop_CHK_Complete_Bit & P_AH_Stop_CHK_Complete_Bit(P_Action_Stop_CHK_Member);	
+			// ↑ 첫번째 인덱스 완료비트에 현재 인덱스완료비트값을 &연산. 1과 1이어야 1을 출력.
+			P_Action_Stop_CHK_Member++;	
+		}
+		if(P_Total_AH_Stop_CHK_Complete_Bit == N_AH_TRUE)
+		{
+			rtn = N_AH_TRUE;
+		}
+	return 
+	//---------------------------------------------------------------------------------------------
+	// 2.3) 정지 Menagement 감시모듈 - 
+	//---------------------------------------------------------------------------------------------
+	sub:Act_Stop_Time_CHK( Member, Time, &rtn )
+		if( P_AH_Act_Timer(Member) < Time )
+		{ // 지정된 시간 내 
+			rtn = N_AH_Wait_Result;	// 
+		}
+		else
+		{ // 시간 초과 
+			if(P_AH_Stop_CHK_Complete_Bit(Member))	// 완료비트 on
+				rtn = N_AH_TRUE;
+			else// 타임아웃 
+				rtn = N_AH_FALSE;
+		}
+	return
+
+
+	sub: Group_Select_Func( &rtn)
+	rtn = 0;
+	
+	P_Group_Rtn = 0
+	P_Group_Mode = 0;
+
+	if( P_Stack_Judgement_Memory != N_TRUE )																	// 적층 중이 아닐 때
+	{
+		if( F_Anode_2nd_T_Axis < P_2nd_PnP_Init_Pos && F_Cathode_2nd_T_Axis < P_2nd_PnP_Init_Pos )				// 1번. 양쪽다 45도 미만일때
+		{
+			P_Group_Mode = 1;
+			call All_Home_Group_Init.Select_Group_Value(P_Group_Mode,&P_Group_Rtn);
+			if( P_Group_Rtn == N_TRUE )
+			{
+				rtn = N_TRUE;
+			}
+		}
+		else if( F_Anode_2nd_T_Axis >= P_2nd_PnP_Init_Pos && F_Cathode_2nd_T_Axis >= P_2nd_PnP_Init_Pos)		// 2번. 양쪽다 45도 이상일때
+		{
+			P_Group_Mode = 2;
+			call All_Home_Group_Init.Select_Group_Value(P_Group_Mode,&P_Group_Rtn);
+			if( P_Group_Rtn == N_TRUE )
+			{
+				rtn = N_TRUE;
+			}
+		}
+		else if( F_Anode_2nd_T_Axis >= P_2nd_PnP_Init_Pos )														// 3번. 음극만 45도 이상일때
+		{
+			P_Group_Mode = 3;
+			call All_Home_Group_Init.Select_Group_Value(P_Group_Mode,&P_Group_Rtn);
+			if( P_Group_Rtn == N_TRUE )
+			{
+				rtn = N_TRUE;
+			}
+		}
+		else if( F_Cathode_2nd_T_Axis >= P_2nd_PnP_Init_Pos )													// 4번. 양극만 45도 이상일때
+		{
+			P_Group_Mode = 4;
+			call All_Home_Group_Init.Select_Group_Value(P_Group_Mode,&P_Group_Rtn);
+			if( P_Group_Rtn == N_TRUE )
+			{
+				rtn = N_TRUE;
+			}
+		}
+	}
+	else																										// 적층 중 일때
+	{
+			if( F_Anode_2nd_T_Axis < P_2nd_PnP_Init_Pos && F_Cathode_2nd_T_Axis < P_2nd_PnP_Init_Pos )				// 1번. 양쪽다 45도 미만일때
+		{
+			P_Group_Mode = 5;
+			call All_Home_Group_Init.Select_Group_Value(P_Group_Mode,&P_Group_Rtn);
+			if( P_Group_Rtn == N_TRUE )
+			{
+				rtn = N_TRUE;
+			}
+		}
+		else if( F_Anode_2nd_T_Axis >= P_2nd_PnP_Init_Pos && F_Cathode_2nd_T_Axis >= P_2nd_PnP_Init_Pos)		// 2번. 양쪽다 45도 이상일때
+		{
+			P_Group_Mode = 6;
+			call All_Home_Group_Init.Select_Group_Value(P_Group_Mode,&P_Group_Rtn);
+			if( P_Group_Rtn == N_TRUE )
+			{
+				rtn = N_TRUE;
+			}
+		}
+		else if( F_Anode_2nd_T_Axis >= P_2nd_PnP_Init_Pos )														// 3번. 음극만 45도 이상일때
+		{
+			P_Group_Mode = 7;
+			call All_Home_Group_Init.Select_Group_Value(P_Group_Mode,&P_Group_Rtn);
+			if( P_Group_Rtn == N_TRUE )
+			{
+				rtn = N_TRUE;
+			}
+		}
+		else if( F_Cathode_2nd_T_Axis >= P_2nd_PnP_Init_Pos )													// 4번. 양극만 45도 이상일때
+		{
+			P_Group_Mode = 8;
+			call All_Home_Group_Init.Select_Group_Value(P_Group_Mode,&P_Group_Rtn);
+			if( P_Group_Rtn == N_TRUE )
+			{
+				rtn = N_TRUE;
+			}
+		}
+	}
+
+	return;
+close
+*/

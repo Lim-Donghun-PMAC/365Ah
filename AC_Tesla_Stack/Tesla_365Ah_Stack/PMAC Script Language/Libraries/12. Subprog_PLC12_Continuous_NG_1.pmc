@@ -1,0 +1,1124 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+open subprog Continuous_NG(void)		// 연속 NG 라이브러리 이재욱 추가_240503
+
+//========================================================
+// 음극 얼라인 NG
+//========================================================
+sub:Anode_Align_NG(Visoin_Result, Continuos_NG_Range)
+local L_Save_Size = Continuos_NG_Range;
+local L_Search_Count = 0;
+local L_Detected_NG_Count = 0;
+if( P_Anode_Align_Continuous_NG_Stop_Select == 0 )
+{
+	if( L_Save_Size > 0 )
+	{
+		while( L_Save_Size > 1 )
+		{
+			P_Anode_Align_NG_Array(L_Save_Size - 1) = P_Anode_Align_NG_Array(L_Save_Size - 2);
+			L_Save_Size--;
+		}
+		P_Anode_Align_NG_Array(0) = Visoin_Result;
+	}
+	if ( Visoin_Result == N_Inspection_NG )
+	{
+		while( L_Search_Count < Continuos_NG_Range )
+		{
+			if( P_Anode_Align_NG_Array(L_Search_Count) == N_Inspection_NG )
+			{
+				L_Detected_NG_Count++;
+			}
+			L_Search_Count++;
+		} 
+		if( L_Detected_NG_Count >= P_Anode_Align_Continuous_NG_Recipe )	// 지정된 횟수보다 NG횟수가 커지면
+		{
+			//call Heap_Sort.Node_Insert();	
+			P_Anode_Align_NG_Array(0), N_Queue_Max_Size = 0;				// 음극 얼라인 NG 횟수 초기화 
+		}
+	}
+}
+else
+{
+	P_Anode_Align_NG_Array(0),N_Queue_Max_Size = 0;	
+}
+return
+
+//========================================================
+// 양극 얼라인 NG
+//========================================================
+sub:Cathode_Align_NG(Visoin_Result, Continuos_NG_Range)
+local L_Save_Size = Continuos_NG_Range;
+local L_Search_Count = 0;
+local L_Detected_NG_Count = 0;
+if ( P_Cathode_Align_Continuous_NG_Stop_Select == 0 )
+{
+	if( L_Save_Size > 0 )
+	{
+		while( L_Save_Size > 1 )
+		{
+			P_Cathode_Align_NG_Array(L_Save_Size - 1) = P_Cathode_Align_NG_Array(L_Save_Size - 2);
+			L_Save_Size--;
+		}
+		P_Cathode_Align_NG_Array(0) = Visoin_Result;
+	}
+	
+	if ( Visoin_Result == N_Inspection_NG )
+	{
+		while( L_Search_Count < Continuos_NG_Range )
+		{
+			if( P_Cathode_Align_NG_Array(L_Search_Count) == N_Inspection_NG )
+			{
+				 L_Detected_NG_Count++;
+			}
+			L_Search_Count++;
+		} 
+		if( L_Detected_NG_Count >= P_Cathode_Align_Continuous_NG_Recipe )	// 지정된 횟수보다 NG횟수가 커지면
+		{
+			//call Heap_Sort.Node_Insert();
+			
+			P_Cathode_Align_NG_Array(0),N_Queue_Max_Size = 0;				// 양극 얼라인 NG 횟수 초기화 
+		}
+	}
+}
+else
+{
+	P_Cathode_Align_NG_Array(0),N_Queue_Max_Size = 0;
+}
+return
+
+//========================================================
+// 음극 리트라이 NG
+//========================================================
+sub: Anode_Surface_NG(Visoin_Result, Continuos_NG_Range)
+local L_Save_Size = Continuos_NG_Range;
+local L_Search_Count = 0;
+local L_Detected_NG_Count = 0;
+if( P_Anode_Surface_Continuous_NG_Stop_Select == 0 )	
+{
+	if( L_Save_Size > 0 )
+	{
+		while( L_Save_Size > 1 )
+		{
+			P_Anode_Surface_NG_Array(L_Save_Size - 1) = P_Anode_Surface_NG_Array(L_Save_Size - 2);
+			L_Save_Size--;
+		}
+		P_Anode_Surface_NG_Array(0) = Visoin_Result;
+	}
+	
+	if ( Visoin_Result == N_Inspection_NG )
+	{
+		while( L_Search_Count < Continuos_NG_Range )
+		{
+			if( P_Anode_Surface_NG_Array(L_Search_Count) == N_Inspection_NG )
+			{
+				 L_Detected_NG_Count++;
+			}
+			L_Search_Count++;
+		} 
+		if( L_Detected_NG_Count >= P_Anode_Surface_Continuous_NG_Recipe )	// 지정된 횟수보다 NG횟수가 커지면
+		{
+			//call Heap_Sort.Node_Insert();	
+			P_Anode_Surface_NG_Array(0),N_Queue_Max_Size = 0;				// 음극 리트라이 NG 횟수 초기화 
+		}
+	}
+}
+else
+{
+	P_Anode_Surface_NG_Array(0),N_Queue_Max_Size = 0;
+}
+return
+
+//========================================================
+// 양극 리트라이 NG
+//========================================================
+sub: Cathode_Surface_NG(Visoin_Result, Continuos_NG_Range)
+local L_Save_Size = Continuos_NG_Range;
+local L_Search_Count = 0;
+local L_Detected_NG_Count = 0;
+if( P_Cathode_Surface_Continuous_NG_Stop_Select == 0 )
+{
+	if( L_Save_Size > 0 )
+	{
+		while( L_Save_Size > 1 )
+		{
+			P_Cathode_Surface_NG_Array(L_Save_Size - 1) = P_Cathode_Surface_NG_Array(L_Save_Size - 2);
+			L_Save_Size--;
+		}
+		P_Cathode_Surface_NG_Array(0) = Visoin_Result;
+	}
+	
+	if ( Visoin_Result == N_Inspection_NG )
+	{
+		while( L_Search_Count < Continuos_NG_Range )
+		{
+			if( P_Cathode_Surface_NG_Array(L_Search_Count) == N_Inspection_NG )
+			{
+				 L_Detected_NG_Count++;
+			}
+			L_Search_Count++;
+		} 
+		if( L_Detected_NG_Count >= P_Cathode_Surface_Continuous_NG_Recipe )	// 지정된 횟수보다 NG횟수가 커지면
+		{
+			//call Heap_Sort.Node_Insert();
+
+			P_Cathode_Surface_NG_Array(0),N_Queue_Max_Size = 0;				// 양극 리트라이 NG 횟수 초기화 
+		}
+	}
+}
+else
+{
+	P_Cathode_Surface_NG_Array(0),N_Queue_Max_Size = 0;
+}
+return
+
+//========================================================
+// 스텍 비전 NG
+//========================================================
+sub: Stack_Table_NG(Visoin_Result, Continuos_NG_Range)
+local L_Save_Size = Continuos_NG_Range;
+local L_Search_Count = 0;
+local L_Detected_NG_Count = 0;
+	if( L_Save_Size > 0 )
+	{
+		while( L_Save_Size > 1 )
+		{
+			P_Stack_NG_Array(L_Save_Size - 1) = P_Stack_NG_Array(L_Save_Size - 2);
+			L_Save_Size--;
+		}
+		P_Stack_NG_Array(0) = Visoin_Result;
+	}
+	if ( Visoin_Result == N_Inspection_NG )
+	{
+		while( L_Search_Count < Continuos_NG_Range )
+		{
+			if( P_Stack_NG_Array(L_Search_Count) == N_Inspection_NG )
+			{
+				 L_Detected_NG_Count++;
+			}
+			L_Search_Count++;
+		} 
+		if( L_Detected_NG_Count >= P_Stack_Vision_Continuous_NG_Recipe )	// 지정된 횟수보다 NG횟수가 커지면
+		{
+			//call Heap_Sort.Node_Insert();
+		
+			P_Stack_NG_Array(0),N_Queue_Max_Size = 0;						// 스텍 비전 NG 횟수 초기화 
+		}
+	}
+return
+
+
+
+
+close
+
+
+// [ 참조 : 25.07.02 옵저버 추가 ]
+// PLC12 Background Monitoring PLC 
+
+open subprog Pattern_Funtion(void)
+
+sub:Observer(pre_Command,&Status,&rtn)
+	if( pre_Command == F_Command_Stop || pre_Command == F_Command_Abort )
+	{	// ↑ Stop 및 Abort Command 발생 감지
+		Status = P_PMAC_Status;			// private 상태 변수에 상태값 삽입
+		rtn = N_FALSE;					// 거짓을 출력
+	}
+	else								// Stop 및 Abort 발생 미감지
+	{
+		Status = P_PMAC_Status;			// private 상태 변수에 상태값 삽입
+		rtn = N_TRUE;					// 트루 출력
+	}
+return;
+
+sub: Status_Check(Status,&private_status,&rtn)
+
+	private_status = Status;			// 상태 값 업데이트
+	if( private_status == F_Status_STOPPING || private_status == F_Status_STOPPED || private_status == F_Status_ABORTED || private_status == F_Status_ABORTING )
+		rtn = N_FALSE;
+	else
+		rtn = N_TRUE;
+		
+return;
+
+sub: Data_Check(Status,&private_Queue,&private_Step,&Index_Data,&rtn)
+//				↑ 상태, 큐 , 스텟머신, 인덱스, 결과값
+private_Queue = 0;
+private_Step = 0;
+Index_Data = 0;
+	
+	switch( Status )
+	{
+		case F_Status_STARTING:
+			private_Step = N_PackML_Step;
+			rtn = N_TRUE;
+		break;
+	
+		case F_Status_EXECUTE : 
+			private_Queue = P_Process_Function_Command;
+			switch( private_Queue )	
+			{
+				case N_Function_Execute_isEnable:
+					private_Step = N_1st_Execute_Step;
+				break;
+
+				case N_Function_Execute_First_Sepa_OnTable:
+					private_Step = N_2nd_Execute_Step;
+				break;
+
+				case N_Function_Prod_Management:
+					private_Step = N_3rd_Execute_Step;
+				break;
+			}				
+			rtn = N_TRUE;
+		break;
+	
+		case F_Status_HOLD :
+			private_Queue = P_Process_Function_Command;
+			switch( private_Queue )	
+			{
+				case N_Function_Hold_Existence_Insp_Process:
+					private_Step = N_1st_HOLD_Step;
+				break;
+
+				case N_Function_Hold_Process:
+					private_Step = N_2nd_HOLD_Step;
+				break;		
+			}				
+			rtn = N_TRUE;
+		break;
+	
+		case F_Status_SUSPENDED:
+			private_Queue = P_Process_Function_Command;
+			switch( private_Queue )	
+			{
+				case N_Function_JR_Discharge:
+					private_Step = N_1st_SUSPENDED_Step;
+					Index_Data = P_Suspend_Discharge_Seq_Index;
+				break;
+
+				case N_Function_Sepa_ARC_Mode:
+					private_Step = N_2nd_SUSPENDED_Step;
+					Index_Data = P_Suspend_ARC_Seq_Index;
+				break;		
+			}				
+			rtn = N_TRUE;
+		break;
+
+		case F_Status_RESETTING:
+			private_Step = N_PackML_Step;
+			rtn = N_TRUE;
+		break;
+	
+		case F_Status_IDLE: 
+			// Vision Cal 추가되면 조건 걸 예정
+			Index_Data = P_VISION_MSA_Seq_Index;
+			rtn = N_TRUE;
+		break;
+
+		default:
+			rtn = N_FALSE;
+		break;
+	}
+
+return;
+
+sub: Data_Check_(Status,private_Queue,&private_Step,&Index_Data)
+//				↑ 상태, 큐 , 스텟머신, 인덱스, 결과값
+//private_Queue = 0;
+private_Step = 0;
+Index_Data = 0;
+	
+	switch( Status )
+	{
+		case F_Status_STARTING:
+			private_Step = N_PackML_Step;
+			
+		break;
+	
+		case F_Status_EXECUTE : 
+			//private_Queue = P_Process_Function_Command;
+			switch( private_Queue )	
+			{
+				case N_Function_Execute_isEnable:
+					private_Step = N_1st_Execute_Step;
+				break;
+
+				case N_Function_Execute_First_Sepa_OnTable:
+					private_Step = N_2nd_Execute_Step;
+				break;
+
+				case N_Function_Prod_Management:
+					private_Step = N_3rd_Execute_Step;
+				break;
+			}				
+			
+		break;
+	
+		case F_Status_HOLD :
+			//private_Queue = P_Process_Function_Command;
+			switch( private_Queue )	
+			{
+				case N_Function_Hold_Existence_Insp_Process:
+					private_Step = N_1st_HOLD_Step;
+				break;
+
+				case N_Function_Hold_Process:
+					private_Step = N_2nd_HOLD_Step;
+				break;		
+			}				
+			
+		break;
+	
+		case F_Status_SUSPENDED:
+			//private_Queue = P_Process_Function_Command;
+			switch( private_Queue )	
+			{
+				case N_Function_JR_Discharge:
+					private_Step = N_1st_SUSPENDED_Step;
+					Index_Data = P_Suspend_Discharge_Seq_Index;
+				break;
+
+				case N_Function_Sepa_ARC_Mode:
+					private_Step = N_2nd_SUSPENDED_Step;
+					Index_Data = P_Suspend_ARC_Seq_Index;
+				break;		
+			}				
+			
+		break;
+
+		case F_Status_RESETTING:
+			private_Step = N_PackML_Step;
+			
+		break;
+	
+		case F_Status_IDLE: 
+			// Vision Cal 추가되면 조건 걸 예정
+			Index_Data = P_VISION_MSA_Seq_Index;
+			
+		break;
+
+		default:
+			
+		break;
+	}
+
+return;
+
+
+sub: Vac_Observer(Cmd_Bit,Input,&Output,&rtn)
+				// ↑ Vac Total Bit, Vac 감지 비트, Vac 감지비트, 결과
+// Input 변수는 Output 변수와 동일하다.	
+Output = Input;							// 변화가 없다면 Input 값을 출력 
+if( Cmd_Bit == 0 )						// 비트 변화가 없다면
+{
+	rtn = N_FALSE;						// 거짓출력 ( MNTR 중지 )
+}
+else									// 비트 변화가 있다면
+{
+	if( Cmd_Bit != Input )				// 커맨드 비트화 != 유닛별 감지 비트
+	{											
+		Output = Cmd_Bit;				// 유닛별 감지 비트 변수 = 커맨드 비트
+		rtn = N_TRUE;					// 참 출력
+	}
+	else								// 커맨드 비트화가 0이 아니면서 바뀐게 없다면
+	{
+		rtn = N_FALSE;					// 거짓 출력 ( MNTR 중지 )
+	}
+}
+return;
+
+sub: vacuum_Check(Unit_Bit,&rtn)
+				// ↑ Vac 감지 비트, 결과
+// P_Vacuum_Reentry_Bit 재진입 방지 변수 추가
+if( Unit_Bit != 0 )
+{
+	if( Unit_Bit & N_Cathode_1st_PNP_Masking )						// 양극 1차 pnp 비트마스킹
+	{
+		if(!(P_Vacuum_Reentry_Bit & N_Cathode_1st_PNP_Masking))		// 재진입 방지 조건 추가
+		{
+			P_Vacuum_Reentry_Bit |= N_Cathode_1st_PNP_Masking;		// 비트 삽입
+			P_PLC12_Vacuum_1st_Cathode_MNTR_Timer = 0;				// 모니터링 타이머 초기화
+		}	
+	}
+	if( Unit_Bit & N_Cathode_2nd_PNP_Masking )						// 양극 2차 pnp 비트마스킹
+	{
+		if(!(P_Vacuum_Reentry_Bit & N_Cathode_2nd_PNP_Masking))		// 재진입 방지 조건 추가
+		{
+			P_Vacuum_Reentry_Bit |= N_Cathode_2nd_PNP_Masking;		// 비트 삽입
+			P_PLC12_Vacuum_2nd_Cathode_MNTR_Timer = 0;					// 모니터링 타이머 초기화
+		}
+	}
+	if( Unit_Bit & N_Cathode_NG_PNP_Masking )						// 양극 NG pnp 비트마스킹
+	{
+		if(!(P_Vacuum_Reentry_Bit & N_Cathode_NG_PNP_Masking))		// 재진입 방지 조건 추가
+		{
+			P_Vacuum_Reentry_Bit |= N_Cathode_NG_PNP_Masking;		// 비트 삽입
+			P_PLC12_Vacuum_NG_Cathode_MNTR_Timer = 0;				// 모니터링 타이머 초기화
+		}
+	}
+	if( Unit_Bit & N_Cathode_Align_Masking )						// 양극 얼라인 비트마스킹
+	{
+		if(!(P_Vacuum_Reentry_Bit & N_Cathode_Align_Masking))		// 재진입 방지 조건 추가
+		{
+			P_Vacuum_Reentry_Bit |= N_Cathode_Align_Masking;		// 비트 삽입
+			P_PLC12_Vacuum_Align_Cathode_MNTR_Timer = 0;					// 모니터링 타이머 초기화
+		}
+	}
+	if( Unit_Bit & N_Anode_1st_PNP_Masking )						// 음극 1차 pnp 비트마스킹
+	{
+		if(!(P_Vacuum_Reentry_Bit & N_Anode_1st_PNP_Masking))		// 재진입 방지 조건 추가
+		{
+			P_Vacuum_Reentry_Bit |= N_Anode_1st_PNP_Masking;		// 비트 삽입
+			P_PLC12_Vacuum_1st_Anode_MNTR_Timer = 0;						// 모니터링 타이머 초기화
+		}
+	}
+	if( Unit_Bit & N_Anode_2nd_PNP_Masking )						// 음극 2차 pnp 비트마스킹
+	{
+		if(!(P_Vacuum_Reentry_Bit & N_Anode_2nd_PNP_Masking))		// 재진입 방지 조건 추가
+		{
+			P_Vacuum_Reentry_Bit |= N_Anode_2nd_PNP_Masking;		// 비트 삽입
+			P_PLC12_Vacuum_2nd_Anode_MNTR_Timer = 0;						// 모니터링 타이머 초기화
+		}
+	}
+	if( Unit_Bit & N_Anode_NG_PNP_Masking )							// 음극 NG pnp 비트마스킹
+	{
+		if(!(P_Vacuum_Reentry_Bit & N_Anode_NG_PNP_Masking))		// 재진입 방지 조건 추가
+		{
+			P_Vacuum_Reentry_Bit |= N_Anode_NG_PNP_Masking;			// 비트 삽입
+			P_PLC12_Vacuum_NG_Anode_MNTR_Timer = 0;							// 모니터링 타이머 초기화
+		}
+	}
+	if( Unit_Bit & N_Anode_Align_Masking )							// 음극 얼라인 비트마스킹
+	{
+		if(!(P_Vacuum_Reentry_Bit & N_Anode_Align_Masking))			// 재진입 방지 조건 추가
+		{
+			P_Vacuum_Reentry_Bit |= N_Anode_Align_Masking;			// 비트 삽입
+			P_PLC12_Vacuum_Align_Anode_MNTR_Timer = 0;					// 모니터링 타이머 초기화
+		}
+	}	
+	rtn = N_TRUE;
+}
+else
+	rtn = N_FALSE;
+return;
+
+sub: Vac_Data_Check(Input,&Output)
+					// ↑ Vac 감지 비트, Vac 처리 후 비트 
+// 양극 진공 감지 데이터 란 =======================================================================================
+Output = Input;																						// 조건 맞지 않을 시 값 유지
+	if( Input & N_Cathode_1st_PNP_Masking )		// 1. 양극 1차 PNP vacuum 
+	{
+		if( P_PLC12_Vacuum_1st_Cathode_MNTR_Timer > P_PLC12_Vacuum_1st_Cathode_Set_Time )
+		{
+			if( M_X_Cathode_1st_PNP_Vac_Sensor != 1 )
+			{
+				Output =  Input ^ N_Cathode_1st_PNP_Masking;										// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_1st_Cathode) = 0;												// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Vacuum_1st_Cathode_Take_Time(0) = P_PLC12_Vacuum_1st_Cathode_MNTR_Timer;	// 타이머 저장
+			}
+		}
+		else
+		{
+			if( M_X_Cathode_1st_PNP_Vac_Sensor == 1 )
+			{
+				Output =  Input ^ N_Cathode_1st_PNP_Masking;										// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_1st_Cathode) = 0;												// 플래그 초기화
+				// buffer
+				P_PLC12_Vacuum_1st_Cathode_Take_Time(4) = P_PLC12_Vacuum_1st_Cathode_Take_Time(4);
+				P_PLC12_Vacuum_1st_Cathode_Take_Time(3) = P_PLC12_Vacuum_1st_Cathode_Take_Time(4);
+				P_PLC12_Vacuum_1st_Cathode_Take_Time(2) = P_PLC12_Vacuum_1st_Cathode_Take_Time(4);
+				P_PLC12_Vacuum_1st_Cathode_Take_Time(1) = P_PLC12_Vacuum_1st_Cathode_Take_Time(0);
+				P_PLC12_Vacuum_1st_Cathode_Take_Time(0) = P_PLC12_Vacuum_1st_Cathode_MNTR_Timer;	// 타이머 저장
+			}
+		}
+	}
+	
+	if( Input & N_Cathode_2nd_PNP_Masking )		// 2. 양극 2차 PNP vacuum 
+	{
+		if( P_PLC12_Vacuum_2nd_Cathode_MNTR_Timer > P_PLC12_Vacuum_2nd_Cathode_Set_Time )
+		{
+			if( M_X_Cathode_2nd_PNP_Vac_Sensor != 1 )
+			{
+				Output =  Input ^ N_Cathode_2nd_PNP_Masking;										// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_2nd_Cathode) = 0;												// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Vacuum_2nd_Cathode_Take_Time(0) = P_PLC12_Vacuum_2nd_Cathode_MNTR_Timer;	// 타이머 저장
+			}
+		}
+		else
+		{
+			if( M_X_Cathode_2nd_PNP_Vac_Sensor == 1 )
+			{
+				Output =  Input ^ N_Cathode_2nd_PNP_Masking;										// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_2nd_Cathode) = 0;												// 플래그 초기화
+				// buffer
+				P_PLC12_Vacuum_2nd_Cathode_Take_Time(4) = P_PLC12_Vacuum_2nd_Cathode_Take_Time(4);
+				P_PLC12_Vacuum_2nd_Cathode_Take_Time(3) = P_PLC12_Vacuum_2nd_Cathode_Take_Time(4);
+				P_PLC12_Vacuum_2nd_Cathode_Take_Time(2) = P_PLC12_Vacuum_2nd_Cathode_Take_Time(4);
+				P_PLC12_Vacuum_2nd_Cathode_Take_Time(1) = P_PLC12_Vacuum_2nd_Cathode_Take_Time(0);
+				P_PLC12_Vacuum_2nd_Cathode_Take_Time(0) = P_PLC12_Vacuum_2nd_Cathode_MNTR_Timer;	// 타이머 저장
+			}
+		}
+	}
+
+	if( Input & N_Cathode_NG_PNP_Masking )		// 3. 양극 NG PNP vacuum 
+	{
+		if( P_PLC12_Vacuum_NG_Cathode_MNTR_Timer > P_PLC12_Vacuum_NG_Cathode_Set_Time )
+		{
+			if( M_X_Cathode_NG_PNP_Vac_Sensor != 1 )
+			{
+				Output =  Input ^ N_Cathode_NG_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_NG_Cathode) = 0;												// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Vacuum_NG_Cathode_Take_Time(0) = P_PLC12_Vacuum_NG_Cathode_MNTR_Timer;		// 타이머 저장
+			}
+		}
+		else
+		{
+			if( M_X_Cathode_NG_PNP_Vac_Sensor == 1 )
+			{
+				Output =  Input ^ N_Cathode_NG_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_NG_Cathode) = 0;												// 플래그 초기화
+				// buffer
+				P_PLC12_Vacuum_NG_Cathode_Take_Time(4) = P_PLC12_Vacuum_NG_Cathode_Take_Time(4);
+				P_PLC12_Vacuum_NG_Cathode_Take_Time(3) = P_PLC12_Vacuum_NG_Cathode_Take_Time(4);
+				P_PLC12_Vacuum_NG_Cathode_Take_Time(2) = P_PLC12_Vacuum_NG_Cathode_Take_Time(4);
+				P_PLC12_Vacuum_NG_Cathode_Take_Time(1) = P_PLC12_Vacuum_NG_Cathode_Take_Time(0);
+				P_PLC12_Vacuum_NG_Cathode_Take_Time(0) = P_PLC12_Vacuum_NG_Cathode_MNTR_Timer;		// 타이머 저장
+			}
+		}
+	}
+	
+	if( Input & N_Cathode_Align_Masking )		// 4. 양극 얼라인 vacuum 
+	{
+		if( P_PLC12_Vacuum_Align_Cathode_MNTR_Timer > P_PLC12_Vacuum_Align_Cathode_Set_Time )
+		{
+			if( M_X_Cathode_AT_Vac_Sensor != 1 )
+			{
+				Output =  Input ^ N_Cathode_Align_Masking;											// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_Align_Cathode) = 0;											// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Vacuum_Align_Cathode_Take_Time(0) = P_PLC12_Vacuum_Align_Cathode_MNTR_Timer;// 타이머 저장
+			}
+		}
+		else
+		{
+			if( M_X_Cathode_AT_Vac_Sensor == 1 )
+			{
+				Output =  Input ^ N_Cathode_Align_Masking;											// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_Align_Cathode) = 0;											// 플래그 초기화
+				// buffer
+				P_PLC12_Vacuum_Align_Cathode_Take_Time(4) = P_PLC12_Vacuum_Align_Cathode_Take_Time(4);
+				P_PLC12_Vacuum_Align_Cathode_Take_Time(3) = P_PLC12_Vacuum_Align_Cathode_Take_Time(4);
+				P_PLC12_Vacuum_Align_Cathode_Take_Time(2) = P_PLC12_Vacuum_Align_Cathode_Take_Time(4);
+				P_PLC12_Vacuum_Align_Cathode_Take_Time(1) = P_PLC12_Vacuum_Align_Cathode_Take_Time(0);
+				P_PLC12_Vacuum_Align_Cathode_Take_Time(0) = P_PLC12_Vacuum_Align_Cathode_MNTR_Timer;// 타이머 저장
+			}
+		}
+	}
+// 음극 진공 감지 데이터 란 =======================================================================================
+	if( Input & N_Anode_1st_PNP_Masking )		// 1. 음극 1차 PNP vacuum 
+	{
+		if( P_PLC12_Vacuum_1st_Anode_MNTR_Timer > P_PLC12_Vacuum_1st_Anode_Set_Time )								// MNTR타이머 > 설정 타임
+		{
+			if( M_X_Anode_1st_PNP_Vac_Sensor != 1 )													// 입력값이 안 들어왔다면,
+			{
+				Output =  Input ^ N_Anode_1st_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_1st_Anode) = 0;												// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Vacuum_1st_Anode_Take_Time(0) = P_PLC12_Vacuum_1st_Anode_MNTR_Timer;			// 타이머 저장
+			}
+		}
+		else																						// MNTR 타이머 < 설정 타임
+		{
+			if( M_X_Anode_1st_PNP_Vac_Sensor == 1 )													// 입력값이 들어왔다면,
+			{
+				Output =  Input ^ N_Anode_1st_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_1st_Anode) = 0;												// 플래그 초기화
+				// buffer
+				P_PLC12_Vacuum_1st_Anode_Take_Time(4) = P_PLC12_Vacuum_1st_Anode_Take_Time(4);
+				P_PLC12_Vacuum_1st_Anode_Take_Time(3) = P_PLC12_Vacuum_1st_Anode_Take_Time(4);
+				P_PLC12_Vacuum_1st_Anode_Take_Time(2) = P_PLC12_Vacuum_1st_Anode_Take_Time(4);
+				P_PLC12_Vacuum_1st_Anode_Take_Time(1) = P_PLC12_Vacuum_1st_Anode_Take_Time(0);
+				P_PLC12_Vacuum_1st_Anode_Take_Time(0) = P_PLC12_Vacuum_1st_Anode_MNTR_Timer;			// 타이머 저장
+			}
+		}
+	}
+	
+	if( Input & N_Anode_2nd_PNP_Masking )		// 2. 음극 2차 PNP vacuum 
+	{
+		if( P_PLC12_Vacuum_2nd_Anode_MNTR_Timer > P_PLC12_Vacuum_2nd_Anode_Set_Time )								// MNTR타이머 > 설정 타임
+		{
+			if( M_X_Anode_2nd_PNP_Vac_Sensor != 1 )													// 입력값이 안 들어왔다면,
+			{
+				Output =  Input ^ N_Anode_2nd_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_2nd_Anode) = 0;												// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Vacuum_2nd_Anode_Take_Time(0) = P_PLC12_Vacuum_2nd_Anode_MNTR_Timer;			// 타이머 저장
+			}
+		}
+		else																						// MNTR 타이머 < 설정 타임
+		{
+			if( M_X_Anode_2nd_PNP_Vac_Sensor == 1 )													// 입력값이 들어왔다면,
+			{
+				Output =  Input ^ N_Anode_2nd_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_2nd_Anode) = 0;												// 플래그 초기화
+				// buffer
+				P_PLC12_Vacuum_2nd_Anode_Take_Time(4) = P_PLC12_Vacuum_2nd_Anode_Take_Time(4);
+				P_PLC12_Vacuum_2nd_Anode_Take_Time(3) = P_PLC12_Vacuum_2nd_Anode_Take_Time(4);
+				P_PLC12_Vacuum_2nd_Anode_Take_Time(2) = P_PLC12_Vacuum_2nd_Anode_Take_Time(4);
+				P_PLC12_Vacuum_2nd_Anode_Take_Time(1) = P_PLC12_Vacuum_2nd_Anode_Take_Time(0);
+				P_PLC12_Vacuum_2nd_Anode_Take_Time(0) = P_PLC12_Vacuum_2nd_Anode_MNTR_Timer;			// 타이머 저장
+			}
+		}
+	}
+
+	if( Input & N_Anode_NG_PNP_Masking )		// 3. 음극 NG PNP vacuum 
+	{
+		if( P_PLC12_Vacuum_NG_Anode_MNTR_Timer > P_PLC12_Vacuum_NG_Anode_Set_Time )								// MNTR타이머 > 설정 타임
+		{
+			if( M_X_Anode_NG_PNP_Vac_Sensor != 1 )													// 입력값이 안 들어왔다면,
+			{
+				Output =  Input ^ N_Anode_NG_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_NG_Anode) = 0;												// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Vacuum_NG_Anode_Take_Time(0) = P_PLC12_Vacuum_NG_Anode_MNTR_Timer;			// 타이머 저장
+			}
+		}
+		else																						// MNTR 타이머 < 설정 타임
+		{ 
+			if( M_X_Anode_NG_PNP_Vac_Sensor == 1 )													// 입력값이 들어왔다면,
+			{
+				Output =  Input ^ N_Anode_NG_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_NG_Anode) = 0;												// 플래그 초기화
+				// buffer
+				P_PLC12_Vacuum_NG_Anode_Take_Time(4) = P_PLC12_Vacuum_NG_Anode_Take_Time(4);
+				P_PLC12_Vacuum_NG_Anode_Take_Time(3) = P_PLC12_Vacuum_NG_Anode_Take_Time(4);
+				P_PLC12_Vacuum_NG_Anode_Take_Time(2) = P_PLC12_Vacuum_NG_Anode_Take_Time(4);
+				P_PLC12_Vacuum_NG_Anode_Take_Time(1) = P_PLC12_Vacuum_NG_Anode_Take_Time(0);
+				P_PLC12_Vacuum_NG_Anode_Take_Time(0) = P_PLC12_Vacuum_NG_Anode_MNTR_Timer;			// 타이머 저장
+			}
+		}
+	}	
+
+	if( Input & N_Anode_Align_Masking )		// 4. 음극 얼라인 vacuum 
+	{
+		if( P_PLC12_Vacuum_Align_Anode_MNTR_Timer > P_PLC12_Vacuum_Align_Anode_Set_Time )							// MNTR타이머 > 설정 타임
+		{
+			if( M_X_Anode_AT_Vac_Sensor != 1 )														// 입력값이 안 들어왔다면,
+			{
+				Output =  Input ^ N_Anode_Align_Masking;											// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_Align_Anode) = 0;												// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Vacuum_Align_Anode_Take_Time(0) = P_PLC12_Vacuum_Align_Anode_MNTR_Timer;	// 타이머 저장
+			}
+		}
+		else																						// MNTR 타이머 < 설정 타임
+		{
+			if( M_X_Anode_AT_Vac_Sensor == 1 )														// 입력값이 들어왔다면,
+			{
+				Output =  Input ^ N_Anode_Align_Masking;											// 비트 초기화 
+				P_PLC12_Vacuum_MNTR(N_Align_Anode) = 0;												// 플래그 초기화
+				// buffer
+				P_PLC12_Vacuum_Align_Anode_Take_Time(4) = P_PLC12_Vacuum_Align_Anode_Take_Time(4);
+				P_PLC12_Vacuum_Align_Anode_Take_Time(3) = P_PLC12_Vacuum_Align_Anode_Take_Time(4);
+				P_PLC12_Vacuum_Align_Anode_Take_Time(2) = P_PLC12_Vacuum_Align_Anode_Take_Time(4);
+				P_PLC12_Vacuum_Align_Anode_Take_Time(1) = P_PLC12_Vacuum_Align_Anode_Take_Time(0);
+				P_PLC12_Vacuum_Align_Anode_Take_Time(0) = P_PLC12_Vacuum_Align_Anode_MNTR_Timer;	// 타이머 저장
+			}
+		}
+	}
+
+	// 재진입 방지 비트 초기화 란.
+	P_Vacuum_Reentry_Bit = 	Output;	
+return;
+
+sub: Blow_Observer(Cmd_Bit,Unit_Bit,&Unit,&rtn)
+					// ↑ Vac Total Bit, Vac 감지 비트, Vac 감지비트, 결과
+// Unit_Bit 변수는 Unit 변수와 동일하다.
+local Temp = Unit_Bit;				
+Unit = Temp;						// Temp 변수에 저장		
+									// 변화가 없다면 Unit_Bit 값을 출력 
+if( Cmd_Bit == 0 )					// 비트 변화가 없다면
+{
+	rtn = N_FALSE;					// 거짓출력 ( MNTR 중지 )
+}
+else								// 비트 변화가 있다면
+{
+	if( Cmd_Bit != Unit_Bit )		// 커맨드 비트화 != 유닛별 감지 비트
+	{											
+		Unit = Cmd_Bit;				// 유닛별 감지 비트 변수 = 커맨드 비트
+		rtn = N_TRUE;				// 참 출력
+	}
+	else							// 커맨드 비트화가 0이 아니면서 바뀐게 없다면
+	{
+		rtn = N_FALSE;				// 거짓 출력 ( MNTR 중지 )
+	}
+}
+return;
+
+sub: Blow_Check(Unit_Bit,&rtn)
+// P_Blow_Reentry_Bit 재진입 방지 변수 추가 
+
+if( Unit_Bit != 0 )
+{
+	if( Unit_Bit & N_Cathode_1st_PNP_Masking )						// 양극 1차 pnp 비트마스킹
+	{
+		if(!(P_Blow_Reentry_Bit & N_Cathode_1st_PNP_Masking))		// 재진입 방지 조건 추가
+		{
+			P_Blow_Reentry_Bit |= N_Cathode_1st_PNP_Masking;		// 비트 삽입
+			P_PLC12_Blow_1st_Cathode_MNTR_Timer = 0;						// 모니터링 타이머 초기화
+		}	
+	}
+	if( Unit_Bit & N_Cathode_2nd_PNP_Masking )						// 양극 2차 pnp 비트마스킹
+	{
+		if(!(P_Blow_Reentry_Bit & N_Cathode_2nd_PNP_Masking))		// 재진입 방지 조건 추가
+		{
+			P_Blow_Reentry_Bit |= N_Cathode_2nd_PNP_Masking;		// 비트 삽입
+			P_PLC12_Blow_2nd_Cathode_MNTR_Timer = 0;						// 모니터링 타이머 초기화
+		}
+	}
+	if( Unit_Bit & N_Cathode_NG_PNP_Masking )						// 양극 NG pnp 비트마스킹
+	{
+		if(!(P_Blow_Reentry_Bit & N_Cathode_NG_PNP_Masking))		// 재진입 방지 조건 추가
+		{
+			P_Blow_Reentry_Bit |= N_Cathode_NG_PNP_Masking;			// 비트 삽입
+			P_PLC12_Blow_NG_Cathode_MNTR_Timer = 0;						// 모니터링 타이머 초기화
+		}
+	}
+	if( Unit_Bit & N_Cathode_Align_Masking )						// 양극 얼라인 비트마스킹
+	{
+		if(!(P_Blow_Reentry_Bit & N_Cathode_Align_Masking))			// 재진입 방지 조건 추가
+		{
+			P_Blow_Reentry_Bit |= N_Cathode_Align_Masking;			// 비트 삽입
+			P_PLC12_Blow_Align_Cathode_MNTR_Timer = 0;					// 모니터링 타이머 초기화
+		}
+	}
+	if( Unit_Bit & N_Anode_1st_PNP_Masking )						// 음극 1차 pnp 비트마스킹
+	{
+		if(!(P_Blow_Reentry_Bit & N_Anode_1st_PNP_Masking))			// 재진입 방지 조건 추가
+		{
+			P_Blow_Reentry_Bit |= N_Anode_1st_PNP_Masking;			// 비트 삽입
+			P_PLC12_Blow_1st_Anode_MNTR_Timer = 0;						// 모니터링 타이머 초기화
+		}
+	}
+	if( Unit_Bit & N_Anode_2nd_PNP_Masking )						// 음극 2차 pnp 비트마스킹
+	{
+		if(!(P_Blow_Reentry_Bit & N_Anode_2nd_PNP_Masking))			// 재진입 방지 조건 추가
+		{
+			P_Blow_Reentry_Bit |= N_Anode_2nd_PNP_Masking;			// 비트 삽입
+			P_PLC12_Blow_2nd_Anode_MNTR_Timer = 0;						// 모니터링 타이머 초기화
+		}
+	}
+	if( Unit_Bit & N_Anode_NG_PNP_Masking )							// 음극 NG pnp 비트마스킹
+	{
+		if(!(P_Blow_Reentry_Bit & N_Anode_NG_PNP_Masking))			// 재진입 방지 조건 추가
+		{
+			P_Blow_Reentry_Bit |= N_Anode_NG_PNP_Masking;			// 비트 삽입
+			P_PLC12_Blow_NG_Anode_MNTR_Timer = 0;							// 모니터링 타이머 초기화
+		}
+	}
+	if( Unit_Bit & N_Anode_Align_Masking )							// 음극 얼라인 비트마스킹
+	{
+		if(!(P_Blow_Reentry_Bit & N_Anode_Align_Masking))			// 재진입 방지 조건 추가
+		{
+			P_Blow_Reentry_Bit |= N_Anode_Align_Masking;			// 비트 삽입
+			P_PLC12_Blow_Align_Anode_MNTR_Timer = 0;						// 모니터링 타이머 초기화
+		}
+	}
+	rtn = N_TRUE;
+}
+else
+	rtn = N_FALSE;
+
+return;
+
+sub: Blow_Data_Check(Input,&Output)
+// 양극 파기 감지 데이터 란 =======================================================================================
+Output = Input;
+	if( Input & N_Cathode_1st_PNP_Masking )		// 1. 양극 1차 PNP vacuum 
+	{
+		if( P_PLC12_Blow_1st_Cathode_MNTR_Timer > P_PLC12_Blow_1st_Cathode_Set_Time )
+		{
+			if( M_X_Cathode_1st_PNP_Vac_Sensor != 0 )
+			{
+				Output =  Input ^ N_Cathode_1st_PNP_Masking;										// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_1st_Cathode) = 0;												// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Blow_1st_Cathode_Take_Time(0) = P_PLC12_Blow_1st_Cathode_MNTR_Timer;		// 타이머 저장
+			}
+		}
+		else
+		{
+			if( M_X_Cathode_1st_PNP_Vac_Sensor == 0 )
+			{
+				Output =  Input ^ N_Cathode_1st_PNP_Masking;										// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_1st_Cathode) = 0;												// 플래그 초기화
+				// 버퍼에 저장
+				P_PLC12_Blow_1st_Cathode_Take_Time(4) = P_PLC12_Blow_1st_Cathode_Take_Time(3);
+				P_PLC12_Blow_1st_Cathode_Take_Time(3) = P_PLC12_Blow_1st_Cathode_Take_Time(2);
+				P_PLC12_Blow_1st_Cathode_Take_Time(2) = P_PLC12_Blow_1st_Cathode_Take_Time(1);
+				P_PLC12_Blow_1st_Cathode_Take_Time(1) = P_PLC12_Blow_1st_Cathode_Take_Time(0);
+				P_PLC12_Blow_1st_Cathode_Take_Time(0) = P_PLC12_Blow_1st_Cathode_MNTR_Timer;		// 타이머 저장
+			}
+		}
+	}
+	
+	if( Input & N_Cathode_2nd_PNP_Masking )		// 2. 양극 2차 PNP vacuum 
+	{
+		if( P_PLC12_Blow_2nd_Cathode_MNTR_Timer > P_PLC12_Blow_2nd_Cathode_Set_Time )
+		{
+			if( M_X_Cathode_2nd_PNP_Vac_Sensor != 0 )
+			{
+				Output =  Input ^ N_Cathode_2nd_PNP_Masking;										// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_2nd_Cathode) = 0;												// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Blow_2nd_Cathode_Take_Time(0) = P_PLC12_Blow_2nd_Cathode_MNTR_Timer;		// 타이머 저장
+			}
+		}
+		else
+		{
+			if( M_X_Cathode_2nd_PNP_Vac_Sensor == 0 )
+			{
+				Output =  Input ^ N_Cathode_2nd_PNP_Masking;										// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_2nd_Cathode) = 0;												// 플래그 초기화
+				// 버퍼에 저장
+				P_PLC12_Blow_2nd_Cathode_Take_Time(4) = P_PLC12_Blow_2nd_Cathode_Take_Time(3);
+				P_PLC12_Blow_2nd_Cathode_Take_Time(3) = P_PLC12_Blow_2nd_Cathode_Take_Time(2);
+				P_PLC12_Blow_2nd_Cathode_Take_Time(2) = P_PLC12_Blow_2nd_Cathode_Take_Time(1);
+				P_PLC12_Blow_2nd_Cathode_Take_Time(1) = P_PLC12_Blow_2nd_Cathode_Take_Time(0);
+				P_PLC12_Blow_2nd_Cathode_Take_Time(0) = P_PLC12_Blow_2nd_Cathode_MNTR_Timer;		// 타이머 저장		
+			}
+		}
+	}
+
+	if( Input & N_Cathode_NG_PNP_Masking )		// 3. 양극 NG PNP vacuum 
+	{
+		if( P_PLC12_Blow_NG_Cathode_MNTR_Timer > P_PLC12_Blow_NG_Cathode_Set_Time )
+		{
+			if( M_X_Cathode_NG_PNP_Vac_Sensor != 0 )
+			{
+				Output =  Input ^ N_Cathode_NG_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_NG_Cathode) = 0;												// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Blow_NG_Cathode_Take_Time(0) = P_PLC12_Blow_NG_Cathode_MNTR_Timer;			// 타이머 저장
+			}
+		}
+		else
+		{
+			if( M_X_Cathode_NG_PNP_Vac_Sensor == 0 )
+			{
+				Output =  Input ^ N_Cathode_NG_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_NG_Cathode) = 0;												// 플래그 초기화
+				// 버퍼에 저장
+				P_PLC12_Blow_NG_Cathode_Take_Time(4) = P_PLC12_Blow_NG_Cathode_Take_Time(3);
+				P_PLC12_Blow_NG_Cathode_Take_Time(3) = P_PLC12_Blow_NG_Cathode_Take_Time(2);
+				P_PLC12_Blow_NG_Cathode_Take_Time(2) = P_PLC12_Blow_NG_Cathode_Take_Time(1);
+				P_PLC12_Blow_NG_Cathode_Take_Time(1) = P_PLC12_Blow_NG_Cathode_Take_Time(0);
+				P_PLC12_Blow_NG_Cathode_Take_Time(0) = P_PLC12_Blow_NG_Cathode_MNTR_Timer;			// 타이머 저장	
+			}
+		}
+	}
+
+	if( Input & N_Cathode_Align_Masking )
+	{
+		if( P_PLC12_Blow_Align_Cathode_MNTR_Timer > P_PLC12_Blow_Align_Cathode_Set_Time )
+		{
+			if( M_X_Cathode_AT_Vac_Sensor != 0 )
+			{
+				Output =  Input ^ N_Cathode_Align_Masking;											// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_Align_Cathode) = 0;												// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Blow_Align_Cathode_Take_Time(0) = P_PLC12_Blow_Align_Cathode_MNTR_Timer;	// 타이머 저장
+			}
+		}
+		else
+		{
+			if( M_X_Cathode_AT_Vac_Sensor == 0 )
+			{
+				Output =  Input ^ N_Cathode_Align_Masking;											// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_Align_Cathode) = 0;												// 플래그 초기화
+				// 버퍼에 저장
+				P_PLC12_Blow_Align_Cathode_Take_Time(4) = P_PLC12_Blow_Align_Cathode_Take_Time(3);
+				P_PLC12_Blow_Align_Cathode_Take_Time(3) = P_PLC12_Blow_Align_Cathode_Take_Time(2);
+				P_PLC12_Blow_Align_Cathode_Take_Time(2) = P_PLC12_Blow_Align_Cathode_Take_Time(1);
+				P_PLC12_Blow_Align_Cathode_Take_Time(1) = P_PLC12_Blow_Align_Cathode_Take_Time(0);
+				P_PLC12_Blow_Align_Cathode_Take_Time(0) = P_PLC12_Blow_Align_Cathode_MNTR_Timer;	// 타이머 저장	
+			}
+		}
+	}
+			
+// 음극 파기 감지 데이터 란 =======================================================================================
+	if( Input & N_Anode_1st_PNP_Masking )		// 1. 음극 1차 PNP vacuum 
+	{
+		if( P_PLC12_Blow_1st_Anode_MNTR_Timer > P_PLC12_Blow_1st_Anode_Set_Time )
+		{
+			if( M_X_Anode_1st_PNP_Vac_Sensor != 0 )
+			{
+				Output =  Input ^ N_Anode_1st_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_1st_Anode) = 0;													// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Blow_1st_Anode_Take_Time(0) = P_PLC12_Blow_1st_Anode_MNTR_Timer;			// 타이머 저장
+			}
+		}
+		else
+		{
+			if( M_X_Anode_1st_PNP_Vac_Sensor == 0 )
+			{
+				Output =  Input ^ N_Anode_1st_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_1st_Anode) = 0;													// 플래그 초기화
+				// 버퍼에 저장
+				P_PLC12_Blow_1st_Anode_Take_Time(4) = P_PLC12_Blow_1st_Anode_Take_Time(3);
+				P_PLC12_Blow_1st_Anode_Take_Time(3) = P_PLC12_Blow_1st_Anode_Take_Time(2);
+				P_PLC12_Blow_1st_Anode_Take_Time(2) = P_PLC12_Blow_1st_Anode_Take_Time(1);
+				P_PLC12_Blow_1st_Anode_Take_Time(1) = P_PLC12_Blow_1st_Anode_Take_Time(0);
+				P_PLC12_Blow_1st_Anode_Take_Time(0) = P_PLC12_Blow_1st_Anode_MNTR_Timer;			// 타이머 저장
+			}
+		}
+	}
+	
+	if( Input & N_Anode_2nd_PNP_Masking )		// 2. 음극 2차 PNP vacuum 
+	{
+		if( P_PLC12_Blow_2nd_Anode_MNTR_Timer > P_PLC12_Blow_2nd_Anode_Set_Time )
+		{
+			if( M_X_Anode_2nd_PNP_Vac_Sensor != 0 )
+			{
+				Output =  Input ^ N_Anode_2nd_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_2nd_Anode) = 0;													// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Blow_2nd_Anode_Take_Time(0) = P_PLC12_Blow_2nd_Anode_MNTR_Timer;			// 타이머 저장
+			}
+		}
+		else
+		{
+			if( M_X_Anode_2nd_PNP_Vac_Sensor == 0 )
+			{
+				Output =  Input ^ N_Anode_2nd_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_2nd_Anode) = 0;													// 플래그 초기화
+				// 버퍼에 저장
+				P_PLC12_Blow_2nd_Anode_Take_Time(4) = P_PLC12_Blow_2nd_Anode_Take_Time(3);
+				P_PLC12_Blow_2nd_Anode_Take_Time(3) = P_PLC12_Blow_2nd_Anode_Take_Time(2);
+				P_PLC12_Blow_2nd_Anode_Take_Time(2) = P_PLC12_Blow_2nd_Anode_Take_Time(1);
+				P_PLC12_Blow_2nd_Anode_Take_Time(1) = P_PLC12_Blow_2nd_Anode_Take_Time(0);
+				P_PLC12_Blow_2nd_Anode_Take_Time(0) = P_PLC12_Blow_2nd_Anode_MNTR_Timer;			// 타이머 저장	
+			}
+		}
+	}
+
+	if( Input & N_Anode_NG_PNP_Masking )		// 3. 음극 NG PNP vacuum 
+	{
+		if( P_PLC12_Blow_NG_Anode_MNTR_Timer > P_PLC12_Blow_NG_Anode_Set_Time )
+		{
+			if( M_X_Anode_NG_PNP_Vac_Sensor != 0 )
+			{
+				Output =  Input ^ N_Anode_NG_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_NG_Anode) = 0;													// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Blow_NG_Anode_Take_Time(0) = P_PLC12_Blow_NG_Anode_MNTR_Timer;				// 타이머 저장	
+			}
+		}
+		else
+		{
+			if( M_X_Anode_NG_PNP_Vac_Sensor == 0 )
+			{
+				Output =  Input ^ N_Anode_NG_PNP_Masking;											// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_NG_Anode) = 0;													// 플래그 초기화
+				// 버퍼에 저장
+				P_PLC12_Blow_NG_Anode_Take_Time(4) = P_PLC12_Blow_NG_Anode_Take_Time(3);
+				P_PLC12_Blow_NG_Anode_Take_Time(3) = P_PLC12_Blow_NG_Anode_Take_Time(2);
+				P_PLC12_Blow_NG_Anode_Take_Time(2) = P_PLC12_Blow_NG_Anode_Take_Time(1);
+				P_PLC12_Blow_NG_Anode_Take_Time(1) = P_PLC12_Blow_NG_Anode_Take_Time(0);
+				P_PLC12_Blow_NG_Anode_Take_Time(0) = P_PLC12_Blow_NG_Anode_MNTR_Timer;				// 타이머 저장	
+			}
+		}
+	}	
+
+	if( Input & N_Anode_Align_Masking )		// 3. 음극 NG PNP vacuum 
+	{
+		if( P_PLC12_Blow_Align_Anode_MNTR_Timer > P_PLC12_Blow_Align_Anode_Set_Time )
+		{
+			if( M_X_Anode_AT_Vac_Sensor != 0 )
+			{
+				Output =  Input ^ N_Anode_Align_Masking;											// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_Align_Anode) = 0;												// 플래그 초기화
+				if( P_PMAC_Status != F_Status_EXECUTE )												// Execute 에선 알람 발생 X
+				{
+					//call Heap_Sort.Node_Insert(246, N_High_Alarm_Cycle_Stop, Sys.Time);
+				}
+				P_PLC12_Blow_Align_Anode_Take_Time(0) = P_PLC12_Blow_Align_Anode_MNTR_Timer;		// 타이머 저장
+			}
+		}
+		else
+		{
+			if( M_X_Anode_AT_Vac_Sensor == 0 )
+			{
+				Output =  Input ^ N_Anode_Align_Masking;											// 비트 초기화 
+				P_PLC12_Blow_MNTR(N_Align_Anode) = 0;												// 플래그 초기화
+				// 버퍼에 저장																		
+				P_PLC12_Blow_Align_Anode_Take_Time(4) = P_PLC12_Blow_Align_Anode_Take_Time(3);		
+				P_PLC12_Blow_Align_Anode_Take_Time(3) = P_PLC12_Blow_Align_Anode_Take_Time(2);		
+				P_PLC12_Blow_Align_Anode_Take_Time(2) = P_PLC12_Blow_Align_Anode_Take_Time(1);		
+				P_PLC12_Blow_Align_Anode_Take_Time(1) = P_PLC12_Blow_Align_Anode_Take_Time(0);		
+				P_PLC12_Blow_Align_Anode_Take_Time(0) = P_PLC12_Blow_Align_Anode_MNTR_Timer;		// 타이머 저장	
+			}
+		}
+	}
+
+	// 재진입 방지 비트 초기화 란.
+	P_Blow_Reentry_Bit = Output;						
+return;
+
+close
+
+
+

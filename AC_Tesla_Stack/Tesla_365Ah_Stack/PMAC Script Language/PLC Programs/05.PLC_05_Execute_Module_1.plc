@@ -1,0 +1,117 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.20
+// 세파 첫장 Execute 모듈 추가 - [ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+
+open plc 5
+
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[5].ldata.L[0]	시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[5].ldata.L[1]	시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[5].ldata.L[2]	시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[5].ldata.L[3]	타이머 초기화 플래그
+
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if(L_Flag_Cycle_Up_Count_Init_Flag == 0)
+{
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 00.2) 시간 체크
+if(L_Flag_Cycle_Up_Count_Init_Flag == 1)
+{
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * 1000
+	if(L_Time_Cycle_Up_Count_Delta_Time < 0)
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+// 00.3) 시간 업데이트
+if(L_Time_Cycle_Up_Count_Delta_Time > 0.1)
+{
+	
+	//여기에 원하는 타이머 추가 
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+//=======================================================//
+// 세파 첫장 모듈
+//=======================================================//
+//-----------------//
+// 세파 첫장 명령부
+//-----------------//
+if ( P_Execute_1st_Sepa_Cmd == F_Command_Start )					// 세파 첫장 Cmd 실행.
+{																	
+	P_Execute_1st_Sepa_Cmd = 0;										// 세파 첫장 Cmd 초기화.
+	P_Execute_1st_Sepa_Init_Rtn = 0;								// 반환값 초기화.
+	call Execute_Module.Init(&P_Execute_1st_Sepa_Init_Rtn)			// 세파 첫장 모듈 초기화.
+	if ( P_Execute_1st_Sepa_Init_Rtn == F_TRUE )					// 세파 첫장 모듈 초기화 확인.
+		P_Execute_1st_Sepa_State_Machine = N_Ready_Step;			// 모듈 준비 Step 이동.
+}
+//-----------------//
+// 세파 첫장 실행부
+//-----------------//
+if ( P_Execute_1st_Sepa_State_Machine == N_Ready_Step )				// 모듈 준비 Step.
+{
+	P_Execute_1st_Sepa_Index = P_Execute_1st_Sepa_Index + 1;		// 모듈 인덱스 Up.
+	P_Execute_1st_Sepa_State_Machine = N_Execute_Step;				// 모듈 실행 Step 이동.
+} 
+if ( P_Execute_1st_Sepa_State_Machine == N_Execute_Step )			// 모듈 실행 Step.
+{
+	P_Execute_1st_Sepa_Func_RTN(P_Execute_1st_Sepa_Index) = 0;		// 반환값 초기화.
+	call Execute_Module.Execute(P_Execute_1st_Sepa_Index, &P_Execute_1st_Sepa_Func_RTN(P_Execute_1st_Sepa_Index))	// 세파 첫장 모듈 실행.
+	if ( P_Execute_1st_Sepa_Func_RTN(P_Execute_1st_Sepa_Index) == F_TRUE )	// 모듈 실행 완료.
+	{
+		P_Execute_1st_Sepa_State_Machine = N_Ready_Step;			// 모듈 진행 스텝 이동.
+	}
+	else if ( P_Execute_1st_Sepa_Func_RTN(P_Execute_1st_Sepa_Index) == N_Complete_Step )	// 모듈 완료.
+	{
+		P_Execute_1st_Sepa_Status = F_Status_COMPLETE;				// 모듈 상태 : 완료.
+		P_Stack_Judgement_Memory = N_TRUE;							// 시퀀스 완료 -> 세파 첫장 홈 미진행.			[ 참조 : 25.08.04 세파 첫장 프로그램 수정. ]																										
+		P_Execute_1st_Sepa_State_Machine = N_Complete_Step;			// 모듈 완료 스텝 이동.
+	}
+	else if ( P_Execute_1st_Sepa_Func_RTN(P_Execute_1st_Sepa_Index) == N_Error_Step )		// 모듈 에러.
+	{
+		P_Execute_1st_Sepa_Status = F_Status_STOPPED;				// 모듈 상태 : 정지.		[ 참조 : 25.07.10 세파 첫장 타임아웃 정지 추가. ]
+		P_PMAC_Commands = F_Command_Stop;							// 타임 아웃으로 빠졌을 경우 Command_Stop 실행.	[ 참조 : 25.07.15 세파 첫장 타임아웃 정지 추가. ]
+		P_Execute_1st_Sepa_State_Machine = N_Error_Step;			// 모듈 에러 스텝 이동.
+	}
+}
+
+
+//-----------------------------------------------------//
+// 무언 정지 디버깅 저장 (모터 상태, 좌표계 상태, Flag값) //		[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
+//-----------------------------------------------------//
+// P_Stop_Motor_Status(0),48						모터 상태.
+// P_Sub_Master_Motion_Program_Flag(0),34			좌표계 상태.
+// P_Stop_Sub_Master_Motion_Program_Flag(0),15		좌표계 Flag 상태. [P_Sub_Master_Motion_Program_Flag]
+// P_Stop_Slave_Motion_Program_Flag(0),15			좌표계 Flag 상태. [P_Slave_Motion_Program_Flag]
+if ( P_Stop_Debug_Flag == 1 )
+{
+	P_Stop_Status_Save_Address = &P_Stop_Motor_Status(0);
+	call Unexp_Stop_Module.Save_Program(48,F_Type_Motor,0,P_Stop_Status_Save_Address,&P_Stop_Save_RTN(0))	// 모터 상태 확인 함수 실행. 인자 (사이즈, 타입, 확인 주소값, 저장 주소값, &반환값)
+	P_Stop_Status_Save_Address = &P_Stop_Coord_Status(0);
+	call Unexp_Stop_Module.Save_Program(34,F_Type_Coord,0,P_Stop_Status_Save_Address,&P_Stop_Save_RTN(1))	// 좌표계 상태 확인 함수 실행. 인자 (사이즈, 타입, 확인 주소값, 저장 주소값, &반환값)
+	P_Stop_Status_Check_Address = &P_Sub_Master_Motion_Program_Flag(0);
+	P_Stop_Status_Save_Address = &P_Stop_Sub_Master_Motion_Program_Flag(0);
+	call Unexp_Stop_Module.Save_Program(15,F_Type_Flag,P_Stop_Status_Check_Address,P_Stop_Status_Save_Address,&P_Stop_Save_RTN(2))	// Flag 상태 확인 함수 실행. 인자 (사이즈, 타입, 확인 주소값, 저장 주소값, &반환값)
+	P_Stop_Status_Check_Address = &P_Slave_Motion_Program_Flag(0);
+	P_Stop_Status_Save_Address = &P_Stop_Slave_Motion_Program_Flag(0);
+	call Unexp_Stop_Module.Save_Program(15,F_Type_Flag,P_Stop_Status_Check_Address,P_Stop_Status_Save_Address,&P_Stop_Save_RTN(3))	// Flag 상태 확인 함수 실행. 인자 (사이즈, 타입, 확인 주소값, 저장 주소값, &반환값)
+	P_Stop_Debug_Flag = 0;
+}
+//-----------------------------------------------------//
+// 메모리 타워 Total Bit 16진수 → 10진수 변형 프로그램 //		[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
+//-----------------------------------------------------//
+if ( P_Total_Unit_Bit != P_Old_Total_Unit_Bit )
+	call Unexp_Stop_Module.Hex_Conversion(P_Total_Unit_Bit,&P_Memory_Tower_Dec_Result)
+P_Old_Total_Unit_Bit = P_Total_Unit_Bit
+close

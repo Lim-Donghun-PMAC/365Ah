@@ -1,0 +1,361 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.11.04 
+// 통신 관련 PLC 
+// 내용 - [ 참조 : Protocol PLC ] 
+
+open plc 10
+
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+// --------------------User Code Goes Here------------------------
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[10].ldata.L[0]	시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[10].ldata.L[1]	시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[10].ldata.L[2]	시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[10].ldata.L[3]	타이머 초기화 플래그
+
+//test
+local L_Modbus_Connect_Check_Timer;						// Plc[10].ldata.L[4]
+local L_Modbus_HeartBit;								// Plc[10].ldata.L[5]
+// Ecat_Reconnecting
+local L_Ecat_Reconn_Slave_Index;						// Plc[10].ldata.L[6]
+// MC Reconnecting
+local L_MC_Protocol_MNTR_Timer;							// Plc[10].ldata.L[7]
+local L_X_Trigger_1s_Cycle_HeartBit;					// Plc[10].ldata.L[8]
+local L_Old_MC_Protocol_HeartBit;						// Plc[10].ldata.L[9]
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if(L_Flag_Cycle_Up_Count_Init_Flag == 0)
+{
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 00.2) 시간 체크
+if(L_Flag_Cycle_Up_Count_Init_Flag == 1)
+{
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * 1000
+	if(L_Time_Cycle_Up_Count_Delta_Time < 0)
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+// 00.3) 시간 업데이트
+if(L_Time_Cycle_Up_Count_Delta_Time > 0.1)
+{
+	
+	//여기에 원하는 타이머 추가 
+	P_Modbus_Delay_Timer = P_Modbus_Delay_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_MC_Protocol_MNTR_Timer = L_MC_Protocol_MNTR_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+//========================================================================================================================
+
+// Modbus Program==================================================================================================
+// [ 참조 : 2025.08.18 Modbus Reconnecting ]
+#ifdef F_Def_Stack_B
+// Slave 모니터용
+//local L_Modbus_HeartBit;
+//local L_Modbus_Connect_Check_Timer;
+
+// B열 상태 A열 Write값 넣어주기
+ P_Modbus_B_Connect_State	= N_Modbus_Enable;
+ P_Modbus_B_PMAC_Cur_Mode	= P_PMAC_Current_Mode;
+ P_Modbus_B_PMAC_Cur_Status	= P_PMAC_Status;
+ P_Modbus_B_Anode_1st_Pos	= F_Anode_1st_T_Axis;
+ P_Modbus_B_Cathode_1st_Pos	= F_Cathode_1st_T_Axis;
+ P_Modbus_B_All_Home_Status = P_AH_Home_Status;
+ P_Modbus_B_VISION_MSA_Status = P_VISION_MSA_Status;
+ P_Modbus_B_Anode_1st_HCK	= N_1st_PnP_AN_T_Home_Chk;
+ P_Modbus_B_Cathode_1st_HCK	= N_1st_PnP_CA_T_Home_Chk;
+
+call Modbus_Interface.ReadData();	
+call Modbus_Interface.WriteData();
+
+// ↓ 실제 장비 생기면 사라질 구문 ===================================================================================
+call Modbus_Interface.Debug_Pos_WriteData();
+
+p8000 = P_PMAC_Status;
+p8001 = P_Current_Mode;
+p8002 = P_Master_Motion_Trigger;
+p8003 = (Sys_Cathode_NG_Place_Sheet_LO_Vision_BYTE&128/128)<<9 + (Sys_Cathode_NG_TR_Sheet_LO_Vision_BYTE&128/128)<<8 + (Sys_Cathode_2nd_Sheet_LO_Vision_BYTE&128/128)<<7 + (Sys_Cathode_Align_Sheet_LO_Vision_BYTE&128/128)<<6 + (Sys_Cathode_1st_Sheet_LO_Vision_BYTE&128/128)<<5 + (Sys_Anode_NG_Place_Sheet_LO_Vision_BYTE&128/128)<<4 + (Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE&128/128)<<3 + (Sys_Anode_2nd_Sheet_LO_Vision_BYTE&128/128)<<2 + (Sys_Anode_Align_Sheet_LO_Vision_BYTE&128/128)<<1 + (Sys_Anode_1st_Sheet_LO_Vision_BYTE&128/128)<<0;
+//==================================================================================================================
+
+// ===== Slave 모니터링 =============================================================================================
+if ( P_Modbus_HeartBit != L_Modbus_HeartBit )											// 모드버스 heart bit != 이전 모드버스 하트비트 값
+{
+    L_Modbus_HeartBit = P_Modbus_HeartBit;												// 값 넣어줌
+    L_Modbus_Connect_Check_Timer  = Sys.Time;											// 현재 시간 저장
+	//P_Modbus_Reconnect_MNTR = 0;														// 모니터링 변수 초기화
+    P_Modbus_Connect_Status = F_Status_EXECUTE;											// 모드버스 커넥트 상태 = Execute
+}
+else if ( (Sys.Time - L_Modbus_Connect_Check_Timer) > 5.0 )								// 모드버스 하트비트 = 이전 모드버스 하트비트 
+{			//	↑ 5초 이상 요청 없음
+     P_Modbus_Connect_Status = F_Status_STOPPED;										// 모드버스 커넥트 상태 = Stopped
+	 // ↓ A열 B열 가동중에 A열이 무슨 이유인지 모르겠지만 PMAC끊어졌다면, 잔여 값이 남을테니..
+	 P_Modbus_A_Connect_State	= 0;													// 데이터 초기화 
+	 P_Modbus_A_PMAC_Cur_Mode	= 0;													// 데이터 초기화 
+	 P_Modbus_A_PMAC_Cur_Status	= 0;													// 데이터 초기화 
+	 P_Modbus_A_Anode_1st_Pos	= 0;													// 데이터 초기화 
+	 P_Modbus_A_Cathode_1st_Pos	= 0;													// 데이터 초기화 
+	 P_Modbus_A_All_Home_Status = 0;													// 데이터 초기화 
+	 P_Modbus_A_VISION_MSA_Status = 0;													// 데이터 초기화 
+	 P_Modbus_A_Anode_1st_HCK	= 0;													// 데이터 초기화 
+	 P_Modbus_A_Cathode_1st_HCK	= 0;													// 데이터 초기화 										
+}
+
+if( P_Modbus_Connect_Status == F_Status_STOPPED && P_Modbus_Delay_Timer > 5000 )		// 모드벼스 커넥트 상태가 Stopped이며 딜레이타임 5초 초과라면
+{
+	P_Modbus_Connected_Flag = 0;														// 모드 버스 커넥트
+	call Modbus_Interface.ModBus_Connect();												// 모드버스 연결 함수 호출
+	P_Modbus_Delay_Timer = 0;															// 딜레이 타이머 초기화
+	P_Modbus_Reconnect_MNTR++;															// 모니터링 변수 증가
+}
+
+// ===== Master Heart Bit =============================================================================================
+#else	// Master Modbus Heartbit ( A열 )
+// [ 참조 : 2025.08.18 Modbus Reconnecting ]
+if( P_Modbus_Delay_Timer >= 500 )														// A열 ( 마스터 or 서버 ) 500ms 주기마다
+{
+	P_Modbus_HeartBit ^= 1;																// 하트비트 
+	P_Modbus_Delay_Timer = 0;															// 딜레이 타이머 초기화
+}
+
+// A열 상태 B열 Read값 넣어주기
+ P_Modbus_A_Connect_State	= N_Modbus_Enable;
+ P_Modbus_A_PMAC_Cur_Mode	= P_PMAC_Current_Mode;
+ P_Modbus_A_PMAC_Cur_Status	= P_PMAC_Status;
+ P_Modbus_A_Anode_1st_Pos	= F_Anode_1st_T_Axis;
+ P_Modbus_A_Cathode_1st_Pos	= F_Cathode_1st_T_Axis;
+ P_Modbus_A_All_Home_Status = P_AH_Home_Status;
+ P_Modbus_A_VISION_MSA_Status = P_VISION_MSA_Status;
+ P_Modbus_A_Anode_1st_HCK =	N_1st_PnP_AN_T_Home_Chk;
+ P_Modbus_A_Cathode_1st_HCK = N_1st_PnP_CA_T_Home_Chk;
+
+ // 서버 측 Modbus Data 처리
+ // ↓ Code 추가 : A열 B열이 정상적으로 구동 하다가, B열이 알 수 없는 이유로 PMAC ERROR가 난다면, 서버 측에서 B열 상태를 알 수가 없음 ( 이전값이 남기 떄문에 )
+ if( ModbusServer[1].State != Modbus_Enable )
+ {
+	P_Modbus_B_Connect_State	= 0;				// 데이터 초기화 
+	P_Modbus_B_PMAC_Cur_Mode	= 0;				// 데이터 초기화 
+	P_Modbus_B_PMAC_Cur_Status	= 0;				// 데이터 초기화 
+	P_Modbus_B_Anode_1st_Pos	= 0;				// 데이터 초기화 
+	P_Modbus_B_Cathode_1st_Pos	= 0;				// 데이터 초기화 
+	P_Modbus_B_All_Home_Status = 0;					// 데이터 초기화 
+	P_Modbus_B_VISION_MSA_Status = 0;				// 데이터 초기화 
+	P_Modbus_B_Anode_1st_HCK	= 0;				// 데이터 초기화 
+	P_Modbus_B_Cathode_1st_HCK	= 0;				// 데이터 초기화 
+}
+#endif
+
+//=======================================================================================================//
+// Ecat_Reconnecting Program //	[ 참조 : 25.09.12 Ecat Reconnecting Program 추가 ]
+//=======================================================================================================//
+if ( P_PMAC_Current_Mode == F_Current_Manual )								// 매뉴얼 상태.
+{
+	if ( P_EtherCat_Active_Status != F_Status_EXECUTE )						// 이더캣 활성화 진행 중이 아닐 경우.
+	{
+		if ( P_Ecat_Reconn_Bit == 1 && P_Old_Ecat_Reconn_Bit == 0 )			// 버튼을 누를 경우.
+			P_Ecat_Reconn_Cmd_Flag = 1;										// 이더캣 활성화 플래그 발생.
+	}
+}
+else
+{
+	P_EtherCat_Active_Status = 0;											// 이더캣 활성화 상태 초기화.
+	P_Ecat_Reconn_State_Machine = 0;										// 어더캣 활성화 스텟머신 초기화.
+	// 버튼 상태 UI 초기화.
+}
+P_Old_Ecat_Reconn_Bit = P_Ecat_Reconn_Bit									// 버튼 Edge 값 업데이트.
+
+if ( P_Ecat_Reconn_Cmd_Flag == 1 )											// 이더캣 활성화 플래그.
+{
+	P_Ecat_Reconn_Cmd_Flag = 0;												// 재진입 방지.
+	P_Ecat_Reconn_State_Machine = 1;										// 이더캣 활성화 스텟머신 실행.
+}
+//=======================================================================================================
+// 이더캣 활성화 실행부 
+//=======================================================================================================
+switch ( P_Ecat_Reconn_State_Machine )										// 이더캣 활성화 스텟머신 실행 
+{
+	case 1 :// ECAT 비활성화 저장.
+		P_Ecat_Reconn_Error_Buffer(0),Slave_Buffer_Index = 0;				// 이더캣 활성화 버퍼 초기화.
+		L_Ecat_Reconn_Slave_Index = 0;										// Slave Index 초기화.
+		P_Ecat_Reconn_Record_Cnt = 0;										// 이더캣 Slave 기록 Cnt 초기화.
+		while(L_Ecat_Reconn_Slave_Index < Slave_Max_Index)					// Slave Index가 Max Index보다 작을 경우.
+		{
+			if ( ECAT[0].Slave[L_Ecat_Reconn_Slave_Index].State != 8 )		// Ecat Slave 비활성화 일 경우.
+			{
+				P_Ecat_Reconn_Error_Buffer(P_Ecat_Reconn_Record_Cnt) = L_Ecat_Reconn_Slave_Index;	// 이더캣 비활성화 Error 버퍼에 저장.
+				P_Ecat_Reconn_Record_Cnt++;									// 이더캣 Slave 기록 Cnt 증가.
+				L_Ecat_Reconn_Slave_Index++;								// Slave Index 증가.
+			}
+			else if ( ECAT[0].Slave[L_Ecat_Reconn_Slave_Index].State == 8 )	// 이더캣 활성화 일 경우.
+				L_Ecat_Reconn_Slave_Index++;								// Slave Index 증가.
+		}
+		P_Ecat_Reconn_State_Machine++;										// 다음 스텟 머신으로 이동.
+	break;
+
+
+	case 2 :// ECAT 활성화 전 초기화.
+		P_EtherCat_Active_Status = F_Status_EXECUTE;						// 이더캣 활성화 상태 업데이트.
+		P_Ecat_Reconn_Time_Out_Timer =  Sys.Time;							// 이더캣 활성화 타임 아웃 체크 타이머.
+		kill 33..48;														// 이더캣 모터 KILL.
+		P_Ecat_Reconn_Active_Complete_Bit = 0;								// 이더캣 활성화 완료 비트 초기화.
+		P_Ecat_Reconn_Active_Fail_Bit = 0;									// 이더캣 활성화 에러 비트 초기화.
+		P_Ecat_Reconn_Time_Out_Bit = 0;										// 이더캣 활성화 타임 아웃 비트 초기화.
+		P_Ecat_ReTry_Cnt = 0;												// 이더캣 활성화 재시도 카운트.
+		P_Ecat_Reconn_Slave_Error_Bit = 0;									// 이더캣 Slave 활성화 애러 비트 초기화.
+		L_Ecat_Reconn_Slave_Index = 0;										// 이더캣 Slave 활성화 인덱스 초기화.
+		P_Ecat_Reconn_State_Machine_Buffer = 1;								// 이더캣 활성화 스텟머신 버퍼.
+		P_Ecat_Reconn_State_Machine++;										// 다음 스텟 머신으로 이동.
+	break;
+
+	case 3 :// ECAT 연결 비활성화.
+		ECAT[0].Enable = 0;  												// Disable ECAT
+		P_Ecat_Active_Timer = Sys.Time;										// 이더캣 활성화 타이머 업데이트.
+		P_Ecat_Disable_Delay_Time = P_Delay_Time;							// 2초 딜레이.
+		P_Ecat_Reconn_State_Machine_Buffer = 2;								// 이더캣 활성화 스텟머신 버퍼.
+		P_Ecat_Reconn_State_Machine++;										// 다음 스텟 머신으로 이동.
+	break;
+	
+	case 4 :// ECAT Slave 재설정.
+		P_Ecat_Reconn_State_Machine_Buffer = 3;								// 이더캣 활성화 스텟머신 버퍼.
+		if ( ECAT[0].Enable == 0 && ECAT[0].MasterState != 8 && Sys.Time >= P_Ecat_Active_Timer + P_Ecat_Disable_Delay_Time )	//2초 딜레이 & Disable ECAT 확인		
+		{
+			cmd "ecat reset";												// ecat reset 실행.			
+			P_Ecat_Active_Timer = Sys.Time;									// 이더캣 활성화 타이머 업데이트.
+			P_Ecat_Reconn_State_Machine++;									// 다음 스텟 머신으로 이동.
+		}
+	break;
+	
+	case 5 :// ECAT Slave 재설정 완료 확인.
+		P_Ecat_Reconn_State_Machine_Buffer = 4;								// 이더캣 활성화 스텟머신 버퍼.
+		if ( Sys.Time >= P_Ecat_Active_Timer + P_Ecat_Reset_Delay_Time )	// 15초 딜레이 이후.
+		{	
+			if ( ECAT[0].MasterReady == 1 ) 								// ecat reset 완료 상태 확인. (1 : 미완료)
+			{		
+				Ecat[0].Enable = 1;  										// ECAT Network Activation		
+				P_Ecat_Active_Timer = Sys.Time;								// 이더캣 활성화 타이머 업데이트.
+				P_Ecat_ReTry_Cnt = 0;										// 이더캣 활성화 재시도 카운트.			
+				P_Ecat_Reconn_State_Machine++;								// 다음 스텟 머신으로 이동.
+			}				
+			else 															// 타이머 이후에도 초기화 진행 중 상태라면
+			{	
+				if( P_Ecat_ReTry_Cnt < P_Ecat_ReTry_Limit )					// 리밋 카운트 미만 일 경우.
+				{	
+					P_Ecat_ReTry_Cnt++;										// 이더캣 활성화 재시도 카운트 증가.											
+					P_Ecat_Active_Timer = Sys.Time;							// 이더캣 활성화 타이머 업데이트.
+					P_Ecat_Disable_Delay_Time = 0;							// 딜레이 제거.
+					P_Ecat_Reconn_State_Machine = 4;						// ecat reset 재시도.
+				}
+				else
+					P_Ecat_Reconn_State_Machine = N_Error_Step;				// 활성화 에러 스텝 이동.
+			}	
+		}			
+	break;
+	
+	case 6 :// ECAT 활성화 확인.
+		P_Ecat_Reconn_State_Machine_Buffer = 5;								// 이더캣 활성화 스텟머신 버퍼.
+		if(  Sys.Time <= P_Ecat_Active_Timer + P_Ecat_Active_Delay_Time )	// 15초 딜레이 이후. 
+		{ // DelayTime 내
+			if ( ECAT[0].Enable == 1 && ECAT[0].MasterState == 8 ) 			// 이더캣 활성화 상태 확인.
+				P_Ecat_Reconn_State_Machine++;								// 다음 스텟 머신으로 이동.
+		}
+		else																// 딜레이 시간이 넘을 경우.
+			P_Ecat_Reconn_State_Machine = N_Error_Step;						// 활성화 에러 스텝 이동
+	break;
+	
+	case 7 :// Slave 활성화 확인.
+		P_Ecat_Reconn_State_Machine_Buffer = 6;								// 이더캣 활성화 스텟머신 버퍼.
+		while(L_Ecat_Reconn_Slave_Index < Slave_Max_Index)					// 이더캣 슬레이브 인덱스 확인.
+		{
+			if( ECAT[0].Slave[L_Ecat_Reconn_Slave_Index].State != 8 )		// 이더캣 슬레이브 정상 상태가 아니라면
+			{ 
+				P_Ecat_Reconn_Slave_Error_Bit = 1;							// 이더캣 에러 비트 On.
+				P_Ecat_Reconn_Error_Slave_Index = L_Ecat_Reconn_Slave_Index;// 이더캣 슬레이브 비활성화 인덱스 저장.
+				break;														// while문 탈출.
+			}
+			else															// 이더캣 정상 상태면 다음 슬레이브 검색.
+				L_Ecat_Reconn_Slave_Index++;								// 이더캣 슬레이브 인덱스 증가.		
+		}	
+		if ( P_Ecat_Reconn_Slave_Error_Bit == 1 )							// 에러 비트가 발생된다면.
+			P_Ecat_Reconn_State_Machine = N_Error_Step;						// 활성화 에러 스텝 이동.
+		else
+		{
+			P_EtherCat_Active_Status = F_Status_COMPLETE;					// 이더캣 활성화 스텝 상태.
+			kill 33..48;													// 이더캣 모터 KILL.
+			P_Ecat_Reconn_State_Machine = N_Complete_Step;					// 완료 스텝 이동.
+		}
+	break;
+	
+	case N_Complete_Step :													// 활성화 완료 스텝.
+		P_Ecat_Reconn_State_Machine_Buffer = N_Complete_Step;				// 이더캣 활성화 스텟머신 버퍼.
+		P_Ecat_Reconn_Active_Complete_Bit = 1;								// 활성화 완료 비트 전달.
+	break;
+	
+	case N_Error_Step :														// 활성화 실패 스텝. 
+		P_Ecat_Reconn_State_Machine_Buffer = N_Error_Step;					// 이더캣 활성화 스텟머신 버퍼.
+		P_Ecat_Reconn_Active_Fail_Bit = 1;									// 활성화 에러 비트 전달.
+	break;
+}
+
+if ( P_Ecat_Reconn_Active_Complete_Bit == 1 )								// 이더캣 활성화 완료.
+{
+	P_Ecat_Reconn_Active_Complete_Bit = 0;									// 재진입 방지.
+	P_EtherCat_Active_Status = 0;											// 이더캣 활성화 상태 초기화.
+	P_Ecat_Reconn_State_Machine = 0;										// 활성화 스텟머신 초기화.
+	// 버튼 램프 초기화.
+	P_Ecat_Reconn_Bit_MNT = 1;												// 이더캣 활성화 상태 모니터 업데이트.
+}
+
+if ( P_Ecat_Reconn_Active_Fail_Bit == 1 || P_Ecat_Reconn_Time_Out_Bit == 1 )// 이더캣 실패 || 타임 아웃.
+{
+	if ( P_Ecat_Reconn_Active_Fail_Bit )									// 이더캣 활성화 실패 일 경우.
+		P_Ecat_Reconn_Bit_MNT = 2;											// 이더캣 활성화 상태 모니터 업데이트.
+	else																	// 이더캣 활성화 타임 아웃 일 경우.
+		P_Ecat_Reconn_Bit_MNT = 3;											// 이더캣 활성화 상태 모니터 업데이트.
+	P_Ecat_Reconn_Active_Fail_Bit = 0;										// 재진입 방지.
+	P_Ecat_Reconn_Time_Out_Bit = 0;											// 재진입 방지.
+	//M_Y_Alarm_ECAT_SoftWare_Error = 1;									// [이더캣 소프트웨어 통신오류] 소프트웨어 오류 알람 발생
+	P_EtherCat_Active_Status = 0;											// 이더캣 활성화 상태 초기화.
+	P_Ecat_Reconn_State_Machine = 0;										// 활성화 스텟머신 초기화.
+	// 버튼 램프 초기화.
+}
+
+// 이더캣 활성화 타임 아웃 확인.
+if ( (Sys.Time >= P_Ecat_Reconn_Time_Out_Timer + P_Ecat_Reconn_Time_Out_Delay_Time) && P_EtherCat_Active_Status == F_Status_EXECUTE )	// 이더캣 활성화 3분 넘게 걸릴 경우.
+	P_Ecat_Reconn_Time_Out_Bit = 1;											// 타임 아웃 비트 발생.
+
+
+// MC Protocol 끊어진 경우, 재 연결 가능 구문 
+if( Sys_MC_Protocol_HeartBit != L_Old_MC_Protocol_HeartBit )				// 하트비트가 변경된다면
+{
+	L_Old_MC_Protocol_HeartBit = Sys_MC_Protocol_HeartBit;					// MC Protocol 값 동기화
+	L_MC_Protocol_MNTR_Timer = 0;
+}
+
+if( L_MC_Protocol_MNTR_Timer > 5000 )
+{
+	if( M_X_Trigger_1s_Cycle_HeartBit != L_X_Trigger_1s_Cycle_HeartBit )	// 하트비트엣지에 반응
+	{
+		if( P_Max_Try_Reconnect_MC > P_Cur_Try_Reconnect_MC )				// 최대 횟수 > 현재 카운팅 횟수
+		{
+			//system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/mc_protocol.out -u"
+			//call Timer.sec(0.5);
+			//if ( P_Select_Stack_Number == F_Stack_A )
+			//	system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/mc_protocol.out -a"
+			//else if ( P_Select_Stack_Number == F_Stack_B )
+			//	system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/mc_protocol.out -b"
+			P_Cur_Try_Reconnect_MC++;
+			L_MC_Protocol_MNTR_Timer = 0;
+		}
+	}
+}
+L_X_Trigger_1s_Cycle_HeartBit = M_X_Trigger_1s_Cycle_HeartBit;
+
+close

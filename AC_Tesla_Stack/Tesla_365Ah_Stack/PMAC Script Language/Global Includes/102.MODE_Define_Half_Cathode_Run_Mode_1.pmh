@@ -1,0 +1,147 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+
+
+//============================================================================
+// 1. 커멘드 디파인 (P_Mode_Command에 들어가는 값 )
+//============================================================================
+#define	F_Half_Cathode_Run_Command			   2
+
+//============================================================================
+// 2. 진입할 모드 디파인 (P_MOde_Num에 들어가는 값 )
+//============================================================================
+#define F_Half_Cathode_Run_Mode				   2						// F_Half_Cathode_Run_Mode 모드
+P_MOde_Num(F_Half_Cathode_Run_Command) = F_Half_Cathode_Run_Mode;		// F_Half_Cathode_Run_Command 신호 받으면 Run 진행
+
+//============================================================================
+// 3. 모드의 사이클 개수 디파인( 실제 사이클 개수 - 1 )
+//============================================================================
+P_Command_Depth(F_Half_Cathode_Run_Command) = 0; 					// 1사이클 (F_Half_Cathode_Run_Command)
+
+//============================================================================
+// 4. 모드(Status)의 진입 시점 ( 실제 진입할 시점 - 1 Ex. 0번부터 시작해야한다면 99번 트리거 입력 )
+//============================================================================
+P_In_Position(F_Half_Cathode_Run_Command) = 49;						// Run 모드		
+
+//============================================================================
+// 5. Tail ( 모드 마지막 사이클 완료 후 진입할 모드 입력 ) 
+//============================================================================
+//	 Tail 고정 Define ( 아래의 모드 중에서만 선택 가능 )
+//----------------------------------------------------------------------------
+#define 	F_Wait						0							// 대기
+
+P_Last_Cycle_Command(F_Half_Cathode_Run_Command)= F_Wait;			// 런 모드 유지.	
+//============================================================================
+// 6. Motion_Array : 트리거에 맞춰 슬레이브 커멘드에 들어가는 값
+//============================================================================
+global	P_Slave1_Cathode_Run_Motion_Array(100); 	// (Anode Transfer 1차)
+P_Slave1_Cathode_Run_Motion_Array(0),100,1=0;		//  배열 초기화
+
+global	P_Slave2_Cathode_Run_Motion_Array(100); 	// (Anode Transfer 1차 Picker)	
+P_Slave2_Cathode_Run_Motion_Array(0),100,1=0; 		//  배열 초기화
+
+global	P_Slave3_Cathode_Run_Motion_Array(100); 	// (Anode Transfer 2차)
+P_Slave3_Cathode_Run_Motion_Array(0),100,1=0;		//  배열 초기화
+
+global	P_Slave4_Cathode_Run_Motion_Array(100); 	// (Anode Clamp)
+P_Slave4_Cathode_Run_Motion_Array(0),100,1=0;		//  배열 초기화.
+
+global	P_Slave5_Cathode_Run_Motion_Array(100); 	// (Final Roll)
+P_Slave5_Cathode_Run_Motion_Array(0),100,1=0;		//  배열 초기화.
+
+global	P_Slave6_Cathode_Run_Motion_Array(100); 	// (Stack Table)
+P_Slave6_Cathode_Run_Motion_Array(0),100,1=0;		//	배열 초기화.
+
+global	P_Slave7_Cathode_Run_Motion_Array(100); 	// (Cathode Clamp)
+P_Slave7_Cathode_Run_Motion_Array(0),100,1=0;		//	배열 초기화.
+
+global	P_Slave8_Cathode_Run_Motion_Array(100); 	// (Cathode Transfer 2차)
+P_Slave8_Cathode_Run_Motion_Array(0),100,1=0;		//	배열 초기화.
+
+global	P_Slave9_Cathode_Run_Motion_Array(100); 	// (Cathode Transfer 1차 Picker)	
+P_Slave9_Cathode_Run_Motion_Array(0),100,1=0;		//	배열 초기화.
+
+global	P_Slave10_Cathode_Run_Motion_Array(100); 	// ( Cathode Transfer 1차)
+P_Slave10_Cathode_Run_Motion_Array(0),100,1=0;		//	배열 초기화.
+
+
+// 2. 런 모드 클램프 시점 변경 후 
+#ifdef	N_After_Change_Clamp_Timing
+	//------------------------------------------------------
+	// 배열값 입력.
+	//------------------------------------------------------
+//////////////////////////
+//// //음극 1차 P&P //////
+//////////////////////////
+
+	P_Slave1_Cathode_Run_Motion_Array(50)=13;	// A/S 하강.
+	P_Slave1_Cathode_Run_Motion_Array(56)=9;	// A/S Place.
+	P_Slave1_Cathode_Run_Motion_Array(66)=14;	// A/S 상승.
+	// [ 참조 : 20211208 가감속 변경 테스트 ]
+	#ifdef F_1stPNP_Improve_Enable
+		P_Slave1_Cathode_Run_Motion_Array(72)=19;	// A/S -> Belt 이동.		
+	#else
+		P_Slave1_Cathode_Run_Motion_Array(72)=2;	// A/S -> Belt 이동.
+	#endif
+	
+//////////////////////////
+//// //음극 2차 P&P //////
+//////////////////////////
+
+	// Anode 2차 P&P 하강 시간 변경 테스트
+	P_Slave3_Cathode_Run_Motion_Array(50)=6;	// Stack 하강
+	P_Slave3_Cathode_Run_Motion_Array(58)=8;	// Stack Place
+	P_Slave3_Cathode_Run_Motion_Array(76)=15;	// Stack 상승 _ 20200722 런테이블 변경 테스트 중
+	P_Slave3_Cathode_Run_Motion_Array(79)=2;	// Stack -> A/S 이동.
+	
+////////////////////////
+///////음극 클램프 //////
+////////////////////////
+	P_Slave4_Cathode_Run_Motion_Array(83)=2;		// Clamp Off.
+	
+//////////////////////////
+//////FINAL ROLL /////////
+//////////////////////////
+	P_Slave5_Cathode_Run_Motion_Array(55)=1;	// 음극방향 1차 이동
+	P_Slave5_Cathode_Run_Motion_Array(80)=2;	// 음극방향 2차 이동
+	
+//////////////////////////
+//////STACK TABLE/////////
+//////////////////////////
+	P_Slave6_Cathode_Run_Motion_Array(76)=2;	// 극판만큼 하강 _ 20200722 런테이블 변경 테스트 중
+	
+	
+//////////////////////////
+//////양극 클램프 /////////
+//////////////////////////
+	P_Slave7_Cathode_Run_Motion_Array(62)=1;	// Clamp On. _ 20200722 런테이블 변경 테스트 중
+	P_Slave7_Cathode_Run_Motion_Array(76)=3;	// 극판만큼 하강. _ 20200722 런테이블 변경 테스트 중
+	
+//////////////////////////
+//////양극 2차 P&P////////
+//////////////////////////
+	P_Slave8_Cathode_Run_Motion_Array(50)=13;	// [Test] A/T 하강.
+	P_Slave8_Cathode_Run_Motion_Array(56)=7;	// A/T Place
+	P_Slave8_Cathode_Run_Motion_Array(71)=3;	// A/T 상승.
+	P_Slave8_Cathode_Run_Motion_Array(77)=1;	// A/T -> S/T 이동
+	
+//////////////////////////
+//////양극 1차 P&P ///////
+//////////////////////////
+	P_Slave10_Cathode_Run_Motion_Array(55)=6;   // Belt 하강
+	P_Slave10_Cathode_Run_Motion_Array(61)=8;   // Belt Pick Up.
+	P_Slave10_Cathode_Run_Motion_Array(71)=7;   // Belt 상승
+	// [ 참조 : 20211208 가감속 변경 테스트 ]
+	#ifdef F_1stPNP_Improve_Enable
+		P_Slave10_Cathode_Run_Motion_Array(77)=19;   // Belt -> A/S 이동. (실제 디파인 사용)
+	#else
+		P_Slave10_Cathode_Run_Motion_Array(77)=1;   // Belt -> A/S 이동.
+	#endif
+					
+#endif
+
+

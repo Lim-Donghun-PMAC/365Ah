@@ -1,0 +1,129 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.09.12
+// 단동, 연동 프로그램 주석 정리 및 인터락 추가. [ 참조 : 25.09.12 단동, 연동 프로그램 주석 및 인터락 추가 ]
+
+#define N_Unit_None						0			// None.
+#define N_Cathode_1st_PNP_Unit 			1			// 양극 1차 PNP.
+#define N_Cathode_2nd_PNP_Unit			2			// 양극 2차 PNP.
+#define N_Anode_1st_PNP_Unit			3			// 음극 1차 PNP.
+#define N_Anode_2nd_PNP_Unit			4			// 음극 2차 PNP.
+#define N_Cathode_Clamp_Unit			5			// 양극 클램프.
+#define N_Anode_Clamp_Unit				6			// 음극 클램프.
+#define N_Finall_Roller_X_Unit			7			// 파이널 롤러 X축.
+#define N_Cathode_1st_Picker_T			8			// 양극 1차 PNP Picker T축.
+#define N_Anode_1st_Picker_T			9			// 음극 1차 PNP Picker T축.
+#define N_Finall_Roller_Z_Unit			10			// 파이널 롤러 Z축.
+#define N_Cathode_Align_Unit			11			// 양극 얼라인 테이블.
+#define N_Anode_Align_Unit				12			// 음극 얼라인 테이블.
+#define N_Stack_Table_Unit				13			// 워크 테이블.
+#define N_Sheet_Paper_Unit				14			// Sheet Paper. 
+#define N_Cathode_NG_PNP_T				15			// 양극 NG PNP T축.
+#define N_Cathode_NG_PNP_Z				16			// 양극 NG PNP Z축.
+#define N_Cathode_NG_PNP_Total_Unit		17			// 양극 NG Total.
+#define N_Anode_NG_PNP_T				18			// 음극 NG PNP T축.
+#define N_Anode_NG_PNP_Z				19			// 음극 NG PNP Z축.
+#define N_Anode_NG_PNP_Total_Unit		20			// 음극 NG Total.
+#define N_1st_UND_X						21			// 1차 언로더 X축.
+#define N_1st_UND_Z						22			// 1차 언로더 Z축.
+#define N_1st_UND_T						23			// 1차 언로더 T축.
+#define N_1st_UND_Total_Unit			24			// 1차 언로더 Total.
+
+#define N_Clamp_FR_Run					27			// 파이널롤러 클램프 동작
+
+#define N_Final_Roll_Evade				33			// 파이널 롤러 회피.
+#define N_Error_STMS					44			// 애러 스텝.
+#define N_Complete_STMS 				99			// 완료 스텝.
+//==============================================//
+//					명령부						//
+//==============================================//
+global P_Single_Run_Start_Flag = 0;					// 단동, 연동 [명령부] 단동 시작 Flag. 
+global P_Single_Run_Control_State_Machine = 0;		// 단동, 연동 [명령부] 스텟 머신.
+global P_Single_Run_Control_Status = 0;				// 단동, 연동 [명령부] 상태.
+global P_Single_Run_Execute_Bit = 0;				// 단동, 연동 [명령부] 실행 시 메모리 타워 오류로 Command Stop 방지 변수.
+global P_User_Dry_Run_Mode = 0;						// 단동, 연동 [명령부] 유저 드라이런 모드 설정.
+//==============================================//
+//					실행부						//
+//==============================================//
+global P_Single_Run_State_Machine = 0;				// 단동, 연동 [실행부] 단동 진행 스텟 머신.
+global P_Single_Run_Status = 0;						// 단동, 연동 [실행부] 단동 진행 상태.
+global P_Single_Run_Unit = 0;						// 단동, 연동 [실행부] 단동,연동 진행 유닛.
+global P_Single_Run_Evade_Pos_RTN = 0;				// 단동, 연동 [실행부] 회피 동작 함수 반환값.
+global P_Single_Run_Evade_Pos_Check_RTN = 0;		// 단동, 연동 [실행부] 회피 동작 확인 함수 반환값.
+global P_Single_Run_Pos_Rtn1 = 0;					// 단동, 연동 [실행부] 회피 동작 확인 함수 반환값.
+global P_Single_Run_Pos_Rtn2 = 0;					// 단동, 연동 [실행부] 회피 동작 확인 함수 반환값.
+global P_Single_Run_Motion_Ready_RTN = 0;			// 단동, 연동 [실행부] 모션 준비 함수 반환값.
+global P_Single_Run_Execution_Interlock_RTN = 0;	// 단동, 연동 [실행부] 인터락 함수 반환값.
+global P_Single_Run_Coord_Activate_RTN = 0;			// 단동, 연동 [실행부] 좌표계 활성화 함수 반환값.
+global P_Single_Run_Coord_Activate_Check_RTN = 0;	// 단동, 연동 [실행부] 좌표계 활성화 확인 반환값.
+global P_Single_Run_Select_Run_Mode_RTN = 0;		// 단동, 연동 [실행부] 런모드 선택 반환값.
+global P_Single_Run_Execution_Run_RTN = 0;			// 단동, 연동 [실행부] 런모드 실행 함수 반환값.
+//----------------------------------------------//
+global P_Single_Run_Motion_Ready_State_Machine = 0; // 단동, 연동 [실행부] 모션 활성화 스텟 머신.
+global P_Coord_1 = 0;								// 단동, 연동 [실행부] 좌표계 활성화 시 좌표계 설정.
+global P_Coord_2 = 0;								// 단동, 연동 [실행부] 좌표계 활성화 시 좌표계 설정.
+global P_Coord_3 = 0;								// 단동, 연동 [실행부] 좌표계 활성화 시 좌표계 설정.
+global P_Coord_4 = 0;								// 단동, 연동 [실행부] 좌표계 활성화 시 좌표계 설정.
+//----------------------------------------------//
+global P_Final_Roll_Z_Motion_Flag = 0;				// 단동, 연동 [실행부] 파이널 롤러 Z축 모션 플래그.
+global P_Final_Roll_Z_Motion_State_Machine = 0;		// 단동, 연동 [실행부] 파이널 롤러 Z축 모션 스텟 머신.
+global P_Main_Z_Motion_Flag = 0;					// 단동, 연동 [실행부] 워크 테이블 Z축 모션 플래그.
+global P_Main_Z_Motion_State_Machine = 0;			// 단동, 연동 [실행부] 워크 테이블 Z축 모션 스텟 머신.
+global P_Single_Run_Mode_Flag = 0;					// 단동, 연동 [실행부] 런모드 플래그.
+global P_Cathode_AT_Motion_Flag = 0;				// 단동, 연동 [실행부] 양극 얼라인 테이블 모션 플래그.
+global P_Cathode_Align_Motion_State_Machine = 0;	// 단동, 연동 [실행부] 양극 얼라인 모션 스텟 머신.
+global P_Anode_AT_Motion_Flag = 0;					// 단동, 연동 [실행부] 음극  얼라인 테이블 모션 플래그.
+global P_Anode_Align_Motion_State_Machine = 0;		// 단동, 연동 [실행부] 음극 얼라인 모션 스텟 머신.
+global P_Sheet_Paper_Motion_Flag = 0;				// 단동, 연동 [실행부] Sheet Paper 모션 플래그.
+global P_Sheet_Paper_Motion_State_Machine = 0;		// 단동, 연동 [실행부] Sheet Paper 모션 스텟 머신.
+global P_Cathode_NG_PNP_T_Motion_Flag = 0;			// 단동, 연동 [실행부] 양극 NG PNP T축 모션 플래그.
+global P_Cathode_NG_PNP_T_Motion_State_Machine = 0;	// 단동, 연동 [실행부] 양극 NG PNP T축 모션 스텟 머신.
+global P_Cathode_NG_PNP_Z_Motion_Flag = 0;			// 단동, 연동 [실행부] 양극 NG PNP Z축 모션 플래그.
+global P_Cathode_NG_PNP_Z_Motion_State_Machine = 0;	// 단동, 연동 [실행부] 양극 NG PNP Z축 모션 스텟 머신.
+global P_Anode_NG_PNP_T_Motion_Flag = 0;			// 단동, 연동 [실행부] 음극 NG PNP T축 모션 플래그.
+global P_Anode_NG_PNP_T_Motion_State_Machine = 0;	// 단동, 연동 [실행부] 음극 NG PNP T축 모션 스텟 머신.
+global P_Anode_NG_PNP_Z_Motion_Flag = 0;			// 단동, 연동 [실행부] 음극 NG PNP Z축 모션 플래그.
+global P_Anode_NG_PNP_Z_Motion_State_Machine = 0;	// 단동, 연동 [실행부] 음극 NG PNP Z축 모션 스텟 머신.
+global P_1st_UND_X_Motion_Flag = 0;					// 단동, 연동 [실행부] 1차 언로더 X축 모션 플래그.
+global P_1st_UND_X_Motion_State_Machine = 0;		// 단동, 연동 [실행부] 1차 언로더 X축 모션 스텟 머신.
+global P_1st_UND_Z_Motion_Flag = 0;					// 단동, 연동 [실행부] 1차 언로더 Z축 모션 플래그.
+global P_1st_UND_Z_Motion_State_Machine = 0;		// 단동, 연동 [실행부] 1차 언로더 Z축 모션 스텟 머신.
+global P_1st_UND_T_Motion_Flag = 0;					// 단동, 연동 [실행부] 1차 언로더 T축 모션 플래그.
+global P_1st_UND_T_Motion_State_Machine = 0;		// 단동, 연동 [실행부] 1차 언로더 T축 모션 스텟 머신.
+global P_Cathode_Run_Command_Flag = 0;				// 단동, 연동 [실행부] 양극 런 커맨드 플래그.
+global P_Anode_Run_Command_Flag = 0;				// 단동, 연동 [실행부] 음극 런 커맨드 플래그.
+global P_NG_PNP_Uint_Motion_Flag = 0;				// 단동, 연동 [실행부] NG PNP 모션 플레그.
+global P_NG_PNP_Uint_State_Machine = 0;				// 단동, 연동 [실행부] NG PNP 모션 스텟 머신.
+global P_NG_PNP_Motion_Cnt = 0						// 단동, 연동 [실행부] NG PNP 모션 카운트.
+global P_NG_PNP_Motion_arr(10)						// 단동, 연동 [실행부] NG PNP 모션 배열.
+P_NG_PNP_Motion_arr(0),10 = 0						// 단동, 연동 [실행부] NG PNP 모션 배열 초기화.
+//----------------------------------------------//
+global P_Single_Run_Timer = 0;						// 단동, 연동 [실행부] 타이머.
+global P_Single_Run_Align_Timer = 0;				// 단동, 연동 [실행부] 얼라인 테이블 타이머.
+global P_Single_Run_Align_Timer2 = 0
+global P_Single_Run_Finall_Roll_Z_Timer = 0;		// 단동, 연동 [실행부] 파이널 롤러 Z축 타이머.
+global P_Single_RuN_MAIN_Z_Timer = 0;				// 단동, 연동 [실행부] 워크 테이블 Z축 타이머.
+global P_Single_Run_Sheet_Paper_Timer = 0;			// 단동, 연동 [실행부] Sheet Paper 타이머.
+//----------------------------------------------//
+global P_Single_Run_Debug_SM = 0;					// 단동, 연동 [실행부] 디버깅 변수.
+global P_Error_Monitoring_Count_1 = 0;				// 단동, 연동 [실행부] 모니터링 변수.
+global P_Error_Monitoring_Count_2 = 0;				// 단동, 연동 [실행부] 모니터링 변수.
+global P_Error_Monitoring_Count_3 = 0;				// 단동, 연동 [실행부] 모니터링 변수.
+global P_Error_Monitoring_Count_4 = 0;				// 단동, 연동 [실행부] 모니터링 변수.
+global P_Error_Monitoring_Count_5 = 0;				// 단동, 연동 [실행부] 모니터링 변수.
+global P_Old_Single_Run_Mode_Flag = 0;				// 단동, 연동 [실행부] 런모드 실행 Flag Edge값.
+global P_Old_Current_Mode = 0;						// 단동, 연동 [실행부] Current Mode Edge값.
+//==============================================//
+//					정지부						//
+//==============================================//
+global P_Single_Run_Timebase_Off_RTN = 0;			// 단동, 연동 [정지부] 타임 베이스 종료 함수 반환값.
+global P_Single_Run_Stop_State_Machine = 0;			// 단동, 연동 [정지부] 정지 스텟 머신.
+global P_Single_Run_Stop_Status = 0;				// 단동, 연동 [정지부] 단동 정지 진행 상태.
+global P_Single_Run_Stop_Timer = 0;					// 단동, 연동 [정지부] 정지 타이머.
+global P_Single_Run_Stop_Init_RTN = 0;				// 단동, 연동 [정지부] 관련 변수 초기화 반환값.
+global P_Single_Run_Stop_Btn_Chk = 0;				// 단동, 연동 [정지부] 진행 중 정지 버튼 확인 변수.
+global P_Single_Run_Stop_Command = 0;				// 단동, 연동 [정지부] 단동, 연동 정지 Cmd.
+//==============================================//
+global	P_Motor_Ready_Poa_Inpos_200um = 0.2			// 정위치 인포지션 밴드 200 마이크로
+

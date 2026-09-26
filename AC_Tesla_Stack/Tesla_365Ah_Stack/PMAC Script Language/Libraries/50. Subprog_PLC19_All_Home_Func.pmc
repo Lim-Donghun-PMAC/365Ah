@@ -1,0 +1,573 @@
+global P_ECAT_MNTR_Bit =0;
+global P_Local_MNTR_Bit= 0;
+open subprog AH_Func(void)
+
+sub: AH_Motor_State_Chk(&AH_Motor_State_Chk_RTN)							// 시퀀스 종류 노드 선택
+AH_Motor_State_Chk_RTN = 0;
+// 생각필요 : 적층에 관련이 없는 모터는 home chk 변수가 꺼졌어도 그 부분만 home 잡으면서 home chk변수를 살릴지 
+// → 일단은 하나라도 꺼지면 home chk변수 없다는 가정하에 전부 홈 
+
+#ifdef F_Def_Stack_NRT_DryRun
+	AH_Motor_State_Chk_RTN = N_NRT_Dry_Enable;				// NRT 용 드라이런 홈
+#else
+
+P_ECAT_MNTR_Bit = ECAT_All_Chk_Complete;
+P_Local_MNTR_Bit = Local_All_Chk_Complete;
+
+if( P_Stack_Judgement_Memory == N_TRUE )			// 적층여부판단
+	AH_Motor_State_Chk_RTN = N_JellyRoll_Enable;	// 적층중임 리턴 == 1
+else
+{
+	if( Local_All_Chk_Complete & ECAT_All_Chk_Complete )	// 매크로함수 설정 [ 참조 : CPU 최적화 진행 ]
+	{
+		//if( P_Stack_Judgement_Memory == N_TRUE )			// 적층여부판단
+		//	AH_Motor_State_Chk_RTN = N_JellyRoll_Enable;	// 적층중임 리턴 == 1
+		//else
+			AH_Motor_State_Chk_RTN = N_JellyRoll_Disable;	// 비적층중 리턴 == 2
+	}
+	else
+	{	
+		P_FR_Sheet_Paper_Home_Chk = 0;
+		// [참 조 : NG PNP 위치 센서 추가 하여 언로더 간섭 여부 회피 2026.04.16]
+		//if(	M_X_Cathode_NG_PNP_Location_Sensor == 1 )		// 양극 NG PNP 위치감지 센서가 켜져있다면, 얼라인과 NG 박스 사이에 존재하므로 언로더 간섭없음
+		//	AH_Motor_State_Chk_RTN = N_New_Non_Homing_CHK;		// 홈체크 == 3
+		//else												// 양극 ng pnp가 얼라인 또는 ng 박스에 있다는 말이므로 언로더 z축이 상승해있을 가능성이 있음
+			AH_Motor_State_Chk_RTN = N_New_Non_Homing_CHK2;		// 홈체크 == 4
+		
+		// 언로더 X가 스택 진입전 기준으로 앞/뒤
+		if( P_Motor_Current_Pos(N_UNLOADER_X) > P_Recipe_M46_POS(2) + 30) // 언로더 X축이 스택 위치쪽
+		{
+			P_Home_First_Move = 1;
+		}
+		else if(P_Motor_Current_Pos(N_UNLOADER_X) < P_Recipe_M46_POS(2) + 30)	//언로더 X축이 대기위치쪽  
+		{
+			// Z축 먼저 내릴 수 있음
+			// T축이 대기위치 보다 + 방향일 경우
+			if( P_Motor_Current_Pos(N_UNLOADER_T) > P_Recipe_M48_POS(1) + 1 && P_Motor_Current_Pos(N_UNLOADER_T) < P_Recipe_M48_POS(2) - 3)
+			{
+				P_Home_First_Move = 3;
+			}
+			else if(P_Motor_Current_Pos(N_UNLOADER_T) < P_Recipe_M48_POS(2) + 3 && P_Motor_Current_Pos(N_UNLOADER_T) > P_Recipe_M48_POS(2) - 3)
+			{
+				// 인계위치라 2차 언로더와 맞물려 있을 가능 성이 있음
+				// 고민이 필요해
+				P_PMAC_Commands = F_Command_Stop;
+				P_Stop_Cmd_Origin = 180;
+			}
+			else
+			{
+				P_Home_First_Move = 2;
+			}
+		}
+
+		// 세파에 영향이 있는 F/R X,Z, Sheet_Paper X의 대기위치 및 홈체크 확인
+		if(P_PMAC_Homing_CHK(N_FINAL_ROLL_X) == 1 && (P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Recipe_M12_POS(1) - 0.2 && P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Recipe_M12_POS(1) + 0.2))
+		{
+			P_FR_Sheet_Paper_Home_Chk |= $1;
+		}
+		else
+		{
+			P_FR_Sheet_Paper_Home_Chk = 0;
+		}
+		if(P_PMAC_Homing_CHK(N_FINAL_ROLL_Z) == 1 && (P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(1) - 0.2 && P_Motor_Current_Pos(N_FINAL_ROLL_Z) < P_Recipe_M13_POS(1) + 0.2))
+		{
+			P_FR_Sheet_Paper_Home_Chk |= $2;
+		}
+		else
+		{
+			P_FR_Sheet_Paper_Home_Chk = 0;
+		}
+		if(P_PMAC_Homing_CHK(N_SHEET_PAPER_X) == 1 && (P_Motor_Current_Pos(N_SHEET_PAPER_X) > P_Recipe_M35_POS(1) - 0.2 && P_Motor_Current_Pos(N_SHEET_PAPER_X) < P_Recipe_M35_POS(1) + 0.2))
+		{
+			P_FR_Sheet_Paper_Home_Chk |= $4;
+		}
+		else
+		{
+			P_FR_Sheet_Paper_Home_Chk = 0;
+		}
+	}
+		
+}
+#endif
+
+// while 문 돌리지 말고 매크로함수 이용해서 확인하자.
+return;
+
+
+sub: Stop_Action(void)	// cycle stop [ 참조 : 2025.08.18 홈 시퀀스 스탑 보안 ]
+
+// 홈 진행중이면, C 쪽 매트릭스가 진행될수도 있으므로, C쪽 매트릭스 Step 0으로 보내는 변수 추가.
+// 조그 j/ 명령을 일괄로 뿌려서 모든 모터들이 멈출 수 있게 함
+P_All_Home_Stop_Cmd = N_TRUE;	// P_Home_Command(All) = Stop Cmd
+//[참조 : 260116 페이징 안된 모터 j/ 막기]
+P_Servo_ON_MNTR8++
+if( Motor[1].phasefound == 1 )
+	cmd"#1j/"
+else
+	P_Phasing_Err2(1)++
+
+if( Motor[2].phasefound == 1 )
+	cmd"#2j/"
+else
+	P_Phasing_Err2(2)++
+
+if( Motor[3].phasefound == 1 )
+	cmd"#3j/"
+else
+	P_Phasing_Err2(3)++
+
+if( Motor[4].phasefound == 1 )
+	cmd"#4j/"
+else
+	P_Phasing_Err2(4)++
+
+//cmd"#1..48j/";					// Motor Jog/
+cmd"#5..48j/";					// Motor Jog/
+
+return;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+sub: Sequence(Mode,CurPos,&Act_Element,&Unit_Elemnt,&rtn)
+// 인자값 : Mode, 현재 위치, 시퀀스 행위 요소값, 시퀀스 유닛 요소, Condition Flag , 결과값
+Act_Element = 0;
+Unit_Elemnt = 0;
+
+rtn = 0;
+switch( Mode )
+{
+	case N_New_Non_Homing_CHK: // [ 참조 : 홈 시퀀스 변경 ]		홈체크 변수 X
+		switch( CurPos )
+		{
+			case 1:	// 1번째 시퀀스		메인Z, Clamp Y1,Y2, 1차 Z -
+				Unit_Elemnt = F_Main_Z | F_Anode_Clamp_Y1 | F_Anode_Clamp_Y2  | F_Cathode_Clamp_Y1 | F_Cathode_Clamp_Y2 | F_Final_Roll_Z | F_Anode_1st_Z | F_Cathode_1st_Z;
+				Act_Element |= F_Minus_Act;
+				rtn = N_TRUE;
+			break;
+			
+			case 2:	// 2번째 시퀀스		1차 PnP 45도 회피
+				Unit_Elemnt = F_Anode_1st_T | F_Cathode_1st_T ;
+				Act_Element |= F_Jog_Act;
+				// 간섭이 있으므로 Modifier 링크 Enable
+				rtn = N_Modify;
+			break;
+
+			case 3:	// 3번째 시퀀스		2차 PnP 45도 회피
+				Unit_Elemnt = F_Anode_2nd_T | F_Cathode_2nd_T ;
+				Act_Element |= F_Jog_Act;
+				// 간섭이 있으므로 Modifier 링크 Enable
+				rtn = N_Modify;
+			break;
+			
+			case 4:	// 4번째 시퀀스		NG PnP 홈 
+				Unit_Elemnt = F_Anode_NG_Z | F_Cathode_NG_Z | F_Anode_NG_T | F_Cathode_NG_T;
+				Act_Element |= F_Home_Act;
+				rtn = N_TRUE;
+			break;
+
+			case 5:	// 5번째 시퀀스		1차 PnP 홈
+				Unit_Elemnt = F_Anode_1st_T | F_Cathode_1st_T | F_Anode_1st_Z | F_Cathode_1st_Z;
+				Act_Element |= F_Home_Act;
+				rtn = N_TRUE;
+			break;
+			
+			case 6:	// 6번째 시퀀스		2차 PnP 홈
+				Unit_Elemnt = F_Anode_2nd_Z | F_Cathode_2nd_Z | F_Anode_2nd_T | F_Cathode_2nd_T;
+				Act_Element |= F_Home_Act;
+				rtn = N_TRUE;
+			break;
+			
+			case 7:	// 7번째 시퀀스			1. 언로더 X 홈
+				Unit_Elemnt =  F_Unloader_X ;
+				Act_Element = F_Home_Act;
+				rtn = N_TRUE;
+			break;
+			
+			case 8:	// 8번째 시퀀스			1. 언로더 Z 홈
+				Unit_Elemnt =  F_Unloader_Z ;
+				Act_Element = F_Home_Act;
+				rtn = N_TRUE;
+			break;
+
+			case 9:	// 9번째 시퀀스				Clamp Y,Z Home
+				Unit_Elemnt = F_Anode_Clamp_Y1 | F_Anode_Clamp_Y2 | F_Anode_Clamp_Z1 | F_Anode_Clamp_Z2 | F_Cathode_Clamp_Y1 | F_Cathode_Clamp_Y2 | F_Cathode_Clamp_Z1 | F_Cathode_Clamp_Z2;
+				Act_Element = F_Home_Act;
+				rtn = N_TRUE;
+			break;
+
+			case 10:// 10번째 시퀀스				Unloader T, Align X,Y Home			
+				Unit_Elemnt = F_Unloader_T | F_Anode_Align_X | F_Anode_Align_Y | F_Cathode_Align_X | F_Cathode_Align_Y;
+				Act_Element = F_Home_Act;
+				rtn = N_TRUE;
+			break;
+
+			case 11:// 11번째 시퀀스				Align T, MainZ,FR , Picker Home 
+				Unit_Elemnt = F_Anode_Align_T | F_Cathode_Align_T | F_Main_Z | F_Final_Roll_X | F_Final_Roll_Z | F_1ST_PnP_CATHODE_PICKER_T | F_1ST_PnP_ANODE_PICKER_T;
+				Act_Element =  F_Home_Act;
+				rtn = N_TRUE;
+			break;
+		}
+	break;
+
+	case N_JellyRoll_Enable:		// 적층 중 Home
+		switch( CurPos )
+		{
+			case 1:		// 첫번째 시퀀스			1. 양,음극 1차 pnp T, Z 홈 시작 ( 간섭 확인 필요 condition flag on)
+				Unit_Elemnt = F_Anode_1st_T | F_Anode_1st_Z | F_Cathode_1st_T | F_Cathode_1st_Z;
+				Act_Element |= F_Home_Act;
+				// 간섭이 있으므로 Modifier 링크 Enable
+				rtn = N_Modify;				
+			break;
+
+			case 2:		// 두번째 시퀀스			1. 양,음극 NG PNP 홈
+				Unit_Elemnt = F_Anode_NG_Z | F_Cathode_NG_Z | F_Anode_NG_T | F_Cathode_NG_T;
+				Act_Element |= F_Home_Act;
+				// 간섭이 있으므로 Modifier 링크 Enable
+				rtn = N_Modify;					
+			break;
+
+			case 3:		// 세번째 시퀀스			1. 양,음극 2차 PNP 홈
+				Unit_Elemnt = F_Anode_2nd_Z | F_Cathode_2nd_Z | F_Anode_2nd_T | F_Cathode_2nd_T;
+				Act_Element |= F_Home_Act;
+				// 간섭이 있으므로 Modifier 링크 Enable
+				rtn = N_Modify;
+			break;
+
+			case 4:		// 네번째 시퀀스			1. 언로더 X 홈
+				Unit_Elemnt =  F_Unloader_X ;
+				Act_Element = F_Home_Act;
+				rtn = N_TRUE;
+			break;
+
+			case 5:		// 다섯번째 시퀀스			1. 언로더 Z 홈
+				Unit_Elemnt =  F_Unloader_Z ;
+				Act_Element = F_Home_Act;
+				rtn = N_TRUE;
+			break;
+
+			case 6:		// 여섯번째 시퀀스			1. 언로더 T 홈	2. 양,음극 피커 T 홈
+				if( M_X_Cathode_1st_PNP_Vac_Sensor != N_TRUE )
+				{
+					Unit_Elemnt |= F_1ST_PnP_CATHODE_PICKER_T;
+				}
+				if( M_X_Anode_1st_PNP_Vac_Sensor != N_TRUE )
+				{
+					Unit_Elemnt |= F_1ST_PnP_ANODE_PICKER_T;
+				}
+				Unit_Elemnt |=  F_Unloader_T;
+				Act_Element = F_Home_Act;
+				rtn = N_TRUE;
+			break;
+
+			default:	// error
+			break;
+		}
+	break;
+
+	case N_JellyRoll_Disable:		// 홈 체크 o 적층 X
+		switch( CurPos )
+		{
+
+			case 1:		// 첫번째 시퀀스			1. 스텍테이블 및 클램프 Y 및 파이널롤러 Z 홈 
+				Unit_Elemnt = F_Main_Z | F_Anode_Clamp_Y1 | F_Anode_Clamp_Y2  | F_Cathode_Clamp_Y1 | F_Cathode_Clamp_Y2 | F_Final_Roll_Z ;
+				Act_Element |= F_Home_Act;
+				rtn = N_TRUE;
+			break;
+
+			case 2:		// 두번째 시퀀스			1. 1. 양,음극 1차 pnp T, Z 홈 시작 ( 간섭 확인 필요 condition flag on)
+				Unit_Elemnt = F_Anode_1st_T | F_Anode_1st_Z | F_Cathode_1st_T | F_Cathode_1st_Z;
+				Act_Element |= F_Home_Act;
+				// 간섭이 있으므로 Modifier 링크 Enable
+				rtn = N_Modify;			
+			break;
+
+			case 3:		// 세번째 시퀀스			1. 양,음극 NG PNP 홈
+				Unit_Elemnt = F_Anode_NG_Z | F_Cathode_NG_Z | F_Anode_NG_T | F_Cathode_NG_T;
+				Act_Element |= F_Home_Act;
+				// 간섭이 있으므로 Modifier 링크 Enable
+				rtn = N_Modify;
+			break;
+
+			case 4:		// 네번째 시퀀스			1. 양,음극 2차 pnp 홈
+				Unit_Elemnt = F_Anode_2nd_Z | F_Cathode_2nd_Z | F_Anode_2nd_T | F_Cathode_2nd_T;
+				Act_Element |= F_Home_Act;
+				// 간섭이 있으므로 Modifier 링크 Enable
+				rtn = N_Modify;
+			break;
+
+			case 5:		// 다섯번째 시퀀스			1. 언로더 X 홈
+				Unit_Elemnt =  F_Unloader_X ;
+				Act_Element = F_Home_Act;
+				rtn = N_TRUE;
+			break;
+
+			case 6:		// 여섯번째 시퀀스			1. 언로더 Z 홈
+				Unit_Elemnt =  F_Unloader_Z ;
+				Act_Element = F_Home_Act;
+				rtn = N_TRUE;
+			break;
+
+			case 7:		// 일곱번째 시퀀스			1. 언로더 T 홈	2. 양,음극 Picker T Home
+				if( M_X_Cathode_1st_PNP_Vac_Sensor != N_TRUE )
+				{
+					Unit_Elemnt |= F_1ST_PnP_CATHODE_PICKER_T;
+				}
+				if( M_X_Anode_1st_PNP_Vac_Sensor != N_TRUE )
+				{
+					Unit_Elemnt |= F_1ST_PnP_ANODE_PICKER_T;
+				}
+				Unit_Elemnt |=  F_Unloader_T | F_Final_Roll_X;
+				Act_Element = F_Home_Act;
+				rtn = N_TRUE;
+			break;
+
+			default:	// error
+			break;
+		}
+	break;
+}
+return;
+
+sub: Action(Act_Element,Unit_Element,&rtn)
+// 인자값 : Mode, 액션 요소, 액션유닛, 결과값
+local L_Motor_Check_Num = 1;																// 모터순환 변수 1번모터부터~ 
+local L_Motor_Check_Rtn = 0;																// 비트 체크 결과값 변수 
+local L_Act_Check_Num = 0;																	// 모터 멤버 시작 변수
+local L_Motor_Num = 0;																		// Motor구조체에 들어갈 L변수 → P변수는 적용 안되는 현상이 있으므로..
+
+
+P_AH_Unit_Member_EA = 0;																	// 전체 홈 유닛 멤버 갯수 초기화
+P_Motor_Act_Number_Arry(0),N_AH_Arr_Max = 0;												// 초기값 대입 
+
+while( L_Motor_Check_Num <= N_Max_Motor_EA )												// 유닛 요소에서 모터 번호 꺼내오기
+{
+	call Bit_Masking_Function.Check(Unit_Element,L_Motor_Check_Num,&L_Motor_Check_Rtn);		// 유닛 요소 유무 검사
+	if( L_Motor_Check_Rtn == N_TRUE )														// 참 → 유닛 검출
+	{
+		P_Motor_Act_Number_Arry(P_AH_Unit_Member_EA) = L_Motor_Check_Num;					// 유닛 요소 모터 넘버 배열에 저장
+		P_AH_Unit_Member_EA++;																// 모터 멤버 저장
+		L_Motor_Check_Num++;																// 모터 순환변수 증가
+	}
+	else																					// 유닛이 없다면 
+		L_Motor_Check_Num++;																// 모터 순환변수 증가
+}
+while( L_Act_Check_Num <= P_AH_Unit_Member_EA )												// 멤버 갯수까지 반복
+{
+	if( P_Motor_Act_Number_Arry( L_Act_Check_Num ) != 0 )									// 배열에 값이 있다면,
+	{
+		L_Motor_Num = P_Motor_Act_Number_Arry( L_Act_Check_Num );							// Motor구조체에 들어갈 L변수 → P변수는 적용 안되는 현상이 있으므로..
+		switch( Act_Element )																// 액션 요소 
+		{
+			case F_Minus_Act:		// 마이너스 행위
+				#ifdef F_Virtual_Axis_Test
+					Motor[L_Motor_Num].Minpos = -5000;										// TEST용 Minus 리밋 
+				#endif
+				cmd"#%dj-",L_Motor_Num;														// - 커맨드
+			break;
+		
+			case F_Home_Act:		// 홈 행위
+				P_Resetting_Home_Check_Arry(L_Motor_Num) = 0;								// 개별 홈 체킹 변수 off
+				P_Home_Command(L_Motor_Num) = F_Command_Start;								// 홈 커맨드
+			break;
+
+			case F_DIO_Act:
+				//call AH_Func.DIO_Acting(L_Motor_Num);										// DIO 처리 함수 호출
+			break;
+
+			case F_Jog_Act:
+				Motor[L_Motor_Num].JogSpeed = 30;
+				cmd"#%dj=45000",L_Motor_Num;		
+			break;
+		}
+		L_Act_Check_Num++;																	// 멤버 순환 변수 증가
+	}
+	else																					// 값이 없다면
+		break;																				// while 문 탈출
+}
+rtn = N_TRUE;																				// 결과값 출력
+return;
+
+sub: Verify(Act_Element,&rtn)
+// 인자값 : Mode, 액션 요소, 액션 유닛, 결과값
+
+local L_Pre_Check_Num = 0;																	// 동작 완료 조건 확인 모터
+local L_Motor_Num = 0;																		// Motor구조체에 들어갈 L변수 → P변수는 적용 안되는 현상이 있으므로..
+local L_Rtn_Assy = 1;																		// 멤버 총 Return 값 ( 트루값으로 계속 and처리 하므로, 기본값 1로 시작 )
+P_AH_Pre_Debug_MNTR(0),N_AH_Arr_Max = 0;													// 디버그용 변수 
+
+while( L_Pre_Check_Num < P_AH_Unit_Member_EA )												// 확인 넘버 < 멤버 갯수 까지 반복
+{
+	if( P_Motor_Act_Number_Arry(L_Pre_Check_Num) != 0 )										// 액션 배열에 값이 있다면, 사전조건 감시 필요 모터
+	{
+		L_Motor_Num = P_Motor_Act_Number_Arry(L_Pre_Check_Num);								// Motor 구조체에 L변수만 대입 가능하므로, 모터 Num L변수로 이전
+		switch( Act_Element )																// 행위 요소
+		{
+			case F_Minus_Act:		// 마이너스 행위
+				#ifdef F_Virtual_Axis_Test
+				if( Motor[L_Motor_Num].SoftLimit == 1 || Motor[L_Motor_Num].SoftMinusLimit == 1 )
+				{
+					L_Rtn_Assy &= N_TRUE;													// 트루값 대입 
+					P_AH_Pre_Debug_MNTR(L_Pre_Check_Num) = N_TRUE;							// 디버그용 변수
+				}
+				#else
+				if( Motor[L_Motor_Num].MinusLimit == 1 )
+				{
+					L_Rtn_Assy &= N_TRUE;													// 트루값 대입 
+					P_AH_Pre_Debug_MNTR(L_Pre_Check_Num) = N_TRUE;							// 디버그용 변수
+				}
+				#endif
+				else
+				{
+					L_Rtn_Assy &= N_FALSE;													//  N_FALSE 
+					P_AH_Pre_Debug_MNTR(L_Pre_Check_Num) = N_FALSE;							// 디버그용 변수
+				}
+			break;
+		
+			case F_Home_Act:															// 홈 행위
+				if( P_PMAC_Homing_CHK(L_Motor_Num) == 1 )					// 홈 체크 변수 확인
+				{
+					if( P_Resetting_Home_Check_Arry(L_Motor_Num) == 1 )		// 홈 진행 종료 확인 
+					{
+						L_Rtn_Assy &= N_TRUE;											// 트루값 대입		
+						P_AH_Pre_Debug_MNTR(L_Pre_Check_Num) = N_TRUE;					// 디버그용 변수
+					}
+					else
+					{
+						L_Rtn_Assy &= N_FALSE;
+						P_AH_Pre_Debug_MNTR(L_Pre_Check_Num) = N_FALSE;					// 디버그용 변수
+					}
+				}
+				else
+				{
+					L_Rtn_Assy &= N_FALSE;												//  N_FALSE 
+					P_AH_Pre_Debug_MNTR(L_Pre_Check_Num) = N_FALSE;						// 디버그용 변수
+				}
+			break;
+
+			case F_DIO_Act:
+				// L_DIO_Rtn = 0;
+				//call AH_Func.DIO_Act_Check(P_PMAC_Homing_CHK(L_Motor_Num),&L_DIO_Rtn);	// DIO 체크 함수 호출
+				// if( L_DIO_Rtn == N_TRUE )
+				// {
+				//		L_Rtn_Assy &= N_TRUE;											// 트루값 대입		
+				//		P_AH_Pre_Debug_MNTR(L_Pre_Check_Num) = N_TRUE;					// 디버그용 변수			
+				//	}	
+				//	else
+				//	{
+				//		L_Rtn_Assy &= N_FALSE;	
+				//		P_AH_Pre_Debug_MNTR(L_Pre_Check_Num) = N_FALSE;					// 디버그용 변수
+				//	}
+			break;
+
+			case F_Jog_Act:
+				if( P_Motor_Current_Pos(L_Motor_Num) ~ P_PnP_Init_Pos )
+				{
+					L_Rtn_Assy &= N_TRUE;											// 트루값 대입		
+					P_AH_Pre_Debug_MNTR(L_Pre_Check_Num) = N_TRUE;					// 디버그용 변수
+				}
+				else
+				{
+					L_Rtn_Assy &= N_FALSE;												//  N_FALSE 
+					P_AH_Pre_Debug_MNTR(L_Pre_Check_Num) = N_FALSE;						// 디버그용 변수
+				}
+			break;
+		}
+		L_Pre_Check_Num++;													// 확인넘버 증가
+	}
+	else																	// 배열값에 값이 없다면, 시퀀스 모터 선언이 종료됨을 의미함
+		break;																// Break주어 While문 탈출!
+}
+rtn = L_Rtn_Assy;															// 리턴값 송출
+
+return;
+
+
+sub: DIO_Acting(Unit_Element)
+	switch( Unit_Element )
+	{
+		case N_Anode_1st_Vacuume:
+		break;
+
+		case N_Anode_1st_Blow:
+		break;
+
+		case N_Anode_2nd_Vaccume:
+		break;
+
+		case N_Anode_2nd_Blow:
+		break;
+
+		case N_Cathode_1st_Vacuume:
+		break;
+
+		case N_Cathode_1st_Blow:
+		break;
+
+		case N_Cathode_2nd_Vaccume:
+		break;
+
+		case N_Cathode_2nd_Blow:
+		break;
+	}
+return;
+
+sub: DIO_Act_Check(Unit_Element,&rtn)
+	switch( Unit_Element )
+	{
+		case N_Anode_1st_Vacuume:
+		break;
+
+		case N_Anode_1st_Blow:
+		break;
+
+		case N_Anode_2nd_Vaccume:
+		break;
+
+		case N_Anode_2nd_Blow:
+		break;
+
+		case N_Cathode_1st_Vacuume:
+		break;
+
+		case N_Cathode_1st_Blow:
+		break;
+
+		case N_Cathode_2nd_Vaccume:
+		break;
+
+		case N_Cathode_2nd_Blow:
+		break;
+	}
+
+return;
+*/
+
+close
+
+
+

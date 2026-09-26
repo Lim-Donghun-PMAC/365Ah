@@ -1,0 +1,229 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 26.02.05
+//  Queue_Module_단계별 스텝오버 변수 추가 - [ 참조 : 26.02.05 단계별 스텝 오버 변수 추가]
+
+
+Global P_PLC01_Total_Step_Flag = 1;		// Queue - 해당 변수 1키면 평소와 동일하게 Run
+Global P_PLC02_Total_Step_Flag = 1;		// Module - 해당 변수 1키면 평소와 동일하게 Run
+Global P_PLC014_Total_Step_Flag = 1;	// Module - 해당 변수 1키면 평소와 동일하게 Run
+
+#ifdef F_Def_Stack_A
+global P_PLC02_Total_Step_Flag2 = 1;	// 배출 모듈 프리패스
+#else
+global P_PLC02_Total_Step_Flag2 = 1;	// 배출 모듈 프리패스		// B열은 언로더 스피드콘 조절 필요하므로 자동 X
+#endif
+
+global P_Vac_Pass = 0					// 진공 패스
+global P_Vision_Pass_Exisitence = 0
+global P_Vision_Pass_Empty = 0
+global P_Vision_Pass_FirstSepa = 0
+global P_Vision_Pass_Stack_Inspection = 0
+global P_ULD_Home_Pass = 0
+
+// 260529 클램프 극판 두께만큼 하강 하지 않도록 수정
+global P_Clamp_Cell_Down_Use = 0		// 클램프 극판 두께만큼 하강 on/off 변수
+
+global P_FR_Clamp_Use_Test = 1;			// 배출 시 FR Clamp 사용 미사용	
+
+global P_Door_Interlock_Use_Flag = 0;		// 릴컷 도어 오픈 인터락 사용 미사용
+
+//     M_X_PLC_Anode_Sheet_Ready->*		// 극판 포인팅 제거
+//     M_X_PLC_Cathode_Sheet_Ready->*   // 극판 포인팅 제거
+//     M_X_PLC_Anode_Sheet_Ready = 1    // 레디 신호 1
+//     M_X_PLC_Cathode_Sheet_Ready = 1  // 레디 신호 1
+//	  [↑ 벨트 공급 수동으로 할 때만 끌어치기]
+
+
+//     P_Temp_Run_Mode = 1				// 극판 데이터 패스
+
+//     P_Vac_Pass = 1					// 진공패스
+
+//	   P_Tension_Ready_Pass = 1			// 텐션 레디 패스
+
+//     P_ULD_Home_Pass = 1				// 리세팅 시 언로더 인터락 패스
+
+//     P_Vision_Pass = 1					// 비전 패스
+//	   P_Vision_Pass_Exisitence = 1			// 유무검사 패스
+//	   P_Vision_Pass_Empty = 1				// 빈테이블 패스
+//	   P_Vision_Pass_FirstSepa = 1			// 세파 첫장 검사 패스
+//	   P_Vision_Pass_Stack_Inspection = 1   // 스택 검사 패스
+
+
+//     P_FR_Clamp_Use_Test = 1			// 배출 시 파이널롤러 언클램프 안하게 막는 변수
+
+
+
+// 세파 안걸려있을때만
+//	   P_Tension_Ready_Pass = 1			// 텐션 레디 패스
+
+
+
+//세파모드 시 프리패스 아직 비전 사용x
+//P_Act_Execute_Complete_Bit(N_Act_Vision_Check)=1
+//P_Act_Execute_Complete_Bit(N_Act_EPC_Judge)=1
+
+
+// ng 발생 flag
+// P_Anode_Retry_NG_Flag = 1;                   	// 음극 얼라인 비젼 내부 NG 플래그
+// P_Cathode_Retry_NG_Flag = 1;                 	// 양극 얼라인 비젼 내부 NG 플래그
+// P_Anode_Align_NG_Flag = 1;						// 음극 얼라인 비젼 내부 NG 플래그
+// P_Cathode_Align_NG_Flag = 1;                     // 양극 얼라인 비젼 내부 NG 플래그
+// P_Stack_Table_NG_Flag = 1;                       // 스텍 얼라인 비젼 내부 NG 플래그
+
+
+
+// 진공이 시끄럽다면 진공이 꺼진상태로 해당 포인팅 풀면 아주 조용...
+
+
+// 시트페이퍼는 세파 쌓을 땐 풀면 안됩니다
+//M5085->*	//시트페이퍼 진공
+//M5086->*	//시트페이퍼 진공
+
+//M_Y_Cathode_1st_Vac_Sol_On->*
+//M_Y_Cathode_1st_Vac_Sol_Off->*
+
+//M_Y_Cathode_2nd_Vac_Sol_On->*  
+//M_Y_Cathode_2nd_Vac_Sol_Off->* 
+
+//M_Y_Anode_1st_Vac_Sol_On->*  
+//M_Y_Anode_1st_Vac_Sol_Off->* 
+
+//M_Y_Anode_2nd_Vac_Sol_On->*   
+//M_Y_Anode_2nd_Vac_Sol_Off->*  
+
+//M_Y_Cathode_AT_Vac_Ejector_Vac_On->*   
+//M_Y_Cathode_AT_Vac_Ejector_Vac_Off->*  
+
+//M_Y_Anode_AT_Vac_Ejector_Vac_On->*     
+//M_Y_Anode_AT_Vac_Ejector_Vac_Off->*    
+
+
+//M_Y_Cathode_NG_PNP_Ejector_Vac_On->*	
+//M_Y_Cathode_NG_PNP_Ejector_Vac_Off->* 
+//M_Y_Anode_NG_PNP_Ejector_Vac_On->*    
+//M_Y_Anode_NG_PNP_Ejector_Vac_Off->*   
+
+
+
+
+//===================
+// Queue 
+//===================  
+// 1) EXECUTE
+Global P_PLC01_Exe_Is_Ena_Step_Flag(10) = 0;	// Is_Enable 단계별 Step 확인 후 점프
+P_PLC01_Exe_Is_Ena_Step_Flag(0),10,1 = 0;
+Global P_PLC01_Exe_Fist_Sepa_Step_Flag(10) = 0;	// Fisrt Sepa Mode 단계별 Step 확인 후 점프
+P_PLC01_Exe_Fist_Sepa_Step_Flag(0),10,1 = 0;
+Global P_PLC01_Exe_Prod_Step_Flag(5) = 0;		// 생산 단계별 Step 확인 후 점프
+P_PLC01_Exe_Prod_Step_Flag(0),5,1 = 0;
+// 2) HOLD
+Global P_PLC01_HOLD_Insp_Step_Flag(10) = 0;		// 극판 유무 검사 단계별 Step 확인 후 점프
+P_PLC01_HOLD_Insp_Step_Flag(0),10,1 = 0;	
+Global P_PLC01_HOLD_Main_Step_Flag(15) = 0;		// 극판 제거 및 공급 단계별 Step 확인 후 점프
+P_PLC01_HOLD_Main_Step_Flag(0),15,1 = 0;
+// 3) SUSPEND
+Global P_PLC01_Sus_Discharge_Step_Flag(10) = 0;	// 배출
+P_PLC01_Sus_Discharge_Step_Flag(0),10,1 = 0;
+Global P_PLC01_Sus_ARC_Step_Flag(10) = 0;		// ARC
+P_PLC01_Sus_ARC_Step_Flag(0),10,1 = 0;
+// 4) STOPPING
+Global P_PLC01_STOP_Init_Step_Flag(10) = 0;		// 프로그램 정지
+P_PLC01_STOP_Init_Step_Flag(0),10,1 = 0;
+Global P_PLC01_STOP_Cycle_ST_Step_Flag(15) = 0;	// 사이클스탑
+P_PLC01_STOP_Cycle_ST_Step_Flag(0),15,1 = 0;
+
+//===================
+// Module
+//=================== 
+// 1) EXECUTE
+Global P_PLC02_Exe_Module_First_Sepa_Step_Flag = 0;			// 모듈 - EXECUTE - 세파 첫장모듈
+// 2) SUSPEND		
+Global P_PLC02_Sus_Module_Discharge_Step_Flag = 0;			// 모듈 - SUSPEND - 배출
+Global P_PLC02_Sus_Module_ARC_Step_Flag = 0;				// 모듈 - SUSPEND - ARC
+Global P_PLC02_Sus_Module_1TR_Supply_Step_Flag = 0;			// 모듈 - SUSPEND - 배출 중, 1TR 공급 
+// 3) HOLD
+Global P_PLC02_HOLD_Module_Insp_Step_Flag = 0;				// 모듈 - HOLD - 극판 유무검사
+
+Global P_PLC02_HOLD_Module_Remove_NGPNP_Step_Flag = 0;		// 모듈 - HOLD - 제거 "NGPNP" 
+Global P_PLC02_HOLD_Module_Remove_Align_Step_Flag = 0;		// 모듈 - HOLD - 제거 "Align" 
+Global P_PLC02_HOLD_Module_Remove_2TR_Step_Flag = 0;		// 모듈 - HOLD - 제거 "2TR"
+
+Global P_PLC02_HOLD_Module_Supply_1TR_Step_Flag = 0;		// 모듈 - HOLD - 공급 "1TR"
+Global P_PLC02_HOLD_Module_Supply_Align_Step_Flag = 0;		// 모듈 - HOLD - 공급 "Align" 
+Global P_PLC02_HOLD_Module_Supply_2TR_Step_Flag = 0;		// 모듈 - HOLD - 공급 "2TR"
+
+Global P_PLC02_HOLD_Module_SemiRun_Pos_Step_Flag = 0;		// 모듈 - HOLD - 이동 "세미런 위치"
+
+// 4) STOPPING
+Global P_PLC14_STOP_Module_Cycle_Stop_Step_Flag = 0;		// 모듈 - STOP - 사이클정지
+
+// 박성민 지우기
+global P_PLC02_Discharge_MNTR = 0;
+
+#define N_EMS_ON			1
+#define N_EMS_OFF			0
+
+
+
+
+
+
+
+
+// 2607023 ecat 부하율, 속도 모니터링 변수 추가
+#define M_EPC_SENSOR_Load_Ratio		M6033   // sys.M[6033]
+#define M_STACK_VISION_Load_Ratio	M6034   // sys.M[6034]
+#define M_SHEET_PAPER_X_Load_Ratio	M6035   // sys.M[6035]
+#define M_Align_CA_X_Load_Ratio		M6036   // sys.M[6036]
+#define M_Align_CA_Y_Load_Ratio		M6037   // sys.M[6037]
+#define M_Align_CA_T_Load_Ratio		M6038   // sys.M[6038]
+#define M_Align_AN_X_Load_Ratio		M6039   // sys.M[6039]
+#define M_Align_AN_Y_Load_Ratio		M6040   // sys.M[6040]
+#define M_Align_AN_T_Load_Ratio		M6041   // sys.M[6041]
+#define M_NG_PnP_CA_T_Load_Ratio	M6042   // sys.M[6042]
+#define M_NG_PnP_AN_T_Load_Ratio	M6043   // sys.M[6043]
+#define M_NG_PnP_CA_Z_Load_Ratio	M6044   // sys.M[6044]
+#define M_NG_PnP_AN_Z_Load_Ratio	M6045   // sys.M[6045]
+#define M_UNLOADER_X_Load_Ratio		M6046   // sys.M[6046]
+#define M_UNLOADER_Z_Load_Ratio		M6047   // sys.M[6047]
+#define M_UNLOADER_T_Load_Ratio		M6048   // sys.M[6048]
+
+
+// 2607023 ecat 부하율, 속도 모니터링 변수 추가 - m변수 사이즈 16bit로 변경
+M_EPC_SENSOR_Load_Ratio->*I.16		
+M_STACK_VISION_Load_Ratio->*I.16	
+M_SHEET_PAPER_X_Load_Ratio->*I.16	
+M_Align_CA_X_Load_Ratio->*I.16		
+M_Align_CA_Y_Load_Ratio->*I.16		
+M_Align_CA_T_Load_Ratio->*I.16		
+M_Align_AN_X_Load_Ratio->*I.16		
+M_Align_AN_Y_Load_Ratio->*I.16		
+M_Align_AN_T_Load_Ratio->*I.16		
+M_NG_PnP_CA_T_Load_Ratio->*I.16	
+M_NG_PnP_AN_T_Load_Ratio->*I.16	
+M_NG_PnP_CA_Z_Load_Ratio->*I.16	
+M_NG_PnP_AN_Z_Load_Ratio->*I.16	
+M_UNLOADER_X_Load_Ratio->*I.16		
+M_UNLOADER_Z_Load_Ratio->*I.16		
+M_UNLOADER_T_Load_Ratio->*I.16		
+
+
+
+#define P_EPC_SENSOR_Load_Ratio			P133		
+#define P_STACK_VISION_Load_Ratio		P134	
+#define P_SHEET_PAPER_X_Load_Ratio		P135	
+#define P_Align_CA_X_Load_Ratio			P136		
+#define P_Align_CA_Y_Load_Ratio			P137		
+#define P_Align_CA_T_Load_Ratio			P138		
+#define P_Align_AN_X_Load_Ratio			P139		
+#define P_Align_AN_Y_Load_Ratio			P140		
+#define P_Align_AN_T_Load_Ratio			P141		
+#define P_NG_PnP_CA_T_Load_Ratio		P142	
+#define P_NG_PnP_AN_T_Load_Ratio		P143	
+#define P_NG_PnP_CA_Z_Load_Ratio		P144	
+#define P_NG_PnP_AN_Z_Load_Ratio		P145	
+#define P_UNLOADER_X_Load_Ratio			P146		
+#define P_UNLOADER_Z_Load_Ratio			P147		
+#define P_UNLOADER_T_Load_Ratio			P148		

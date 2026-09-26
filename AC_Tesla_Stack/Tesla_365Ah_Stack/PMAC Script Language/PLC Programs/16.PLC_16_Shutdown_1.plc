@@ -1,0 +1,23 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.10.15 
+// Shut Down PLC Script 
+
+open plc 16
+
+disable plc 0..15
+disable plc 17..31
+
+// shutdown 시 필요 사항이 있다면 추가해주세요.
+// Background C 해제
+Sys_Kill_MC_Protocol = 1;			// mc protocol unlink
+call Timer.sec(1);
+M_Y_to_MC_Protocol_Connected = 0;
+Sys_Kill_Manual_BG_C = 1;			// BG C unlink
+call Timer.sec(1);
+
+cmd"#*k";							// Motor All Kill
+disable plc 16						// 16plc kill
+
+close

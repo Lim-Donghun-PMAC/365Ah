@@ -1,0 +1,672 @@
+
+open subprog Sub_Unit_Memory_Status(void)
+
+sub: Initialize(&rtn)
+
+	P_Recipe_1st_MotorNo(12) = -165;				// 음극위치 or 세파 첫장 ( 대기위치 )
+	P_Recipe_2nd_MotorNo(12) =	165;				// 양극위치
+	P_Recipe_3rd_MotorNo(12) = -200;				// 배출위치 
+	P_Recipe_4th_MotorNo(12) = N_NOT_EXIST_VALUE;			
+	P_Recipe_5th_MotorNo(12) = N_NOT_EXIST_VALUE;
+	P_Recipe_6th_MotorNo(12) = N_NOT_EXIST_VALUE;
+	// Z
+	P_Recipe_1st_MotorNo(13) = 22;					// 음극 적층위치
+	P_Recipe_2nd_MotorNo(13) = N_NOT_EXIST_VALUE;					//  	
+	P_Recipe_3rd_MotorNo(13) = 22;					// 양극 정층위치 
+	P_Recipe_4th_MotorNo(13) = N_NOT_EXIST_VALUE;					//
+	P_Recipe_5th_MotorNo(13) = 0;					// 배출위치 
+	P_Recipe_6th_MotorNo(13) = 10;					// 컷팅위치
+
+// #9 Main Z test
+	P_Recipe_1st_MotorNo(11) = 0;			// 대기 위치		
+	P_Recipe_2nd_MotorNo(11) = p999;		//변수로 할지?;					// 배출 위치	( 서브 z축느낌임 적층마다 값이 달라짐 )		
+	P_Recipe_3rd_MotorNo(11) = N_NOT_EXIST_VALUE;		
+	P_Recipe_4th_MotorNo(11) = N_NOT_EXIST_VALUE;		
+	P_Recipe_5th_MotorNo(11) = N_NOT_EXIST_VALUE;
+	P_Recipe_6th_MotorNo(11) = N_NOT_EXIST_VALUE;		
+
+// #4,#5,#6 Anode clamp test
+	// Y1
+	P_Recipe_1st_MotorNo(6) = -20;			// CLP OFF & 대기위치
+	P_Recipe_2nd_MotorNo(6) = 20;			// CLP ON ;	
+	P_Recipe_3rd_MotorNo(6) = N_NOT_EXIST_VALUE;
+	P_Recipe_4th_MotorNo(6) = N_NOT_EXIST_VALUE;	
+	P_Recipe_5th_MotorNo(6) = N_NOT_EXIST_VALUE;	
+	P_Recipe_6th_MotorNo(6) = N_NOT_EXIST_VALUE;	
+	// Y2
+	P_Recipe_1st_MotorNo(8) = -20;			// CLP OFF & 대기위치
+	P_Recipe_2nd_MotorNo(8) = 20;			// CLP ON 
+	P_Recipe_3rd_MotorNo(8) = N_NOT_EXIST_VALUE;
+	P_Recipe_4th_MotorNo(8) = N_NOT_EXIST_VALUE;	
+	P_Recipe_5th_MotorNo(8) = N_NOT_EXIST_VALUE;	
+	P_Recipe_6th_MotorNo(8) = N_NOT_EXIST_VALUE;
+	// Z
+	P_Recipe_1st_MotorNo(10) = 20;			// CLP OFF & 대기위치
+	P_Recipe_2nd_MotorNo(10) = 0;			// CLP ON ;	
+	P_Recipe_3rd_MotorNo(10) = 20;			// CLP OFF & 대기위치 
+	P_Recipe_4th_MotorNo(10) = 0;			// CLP ON ;	
+	P_Recipe_5th_MotorNo(10) = N_NOT_EXIST_VALUE;	
+	P_Recipe_6th_MotorNo(10) = N_NOT_EXIST_VALUE;
+// #10,#11,#12 Cathode Clamp
+	// Y1
+	P_Recipe_1st_MotorNo(5) = -20;			// CLP OFF & 대기위치
+	P_Recipe_2nd_MotorNo(5) = 20;			// CLP ON ;	
+	P_Recipe_3rd_MotorNo(5) = N_NOT_EXIST_VALUE;
+	P_Recipe_4th_MotorNo(5) = N_NOT_EXIST_VALUE;	
+	P_Recipe_5th_MotorNo(5) = N_NOT_EXIST_VALUE;	
+	P_Recipe_6th_MotorNo(5) = N_NOT_EXIST_VALUE;	
+	// Y2
+	P_Recipe_1st_MotorNo(7) = -20;			// CLP OFF & 대기위치
+	P_Recipe_2nd_MotorNo(7) = 20;			// CLP ON 
+	P_Recipe_3rd_MotorNo(7) = N_NOT_EXIST_VALUE;
+	P_Recipe_4th_MotorNo(7) = N_NOT_EXIST_VALUE;	
+	P_Recipe_5th_MotorNo(7) = N_NOT_EXIST_VALUE;	
+	P_Recipe_6th_MotorNo(7) = N_NOT_EXIST_VALUE;
+	// Z
+	P_Recipe_1st_MotorNo(9) = 20;			// CLP OFF & 대기위치
+	P_Recipe_2nd_MotorNo(9) = 0;			// CLP ON ;
+	P_Recipe_3rd_MotorNo(9) = 20;			// CLP OFF & 대기위치
+	P_Recipe_4th_MotorNo(9) = 0;			// CLP ON ;
+	P_Recipe_5th_MotorNo(9) = N_NOT_EXIST_VALUE;	
+	P_Recipe_6th_MotorNo(9) = N_NOT_EXIST_VALUE;
+
+// #15,#16 Cathode 1st PNP
+	// T
+	P_Recipe_1st_MotorNo(1) = 0;				// 대기위치
+	P_Recipe_2nd_MotorNo(1) = 150;				// 벨트위치
+	P_Recipe_3rd_MotorNo(1) = -150;			// 얼라인위치
+	P_Recipe_4th_MotorNo(1) = N_NOT_EXIST_VALUE;			 
+	P_Recipe_5th_MotorNo(1) = N_NOT_EXIST_VALUE;			 
+	P_Recipe_6th_MotorNo(1) = N_NOT_EXIST_VALUE;			 
+	// Z
+	P_Recipe_1st_MotorNo(17) = -10;				// 대기상승
+	P_Recipe_2nd_MotorNo(17) =	10;				// 대기하강
+	P_Recipe_3rd_MotorNo(17) = -10;;			// 벨트상승
+	P_Recipe_4th_MotorNo(17) = 10;;				// 벨트하강
+	P_Recipe_5th_MotorNo(17) = -10;;			// 얼라인 상승
+	P_Recipe_6th_MotorNo(17) = 10;;				// 얼라인 하강
+
+// #1,#2 Anode 1st PNP
+	// T
+	P_Recipe_1st_MotorNo(2) = 0;				// 대기위치
+	P_Recipe_2nd_MotorNo(2) = 150;				// 벨트위치
+	P_Recipe_3rd_MotorNo(2) = -150;				// 얼라인위치
+	P_Recipe_4th_MotorNo(2) = N_NOT_EXIST_VALUE;			 
+	P_Recipe_5th_MotorNo(2) = N_NOT_EXIST_VALUE;			 
+	P_Recipe_6th_MotorNo(2) = N_NOT_EXIST_VALUE;			 
+	// Z
+	P_Recipe_1st_MotorNo(18) = -10;				// 대기상승
+	P_Recipe_2nd_MotorNo(18) =	10;				// 대기하강
+	P_Recipe_3rd_MotorNo(18) = -10;				// 벨트상승
+	P_Recipe_4th_MotorNo(18) = 10;				// 벨트하강
+	P_Recipe_5th_MotorNo(18) = -10;				// 얼라인 상승
+	P_Recipe_6th_MotorNo(18) = 10;				// 얼라인 하강
+	
+// #13,#14 Cathode 2nd PNP
+	// T
+	P_Recipe_1st_MotorNo(3) = -150;			// 얼라인위치(대기위치)
+	P_Recipe_2nd_MotorNo(3) = 150;				// 스택위치
+	P_Recipe_3rd_MotorNo(3) = N_NOT_EXIST_VALUE;		// NG회피위치(45도)
+	P_Recipe_4th_MotorNo(3) = N_NOT_EXIST_VALUE;			 
+	P_Recipe_5th_MotorNo(3) = N_NOT_EXIST_VALUE;			 
+	P_Recipe_6th_MotorNo(3) = N_NOT_EXIST_VALUE;			 
+	// Z
+	P_Recipe_1st_MotorNo(19) = -10;				// 얼라인상승
+	P_Recipe_2nd_MotorNo(19) = 10;				// 얼라인하강
+	P_Recipe_3rd_MotorNo(19) = -10;				// 스택상승
+	P_Recipe_4th_MotorNo(19) = 10;				// 스택하강
+	P_Recipe_5th_MotorNo(19) = -20;				// NG회피상승
+	P_Recipe_6th_MotorNo(19) = 10;				// NG회피하강
+
+// #3,#25 Anode 2nd PNP
+	// T
+	P_Recipe_1st_MotorNo(4) = -150;				// 얼라인위치(대기위치)
+	P_Recipe_2nd_MotorNo(4) = 150;				// 스택위치
+	P_Recipe_3rd_MotorNo(4) = N_NOT_EXIST_VALUE;// NG회피위치(45도)
+	P_Recipe_4th_MotorNo(4) = N_NOT_EXIST_VALUE; 
+	P_Recipe_5th_MotorNo(4) = N_NOT_EXIST_VALUE; 
+	P_Recipe_6th_MotorNo(4) = N_NOT_EXIST_VALUE; 
+	// Z
+	P_Recipe_1st_MotorNo(20) = -10;				// 얼라인상승(대기위치)
+	P_Recipe_2nd_MotorNo(20) = 10;				// 얼라인하강(대기위치)
+	P_Recipe_3rd_MotorNo(20) = -10;				// 스택상승
+	P_Recipe_4th_MotorNo(20) = 10;				// 스택하강
+	P_Recipe_5th_MotorNo(20) = -20;				// NG회피상승
+	P_Recipe_6th_MotorNo(20) = 10;				// NG회피하강
+
+// #24 Sheet Paper
+	// X
+	P_Recipe_1st_MotorNo(35) = 50;				// 후진(대기위치)
+	P_Recipe_2nd_MotorNo(35) = 0;				// 전진
+	P_Recipe_3rd_MotorNo(35) = N_NOT_EXIST_VALUE;			
+	P_Recipe_4th_MotorNo(35) = N_NOT_EXIST_VALUE;			
+	P_Recipe_5th_MotorNo(35) = N_NOT_EXIST_VALUE;			
+	P_Recipe_6th_MotorNo(35) = N_NOT_EXIST_VALUE;			
+
+// #19,20 Cathode NG PNP
+	// T
+	P_Recipe_1st_MotorNo(42) = 0;					// NG박스위치(대기위치)
+	P_Recipe_2nd_MotorNo(42) = 150;					// 얼라인위치
+	P_Recipe_3rd_MotorNo(42) = N_NOT_EXIST_VALUE;		
+	P_Recipe_4th_MotorNo(42) = N_NOT_EXIST_VALUE;			 
+	P_Recipe_5th_MotorNo(42) = N_NOT_EXIST_VALUE;			 
+	P_Recipe_6th_MotorNo(42) = N_NOT_EXIST_VALUE;			 
+	// Z
+	P_Recipe_1st_MotorNo(44) = -10;					// NG박스상승(대기상승)
+	P_Recipe_2nd_MotorNo(44) = 10;					// NG박스하강(대기하강)
+	P_Recipe_4th_MotorNo(44) = -10;					// 얼라인상승
+	P_Recipe_3rd_MotorNo(44) = 10;					// 얼라인하강
+	P_Recipe_5th_MotorNo(44) = N_NOT_EXIST_VALUE;			
+	P_Recipe_6th_MotorNo(44) = N_NOT_EXIST_VALUE;			
+		
+// #17,#18 Anode NG PNP
+	// T
+	P_Recipe_1st_MotorNo(43) = 0;			// NG박스위치(대기위치)
+	P_Recipe_2nd_MotorNo(43) = 150;			// 얼라인위치
+	P_Recipe_3rd_MotorNo(43) = N_NOT_EXIST_VALUE;		
+	P_Recipe_4th_MotorNo(43) = N_NOT_EXIST_VALUE;			 
+	P_Recipe_5th_MotorNo(43) = N_NOT_EXIST_VALUE;			 
+	P_Recipe_6th_MotorNo(43) = N_NOT_EXIST_VALUE;			 
+	// Z
+	P_Recipe_1st_MotorNo(45) = -10;					// NG박스상승(대기상승)
+	P_Recipe_2nd_MotorNo(45) = 10;					// NG박스하강(대기하강)
+	P_Recipe_4th_MotorNo(45) = -10;					// 얼라인상승
+	P_Recipe_3rd_MotorNo(45) = 10;					// 얼라인하강
+	P_Recipe_5th_MotorNo(45) = N_NOT_EXIST_VALUE;			
+	P_Recipe_6th_MotorNo(45) = N_NOT_EXIST_VALUE;			
+
+// #21,#22,#23 1st_Unloader
+	// x
+	P_Recipe_1st_MotorNo(46) = 0;			// 대기위치
+	P_Recipe_2nd_MotorNo(46) = 300;			// 배출위치
+	P_Recipe_3rd_MotorNo(46) = 0;			// 대기위치	
+	P_Recipe_4th_MotorNo(46) = 300;			// 배출위치	 
+	P_Recipe_5th_MotorNo(46) = 0;			// 대기위치		 
+	P_Recipe_6th_MotorNo(46) = 300;			// 배출위치		 
+	// Z
+	P_Recipe_1st_MotorNo(47) = 0;			// 대기위치(언그립)
+	P_Recipe_2nd_MotorNo(47) = 50;			// 그립위치
+	P_Recipe_4th_MotorNo(47) = 0;			// 대기위치(언그립)
+	P_Recipe_3rd_MotorNo(47) = 50;			// 그립위치
+	P_Recipe_5th_MotorNo(47) = 0;			// 대기위치(언그립)		
+	P_Recipe_6th_MotorNo(47) = 50;			// 그립위치		
+	// T
+	P_Recipe_1st_MotorNo(48) = 0;			// 대기위치
+	P_Recipe_2nd_MotorNo(48) = 100;			// 2차언로더위치
+	P_Recipe_3rd_MotorNo(48) = 0;			// 대기위치	
+	P_Recipe_4th_MotorNo(48) = 100;			// 2차언로더위치		 
+	P_Recipe_5th_MotorNo(48) = 0;			// 대기위치		 
+	P_Recipe_6th_MotorNo(48) = 100;			// 2차언로더위치
+
+	rtn = N_TRUE;
+
+return;
+
+sub:individual_mode(Unit,&Unit_Status_rtn,&rtn)
+
+	local L_Memory_Result = 0;				// 결과
+	local L_Unit_Combie = 0;				// 유닛 업데이트 변수 
+
+	P_X_Axis_Num = 0;					// X축 모터 번호
+	P_Y_Axis_Num = 0;					// Y축 모터 번호
+	P_Z_Axis_Num = 0;					// Z축 모터 번호
+	
+	P_X_Unit = 0;						// X축 모터 위치 받아오는 변수
+	P_Y_Unit = 0;						// Y축 모터 위치 받아오는 변수
+	P_Z_Unit = 0;						// Z축 모터 위치 받아오는 변수
+		 
+
+		Switch(Unit)
+		{
+			case F_Anode_1st_PNP :	// [2] T [18] Z
+				L_Unit_Combie = N_Memory_1st_PNP;		// 통합 위치 업데이트 시 필요
+				P_X_Unit = F_Anode_1st_T_Axis;			// 음극 1차 PNP T축 모터 위치 변수
+				P_Z_Unit = F_Anode_1st_Z_Axis;			// 음극 1차 PNP Z축 모터 위치 변수
+				P_X_Axis_Num = 2;						// 음극 1차 PNP T축 모터 번호		
+				P_Z_Axis_Num = 18;						// 음극 1차 PNP Z축 모터 번호
+				L_Memory_Result = N_TRUE;
+			break;
+			
+			case F_Anode_2nd_PNP :	// [4] T [20] Z
+				L_Unit_Combie = N_Memory_2nd_PNP;		// 통합 위치 업데이트 시 필요
+				P_X_Unit = F_Anode_2nd_T_Axis;
+				P_Z_Unit = F_Anode_2nd_Z_Axis;
+				P_X_Axis_Num = 4;			
+				P_Z_Axis_Num = 20;
+				L_Memory_Result = N_TRUE;
+			break;		
+			
+			case F_Anode_Clamp :	// [6] Y1 [8] Y2 [10] Z 
+				L_Unit_Combie = N_Memory_CLP;			// 통합 위치 업데이트 시 필요
+				P_X_Unit = F_Anode_CLP_Y1_Axis;			// 변수는 X축이지만, Y1 값을 가지고 있음 ( Y1,Y2로변수 나누기 싫어서 남는거 사용 )
+				P_Y_Unit = F_Anode_CLP_Y2_Axis;			// 음극 Y2 축
+				P_Z_Unit = F_Anode_CLP_Z_Axis;			// 음극 Z축 
+				P_X_Axis_Num = 6;						// 변수는 X축이지만, Y1 값을 가지고 있음 ( Y1,Y2로변수 나누기 싫어서 남는거 사용 )
+				P_Y_Axis_Num = 8;						// 음극 클램프 Y2
+				P_Z_Axis_Num = 10;						// 음극 클램프 Z
+				L_Memory_Result = N_TRUE;
+			break;		
+			
+			case F_Final_Roll :		// [12] X [13] Z
+				L_Unit_Combie = N_Memory_FinalRoller;		// 통합 위치 업데이트 시 필요
+				P_X_Unit = F_FinalRoll_X_Axis;
+				P_Z_Unit = F_FinalRoll_Z_Axis;
+				P_X_Axis_Num = 12;			
+				P_Z_Axis_Num = 13;
+				L_Memory_Result = N_TRUE;
+			break;
+			
+			case F_Stack_Table :	// [11] Z
+				L_Unit_Combie = N_Memory_StackTable;		// 통합 위치 업데이트 시 필요
+				P_Z_Unit = F_Main_ST_Z_Axis;				
+				P_Z_Axis_Num = 11;							// 메인 Z축
+				L_Memory_Result = N_TRUE;
+			break;			
+			
+			case F_Cathode_Clamp :	// [5] Y1 [7] Y2 [9] Z
+				L_Unit_Combie = N_Memory_CLP;			// 통합 위치 업데이트 시 필요
+				P_X_Unit = F_Cathode_CLP_Y1_Axis;		// 변수는 X축이지만, Y1 값을 가지고 있음 ( Y1,Y2로변수 나누기 싫어서 남는거 사용 )
+				P_Y_Unit = F_Cathode_CLP_Y2_Axis;		// 음극 Y2 축
+				P_Z_Unit = F_Cathode_CLP_Z_Axis;		// 음극 Z축 
+				P_X_Axis_Num = 5;						// 변수는 X축이지만, Y1 값을 가지고 있음 ( Y1,Y2로변수 나누기 싫어서 남는거 사용 )
+				P_Y_Axis_Num = 7;						// 음극 클램프 Y2
+				P_Z_Axis_Num = 9;						// 음극 클램프 Z
+				L_Memory_Result = N_TRUE;
+			break;		
+			
+					
+			case F_Cathode_2nd_PNP :	// [3] T [19] Z
+				L_Unit_Combie = N_Memory_2nd_PNP;		// 통합 위치 업데이트 시 필요
+				P_X_Unit = F_Cathode_2nd_T_Axis;		// 2nd PNP T축
+				P_Z_Unit = F_Cathode_2nd_Z_Axis;		// 2nd PNP Z축
+				P_X_Axis_Num = 3;			
+				P_Z_Axis_Num = 19;
+				L_Memory_Result = N_TRUE;
+			break;		
+			
+			case F_Cathode_1st_PNP :	// [1] T [17] Z
+				L_Unit_Combie = N_Memory_1st_PNP;		// 통합 위치 업데이트 시 필요
+				P_X_Unit = F_Cathode_1st_T_Axis;		// 1st PNP T
+				P_Z_Unit = F_Cathode_1st_Z_Axis;		// 1st PNP Z
+				P_X_Axis_Num = 1;			
+				P_Z_Axis_Num = 17;
+				L_Memory_Result = N_TRUE;
+			break;
+			
+			case F_Anode_NG_PNP :		// [43] T [45] Z 
+				L_Unit_Combie = N_Memory_NG_PNP;		// 통합 위치 업데이트 시 필요
+				P_X_Unit = F_Anode_NG_T_Axis;			// Anode NG PNP T
+				P_Z_Unit = F_Anode_NG_Z_Axis;			// Anode NG PNP z
+				P_X_Axis_Num = 43;			
+				P_Z_Axis_Num = 45;
+				L_Memory_Result = N_TRUE;
+			break;
+			
+			case F_Cathode_NG_PNP :		// [42] T [44] Z
+				L_Unit_Combie = N_Memory_NG_PNP;		// 통합 위치 업데이트 시 필요
+				P_X_Unit = F_Anode_NG_T_Axis;			// Cathode NG PNP T
+				P_Z_Unit = F_Anode_NG_Z_Axis;			// Cathode NG PNP z
+				P_X_Axis_Num = 42;			
+				P_Z_Axis_Num = 44;
+				L_Memory_Result = N_TRUE;
+			break;
+			
+			case F_1st_Unloader :		// [46] X [47] Z [48] T
+				L_Unit_Combie = N_Memory_1st_Unloader;			// 통합 위치 업데이트 시 필요
+				P_X_Unit = F_Cathode_1st_Unloader_X_Axis;		// Unloader x
+				P_Z_Unit = F_Cathode_1st_Unloader_Z_Axis;		// Unloader Z
+				P_Y_Unit = F_Cathode_1st_Unloader_T_Axis;		// Unloader T
+				P_X_Axis_Num = 46;								 
+				P_Z_Axis_Num = 47;								 
+				P_Y_Axis_Num = 48;							 
+				L_Memory_Result = N_TRUE;
+			break;
+			
+			case F_Sheet_Paper :		// [35] X
+				L_Unit_Combie = N_Memory_Sheet_Paper;			// 통합 위치 업데이트 시 필요
+				P_X_Unit = F_Cathode_Sheet_Paper_X_Axis;		// Unloader Y
+				P_X_Axis_Num = 35;								 
+				L_Memory_Result = N_TRUE;
+			break;
+			
+			default :
+				L_Memory_Result = N_FALSE;
+			break;
+		}
+		// 레시피 초기화
+		local L_Unit_Memory_Initial_return = 0;
+		call Sub_Unit_Memory_Status.Initialize(&L_Unit_Memory_Initial_return)
+
+		if( L_Memory_Result == N_TRUE && L_Unit_Memory_Initial_return == N_TRUE )
+		{
+			
+			local L_Error_Check_Flag = 0;									// Error Check Flag 	
+			P_Pos_Memory_Bit_Save = 0;										// 초기화
+
+			// X축 위치 Get
+			if( P_X_Axis_Num != 0 )											// X축 0이라면, x축 필요없는부분
+			{
+				if( P_X_Unit ~ P_Recipe_1st_MotorNo(P_X_Axis_Num) )			// 타겟 1위치
+					P_Pos_Memory_Bit_Save |= P_bit1;						// 대기위치 비트
+				
+				else if( P_X_Unit ~ P_Recipe_2nd_MotorNo(P_X_Axis_Num) )	// 타겟 2위치
+					P_Pos_Memory_Bit_Save |= P_bit2;						// 타겟2위치 비트
+				
+				else if( P_X_Unit ~ P_Recipe_3rd_MotorNo(P_X_Axis_Num) )	// 타겟 3위치
+					P_Pos_Memory_Bit_Save |= P_bit3;						// 타겟3 위치 비트
+				
+				// 사용 미정
+				//else if( P_X_Unit ~ P_Recipe_4th_MotorNo(P_X_Axis_Num) )	// 타겟 4위치
+				//{
+				//	L_Target_Pos = 4;										// 타겟 4위치 변수
+				//	P_Pos_Memory_Bit_Save |= P_bit4;						// 타겟4 위치 비트
+				//}
+				//else if( P_X_Unit ~ P_Recipe_5th_MotorNo(P_X_Axis_Num) )	// 타겟 5위치
+				//{
+				//	L_Target_Pos = 5;										// 타겟 5위치 변수
+				//	P_Pos_Memory_Bit_Save |= P_bit5;						// 타겟5 위치 비트
+				//}
+				//else if( P_X_Unit ~ P_Recipe_6th_MotorNo(P_X_Axis_Num) )	// 타겟 6위치
+				//{
+				//	L_Target_Pos = 6;										// 타겟 6위치 변수
+				//	P_Pos_Memory_Bit_Save |= P_bit6;						// 타겟6 위치 비트
+				//}
+				else
+					L_Error_Check_Flag = 1;									// Error
+			}
+			// Z축 위치 Get 
+			if( P_Z_Axis_Num != 0 )													// Z축 모터 넘버가 0이라면 Z축이 없는 모터이므로 판단 필요 X
+			{
+				if( P_Z_Unit ~ P_Recipe_1st_MotorNo(P_Z_Axis_Num) )			// 타겟 1위치 ( 상승 )
+					P_Pos_Memory_Bit_Save |= P_bit9;						// 상승 비트 on
+				
+				else if( P_Z_Unit ~ P_Recipe_2nd_MotorNo(P_Z_Axis_Num) )	// 타겟 1위치 ( 하강 )
+					P_Pos_Memory_Bit_Save |= P_bit10;						// 하강 비트 on
+				
+				else if( P_Z_Unit ~ P_Recipe_3rd_MotorNo(P_Z_Axis_Num) )	// 타겟 2위치 ( 상승 )
+					P_Pos_Memory_Bit_Save |= P_bit9;
+
+				else if( P_Z_Unit ~ P_Recipe_4th_MotorNo(P_Z_Axis_Num) )	// 타겟 2위치 ( 하강 )
+					P_Pos_Memory_Bit_Save |= P_bit10;
+				
+				else if( P_Z_Unit ~ P_Recipe_5th_MotorNo(P_Z_Axis_Num) )	// 타겟 2위치 ( 하강 )
+				{
+					if( P_X_Axis_Num == 3 || P_X_Axis_Num == 4 )			// 2차 PNP NG 위치 = X위치가 스텍위치에서 회피를 하므로 조건추가
+						P_Pos_Memory_Bit_Save |= P_bit11;					// NG 회피위치 비트 on
+					
+					else
+						P_Pos_Memory_Bit_Save |= P_bit9;					// 상승 비트 on
+				}
+				else if( P_Z_Unit ~ P_Recipe_6th_MotorNo(P_Z_Axis_Num) )	// 타겟 2위치 ( 하강 )
+					P_Pos_Memory_Bit_Save |= P_bit10;
+				
+				else 
+					L_Error_Check_Flag = 1;									// error
+				
+			}
+			// Y축 위치 Get
+			if( P_Y_Axis_Num != 0 )											// Y축 모터 넘버가 0이라면 Y축이 없는 모터이므로 판단 필요 X
+			{
+				if( P_Y_Unit ~ P_Recipe_1st_MotorNo(P_Y_Axis_Num) )			// 타겟1 위치
+					P_Pos_Memory_Bit_Save |= P_bit17;
+				
+				else if( P_Y_Unit ~ P_Recipe_2nd_MotorNo(P_Y_Axis_Num) )	// 타겟2 위치
+					P_Pos_Memory_Bit_Save |= P_bit18;
+				
+				else if( P_Y_Unit ~ P_Recipe_3rd_MotorNo(P_Y_Axis_Num) )	// 타겟3 위치
+					P_Pos_Memory_Bit_Save |= P_bit19;
+
+				// 사용 미정
+				//else if( P_Y_Unit ~ P_Recipe_4th_MotorNo(P_Y_Axis_Num) )	// 타겟4 위치
+				//	P_Pos_Memory_Bit_Save |= P_bit20;
+				//
+				//else if( P_Y_Unit ~ P_Recipe_5th_MotorNo(P_Y_Axis_Num) )	// 타겟5 위치
+				//	P_Pos_Memory_Bit_Save |= P_bit21;
+				//
+				//else if( P_Y_Unit ~ P_Recipe_6th_MotorNo(P_Y_Axis_Num) )	// 타겟6 위치
+				//	P_Pos_Memory_Bit_Save |= P_bit22;
+				
+				else 
+					L_Error_Check_Flag = 1;									// Error
+			}
+
+			if( L_Error_Check_Flag == 1 )									// Error 
+			{
+				P_Pos_Memory_Bit_Save = F_Individual_Error;					// Bit Error 
+			}
+
+		// 결과값 리턴
+		Unit_Status_rtn = P_Pos_Memory_Bit_Save;
+		rtn = N_TRUE;
+	}
+return;
+
+sub:integrated_mode(&Status,&rtn)
+
+		 P_Total_Unit_Bit = 0;
+		 P_Total_Unit_Pos = 0 ;
+		 local L_Error_Bit_Flag = 0;
+
+// 각각의 모터 개별위치 비트를 받고, 그 위치비트에 따른 통합 위치 메모리 변수에 비트 넣어주자
+// 타임테이블 및 사이클 스탑 지점을 참고하여 통합 위치메모리는 하강 모션일때가 없으므로.... 상승부분만 체크해주면 될것같다.
+// 하강 모션이 추가된다면 추가하자.
+//================================================== 개별 위치 비트 조합 란 =============================================================================================
+	switch( P_Anode_1st_Unit_Status )		// 음극 1차 PNP
+	{
+		case F_1st_PNP_Init_Up_Pos :		// 1번비트
+			P_Total_Unit_Bit |= P_bit1;
+		break;
+
+		case F_1st_PNP_Belt_Up_Pos :		// 2번비트
+			P_Total_Unit_Bit |= P_bit2;
+		break;
+
+		case F_1st_PNP_Align_Up_Pos :		// 3번비트
+			P_Total_Unit_Bit |= P_bit3;
+		break;
+
+		default :
+			L_Error_Bit_Flag = 1;			// Error
+		break;
+	}
+	switch( P_Anode_2nd_Unit_Status )		// 음극 2차 PNP 
+	{
+		case F_2nd_PNP_Align_Up_Pos :		// 5번비트
+			P_Total_Unit_Bit |= P_bit5;
+		break;
+
+		case F_2nd_PNP_Stack_Up_Pos :		// 6번비트
+			P_Total_Unit_Bit |= P_bit6;
+		break;
+
+		case F_2nd_PNP_NG_Avoid_Up_Pos :	// 7번비트
+			P_Total_Unit_Bit |= P_bit7;
+		break;
+
+		default :
+			L_Error_Bit_Flag = 1;			// Error
+		break;
+	}
+	switch( P_Cathode_1st_Unit_Status )		// 양극 1차 PNP
+	{
+		case F_1st_PNP_Init_Up_Pos :		// 9번비트
+			P_Total_Unit_Bit |= P_bit9;
+		break;
+
+		case F_1st_PNP_Belt_Up_Pos :		// 10번비트
+			P_Total_Unit_Bit |= P_bit10;
+		break;
+
+		case F_1st_PNP_Align_Up_Pos :		// 11번비트
+			P_Total_Unit_Bit |= P_bit11;
+		break;
+
+		default :
+			L_Error_Bit_Flag = 1;			// Error
+		break;
+	}
+	switch( P_Cathode_2nd_Unit_Status )		// 양극 2차 PNP 
+	{
+		case F_2nd_PNP_Align_Up_Pos :		// 13번비트
+			P_Total_Unit_Bit |= P_bit13;
+		break;
+
+		case F_2nd_PNP_Stack_Up_Pos :		// 14번비트
+			P_Total_Unit_Bit |= P_bit14;
+		break;
+
+		case F_2nd_PNP_NG_Avoid_Up_Pos :	// 15번비트
+			P_Total_Unit_Bit |= P_bit15;
+		break;
+
+		default :
+			L_Error_Bit_Flag = 1;			// Error
+		break;
+	}
+	switch( P_Anode_CLP_Unit_Status )		// 음극 클램프
+	{
+		case F_Clamp_Off_Pos :				// 17번비트
+			P_Total_Unit_Bit |= P_bit17;
+		break;
+
+		case F_Clamp_On_Pos :				// 18번비트
+			P_Total_Unit_Bit |= P_bit18;
+		break;
+
+		default:
+			L_Error_Bit_Flag = 1;
+		break;
+	}
+	switch( P_Cathode_CLP_Unit_Status )		// 양극 클램프
+	{
+		case F_Clamp_Off_Pos :				// 21번비트
+			P_Total_Unit_Bit |= P_bit21;
+		break;
+
+		case F_Clamp_On_Pos :				//	22번비트
+			P_Total_Unit_Bit |= P_bit22;
+		break;
+
+		default:
+			L_Error_Bit_Flag = 1;
+		break;
+	}
+
+	switch( P_1st_Unloader_Unit_Status )	// 1차언로더
+	{
+		case F_1st_Unloader_Init_Pos :		//	25번비트
+			P_Total_Unit_Bit |= P_bit25;
+
+			if( P_PMAC_Status != Hex_PackML_Suspended )	// 배출로 인한 통합 위치변환이 아니라면 ( 언로더가 배출중 위치만 아니라면 동작에 이상이 없어야함 )
+				P_Total_Unit_Bit |= P_bit27;		// don't care 구문으로 인한 비트 넣어주기
+		break;
+
+		case F_Unloader_Discharge_Pos :		//	26번비트
+			P_Total_Unit_Bit |= P_bit26;
+		break;
+
+		case F_Unloader_to_2nd_Pos :		// 27번비트
+			P_Total_Unit_Bit |= P_bit27;
+
+			if( P_PMAC_Status != Hex_PackML_Suspended )	// 배출로 인한 통합 위치변환이 아니라면 ( 언로더가 배출중 위치만 아니라면 동작에 이상이 없어야함 )
+				P_Total_Unit_Bit |= P_bit25;		// don't care 구문으로 인한 비트 넣어주기
+		break;
+
+		default :
+			L_Error_Bit_Flag = 1;
+		break;
+	}
+	switch( P_FinalRoll_Unit_Status )		// 파이널롤러
+	{
+		case F_FR_Anode_Pos :				// 29번비트
+			P_Total_Unit_Bit |= P_bit29;
+		break;
+
+		case F_FR_Cathode_Pos :				// 30번비트
+			P_Total_Unit_Bit |= P_bit30;
+		break;
+
+		case F_FR_Discharge_Pos :			// 31번비트
+			P_Total_Unit_Bit |= P_bit31;
+		break;
+
+		default :
+			L_Error_Bit_Flag = 1;
+		break;
+	}
+//================================================== 통합 위치 조합 란 =============================================================================================
+	// 비트 삽입 완료 후 통합 위치 메모리 서칭
+	switch( P_Total_Unit_Bit )
+	{
+		case N_Equipment_Inital_Ready_Pos :
+			P_Total_Unit_Pos = F_Equipment_Inital_Ready_Pos;
+		break;
+
+		case N_Equipment_Anode_Side_Pos :
+			P_Total_Unit_Pos = F_Equipment_Anode_Side_Pos;
+		break;
+
+		case N_Equipment_Cathode_Side_Pos :
+			P_Total_Unit_Pos = F_Equipment_Cathode_Side_Pos;
+			//P_Total_Unit_Pos = F_Equipment_Stack_Completed_Pos;
+		break;
+
+		case N_Equipment_JR_Discharge_Pos :
+			P_Total_Unit_Pos = F_Equipment_JR_Discharge_Pos;
+		break;
+
+		case N_Equipment_Anode_Run_Pos :
+			P_Total_Unit_Pos = F_Equipment_Anode_Run_Pos;
+			//P_Total_Unit_Pos = F_Equipment_Anode_Cell_Wait_Pos;
+			//P_Total_Unit_Pos = F_Equipment_Cathode_Prod_Pos;
+		break;
+
+
+		case N_Equipment_Cathode_Run_Pos :
+			P_Total_Unit_Pos = F_Equipment_Cathode_Run_Pos;
+			//P_Total_Unit_Pos = F_Equipment_Cathode_Cell_Wait_Pos;
+			//P_Total_Unit_Pos = F_Equipment_Anode_Prod_Pos;
+		break;
+
+		case N_Equipment_Anode_NG_Pos :
+			P_Total_Unit_Pos = F_Equipment_Anode_NG_Pos;
+		break;
+
+		case N_Equipment_Cathode_NG_Pos :
+			P_Total_Unit_Pos = F_Equipment_Cathode_NG_Pos;
+		break;
+
+		case N_Equipment_Frist_Sepa_Run_Pos :
+			P_Total_Unit_Pos = F_Equipment_Frist_Sepa_Run_Pos;
+		break;
+
+		case N_Equipment_Frist_Sepa_Runing_Stop_Pos :
+			P_Total_Unit_Pos = F_Equipment_Frist_Sepa_Runing_Stop_Pos;
+		break;
+
+		case N_Equipment_Anode_Sepa_Run_Pos :
+			P_Total_Unit_Pos = F_Equipment_Anode_Sepa_Run_Pos;
+		break;
+
+		case N_Equipment_Cathode_Sepa_Run_Pos :
+			P_Total_Unit_Pos = F_Equipment_Cathode_Sepa_Run_Pos;
+		break;
+
+		case N_Equipment_JR_Discharge_WaitPos :
+			P_Total_Unit_Pos = F_Equipment_JR_Discharge_WaitPos;
+		break;
+
+		default :
+			P_Total_Unit_Pos = F_Error_Status;
+		break;
+	}
+
+	Status = P_Total_Unit_Pos;
+	rtn = N_TRUE;
+
+return;
+
+close
+
+
+

@@ -1,0 +1,215 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 26.02.03
+// 모듈화 홈프로그램 리뉴얼 
+// 코드 제어 구조 일원화, 모듈화 홈 작업 진행 - [ 참조 : 26.02.03 홈 모듈화 프로그램 리뉴얼 ]
+// 동작 커맨드 발생 감지 및 동작 실행
+open subprog All_Home_Act_Module(void)
+
+sub: AH_Unit_Cmd(unit,act)
+	// ACT Func 1. Home , 2. Minus, 3. Jog, 4. DIO
+	switch(act)
+	{
+		case F_Home_Act:
+			P_Home_Check_Arry(unit) = 0;				// 시퀀스 확인 변수 초기화
+
+			// 260715 stop 후 재가동 시 피커 홈 다시 안잡게 수정
+			if( unit == N_1st_Picker_CA_T )
+			{
+				//if( P_PMAC_Homing_CHK(N_1st_Picker_CA_T) == 1 && (P_Motor_Current_Pos(N_1st_Picker_CA_T) > P_Recipe_M19_POS(1) - 0.5 && P_Motor_Current_Pos(N_1st_Picker_CA_T) < P_Recipe_M19_POS(1) + 0.5))		//기존 대기위치 확인 구문.			
+				// Stop 후 재가동시 피커 홈 다시 안잡는 위치 : PickerT 대기 위치값 or PickerT 얼라인 위치값 [ 참조 : 26.08.14 PickerT 모션 변경 ] 
+				if( P_PMAC_Homing_CHK(N_1st_Picker_CA_T) == 1 && ((P_Motor_Current_Pos(N_1st_Picker_CA_T) > P_Recipe_M19_POS(1) - 0.5 && P_Motor_Current_Pos(N_1st_Picker_CA_T) < P_Recipe_M19_POS(1) + 0.5) || (P_Motor_Current_Pos(N_1st_Picker_CA_T) > P_Cathode_1TR_Picker_T_Align_POS - 0.5 && P_Motor_Current_Pos(N_1st_Picker_CA_T) < P_Cathode_1TR_Picker_T_Align_POS + 0.5)))
+				{
+					P_Cathode_Picker_Home_Pos = 1
+				}
+				else
+				{
+					P_Cathode_Picker_Home_Pos = 0
+					P_Home_Command(unit) = F_Command_Start;					
+				}
+			}
+			else if( unit == N_1st_Picker_AN_T )
+			{
+				//if( P_PMAC_Homing_CHK(N_1st_Picker_AN_T) == 1 && (P_Motor_Current_Pos(N_1st_Picker_AN_T) > P_Recipe_M20_POS(1) - 0.5 && P_Motor_Current_Pos(N_1st_Picker_AN_T) < P_Recipe_M20_POS(1) + 0.5))	//기존 대기위치 확인 구문.	
+				// Stop 후 재가동시 피커 홈 다시 안잡는 위치 : PickerT 대기 위치 or PickerT 얼라인 위치 [ 참조 : 26.08.14 PickerT 모션 변경 ] 
+				if( P_PMAC_Homing_CHK(N_1st_Picker_AN_T) == 1 && ((P_Motor_Current_Pos(N_1st_Picker_AN_T) > P_Recipe_M20_POS(1) - 0.5 && P_Motor_Current_Pos(N_1st_Picker_AN_T) < P_Recipe_M20_POS(1) + 0.5) || (P_Motor_Current_Pos(N_1st_Picker_AN_T) > P_Anode_1TR_Picker_T_Align_POS - 0.5 && P_Motor_Current_Pos(N_1st_Picker_AN_T) < P_Anode_1TR_Picker_T_Align_POS + 0.5)))
+				{
+					P_Anode_Picker_Home_Pos = 1
+				}
+				else
+				{
+					P_Anode_Picker_Home_Pos = 0
+					P_Home_Command(unit) = F_Command_Start;			
+				}
+			}
+			else
+				P_Home_Command(unit) = F_Command_Start;
+		break;
+	
+		case F_Minus_Act:
+			#ifdef F_Virtual_Axis_Test
+				Motor[unit].Minpos = -5000;						// TEST용 Minus 리밋 
+			#endif
+				if( unit == N_FINAL_ROLL_X || unit == N_FINAL_ROLL_Z || unit == N_SHEET_PAPER_X )
+				{	
+					if(P_FR_Sheet_Paper_Home_Chk != 7)
+					{
+						Motor[unit].JogSpeed = 20;
+						cmd"#%dj-",unit;			// - 커맨드
+					}
+				}
+				else
+				{
+					Motor[unit].JogSpeed = 20;
+					cmd"#%dj-",unit;				// - 커맨드
+				}
+		break;
+	
+		case F_Jog_Act:
+			Motor[unit].JogSpeed = 30;
+				cmd"#%dj=%d",unit,P_DD_Motor_45Deg*1000;
+		break;
+
+		case F_DIO_Act:
+			switch(unit)
+			{
+				case N_Unloader_Grip:
+					M_Y_1st_Unloader_Grip_Sol  = 1;
+					M_Y_1st_Unloader_UnGrip_Sol = 0;
+				break;
+			}
+		break;
+
+		case F_Plus_Act:
+			#ifdef F_Virtual_Axis_Test
+				Motor[unit].Maxpos = 5000;						// TEST용 plus 리밋 
+			#endif
+				Motor[unit].JogSpeed = 30;
+				cmd"#%dj+",unit;								// + 커맨드
+		break;
+
+	}
+return;
+
+sub: AH_Unit_Verify(unit,act,&rtn)
+rtn = 0;
+	// Verify Func 1. Home , 2. Minus, 3. Jog, 4. DIO
+	switch(act)
+	{
+		case F_Home_Act:
+			// 260715 stop 후 재가동 시 피커 홈 다시 안잡게 수정
+			if( unit == N_1st_Picker_CA_T )
+			{
+				if( P_Cathode_Picker_Home_Pos == 1 )
+				{
+					rtn = N_TRUE;
+				}
+				else
+				{
+					if( P_PMAC_Homing_CHK(unit) == 1 )
+					{
+						if( P_Home_Check_Arry(unit) == 1 )
+							rtn = N_TRUE;
+					}
+				}
+			}
+			else if( unit == N_1st_Picker_AN_T )
+			{
+				if( P_Anode_Picker_Home_Pos == 1 )
+				{
+					rtn = N_TRUE;
+				}
+				else
+				{
+					if( P_PMAC_Homing_CHK(unit) == 1 )
+					{
+						if( P_Home_Check_Arry(unit) == 1 )
+							rtn = N_TRUE;
+					}
+				}
+			}
+			else
+			{
+				if( P_PMAC_Homing_CHK(unit) == 1 )
+				{
+					if( P_Home_Check_Arry(unit) == 1 )
+						rtn = N_TRUE;
+				}
+			}
+		break;
+	
+		case F_Minus_Act:
+			#ifdef F_Virtual_Axis_Test
+				if( P_Motor_Current_Pos(unit) <= Motor[unit].minpos/1000 )
+					rtn = N_TRUE;
+			#else
+				if( unit == N_FINAL_ROLL_X || unit == N_FINAL_ROLL_Z || unit == N_SHEET_PAPER_X )
+				{
+					if(P_FR_Sheet_Paper_Home_Chk != 7 && Motor[unit].MinusLimit == 1)
+					{
+						rtn = N_TRUE;
+					}
+					else if(P_FR_Sheet_Paper_Home_Chk == 7)
+					{
+						rtn = N_TRUE;
+					}
+				}
+				else
+				{
+					if(Motor[unit].MinusLimit == 1 )
+						rtn = N_TRUE;
+				}
+			#endif
+		break;
+	
+		case F_Jog_Act:
+			if( P_Motor_Current_Pos(unit) ~ P_DD_Motor_45Deg )
+				rtn = N_TRUE;
+		break;
+
+		case F_DIO_Act:
+			switch(unit)
+			{
+				case N_Unloader_Grip:
+				if( M_X_1st_Unloader_UnGrip_Detect_Sensor == 0 )
+				//if( M_X_1st_Unloader_Grip_Detect_Sensor == 0)// && M_X_1st_Unloader_UnGrip_Detect_Sensor == 0)
+					rtn = N_TRUE;
+				break;
+			}
+		break;
+
+		case F_Plus_Act:
+			#ifdef F_Virtual_Axis_Test
+				if( P_Motor_Current_Pos(unit) >= Motor[unit].Maxpos/1000 )
+					rtn = N_TRUE;
+			#else
+				if(Motor[unit].PlusLimit == 1 )
+					rtn = N_TRUE;
+			#endif
+		break;
+	}
+return;
+
+sub: Init(void)
+
+P_Execute_First_Sepa_Mode_Tact_Time_Array(0),20 = 0;					// Manual - All_Home  시퀀스 총 Tact Time 초기화.
+P_Indiv_AH_Status(0),15 = F_Status_IDLE;								// 간섭여부 모듈 상태 IDLE 
+P_Indiv_AH_Cmd(0),15 = 0;												// 간섭여부 커맨드 초기화
+P_AH_Indvi_rtn(0),50 = 0;												// 프리컨디션 rtn 데이터 초기화
+P_WAIT_INDEX = 0;
+
+P_CA_1st_SM = 0;														// 스텟머신 초기화
+P_AN_1st_SM = 0;														// 스텟머신 초기화
+P_AN_2nd_SM = 0;														// 스텟머신 초기화
+P_CA_2nd_SM = 0;														// 스텟머신 초기화
+P_CA_NG_SM = 0;															// 스텟머신 초기화
+P_AN_NG_SM = 0;															// 스텟머신 초기화
+
+return;
+
+close
+
+
+
+

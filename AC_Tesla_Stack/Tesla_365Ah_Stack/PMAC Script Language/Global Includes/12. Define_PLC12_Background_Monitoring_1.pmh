@@ -1,0 +1,384 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+
+#define	Sys_Cathode_1st_Vac_Descent_Timer			Sys.CdTimer[10]
+#define	Sys_Cathode_2nd_Vac_Descent_Timer			Sys.CdTimer[11]
+#define	Sys_Cathode_Align_Vac_Descent_Timer			Sys.CdTimer[12]
+
+#define	Sys_Anode_1st_Vac_Descent_Timer				Sys.CdTimer[13]
+#define	Sys_Anode_2nd_Vac_Descent_Timer				Sys.CdTimer[14]
+#define	Sys_Anode_Align_Vac_Descent_Timer			Sys.CdTimer[15]
+#define Sys_Anode_Align_Blow_Descent_Timer			Sys.CdTimer[16]
+#define	Sys_Cathode_Align_Blow_Descent_Timer		Sys.CdTimer[17]
+// [ 참조 : 240516 디버깅 ]
+#define Sys_Stop_Decent_Timer						Sys.CdTimer[18]
+
+// 타이머 셋팅 값
+// [ 참조 : 241205 035s, 0.4s얼라인 모션 변경, 0.35s 얼라인 검사 타이밍 수정 및 극판 데이터 타이밍 수정 ]
+#ifdef F_035_Tack_Enable
+global	P_Cathode_1st_Vac_Set_Time = 250;					// 감시 타임 300ms
+#else
+global	P_Cathode_1st_Vac_Set_Time = 300;					// 감시 타임 300ms
+#endif
+// [ 참조 : 240905 2차 흡착 모니터링 시간 0.4s 기준 변경 ]
+global	P_Cathode_2nd_Vac_Set_Time;					// 감시 타임 300ms
+
+#ifdef F_035_Tack_Enable
+P_Cathode_2nd_Vac_Set_Time = 230;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
+#endif
+
+#ifdef F_04_Tack_Enable
+P_Cathode_2nd_Vac_Set_Time = 250;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
+#endif
+
+#ifdef F_045_Tack_Enable
+P_Cathode_2nd_Vac_Set_Time = 280;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
+#endif
+
+#ifdef F_05_Tack_Enable
+P_Cathode_2nd_Vac_Set_Time = 280;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
+#endif
+
+
+
+
+
+global	P_Cathode_Align_Vac_Set_Time = 210;				// 감시 타임 300ms
+global	P_Cathode_Align_Blow_Set_Time = 200;
+
+// [ 참조 : 241205 035s, 0.4s얼라인 모션 변경, 0.35s 얼라인 검사 타이밍 수정 및 극판 데이터 타이밍 수정 ]
+#ifdef F_035_Tack_Enable
+global	P_Anode_1st_Vac_Set_Time = 250;//300;					// 감시 타임 300ms
+#else
+global	P_Anode_1st_Vac_Set_Time = 300;					// 감시 타임 300ms
+#endif
+
+// [ 참조 : 240905 2차 흡착 모니터링 시간 0.4s 기준 변경 ]
+global	P_Anode_2nd_Vac_Set_Time;					// 감시 타임 300ms
+
+#ifdef F_035_Tack_Enable
+P_Anode_2nd_Vac_Set_Time = 230;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
+#endif
+
+#ifdef F_04_Tack_Enable
+P_Anode_2nd_Vac_Set_Time = 250;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
+#endif
+
+#ifdef F_045_Tack_Enable
+P_Anode_2nd_Vac_Set_Time = 280;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
+#endif
+
+#ifdef F_05_Tack_Enable
+P_Anode_2nd_Vac_Set_Time = 280;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
+#endif
+
+#define	N_Use_Value_Cell_Thickenss		1		// 극판 두께 유효값
+#define	N_Not_Use_Value_Cell_Thickenss	0		// 극판 두께 무효값
+
+global	P_Sepa_Consume_Mode_Thickness_rate = 1;		// 세파 소비 모드 시 세파 두께 비율 변수
+global	P_Sepa_Anode_Recipe_Count = 0;
+global	P_Sepa_Cathode_Recipe_Count = 0;
+global P_Discharge_Cathode_Recipe_Count;			// 레시피 내부변수 
+global P_Discharge_Anode_Recipe_Count;				// 레시피 내부변수 
+
+global P_Suspend_Discharge_Cathode_Counter = 0;
+global P_Suspend_Discharge_Anode_Counter = 0;
+global P_Suspend_Discharge_Waiting_Flag = 0;
+
+//=========================================================
+//[참조: 20240319 Execute Management ]
+//=========================================================
+//[ 참조 : 25.07.04 모드 체크 함수 추가 ]
+// 세파 소비 모드 
+global	P_Com_ARC_Sepa_Consume_Mode_Flag = 0;		// ARC 이후 세파 소비 모드
+global	P_Com_EPC_Sepa_Consume_Mode_Flag = 0;		// EPC 이후 세파 소비 모드
+global	P_Com_User_Sepa_Consume_Mode_Flag = 0;		// User 선택 세파 소비 모드
+global  P_Com_Dry_Mode_Flag = 0;					// 드라이런 선택 모드
+global	P_Com_User_Sepa_After_ARC_Mode_Continue_Flag = 0; // 사용자 세파모드 -> ARC 세파모드 도중 Manual -> 재가동시 정지 할 수 있도록 해주는 플레그
+
+#define N_Sepa_Unwinder_Display	1       // 세파 언와인더 유닛
+#define N_Stack_Table_Display	2       // 스텍 테이블 유닛
+#define N_Cathode_Unit_Display  3       // 양극 유닛
+#define N_Anode_Unit_Display	4       // 음극 유닛
+
+// 1.4.1. 극판 두께 관리
+global	P_SM_Recipe_Value_Management = 0;
+
+#define	N_Use_Value_Cell_Thickenss		1		// 극판 두께 유효값
+#define	N_Not_Use_Value_Cell_Thickenss	0		// 극판 두께 무효값
+
+
+// 1.4.2. 레시피 카운트 값 관리 프로그램
+global	P_Sepa_Mode_Recipe_Count = 30;
+global	P_Sepa_Mode_EPC_Recipe_Count = 20;
+global	P_ARC_End_Sepa_Recipe_Count = 10;		//세파 ARC 종료 후 적층 개수
+
+
+#define N_Queue_Max_Size		20
+
+
+global P_Anode_Align_NG_Array(N_Queue_Max_Size);
+P_Anode_Align_NG_Array(0),N_Queue_Max_Size = 0;
+
+global P_Cathode_Align_NG_Array(N_Queue_Max_Size);
+P_Cathode_Align_NG_Array(0),N_Queue_Max_Size = 0;
+
+global P_Anode_Surface_NG_Array(N_Queue_Max_Size);
+P_Anode_Surface_NG_Array(0),N_Queue_Max_Size = 0;
+
+global P_Cathode_Surface_NG_Array(N_Queue_Max_Size);
+P_Cathode_Surface_NG_Array(0),N_Queue_Max_Size = 0;
+
+global P_Stack_NG_Array(N_Queue_Max_Size);
+P_Stack_NG_Array(0),N_Queue_Max_Size = 0;
+
+global P_Anode_Align_Continuous_NG_Check_Range = 0;							// 음극 Align Vision 연속 불량 알람 발생 탐색 범위 설정 
+global P_Cathode_Align_Continuous_NG_Check_Range = 0;						// 양극 Align Vision 연속 불량 알람 발생 탐색 범위 설정 
+global P_Anode_Surface_Continuous_NG_Check_Range = 0;							// 음극 Surface Vision 연속 불량 알람 발생 탐색 범위 설정 
+global P_Cathode_Surface_Continuous_NG_Check_Range = 0;						// 양극 Surface Vision 연속 불량 알람 발생 탐색 범위 설정 
+global P_Stack_Continuous_NG_Check_Range = 0;							// Stack Vision 연속 불량 알람 발생 탐색 범위 설정
+
+global P_Cathode_Align_Continuous_NG_Stop_Select = 0;						// 양극 Align Vision 연속 불량 사용
+global P_Anode_Align_Continuous_NG_Stop_Select = 0;							// 음극 Align Vision 연속 불량 사용
+global P_Stack_Vision_NG_Enable = 0;										// Stack Vision NG 배출 사용
+global P_Cathode_Surface_Continuous_NG_Stop_Select = 0;						// 양극 Surface Vision 연속 불량 사용
+global P_Anode_Surface_Continuous_NG_Stop_Select = 0;							// 음극 Surface Vision 연속 불량 사용
+
+global P_Anode_Trigger_IO_Test_Vision_PLC_Loop = 0;							// 음극 Vision, PLC의 IO 트리거에 대한 루프 카운트
+global P_Anode_Trigger_IO_Test_Motion_Loop = 0;								// 음극 Motion 트리거 루프 카운트
+
+global P_Cathode_Trigger_IO_Test_Vision_PLC_Loop = 0;						// 양극 Vision, PLC의 IO 트리거에 대한 루프 카운트
+global P_Cathode_Trigger_IO_Test_Motion_Loop = 0;							// 양극 Motion 트리거 루프 카운트
+
+global P_Stack_Trigger_IO_Test_Vision_PLC_Loop = 0;							// 스택 Vision, PLC의 IO 트리거에 대한 루프 카운트
+global P_Stack_Trigger_IO_Test_Motion_Loop = 0;								// 스택 Motion 트리거 루프 카운트
+
+global P_PLC12_Continuous_Buffer_Reset_Flag = 0 ;
+
+global P_Continuous_Call_Align_OK_Flag(2);
+global P_Continuous_Call_Align_NG_Flag(2);
+global P_Continuous_Call_Align_TimeOut_Flag(2);
+
+global P_Continuous_Call_Surface_OK_Flag(2);
+global P_Continuous_Call_Surface_NG_Flag(2);
+global P_Continuous_Call_Surface_TimeOut_Flag(2);
+
+global P_Continuous_Call_Stack_Flag(3);
+
+// PMAC <-> PLC 극판 인터페이스 
+global P_PLC11_Anode_Sheet_Pick_Up_Flag = 0;
+global P_PLC11_Cathode_Sheet_Pick_Up_Flag = 0;
+
+global P_Sheet_Interface_Complete_Pos = 3;
+
+global P_Anode_2nd_TR_Maint_Check = 0;			// 2차 PNP 흡착 알람 체크
+global P_Cathode_2nd_TR_Maint_Check = 0;			// 2차 PNP 흡착 알람 체크
+
+
+// [ 참조 : 25.07.02 옵저버 추가 ] 
+// 커맨드 옵저버 모니터링 변수 선언 ====================================================================
+global P_PLC12_Observser_MNTR(5)
+P_PLC12_Observser_MNTR(0),5 = 0;
+
+#define N_Status				1
+#define N_Queue_Data			2
+#define N_Step_Data				3
+#define N_Index_Data			4
+
+
+#define N_PackML_Step						P_array_CF_Function_State_Number
+#define N_1st_Execute_Step					P_Execute_IsEnable_State_Machine
+#define N_2nd_Execute_Step					P_Execute_First_Sepa_Ontable_State_Machine
+#define N_3rd_Execute_Step					P_Execute_Prod_Manage_State_Machine
+#define N_1st_HOLD_Step						P_HOLD_Existence_Insp_State_Machine
+#define N_2nd_HOLD_Step						P_HOLD_Hold_Process_State_Machine
+#define N_1st_SUSPENDED_Step				P_SUSPEND_FUNC_JR_Discharge_STEP
+#define N_2nd_SUSPENDED_Step				P_SUSPEND_FUNC_ARC_STEP
+//===================================================================================================
+// 흡착 및 파기 모니터링 변수 선언=====================================================================
+#define Vacume_Monitor_Ea			8
+#define Blow_Monitor_Ea				8
+global P_PLC12_Vacuum_MNTR(Vacume_Monitor_Ea)
+P_PLC12_Vacuum_MNTR(0),Vacume_Monitor_Ea = 0;
+global P_PLC12_Blow_MNTR(Blow_Monitor_Ea)
+P_PLC12_Blow_MNTR(0),Blow_Monitor_Ea = 0;
+
+#define N_1st_Cathode				0
+#define N_2nd_Cathode				1
+#define N_NG_Cathode				2
+#define N_Align_Cathode				3
+#define N_1st_Anode					4
+#define N_2nd_Anode					5
+#define N_NG_Anode					6
+#define N_Align_Anode				7
+
+//		양극 1차 pnp 흡착 , 양극 2차 pnp 흡착, 양극 ng pnp 흡착, 양극 얼라인 흡착
+//		음극 1차 pnp 흡착, 음극 2차 pnp 흡착, 음극 ng pnp 흡착, 음극 얼라인 흡착
+ 
+#define N_Cathode_vacuum_Check_Bit				( P_PLC12_Vacuum_MNTR(N_1st_Cathode) << 0 | P_PLC12_Vacuum_MNTR(N_2nd_Cathode) << 1 | P_PLC12_Vacuum_MNTR(N_NG_Cathode) << 2 | P_PLC12_Vacuum_MNTR(N_Align_Cathode) << 3 )
+#define N_Anode_vacuum_Check_Bit				( P_PLC12_Vacuum_MNTR(N_1st_Anode) << 4 | P_PLC12_Vacuum_MNTR(N_2nd_Anode) << 5 | P_PLC12_Vacuum_MNTR(N_NG_Anode) << 6 | P_PLC12_Vacuum_MNTR(N_Align_Anode) << 7 )
+#define N_Observe_vacuum_Bit					( N_Cathode_vacuum_Check_Bit | N_Anode_vacuum_Check_Bit )
+
+//		양극 1차 pnp 파기 , 양극 2차 pnp 파기, 양극 ng pnp 파기
+//		음극 1차 pnp 파기, 음극 2차 pnp 파기, 음극 ng pnp 파기
+
+#define N_Cathode_Blow_Check_Bit				( P_PLC12_Blow_MNTR(N_1st_Cathode) << 0 | P_PLC12_Blow_MNTR(N_2nd_Cathode) << 1 | P_PLC12_Blow_MNTR(N_NG_Cathode) << 2 | P_PLC12_Blow_MNTR(N_Align_Cathode) << 3 )
+#define N_Anode_Blow_Check_Bit					( P_PLC12_Blow_MNTR(N_1st_Anode) << 4 | P_PLC12_Blow_MNTR(N_2nd_Anode) << 5 | P_PLC12_Blow_MNTR(N_NG_Anode) << 6 | P_PLC12_Blow_MNTR(N_Align_Anode) << 7 )
+#define N_Observe_Blow_Bit						( N_Cathode_Blow_Check_Bit | N_Anode_Blow_Check_Bit )
+
+
+#define N_Cathode_1st_PNP_Masking						$1		// 0x01
+#define N_Cathode_2nd_PNP_Masking						$2		// 0x02
+#define N_Cathode_NG_PNP_Masking						$4		// 0x04
+#define N_Cathode_Align_Masking							$8		// 0x08
+#define N_Anode_1st_PNP_Masking							$10		// 0x10
+#define N_Anode_2nd_PNP_Masking							$20		// 0x20
+#define N_Anode_NG_PNP_Masking							$40		// 0x40
+#define N_Anode_Align_Masking							$80		// 0x80
+
+// 타이머 및 걸린 시간, 설정 시간 변수 란
+// Vacuum Time=========================================================================================================
+// Vacuum Timer
+global P_PLC12_Vacuum_1st_Cathode_MNTR_Timer = 0;				// 양극 1차 PNP 모니터링 타이머		
+global P_PLC12_Vacuum_2nd_Cathode_MNTR_Timer = 0;				// 양극 2차 PNP 모니터링 타이머
+global P_PLC12_Vacuum_NG_Cathode_MNTR_Timer = 0;				// 양극 NG  PNP 모니터링 타이머
+global P_PLC12_Vacuum_Align_Cathode_MNTR_Timer = 0;				// 양극 얼라인   모니터링 타이머
+global P_PLC12_Vacuum_1st_Anode_MNTR_Timer = 0;					// 음극 1차 PNP 모니터링 타이머
+global P_PLC12_Vacuum_2nd_Anode_MNTR_Timer = 0;					// 음극 2차 PNP 모니터링 타이머
+global P_PLC12_Vacuum_NG_Anode_MNTR_Timer = 0;					// 음극 NG  PNP 모니터링 타이머
+global P_PLC12_Vacuum_Align_Anode_MNTR_Timer = 0;				// 음극 얼라인   모니터링 타이머	
+
+global P_PLC12_Vacuum_1st_Cathode_Set_Time = 500;				// 양극 1차 PNP 설정 시간
+global P_PLC12_Vacuum_2nd_Cathode_Set_Time = 500;				// 양극 2차 PNP 설정 시간
+global P_PLC12_Vacuum_NG_Cathode_Set_Time = 500;				// 양극 NG  PNP 설정 시간
+global P_PLC12_Vacuum_Align_Cathode_Set_Time = 500;				// 양극 얼라인  설정 시간
+global P_PLC12_Vacuum_1st_Anode_Set_Time = 500;					// 음극 1차 PNP 설정 시간
+global P_PLC12_Vacuum_2nd_Anode_Set_Time = 500;					// 음극 2차 PNP 설정 시간
+global P_PLC12_Vacuum_NG_Anode_Set_Time = 500;					// 음극 NG  PNP 설정 시간
+global P_PLC12_Vacuum_Align_Anode_Set_Time = 500;				// 음극 얼라인  설정 시간 
+
+#define N_Air_Buffer		5
+global P_PLC12_Vacuum_1st_Cathode_Take_Time(N_Air_Buffer) 		// 양극 1차 PNP 걸린 시간 buffer
+P_PLC12_Vacuum_1st_Cathode_Take_Time(0),N_Air_Buffer = 0;
+global P_PLC12_Vacuum_2nd_Cathode_Take_Time(N_Air_Buffer)		// 양극 2차 PNP 걸린 시간	
+P_PLC12_Vacuum_2nd_Cathode_Take_Time(0),N_Air_Buffer = 0;
+global P_PLC12_Vacuum_NG_Cathode_Take_Time(N_Air_Buffer) 		// 양극 NG  PNP 걸린 시간
+P_PLC12_Vacuum_NG_Cathode_Take_Time(0),N_Air_Buffer=0;
+global P_PLC12_Vacuum_Align_Cathode_Take_Time(N_Air_Buffer)		// 양극 얼라인  걸린 시간
+P_PLC12_Vacuum_Align_Cathode_Take_Time(0),N_Air_Buffer=0;	
+global P_PLC12_Vacuum_1st_Anode_Take_Time(N_Air_Buffer) 		// 음극 1차 PNP 걸린 시간
+P_PLC12_Vacuum_1st_Anode_Take_Time(0),N_Air_Buffer=0;
+global P_PLC12_Vacuum_2nd_Anode_Take_Time(N_Air_Buffer) 		// 음극 2차 PNP 걸린 시간
+P_PLC12_Vacuum_2nd_Anode_Take_Time(0),N_Air_Buffer=0; 
+global P_PLC12_Vacuum_NG_Anode_Take_Time(N_Air_Buffer) 			// 음극 NG  PNP 걸린 시간
+P_PLC12_Vacuum_NG_Anode_Take_Time(0),N_Air_Buffer=0;
+global P_PLC12_Vacuum_Align_Anode_Take_Time(N_Air_Buffer) 		// 음극 얼라인  걸린 시간 
+P_PLC12_Vacuum_Align_Anode_Take_Time(0),N_Air_Buffer=0;
+
+// Blow Time=========================================================================================================
+global P_PLC12_Blow_1st_Cathode_MNTR_Timer = 0;					// 양극 1차 PNP 모니터링 타이머	
+global P_PLC12_Blow_2nd_Cathode_MNTR_Timer = 0;					// 양극 2차 PNP 모니터링 타이머
+global P_PLC12_Blow_NG_Cathode_MNTR_Timer = 0;					// 양극 NG  PNP 모니터링 타이머
+global P_PLC12_Blow_Align_Cathode_MNTR_Timer = 0;				// 양극 얼라인   모니터링 타이머
+global P_PLC12_Blow_1st_Anode_MNTR_Timer = 0;					// 음극 1차 PNP 모니터링 타이머
+global P_PLC12_Blow_2nd_Anode_MNTR_Timer = 0;					// 음극 2차 PNP 모니터링 타이머
+global P_PLC12_Blow_NG_Anode_MNTR_Timer = 0;					// 음극 NG  PNP 모니터링 타이머
+global P_PLC12_Blow_Align_Anode_MNTR_Timer = 0;					// 음극 얼라인   모니터링 타이머	
+
+global P_PLC12_Blow_1st_Cathode_Set_Time = 500;					// 양극 1차 PNP 설정 시간
+global P_PLC12_Blow_2nd_Cathode_Set_Time = 500;					// 양극 2차 PNP 설정 시간
+global P_PLC12_Blow_NG_Cathode_Set_Time = 500;					// 양극 NG  PNP 설정 시간
+global P_PLC12_Blow_Align_Cathode_Set_Time = 500;				// 양극 얼라인  설정 시간
+global P_PLC12_Blow_1st_Anode_Set_Time = 500;					// 음극 1차 PNP 설정 시간
+global P_PLC12_Blow_2nd_Anode_Set_Time = 500;					// 음극 2차 PNP 설정 시간
+global P_PLC12_Blow_NG_Anode_Set_Time = 500;					// 음극 NG  PNP 설정 시간
+global P_PLC12_Blow_Align_Anode_Set_Time = 500;					// 음극 얼라인  설정 시간 
+
+global P_PLC12_Blow_1st_Cathode_Take_Time(N_Air_Buffer) 		// 양극 1차 PNP 걸린 시간 buffer
+P_PLC12_Blow_1st_Cathode_Take_Time(0),N_Air_Buffer = 0;
+global P_PLC12_Blow_2nd_Cathode_Take_Time(N_Air_Buffer)			// 양극 2차 PNP 걸린 시간	
+P_PLC12_Blow_2nd_Cathode_Take_Time(0),N_Air_Buffer = 0;
+global P_PLC12_Blow_NG_Cathode_Take_Time(N_Air_Buffer) 			// 양극 NG  PNP 걸린 시간
+P_PLC12_Blow_NG_Cathode_Take_Time(0),N_Air_Buffer=0;
+global P_PLC12_Blow_Align_Cathode_Take_Time(N_Air_Buffer)		// 양극 얼라인  걸린 시간
+P_PLC12_Blow_Align_Cathode_Take_Time(0),N_Air_Buffer=0;	
+global P_PLC12_Blow_1st_Anode_Take_Time(N_Air_Buffer) 			// 음극 1차 PNP 걸린 시간
+P_PLC12_Blow_1st_Anode_Take_Time(0),N_Air_Buffer=0;
+global P_PLC12_Blow_2nd_Anode_Take_Time(N_Air_Buffer) 			// 음극 2차 PNP 걸린 시간
+P_PLC12_Blow_2nd_Anode_Take_Time(0),N_Air_Buffer=0; 
+global P_PLC12_Blow_NG_Anode_Take_Time(N_Air_Buffer) 			// 음극 NG  PNP 걸린 시간
+P_PLC12_Blow_NG_Anode_Take_Time(0),N_Air_Buffer=0;
+global P_PLC12_Blow_Align_Anode_Take_Time(N_Air_Buffer) 		// 음극 얼라인  걸린 시간 
+P_PLC12_Blow_Align_Anode_Take_Time(0),N_Air_Buffer=0;
+
+global P_Vacuum_Reentry_Bit = 0;								// 유닛 판별 재진입 방지 변수 
+global P_Blow_Reentry_Bit = 0;									// 유닛 판별 재진입 방지 변수 
+
+ //============================================================================================
+// 2025.07.23 스텍 알고리즘 추가
+#define N_Non_Circulation			0						// 순환모드 X
+#define N_Circulation				1						// 순환모드 O
+
+
+ #define MAX_Size      20
+ global P_Status_arry(MAX_Size)
+ P_Status_arry(0),MAX_Size = 0;
+ global P_Queue_arry(MAX_Size)
+ P_Queue_arry(0),MAX_Size = 0;
+  global P_Step_arry(MAX_Size)
+ P_Step_arry(0),MAX_Size = 0;
+  global P_Index_arry(MAX_Size)
+ P_Index_arry(0),MAX_Size = 0;
+
+ global P_top = 0;
+ global P_Queue_stack_top =0;
+ global P_Step_stack_top = 0;
+ global P_Index_stack_top = 0;
+ global P_Status_stack_top = 0;
+
+
+ #define NN_Queue		P_Process_Function_Command
+ #define NN_Status		P_PMAC_Status
+ global NN_Step	= 0;	   
+ global NN_Index = 0;
+
+
+ global P_PLC_Observser_MNTR(5);
+ P_PLC_Observser_MNTR(0),5 = 0;
+
+ global P_PLC12_Frist = 0;
+
+ // 자동 생산 상태 관리 프로그램
+global P_SM_Auto_Run_Status_Management = 0;
+global P_SM_Status_Main_Memory_Management = 0;
+global P_SM_Cell_Memory_Management = 0;
+ //============================================================================================
+
+global P_Test_Vacuum_Timer(8)
+P_Test_Vacuum_Timer(0),8 = 0;
+
+global P_Test_Blow_Timer(8)
+P_Test_Blow_Timer(0),8 = 0;
+
+global P_Vac_Test_Set_Time(8)
+P_Vac_Test_Set_Time(0),8 = 10;
+
+global P_Blow_Test_Set_Time(8)
+P_Blow_Test_Set_Time(0),8 = 10;
+
+
+// Vacuum 감지 비트 데이터 
+global P_PLC12_Vacuum_Unit_Data = 0;
+global P_PLC12_Blow_Unit_Data = 0;
+
+// 상태 변수 P변수화 
+global P_Stack_Algorithme_Cmd_Event_Status = 0;
+
+global P_PLC12_vacuum_Event_Status = 0;
+global P_PLC12_Blow_Event_status = 0;
+global P_PLC12_vacuum_DIO_Observer_Status = 0;
+global P_PLC12_Blow_DIO_Observer_Status = 0;

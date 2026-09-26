@@ -1,0 +1,610 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 26.06.11 야스카와 ECAT 파라미터 자동 삽입 프로그램 ]
+
+open plc 30
+
+P_MNTR_PLC30_Task_Time(0) = Sys.Time;
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+// --------------------User Code Goes Here------------------------
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[30].ldata.L[0]	시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[30].ldata.L[1]	시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[30].ldata.L[2]	시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[30].ldata.L[3]	타이머 초기화 플래그
+
+local L_Motor_Num;										// Plc[30].ldata.L[4]
+local L_ECAT_Delay_Timer;						
+local L_ECAT_Read_Timer;	
+local L_ECAT_Each_Write_Timer;
+local L_Idx;
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if(L_Flag_Cycle_Up_Count_Init_Flag == 0)
+{
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 00.2) 시간 체크
+if(L_Flag_Cycle_Up_Count_Init_Flag == 1)
+{
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * 1000
+	if(L_Time_Cycle_Up_Count_Delta_Time < 0)
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+// 00.3) 시간 업데이트
+if(L_Time_Cycle_Up_Count_Delta_Time > 0.1)
+{
+
+	//여기에 원하는 타이머 추가 
+	L_ECAT_Delay_Timer = L_ECAT_Delay_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_ECAT_Read_Timer = L_ECAT_Read_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_ECAT_Each_Write_Timer = L_ECAT_Each_Write_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+//========================================================================================================================
+
+// P_Ecat_Parameter_Write_Flag = 1;			// 전체 자동 write
+
+// 개별 영역 Write 하고싶다면 터미널창 이용하여 개별 Write 시행.
+// Yaskawa EcatAddress :  Pn100 -> $2100 , Pn200 -> $2200 
+// Sub Ecat Address(Sub Index) : Manual 참고. 특수사항에만 서브 인덱스 있음. 
+// ecattypedsdo(Master_Idx,P_Ecat_Slave_Idx,F_Write,EcatAddress,Sub Ecat Address ,Data, byte);
+
+// 비휘발성 메모리 Save ( 전원을 내렸다 켜도 저장 되야 하므로 write 한 후 꼭 해야함 )
+// ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$1010,1,$65766173,4);		// yaskawa save 
+
+
+// P_Ecat_Parameter_Read_Flag = 1;			// 지정 모터 Read
+// ecattypedsdo(Master_Idx,P_Ecat_Slave_Idx,F_Read,EcatAddress,Sub Ecat Address ,0, byte);
+
+
+//========================================================================================================================================================================================================
+// 1. Ecat Motor 파라미터 자동 쓰기 프로그램 .
+//===============================================
+// Motor All Kill 상태에서 해야한다.
+// 1-1. 시작 Flag
+if( P_Ecat_Parameter_Write_Flag == 1 && P_Ecat_Read_Status == F_Status_Nonseatus )	// 파라미터 업데이트 플래그 on && 읽기중이 아니라면
+{
+	P_Ecat_Parameter_Write_Flag = 0;			// 파라미터 업데이트 플래그 off	
+	
+	P_Ecat_Write_Status = F_Status_STARTING;
+
+		//26.09.09 1호기도 2호기 이후 양산 설비와 동일하게 적용하기에 주석처리.
+		//if(P_Cur_Equip_No == 1)					// Ecat Map 기준 slave index 선언
+		//	P_Ecat_Slave_Idx = 1;				// 1호기는 아직 링구조가 아니므로, 허브 Slave 선언이 안되어있음
+		//else
+			P_Ecat_Slave_Idx = 2;
+
+	P_Ec_Num = 0;								// Motor 맞는 Param Arr Index 선언	33motor -> [0] index
+	P_Ecat_Parameter_Write_State_Machine = 1;	// 쓰기 스테이트 머신 1
+}
+
+L_Motor_Num = P_Ec_Num + 33;				// Motor[x] 구조체에 쓰기위함 Local 변수 갱신
+
+// 1-2. 스테이트 머신
+switch( P_Ecat_Parameter_Write_State_Machine )
+{
+	default:	P_Ecat_Write_Status = F_Status_Nonseatus;	 break;
+
+	case 1:		// 쓰기 가능 구간
+		if( ECAT[0].Enable == 1 && ECAT[0].MasterState == 8 && Motor[L_Motor_Num].AmpEna == 0 )		// EtherCAT 활성화 확인 , Amp Enable 확인	-> Ecat Statusword 봐야하는데 kill 믿고 일단 진행
+		{
+			if( L_Motor_Num == N_Align_CA_T || L_Motor_Num == N_Align_AN_T )	// Inovance Motor라면 6으로 넘겨서 넘버 증가만 시키자
+			{
+				P_Ecat_Parameter_Write_State_Machine = 6;
+			}
+			else
+			{
+				P_Ecat_Write_Status = F_Status_EXECUTE;
+				P_Ecat_Parameter_Write_State_Machine++;
+		
+			}
+		}
+		else
+		{
+			P_Ecat_Error_MNTR(P_Ec_Num) = 111;
+			P_Ecat_Parameter_Write_State_Machine = 0;
+		}
+	break;
+
+	case 2:		// 쓰기 구간
+		P_Ecat_Write_MNTR(0),N_SDO_EA = 1;		// Ecat SDO Func 완료 리턴값 = 0 , 에러 리턴값 = nan
+		
+		P_Ecat_Write_MNTR(0) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2000,0,P_Pn000(P_Ec_Num),2);				//P_Pn000(0)				// 방향
+		P_Ecat_Write_MNTR(1) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2001,0,P_Pn001(P_Ec_Num),2);				//P_Pn001(0)				// Ecat Stop 시 방법 선택
+		P_Ecat_Write_MNTR(2) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$200B,0,P_Pn00B(P_Ec_Num),2);				//P_Pn00B(0)				// 3상 사용
+		P_Ecat_Write_MNTR(3) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2100,0,P_Pn100(P_Ec_Num),2);				//P_Pn100(0)				// D Gain
+		P_Ecat_Write_MNTR(4) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2101,0,P_Pn101(P_Ec_Num),2);				//P_Pn101(0)				// I Gain
+		P_Ecat_Write_MNTR(5) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2102,0,P_Pn102(P_Ec_Num),2);				//P_Pn102(0)				// P Gain
+		P_Ecat_Write_MNTR(6) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2103,0,P_Pn103(P_Ec_Num),2);				//P_Pn103(0)				// Inertia
+		P_Ecat_Write_MNTR(7) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2123,0,P_Pn123(P_Ec_Num),2);				//P_Pn123(0)				// 마찰 계수
+		P_Ecat_Write_MNTR(8) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2140,0,P_Pn140(P_Ec_Num),2);				//P_Pn140(0)				// FE 제어 방법 선택
+		P_Ecat_Write_MNTR(9) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2141,0,P_Pn141(P_Ec_Num),2);				//P_Pn141(0)				// Ecat 응답성 게인
+		P_Ecat_Write_MNTR(10) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2145,0,P_Pn145(P_Ec_Num),2);				//P_Pn145(0) 				// 진동 주파수 A				
+		P_Ecat_Write_MNTR(11) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2146,0,P_Pn146(P_Ec_Num),2);				//P_Pn146(0) 				// 진동 주파수 B	
+		P_Ecat_Write_MNTR(12) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2160,0,P_Pn160(P_Ec_Num),2);				//P_Pn160(0)				// 제진제어 선택
+		P_Ecat_Write_MNTR(13) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2161,0,P_Pn161(P_Ec_Num),2);				//P_Pn161(0)				// 제진제어 주파수
+		P_Ecat_Write_MNTR(14) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2163,0,P_Pn163(P_Ec_Num),2);				//P_Pn163(0)				// 제진제어 게인
+		P_Ecat_Write_MNTR(15) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2170,0,P_Pn170(P_Ec_Num),2);				//P_Pn170(0)				// 튜닝 메소드 선택 
+		P_Ecat_Write_MNTR(16) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2401,0,P_Pn401(P_Ec_Num),2);				//P_Pn401(0)				// 전류 1 필터 시정수
+		P_Ecat_Write_MNTR(17) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2408,0,P_Pn408(P_Ec_Num),2);				//P_Pn408(0)				// 노치필터 방법 선택
+		P_Ecat_Write_MNTR(18) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2409,0,P_Pn409(P_Ec_Num),2);				//P_Pn409(0)				// 노치필터 주파수
+		P_Ecat_Write_MNTR(19) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$240A,0,P_Pn40A(P_Ec_Num),2);				//P_Pn40A(0)				// 노치필터 Q값
+		P_Ecat_Write_MNTR(20) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$240C,0,P_Pn40C(P_Ec_Num),2);				//P_Pn40C(0)				// 제 2 노치필터 주파수
+		P_Ecat_Write_MNTR(21) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$240D,0,P_Pn40D(P_Ec_Num),2);				//P_Pn40D(0)				// 제 2 노치필터 Q값
+		P_Ecat_Write_MNTR(22) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2416,0,P_Pn416(P_Ec_Num),2);				//P_Pn416(0) 				// 제 3 노치 필터 사용		
+		P_Ecat_Write_MNTR(23) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2417,0,P_Pn417(P_Ec_Num),2);				//P_Pn417(0) 				// 제 3 노치 필터 주파수
+		P_Ecat_Write_MNTR(24) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2511,0,P_Pn511(P_Ec_Num),2);				//P_Pn511(0)				// 터치 프로브 
+		P_Ecat_Write_MNTR(25) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2520,0,P_Pn520(P_Ec_Num),4);				//P_Pn520(0)				// Ecat 위치편차 Max값
+		P_Ecat_Write_MNTR(26) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2701,1,P_PnB02_Numerator(P_Ec_Num),4);		//P_PnB02_Numerator			// 전자 기어비 Ecat 분자값
+		P_Ecat_Write_MNTR(27) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2701,2,P_PnB02_Denominator(P_Ec_Num),4);		//P_PnB02_Denominator		// 전자 기어비 Ecat 분모값
+
+		L_ECAT_Delay_Timer = 0;						// Timer Init
+		L_Idx = 0;									// Idx 초기화
+		P_Ecat_Parameter_Write_State_Machine++;
+
+	break;
+
+	case 3:		// 쓰기 확인 구간
+		if( L_ECAT_Delay_Timer > 1500 )						// 1.5s delay
+		{
+			if( L_Idx < N_SDO_EA )							// MNTR 중 Error 검출 
+			{
+				if( P_Ecat_Write_MNTR(L_Idx) != 0 )			// write Error
+				{
+					P_Ecat_Error_MNTR(P_Ec_Num) = L_Idx;	// 몇번째 주소에서 Error Index 저장
+					P_Ecat_Parameter_Write_State_Machine = 0;
+				}
+				else
+					L_Idx++;
+			}
+			else
+				P_Ecat_Parameter_Write_State_Machine++;
+		}
+	break;
+
+	case 4:		// Non-Flash Memory Save 
+		P_Ecat_Save_MNTR(P_Ec_Num) = 1;		// Ecat SDO Func 완료 리턴값 = 0 , 에러 리턴값 = nan
+
+		P_Ecat_Save_MNTR(P_Ec_Num) = ecattypedsdo(0,P_Ecat_Slave_Idx,0,$1010,1,$65766173,4);		// yaskawa save 
+		L_ECAT_Delay_Timer = 0;
+		P_Ecat_Parameter_Write_State_Machine++;
+	break;
+
+	case 5:		// Memory Save 확인 구간
+		if( L_ECAT_Delay_Timer > 1500 )						// 1.5s delay
+		{
+			if( P_Ecat_Save_MNTR(P_Ec_Num) != 0 )				// 완료 리턴값이 아니라면
+			{
+				P_Ecat_Error_MNTR(P_Ec_Num) = 222;			// MNTR 
+				P_Ecat_Parameter_Write_State_Machine = 0;
+			}
+			else
+				P_Ecat_Parameter_Write_State_Machine++;
+		}
+	break;
+
+	case 6:		// Slave Num 및 Arr Idx 증가		read해서 값 확인해야하나?
+
+		if( L_Motor_Num == N_UNLOADER_T )					// 마지막까지 했다면
+		{
+			P_Ecat_Error_MNTR(0),P_Ec_Num = 0;				// Error MNTR 초기화
+			P_Ecat_Parameter_Write_State_Machine = 0;
+		}
+		else												// 마지막 모터가 아니라면
+		{
+			P_Ec_Num++;
+			P_Ecat_Slave_Idx++;
+			P_Ecat_Parameter_Write_State_Machine = 1;
+		}
+	break;
+}
+
+
+//========================================================================================================================================================================================================
+// 2. Ecat Motor 파라미터 자동 읽기 프로그램 .
+//===============================================
+// 2-1 : 읽고 싶은 모터 번호 지정 -> P_Ecat_Read_Motor_Num 
+if( P_Ecat_Parameter_Read_Flag == 1 && P_Ecat_Write_Status == F_Status_Nonseatus && P_Ecat_Each_Write_Status == F_Status_Nonseatus )	// 쓰기중이 아니라면
+{
+	P_Ecat_Parameter_Read_Flag = 0;
+	//if( P_Cur_Equip_No == 1 )		//26.09.09 1호기도 2호기 이후 양산 설비와 동일하게 적용하기에 주석처리.
+	//{
+	//	switch( P_Ecat_Read_Motor_Num )
+	//	{
+	//		case 33:	P_Ecat_Slave_Idx = 1;	P_Ec_Num = 0;	Kill 33; break;
+	//		case 34:	P_Ecat_Slave_Idx = 2;	P_Ec_Num = 1;	Kill 34; break;
+	//		case 35:	P_Ecat_Slave_Idx = 3;	P_Ec_Num = 2;	Kill 35; break;
+	//		case 36:	P_Ecat_Slave_Idx = 4;	P_Ec_Num = 3;	Kill 36; break;
+	//		case 37:	P_Ecat_Slave_Idx = 5;	P_Ec_Num = 4;	Kill 37; break;
+	//		case 38:	P_Ecat_Slave_Idx = 6;	P_Ec_Num = 5;	Kill 38; break;
+	//		case 39:	P_Ecat_Slave_Idx = 7;	P_Ec_Num = 6;	Kill 39; break;
+	//		case 40:	P_Ecat_Slave_Idx = 8;	P_Ec_Num = 7;	Kill 40; break;
+	//		case 41:	P_Ecat_Slave_Idx = 9;	P_Ec_Num = 8;	Kill 41; break;
+	//		case 42:	P_Ecat_Slave_Idx = 10;	P_Ec_Num = 9;	Kill 42; break;
+	//		case 43:	P_Ecat_Slave_Idx = 11;	P_Ec_Num = 10;	Kill 43; break;
+	//		case 44:	P_Ecat_Slave_Idx = 12;	P_Ec_Num = 11;	Kill 44; break;
+	//		case 45:	P_Ecat_Slave_Idx = 13;	P_Ec_Num = 12;	Kill 45; break;
+	//		case 46:	P_Ecat_Slave_Idx = 14;	P_Ec_Num = 13;	Kill 46; break;
+	//		case 47:	P_Ecat_Slave_Idx = 15;	P_Ec_Num = 14;	Kill 47; break;
+	//		case 48:	P_Ecat_Slave_Idx = 16;	P_Ec_Num = 15;	Kill 48; break;
+	//		default :	P_Ecat_Slave_Idx = 0;	P_Ec_Num = 0;	break;
+	//	}
+	//}
+	//else
+	//{
+		switch( P_Ecat_Read_Motor_Num )
+		{
+			case 33:	P_Ecat_Slave_Idx = 2;	P_Ec_Num = 0;	Kill 33; break;
+			case 34:	P_Ecat_Slave_Idx = 3;	P_Ec_Num = 1;	Kill 34; break;
+			case 35:	P_Ecat_Slave_Idx = 4;	P_Ec_Num = 2;	Kill 35; break;
+			case 36:	P_Ecat_Slave_Idx = 5;	P_Ec_Num = 3;	Kill 36; break;
+			case 37:	P_Ecat_Slave_Idx = 6;	P_Ec_Num = 4;	Kill 37; break;
+			case 38:	P_Ecat_Slave_Idx = 7;	P_Ec_Num = 5;	Kill 38; break;
+			case 39:	P_Ecat_Slave_Idx = 8;	P_Ec_Num = 6;	Kill 39; break;
+			case 40:	P_Ecat_Slave_Idx = 9;	P_Ec_Num = 7;	Kill 40; break;
+			case 41:	P_Ecat_Slave_Idx = 10;	P_Ec_Num = 8;	Kill 41; break;
+			case 42:	P_Ecat_Slave_Idx = 11;	P_Ec_Num = 9;	Kill 42; break;
+			case 43:	P_Ecat_Slave_Idx = 12;	P_Ec_Num = 10;	Kill 43; break;
+			case 44:	P_Ecat_Slave_Idx = 13;	P_Ec_Num = 11;	Kill 44; break;
+			case 45:	P_Ecat_Slave_Idx = 14;	P_Ec_Num = 12;	Kill 45; break;
+			case 46:	P_Ecat_Slave_Idx = 15;	P_Ec_Num = 13;	Kill 46; break;
+			case 47:	P_Ecat_Slave_Idx = 16;	P_Ec_Num = 14;	Kill 47; break;
+			case 48:	P_Ecat_Slave_Idx = 17;	P_Ec_Num = 15;	Kill 48; break;
+			default :	P_Ecat_Slave_Idx = 0;	P_Ec_Num = 0;	break;
+		}
+	//}
+
+	P_Ecat_Read_Status = F_Status_STARTING;
+	L_ECAT_Read_Timer = 0;
+	if( P_Ecat_Slave_Idx != 0 )
+		P_Ecat_Parameter_Read_State_Machine = 1;
+}	
+
+switch( P_Ecat_Parameter_Read_State_Machine )
+{
+	default:	P_Ecat_Read_Status = F_Status_Nonseatus;	break;
+
+	case 1:
+		if( L_ECAT_Read_Timer > 1500 )
+		{
+			if( ECAT[0].Enable == 1 && ECAT[0].MasterState == 8 && Motor[L_Motor_Num].AmpEna == 0 )		// EtherCAT 활성화 확인 , Amp Enable 확인	-> Ecat Statusword 봐야하는데 kill 믿고 일단 진행
+			{
+				if( L_Motor_Num == N_Align_CA_T || L_Motor_Num == N_Align_AN_T )	// Inovance Motor Read 안함
+				{
+					P_Ecat_Read_Error_MNTR(P_Ec_Num) = -112;
+					P_Ecat_Parameter_Read_State_Machine = 0;
+				}
+				else
+				{
+					P_Ecat_Read_Status = F_Status_EXECUTE;
+					P_Ecat_Parameter_Read_State_Machine++;		
+				}
+			}
+			else
+			{
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) = -111;
+				P_Ecat_Parameter_Read_State_Machine = 0;
+			}
+		}
+	break;
+
+	case 2:
+		
+		P_Ecat_Read_MNTR(0),N_SDO_EA = 0;			// 버퍼 초기화
+
+		P_Ecat_Read_MNTR(0) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2000,0,0,2);				//P_Pn000(0)				// 방향
+		P_Ecat_Read_MNTR(1) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2001,0,0,2);				//P_Pn001(0)				// Ecat Stop 시 방법 선택
+		P_Ecat_Read_MNTR(2) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$200B,0,0,2);				//P_Pn00B(0)				// 3상 사용
+		P_Ecat_Read_MNTR(3) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2100,0,0,2);				//P_Pn100(0)				// D Gain
+		P_Ecat_Read_MNTR(4) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2101,0,0,2);				//P_Pn101(0)				// I Gain
+		P_Ecat_Read_MNTR(5) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2102,0,0,2);				//P_Pn102(0)				// P Gain
+		P_Ecat_Read_MNTR(6) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2103,0,0,2);				//P_Pn103(0)				// Inertia
+		P_Ecat_Read_MNTR(7) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2123,0,0,2);				//P_Pn123(0)				// 마찰 계수
+		P_Ecat_Read_MNTR(8) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2140,0,0,2);				//P_Pn140(0)				// FE 제어 방법 선택
+		P_Ecat_Read_MNTR(9) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2141,0,0,2);				//P_Pn141(0)				// Ecat 응답성 게인
+		P_Ecat_Read_MNTR(10) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2145,0,0,2);				//P_Pn145(0) 				// 진동 주파수 A	
+		P_Ecat_Read_MNTR(11) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2146,0,0,2);				//P_Pn146(0) 				// 진동 주파수 B	
+		P_Ecat_Read_MNTR(12) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2160,0,0,2);				//P_Pn160(0)				// 제진제어 선택
+		P_Ecat_Read_MNTR(13) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2161,0,0,2);				//P_Pn161(0)				// 제진제어 주파수
+		P_Ecat_Read_MNTR(14) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2163,0,0,2);				//P_Pn163(0)				// 제진제어 게인
+		P_Ecat_Read_MNTR(15) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2170,0,0,2);				//P_Pn170(0)				// 튜닝 메소드 선택 
+		P_Ecat_Read_MNTR(16) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2401,0,0,2);				//P_Pn401(0)				// 전류 1 필터 시정수
+		P_Ecat_Read_MNTR(17) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2408,0,0,2);				//P_Pn408(0)				// 노치필터 방법 선택
+		P_Ecat_Read_MNTR(18) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2409,0,0,2);				//P_Pn409(0)				// 노치필터 주파수
+		P_Ecat_Read_MNTR(19) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$240A,0,0,2);				//P_Pn40A(0)				// 노치필터 Q값
+		P_Ecat_Read_MNTR(20) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$240C,0,0,2);				//P_Pn40C(0)				// 제 2 노치필터 주파수
+		P_Ecat_Read_MNTR(21) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$240D,0,0,2);				//P_Pn40D(0)				// 제 2 노치필터 Q값
+		P_Ecat_Read_MNTR(22) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2416,0,0,2);				//P_Pn416(0)				// 제 3 노치 필터 사용	
+		P_Ecat_Read_MNTR(23) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2417,0,0,2);				//P_Pn417(0)				// 제 3 노치 필터 주파수
+		P_Ecat_Read_MNTR(24) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2511,0,0,2);				//P_Pn511(0)				// 터치 프로브 
+		P_Ecat_Read_MNTR(25) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2520,0,0,4);				//P_Pn520(0)				// Ecat 위치편차 Max값
+		P_Ecat_Read_MNTR(26) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2701,1,0,4);				//P_PnB02_Numerator			// 전자 기어비 Ecat 분자값
+		P_Ecat_Read_MNTR(27) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Read,$2701,2,0,4);				//P_PnB02_Denominator		// 전자 기어비 Ecat 분모값
+
+		L_ECAT_Read_Timer = 0;
+		P_Ecat_Parameter_Read_State_Machine++;	
+	
+	break;
+
+	case 3:
+		if( L_ECAT_Read_Timer > 1500 )						// 1.5s delay
+		{
+			if( P_Pn000(P_Ec_Num) != P_Ecat_Read_MNTR(0))			// 0번째 파라미터 다르다면						
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<0;															
+																													
+			if( P_Pn001(P_Ec_Num) != P_Ecat_Read_MNTR(1))			// 1번째 파라미터 다르다면						
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<1;															
+																													
+			if( P_Pn00B(P_Ec_Num) != P_Ecat_Read_MNTR(2))			// 2번째 파라미터 다르다면						
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<2;															
+																													
+			if( P_Pn100(P_Ec_Num) != P_Ecat_Read_MNTR(3))			// 3번째 파라미터 다르다면						
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<3;															
+																													
+			if( P_Pn101(P_Ec_Num) != P_Ecat_Read_MNTR(4))			// 4번째 파라미터 다르다면						
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<4;															
+																													
+			if( P_Pn102(P_Ec_Num) != P_Ecat_Read_MNTR(5))			// 5번째 파라미터 다르다면						
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<5;															
+																													
+			if( P_Pn103(P_Ec_Num) != P_Ecat_Read_MNTR(6))			// 6번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<6;
+			
+			if( P_Pn123(P_Ec_Num) != P_Ecat_Read_MNTR(7))			// 7번째 파라미터 다르다면						
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<7;															
+																													
+			if( P_Pn140(P_Ec_Num) != P_Ecat_Read_MNTR(8))			// 8번째 파라미터 다르다면						
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<8;															
+																													
+			if( P_Pn141(P_Ec_Num) != P_Ecat_Read_MNTR(9))			// 9번째 파라미터 다르다면					
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<9;										
+
+			if( P_Pn145(P_Ec_Num) != P_Ecat_Read_MNTR(10))			// 10번째 파라미터 다르다면					
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<10;				
+
+			if( P_Pn146(P_Ec_Num) != P_Ecat_Read_MNTR(11))			// 11번째 파라미터 다르다면					
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<11;
+																												
+			if( P_Pn160(P_Ec_Num) != P_Ecat_Read_MNTR(12))			// 12번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<12;
+
+			if( P_Pn161(P_Ec_Num) != P_Ecat_Read_MNTR(13))			// 13번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<13;
+
+			if( P_Pn163(P_Ec_Num) != P_Ecat_Read_MNTR(14))			// 14번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<14;
+
+			if( P_Pn170(P_Ec_Num) != P_Ecat_Read_MNTR(15))			// 15번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<15;
+
+			if( P_Pn401(P_Ec_Num) != P_Ecat_Read_MNTR(16))			// 16번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<16;
+
+			if( P_Pn408(P_Ec_Num) != P_Ecat_Read_MNTR(17))			// 17번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<17;
+
+			if( P_Pn409(P_Ec_Num) != P_Ecat_Read_MNTR(18))			// 18번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<18;
+
+			if( P_Pn40A(P_Ec_Num) != P_Ecat_Read_MNTR(19))			// 19번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<19;
+
+			if( P_Pn40C(P_Ec_Num) != P_Ecat_Read_MNTR(20))			// 20번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<20;
+
+			if( P_Pn40D(P_Ec_Num) != P_Ecat_Read_MNTR(21))			// 21번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<21;
+
+			if( P_Pn416(P_Ec_Num) != P_Ecat_Read_MNTR(22))			// 22번째 파라미터 다르다면					
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<22;
+
+			if( P_Pn417(P_Ec_Num) != P_Ecat_Read_MNTR(23))			// 23번째 파라미터 다르다면					
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<23;
+
+			if( P_Pn511(P_Ec_Num) != P_Ecat_Read_MNTR(24))			// 24번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<24;
+
+			if( P_Pn520(P_Ec_Num) != P_Ecat_Read_MNTR(25))			// 25번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<25;
+
+			if( P_PnB02_Numerator(P_Ec_Num) != P_Ecat_Read_MNTR(26))	// 26번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<26;
+
+			if( P_PnB02_Denominator(P_Ec_Num) != P_Ecat_Read_MNTR(27))	// 27번째 파라미터 다르다면
+				P_Ecat_Read_Error_MNTR(P_Ec_Num) |= 1<<27;
+
+			P_Ecat_Parameter_Read_State_Machine = 0;
+		}	
+	break;
+}
+
+//========================================================================================================================================================================================================
+// 3. Ecat Motor 개별 파라미터 자동 쓰기 프로그램 .
+//===============================================
+// 3-1 : 쓰고 싶은 모터 번호 지정 -> P_Ecat_Write_Motor_Num 
+if( P_Ecat_Each_Parameter_Write_Flag == 1 && P_Ecat_Write_Status == F_Status_Nonseatus &&  P_Ecat_Read_Status == F_Status_Nonseatus )	// 전체 쓰기 및 읽기 중이 아니라면
+{
+	P_Ecat_Each_Parameter_Write_Flag = 0;
+	//if( P_Cur_Equip_No == 1 )		//26.09.09 1호기도 2호기 이후 양산 설비와 동일하게 적용하기에 주석처리.
+	//{
+	//	switch( P_Ecat_Write_Motor_Num )
+	//	{
+	//		case 33:	P_Ecat_Slave_Idx = 1;	P_Ec_Num = 0;	Kill 33; break;
+	//		case 34:	P_Ecat_Slave_Idx = 2;	P_Ec_Num = 1;	Kill 34; break;
+	//		case 35:	P_Ecat_Slave_Idx = 3;	P_Ec_Num = 2;	Kill 35; break;
+	//		case 36:	P_Ecat_Slave_Idx = 4;	P_Ec_Num = 3;	Kill 36; break;
+	//		case 37:	P_Ecat_Slave_Idx = 5;	P_Ec_Num = 4;	Kill 37; break;
+	//		case 38:	P_Ecat_Slave_Idx = 6;	P_Ec_Num = 5;	Kill 38; break;
+	//		case 39:	P_Ecat_Slave_Idx = 7;	P_Ec_Num = 6;	Kill 39; break;
+	//		case 40:	P_Ecat_Slave_Idx = 8;	P_Ec_Num = 7;	Kill 40; break;
+	//		case 41:	P_Ecat_Slave_Idx = 9;	P_Ec_Num = 8;	Kill 41; break;
+	//		case 42:	P_Ecat_Slave_Idx = 10;	P_Ec_Num = 9;	Kill 42; break;
+	//		case 43:	P_Ecat_Slave_Idx = 11;	P_Ec_Num = 10;	Kill 43; break;
+	//		case 44:	P_Ecat_Slave_Idx = 12;	P_Ec_Num = 11;	Kill 44; break;
+	//		case 45:	P_Ecat_Slave_Idx = 13;	P_Ec_Num = 12;	Kill 45; break;
+	//		case 46:	P_Ecat_Slave_Idx = 14;	P_Ec_Num = 13;	Kill 46; break;
+	//		case 47:	P_Ecat_Slave_Idx = 15;	P_Ec_Num = 14;	Kill 47; break;
+	//		case 48:	P_Ecat_Slave_Idx = 16;	P_Ec_Num = 15;	Kill 48; break;
+	//		default :	P_Ecat_Slave_Idx = 0;	P_Ec_Num = 0;	break;
+	//	}
+	//}
+	//else
+	//{
+		switch( P_Ecat_Write_Motor_Num )
+		{
+			case 33:	P_Ecat_Slave_Idx = 2;	P_Ec_Num = 0;	Kill 33; break;
+			case 34:	P_Ecat_Slave_Idx = 3;	P_Ec_Num = 1;	Kill 34; break;
+			case 35:	P_Ecat_Slave_Idx = 4;	P_Ec_Num = 2;	Kill 35; break;
+			case 36:	P_Ecat_Slave_Idx = 5;	P_Ec_Num = 3;	Kill 36; break;
+			case 37:	P_Ecat_Slave_Idx = 6;	P_Ec_Num = 4;	Kill 37; break;
+			case 38:	P_Ecat_Slave_Idx = 7;	P_Ec_Num = 5;	Kill 38; break;
+			case 39:	P_Ecat_Slave_Idx = 8;	P_Ec_Num = 6;	Kill 39; break;
+			case 40:	P_Ecat_Slave_Idx = 9;	P_Ec_Num = 7;	Kill 40; break;
+			case 41:	P_Ecat_Slave_Idx = 10;	P_Ec_Num = 8;	Kill 41; break;
+			case 42:	P_Ecat_Slave_Idx = 11;	P_Ec_Num = 9;	Kill 42; break;
+			case 43:	P_Ecat_Slave_Idx = 12;	P_Ec_Num = 10;	Kill 43; break;
+			case 44:	P_Ecat_Slave_Idx = 13;	P_Ec_Num = 11;	Kill 44; break;
+			case 45:	P_Ecat_Slave_Idx = 14;	P_Ec_Num = 12;	Kill 45; break;
+			case 46:	P_Ecat_Slave_Idx = 15;	P_Ec_Num = 13;	Kill 46; break;
+			case 47:	P_Ecat_Slave_Idx = 16;	P_Ec_Num = 14;	Kill 47; break;
+			case 48:	P_Ecat_Slave_Idx = 17;	P_Ec_Num = 15;	Kill 48; break;
+			default :	P_Ecat_Slave_Idx = 0;	P_Ec_Num = 0;	break;
+		}
+	//}
+
+	P_Ecat_Each_Write_Status = F_Status_STARTING;
+	L_ECAT_Each_Write_Timer = 0;
+	if( P_Ecat_Slave_Idx != 0 )
+		P_Ecat_Each_Parameter_Write_State_Machine = 1;
+}	
+
+switch(P_Ecat_Each_Parameter_Write_State_Machine)
+{
+	default:	P_Ecat_Each_Write_Status = F_Status_Nonseatus;	 break;
+
+	case 1:
+		if( L_ECAT_Each_Write_Timer > 1500 )
+		{
+			if( ECAT[0].Enable == 1 && ECAT[0].MasterState == 8 && Motor[L_Motor_Num].AmpEna == 0 )		// EtherCAT 활성화 확인 , Amp Enable 확인	-> Ecat Statusword 봐야하는데 kill 믿고 일단 진행
+			{
+				if( L_Motor_Num == N_Align_CA_T || L_Motor_Num == N_Align_AN_T )	// Inovance Motor Read 안함
+				{
+					P_Ecat_Each_Write_Error_MNTR(P_Ec_Num) = -112;
+					P_Ecat_Each_Parameter_Write_State_Machine = 0;
+				}
+				else
+				{
+					P_Ecat_Each_Write_Status = F_Status_EXECUTE;
+					P_Ecat_Each_Parameter_Write_State_Machine++;		
+				}
+			}
+			else
+			{
+				P_Ecat_Each_Write_Error_MNTR(P_Ec_Num) = -111;
+				P_Ecat_Each_Parameter_Write_State_Machine = 0;
+			}
+		}
+	break;
+
+	case 2:
+
+		P_Ecat_Write_MNTR(0),N_SDO_EA = 1;		// Ecat SDO Func 완료 리턴값 = 0 , 에러 리턴값 = nan
+		
+		P_Ecat_Write_MNTR(0) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2000,0,P_Pn000(P_Ec_Num),2);				//P_Pn000(0)				// 방향
+		P_Ecat_Write_MNTR(1) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2001,0,P_Pn001(P_Ec_Num),2);				//P_Pn001(0)				// Ecat Stop 시 방법 선택
+		P_Ecat_Write_MNTR(2) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$200B,0,P_Pn00B(P_Ec_Num),2);				//P_Pn00B(0)				// 3상 사용
+		P_Ecat_Write_MNTR(3) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2100,0,P_Pn100(P_Ec_Num),2);				//P_Pn100(0)				// D Gain
+		P_Ecat_Write_MNTR(4) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2101,0,P_Pn101(P_Ec_Num),2);				//P_Pn101(0)				// I Gain
+		P_Ecat_Write_MNTR(5) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2102,0,P_Pn102(P_Ec_Num),2);				//P_Pn102(0)				// P Gain
+		P_Ecat_Write_MNTR(6) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2103,0,P_Pn103(P_Ec_Num),2);				//P_Pn103(0)				// Inertia
+		P_Ecat_Write_MNTR(7) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2123,0,P_Pn123(P_Ec_Num),2);				//P_Pn123(0)				// 마찰 계수
+		P_Ecat_Write_MNTR(8) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2140,0,P_Pn140(P_Ec_Num),2);				//P_Pn140(0)				// FE 제어 방법 선택
+		P_Ecat_Write_MNTR(9) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2141,0,P_Pn141(P_Ec_Num),2);				//P_Pn141(0)				// Ecat 응답성 게인
+		P_Ecat_Write_MNTR(10) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2145,0,P_Pn145(P_Ec_Num),2);				//P_Pn145(0) 				// 진동 주파수 A				
+		P_Ecat_Write_MNTR(11) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2146,0,P_Pn146(P_Ec_Num),2);				//P_Pn146(0) 				// 진동 주파수 B	
+		P_Ecat_Write_MNTR(12) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2160,0,P_Pn160(P_Ec_Num),2);				//P_Pn160(0)				// 제진제어 선택
+		P_Ecat_Write_MNTR(13) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2161,0,P_Pn161(P_Ec_Num),2);				//P_Pn161(0)				// 제진제어 주파수
+		P_Ecat_Write_MNTR(14) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2163,0,P_Pn163(P_Ec_Num),2);				//P_Pn163(0)				// 제진제어 게인
+		P_Ecat_Write_MNTR(15) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2170,0,P_Pn170(P_Ec_Num),2);				//P_Pn170(0)				// 튜닝 메소드 선택 
+		P_Ecat_Write_MNTR(16) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2401,0,P_Pn401(P_Ec_Num),2);				//P_Pn401(0)				// 전류 1 필터 시정수
+		P_Ecat_Write_MNTR(17) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2408,0,P_Pn408(P_Ec_Num),2);				//P_Pn408(0)				// 노치필터 방법 선택
+		P_Ecat_Write_MNTR(18) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2409,0,P_Pn409(P_Ec_Num),2);				//P_Pn409(0)				// 노치필터 주파수
+		P_Ecat_Write_MNTR(19) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$240A,0,P_Pn40A(P_Ec_Num),2);				//P_Pn40A(0)				// 노치필터 Q값
+		P_Ecat_Write_MNTR(20) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$240C,0,P_Pn40C(P_Ec_Num),2);				//P_Pn40C(0)				// 제 2 노치필터 주파수
+		P_Ecat_Write_MNTR(21) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$240D,0,P_Pn40D(P_Ec_Num),2);				//P_Pn40D(0)				// 제 2 노치필터 Q값
+		P_Ecat_Write_MNTR(22) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2416,0,P_Pn416(P_Ec_Num),2);				//P_Pn416(0) 				// 제 3 노치 필터 사용		
+		P_Ecat_Write_MNTR(23) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2417,0,P_Pn417(P_Ec_Num),2);				//P_Pn417(0) 				// 제 3 노치 필터 주파수
+		P_Ecat_Write_MNTR(24) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2511,0,P_Pn511(P_Ec_Num),2);				//P_Pn511(0)				// 터치 프로브 
+		P_Ecat_Write_MNTR(25) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2520,0,P_Pn520(P_Ec_Num),4);				//P_Pn520(0)				// Ecat 위치편차 Max값
+		P_Ecat_Write_MNTR(26) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2701,1,P_PnB02_Numerator(P_Ec_Num),4);		//P_PnB02_Numerator			// 전자 기어비 Ecat 분자값
+		P_Ecat_Write_MNTR(27) = ecattypedsdo(0,P_Ecat_Slave_Idx,F_Write,$2701,2,P_PnB02_Denominator(P_Ec_Num),4);		//P_PnB02_Denominator		// 전자 기어비 Ecat 분모값
+
+		L_ECAT_Each_Write_Timer = 0;						// Timer Init
+		L_Idx = 0;											// Idx 초기화
+		P_Ecat_Each_Parameter_Write_State_Machine++;
+
+	break;
+
+	case 3:		// 쓰기 확인 구간
+		if( L_ECAT_Each_Write_Timer > 1500 )						// 1.5s delay
+		{
+			if( L_Idx < N_SDO_EA )							// MNTR 중 Error 검출 
+			{
+				if( P_Ecat_Write_MNTR(L_Idx) != 0 )			// write Error
+				{
+					P_Ecat_Each_Write_Error_MNTR(P_Ec_Num) = L_Idx;	// 몇번째 주소에서 Error Index 저장
+					P_Ecat_Each_Parameter_Write_State_Machine = 0;
+				}
+				else
+					L_Idx++;
+			}
+			else
+				P_Ecat_Each_Parameter_Write_State_Machine++;
+		}
+	break;
+
+	case 4:		// Non-Flash Memory Save 
+		P_Ecat_Save_MNTR(P_Ec_Num) = 1;		// Ecat SDO Func 완료 리턴값 = 0 , 에러 리턴값 = nan
+
+		P_Ecat_Save_MNTR(P_Ec_Num) = ecattypedsdo(0,P_Ecat_Slave_Idx,0,$1010,1,$65766173,4);		// yaskawa save 
+		L_ECAT_Each_Write_Timer = 0;
+		P_Ecat_Each_Parameter_Write_State_Machine++;
+	break;
+
+	case 5:		// Memory Save 확인 구간
+		if( L_ECAT_Each_Write_Timer > 1500 )					// 1.5s delay
+		{
+			if( P_Ecat_Save_MNTR(P_Ec_Num) != 0 )				// 완료 리턴값이 아니라면
+			{
+				P_Ecat_Each_Write_Error_MNTR(P_Ec_Num) = 222;	// MNTR 
+				P_Ecat_Each_Parameter_Write_State_Machine = 0;
+			}
+			else
+				P_Ecat_Each_Parameter_Write_State_Machine++;
+		}
+	break;
+
+	case 6:	
+		P_Ecat_Each_Parameter_Write_State_Machine = 0;
+	break;
+}
+
+
+P_MNTR_PLC30_Task_Time(1) = (Sys.Time - P_MNTR_PLC30_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC30_Task_Time(1) > P_MNTR_PLC30_Task_Max_Time )
+{
+	P_MNTR_PLC30_Task_Max_Time = P_MNTR_PLC30_Task_Time(1);
+}
+
+close

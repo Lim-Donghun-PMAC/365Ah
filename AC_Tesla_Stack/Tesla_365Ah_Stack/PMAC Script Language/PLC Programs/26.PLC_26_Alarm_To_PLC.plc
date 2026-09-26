@@ -1,0 +1,643 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.29 
+// 알람 프로그램 표준화 작업 - [ 참조 : 25.07.29 알람 프로그램 표준화 작업 진행 ]
+
+open plc 26
+// 04. 타이머를 쉽게 사용하기 위한 로컬 모듈 
+#define	L_System_Timer				Sys.Time				// 시스템 타이머
+
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[26].Ldata.L[0] 시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[26].Ldata.L[1] 시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[26].Ldata.L[2] 시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[26].Ldata.L[3] 타이머 초기화 플래그
+local	L_Local_Axis;									// Plc[26].Ldata.L[4] Local Motor 번호 순환 변수
+local	L_Ecat_Axis;									// Plc[26].Ldata.L[5] Ecat Motor 번호 순환 변수
+local	L_Home_Alarm_Timer_Init_Flag(50);				// Plc[26].Ldata.L[6 ~ 55]
+local	L_Home_Alarm_Timer(50);							// Plc[26].Ldata.L[56 ~ 105]
+local	L_Alarm_Occur_Cycle_Stop_Flag_Old;				// Plc[26].Ldata.L[106] 사이클스탑 알람 이전 상태
+local	L_Alarm_Occur_Emergency_Stop_Flag_Old;			// Plc[26].Ldata.L[107] 즉시정지 알람 이전 상태
+
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	// 시간 간격 초기화
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 00.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+// 00.3) 시간 업데이트
+if(L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{	
+	P_Alarm_Delay_Timer = P_Alarm_Delay_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+//==========================================================================================================================================================================================================================================
+// Alarm Program
+//===========================================================//
+// 
+if(P_Alarm_Arr(0) > 0)
+{
+	// 알람 갯수에서 알람갯수 -1
+
+	if(P_First_Alarm_Flag == 0 || (P_Alarm_Delay_Timer > P_Alarm_Wait_Time))
+	{
+		P_Alarm_Index++;									
+		P_Alarm_Num = P_Alarm_Arr(P_Alarm_Index);			// 다음 순서 알람 
+		P_Alarm_Arr(P_Alarm_Index) = 0;						// 알람 제거
+
+		P_Alarm_Log(99) = P_Alarm_Log(98);
+		P_Alarm_Log(98) = P_Alarm_Log(97);
+		P_Alarm_Log(97) = P_Alarm_Log(96);
+		P_Alarm_Log(96) = P_Alarm_Log(95);
+		P_Alarm_Log(95) = P_Alarm_Log(94);
+		P_Alarm_Log(94) = P_Alarm_Log(93);
+		P_Alarm_Log(93) = P_Alarm_Log(92);
+		P_Alarm_Log(92) = P_Alarm_Log(91);
+		P_Alarm_Log(91) = P_Alarm_Log(90);
+		P_Alarm_Log(90) = P_Alarm_Log(89);
+		P_Alarm_Log(89) = P_Alarm_Log(88);
+		P_Alarm_Log(88) = P_Alarm_Log(87);
+		P_Alarm_Log(87) = P_Alarm_Log(86);
+		P_Alarm_Log(86) = P_Alarm_Log(85);
+		P_Alarm_Log(85) = P_Alarm_Log(84);
+		P_Alarm_Log(84) = P_Alarm_Log(83);
+		P_Alarm_Log(83) = P_Alarm_Log(82);
+		P_Alarm_Log(82) = P_Alarm_Log(81);
+		P_Alarm_Log(81) = P_Alarm_Log(80);
+		P_Alarm_Log(80) = P_Alarm_Log(79);
+		P_Alarm_Log(79) = P_Alarm_Log(78);
+		P_Alarm_Log(78) = P_Alarm_Log(77);
+		P_Alarm_Log(77) = P_Alarm_Log(76);
+		P_Alarm_Log(76) = P_Alarm_Log(75);
+		P_Alarm_Log(75) = P_Alarm_Log(74);
+		P_Alarm_Log(74) = P_Alarm_Log(73);
+		P_Alarm_Log(73) = P_Alarm_Log(72);
+		P_Alarm_Log(72) = P_Alarm_Log(71);
+		P_Alarm_Log(71) = P_Alarm_Log(70);
+		P_Alarm_Log(70) = P_Alarm_Log(69);
+		P_Alarm_Log(69) = P_Alarm_Log(68);
+		P_Alarm_Log(68) = P_Alarm_Log(67);
+		P_Alarm_Log(67) = P_Alarm_Log(66);
+		P_Alarm_Log(66) = P_Alarm_Log(65);
+		P_Alarm_Log(65) = P_Alarm_Log(64);
+		P_Alarm_Log(64) = P_Alarm_Log(63);
+		P_Alarm_Log(63) = P_Alarm_Log(62);
+		P_Alarm_Log(62) = P_Alarm_Log(61);
+		P_Alarm_Log(61) = P_Alarm_Log(60);
+		P_Alarm_Log(60) = P_Alarm_Log(59);
+		P_Alarm_Log(59) = P_Alarm_Log(58);
+		P_Alarm_Log(58) = P_Alarm_Log(57);
+		P_Alarm_Log(57) = P_Alarm_Log(56);
+		P_Alarm_Log(56) = P_Alarm_Log(55);
+		P_Alarm_Log(55) = P_Alarm_Log(54);
+		P_Alarm_Log(54) = P_Alarm_Log(53);
+		P_Alarm_Log(53) = P_Alarm_Log(52);
+		P_Alarm_Log(52) = P_Alarm_Log(51);
+		P_Alarm_Log(51) = P_Alarm_Log(50);
+		P_Alarm_Log(50) = P_Alarm_Log(49);
+		P_Alarm_Log(49) = P_Alarm_Log(48);
+		P_Alarm_Log(48) = P_Alarm_Log(47);
+		P_Alarm_Log(47) = P_Alarm_Log(46);
+		P_Alarm_Log(46) = P_Alarm_Log(45);
+		P_Alarm_Log(45) = P_Alarm_Log(44);
+		P_Alarm_Log(44) = P_Alarm_Log(43);
+		P_Alarm_Log(43) = P_Alarm_Log(42);
+		P_Alarm_Log(42) = P_Alarm_Log(41);
+		P_Alarm_Log(41) = P_Alarm_Log(40);
+		P_Alarm_Log(40) = P_Alarm_Log(39);
+		P_Alarm_Log(39) = P_Alarm_Log(38);
+		P_Alarm_Log(38) = P_Alarm_Log(37);
+		P_Alarm_Log(37) = P_Alarm_Log(36);
+		P_Alarm_Log(36) = P_Alarm_Log(35);
+		P_Alarm_Log(35) = P_Alarm_Log(34);
+		P_Alarm_Log(34) = P_Alarm_Log(33);
+		P_Alarm_Log(33) = P_Alarm_Log(32);
+		P_Alarm_Log(32) = P_Alarm_Log(31);
+		P_Alarm_Log(31) = P_Alarm_Log(30);
+		P_Alarm_Log(30) = P_Alarm_Log(29);
+		P_Alarm_Log(29) = P_Alarm_Log(28);
+		P_Alarm_Log(28) = P_Alarm_Log(27);
+		P_Alarm_Log(27) = P_Alarm_Log(26);
+		P_Alarm_Log(26) = P_Alarm_Log(25);
+		P_Alarm_Log(25) = P_Alarm_Log(24);
+		P_Alarm_Log(24) = P_Alarm_Log(23);
+		P_Alarm_Log(23) = P_Alarm_Log(22);
+		P_Alarm_Log(22) = P_Alarm_Log(21);
+		P_Alarm_Log(21) = P_Alarm_Log(20);
+		P_Alarm_Log(20) = P_Alarm_Log(19);
+		P_Alarm_Log(19) = P_Alarm_Log(18);
+		P_Alarm_Log(18) = P_Alarm_Log(17);
+		P_Alarm_Log(17) = P_Alarm_Log(16);
+		P_Alarm_Log(16) = P_Alarm_Log(15);
+		P_Alarm_Log(15) = P_Alarm_Log(14);
+		P_Alarm_Log(14) = P_Alarm_Log(13);
+		P_Alarm_Log(13) = P_Alarm_Log(12);
+		P_Alarm_Log(12) = P_Alarm_Log(11);
+		P_Alarm_Log(11) = P_Alarm_Log(10);
+		P_Alarm_Log(10) = P_Alarm_Log(9);
+		P_Alarm_Log(9) = P_Alarm_Log(8);
+		P_Alarm_Log(8) = P_Alarm_Log(7);
+		P_Alarm_Log(7) = P_Alarm_Log(6);
+		P_Alarm_Log(6) = P_Alarm_Log(5);
+		P_Alarm_Log(5) = P_Alarm_Log(4);
+		P_Alarm_Log(4) = P_Alarm_Log(3);
+		P_Alarm_Log(3) = P_Alarm_Log(2);
+		P_Alarm_Log(2) = P_Alarm_Log(1);
+		P_Alarm_Log(1) = P_Alarm_Log(0);
+		P_Alarm_Log(0) = P_Alarm_Num;
+
+	}
+
+	if(P_Alarm_Index == P_Alarm_Arr(0))						// 알람처리 완료 후 초기화
+	{
+		P_Alarm_Index = 0;
+		P_Alarm_Arr(0) = 0;
+	}
+
+	// 첫번째 알람이후 2초 뒤 나머지 발생시켜야함
+	// 첫번째 알람 플래그 상승
+	if(P_First_Alarm_Flag == 0)
+	{
+		P_First_Alarm_Flag = 1;
+		P_Alarm_Delay_Timer = 0;						// 첫번째 알람 발생 이후 다음 알람 처리를 위한 타이머 초기화
+		M(P_Alarm_Num) = 1;								// PLC에 알람 송신
+
+		// 260715 첫번째 발생한 알람 로그 추가
+		P_First_Alarm_Log(29) = P_First_Alarm_Log(28);
+		P_First_Alarm_Log(28) = P_First_Alarm_Log(27);
+		P_First_Alarm_Log(27) = P_First_Alarm_Log(26);
+		P_First_Alarm_Log(26) = P_First_Alarm_Log(25);
+		P_First_Alarm_Log(25) = P_First_Alarm_Log(24);
+		P_First_Alarm_Log(24) = P_First_Alarm_Log(23);
+		P_First_Alarm_Log(23) = P_First_Alarm_Log(22);
+		P_First_Alarm_Log(22) = P_First_Alarm_Log(21);
+		P_First_Alarm_Log(21) = P_First_Alarm_Log(20);
+		P_First_Alarm_Log(20) = P_First_Alarm_Log(19);
+		P_First_Alarm_Log(19) = P_First_Alarm_Log(18);
+		P_First_Alarm_Log(18) = P_First_Alarm_Log(17);
+		P_First_Alarm_Log(17) = P_First_Alarm_Log(16);
+		P_First_Alarm_Log(16) = P_First_Alarm_Log(15);
+		P_First_Alarm_Log(15) = P_First_Alarm_Log(14);
+		P_First_Alarm_Log(14) = P_First_Alarm_Log(13);
+		P_First_Alarm_Log(13) = P_First_Alarm_Log(12);
+		P_First_Alarm_Log(12) = P_First_Alarm_Log(11);
+		P_First_Alarm_Log(11) = P_First_Alarm_Log(10);
+		P_First_Alarm_Log(10) = P_First_Alarm_Log(9);
+		P_First_Alarm_Log(9) = P_First_Alarm_Log(8);
+		P_First_Alarm_Log(8) = P_First_Alarm_Log(7);
+		P_First_Alarm_Log(7) = P_First_Alarm_Log(6);
+		P_First_Alarm_Log(6) = P_First_Alarm_Log(5);
+		P_First_Alarm_Log(5) = P_First_Alarm_Log(4);
+		P_First_Alarm_Log(4) = P_First_Alarm_Log(3);
+		P_First_Alarm_Log(3) = P_First_Alarm_Log(2);
+		P_First_Alarm_Log(2) = P_First_Alarm_Log(1);
+		P_First_Alarm_Log(1) = P_First_Alarm_Log(0);
+		P_First_Alarm_Log(0) = P_Alarm_Num;
+
+	}
+	else
+	{
+		if(P_Alarm_Delay_Timer > P_Alarm_Wait_Time)
+		{
+			M(P_Alarm_Num) = 1;							// PLC에 알람 송신
+		}
+	}
+
+	P_Alarm_Num = 0;
+	P_Alarm_Occur_Index_Flag(P_Compare_Priority) = 1;	// 발생한 알람중 가장 높은 순위의 커멘드 발생
+}
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------//
+// 알람 우선 순위에 따른 알람 발생 Flag 구분 [ [1] N_High_Alarm_Emergency_Stop : 즉시 정지, [2] N_High_Alarm_Cycle_Stop : 사이클 정지, [3] N_Low_Alarm : 경고 ]
+//----------------------------------------------------------------------------------------------------------------------------------------------------------//
+
+if(P_Alarm_Occur_Index_Flag(N_High_Alarm_Emergency_Stop) == 1 && L_Alarm_Occur_Emergency_Stop_Flag_Old == 0)
+{
+	if(P_PMAC_Current_Mode == F_Current_Automatic)			// Auto 모드 일 경우.
+	{
+		P_Alarm_Occur_Flag = N_High_Alarm_Emergency_Stop;	// 즉시정지 플래그 발생.
+	}
+	else if(P_PMAC_Current_Mode == F_Current_Manual)		// Manual 모드 일 경우.
+	{
+		P_Alarm_Occur_Flag = N_High_Alarm_Cycle_Stop;		// 사이클 정지 플래그 발생.
+	}
+}
+else if(P_Alarm_Occur_Index_Flag(N_High_Alarm_Cycle_Stop) == 1 && L_Alarm_Occur_Cycle_Stop_Flag_Old == 0)
+{
+	P_Alarm_Occur_Flag = N_High_Alarm_Cycle_Stop;			// 사이클 정지 플래그 발생.
+}
+
+L_Alarm_Occur_Emergency_Stop_Flag_Old = P_Alarm_Occur_Index_Flag(N_High_Alarm_Emergency_Stop);
+L_Alarm_Occur_Cycle_Stop_Flag_Old = P_Alarm_Occur_Index_Flag(N_High_Alarm_Cycle_Stop);
+
+//---------------------------//
+// Flag에 따른 Commands 실행 //
+//---------------------------//
+if(P_Alarm_Occur_Flag == N_High_Alarm_Emergency_Stop)		// 즉시 정지 플래그 일 경우.
+{
+	P_Alarm_Occur_Flag = 0;
+	P_PMAC_Commands = F_Command_Abort;						// Command : Abort
+}
+else if(P_Alarm_Occur_Flag == N_High_Alarm_Cycle_Stop)		// 사이클 정지 플래그 일 경우.
+{
+	P_Alarm_Occur_Flag = 0;
+	P_PMAC_Commands = F_Command_Stop;						// Command : Stop
+	P_Stop_Cmd_Origin = 40
+}
+
+// 2025.08.25 Servo Alarm 및 +,- Limit, Home time out  [ 참조 : 2025.08.25 알람코드 추가 ]
+// 서보 알람
+// 리밋 알람 ( +, - )
+// 드라이블 알람
+// 이동 오류 (Move_Error)
+// 시작 위치 오류
+// 홈 알람
+
+//==================================================================
+// 00. 모터 번호 업데이트
+//==================================================================
+	if( L_Local_Axis >= 28 || L_Local_Axis == 0 )				// 1 ~ 28 Local Axes
+	   L_Local_Axis = 1;										
+	else
+		L_Local_Axis++;
+
+	if(L_Local_Axis == 9)
+	{
+		L_Local_Axis = 11;
+	}
+
+	if( L_Ecat_Axis >= 48 || L_Ecat_Axis == 0 )					// 33 ~ 48 Ecat Axes
+		L_Ecat_Axis = 33;
+	else
+		L_Ecat_Axis++;
+//==================================================================
+
+//==================================================================
+// 01. Servo Alarm Update
+//==================================================================
+if( Motor[L_Local_Axis].ServoCtrl == N_TRUE )							// 사용하는 서보인지 체크
+{
+	if( Motor[L_Local_Axis].AmpEna == 0 )								// 서보 off라면
+	{
+		if(P_Servo_Alarm_Check == 0)
+		{
+			P_Servo_Alarm_Check = 1;
+			P338 = Motor[L_Local_Axis].AmpEna;
+		}
+
+		// 260602 케스케이딩 중 언와인더 kill 시 서보 알람 무시
+		if(L_Local_Axis == N_UNWINDER_UPPER || L_Local_Axis == N_UNWINDER_LOWER)
+		{
+			if(P_System_Cascading_ON_Status == F_Status_Nonseatus)
+			{
+				call Alarm.Insert_Alarm(L_Local_Axis - 1, N_High_Alarm_Emergency_Stop); 
+			}
+		}
+		else
+		{
+			call Alarm.Insert_Alarm(L_Local_Axis - 1, N_High_Alarm_Emergency_Stop); 
+		}				
+	}							
+}
+if( Motor[L_Ecat_Axis].ServoCtrl == N_TRUE )							// 사용하는 서보인지 체크
+{
+	if( Motor[L_Ecat_Axis].AmpEna == 0 )								// 서보 off라면
+	{
+		if(P_Ecat_Servo_Alarm_Check == 0)
+		{
+			P_Ecat_Servo_Alarm_Check = 1;
+			P339 = Motor[L_Ecat_Axis].AmpEna;
+		}
+		call Alarm.Insert_Alarm(L_Ecat_Axis - 1, N_High_Alarm_Emergency_Stop); 
+	}							
+}
+
+//==================================================================
+// 02. Servo Limit		
+//==================================================================
+if( P_PMAC_Current_Mode == F_Current_Automatic )
+{
+	if(Motor[L_Local_Axis].ServoCtrl == 1)
+	{
+		if( Motor[L_Local_Axis].PlusLimit == N_TRUE  )							// 플러스 리밋이 감지 된다면
+		{
+			call Alarm.Insert_Alarm(L_Local_Axis + 105, N_High_Alarm_Emergency_Stop); 
+			//M(L_Local_Axis + 120) = 1;
+			P_PMAC_Homing_CHK(L_Local_Axis) = 0;								// 해당 모터 홈잉 체크 초기화
+		}
+
+		if( Motor[L_Local_Axis].MinusLimit == N_TRUE )							// 마이너스 리밋이 감지 된다면
+		{
+			call Alarm.Insert_Alarm(L_Local_Axis + 52, N_High_Alarm_Emergency_Stop); 
+//			M(L_Local_Axis + 60) = 1;
+			P_PMAC_Homing_CHK(L_Local_Axis) = 0;								// 해당 모터 홈잉 체크 초기화
+		}
+	}
+	if(Motor[L_Ecat_Axis].ServoCtrl == 1)
+	{
+		if( Motor[L_Ecat_Axis].PlusLimit == N_TRUE )							// 플러스 리밋이 감지 된다면
+		{
+			call Alarm.Insert_Alarm(L_Ecat_Axis + 105, N_High_Alarm_Emergency_Stop); 
+//			M(L_Ecat_Axis + 118) = 1;
+			P_PMAC_Homing_CHK(L_Ecat_Axis) = 0;									// 해당 모터 홈잉 체크 초기화
+		}
+
+		if( Motor[L_Ecat_Axis].MinusLimit == N_TRUE )							// 마이너스 리밋이 감지 된다면
+		{
+			call Alarm.Insert_Alarm(L_Ecat_Axis + 52, N_High_Alarm_Emergency_Stop); 
+			//M(L_Ecat_Axis + 58) = 1;
+			P_PMAC_Homing_CHK(L_Ecat_Axis) = 0;									// 해당 모터 홈잉 체크 초기화
+		}
+	}
+}
+//==================================================================
+// 03. Home Time out		→ Home PLC에서 개별 Home Command 출력 후 Time Check 
+//==================================================================
+if( P_Current_Homming_Status(L_Local_Axis) == F_Status_STARTING )			// Home Status == Starting라면
+{
+	if( L_Home_Alarm_Timer_Init_Flag(L_Local_Axis) == 0 )
+	{
+		L_Home_Alarm_Timer(L_Local_Axis) =  Sys.Time;						// 현재 시간 저장
+		L_Home_Alarm_Timer_Init_Flag(L_Local_Axis) = 1;
+	}
+	if( (Sys.Time - L_Home_Alarm_Timer(L_Local_Axis)) > P_Homing_Alarm_Time )// P_Homing_Alarm_Time = 10sec
+	{
+		P335 = Sys.Time - L_Home_Alarm_Timer(L_Local_Axis);
+		call Alarm.Insert_Alarm(L_Local_Axis + 317, N_High_Alarm_Cycle_Stop); 
+		//M(L_Local_Axis + 430) = 1;
+		L_Home_Alarm_Timer_Init_Flag(L_Local_Axis) = 0;
+	}
+}
+else
+	L_Home_Alarm_Timer_Init_Flag(L_Local_Axis) = 0;
+
+if( P_Current_Homming_Status(L_Ecat_Axis) == F_Status_STARTING )			// Home Status == Starting라면
+{
+	if( L_Home_Alarm_Timer_Init_Flag(L_Ecat_Axis) == 0 )
+	{
+		L_Home_Alarm_Timer(L_Ecat_Axis) =  Sys.Time;						// 현재 시간 저장
+		L_Home_Alarm_Timer_Init_Flag(L_Ecat_Axis) = 1;
+	}
+	if( (Sys.Time - L_Home_Alarm_Timer(L_Ecat_Axis)) > P_Homing_Alarm_Time )// P_Homing_Alarm_Time = 10sec
+	{
+		call Alarm.Insert_Alarm(L_Ecat_Axis + 317, N_High_Alarm_Cycle_Stop); 
+		//M(L_Ecat_Axis + 428) = 1;
+		L_Home_Alarm_Timer_Init_Flag(L_Ecat_Axis) = 0;
+	}
+}
+else
+	L_Home_Alarm_Timer_Init_Flag(L_Ecat_Axis) = 0;
+
+//==================================================================
+// 04. Drive Alarm
+//==================================================================
+// [참조 : 26.04.21 드라이브 알람 수정 ]	
+// Local Axis
+// #5
+if( M_X_SERVO_DRIVE_ALARM_5 != 1 && P_Old_Drive_Alarm(5) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S05_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(5) = M_X_SERVO_DRIVE_ALARM_5; 
+// #6
+if( M_X_SERVO_DRIVE_ALARM_6 != 1 && P_Old_Drive_Alarm(6) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S06_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(6) = M_X_SERVO_DRIVE_ALARM_6; 
+// #7
+if( M_X_SERVO_DRIVE_ALARM_7 != 1 && P_Old_Drive_Alarm(7) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S07_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(7) = M_X_SERVO_DRIVE_ALARM_7; 
+// #8
+if( M_X_SERVO_DRIVE_ALARM_8 != 1 && P_Old_Drive_Alarm(8) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S08_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(8) = M_X_SERVO_DRIVE_ALARM_8; 
+// #11
+if( M_X_SERVO_DRIVE_ALARM_11 != 1 && P_Old_Drive_Alarm(11) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S11_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(11) = M_X_SERVO_DRIVE_ALARM_11; 
+// #12
+if( M_X_SERVO_DRIVE_ALARM_12 != 1 && P_Old_Drive_Alarm(12) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S12_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(12) = M_X_SERVO_DRIVE_ALARM_12; 
+// #13
+if( M_X_SERVO_DRIVE_ALARM_13 != 1 && P_Old_Drive_Alarm(13) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S13_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(13) = M_X_SERVO_DRIVE_ALARM_13; 
+// #15
+if( M_X_SERVO_DRIVE_ALARM_15 != 1 && P_Old_Drive_Alarm(15) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S15_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(15) = M_X_SERVO_DRIVE_ALARM_15; 
+// #16
+if( M_X_SERVO_DRIVE_ALARM_16 != 1 && P_Old_Drive_Alarm(16) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S16_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(16) = M_X_SERVO_DRIVE_ALARM_16; 
+// #17
+if( M_X_SERVO_DRIVE_ALARM_17 != 1 && P_Old_Drive_Alarm(17) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S17_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(17) = M_X_SERVO_DRIVE_ALARM_17; 
+// #18
+if( M_X_SERVO_DRIVE_ALARM_18 != 1 && P_Old_Drive_Alarm(18) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S18_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(18) = M_X_SERVO_DRIVE_ALARM_18;
+// #19
+if( M_X_SERVO_DRIVE_ALARM_19 != 1 && P_Old_Drive_Alarm(19) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S19_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(19) = M_X_SERVO_DRIVE_ALARM_19;
+// #20
+if( M_X_SERVO_DRIVE_ALARM_20 != 1 && P_Old_Drive_Alarm(20) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S20_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(20) = M_X_SERVO_DRIVE_ALARM_20;
+// #21
+if( M_X_SERVO_DRIVE_ALARM_21 != 1 && P_Old_Drive_Alarm(21) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S21_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(21) = M_X_SERVO_DRIVE_ALARM_21;
+// #22
+if( M_X_SERVO_DRIVE_ALARM_22 != 1 && P_Old_Drive_Alarm(22) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S22_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(22) = M_X_SERVO_DRIVE_ALARM_22;
+// #23
+if( M_X_SERVO_DRIVE_ALARM_23 != 1 && P_Old_Drive_Alarm(23) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S23_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(23) = M_X_SERVO_DRIVE_ALARM_23;
+// #24
+if( M_X_SERVO_DRIVE_ALARM_24 != 1 && P_Old_Drive_Alarm(24) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S24_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(24) = M_X_SERVO_DRIVE_ALARM_24;
+// #25
+if( M_X_SERVO_DRIVE_ALARM_25 != 1 && P_Old_Drive_Alarm(25) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S25_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(25) = M_X_SERVO_DRIVE_ALARM_25;
+// #26
+if( M_X_SERVO_DRIVE_ALARM_26 != 1 && P_Old_Drive_Alarm(26) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S26_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(26) = M_X_SERVO_DRIVE_ALARM_26;
+// #27
+if( M_X_SERVO_DRIVE_ALARM_27 != 1 && P_Old_Drive_Alarm(27) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S27_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(27) = M_X_SERVO_DRIVE_ALARM_27;
+// #28
+if( M_X_SERVO_DRIVE_ALARM_28 != 1 && P_Old_Drive_Alarm(28) == 1)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S28_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(28) = M_X_SERVO_DRIVE_ALARM_28;
+// Ecat Axis
+/*
+	Servo On (J/)		1,0110,0011,0111
+	Servo off (kill)	0,0110,0011,0001
+	동력전원 off			0,0110,0010,0001
+	Drive Alarm			0,0110,0010,1000
+*/
+// # 33
+if((Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(33) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S33_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(33) = Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 34
+if((Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(34) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S34_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(34) = Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 35
+if((Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(35) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S35_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(35) = Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 36
+if((Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(36) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S36_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(36) = Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 37
+if((Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(37) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S37_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(37) = Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 38 (이노벤스 드라이버)
+if((Slave_1008_InoSV680I_1008_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(38) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S38_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(38) = Slave_1008_InoSV680I_1008_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 39
+if((Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(39) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S39_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(39) = Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 40
+if((Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(40) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S40_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(40) = Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 41 (이노벤스 드라이버)
+if((Slave_1011_InoSV680I_1011_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(41) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S41_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(41) = Slave_1011_InoSV680I_1011_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 42
+if((Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(42) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S42_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(42) = Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 43
+if((Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(43) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S43_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(43) = Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 44
+if((Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(44) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S44_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(44) = Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 45
+if((Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(45) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S45_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(45) = Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 46
+if((Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(46) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S46_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(46) = Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 47
+if((Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(47) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S47_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(47) = Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+// # 48
+if((Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit) &&  P_Old_Drive_Alarm(48) == 0)
+{
+	call Alarm.Insert_Alarm(N_Alarm_2S48_Servo_Driver, N_High_Alarm_Emergency_Stop);
+}
+P_Old_Drive_Alarm(48) = Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_6041_0_Statusword & def_Ecat_Drive_Alarm_Bit;
+
+close

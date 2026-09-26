@@ -1,0 +1,753 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+open subprog Vision_Manager
+
+// 얼라인 검사 트리거
+sub: Align_Trigger(Selected_Unit, &rtn)
+	rtn = 0;
+	if(Selected_Unit == N_Anode_Unit)
+	{
+		if(P_Vision_Pass == 1)	// 비전 패스 실행중
+		{
+			//P_Anode_Align_OK_Flag = 0;		// 이전 음극 얼라인 OK 플래그 초기화
+			//P_Anode_Align_NG_Flag = 0;		// 이전 음극 얼라인 NG 플래그 초기화
+			rtn = 1;
+			// 임시요
+			M_Y_VisioN_Align_AN_Trigger = 1;			// 음극 얼라인 트리거 On
+		}
+		else
+		{
+			if(M_X_Vision_Anode_Align_Ready == 1)			// 음극 비전 Ready 신호 확인
+			{
+				M_Y_VisioN_Align_AN_Trigger = 1;			// 음극 얼라인 트리거 On
+				rtn = 1;
+			}
+			else
+			{
+				rtn = 0;
+			}
+		}
+	}
+	else if(Selected_Unit == N_Cathode_Unit)
+	{
+		if(P_Vision_Pass == 1)		// 비전 패스 실행중
+		{
+			//P_Cathode_Align_OK_Flag = 0;	// 이전 양극 얼라인 OK 플래그 초기화
+			//P_Cathode_Align_NG_Flag = 0;	// 이전 양극 얼라인 NG 플래그 초기화
+			rtn = 1;
+			//임시요
+			M_Y_VisioN_Align_CA_Trigger = 1;		// 양극 얼라인 트리거 On
+		}
+		else
+		{
+			if(M_X_Vision_Cathode_Align_Ready == 1)			// 양극 비전 Ready 신호 확인
+			{
+				M_Y_VisioN_Align_CA_Trigger = 1;		// 양극 얼라인 트리거 On
+				rtn = 1;
+			}
+			else
+			{
+				rtn = 0;
+			}
+		}
+	}
+return
+
+// 얼라인 검사 결과
+sub: Align_Result(Selected_Unit, &rtn)
+	rtn = 0;
+
+	if(P_Vision_Pass == 1)		// 비전 패스 실행중
+	{
+		if(Selected_Unit == N_Anode_Unit)
+		{
+			if(P_Anode_Align_NG_Flag == 1)	// 이전 음극 얼라인 NG 플래그 체크
+			{
+				if(Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)	// 극판데이터 존재시
+				{
+					Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_NG;	// 얼라인 NG 데이터 저장
+				}
+				P_Anode_Align_NG_Flag = 0;		// NG 플래그 초기화
+				rtn = N_Inspection_NG;
+			}
+			else
+			{
+				rtn = N_Inspection_OK;
+				// 보정값 0
+				P_Anode_Align_Stage_X_mm = 0;
+				P_Anode_Align_Stage_Y_mm = 0;
+				P_Anode_Align_Stage_T_mm = 0;
+				P_Anode_Align_Table_Move = F_Align_Move_Mode;	// 얼라인 테이블 동작 모드
+				if(Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
+				{
+					Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_OK;	// 얼라인 OK 데이터 저장
+				}
+			}
+		}
+		else if(Selected_Unit == N_Cathode_Unit)
+		{
+			if(P_Cathode_Align_NG_Flag == 1)	// 이전 양극 얼라인 NG 플래그 체크
+			{
+				if(Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)		// 극판데이터 존재 시
+				{
+					Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_NG;		// 얼라인 NG 데이터 저장
+				}
+				P_Cathode_Align_NG_Flag = 0;	// NG 플래그 초기화
+				rtn = N_Inspection_NG;
+			}
+			else
+			{
+				rtn = N_Inspection_OK;
+				// 보정값 0
+				P_Cathode_Align_Stage_X_mm = 0;
+				P_Cathode_Align_Stage_Y_mm = 0;
+				P_Cathode_Align_Stage_T_mm = 0;
+				P_Cathode_Align_Table_Move = F_Align_Move_Mode;		// 얼라인 테이블 동작 모드
+				if(Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
+				{
+					Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_OK;		// OK 데이터 저장
+				}
+			}
+		}
+		
+	}
+	else
+	{
+		// 음극
+		if(Selected_Unit == N_Anode_Unit)
+		{
+			if(M_X_Vision_Anode_Align_Busy == 0)		// 음극 비전 Busy 신호 체크
+			{
+				if(M_X_Vision_Anode_Align_OK == 1 && M_X_Vision_Anode_Align_NG == 0)		// 검사 결과 OK
+				{
+					if(Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)		// 극판이 존재할 경우
+					{
+						Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_OK;		// OK 데이터 저장
+					}
+
+					P_Anode_Align_Table_Move = F_Align_Move;		// 음극 얼라인 테이블 동작 모드 
+					M_Y_Vision_Anode_Align_Result_Ack = 1;
+					rtn = F_Insepction_OK;
+				}
+				else if(M_X_Vision_Anode_Align_OK == 0 && M_X_Vision_Anode_Align_NG == 1)		// 검사 결과 NG
+				{
+					if(Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)		// 극판이 존재할 경우
+					{
+						Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_NG;			// NG 데이터 저장
+					}
+					M_Y_Vision_Anode_Align_Result_Ack = 1;
+					rtn = F_Insepction_NG;
+				}
+				else
+				{
+					P_Align_TimeOut1++
+					// 타임아웃 시간이후 결과 값이 안들어왔을 경우
+					rtn = F_Insepction_TimeOut;
+				}
+			}
+			else
+			{
+				P_Align_TimeOut2++
+				// 타임아웃 시간 이후 Busy 신호가 꺼지지 않을 경우
+				rtn = F_Insepction_TimeOut;
+			}
+
+			if(rtn == F_Insepction_TimeOut)
+			{
+				if(Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)		// 극판이 존재할 경우
+				{
+					Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_Time_Out;		// 타임아웃 데이터 저장
+				}
+				
+			}
+		}
+		// 양극
+		else if(Selected_Unit == N_Cathode_Unit)
+		{
+			if(M_X_Vision_Cathode_Align_Busy == 0)		// 양극 비전 Busy 신호 체크
+			{
+				if(M_X_Vision_Cathode_Align_OK == 1 && M_X_Vision_Cathode_Align_NG == 0)	// 검사 결과 OK 
+				{
+					if(Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)			// 극판이 존재 할 경우
+					{
+						Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_OK;				// 얼라인 OK 데이터 저장
+					}
+					P_Cathode_Align_Table_Move = F_Align_Move;				// 양극 얼라인 테이블 동작 모드
+					M_Y_Vision_Cathode_Align_Result_Ack = 1;
+					rtn = F_Insepction_OK;
+				}
+				else if(M_X_Vision_Cathode_Align_OK == 0 && M_X_Vision_Cathode_Align_NG == 1)	// 검사 결과 NG
+				{
+					if(Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)			// 극판이 존재 할 경우
+					{
+						Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_NG;				// 얼라인 NG 데이터 저장
+					}
+					M_Y_Vision_Cathode_Align_Result_Ack = 1;
+					rtn = F_Insepction_NG;
+				}
+				else
+				{
+					P_Align_TimeOut3++
+					rtn = F_Insepction_TimeOut;
+				}
+			}
+			else
+			{
+				P_Align_TimeOut4++
+				rtn = F_Insepction_TimeOut;
+			}
+
+			if(rtn == F_Insepction_TimeOut)
+			{
+				if(Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)			// 극판 존재 시
+				{
+					Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_Time_Out;		// 얼라인 Timeout 데이터 저장
+				}
+			}
+		}
+	}
+return
+
+// 얼라인 테이블 동작
+sub: Align_Move(Selected_Unit, &rtn)
+	
+	rtn = 0;
+	if(Selected_Unit == N_Anode_Unit)
+	{
+		Ldata.CmdStatus = 1 // 커맨드 상태 초기화
+		CMD"&3b3r";	//Anode Align Stage 모션 커멘드 발생
+		sendallcmds // 모든 커맨드문 버퍼를 비워냄
+		while (Ldata.CmdStatus == 1) {} // 모든 커맨드문 버퍼가 비워질 때 까지 대기
+		M_Y_Vision_Anode_Align_Heartbit = 1;
+		P_Anode_Align_Start_Bit = 0;
+		rtn = 1;
+	}
+	else if(Selected_Unit == N_Cathode_Unit)
+	{	
+		Ldata.CmdStatus = 1 // 커맨드 상태 초기화
+		CMD"&2b2r";	//Anode Align Stage 모션 커멘드 발생
+		sendallcmds // 모든 커맨드문 버퍼를 비워냄
+		while (Ldata.CmdStatus == 1) {} // 모든 커맨드문 버퍼가 비워질 때 까지 대기
+		M_Y_Vision_Cathode_Align_Heartbit = 1
+		P_Cathode_Align_Start_Bit = 0;
+		rtn = 1;	
+	}
+
+return
+
+// 표면검사 트리거 
+sub: Surface_Trigger(Selected_Unit, &rtn)
+	rtn = 0;
+	if(Selected_Unit == N_Anode_Unit)
+	{	
+		if(P_Vision_Pass == 1)			// 비전 패스 실행중
+		{
+			rtn = 1;
+			// 테스트용 임시 io 추가
+			M_Y_Vision_Anode_Surface_Trigger = 1;		// 음극 표면검사 트리거 On
+		}
+		else
+		{
+			if(M_X_Vision_Anode_Align_Ready == 1)		// 음극 비전 Ready 신호 확인
+			{
+				M_Y_Vision_Anode_Surface_Trigger = 1;		// 음극 표면검사 트리거 On
+				rtn = 1;
+			}
+			else
+			{
+				rtn = 0;
+			}
+		}
+	}
+	else if(Selected_Unit == N_Cathode_Unit)
+	{	
+		if(P_Vision_Pass == 1)		// 비전 패스 실행중
+		{
+			rtn = 1;
+			// 테스트용 임시 io 추가
+			M_Y_Vision_Cathode_Surface_Trigger = 1;		// 음극 표면검사 트리거 On
+		}
+		else
+		{
+			if(M_X_Vision_Cathode_Align_Ready == 1)		// 양극 비전 Ready 신호 확인
+			{
+				M_Y_Vision_Cathode_Surface_Trigger = 1;		// 양극 표면검사 트리거 On
+				rtn = 1;
+			}
+			else
+			{
+				rtn = 0;
+			}
+		}
+	}
+	
+return
+
+// 표면검사 결과
+sub: Surface_Result(Selected_Unit, &rtn)
+	rtn = 0;
+
+	if(P_Vision_Pass == 1)		// 비전 패스 실행중
+	{
+		if(Selected_Unit == N_Anode_Unit)
+		{
+			if( P_Anode_Retry_NG_Flag == 1 )
+			{
+				P_Anode_Retry_NG_Flag = 0
+				Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_NG
+			}
+			else
+			{
+				Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_OK
+			}			
+		}
+		else if(Selected_Unit == N_Cathode_Unit)
+		{
+			if( P_Cathode_Retry_NG_Flag == 1 )
+			{
+				P_Cathode_Retry_NG_Flag = 0;
+				Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_NG
+			}
+			else
+			{
+				Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_OK
+			}			
+		}
+		rtn = F_Insepction_OK;
+	}
+	else
+	{
+		if(Selected_Unit == N_Anode_Unit)
+		{
+			if(M_X_Vision_Anode_Align_Busy == 0)		// 음극 비전 Busy 신호 체크
+			{
+				if(M_X_Vision_Anode_Surface_OK == 1 && M_X_Vision_Anode_Surface_NG == 0)		// 음극 표면검사 결과 OK
+				{
+					if(Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)			// 음극 얼라인 테이블에 극판 존재 시
+					{
+						Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_OK;				// 표면검사 OK 데이터 저장 -> 얼라인테이블 데이터
+					}
+					M_Y_Vision_Anode_Surface_Result_Ack = 1;
+					rtn = F_Insepction_OK;		
+				}
+				else if(M_X_Vision_Anode_Surface_OK == 0 && M_X_Vision_Anode_Surface_NG == 1)		// 음극 표면검사 결과 NG
+				{
+					if(Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)			// 음극 얼라인 테이블에 극판 존재시
+					{
+						Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_NG;				// 표면검사 NG 데이터 저장
+					}
+					M_Y_Vision_Anode_Surface_Result_Ack = 1;
+					rtn = F_Insepction_NG;
+				}
+				else 
+				{
+					P_Surf_TimeOut1++
+					rtn = F_Insepction_TimeOut;
+				}
+			}
+			else
+			{
+				P_Surf_TimeOut2++
+				rtn = F_Insepction_TimeOut;
+			}
+
+			if(rtn == F_Insepction_TimeOut)
+			{
+				if(Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)				// 음극 얼라인 테이블에 극판 존재시
+				{
+					Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_Time_Out;				// 표면검사 타임아웃 데이터 저장
+				}			
+			}
+			P_Anode_Align_Table_Move = F_Start_Position_Move;		// 얼라인 테이블 대기위치 동작 모드
+		}
+		else if(Selected_Unit == N_Cathode_Unit)
+		{
+			if(M_X_Vision_Cathode_Align_Busy == 0)			// 양극 비전 Busy 신호 체크
+			{
+				if(M_X_Vision_Cathode_Surface_OK == 1 && M_X_Vision_Cathode_Surface_NG == 0)		// 표면검사 결과 OK
+				{
+					if(Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)					// 양극 얼라인 테이블에 극판 존재 시
+					{
+						Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_OK;						// 표면 검사 OK 데이터 저장 -> 얼라인 테이블
+					}
+					M_Y_Vision_Cathode_Surface_Result_Ack = 1;
+					rtn = F_Insepction_OK;
+				}
+				else if(M_X_Vision_Cathode_Surface_OK == 0 && M_X_Vision_Cathode_Surface_NG == 1)	// 표면검사 결과 NG
+				{
+					if(Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)					// 양극 얼라인 테이블에 극판 존재 시
+					{
+						Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_NG;						// 표면검사 NG 데이터 저장 -> 얼라인 테이블
+					}
+					M_Y_Vision_Cathode_Surface_Result_Ack = 1;
+					rtn = F_Insepction_NG;
+				}
+				else 
+				{
+					P_Surf_TimeOut3++
+					rtn = F_Insepction_TimeOut;
+				}
+			}
+			else
+			{
+				P_Surf_TimeOut4++
+				rtn = F_Insepction_TimeOut;
+			}
+
+			if(rtn == F_Insepction_TimeOut)
+			{
+				if(Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)						// 얼라인 테이블에 극판 존재시
+				{
+					Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_Time_Out;					// 표면검사 타임아웃 데이터 저장 -> 얼라인 테이블
+				}			
+			}
+
+			P_Cathode_Align_Table_Move = F_Start_Position_Move;										// 양극 얼라인 테이블 대기위치 동작 모드
+		}
+	}
+return
+
+// 스택비전 트리거 
+sub: Stack_Trigger(Selected_Unit, &rtn)
+	rtn = 0;
+	if(P_Vision_Pass_Stack_Inspection == 1)			// 비전 패스 실행중
+	{
+		if(M_X_Vision_Stack_Ready == 1)			// 스택 비전 Ready 신호 확인
+		{
+			if(Selected_Unit == N_Anode_Unit)
+			{
+				M_Y_Vision_Stack_Anode_Trigger = 1;		// Stack 검사 트리거 On (음극 적재)
+			}
+			else if(Selected_Unit == N_Cathode_Unit)
+			{
+				M_Y_Vision_Stack_Cathode_Trigger = 1;	// Stack 검사 트리거 On (양극 적재)
+			}
+			rtn = 1;
+		}
+		else
+		{
+			rtn = 0;
+		}
+	}
+	else
+	{
+		if(M_X_Vision_Stack_Ready == 1)			// 스택 비전 Ready 신호 확인
+		{
+			if(Selected_Unit == N_Anode_Unit)
+			{
+				M_Y_Vision_Stack_Anode_Trigger = 1;		// Stack 검사 트리거 On (음극 적재)
+			}
+			else if(Selected_Unit == N_Cathode_Unit)
+			{
+				M_Y_Vision_Stack_Cathode_Trigger = 1;	// Stack 검사 트리거 On (양극 적재)
+			}
+			rtn = 1;
+		}
+		else
+		{
+			rtn = 0;
+		}
+	}
+return
+
+// 스택 비전 검사 결과
+sub: Stack_Result(&rtn)
+	rtn = 0;
+
+	if(P_Vision_Pass_Stack_Inspection == 1)				// 비전 패스 실행중
+	{
+		rtn = N_Inspection_OK;
+	}
+	else
+	{
+		if(M_X_Vision_Stack_Busy == 0)		// 스택 비전 Busy 신호 체크
+		{
+			if(M_X_Vision_Stack_OK == 1 && M_X_Vision_Stack_NG == 0)			// 스택 검사 결과 OK
+			{
+				Sys_Stack_Sheet_LO_Vision_BYTE |= Hex_Stack_OK;					// 스택 Ok 데이터 저장 -> 스택 테이블
+				M_Y_Vision_Stack_Result_Ack = 1;
+				rtn = N_Inspection_OK;
+			}
+			else if(M_X_Vision_Stack_OK == 0 && M_X_Vision_Stack_NG == 1)		// 스택 검사 결과 NG
+			{
+				// 스택 비전 중간배출 무시 기능 추가 필요
+				Sys_Stack_Sheet_LO_Vision_BYTE |= Hex_Stack_NG;					// 스택 NG 데이터 저장 -> 스택 테이블
+				M_Y_Vision_Stack_Result_Ack = 1;
+				rtn = N_Inspection_NG;
+				P_Stack_Table_NG_Count++
+			}
+			else
+			{
+				P_Stack_TimeOut1++
+				// 중간배출 무시 기능 추가필요
+				rtn = N_Inspection_TimeOut;
+			}
+		}
+		else 
+		{
+			P_Stack_TimeOut2++
+			rtn = N_Inspection_TimeOut
+		}
+
+		if(rtn == N_Inspection_TimeOut)
+		{
+			Sys_Stack_Sheet_LO_Vision_BYTE |= Hex_Stack_Time_Out;
+			P_Stack_Table_NG_Count++
+//			P_Stack_PMAC_NG_Code = 256;
+		}
+	}
+
+
+return
+
+// 극판 유무 확인
+sub: Sheet_Existence(Selected_Unit, &rtn)
+	rtn = 0;
+
+	if(P_Vision_Pass_Exisitence == 1)		// 비전 패스 실행중
+	{
+		rtn = 1;
+	}
+	else
+	{
+		if(Selected_Unit == N_Anode_Unit)
+		{	
+			if( M_X_Vision_Anode_Align_Ready == 1)			// 음극 비전 Ready 신호 확인
+			{
+				if(Sys_Anode_Align_Sheet_Data == 0)				// 음극 얼라인 테이블에 데이터(극판)이 없을 경우
+				{
+					M_Y_Vision_Anode_Exist_Trigger = 1;			// 음극 유무 검사 트리거 On
+				}
+				else
+				{
+					P_Vision_Anode_Cell_Existence = 1;			// 음극 얼라인 테이블에 극판 존재
+				}
+				rtn = 1;
+			}
+		}
+		else if(Selected_Unit == N_Cathode_Unit)
+		{	
+			if( M_X_Vision_Cathode_Align_Ready == 1)			// 양극 비전 Ready 신호 확인
+			{
+				if(Sys_Cathode_Align_Sheet_Data == 0)			// 양극 얼라인 테이블에 데이터(극판)이 없을 경우
+				{
+					M_Y_Vision_Cathode_Exist_Trigger = 1;		// 양극 유무 검사 트리거 On
+				}
+				else
+				{
+					P_Vision_Cathode_Cell_Existence = 1;		// 양극 얼라인 테이블에 극판 존재 
+				}
+				rtn = 1;
+			}
+		}
+	}
+return 
+
+sub: Existence_Result(Selected_Unit, &rtn)
+	rtn = 0;
+	if(P_Vision_Pass_Exisitence == 1)				// 비전 패스 실행중
+	{
+		rtn = N_Inspection_OK;
+	}
+	else
+	{
+		if(Selected_Unit == N_Anode_Unit)
+		{
+			if(M_X_Vision_Anode_Align_Busy == 0)			// 음극 비전 Busy 신호 체크
+			{
+				if(M_X_Vision_Anode_Exist_OK == 1 && M_X_Vision_Anode_Exist_NG == 0)	 // 유무검사 결과 OK
+				{
+					M_Y_Vision_Anode_Exist_Result_Ack = 1;
+					rtn = N_Inspection_OK;
+					P_Vision_Anode_Cell_Existence = 1;						// 음극 얼라인 테이블에 극판 존재
+				}
+				else if(M_X_Vision_Anode_Exist_OK == 0 && M_X_Vision_Anode_Exist_NG == 1)	// 유무검사 결과 NG
+				{
+					M_Y_Vision_Anode_Exist_Result_Ack = 1;
+					rtn = N_Inspection_NG;
+					P_Vision_Anode_Cell_Existence = 0;						// 음극 얼라인 테이블에 극판 없음
+				}
+				else
+				{
+					rtn = N_Inspection_TimeOut;
+				}
+			}
+			else
+			{
+				rtn = N_Inspection_TimeOut;
+			}
+		}
+		else if(Selected_Unit == N_Cathode_Unit)
+		{
+			if(M_X_Vision_Cathode_Align_Busy == 0)							// 양극 비전 Busy 신호 체크
+			{
+				if(M_X_Vision_Cathode_Exist_OK == 1 && M_X_Vision_Cathode_Exist_NG == 0)		// 유무검사 결과 OK
+				{
+					M_Y_Vision_Cathode_Exist_Result_Ack = 1;
+					rtn = N_Inspection_OK;
+					P_Vision_Cathode_Cell_Existence = 1;					// 양극 얼라인 테이블에 극판 존재
+				}
+				else if(M_X_Vision_Cathode_Exist_OK == 0 && M_X_Vision_Cathode_Exist_NG == 1)	// 유무검사 결과 NG
+				{
+					M_Y_Vision_Cathode_Exist_Result_Ack = 1;
+					rtn = N_Inspection_NG;
+					P_Vision_Cathode_Cell_Existence = 0;					// 양극 얼라인 테이블에 극판 없음
+				}
+				else
+				{
+					rtn = N_Inspection_TimeOut;
+				}
+			}
+			else
+			{
+				rtn = N_Inspection_TimeOut;
+			}
+		}
+	}
+return
+
+sub: EmptyTable_Trigger(Selected_Unit, &rtn)
+	rtn = 0;
+	if(P_Vision_Pass_Empty == 1)			// 비전 패스 실행중
+	{
+		rtn = 1;
+	}
+	else
+	{
+		if(Selected_Unit == N_Anode_Unit)		
+		{
+			if(M_X_Vision_Anode_Align_Ready == 1)			// 음극 비전 Ready 신호 체크
+			{
+				M_Y_Vision_Anode_Empty_Trigger = 1;			// 음극 빈테이블 검사 트리거 On
+				rtn = 1;
+			}
+			else
+			{
+				rtn = 0;
+			}
+		}
+		else if(Selected_Unit == N_Cathode_Unit)
+		{
+			if(M_X_Vision_Cathode_Align_Ready == 1)			// 양극 비전 Ready 신호 체크
+			{
+				M_Y_Vision_Cathode_Empty_Trigger = 1;		// 양극 빈테이블 검사 트리거 On
+				rtn = 1;
+			}
+			else
+			{
+				rtn = 0;
+			}
+		}
+	}
+return
+
+sub: EmptyTable_Result(Selected_Unit, &rtn)
+	rtn = 0;
+	if(P_Vision_Pass_Empty == 1)				// 비전 패스 실행중 
+	{
+		rtn = N_Inspection_OK;
+	}
+	else
+	{
+		if(Selected_Unit == N_Anode_Unit)
+		{
+			if(M_X_Vision_Anode_Align_Busy == 0)			// 음극 비전 Busy 신호 체크
+			{
+				if( M_X_Vision_Anode_Empty_OK == 1 && M_X_Vision_Anode_Empty_NG == 0)		// 빈테이블 검사 결과 OK
+				{
+					M_Y_Vision_Anode_Empty_Result_Ack = 1;
+					rtn = N_Inspection_OK;
+				}
+				else if(M_X_Vision_Anode_Empty_OK == 0 && M_X_Vision_Anode_Empty_NG == 1)	// 빈테이블 검사 결과 NG
+				{
+					M_Y_Vision_Anode_Empty_Result_Ack = 1;
+					rtn = N_Inspection_NG;
+				}
+				else
+				{
+					rtn = N_Inspection_TimeOut;
+				}
+			}
+			else
+			{
+				rtn = N_Inspection_TimeOut;
+			}
+		}
+		else if(Selected_Unit == N_Cathode_Unit)
+		{
+			if(M_X_Vision_Cathode_Align_Busy == 0)			// 양극 비전 Busy 신호 체크
+			{
+				if( M_X_Vision_Cathode_Empty_OK == 1 && M_X_Vision_Cathode_Empty_NG == 0)	// 빈테이블 검사 결과 OK
+				{
+					M_Y_Vision_Cathode_Empty_Result_Ack = 1;
+					rtn = N_Inspection_OK;
+				}
+				else if(M_X_Vision_Cathode_Empty_OK == 0 && M_X_Vision_Cathode_Empty_NG == 1)	// 빈테이블 검사 결과 NG
+				{
+					M_Y_Vision_Cathode_Empty_Result_Ack = 1;
+					rtn = N_Inspection_NG;
+				}
+				else
+				{
+					rtn = N_Inspection_TimeOut;
+				}
+			}
+			else
+			{
+				rtn = N_Inspection_TimeOut;
+			}
+		}
+	}
+return 
+
+sub: FirstSepa_Trigger(&rtn)
+	rtn = 0;
+	if(P_Vision_Pass_FirstSepa == 1)		// 비전패스 실행중
+	{
+		rtn = 1;
+	}
+	else
+	{
+		if(M_X_Vision_Stack_Ready == 1)		// 스택 비전 Ready 신호 체크
+		{	
+			M_Y_Vision_Stack_First_Sepa_Trigger = 1;		// 세파 첫장 트리거 On
+			rtn = 1;
+		}
+		else
+		{
+			rtn = 0;
+		}
+	}
+return
+
+sub: FirstSepa_Result(&rtn)
+	rtn = 0;
+	if(P_Vision_Pass_FirstSepa == 1)		// 비전 패스 실행중
+	{
+		rtn = N_Inspection_OK;
+	}
+	else
+	{
+		if(M_X_Vision_Stack_Busy == 0)		// 스택 비전 Busy 신호 체크
+		{
+			if(M_X_Vision_Stack_First_Sepa_OK == 1 && M_X_Vision_Stack_First_Sepa_NG == 0)		// 세파 첫장 결과 OK
+			{
+				M_Y_Vision_Stack_First_Sepa_Result_Ack = 1;
+				rtn = N_Inspection_OK;
+			}
+			else if(M_X_Vision_Stack_First_Sepa_OK == 0 && M_X_Vision_Stack_First_Sepa_NG == 1)		// 세파 첫장 결과 NG
+			{
+				M_Y_Vision_Stack_First_Sepa_Result_Ack = 1;
+				rtn = N_Inspection_NG;
+			}
+
+		}
+	}
+close
+
+
+

@@ -1,0 +1,1233 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.04 
+// P&P Abort 프로그램 추가 - [ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+
+open plc 3
+P_MNTR_PLC3_Task_Time(0) = Sys.Time;
+
+#define N_Complete_Step				999		
+#define	L_System_Timer				Sys.Time
+Local L_Time_Cycle_Up_Count_Start_Time;				// Plc[3].ldata.L[0] 시간 체크 시작 시간
+Local L_Time_Cycle_Up_Count_End_Time;				// Plc[3].ldata.L[1] 시간 체크 종료 시간
+Local L_Time_Cycle_Up_Count_Delta_Time;				// Plc[3].ldata.L[2] 시작과 종료 시간 사이의 시간
+Local L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[3].ldata.L[3] 타이머 초기화 플래그
+local L_STMS_Memory_Tower_Status;					// Plc[3].ldata.L[4]
+local L_individual_return;							// Plc[3].ldata.L[5]		
+local L_Memory_individual_Scan_Complete;			// Plc[3].ldata.L[6]
+local L_Complete_Num = 999;							// Plc[3].ldata.L[7]
+local L_integrated_return;							// Plc[3].ldata.L[8]
+// pause Local Variable								
+local L_old_PMAC_Status;							// Plc[3].ldata.L[9]	이전 피맥상태
+local L_old_Current_Mode; 							// Plc[3].ldata.L[10]	이전 피맥 모드
+local L_old_PMAC_Current_Mode;						// Plc[3].ldata.L[11]	이전 피맥 오토 or 매뉴얼
+local L_old_Master_Motion_Trigger;					// Plc[3].ldata.L[12]	이전 마스터트리거
+local L_Resume_Timer;								// Plc[3].ldata.L[13]	리줌 타이머 
+local L_Pause_Check_Timer;							// Plc[3].ldata.L[14]	퍼즈 타이머
+local L_X_A_Site_Puase_Signal;						// Plc[3].ldata.L[15]	퍼즈 시그널 엣지용 변수
+local L_X_A_Site_Resume_Signal;						// Plc[3].ldata.L[16]	리줌 시그널 엣지용 변수
+local L_X_B_Site_Puase_Signal;						// Plc[3].ldata.L[17]	퍼즈 시그널 엣지용 변수
+local L_X_B_Site_Resume_Signal;						// Plc[3].ldata.L[18]	리줌 시그널 엣지용 변수
+local L_Once_Check;									// Plc[3].ldata.L[19]	재진입 방지 변수
+local L_X_B_Site_To_A_Site_Ack_Pause_Signal;		// Plc[3].ldata.L[20]	퍼즈 아크신호 엣지변수
+local L_X_A_Site_To_B_Site_Ack_Pause_Signal;		// Plc[3].ldata.L[21]	퍼즈 아크신호 엣지 변수
+local L_Y_A_Site_Heart_Bit;							// Plc[3].ldata.L[22]	리줌 시그널 하트비트 엣지용 변수
+local L_X_B_Site_Heart_Bit;							// Plc[3].ldata.L[23]	리줌 시그널 하트비트 엣지용 변수
+local L_Abort_check_Variable;						// Plc[3].ldata.L[24]	Abort 엣지변수	
+local L_Heart_Bit_Calc_Old;							// Plc[3].ldata.L[25]	P_Stack_Heart_Bit_Calc 엣지변수	
+
+local L_Y_A_Site_Heart_Bit2;						// Plc[3].ldata.L[26]	리줌 시그널 하트비트 엣지용 변수
+local L_X_B_Site_Heart_Bit2;						// Plc[3].ldata.L[27]	리줌 시그널 하트비트 엣지용 변수
+
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+ IF (L_Flag_Cycle_Up_Count_Init_Flag == 0)
+{
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+
+// 00.2) 시간 체크
+IF (L_Flag_Cycle_Up_Count_Init_Flag == 1)
+{
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * 1000;
+
+	IF( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+IF (L_Time_Cycle_Up_Count_Delta_Time > 0.1)
+{
+	P_Pause_Err_Timer = P_Pause_Err_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	P_Stack_Heart_Bit_Timer = P_Stack_Heart_Bit_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}	
+//==============================================================================================================================================================
+
+//=============================================================================================================================
+// 1) 통합 위치메모리 
+//=============================================================================================================================
+
+if ( P_Memory_Tower_Search_Flag == 1 )		// 유닛 위치 검색 
+{
+	P_Memory_Tower_Search_Flag = 0;
+	P_MemTow_integrated_return = 0;	
+	//P_Unit_integrated_Status = 0;			// 통합 메모리변수 1차 삭제
+	//L_STMS_Memory_Tower_Status = 1;
+	P_STMS_Memory_Tower_Status = 222;
+}
+
+// 1.1. 유닛별 상태 변수화
+switch(P_STMS_Memory_Tower_Status)
+{
+	// 1.1.0. 동작 대기 및 레시피값 삽입
+	case 0 :
+		if ( P_Unit_Status_Update_Flag == 1 )			// 무슨 변수지 ??
+		{
+			L_individual_return = 0;
+			call Sub_Unit_Memory_Status.Initialize(&L_individual_return);			// 레시피값 받아오기
+			if ( L_individual_return == 1 )
+			{
+				P_Unit_Status_Update_Flag = 0;
+				P_STMS_Memory_Tower_Status = 1;
+			}
+		}
+	break;
+
+	case 222:
+		if(P_PMAC_Current_Mode == F_Current_Automatic)
+		{
+			//if(Total_Inpos_Bit)			[ 참조 : 241119 Heap구조 알람프로그램 추가기능 머지작업_배출텍 ]
+			//{
+				P_STMS_Memory_Tower_Status = 1;
+			//}
+		}
+		else
+		{
+			P_STMS_Memory_Tower_Status = 1;
+		}
+	break;
+	// 1.1.1. 음극 1차 PNP 위치 변수화
+	case 1 :
+		L_individual_return = 0;						// 결과 변수 초기화
+		call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP,&P_Anode_1st_Unit_Status,&L_individual_return);
+		
+		if ( L_individual_return == F_TRUE )
+		{ 	
+			L_individual_return = 0;
+			P_STMS_Memory_Tower_Status = 2;
+		}
+	break;
+
+	// 1.1.2. 음극 2차 PNP 위치 변수화
+	case 2 :
+		L_individual_return = 0;						// 결과 변수 초기화
+		call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,&P_Anode_2nd_Unit_Status,&L_individual_return);
+		
+		if ( L_individual_return == F_TRUE )
+		{ 	
+			L_individual_return = 0;
+			P_STMS_Memory_Tower_Status = 3;
+		}
+	break;
+
+	// 1.1.3. 음극 클램프 위치 변수화
+	case 3 :
+		L_individual_return = 0;						// 결과 변수 초기화
+		call Sub_Unit_Memory_Status.individual_mode(F_Anode_Clamp,&P_Anode_CLP_Unit_Status,&L_individual_return);
+
+		if ( L_individual_return == F_TRUE )
+		{ 	
+			L_individual_return = 0;
+			P_STMS_Memory_Tower_Status = 4;
+		}
+	break;
+
+	// 1.1.4. 파이널 롤 위치 변수화
+	case 4 :
+		L_individual_return = 0;						// 결과 변수 초기화
+		call Sub_Unit_Memory_Status.individual_mode(F_Final_Roll,&P_FinalRoll_Unit_Status,&L_individual_return);
+
+		if ( L_individual_return == F_TRUE )
+		{ 	
+			L_individual_return = 0;
+			P_STMS_Memory_Tower_Status = 5;
+		}
+	break;
+
+	// 1.1.5. 스텍 테이블 위치 변수화
+	case 5 :
+		L_individual_return = 0;						// 결과 변수 초기화
+		call Sub_Unit_Memory_Status.individual_mode(F_Stack_Table,&P_StackTable_Unit_Status,&L_individual_return);
+
+		if ( L_individual_return == F_TRUE )
+		{ 	
+			L_individual_return = 0;
+			P_STMS_Memory_Tower_Status = 6;
+		}
+	break;
+
+	// 1.1.6. 양극 클램프 위치 변수화
+	case 6 :
+		L_individual_return = 0;						// 결과 변수 초기화
+		call Sub_Unit_Memory_Status.individual_mode(F_Cathode_Clamp,&P_Cathode_CLP_Unit_Status,&L_individual_return);
+
+		if ( L_individual_return == F_TRUE )
+		{ 	
+			L_individual_return = 0;
+			P_STMS_Memory_Tower_Status = 7;
+		}
+	break;
+
+	// 1.1.7. 양극 2차 PNP 위치 변수화
+	case 7 :
+		L_individual_return = 0;						// 결과 변수 초기화
+		call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,&P_Cathode_2nd_Unit_Status,&L_individual_return);
+
+		if ( L_individual_return == F_TRUE )
+		{ 	
+			L_individual_return = 0;
+			P_STMS_Memory_Tower_Status = 8;
+		}
+	break;
+
+	// 1.1.8. 양극 1차 PNP 위치 변수화
+	case 8 :
+		L_individual_return = 0;						// 결과 변수 초기화
+		call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP,&P_Cathode_1st_Unit_Status,&L_individual_return);
+
+		if ( L_individual_return == F_TRUE )
+		{ 	
+			L_individual_return = 0;
+			P_STMS_Memory_Tower_Status = 9;
+		}
+	break;
+	// 1.1.9 1차 언로더 위치 변수화
+	case 9 :
+		if( P_PMAC_Status == F_Status_SUSPENDED || P_PMAC_Status == F_Status_IDLE || P_PMAC_Status == F_Status_RESETTING )		// 배출로 인한 위치 메모리라면 || IDLE 상태에서도 확인 (IDLE 상태에서 위치 변경 시 Commands Stop을 날리기 위함) [ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+		{
+			L_individual_return = 0;						// 결과 변수 초기화
+			call Sub_Unit_Memory_Status.individual_mode(F_1st_Unloader,&P_1st_Unloader_Unit_Status,&L_individual_return);
+
+			if ( L_individual_return == F_TRUE )
+			{ 	
+				L_individual_return = 0;
+				P_STMS_Memory_Tower_Status = 10;
+			}
+		}
+		else											// 1차언로더 <-> 2차 및 3차 언로더 PLC 인터페이스 간 시퀀스로 움직일텐데 Execute 및 Hold에서 위치메모리를 읽었을 시 Error 뜰수도 있으므로
+		{
+			P_1st_Unloader_Unit_Status = 0;				// 이전에 발생된 언로더 위치값이 저장되어있으므로 초기화 시켜줌
+			P_STMS_Memory_Tower_Status = 10;
+		}
+	break;
+
+	// 1.1.10. 완료
+	case 10 :
+		if ( P_PMAC_Status == F_Status_IDLE )			// IDLE 상태 일 경우.[ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+			P_BTN_Memory_Tower_Check_Bit = 1;			// IDLE 상태에서 메모리 타워 돌린 것 확인.
+		L_Memory_individual_Scan_Complete = L_Complete_Num;
+		P_STMS_Memory_Tower_Status = N_Complete_Step;
+	break;
+
+	// 반환값 False 일 경우
+	if ( L_individual_return == N_FALSE )
+	{
+		// 위치 내부 경알람 발생
+		P_Error_STMS_Memory_Tower_Status = P_STMS_Memory_Tower_Status;
+		P_STMS_Memory_Tower_Status = N_Error_Step;
+	}
+}
+
+// 1.2. 설비 상태 업데이트 - 유닛의 상태를 조합해서 설비 상태로 업데이트
+if ( L_Memory_individual_Scan_Complete == L_Complete_Num )
+{
+	// [ 참조 : 24049 디버깅 ] 
+	L_integrated_return = 0;
+	
+	call Sub_Unit_Memory_Status.integrated_mode(&P_Unit_integrated_Status,&L_integrated_return);		// 유닛 통합 변수화 서브 프로그램 실행
+	if ( L_integrated_return == F_TRUE )
+	{
+		P_MemTow_integrated_return = F_TRUE;									// 글로벌 설비 위치 업데이트 완료 변수
+		L_Memory_individual_Scan_Complete = 0;									// 진입 커맨드 초기화
+	}
+	else
+	{
+		P_MemTow_integrated_return = L_integrated_return;						// 글로벌 설비 위치 업데이트 완료 변수
+		L_Memory_individual_Scan_Complete = N_Error_Step;						// 진입 커맨드 초기화
+	}
+}
+
+//=============================================================================================================================
+// 2) 정지 및 재시작 프로그램  [ 2025.06.19 추가 ]
+//=============================================================================================================================
+
+//======================================//
+//===== 감시부 [Find_Pause_Moniter]=====//
+//======================================//
+if( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence || P_PMAC_Status == F_Status_STARTING )							// 일반 모드 일 경우. [세파, 드라이런 불필요]
+{
+	switch( P_PMAC_Status )
+	{
+		case F_Status_EXECUTE:	
+			// [참조 : 250623 퍼즈 수정 ] - P_Current_Mode 보는거 수정, 세파 첫장 큐에서 계속 퍼즈 걸림
+			if( P_Current_Mode == F_Half_Cathode_Run_Mode ) 
+			{
+				if( P_Master_Motion_Trigger == P_Pause_Cathode_MNTR_Max_Trigger) 
+				{
+					if( P_Cathode_Cur_Mode == F_Last_Run || P_Cathode_Cur_Mode == F_NG || P_Cathode_Cur_Mode == F_Stop || P_Cathode_Cur_Mode == F_Vac_Err )							// 양극 모드가 NG, Stop, Vac_Err가 아닐 경우.
+					{}
+					else																	// 그 외의 모드 일 경우.
+					{
+						//// [참조 : 250623 퍼즈 수정 ] - 마스터 트리거 상승 엣지 보고 퍼즈 키는거 삭제
+						if( M_X_PLC_Anode_Sheet_Ready == 0 && M_Y_Pause_Anode_Signal == 0 )								// 음극 극판 준비가 되지 않을 경우.
+						{
+							M_Y_Pause_Anode_Signal = 1;											// 음극 극판 미공급으로 Pause 신호 ON.
+						}					
+					}
+				}
+			}
+			// [참조 : 250623 퍼즈 수정 ] - P_Current_Mode 보는거 수정, 세파 첫장 큐에서 계속 퍼즈 걸림
+			else if( P_Current_Mode == F_Half_Anode_Run_Mode )
+			{
+				if( P_Master_Motion_Trigger == P_Pause_Anode_MNTR_Max_Trigger )		// 음극 감지 트리거 사이 && 양극 극판 확인 전 일 경우.
+				{
+					if( P_Anode_Cur_Mode == F_NG || P_Anode_Cur_Mode == F_Stop || P_Anode_Cur_Mode == F_Vac_Err )																	// 음극 모드가 NG, Stop, Vac_Err가 아닐 경우.
+					{}
+					else																	// 그 외의 모드 일 경우.
+					{		
+						//// [참조 : 250623 퍼즈 수정 ] - 마스터 트리거 상승 엣지 보고 퍼즈 키는거 삭제
+						if( M_X_PLC_Cathode_Sheet_Ready == 0 && M_Y_Pause_Cathode_Signal == 0 )								// 양극 극판 준비가 되지 않을 경우.
+						{
+							M_Y_Pause_Cathode_Signal = 1;										// 양극 극판 미공급으로 Pause 신호 ON.
+						}
+					}			
+				}
+			}
+		break;
+
+		case F_Status_HOLD:												// Hold 상태.
+			if( P_Hold_Anode_Pause_CHK == 1 )							// 음극 1차 PNP 벨트 이동 시 on
+			{
+				if ( P_Hold_Pause_Use == 1 )							//  HOLD 시 무조건 Pause ON 
+				{
+					M_Y_Pause_to_Sequence_Signal = 1;							// Hold로 Pause 신호.
+					P_Hold_Anode_Pause_CHK = 0;							// Flag 초기화.
+					P_Seq_Pause2 = 1
+				}
+				else                                                    // HOLD 시 극판 존재에 따라 pause on
+				{
+					if( P_Master_Motion_Trigger == 87 )					
+					{
+						if( M_X_PLC_Anode_Sheet_Ready == 0 )			// 1차 PNP 벨트 이동 명령 시 특정 마스터 트리거에 극판 레디신호 off면 퍼즈
+						{
+							M_Y_Pause_to_Sequence_Signal = 1;					// Hold로 Pause 신호.
+							P_Seq_Pause2 = 2
+						}
+						P_Hold_Anode_Pause_CHK = 0;						// Flag 초기화.
+					}
+				}
+			}
+			else if( P_Hold_Cathode_Pause_CHK == 1 )					// 양극 1차 PNP 벨트 이동 명령 시 on		
+			{
+				if ( P_Hold_Pause_Use == 1 )							//  HOLD 시 무조건 Pause ON 
+				{
+					M_Y_Pause_to_Sequence_Signal = 1;							// Hold로 Pause 신호.
+					P_Hold_Cathode_Pause_CHK = 0;						// Flag 초기화.
+					P_Seq_Pause2 = 3
+				}
+				else													// HOLD 시 극판 존재에 따라 pause on
+				{
+					if( P_Master_Motion_Trigger == 42 )
+					{
+						if( M_X_PLC_Cathode_Sheet_Ready == 0 )			// 1차 PNP 벨트 이동 명령 시 특정 마스터 트리거에 극판 레디신호 off면 퍼즈
+						{
+							M_Y_Pause_to_Sequence_Signal = 1;					// Hold로 Pause 신호.
+							P_Seq_Pause2 = 4
+						}
+						P_Hold_Cathode_Pause_CHK = 0;					// Flag 초기화.
+					}
+				}
+			}
+		break;
+
+		case F_Status_SUSPENDED: // [ 참조 : 2025.10.28 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]	
+			if( P_Suspend_Anode_1TR_Cell_Supply_Module_Status == F_Status_EXECUTE )			// 공급 모듈 시작 상태
+			{
+				if( P_Suspend_Supply_Pause_Flag == N_TRUE )				// 퍼즈 요청 신호가 온다면
+				{
+					P_Suspend_Supply_Pause_Flag = 0;					// Pause Flag 초기화
+					M_Y_Pause_to_Sequence_Signal = 1;					// Pause GPIO On
+					P_Seq_Pause2 = 5
+				}
+			}
+		break;
+	}
+
+	if( P_Starting_Pause_IO_Flag == 1 )
+	{
+		P_Starting_Pause_IO_Flag = 0
+		M_Y_Pause_to_Sequence_Signal = 1
+		P_Seq_Pause2 = 6
+	}
+
+
+}
+
+
+//// PackML 상태 감시.
+if( P_PMAC_Current_Mode == F_Current_Automatic )
+{
+	if((P_PMAC_Status == F_Status_STOPPING || P_PMAC_Status == F_Status_ABORTING) && P_Resume_Stop_Blocked == 0 )			// 상태가 Stopping 일 경우.
+	{
+		P_Resume_Stop_Blocked = 1
+		M_Y_Resume_Stop_Signal = 1;						// 반대 열에게 Resume 정지 신호 ON.
+	}
+}
+
+if( P_PMAC_Status == F_Status_STOPPED || P_PMAC_Status == F_Status_ABORTED )	// 상태가 Stopped, Aborted 일 경우.
+{
+	P_Starting_Pause_IO_Flag = 0
+	P_PLC03_Seq_Pause_Start_State_Machine = 0
+	P_Resume_Stop_Blocked = 0
+	P_Dry_Pause_Flag = 0;							// 드라이런 퍼즈 플래그 초기화
+	M_Y_Pause_Anode_Signal = 0;						// 음극 극판 미공급으로 인한 Pause 신호 초기화.
+	M_Y_Pause_Cathode_Signal = 0;					// 양극 극판 미공급으로 인한 Pause 신호 초기화.
+	M_Y_Pause_to_Sequence_Signal = 0;				// 홀드로 인한 Pause 신호 초기화.
+	M_Y_Pause_Status_Complete_Signal = 0;			// 본인 열 Pause 완료 신호 초기화.
+	P_Pause_Protect_Variable = 0;					// Pause Edge 변수 초기화.
+	P_Resume_Protect_Variable = 0;					// Resume Edge 변수 초기화.
+	P_Hold_Resume_Need_Flag = 0						// resume flag 초기화
+	P_Suspend_Supply_Resume_Flag = 0				// resume flag 초기화
+	P_Starting_Pause_IO_OFF_Flag = 0				// resume flag 초기화
+	// [참조 : 260423 홀드 1차 공급 중 스탑 후 재가동 시 pause가 풀리지 않아 초기화 추가]
+	P_Hold_Anode_Pause_CHK = 0
+	P_Hold_Cathode_Pause_CHK = 0
+	P_Suspend_Supply_Pause_Flag = 0
+	M_Y_Resume_Stop_Signal = 0;	
+}
+
+//======================================//
+//===== 실행부 [Find_Pause_Execute]=====//
+//======================================//
+if(  M_X_Pause_Anode_Signal == 1 || M_X_Pause_Cathode_Signal == 1 || M_X_Pause_to_Sequence_Signal == 1 )	// 반대열로 부터 Pause 신호를 받을 경우.
+{
+	M_Y_Pause_Ack_Signal = 0;						// Pause 요청 확인 신호 ON. [접점 반대 0 : ON, 1 : OFF]
+}
+else												// 반대열로 부터 Pause 신호가 모두 꺼졌을 경우.	
+{
+	M_Y_Pause_Ack_Signal = 1;						// Pause 요청 확인 신호 OFF. [접점 반대 0 : ON, 1 : OFF]
+}
+
+if( (((M_Y_Pause_Anode_Signal | M_Y_Pause_Cathode_Signal | M_Y_Pause_to_Sequence_Signal) && M_X_Pause_Ack_Signal == 0) || M_Y_Pause_Ack_Signal == 0))		// (본인열 Pause 필요 && 반대열로 부터 Ack 신호 받을 경우) || 반대 열로 인한 Pause 진행이 필요한 경우 (현재 열을 공장 초기화 했을 경우 반대 열은 계속 진행해야 하기 때문에 접점 반대 사용 [ 0 : ON, 1 : OFF ]).
+{
+	if( P_Buffer_Mode_Status_Sequence != N_Sepa_Consume_Status_Sequence )			// 세파 모드 아닐 경우 (세파 모드 일 경우 Pause 걸리지 않음) [ 참조 : 26.07.31 Pause_Resume 수정 ] 
+	{
+		if( P_Master_Motion_Trigger == 43 && P_Pause_Protect_Variable == 0 )							// 43 타이밍때 퍼즈
+		{	
+			pause 1;										// Pause 신호 ON.
+			M_Y_Pause_Status_Complete_Signal = 1;			// Pause 완료 신호 ON.
+			P_Pause_Protect_Variable = 1;					// 재진입 방지.
+			P_Resume_Protect_Variable = 0;					// Resume 진입 변수 초기화.
+		}
+		if( P_Master_Motion_Trigger == 88 && P_Pause_Protect_Variable == 0 )							// 88 타이밍때 퍼즈	
+		{
+			pause 1;										// Pause 신호 ON.
+			M_Y_Pause_Status_Complete_Signal = 1;			// Pause 완료 신호 ON.
+			P_Pause_Protect_Variable = 1;					// 재진입 방지.
+			P_Resume_Protect_Variable = 0;					// Resume 진입 변수 초기화.
+		}
+	}
+}
+//======================================//
+//===== 처리부 [Find_Pause_Process]=====//
+//======================================//
+if( Coord[1].ProgActive == 1 && Coord[1].ProgRunning == 0 && P_Resume_Protect_Variable == 0 )
+{
+	// 260401 반대열 pause 완료 후 Resume되게 조건 수정, 반대열 1번 좌표계(마스터트리거)가 off면 반대열 pause 상태 보지 않고 resume 가능
+	if( M_X_Pause_Status_Complete_Signal == 1 || M_X_Opposite_Resume_Not_Free == 0)
+	{
+		// Pause 신호 초기화 Part. [ 극판 공급 신호가 들어올 경우 초기화 ]
+		if( M_Y_Pause_Cathode_Signal == N_TRUE )			// 양극 극판 미공급으로 인한 정지 일 경우.
+		{
+			if( M_X_PLC_Cathode_Sheet_Ready )				// 양극 극판 공급 신호 ON 일 경우.
+			{
+				M_Y_Pause_Cathode_Signal = 0;				// 양극 극판 미공급 신호 OFF.
+			}
+		}
+		else if( M_Y_Pause_Anode_Signal == N_TRUE )			// 음극 레디 때문이라면
+		{
+			if( M_X_PLC_Anode_Sheet_Ready )					// 음극 레디 신호가 on
+			{
+				M_Y_Pause_Anode_Signal = 0;					// GPIO 초기화
+			}
+		}
+		else if( P_Hold_Resume_Need_Flag == N_TRUE )		// 홀드에서 리줌 해달라하면
+		{
+			M_Y_Pause_to_Sequence_Signal = 0;				// GPIO 초기화
+			P_Hold_Resume_Need_Flag = 0;					// 홀드 리줌 변수 초기화
+		}
+		else if( P_Suspend_Supply_Resume_Flag == N_TRUE )	// Suspend 1차 공급 끝난 후 리줌 플래그  // [ 참조 : 2025.10.28 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]
+		{
+			M_Y_Pause_to_Sequence_Signal = 0;				// Pause GPIO 초기화
+			P_Suspend_Supply_Resume_Flag = 0;				// 플래그 초기화
+		}
+		else if ( P_Starting_Pause_IO_OFF_Flag == 1 )
+		{
+			M_Y_Pause_to_Sequence_Signal = 0
+			P_Starting_Pause_IO_OFF_Flag = 0
+		}
+	}
+
+
+	if( ((!(M_Y_Pause_Anode_Signal | M_Y_Pause_Cathode_Signal | M_Y_Pause_to_Sequence_Signal | M_Y_Resume_Stop_Signal)) && (!(M_X_Pause_Anode_Signal | M_X_Pause_Cathode_Signal | M_X_Pause_to_Sequence_Signal | M_X_Resume_Stop_Signal))) )		// 주는 열에서 문제가 해결될 경우.
+	{
+		P_Suspend_Discharge_Resume_Flag = 0;
+		#ifdef F_Def_Stack_A
+		if( P_Master_Motion_Trigger == 44 || P_Master_Motion_Trigger == 43 )						// 43,44 트리거에서 멈췄을 경우.
+		{
+			if( M_X_Opposite_Resume_Not_Free == 1 )
+			{
+				if( M_X_PLC_Sync_Heart_Bit == 0 && M_X_PLC_Sync_Heart_Bit != P_Old_X_PLC_Sync_Heart_Bit )	// 하강 Edge 일 경우.
+				{
+					M_Y_Pause_Status_Complete_Signal = 0;												// 컴플리트 상태 GPIO 초기화.
+					P_Pause_Protect_Variable = 0;														// Pause Edge 변수 초기화.
+					P_Resume_Protect_Variable = 1;														// Resume 재진입 방지.
+					resume 1;																			// Resume 진행.
+					P_Resume_MNTR1++
+				}
+				else if ( M_X_Pause_Status_Complete_Signal == 0 && M_X_PLC_Sync_Heart_Bit == 0 )		// [ 참조 : 26.07.31 Pause_Resume 수정 ]
+				{
+					M_Y_Pause_Status_Complete_Signal = 0;												// 컴플리트 상태 GPIO 초기화.
+					P_Pause_Protect_Variable = 0;														// Pause Edge 변수 초기화.
+					P_Resume_Protect_Variable = 1;														// Resume 재진입 방지.
+					resume 1;																			// Resume 진행.
+					P_Resume_MNTR2++
+				}
+			}
+			else
+			{
+				if( M_X_PLC_Sync_Heart_Bit == 0 && M_X_PLC_Sync_Heart_Bit != P_Old_X_PLC_Sync_Heart_Bit )			// 하강 Edge 일 경우.
+				{
+					M_Y_Pause_Status_Complete_Signal = 0;												// 컴플리트 상태 GPIO 초기화.
+					P_Pause_Protect_Variable = 0;														// Pause Edge 변수 초기화.
+					P_Resume_Protect_Variable = 1;														// Resume 재진입 방지.
+					resume 1;																			// Resume 진행.
+					P_Resume_MNTR3++
+				}	
+			}		
+		}
+		if( P_Master_Motion_Trigger == 89 || P_Master_Motion_Trigger == 88 )						// 88,89 트리거에서 멈췄을 경우.
+		{
+			if( M_X_Opposite_Resume_Not_Free == 1 )
+			{
+				if( M_X_PLC_Sync_Heart_Bit == 1 && M_X_PLC_Sync_Heart_Bit != P_Old_X_PLC_Sync_Heart_Bit )	// 상승 Edge 일 경우.
+				{
+					M_Y_Pause_Status_Complete_Signal = 0;												// 컴플리트 상태 GPIO 초기화.
+					P_Pause_Protect_Variable = 0;														// Pause Edge 변수 초기화.
+					P_Resume_Protect_Variable = 1;														// Resume 재진입 방지.
+					resume 1;																			// Resume 진행.
+					P_Resume_MNTR4++
+				}
+				else if ( M_X_Pause_Status_Complete_Signal == 0 && M_X_PLC_Sync_Heart_Bit == 1 )		// [ 참조 : 26.07.31 Pause_Resume 수정 ]
+				{
+					M_Y_Pause_Status_Complete_Signal = 0;												// 컴플리트 상태 GPIO 초기화.
+					P_Pause_Protect_Variable = 0;														// Pause Edge 변수 초기화.
+					P_Resume_Protect_Variable = 1;														// Resume 재진입 방지.
+					resume 1;																			// Resume 진행.
+					P_Resume_MNTR5++
+				}
+			}
+			else
+			{
+				if( M_X_PLC_Sync_Heart_Bit == 1 && M_X_PLC_Sync_Heart_Bit != P_Old_X_PLC_Sync_Heart_Bit )			// 상승 Edge 일 경우.
+				{
+					M_Y_Pause_Status_Complete_Signal = 0;												// 컴플리트 상태 GPIO 초기화.
+					P_Pause_Protect_Variable = 0;														// Pause Edge 변수 초기화.
+					P_Resume_Protect_Variable = 1;														// Resume 재진입 방지.
+					resume 1;																			// Resume 진행.
+					P_Resume_MNTR6++
+				}
+			}
+		}
+		//else if( Coord[1].ProgActive == 0 )															// 좌표계가 꺼져 있을 경우.
+		//{
+		//	M_Y_Pause_Status_Complete_Signal = 0;													// 컴플리트 상태 GPIO 초기화
+		//	P_Pause_Protect_Variable = 0;															// Pause Edge 변수 초기화.
+		//}
+		#else
+		if( P_Master_Motion_Trigger == 44 || P_Master_Motion_Trigger == 43 )						// 43,44 트리거에서 멈췄을 경우.
+		{
+			if( M_X_Opposite_Resume_Not_Free == 1 )
+			{
+				if( M_X_PLC_Sync_Heart_Bit == 1 && M_X_PLC_Sync_Heart_Bit != P_Old_X_PLC_Sync_Heart_Bit )	// 상승 Edge 일 경우.
+				{
+					M_Y_Pause_Status_Complete_Signal = 0;												// 컴플리트 상태 GPIO 초기화.
+					P_Pause_Protect_Variable = 0;														// Pause Edge 변수 초기화.
+					P_Resume_Protect_Variable = 1;														// Resume 재진입 방지.
+					resume 1;																			// Resume 진행.
+					P_Resume_MNTR7++
+				}	
+				else if ( M_X_Pause_Status_Complete_Signal == 0 && M_X_PLC_Sync_Heart_Bit == 1 )		// [ 참조 : 26.07.31 Pause_Resume 수정 ]
+				{
+					M_Y_Pause_Status_Complete_Signal = 0;												// 컴플리트 상태 GPIO 초기화.
+					P_Pause_Protect_Variable = 0;														// Pause Edge 변수 초기화.
+					P_Resume_Protect_Variable = 1;														// Resume 재진입 방지.
+					resume 1;																			// Resume 진행.
+					P_Resume_MNTR8++
+				}	
+			}
+			else
+			{
+				if( M_X_PLC_Sync_Heart_Bit == 1 && M_X_PLC_Sync_Heart_Bit != P_Old_X_PLC_Sync_Heart_Bit)	// 상승 Edge 일 경우.
+				{
+					M_Y_Pause_Status_Complete_Signal = 0;												// 컴플리트 상태 GPIO 초기화.
+					P_Pause_Protect_Variable = 0;														// Pause Edge 변수 초기화.
+					P_Resume_Protect_Variable = 1;														// Resume 재진입 방지.
+					resume 1;																			// Resume 진행.
+					P_Resume_MNTR9++
+				}		
+			}	
+		}
+		if( P_Master_Motion_Trigger == 89 || P_Master_Motion_Trigger == 88 )						// 88,89 트리거에서 멈췄을 경우.
+		{
+			if( M_X_Opposite_Resume_Not_Free == 1 )
+			{
+				if( M_X_PLC_Sync_Heart_Bit == 0 && M_X_PLC_Sync_Heart_Bit != P_Old_X_PLC_Sync_Heart_Bit )			// 하강 Edge 일 경우.
+				{
+					M_Y_Pause_Status_Complete_Signal = 0;												// 컴플리트 상태 GPIO 초기화.
+					P_Pause_Protect_Variable = 0;														// Pause Edge 변수 초기화.
+					P_Resume_Protect_Variable = 1;														// Resume 재진입 방지.
+					resume 1;																			// Resume 진행.
+					P_Resume_MNTR10++
+				}
+				else if ( M_X_Pause_Status_Complete_Signal == 0 && M_X_PLC_Sync_Heart_Bit == 0 )		// [ 참조 : 26.07.31 Pause_Resume 수정 ]
+				{
+					M_Y_Pause_Status_Complete_Signal = 0;												// 컴플리트 상태 GPIO 초기화.
+					P_Pause_Protect_Variable = 0;														// Pause Edge 변수 초기화.
+					P_Resume_Protect_Variable = 1;														// Resume 재진입 방지.
+					resume 1;																			// Resume 진행.
+					P_Resume_MNTR11++
+				}
+			}
+			else
+			{
+				if( M_X_PLC_Sync_Heart_Bit == 0 && M_X_PLC_Sync_Heart_Bit != P_Old_X_PLC_Sync_Heart_Bit )			// 하강 Edge 일 경우.
+				{
+					M_Y_Pause_Status_Complete_Signal = 0;												// 컴플리트 상태 GPIO 초기화.
+					P_Pause_Protect_Variable = 0;														// Pause Edge 변수 초기화.
+					P_Resume_Protect_Variable = 1;														// Resume 재진입 방지.
+					resume 1;																			// Resume 진행.
+					P_Resume_MNTR12++
+				}
+			}
+		}
+		//else if( Coord[1].ProgActive == 0 )															// 좌표계가 꺼져 있을 경우.
+		//{
+		//	M_Y_Pause_Status_Complete_Signal = 0;													// 컴플리트 상태 GPIO 초기화.
+		//	P_Pause_Protect_Variable = 0;															// Pause Edge 변수 초기화.
+		//}
+		#endif
+	}
+}
+
+
+if( Coord[1].ProgActive == 1 && Coord[1].ProgRunning == 0 )
+{
+	if ( P_Motor_Current_Pos(N_1st_PnP_CA_T) > P_Cathode_1TR_T_Belt_POS - P_Sheet_Pos_Offset && P_Motor_Current_Pos(N_1st_PnP_CA_T) < P_Cathode_1TR_T_Belt_POS + P_Sheet_Pos_Offset )
+	{
+		M_Y_Cathode_1st_PNP_Sheet_Wait = 1				// 양극 1차 PNP 퍼즈 걸려서 대기중, ON 이면 PLC에서 극판 제대로 다 밀었는지 확인 후 극판 레디 신호 ON
+	}
+	else
+	{
+		M_Y_Cathode_1st_PNP_Sheet_Wait = 0				
+	}
+
+	if ( P_Motor_Current_Pos(N_1st_PnP_AN_T) > P_Anode_1TR_T_Belt_POS - P_Sheet_Pos_Offset && P_Motor_Current_Pos(N_1st_PnP_AN_T) < P_Anode_1TR_T_Belt_POS + P_Sheet_Pos_Offset )
+	{
+		M_Y_Anode_1st_PNP_Sheet_Wait = 1				// 음극 1차 PNP 퍼즈 걸려서 대기중, ON 이면 PLC에서 극판 제대로 다 밀었는지 확인 후 극판 레디 신호 ON
+	}
+	else
+	{
+		M_Y_Anode_1st_PNP_Sheet_Wait = 0
+	}
+}
+else
+{
+	M_Y_Cathode_1st_PNP_Sheet_Wait = 0
+	M_Y_Anode_1st_PNP_Sheet_Wait = 0 
+}
+
+// ↓ 마스터 좌표계가 죽어있을 경우 || ↓ 본인열 세파 모드 일 경우 || ↓ 세파 모드로 배출 후 싱크 맞추기 전 일 경우
+if( Coord[1].ProgActive == 0 || P_Sepa_Mode_Opposite_Resume_Free == 1 || P_Sepa_To_Normal_Mode_Sync_Flag == 1 )				// [ 참조 : 26.07.31 Pause_Resume 수정 ]	
+{
+	M_Y_Opposite_Resume_Not_Free = 0	// 반대열 퍼즈 무시하고 런
+}
+else if( Coord[1].ProgActive == 1 )		// ← 마스터 좌표계가 살아 있을 경우
+{
+
+	M_Y_Opposite_Resume_Not_Free = 1	// 퍼즈 필요해
+}
+
+IF ( P_PLC03_Seq_Pause_Start_Flag == 1 ) 					// 1) Flag 확인 단계
+{
+	P_PLC03_Seq_Pause_Start_Flag = 0;
+	P_PLC03_Seq_Pause_Start_State_Machine = 1;
+}
+IF ( P_PLC03_Seq_Pause_Start_State_Machine == 0 )			// 0) 다운로드시 상태 감시 단계
+{
+	P_PLC03_Seq_Pause_Start_Status = F_Status_Nonseatus		// 상태 : Nonseatus 0
+}
+
+IF ( P_PLC03_Seq_Pause_Start_State_Machine== 1 )			// [1]스텟머신 1단계 
+{
+	P_PLC03_Seq_Pause_Start_Status = F_Status_IDLE			//   - 상태 : IDLE
+
+	// 사용자 세파 모드가 설정되어 있다면 ( 1차 PNP 진입을 안할테니 )
+	//if( P_Com_User_Sepa_Consume_Mode_Flag == 1 && P_Com_ARC_Sepa_Consume_Mode_Flag == 0 && P_Com_EPC_Sepa_Consume_Mode_Flag == 0 )			
+	// 세파 모드 일 경우 ( 1차 PNP 진입을 하지 않음 )
+	if( P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence )		// [ 참조 : 26.07.31 Pause_Resume 수정 ]		
+	{
+		P_PLC03_Seq_Pause_Start_State_Machine = 4;
+	}
+	else
+	{
+		// Pause 걸 수 있는 마스터 트리거 최소 단위를 런모드 기준 1차 PNP가 벨트로 이동할 수 있는 마스터트리거로 기준 잡음
+		if( P_Master_Motion_Trigger == 30 || P_Master_Motion_Trigger == 77 )
+		{
+			P_Starting_Pause_IO_Flag = 1;							//   - Pause IO ON
+			P_Seq_Pause = 14
+			P_PLC03_Seq_Pause_Start_State_Machine = 2;
+		}
+	}
+}
+		
+IF ( P_PLC03_Seq_Pause_Start_State_Machine== 2 )			// [2] 스텟머신 2단계
+{	
+	P_PLC03_Seq_Pause_Start_Status = F_Status_STARTING		//   - 상태 : STARTING
+	if( Coord[1].ProgRunning == 0 && Coord[1].ProgActive == 1 &&( M_X_Pause_Status_Complete_Signal == 1 || M_X_Opposite_Resume_Not_Free == 0) )
+	{
+		P_Starting_Pause_IO_OFF_Flag = 1
+		P_Sepa_To_Normal_Mode_Sync_Flag = 0;				// [ 참조 : 26.07.31 Pause_Resume 수정 ]
+		P_PLC03_Seq_Pause_Start_State_Machine = 3;
+	}
+}
+
+IF ( P_PLC03_Seq_Pause_Start_State_Machine== 3 ) 			// [3] 스텟머신 3단계 (Pause 확인)
+{
+	P_PLC03_Seq_Pause_Start_Status = F_Status_EXECUTE		// 	- 상태 : STARTING
+	
+	if( Coord[1].ProgRunning == 1 && Coord[1].ProgActive == 1  && M_X_Pause_Status_Complete_Signal == 0 )
+	{
+		P_PLC03_Seq_Pause_Start_State_Machine = 4
+	}
+}
+IF ( P_PLC03_Seq_Pause_Start_State_Machine== 4 )			// [4] 스텟머신 4단계 (완료 체크단계)
+{
+	P_PLC03_Seq_Pause_Start_Status = F_Status_COMPLETE;
+	P_PLC03_Seq_Pause_Start_State_Machine = 999;
+}
+
+
+
+
+
+if( P_Stack_Heart_Bit_Sync_Flag == 1 )
+{
+	#ifdef F_Debug_Mode							//Debug ( C# UI Mode )
+		local L_Sync_Rtn = 0;
+		#ifdef F_Def_Stack_A						// A열은 상승엣지보고 좌표계 on
+			call System_Module.Coord_ON(M_Y_A_Site_Heart_Bit,P_Old_X_PLC_Sync_Heart_Bit,&L_Sync_Rtn);
+			if( L_Sync_Rtn == N_TRUE )
+			{
+				P_Stack_Heart_Bit_Sync_Flag = N_FALSE; 
+				P_Stack_Heart_Bit_Sunc_Complete_Bit = N_TRUE;
+			}
+			P_Old_X_PLC_Sync_Heart_Bit = M_Y_A_Site_Heart_Bit;
+		#else										// B열은 하강엣지 보고 좌표계 on
+			call System_Module.Coord_ON(M_X_B_Site_Heart_Bit,P_Old_X_PLC_Sync_Heart_Bit,&L_Sync_Rtn);
+			if( L_Sync_Rtn == N_TRUE )
+			{
+				P_Stack_Heart_Bit_Sync_Flag = N_FALSE;
+				P_Stack_Heart_Bit_Sunc_Complete_Bit = N_TRUE;
+			}
+			P_Old_X_PLC_Sync_Heart_Bit = M_X_B_Site_Heart_Bit;
+		#endif
+	#endif										
+
+	#ifdef F_Real_Axis_Test						// 실축모드
+		local L_Sync_Rtn = 0;
+		#ifdef F_Def_Stack_A						// A열은 상승엣지보고 좌표계 on
+			call System_Module.Coord_ON(M_X_PLC_Sync_Heart_Bit,P_Old_X_PLC_Sync_Heart_Bit,&L_Sync_Rtn);
+			if( L_Sync_Rtn == N_TRUE )
+			{
+				P_Stack_Heart_Bit_Sync_Flag = N_FALSE; 
+				P_Stack_Heart_Bit_Sunc_Complete_Bit = N_TRUE;
+			}
+		
+		#else										// B열은 하강엣지 보고 좌표계 on
+			call System_Module.Coord_ON(M_X_PLC_Sync_Heart_Bit,P_Old_X_PLC_Sync_Heart_Bit,&L_Sync_Rtn);
+			if( L_Sync_Rtn == N_TRUE )
+			{
+				P_Stack_Heart_Bit_Sync_Flag = N_FALSE;
+				P_Stack_Heart_Bit_Sunc_Complete_Bit = N_TRUE;
+			}
+			
+		#endif
+	#endif
+}
+
+P_Old_X_PLC_Sync_Heart_Bit = M_X_PLC_Sync_Heart_Bit;						// PLC 싱크 DIO 갱신
+L_old_PMAC_Current_Mode = P_PMAC_Current_Mode;
+L_old_Master_Motion_Trigger = P_Master_Motion_Trigger;
+
+
+
+
+
+
+
+//// Heart bit코드.
+//#ifdef F_Def_Stack_A
+//	P_Stack_Heart_Bit_Calc = int(Sys.Time*1000) % (450 * 100 / P_Recipe_Speed_Value);
+//	if( P_Stack_Heart_Bit_Calc == 0 && P_Stack_Heart_Bit_Calc != L_Heart_Bit_Calc_Old )							
+//	{
+//		M_Y_A_Site_Heart_Bit ^= 1;
+//	}
+//	L_Heart_Bit_Calc_Old = P_Stack_Heart_Bit_Calc;
+//
+//	// 25.07.15 Lab실 테스트 시 사용.
+//	//if( P_Stack_Heart_Bit_Timer >= 450 * 100 / P_Recipe_Speed_Value )
+//	//{
+//	//	P_Stack_Heart_Bit_Timer = 0;
+//	//	M_Y_A_Site_Heart_Bit ^= 1;
+//	//}
+//#endif
+
+
+//==================================================================================================================
+// RTI PLC 모션 프로그램 다운 감시 [ 2025.06.24 추가 ]
+//==================================================================================================================
+// 모션 슬레이브 다운 감시
+
+if( ( P_PMAC_Status == F_Status_EXECUTE ||  P_PMAC_Status == F_Status_SUSPENDED ||  P_PMAC_Status == F_Status_HOLD ) && P_Coord_Motion_Prog_Down_Entering_Bit == 0)
+{	// ↑ 익스큐트 및 서스펜드, 홀드 ( 자동화 ) 일때 모션 다운 감시 
+	P_PMAC_Coord_Status_Bit = (((ACTIVE_SlaveMaster_1 | ACTIVE_SlaveMaster_2) << 10) | ACTIVE_SubMaster);														// 좌표계 상태 14개의 비트로 취합	 	
+
+	if( P_PMAC_Coord_Status_Bit != N_Coord_Masking )													// 24개의 비트 전체 on 상태에서 1개라도 off 된다면,
+	{
+		P_Coord_Down_Check_Bit	= (P_PMAC_Coord_Status_Bit ^ N_Coord_Masking);							// 24개의 비트 상태 반전 및 check변수에 대입. -> 즉 On 좌표계는 0, Off된 좌표계는 1로 변환.
+		P_PMAC_Coord_Down_Inspection_Flag = 1;															// 문제된 좌표계 검사 플래그 on
+		P_Coord_Motion_Prog_Down_Entering_Bit = 1;														// 재진입 방지 변수 
+	}
+	
+}
+// 모션 프로그램 다운 플래그가 온이라면. 각 모션 프로그램 다운 알람 발생.
+// [ 참조 : 2025.09.30 모션 다운 체크 변경 ]
+if( P_PMAC_Coord_Down_Inspection_Flag == 1 )															// 감시 플래그 on 일시 
+{
+	if( P_Coord_Down_Check_Bit & Sub_AN_1st_PnP_Coord )														// 음극 1차 pnp slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[11].Status[0];
+		P_PMAC_Coord_Down_Num = 11;
+		call Alarm.Insert_Alarm(N_Alarm_Anode_1st_PNP_Sub_Master_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+		//M_Anode_1st_PNP_Sub_Master_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	//if( P_Coord_Down_Check_Bit & Sub_AN_Picker_Coord )														// 음극 1차 pnp slave 좌표계			//PickerT PNP에 묶음으로 인하여 주석처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]
+	//{
+	//	//슬레이브 알람
+	//	P_PMAC_Coord_Error_Status = Coord[12].Status[0];
+	//	P_PMAC_Coord_Down_Num = 12;
+	//	call Alarm.Insert_Alarm(N_Alarm_Anode_1st_PNP_Picker_Sub_Master_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//	//	M_Anode_1st_PNP_Picker_Sub_Master_Motion_Prog_Down_Alarm = 1;
+	//	P_PMAC_Commands = F_Command_Abort
+	//}
+	if( P_Coord_Down_Check_Bit & Sub_AN_2nd_PnP_Coord )														// 음극 1차 pnp slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[13].Status[0];
+		P_PMAC_Coord_Down_Num = 13;
+		call Alarm.Insert_Alarm(N_Alarm_Anode_2nd_PNP_Sub_Master_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Anode_2nd_PNP_Sub_Master_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & Sub_AN_Clamp_Coord )														// 음극 1차 pnp slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[14].Status[0];
+		P_PMAC_Coord_Down_Num = 14;
+		call Alarm.Insert_Alarm(N_Alarm_Anode_Clamp_Sub_Master_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Anode_Clamp_Sub_Master_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & Sub_Final_Roll_Coord )														// 음극 1차 pnp slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[15].Status[0];
+		P_PMAC_Coord_Down_Num = 15;
+		call Alarm.Insert_Alarm(N_Alarm_Fianl_Roll_Sub_Master_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Fianl_Roll_Sub_Master_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & Sub_Stack_Table_Coord )														// 음극 1차 pnp slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[16].Status[0];
+		P_PMAC_Coord_Down_Num = 16;
+		call Alarm.Insert_Alarm(N_Alarm_Stack_Table_Sub_Master_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Stack_Table_Sub_Master_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & Sub_CA_Clamp_Coord )														// 음극 1차 pnp slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[17].Status[0];
+		P_PMAC_Coord_Down_Num = 17;
+		call Alarm.Insert_Alarm(N_Alarm_Cathode_Clamp_Sub_Master_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Cathode_Clamp_Sub_Master_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & Sub_CA_2nd_PnP_Coord )														// 음극 1차 pnp slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[18].Status[0];
+		P_PMAC_Coord_Down_Num = 18;
+		call Alarm.Insert_Alarm(N_Alarm_Cathode_2nd_PNP_Sub_Master_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Cathode_2nd_PNP_Sub_Master_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	//if( P_Coord_Down_Check_Bit & Sub_CA_Picker_Coord )														// 음극 1차 pnp slave 좌표계		//PickerT PNP에 묶음으로 인하여 주석처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]
+	//{
+	//	//슬레이브 알람
+	//	P_PMAC_Coord_Error_Status = Coord[19].Status[0];
+	//	P_PMAC_Coord_Down_Num = 19;
+	//	call Alarm.Insert_Alarm(N_Alarm_Cathode_1st_PNP_Picker_Sub_Master_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//	//	M_Cathode_1st_PNP_Picker_Sub_Master_Motion_Prog_Down_Alarm = 1;
+	//	P_PMAC_Commands = F_Command_Abort
+	//}									
+	if( P_Coord_Down_Check_Bit & Sub_CA_1st_PnP_Coord )														// 음극 1차 pnp slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[20].Status[0];
+		P_PMAC_Coord_Down_Num = 20;
+		call Alarm.Insert_Alarm(N_Alarm_Cathode_1st_PNP_Sub_Master_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Cathode_1st_PNP_Sub_Master_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}	
+	//if( P_Coord_Down_Check_Bit & AN_Picker_Coord )														// 음극 피커 slave 좌표계				//PickerT PNP에 묶음으로 인하여 주석처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]
+	//{
+	//	//슬레이브 알람
+	//	P_PMAC_Coord_Error_Status = Coord[22].Status[0];
+	//	P_PMAC_Coord_Down_Num = 22;
+	//	call Alarm.Insert_Alarm(N_Alarm_Anode_1st_PNP_Picker_T_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//	//	M_Anode_1st_PNP_Picker_T_Slave_Motion_Prog_Down_Alarm = 1;
+	//	P_PMAC_Commands = F_Command_Abort
+	//}
+	if( P_Coord_Down_Check_Bit & AN_2nd_PnP_Coord )														// 음극 2차 pnp slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[23].Status[0];
+		P_PMAC_Coord_Down_Num = 23;
+		call Alarm.Insert_Alarm(N_Alarm_Anode_2nd_PNP_T_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Anode_2nd_PNP_T_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & AN_Clamp_Coord )														// 음극 클램프 slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[24].Status[0];
+		P_PMAC_Coord_Down_Num = 24;
+		call Alarm.Insert_Alarm(N_Alarm_Anode_Clamp_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Anode_Clamp_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & Final_Roll_Coord )														// 파이널롤러 slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[25].Status[0];
+		P_PMAC_Coord_Down_Num = 25;
+		call Alarm.Insert_Alarm(N_Alarm_Fianl_Roll_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Fianl_Roll_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & Stack_Table_Coord )													// 스텍테이블 slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[26].Status[0];
+		P_PMAC_Coord_Down_Num = 26;
+		call Alarm.Insert_Alarm(N_Alarm_Stack_Table_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Stack_Table_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & CA_Clamp_Coord )														// 양극 클램프 slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[27].Status[0];
+		P_PMAC_Coord_Down_Num = 27;
+		call Alarm.Insert_Alarm(N_Alarm_Cathode_Clamp_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Cathode_Clamp_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & CA_2nd_PnP_Coord )														// 양극 2차 pnp slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[28].Status[0];
+		P_PMAC_Coord_Down_Num = 28;
+		call Alarm.Insert_Alarm(N_Alarm_Cathode_2nd_PNP_T_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Cathode_2nd_PNP_T_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	//if( P_Coord_Down_Check_Bit & CA_Picker_Coord )													// 양극 피커 slave 좌표계			//PickerT PNP에 묶음으로 인하여 주석처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]
+	//{
+	//	//슬레이브 알람
+	//	P_PMAC_Coord_Error_Status = Coord[29].Status[0];
+	//	P_PMAC_Coord_Down_Num = 29;
+	//	call Alarm.Insert_Alarm(N_Alarm_Cathode_1st_PNP_Picker_T_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//	//	M_Cathode_1st_PNP_Picker_T_Slave_Motion_Prog_Down_Alarm = 1;
+	//	P_PMAC_Commands = F_Command_Abort
+	//}
+	if( P_Coord_Down_Check_Bit & CA_1st_PnP_Coord )														// 양극 1차 pnp slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[30].Status[0];
+		P_PMAC_Coord_Down_Num = 30;
+		call Alarm.Insert_Alarm(N_Alarm_Cathode_1st_PNP_T_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Cathode_1st_PNP_T_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & Sheet_Paper_Coord )													// 시트페이퍼 slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[31].Status[0];
+		P_PMAC_Coord_Down_Num = 31;
+		call Alarm.Insert_Alarm(N_Alarm_1st_Sheet_Paper_X_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_1st_Sheet_Paper_X_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & CA_NG_PnP_Coord )														// 양극 NG pnp slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[32].Status[0];
+		P_PMAC_Coord_Down_Num = 32;
+		call Alarm.Insert_Alarm(N_Alarm_Cathode_NG_PNP_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Cathode_NG_PNP_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & AN_NG_PnP_Coord )														// 음극 NG pnp slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[33].Status[0];
+		P_PMAC_Coord_Down_Num = 33;
+		call Alarm.Insert_Alarm(N_Alarm_Anode_NG_PNP_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Anode_NG_PNP_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & Unloader_Coord )														// 언로더 slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[34].Status[0];
+		P_PMAC_Coord_Down_Num = 34;
+		call Alarm.Insert_Alarm(N_Alarm_1st_Unloader_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_1st_Unloader_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	if( P_Coord_Down_Check_Bit & CamTable_Coord )														// CamTable → 드라이빙 slave 좌표계
+	{
+		//슬레이브 알람
+		if( P_First_Sepa_Driving_Use == 1 )
+		{
+			P_PMAC_Coord_Error_Status = Coord[35].Status[0];
+			P_PMAC_Coord_Down_Num = 35;
+			call Alarm.Insert_Alarm(N_Alarm_Motion_Camtable_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//			M_Motion_Camtable_Slave_Motion_Prog_Down_Alarm = 1;
+			P_PMAC_Commands = F_Command_Abort
+		}
+	}
+
+	if( P_Coord_Down_Check_Bit & AN_1st_PNP_Z_Coord )														// 음극 1차 PNP Z축 slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[37].Status[0];
+		P_PMAC_Coord_Down_Num = 37;
+		call Alarm.Insert_Alarm(N_Alarm_Anode_1st_PNP_Z_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Anode_1st_PNP_Z_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+
+	if( P_Coord_Down_Check_Bit & AN_2nd_PNP_Z_Coord )														// 음극 2차 PNP Z축 slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[38].Status[0];
+		P_PMAC_Coord_Down_Num = 38;
+		call Alarm.Insert_Alarm(N_Alarm_Anode_2nd_PNP_Z_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Anode_2nd_PNP_Z_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+
+	if( P_Coord_Down_Check_Bit & CA_2nd_PNP_Z_Coord )														// 양극 2차 PNP Z축 slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[39].Status[0];
+		P_PMAC_Coord_Down_Num = 39;
+		call Alarm.Insert_Alarm(N_Alarm_Cathode_2nd_PNP_Z_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Cathode_2nd_PNP_Z_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+
+	if( P_Coord_Down_Check_Bit & CA_1st_PNP_Z_Coord )														// 양극 1차 PNP Z축 slave 좌표계
+	{
+		//슬레이브 알람
+		P_PMAC_Coord_Error_Status = Coord[40].Status[0];
+		P_PMAC_Coord_Down_Num = 40;
+		call Alarm.Insert_Alarm(N_Alarm_Cathode_1st_PNP_Z_Slave_Motion_Prog_Down, N_High_Alarm_Emergency_Stop);
+//		M_Cathode_1st_PNP_Z_Slave_Motion_Prog_Down_Alarm = 1;
+		P_PMAC_Commands = F_Command_Abort
+	}
+	P_PMAC_Coord_Down_Inspection_Flag = 0;																// 감시 플래그 off 
+	P_Coord_Motion_Prog_Down_Entering_Bit = 0;															// 재진입 방지 변수 off
+}
+
+//==================================================================================================================
+// P&P Abort 적용 프로그램 [25.07.04 추가]		[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+//==================================================================================================================
+if ( P_PNP_Abort_Use_Bit == 1 )					// PNP Abort Flag ON 일 경우.
+	call PNP_Abort_Time.Abort_Apply();			// PNP Abort 적용.
+
+
+// [참조: 260114 Pause 에러 관련 보완 프로그램 추가]
+if( P_Pause_Err_Use2 == 1 )
+{
+	if( P_PMAC_Status != F_Status_STARTING )	// Starting에서 거는 pause는 Sync가 망가진 마스터 트리거를 맞추는 작업이라 err로 빼지 않고 상대방이 pause가 걸릴 때 까지 대기
+	{
+		// 극판 미공급으로 퍼즈 완료 상태
+		if( ( M_Y_Pause_Cathode_Signal == 1 || M_Y_Pause_Anode_Signal == 1 ) && M_Y_Pause_Status_Complete_Signal == 1 )
+		{
+			if ( P_PMAC_Status == F_Status_EXECUTE && P_Sepa_To_Normal_Mode_Sync_Err_Avoid == 1 )		// Execute상태에 Err 코드 피하는 변수가 1일 경우.	[ 참조 : 26.07.31 Pause_Resume 수정 ]
+			{}
+			else
+			{
+				// 마스터 트리거 44 또는 89 일 땐 pause가 걸려야 하는 상황에서 이미 M_X_Pause_Ack_Signal가 0이여야함
+				// 극판 미공급이 되었고 M_X_Pause_Ack_Signal가 1이면 반대열이 Pause 신호를 못 받았거나 못처리한 경우로 스탑
+				// pause가 걸린 상태에서 반대편 열 pause가 걸려있지 않으면 pause process 실행
+				if( P_Master_Motion_Trigger == 44 || P_Master_Motion_Trigger == 89)
+				{
+					// 반대열 마스터
+					if( M_X_Opposite_Resume_Not_Free == 1 && P_Opposite_Lane_P_PMAC_Status != F_Status_STARTING )
+					{
+						if( M_X_Pause_Status_Complete_Signal == 0 && P_Pause_Err_Process == 0 )
+						{
+							P_Pause_Err_Timer = 0
+							P_Pause_Err_Process = 1
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	if( P_Pause_Err_Process == 1 )
+	{
+		P_Pause_Err_Timer = 0
+		P_Pause_Err_Process++
+	}
+
+	if( P_Pause_Err_Process == 2 )
+	{
+		// 50ms 뒤에도 상대편 퍼즈가 안걸린다면 예외 처리
+		if( P_Pause_Err_Timer > 50  )
+		{
+			if( M_X_Pause_Status_Complete_Signal == 0 )
+			{
+				P_Pause_Err_Process++
+			}		
+			else
+			{
+				P_Pause_Err_Process = 0
+			}
+		}
+	}
+
+	if( P_Pause_Err_Process == 3 )
+	{		
+		P_Current_Mode = 0
+		P_Execute_Manage_Mode = 0;
+		P_Cathode_Cur_Mode = 0
+		
+		// 런모드 배열 모드 초기화
+		P_Slave1_Cathode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave2_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+		P_Slave3_Cathode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave4_Cathode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave5_Cathode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave6_Cathode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave7_Cathode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave8_Cathode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave9_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+		P_Slave10_Cathode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave16_Cathode_Run_Motion_Array(0),100,1 = 0;	//	음극 1차 Z 		// [ 참 조 : 2025.11.24 Z축 분리 ]
+		P_Slave17_Cathode_Run_Motion_Array(0),100,1 = 0;	//	음극 2차 Z		// [ 참 조 : 2025.11.24 Z축 분리 ]
+		P_Slave18_Cathode_Run_Motion_Array(0),100,1 = 0;	//	양극 2차 Z		// [ 참 조 : 2025.11.24 Z축 분리 ]
+		P_Slave19_Cathode_Run_Motion_Array(0),100,1 = 0;	//	양극 1차 Z		// [ 참 조 : 2025.11.24 Z축 분리 ]
+
+		// 런모드 배열 모두 초기화
+		P_Slave1_Anode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave2_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+		P_Slave3_Anode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave4_Anode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave5_Anode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave6_Anode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave7_Anode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave8_Anode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave9_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+		P_Slave10_Anode_Run_Motion_Array(0),100,1 = 0;
+		P_Slave16_Anode_Run_Motion_Array(0),100,1 = 0;		//	음극 1차 Z 		// [ 참 조 : 2025.11.24 Z축 분리 ]
+		P_Slave17_Anode_Run_Motion_Array(0),100,1 = 0;		//	음극 2차 Z		// [ 참 조 : 2025.11.24 Z축 분리 ]
+		P_Slave18_Anode_Run_Motion_Array(0),100,1 = 0;		//	양극 2차 Z		// [ 참 조 : 2025.11.24 Z축 분리 ]
+		P_Slave19_Anode_Run_Motion_Array(0),100,1 = 0;		//	양극 1차 Z		// [ 참 조 : 2025.11.24 Z축 분리 ]
+
+		// 1차 PNP 대기위치 이동
+		P_Slave10_Motion_Command = N_1st_PNP_Ready_Pos_Motion
+		P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion
+	
+		P_Pause_Err_Timer = 0
+
+		P_Pause_Err_Process++
+	}
+	
+	if( P_Pause_Err_Process == 2 )
+	{
+		if( P_Pause_Err_Timer > 30 )
+		{
+			call Alarm.Insert_Alarm(N_Alarm_Opposite_Lane_Pause_IO_Err, N_High_Alarm_Cycle_Stop);
+			// 알람 비활성화로 임시로 커맨드 실행, 알람 활성화 후 삭제 필요
+			P_PMAC_Commands = F_Command_Stop;								
+			P_Stop_Cmd_Origin = 42
+			
+			P_Pause_Err_Count++
+			P_Pause_Err_Process = 0
+		}
+	}
+}
+
+
+
+P_MNTR_PLC3_Task_Time(1) = (Sys.Time - P_MNTR_PLC3_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC3_Task_Time(1) > P_MNTR_PLC3_Task_Max_Time )
+{
+	P_MNTR_PLC3_Task_Max_Time = P_MNTR_PLC3_Task_Time(1);
+}
+close

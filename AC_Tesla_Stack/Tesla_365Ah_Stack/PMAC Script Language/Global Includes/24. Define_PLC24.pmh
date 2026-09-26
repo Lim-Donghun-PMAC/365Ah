@@ -1,0 +1,151 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.04 김형진 책임
+// Motion Coordination - [ 참조 : 25.06.04 모션 조정 신규 추가 ]  
+
+// cmd global
+global P_System_Cascading_ON_Cmd = 0;											// 케스케이딩 ON		커맨드변수
+global P_System_Cascading_OFF_Cmd = 0;											// 케스케이딩 OFF	커맨드변수
+global P_System_Master_Following_ON_Cmd = 0;									// 마스터 팔로잉 ON	커맨드변수
+global P_System_Master_Following_OFF_Cmd = 0;									// 마스터 팔로잉 OFF 커맨드변수
+global P_System_CamTable_ON_Cmd = 0;											// 캠테이블 ON		커맨드변수
+global P_System_CamTable_OFF_Cmd = 0;											// 캠테이블 OFF		커맨드변수
+global P_System_Spool_Home_Ready_Pos_Cmd = 0;									// Spool 첫 홈		커맨드변수
+
+// 상태
+global P_System_Cascading_ON_Status = 0;										// 케스케이딩 ON		상태변수
+global P_System_Cascading_OFF_Status = 0;										// 케스케이딩 OFF	상태변수
+global P_System_Master_Following_ON_Status = 0;									// 마스터팔로잉 ON	상태변수
+global P_System_Master_Following_OFF_Status = 0;								// 마스터팔로잉 OFF	상태변수
+global P_System_CamTable_ON_Status = 0;											// 캠테이블 ON		상태변수
+global P_System_CamTable_OFF_Status = 0;										// 캠테이블 OFF		상태변수
+global P_System_Spool_Home_Ready_Pos_Status = 0;								// SPool 첫 홈		상태변수
+
+// state machine
+global P_System_Cascading_ON_State_Machine = 0;									// 케스케이딩 ON		스텟머신변수
+global P_System_Cascading_OFF_State_Machine = 0;								// 케스케이딩 OFF	스텟머신변수
+global P_System_Master_Follwing_ON_State_Machine = 0;							// 마스터팔로잉 ON	스텟머신변수
+global P_System_Master_Follwing_OFF_State_Machine = 0;							// 마스터팔로잉 OFF	스텟머신변수
+global P_System_CamTable_ON_State_Machine = 0;									// 캠테이블 ON		스텟머신변수
+global P_System_CamTable_OFF_State_Machine = 0;									// 캠테이블 OFF		스텟머신변수
+global P_System_Spool_Home_Ready_Pos_State_Machine = 0;							// Spool 첫 홈		스텟머신변수
+
+// complete 
+global P_System_Cascading_ON_Complete_Flag = 0;									// 케스케이딩 ON		컴플리트변수
+global P_System_Cascading_OFF_Complete_Flag = 0;								// 케스케이딩 OFF	컴플리트변수
+global P_System_Master_Following_ON_Complete_Flag = 0;							// 마스터팔로잉 ON	컴플리트변수
+global P_System_Master_Following_OFF_Complete_Flag = 0;							// 마스터팔로잉 OFF	컴플리트변수
+global P_System_CamTable_ON_Complete_Flag = 0;									// 캠테이블 ON		컴플리트변수
+global P_System_CamTable_OFF_Complete_Flag = 0;									// 캠테이블 OFF		컴플리트변수
+global P_System_Spool_Home_Ready_Pos_Complete_Flag = 0;							// Spool 첫 홈		컴플리트변수
+// timer
+global P_Servo_Dancer_Cascading_Off_Timer = 0;
+global P_Servo_Dancer_Cascading_Set_Timer = 0;
+global P_Dancer_Frist_Home_Ready_Pos_Timer = 0;
+
+
+
+
+global P_Driving_Motor_Use_Flag = 1;
+//global P_Selected_Spool_Number = 0;
+global P_Home_Spool_Unwinding = 0;
+global P_OutValue = 0;
+global P_Dancer_Out_Slew_Seq = 0
+global P_OutChangeValue = 0
+global P_Rot_OutValue = 60;	//out 60%
+
+// 260702 세파 텐션 관련 홈 속도 증가
+global P_OutChangeTime = 1000	//2000
+
+
+
+// AIO 필요 변수 선언
+
+global P_AO_Module_Arr(5);                           // AO 모듈 갯수
+P_AO_Module_Arr(0),5,1 = 0;
+global	P_AO_Range_Set_Value(5);						// AO 출력 Range 변수
+P_AO_Range_Set_Value(0),5,1 = 1500;
+
+global P_Regul_Max_kPa_Value = 500;
+global P_Regul_Min_kPa_Value = 0;
+global P_Regul_Max_AD = 7500;
+global P_Regul_Min_AD = 1500;
+
+global P_Current_Max_Value = 20;					// 20mA
+global P_Current_Min_Value = 4;						// 4mA
+global P_Current_Max_AD = 29700;					// 전류모드값 맥스 데이터 
+global P_Current_Min_AD = 20;						// 전류모드값 민 데이터 
+
+global P_Sepa_Cal_Inclination = 0;					// 기울기 변수
+global P_Regul_Cal_Inclination = 0;					// 기울기 변수
+
+global P_Cutter_Heat_Amp_Data_Bit = 0;				// 히팅 암페어 데이터 Get 비트
+global P_Cut_Heat_Amp_Value = 0;					// 히팅 암페어 변수
+
+global P_AI_Cathode_Clamp_Damper_AVG = 0;			// 양극 클램프 AI 평균값
+global P_AI_Anode_Clamp_Damper_AVG = 0;				// 음극 클램프 AI 평균값
+
+global P_Tension_Ready_Pos_Cmd = 0;
+global P_Tension_Ready_State_Machine = 0;
+global P_Tension_Ready_Pos_Status = 0;
+global P_Dancer_Center_Pos = 15;
+
+global P_Upper_Sepa_Cal_Inclination = 0;
+global P_Lower_Sepa_Cal_Inclination = 0;
+
+// 260702 세파 텐션 관련 홈 속도 증가
+global P_Unwinder_Jogspeed = 60 //20;					// 언와인더 회전 속도 지정 [ 참조 : 26.04.24 케스케이딩 진행 시 속도 수정 ]
+
+global P_Cascading_First_Out = 20;					// 케스케이딩 시 처음 댄서 out 지정	[ 참조 : 26.04.24 케스케이딩 진행 시 댄서 Closed Loop 시 OUT 지정 ]
+
+
+
+#define N_Dancer_Length					0.21
+#define N_Dancer_Gear					3
+#define N_Dancer_Motor_Rated_Torque		2.39
+#define N_Dancer_Drive_Rated_Torque		3
+#define N_Newton_to_Kgf_Const			9.807	
+#define N_Max_Dacout					32767
+#define N_Max_Vdc						10
+
+global P_Dancer_Cur_Vdc = 0;
+global P_Dancer_Cur_Torque = 0;
+global P_Dancer_Cur_Newton = 0;
+global P_Dancer_Cur_Kgf = 0;
+
+//========================//
+// 강제 출력 버튼 추가 // [ 참조 : 25.09.25 DIO 강제 출력 버튼 추가 ]
+//========================//
+//===========//
+// 공통 변수 //
+//===========//
+#define Board_Count				24					// [DIO 강제 출력] 보드 수.
+#define Board_IO_Total_Count	Board_Count*16		// [DIO 강제 출력] 보드에 있는 총 IO 수.
+global P_Board_IO_Count = Board_IO_Total_Count;		// [DIO 강제 출력] 보드에 있는 총 IO 수.
+global P_Force_BTN_Address_Clear_Count = Board_IO_Total_Count - 1;	// [DIO 강제 출력] 강제 출력 모드 주소 설정 시 IO 총 수.
+global P_Force_BTN_M_Variable_Save(384);			// [DIO 강제 출력] M변수 저장 배열.
+P_Force_BTN_M_Variable_Save(0),384 = 0;	// 초기화.
+global P_Force_BTN_Condition_Count = 15;			// [DIO 강제 출력] 조건문에 들어갈 카운트. [보드에 있는 IO 수 - 1]
+global P_Old_Force_BTN_Mode = 0;					// [DIO 강제 출력] 버튼 Edge값.
+
+global P_Force_BTN_Address_Count = 0;				// [DIO 강제 출력] 주소 업데이트 카운트.
+global P_Force_BTN_GPIO_Address_Count = 0;			// [DIO 강제 출력] GPIO 주소 업데이트 카운트.
+global P_Force_BTN_Ecat_Address_Count = 0;			// [DIO 강제 출력] Ecat 주소 업데이트 카운트.
+global P_Force_BTN_M_Variable_Save_Count = 0;		// [DIO 강제 출력] M변수 저장 및 불러오기 카운트.
+
+global P_Force_BTN_M_Variable_Start_Num = 5000;		// [DIO 강제 출력] 보드 M변수 첫 번째 번호.
+//===============//
+// 일반 출력 모드 //
+//===============//
+global P_Force_BTN_Normal_Mode_Status = 0;			// [DIO 일반 출력] 모드 진행 상태.
+global P_Force_BTN_Normal_Mode_State_Machine = 0;	// [DIO 일반 출력] 모드 진행 스텟 머신.
+global P_Force_BTN_Normal_Mode_Complete_Flag = 0;	// [DIO 일반 출력] 모드 변경 완료 플래그.
+//===============//
+// 강제 출력 모드 //
+//===============//
+global P_Force_BTN_Force_Mode_Timer = 0;			// [DIO 강제 출력] 모드 타이머.
+global P_Force_BTN_Force_Mode_Delay_Time = 2000;	// [DIO 강제 출력] 모드 딜레이 시간. (2s)
+global P_Force_BTN_Force_Mode_Status = 0;			// [DIO 강제 출력] 모드 진행 상태.
+global P_Force_BTN_Force_Mode_State_Machine = 0;	// [DIO 강제 출력] 모드 진행 스텟 머신.
+global P_Force_BTN_Force_Mode_Complete_Flag = 0;	// [DIO 강제 출력] 모드 변경 완료 플래그.

@@ -1,0 +1,56 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+
+//=======================================================================================
+// 액팅 동작 리스트 변수 정의
+//=======================================================================================
+#define N_Act_Motor_Pos_Check		1			// 세파 첫장 가능 위치 확인.
+#define N_Act_FR_1st_Move			2			// 파이널 롤러 1차 이동 && Sheet Paper 전진.
+#define N_Act_FR_2nd_Move			3			// 파이널 롤러 2차 이동.
+#define N_Act_FR_Down				4			// 파이널 롤러 하강.
+#define N_Act_Clamp_On				5			// 양극 클램프 ON.
+#define N_Act_Vision_Check			6			// Vision 촬상.
+#define N_Act_FR_Up					7			// 파이널 롤러 상승.
+#define N_Act_Host_ID				8			// 호스트 생성.
+#define N_Act_EPC_Judge				9			// EPC 보정 판단.
+
+#define N_Act_Execute_Define_Limit					12	// 마지막 Define 번호 추가 시 증가 필요
+//---------------------------------------------------------------------------------------
+// 마지막
+//---------------------------------------------------------------------------------------
+//#define N_Act_Execute_Define_Limit					15
+
+//---------------------------------------------------------------------------------------
+// sub_43) 액팅 모듈 배열값
+//---------------------------------------------------------------------------------------
+// 1) 액팅 모듈 완료 비트 배열
+global P_Act_Execute_Complete_Bit(N_Act_Execute_Define_Limit)
+P_Act_Execute_Complete_Bit(0),N_Act_Execute_Define_Limit,1 = 0;	
+
+// 2) 모듈 커맨드 감시 배열
+global P_Module_Act_Execute_Command_Array(N_Act_Execute_Define_Limit);
+P_Module_Act_Execute_Command_Array(0),N_Act_Execute_Define_Limit,1 = 0;
+
+// 3) 엣지 감지 변수 _ 모듈 커맨드 감시 배열 
+global P_OLD_Module_Act_Execute_Command_Array(N_Act_Execute_Define_Limit);
+P_OLD_Module_Act_Execute_Command_Array(0),N_Act_Execute_Define_Limit,1 = 0;
+
+// 4) 동작 시퀀스 스테이트 머신 배열
+global P_Module_Act_Execute_State_Machine_Array(N_Act_Execute_Define_Limit);
+P_Module_Act_Execute_State_Machine_Array(0),N_Act_Execute_Define_Limit,1 = 0;
+
+// 5) 액팅 모듈 타임 아웃 시간 저장 배열
+global P_Act_Execute_Old_Time(N_Act_Execute_Define_Limit);
+P_Act_Execute_Old_Time(0),N_Act_Execute_Define_Limit,1 = 0;
+
+// 6) 액팅 모듈 타임 아웃 시간 설정 배열
+global P_Act_Execute_Time_Out_Time = 30;
+global P_Act_Execute_Time_Out(N_Act_Execute_Define_Limit);
+P_Act_Execute_Time_Out(0),N_Act_Execute_Define_Limit,1 = 50;
+
+// 7) 모듈 Error 발생 시 확인 변수. Execute 모듈 진행 중 Error 발생했을 경우 모듈 종료. [ 참조 : 26.01.08 Execute 모듈 수정 ]
+global P_Execute_Module_Error = 0;			// 액팅 모듈 중 Time Out, Error 발생 시 Execute 모듈 정지.
+
+// 8) 모듈 총 택타임.		[ 참조 : 26.05.28 Suspend 택타임 수정 ]
+global P_Execute_First_Sepa_Total_Tact_Time = 0;	// 세파 첫장 모듈 총 택타임.

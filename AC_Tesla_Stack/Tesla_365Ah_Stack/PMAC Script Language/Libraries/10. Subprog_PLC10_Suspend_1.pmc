@@ -1,0 +1,965 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+open subprog Discharge_Sub_Prog(void)
+
+sub: Discharge_Cal_Prog(&rtn)
+
+local L_Discharge_Result_rtn = 0;
+// 극판 및 세파 두께 계산 프로그램
+
+// 젤리롤 두께 계산
+IF ( P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module) != N_Dryrun_Status_Sequence )
+{
+	IF ( P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module) == N_Normal_Status_Sequence )				// 일반  모드 라면 ↓ PLC 07번 라이트 영역에 올려주는 두께 수식
+	{ 
+		P_Current_JR_Thickness_mm = ((P_Anode_Thickness + P_Sepa_Thickness ) * P_Anode_Count) + ((P_Cathode_Thickness + P_Sepa_Thickness ) * P_Cathode_Count);
+	}
+	Else IF( P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module) == N_Sepa_Consume_Status_Sequence )		// 세파 모드 라면 ↓ PLC 07번 라이트 영역에 올려주는 두께 수식
+	{ // 세파쌓기모드라면 세파두께
+		P_Current_JR_Thickness_mm = ( P_Sepa_Thickness * P_Anode_Count ) + ( P_Sepa_Thickness * P_Cathode_Count );	
+	}
+	P_Current_Jelly_Roll_Thinckness_mm_Send_Enable_Flag = 1;						// PLC 07번 - Write영역에 올려주는 Flag 				
+}
+
+
+// 젤리롤 결과 상태 업데이트
+call Discharge_Sub_Prog.JR_Result_Data( &L_Discharge_Result_rtn );
+
+if( L_Discharge_Result_rtn == F_TRUE )
+	rtn = F_TRUE;
+
+return;
+
+// 젤리롤 결과 상태 
+// 1) 노말런
+// -1. 정상배출
+// -2. 불량배출
+// 2) 세파런
+sub: JR_Result_Data(&rtn)
+	// 1) 노말런
+	if( P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module) == N_Normal_Status_Sequence )		
+	{
+		// 1-1.정상 상태 배출 ↓ 음,양 카운트 일치 및 Stack NG없을때
+		if( P_Anode_Count == P_Anode_Recipe_Count && P_Cathode_Count == P_Cathode_Recipe_Count && P_Stack_Table_NG_Flag == 0)  
+		{
+			if( P_Stack_Vision_To_NG_Code != 0 )	// 양품 판정인데 비전 NG코드가 남겨져 있다면, 불량배출로 
+			{
+				M_Y_PLC_Stacking_OK_JR = 0; 					// 정상 배출 신호 OFF
+				M_Y_PLC_Stacking_NG_JR = 1; 				// 불량 배출 ↓불량일때			
+				M_Y_PLC_Full_Stacking_NG_JR_Unload = 1;			// 1)불량-NG배출 정상 스텍 셀 배출
+				M_Y_PLC_NonFull_Stacking_NG_JR_Unload = 0;				// 2)블량-NG배출 폐기 배출
+				M_Y_PLC_Sepa_Stacking_Unload = 0;							// 3)세파 배출 신호 알림
+			}
+			else
+			{
+				M_Y_PLC_Stacking_OK_JR = 1; 					// 정상 배출				
+				M_Y_PLC_Stacking_NG_JR = 0; 				// 불량 배출 ↓불량일때				
+				M_Y_PLC_Full_Stacking_NG_JR_Unload = 0;			// 1)불량-NG배출 정상 스텍 셀 배출
+				M_Y_PLC_NonFull_Stacking_NG_JR_Unload = 0;				// 2)블량-NG배출 폐기 배출
+				M_Y_PLC_Sepa_Stacking_Unload = 0;							// 3)세파 배출 신호 알림
+			}
+			//P_Program_Monitoring_Lamp_Jelly_Roll_OK = 1;					// 양품 판정 시 JR - OK Lamp Bit ON	
+			if( P_Suspend_Discharge_Cell_Out_Restart != 1 )					// 배출 중, 멈췄다가 재시작했을때 
+			{	
+				P_Jelly_Roll_OK_Count++;
+			}			
+		}
+		// 1-2.불량 상태 배출 ↓ 음,양 카운트 불일치 및 Stack NG있을때
+		else 
+		{
+			// 음,양 카운트는 일치하지만 Stack NG 있을때 [ 레시피 개수 맞게 스텍 ]
+			if( P_Anode_Count == P_Anode_Recipe_Count && P_Cathode_Count == P_Cathode_Recipe_Count && P_Stack_Table_NG_Flag != 0 )
+			{			
+				M_Y_PLC_Stacking_OK_JR = 0; 					// 정상 배출			
+				M_Y_PLC_Stacking_NG_JR = 1; 				// 불량 배출 ↓불량일때					
+				M_Y_PLC_Full_Stacking_NG_JR_Unload = 1;			// 1)불량-NG배출 정상 스텍 셀 배출
+				M_Y_PLC_NonFull_Stacking_NG_JR_Unload = 0;				// 2)블량-NG배출 폐기 배출
+				M_Y_PLC_Sepa_Stacking_Unload = 0;							// 3)세파 배출 신호 알림
+			}
+			// 음, 양 카운트가 일치하지 않을떄 [ 쌓던 도중 배출 ]
+			else
+			{
+				M_Y_PLC_Stacking_OK_JR = 0; 					// 정상 배출				
+				M_Y_PLC_Stacking_NG_JR = 1; 				// 불량 배출 ↓불량일때					
+				M_Y_PLC_Full_Stacking_NG_JR_Unload = 0;			// 1)불량-NG배출 정상 스텍 셀 배출
+				M_Y_PLC_NonFull_Stacking_NG_JR_Unload = 1;				// 2)블량-NG배출 폐기 배출
+				M_Y_PLC_Sepa_Stacking_Unload = 0;
+			}
+			//P_Program_Monitoring_Lamp_Jelly_Roll_NG = 1;					// 불량 판정 시 JR - NG Lamp Bit ON		
+			if( P_Suspend_Discharge_Cell_Out_Restart != 1 )					// 배출 중, 멈췄다가 재시작했을때 
+			{	
+				P_Jelly_Roll_NG_Count++;
+			}			
+		}
+	}
+	// 2) 세파런	
+	else if( P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module) == N_Sepa_Consume_Status_Sequence )
+	{
+			//P_Program_Monitoring_Lamp_Jelly_Roll_NG = 1;					// 불량 판정 시 JR - NG Lamp Bit ON
+			//P_Program_Monitoring_Lamp_Jelly_Roll_Sepa = 1;					// 불량 판정 시 Sepa - NG Lamp Bit ON
+	
+			M_Y_PLC_Stacking_OK_JR = 0; 						// 정상 배출			
+			M_Y_PLC_Stacking_NG_JR = 1; 					// 불량 배출 ↓불량일때	
+			M_Y_PLC_Full_Stacking_NG_JR_Unload = 0;				// 1)불량-NG배출 정상 스텍 셀 배출
+			M_Y_PLC_NonFull_Stacking_NG_JR_Unload = 0;					// 2)블량-NG배출 폐기 배출
+			M_Y_PLC_Sepa_Stacking_Unload = 1;								// 3)세파 배출 신호 알림
+	}
+
+	rtn = F_TRUE;
+return;
+
+sub: Discharge_After_Action(void)		// 추가 계속 하면 됌
+	// 카운트 초기화
+	P_Cathode_Count = 0;											// 양극 극판 카운트 초기화.
+	P_Anode_Count = 0;												// 음극 극판 카운트 초기화.
+
+	// IO 및 변수 초기화 란
+	P_Current_Cell_Memory_Jelly_Roll = 0;							// 젤리롤 메모리 초기화
+	// [ 참조 : 2025.07.25 Retry 알람 발생 시점 변경 ]
+	P_Com_EPC_Sepa_Consume_Mode_Flag = 0;							// EPC 세파모드 플레그 초기화														
+	P_Com_ARC_Sepa_Consume_Mode_Flag = 0;							// ARC 세파모드 플레그 초기화											
+
+	//250718
+	P_Stack_Judgement_Memory = 0;									// 젤리롤 메모리 유무_(일반 젤리롤 o, 세파모드 적층 진행중 확인 ) 시퀀스 완료 → 세파 첫장 홈 미진행 변수 초기화.
+	M_Y_PLC_Stacking_OK_JR = 0;										// 3.1) 정상 Cell
+	M_Y_PLC_Stacking_NG_JR	= 0;									// 3.2) 불량 Cell	
+	M_Y_PLC_Full_Stacking_NG_JR_Unload = 0;							// 3.3) NG 배출 정상 Cell 배출
+	M_Y_PLC_NonFull_Stacking_NG_JR_Unload = 0;						// 3.4) NG 배출 폐기 배출
+	M_Y_PLC_Sepa_Stacking_Unload = 0;								// 3.5) 세파 Cell
+	
+	P_Stack_Table_NG_Flag = 0;										// NG Flag 초기화
+
+	// 2025.04.22 추가
+	P_Stack_NG_Code = 0;											//  PLC 측에 전달하는 NG Code 초기화
+	P_Stack_PMAC_NG_Code = 0;										//  PMAC 내부 NG Code 초기화
+	P_Stack_Table_NG_Count = 0;										//	NG cnt 초기화
+	// 첫장 깔때 초기화 필요부분 추가
+return;
+
+sub: End_of_Process(void)
+
+return;
+
+
+sub: Discharge_Host_ID_Result( &rtn )
+	if( M_Y_PLC_Stacking_OK_JR == 1 )	
+	{	
+		// 2.1 무조건 OK Out Host Sys.Udata 주소 추후 1틱 밀어야 함											
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(0) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(0);
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(1) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(1);
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(2) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(2);
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(3) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(3);
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(4) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(4);
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(5) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(5);
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(6) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(6);
+		
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(0) = 0;
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(1) = 0;
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(2) = 0;
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(3) = 0;
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(4) = 0;
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(5) = 0;
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(6) = 0;
+	
+		//P_Data_Parsing_Status_Machine = 1;				
+	}
+	else if( M_Y_PLC_Stacking_NG_JR == 1 )
+	{
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(0) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(0); 
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(1) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(1); 
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(2) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(2); 
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(3) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(3); 
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(4) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(4); 
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(5) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(5); 
+		M_ASCII_Stack_NG_Out_Host_ID_Buffer(6) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(6); 
+	
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(0) = 0;
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(1) = 0;
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(2) = 0;
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(3) = 0;
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(4) = 0;
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(5) = 0;
+		M_ASCII_Stack_OK_Out_Host_ID_Buffer(6) = 0;
+						
+		//P_Data_Parsing_Status_Machine = 1;				
+	}
+	rtn = F_TRUE;
+return;
+
+sub: Discharge_Vision_DIO(&Discharge_Vision_DIO_RTN)
+	M_Y_Vision_Stack_End_Sheet = 1;											// 스텍 마지막장을 쌓는다는것을 알리는 신호 ON
+	M_Y_Vision_Stack_Start_Sheet = 0;										// 스텍 첫장을 쌓는다는것을 알리는 신호 OFF ( 한번더 확인 위한 )
+	M_Y_Vision_Anode_Align_Start = 1;										//	음극 얼라인 비전 첫장 신호 ON ( PMAC -> Align Vision )
+	// 비전한테 알려주는 스타트 신호	
+	M_Y_Vision_Cathode_Align_Start = 1;										//	양극 얼라인 비전 첫장 신호 ON ( PMAC -> Align Vision )
+	P_VISION_PLC10_Anode_Align_Start = 1;									//	음극 얼라인 비전 첫장 신호 나갔다는 플래그 
+	P_VISION_PLC10_Cathode_Align_Start = 1;									//	양극 얼라인 비전 첫장 신호 나갔다는 플래그 
+
+	Discharge_Vision_DIO_RTN = F_TRUE;
+return;
+
+sub: NG_Code_Report(&NG_Code_Report_RTN)
+	NG_Code_Report_RTN = 0;
+	if( P_Stack_Table_NG_Count != 0 )		
+	{
+		// 1. pmac 내부 ng code 존재 vision ng code 비존재
+		if( P_Stack_PMAC_NG_Code != 0 && P_Stack_Vision_To_NG_Code == 0 )		// 1 && 0
+		{
+			P_Stack_NG_Code = P_Stack_PMAC_NG_Code;
+			NG_Code_Report_RTN = F_TRUE;
+		}
+		// 2. vision ng code 존재, pmac 내부 ng code 비존재
+		else if( P_Stack_PMAC_NG_Code == 0 && P_Stack_Vision_To_NG_Code != 0 )	// 0 && 1
+		{
+			P_Stack_NG_Code = P_Stack_PMAC_NG_Code;	
+			NG_Code_Report_RTN = F_TRUE;
+		}
+		// 3. 둘다 ng code 존재
+		else if( P_Stack_PMAC_NG_Code != 0 && P_Stack_Vision_To_NG_Code != 0 )	// 1 && 1
+		{
+			P_Stack_NG_Code = P_Stack_PMAC_NG_Code;	
+			NG_Code_Report_RTN = F_TRUE;
+		}
+		// 4. ng code 늦을경우 ( code Time out )
+		else																	// 0 && 0
+		{
+			if( P_Stack_Vision_NG_Code_IN_Timer > P_Stack_Vision_NG_Code_Time_Over )	// 3초가 지났다면
+			{
+				P_Stack_NG_Code = 256;
+				NG_Code_Report_RTN = F_TRUE;
+			}
+		}
+	}
+	else 
+	{
+		P_Stack_NG_Code = P_Stack_Vision_To_NG_Code;
+		NG_Code_Report_RTN = F_TRUE;
+	}
+return
+
+sub:Interface_Init(void)
+	M_Y_Discharge_Avoid_Complete = 0;				// [case 13] 2,3차 언로더 대기 위치 요청 신호.
+	M_Y_PLC_Unloader_Grip_Request = 0;				// [case 14] 2,3차 언로더 그립 요청 신호.
+	M_Y_1st_Unloader_UnGrip_Complete = 0;			// [case 15] 1차 언로더 언그립 완료 신호.
+	M_Y_1st_Avoid_Pos_Discharge_Complete = 0;		// [case 16] 1차 언로더 회피 완료 신호.
+	
+	M_Y_PLC_Unloader_Ready_Pos_Ack = 0;				// [case 13] 2,3차 언로더 준비 위치 Ack 신호.
+	M_Y_PLC_Unloader_Grip_Ack = 0;					// [case 14] 2,3차 언로더 그립 완료 Ack 신호.
+	M_Y_PLC_to_1st_Avoid_Request_Ack = 0;			// [case 16] 1차 언로더 회피 요청 Ack 신호.
+return
+
+sub:Module_Init(void)
+	// 1.0. 모듈 인덱스 초기화.
+	P_Suspend_Discharge_Seq_Index = 0;
+	// 1.1. 모듈 커맨드 초기화.
+	P_Module_Act_Command_Array(0),N_Act_Define_Limit,1 = 0;
+	// 1.2. 모듈 커맨드 엣지 초기화.
+	P_OLD_Module_Act_Command_Array(0),N_Act_Define_Limit,1 = 0;
+	// 1.3. 모듈 동작 시퀀스 스텟머신 초기화.
+	P_Module_Act_State_Machine_Array(0),N_Act_Define_Limit,1 = 0;
+	// 1.4. 모듈 동작 완료 초기화.
+	P_Act_Complete_Bit(0),N_Act_Define_Limit,1 = 0;
+return
+
+sub:Trans_In(void)
+	// IO 추가.
+return
+
+sub: Module_Reset(&rtn)
+// 모듈 초기화 구문 추가 [ 추후 정리 필요 ] 25.06.05
+M_Y_Discharge_Avoid_Complete = 0;				// [case 13] 2,3차 언로더 대기 위치 요청 신호.
+M_Y_PLC_Unloader_Grip_Request = 0;				// [case 14] 2,3차 언로더 그립 요청 신호.
+M_Y_1st_Unloader_UnGrip_Complete = 0;			// [case 15] 1차 언로더 언그립 완료 신호.
+M_Y_1st_Avoid_Pos_Discharge_Complete = 0;		// [case 16] 1차 언로더 회피 완료 신호.
+M_Y_PLC_Unloader_Ready_Pos_Ack = 0;				// [case 13] 2,3차 언로더 준비 위치 Ack 신호.
+M_Y_PLC_Unloader_Grip_Ack = 0;					// [case 14] 2,3차 언로더 그립 완료 Ack 신호.
+M_Y_PLC_to_1st_Avoid_Request_Ack = 0;			// [case 16] 1차 언로더 회피 요청 Ack 신호.
+// 1.1. 모듈 커맨드 초기화.
+P_Module_Act_Command_Array(0),N_Act_Define_Limit,1 = 0;
+// 1.2. 모듈 커맨드 엣지 초기화.
+P_OLD_Module_Act_Command_Array(0),N_Act_Define_Limit,1 = 0;
+// 1.3. 모듈 동작 시퀀스 스텟머신 초기화.
+P_Module_Act_State_Machine_Array(0),N_Act_Define_Limit,1 = 0;
+// 1.4. 모듈 동작 완료 초기화.
+P_Act_Complete_Bit(0),N_Act_Define_Limit,1 = 0;
+// 1.5  EPC 자동 → 수동 요청						// [ 참고 : 2025.10.15 미비 사항 추가 건 ]
+M_Y_EPC_Vertical_Panel_Manual_Signal = 1;		// 배출 시 EPC 보정 X
+rtn = F_TRUE;
+return;
+
+// ========================================================================================================================
+// PackML 초기화 DIO  [ 2025.06.24 추가 ]
+// ========================================================================================================================
+
+sub: Discharge_PackML_Reset(&rtn)
+
+M_Y_PLC_Stacking_OK_JR					= 0;
+M_Y_PLC_Stacking_NG_JR					= 0;
+M_Y_PLC_Full_Stacking_NG_JR_Unload		= 0;
+M_Y_PLC_NonFull_Stacking_NG_JR_Unload	= 0;
+M_Y_PLC_Sepa_Stacking_Unload			= 0;
+P_Stack_NG_Code	= 0;	
+P_Stack_PMAC_NG_Code = 0;
+
+rtn = N_TRUE;
+return;
+
+close
+
+open subprog ARC_Motion_State_Function(void)
+
+// ========================================================================================================================
+// ARC 정위치 확인
+// ========================================================================================================================
+	sub:ARC_Home_Check(&ARC_Home_Check_RTN)	
+		// 닙롤 후진, 상부 플레이트 상승, 상부 플레이트 틸팅 0도, 상부 플레이트 언클램프, 상부 플레이트 커터 후진, 하부 플레이트 하강, 하부 플레이트 틸팅 0도, 하부 플레이트 언클램프, 하부 플레이트 커터 후진 확인 (ARC 기구물 정위치)
+		if ( M_X_Sepa_Driving_Roll_UnClamp_Sensor == 1 && M_X_Sepa_Upper_ARC_Up_Sensor == 1 && M_X_Sepa_Upper_ARC_UnTilting_Sensor_Front == 1 && M_X_Sepa_Upper_ARC_UnTilting_Sensor_Rear == 1 && M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor == 1 && M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor == 1 && M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor == 1 && M_X_Sepa_Lower_ARC_Dn_Sensor == 1 && M_X_Sepa_Lower_ARC_UnTilting_Sensor_Front == 1 && M_X_Sepa_Lower_ARC_UnTilting_Sensor_Rear == 1 && M_X_Sepa_Lower_ARC_UnStopper_Front_Sensor == 1 && M_X_Sepa_Lower_ARC_UnStopper_Rear_Sensor == 1 && M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor == 1 )
+		{
+			ARC_Home_Check_RTN = F_TRUE;
+		}
+		else
+		{
+			M_SEPA_ARC_Home_Error_Alarm = 1;
+			ARC_Home_Check_RTN = N_FALSE;	
+		}					
+	return
+	//====================================================================//
+	// ↓[ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ] //
+	//====================================================================//
+	sub: ARC_NamePlate_State(void)
+		if( P_PMAC_Current_Mode == F_Current_Automatic )												//  Auto 일때
+		{
+			if( P_EXECUTE_Status_Prod_Sequence(N_ARC_Module) != F_Status_STARTING )						// ARC 진행중이 아니라면
+			{
+				if( P_ARC_Spool_Number == P_Selected_Spool_Number )										// NP 선택과 운행중인 언와인더를 사용한다면
+				{
+					// InterLock
+					call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_NamePlate_Btn);		// 인터락 → 동작중인 Spool에 ARC진행을하면 망가짐
+				}
+				else																					// NP 선택과 운행중인 언와인더가 다르면
+				{
+					// interLock 해제될것만 
+					call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_NamePlate_Each);	// 인터락 해제
+				}
+			}
+			else																						// 자동 ARC도중임 버튼 싹다 InterLock
+			{
+				// 모든 DIO 인터락
+				call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_NamePlate_Btn);			// 인터락 → 동작중인 Spool에 ARC진행을하면 망가짐
+			}
+		}
+		else if( P_PMAC_Current_Mode == F_Current_Manual )												// Manual 일때																						
+		{
+			if( P_ARC_Spool_Number == P_Selected_Spool_Number )											// NP 선택과 운행중인 언와인더를 사용한다면
+			{
+				call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_NamePlate_Btn);			// 인터락 → 동작중인 Spool에 ARC진행을하면 망가짐
+			}
+			else																						// NP 선택과 운행중인 언와인더가 다르면
+			{
+				// interLock 해제될것만 
+				call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_NamePlate_Each);		// 인터락해제 
+			}
+		}
+	return;
+	
+	sub: ARC_UI_Page_State(void)
+		if( P_PMAC_Current_Mode == F_Current_Automatic )												// Auto 일때
+		{
+			if( P_EXECUTE_Status_Prod_Sequence(N_ARC_Module) != F_Status_STARTING )
+			{
+				if( P_Selected_Spool_Number == N_UNWINDER_UPPER )									// 상단 언와인더를 사용한다면
+				{
+					// 상단 ARC BTN InterLock
+					call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_UI_Upper);			// 인터락 → 동작중인 Spool에 ARC진행을하면 망가짐
+				}
+				else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )								// 하단 언와인더를 사용한다면																		
+				{
+					// 하단 ARC BTN InterLock
+					call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_UI_Lower);			// 인터락 → 동작중인 Spool에 ARC진행을하면 망가짐	
+				}
+			}
+			else																						// 자동 ARC도중임 버튼 싹다 InterLock
+			{
+				// 모든 DIO 인터락
+				call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_UI_Btn);				// 인터락 → 동작중인 Spool에 ARC진행을하면 망가짐
+			}	
+		}
+		else if( P_PMAC_Current_Mode == F_Current_Manual )												// Manual 일때
+		{
+			if( P_Selected_Spool_Number == N_UNWINDER_UPPER )										// 상단 언와인더를 사용한다면
+			{	
+				// 상단 ARC BTN InterLock	
+				call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_UI_Upper);				// 인터락 → 동작중인 Spool에 ARC진행을하면 망가짐
+				F_ARC_Nip_FWD = 1;																		// 닙롤 전진 가능 
+				F_ARC_Nip_BWD = 1;																		// 닙롤 전진 가능 
+			}
+			else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )									// 하단 언와인더를 사용한다면																		
+			{
+				// 하단 ARC BTN InterLock
+				call ARC_Motion_State_Function.ARC_InterLock_Value_Enable(N_ARC_UI_Lower);				// 인터락 → 동작중인 Spool에 ARC진행을하면 망가짐	
+				F_ARC_Nip_FWD = 1;																		// 닙롤 전진 가능 
+				F_ARC_Nip_BWD = 1;																		// 닙롤 전진 가능 
+			}
+		}
+		
+	return;
+
+	sub: ARC_InterLock_Value_Enable(Mode)
+	switch(Mode)
+	{
+		case N_ARC_UI_Upper:		// 상부 인터락
+			// 인터락 활성화 ( 동작x ) : 0 ,		비활성화 : 1
+	
+			F_ARC_Upper_Chuck = 1;			//u.user:$0147E0.16 = 1 ;			// 상단 와인더 잠금 인터락
+			F_ARC_Upper_UnChuck = 0;		//u.user:$0147E0.17 = 0 ;			// 상단 와인더 잠금 해제
+			F_ARC_Nip_FWD = 0;				//u.user:$0147F0.0 = 0;				// 닙롤 전진상태		
+			F_ARC_Nip_BWD = 0;				//u.user:$0147F0.1 = 1;				// 닙롤 후진상태
+			F_ARC_Upper_Plate_Up = 1;		//u.user:$0147F0.2 = 1;				// 상부 플레이트 상승
+			F_ARC_Upper_Plate_Down = 0;		//u.user:$0147F0.3 = 0;				// 상부 플레이트 하강
+			F_ARC_Upper_Tilting_0 = 1;		//u.user:$0147F0.6 = 1;				// 상부 틸팅 0도
+			F_ARC_Upper_Tilting_90 = 0;		//u.user:$0147F0.7 = 0;				// 상부 틸팅 90도 
+			F_ARC_Upper_Cutter_FWD = 0;		//u.user:$0147F0.10 = 0;			// 상부 커터 전진
+			F_ARC_Upper_Cutter_BWD = 1;		//u.user:$0147F0.11 = 1;			// 상부 커터 후진
+			F_ARC_Upper_Clamp = 0;			//u.user:$0147F0.14 = 0;			// 상부 클램프 
+			F_ARC_Upper_UnClamp = 1;		//u.user:$0147F0.15 = 1;			// 상부 언클램프
+			F_ARC_Upper_Vac = 0;			//u.user:$0147F0.18 = 0;			// 상부 플레이트 흡착
+			F_ARC_Upper_Off = 0;			//u.user:$0147F0.19 = 0;			// 상부 플레이트 off
+			F_ARC_Upper_Blow = 0;			//u.user:$0147F0.20 = 0;			// 상부 플레이트 블로우
+				
+			F_ARC_Lower_Chuck = 1;			//u.user:$0147E0.18 = 1;			// 하단 와인더 잠금 
+			F_ARC_Lower_UnChuck = 1;		//u.user:$0147E0.19 = 1;			// 하단 와인더 잠금 해제			
+			F_ARC_Lower_Plate_Up = 1;		//u.user:$0147F0.4 = 1;				// 하부 플레이트 상승
+			F_ARC_Lower_Plate_Down = 1;		//u.user:$0147F0.5 = 1;				// 하부 플레이트 하강
+			F_ARC_Lower_Tilting_0 = 1;		//u.user:$0147F0.8 = 1;				// 하부 틸팅 0도
+			F_ARC_Lower_Tilting_90 = 1;		//u.user:$0147F0.9 = 1;				// 하부 틸팅 90도 
+			F_ARC_Lower_Cutter_FWD = 1;		//u.user:$0147F0.12 = 1;			// 하부 커터 전진
+			F_ARC_Lower_Cutter_BWD = 1;		//u.user:$0147F0.13 = 1;			// 하부 커터 후진
+			F_ARC_Lower_UnClamp = 1;		//u.user:$0147F0.16 = 1;			// 하부 언클램프 
+			F_ARC_Lower_Clamp = 1;			//u.user:$0147F0.17 = 1;			// 하부 클램프
+			F_ARC_Lower_Vac = 1;			//u.user:$0147F0.21 = 1;			// 하부 플레이트 흡착
+			F_ARC_Lower_Off	= 1;			//u.user:$0147F0.22 = 1;			// 하부 플레이트 off
+			F_ARC_Lower_Blow = 1;			//u.user:$0147F0.23 = 1;			// 하부 플레이트 블로우
+	
+			// ↓ 하부 선택하고 상부 틸팅 및 플레이트 움직인 후 상부로 바꿔서 하부 틸팅 및 플레이트를 움직일 수 있으므로 막아주는 곳
+			if( ARC_Plate_Warning == N_TRUE )
+			{
+				F_ARC_Lower_Tilting_0 = 1;
+				F_ARC_Lower_Tilting_90 = 0;
+				F_ARC_Lower_Plate_Up = 0;	
+				F_ARC_Lower_Plate_Down = 1;
+			}
+			if( ARC_Clamp_Warning == N_TRUE )
+			{
+				F_ARC_Lower_Tilting_0 = 1;
+				F_ARC_Lower_Tilting_90 = 0;
+			}
+			if( ARC_Tilting_Warning == N_TRUE )					// 틸팅 및 플레이트 위험지역이라면
+			{
+				// 상부 Plate 상승 및 하강 인터락
+				// 틸팅 90도 인터락
+				F_ARC_Lower_Tilting_0 = 1;
+				F_ARC_Lower_Tilting_90 = 0;
+				F_ARC_Lower_Plate_Up = 0;	
+				F_ARC_Lower_Plate_Down = 1;
+				F_ARC_Lower_Clamp = 0;
+				F_ARC_Lower_UnClamp = 1;
+			}	
+		break;
+	
+		case N_ARC_UI_Lower:
+			// 인터락 활성화 ( 동작x ) : 0 ,		비활성화 : 1
+	
+			F_ARC_Lower_Chuck = 1;			//u.user:$0147E0.18 = 1;			// 하단 와인더 잠금 
+			F_ARC_Lower_UnChuck = 0;		//u.user:$0147E0.19 = 0;			// 하단 와인더 잠금 해제
+			F_ARC_Nip_FWD = 0;				//u.user:$0147F0.0 = 0;				// 닙롤 전진상태		
+			F_ARC_Nip_BWD = 1;				//u.user:$0147F0.1 = 1;				// 닙롤 후진상태		
+			F_ARC_Lower_Plate_Up = 0;		//u.user:$0147F0.4 = 0;				// 하부 플레이트 상승
+			F_ARC_Lower_Plate_Down = 1;		//u.user:$0147F0.5 = 1;				// 하부 플레이트 하강
+			F_ARC_Lower_Tilting_0 = 1;		//u.user:$0147F0.8 = 1;				// 하부 틸팅 0도
+			F_ARC_Lower_Tilting_90 = 0;		//u.user:$0147F0.9 = 0;				// 하부 틸팅 90도 
+			F_ARC_Lower_Cutter_FWD = 0;		//u.user:$0147F0.12 = 0;			// 하부 커터 전진
+			F_ARC_Lower_Cutter_BWD = 1;		//u.user:$0147F0.13 = 1;			// 하부 커터 후진
+			F_ARC_Lower_UnClamp = 1;		//u.user:$0147F0.16 = 1;			// 하부 언클램프 
+			F_ARC_Lower_Clamp = 0;			//u.user:$0147F0.17 = 0;			// 하부 클램프
+			F_ARC_Lower_Vac = 0;			//u.user:$0147F0.21 = 0;			// 하부 플레이트 흡착
+			F_ARC_Lower_Off	= 0;			//u.user:$0147F0.22 = 0;			// 하부 플레이트 off
+			F_ARC_Lower_Blow = 0;			//u.user:$0147F0.23 = 0;			// 하부 플레이트 블로우
+	
+			F_ARC_Upper_Chuck = 1;			//u.user:$0147E0.16 = 1 ;			// 상단 와인더 잠금 인터락
+			F_ARC_Upper_UnChuck = 1;		//u.user:$0147E0.17 = 1 ;			// 상단 와인더 잠금 해제
+			F_ARC_Upper_Plate_Up = 1;		//u.user:$0147F0.2 = 1;				// 상부 플레이트 상승
+			F_ARC_Upper_Plate_Down = 1;		//u.user:$0147F0.3 = 1;				// 상부 플레이트 하강
+			F_ARC_Upper_Tilting_0 = 1;		//u.user:$0147F0.6 = 1;				// 상부 틸팅 0도
+			F_ARC_Upper_Tilting_90 = 1;		//u.user:$0147F0.7 = 1;				// 상부 틸팅 90도 
+			F_ARC_Upper_Cutter_FWD = 1;		//u.user:$0147F0.10 = 1;			// 상부 커터 전진
+			F_ARC_Upper_Cutter_BWD = 1;		//u.user:$0147F0.11 = 1;			// 상부 커터 후진
+			F_ARC_Upper_Clamp = 1;			//u.user:$0147F0.14 = 1;			// 상부 클램프 
+			F_ARC_Upper_UnClamp = 1;		//u.user:$0147F0.15 = 1;			// 상부 언클램프
+			F_ARC_Upper_Vac = 1;			//u.user:$0147F0.18 = 1;			// 상부 플레이트 흡착
+			F_ARC_Upper_Off = 1;			//u.user:$0147F0.19 = 1;			// 상부 플레이트 off
+			F_ARC_Upper_Blow = 1;			//u.user:$0147F0.20 = 1;			// 상부 플레이트 블로우
+	
+			// ↓ 상부 선택하고 하부 틸팅 및 플레이트 움직인 후 상부로 바꿔서 상부 틸팅 및 플레이트를 움직일 수 있으므로 막아주는 곳						
+			
+			if( ARC_Plate_Warning == N_TRUE )
+			{
+				F_ARC_Upper_Tilting_0 = 1;
+				F_ARC_Upper_Tilting_90 = 0;
+				F_ARC_Upper_Plate_Up = 1;	
+				F_ARC_Upper_Plate_Down = 0;
+			}
+			if( ARC_Clamp_Warning == N_TRUE )
+			{
+				F_ARC_Upper_Tilting_0 = 1;
+				F_ARC_Upper_Tilting_90 = 0;
+			}
+			if( ARC_Tilting_Warning == N_TRUE )					// 틸팅 및 플레이트 위험지역이라면
+			{
+				// 상부 Plate 상승 및 하강 인터락
+				// 틸팅 90도 인터락
+				F_ARC_Upper_Tilting_0 = 1;
+				F_ARC_Upper_Tilting_90 = 0;
+				F_ARC_Upper_Plate_Up = 1;	
+				F_ARC_Upper_Plate_Down = 0;
+				F_ARC_Upper_Clamp = 0;
+				F_ARC_Upper_UnClamp = 1;
+			}	
+		break;
+	
+		case N_ARC_UI_Btn:
+			// 인터락 활성화 ( 동작x ) : 0 ,		비활성화 : 1
+			F_ARC_UI_All_InterLock_Addr = 0;	//Sys.idata[20988] = 0;			// 인터락
+			F_ARC_Upper_Chuck	 = 0;			// 와인더 척 ,언척 잠금 
+			F_ARC_Upper_UnChuck	 = 0;			// 와인더 척 ,언척 잠금 
+			F_ARC_Lower_Chuck	 = 0;			// 와인더 척 ,언척 잠금 
+			F_ARC_Lower_UnChuck	 = 0;			// 와인더 척 ,언척 잠금 	
+		break;
+	
+		case N_ARC_NamePlate_Btn:
+		// 인터락 활성화 ( 동작x ) : 0 ,		비활성화 : 1
+	
+			F_ARC_NP_All_InterLock_Addr = 0;	//Sys.Idata[11195] = 0;				// M변수로 매핑한 영역 0으로 초기화		
+		break;
+	
+		case N_ARC_NamePlate_Each:
+		// 인터락 활성화 ( 동작x ) : 0 ,		비활성화 : 1
+			
+			F_ARC_NP_Lock_UnLock = 1;
+			F_ARC_NP_Tilting	 = 1;
+			F_ARC_NP_Vac_Blow	 = 1;
+			F_ARC_NP_Rotation	 = 1;
+			F_ARC_NP_Re_Rotation = 1;
+			F_ARC_NP_Plate_Up	 = 1;
+			F_ARC_NP_Plate_Down	 = 1;
+			F_ARC_NP_Cutter		 = 1;
+			F_ARC_NP_Clamp		 = 1;
+			if( ARC_Plate_Warning == N_TRUE )
+			{
+				// 틸팅 인터락
+				F_ARC_NP_Tilting = 0;
+				if( P_ARC_Spool_Number == N_UNWINDER_UPPER )							// 상단 언와인더를 교체중이라면
+					 F_ARC_NP_Plate_Down = 0;
+				else if( P_ARC_Spool_Number == N_UNWINDER_LOWER )						// 상단 언와인더를 교체중이라면
+					F_ARC_NP_Plate_Up = 0;
+			}
+			
+			if( ARC_Tilting_Warning == N_TRUE )
+			{
+				F_ARC_NP_Clamp = 0;
+				if( P_ARC_Spool_Number == N_UNWINDER_UPPER )							// 상단 언와인더를 교체중이라면
+					 F_ARC_NP_Plate_Down = 0;
+				else if( P_ARC_Spool_Number == N_UNWINDER_LOWER )						// 상단 언와인더를 교체중이라면
+					F_ARC_NP_Plate_Up = 0;
+			}	
+	
+			if( ARC_Clamp_Warning == N_TRUE )
+			{
+				F_ARC_NP_Tilting = 0;
+			}
+	
+			break;						  
+	}								  
+	return;
+
+sub: ARC_NamePlate_Ready_Status(&rtn)	// [ 참조 : 2025.09.26 PMAC 내부 세파 레디신호 처리 ]
+	local L_Return = 0;
+	local L_Upper_ARC_Home = M_X_Sepa_Driving_Roll_UnClamp_Sensor & M_X_Sepa_Upper_ARC_Up_Sensor & M_X_Sepa_Upper_ARC_UnTilting_Sensor_Front & M_X_Sepa_Upper_ARC_UnTilting_Sensor_Rear & M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor & M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor & M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor;
+	local L_Lower_ARC_Home = M_X_Sepa_Driving_Roll_UnClamp_Sensor & M_X_Sepa_Lower_ARC_Dn_Sensor & M_X_Sepa_Lower_ARC_UnTilting_Sensor_Front & M_X_Sepa_Lower_ARC_UnTilting_Sensor_Rear & M_X_Sepa_Lower_ARC_UnStopper_Front_Sensor & M_X_Sepa_Lower_ARC_UnStopper_Rear_Sensor & M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor;
+	local L_Return_Data(2) = 0;
+	// 상부 하부 구간 나눈 이유
+	// PLC ARC READY 신호를 줄지 말지 상부 하부 홈으로 체크하기 위해
+	// 3 & 5 주어
+	if( L_Upper_ARC_Home )
+		L_Return_Data(N_Upper) = N_Upper_Complete;								// ARC Ready BTN 
+	if( L_Lower_ARC_Home )
+		L_Return_Data(N_Lower) = N_Lower_Complete;								// ARC Ready BTN
+
+	//  3 & 5 = 1 = N_TRUE
+	L_Return = L_Return_Data(N_Upper) & L_Return_Data(N_Lower);					// 리턴 데이터
+
+	if( L_Return != N_TRUE )													// 트루가 아니라면
+	{
+		if( L_Return_Data(N_Upper) == N_Upper_Complete )						// 어퍼값인지
+			rtn = N_Upper_Complete;
+		else if( L_Return_Data(N_Lower) == N_Lower_Complete )					// 로어값인지
+			rtn = N_Lower_Complete;
+		else																	// 두개도 아니라면 실패
+			rtn = N_FALSE;
+	}
+	else 
+		rtn = L_Return;
+return;
+
+sub: ARC_Ready_Check()	// [ 참조 : 2025.09.26 PMAC 내부 세파 레디신호 처리 ]
+	local L_Return = 0;
+	call ARC_Motion_State_Function.ARC_NamePlate_Ready_Status(&L_Return);
+	
+	if( M_X_ARC_NP_Auto_Reel_Change_Upper )											// 상부 선택이 되어있다면
+	{
+		if( L_Return == N_Upper_Complete || L_Return == N_TRUE )					// ARC 기구물 Home Check
+		{
+			if( M_X_ARC_NP_Upper_Plate_Vac_On == N_TRUE )							// 베큠 on 감지시
+				P_ARC_Ready_Flag(N_Upper) = N_TRUE;									// Ready 
+		}
+	}
+	
+	if( M_X_ARC_NP_Auto_Reel_Change_Lower )											// 하부 선택이 되어있다면
+	{
+		if( L_Return == N_Lower_Complete || L_Return == N_TRUE )					// ARC 기구물 Home Check
+		{
+			if( M_X_ARC_NP_Lower_Plate_Vac_On == N_TRUE )							// 베큠 on 감지시
+				P_ARC_Ready_Flag(N_Lower) = N_TRUE;									// Ready 
+		}
+	}
+return;
+
+sub: Monitoring_ARC_Ready_Flag()	// [ 참조 : 2025.09.26 PMAC 내부 세파 레디신호 처리 ]
+	local L_Return = 0;
+	call ARC_Motion_State_Function.ARC_NamePlate_Ready_Status(&L_Return);	
+	
+	if( P_ARC_Ready_Flag(N_Upper) == N_TRUE )										// 레디플래그가 켜져있다면
+	{
+		if( L_Return != N_Upper_Complete || L_Return != N_TRUE || M_X_ARC_NP_Upper_Plate_Vac_On != N_TRUE )	// 레디 조건이 맞지 않는다면
+			P_ARC_Ready_Flag(N_Upper) = N_FALSE;									// 레디플래그 off
+	}
+	
+	if( P_ARC_Ready_Flag(N_Lower) == N_TRUE )										// 레디플래그가 켜져있다면
+	{
+		if( L_Return != N_Lower_Complete || L_Return != N_TRUE || M_X_ARC_NP_Lower_Plate_Vac_On != N_TRUE )	// 레디 조건이 맞지 않는다면
+			P_ARC_Ready_Flag(N_Lower) = N_FALSE;									// 레디플래그 off
+	}
+return;
+
+
+close
+
+open subprog Suspend_Debug(void)
+//=====================================================================================//
+// 배출 - Error 발생 시 디버깅 함수 실행.		[ 참조 : 25.09.12 Suspend 디버깅 함수 추가 ]
+//=====================================================================================//
+	Sub:Discharge_Debug_Init(Index)
+		P_Suspend_Discharge_Debug_Value(0),5 = 0;					// 초기화.
+		call Suspend_Debug.Debug_Discharge_Index_Update(Index)
+		P_Suspend_Discharge_Debug_Address(1) = &P_Module_Act_State_Machine_Array(P_Discharge_Debug_Index_1);	
+		P_Suspend_Discharge_Debug_Address(2) = &P_Module_Act_State_Machine_Array(P_Discharge_Debug_Index_2);	
+		P_Suspend_Discharge_Debug_Address(3) = &P_Module_Act_State_Machine_Array(P_Discharge_Debug_Index_3);																		 
+		P_Suspend_Discharge_Debug_Address(4) = &P_Module_Act_State_Machine_Array(P_Discharge_Debug_Index_4);																		 
+	return;
+	
+	Sub:Debug_Discharge_Index_Update(Index)
+		Switch(Index)
+		{
+			case 1:
+				P_Discharge_Debug_Index_1 = N_Act_FR_Clamp_OFF;
+				P_Discharge_Debug_Index_2 = N_Act_Discharge_Master_Coord_Pause;
+				P_Discharge_Debug_Index_3 = 0;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 2:
+				P_Discharge_Debug_Index_1 = N_Act_FR_Discharge_Pos;
+				P_Discharge_Debug_Index_2 = N_Act_First_Unloader_Grip_OFF;
+				P_Discharge_Debug_Index_3 = N_Act_First_Unloader_UP;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 3:
+				P_Discharge_Debug_Index_1 = N_Act_First_Unloader_FWD;
+				P_Discharge_Debug_Index_2 = 0;
+				P_Discharge_Debug_Index_3 = 0;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 4:
+				P_Discharge_Debug_Index_1 = N_Act_First_Unloader_Grip_Cell_Pos;
+				P_Discharge_Debug_Index_2 = 0;
+				P_Discharge_Debug_Index_3 = 0;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 5:
+				P_Discharge_Debug_Index_1 = N_Act_First_Unloader_Grip_ON;
+				P_Discharge_Debug_Index_2 = N_Act_Sheet_Paper_BWD;
+				P_Discharge_Debug_Index_3 = 0;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 6:
+				P_Discharge_Debug_Index_1 = N_Act_Cathode_Clamp_OFF;
+				P_Discharge_Debug_Index_2 = N_Act_Sepa_Cutter_Heating;
+				P_Discharge_Debug_Index_3 = 0;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 7:
+				P_Discharge_Debug_Index_1 = N_Act_FR_Clamp_ON;
+				P_Discharge_Debug_Index_2 = 0;
+				P_Discharge_Debug_Index_3 = 0;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 8:
+				P_Discharge_Debug_Index_1 = N_Act_Sepa_Cutter_Cylinder_FWD;
+				P_Discharge_Debug_Index_2 = N_Act_Sheet_Paper_Vacuum_ON;
+				P_Discharge_Debug_Index_3 = 0;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 9:
+				P_Discharge_Debug_Index_1 = N_Act_Sepa_Cutter_Cylinder_BWD;
+				P_Discharge_Debug_Index_2 = N_Act_First_Unloader_BWD_Wait_Pos;
+				P_Discharge_Debug_Index_3 = N_Act_Discharge_Master_Coord_Resume;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 10:
+				P_Discharge_Debug_Index_1 = N_Act_First_Unloader_BWD;
+				P_Discharge_Debug_Index_2 = 0;
+				P_Discharge_Debug_Index_3 = 0;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 11:
+				P_Discharge_Debug_Index_1 = N_Act_First_Unloader_Stack_Down;
+				P_Discharge_Debug_Index_2 = N_Act_FR_Stack_Pos;
+				P_Discharge_Debug_Index_3 = N_Act_Main_Z_Init_Pos;
+				P_Discharge_Debug_Index_4 = N_Act_After_Action_Init;
+			break;
+			
+			case 12:
+				P_Discharge_Debug_Index_1 = N_Act_First_Unloader_Turn;
+				P_Discharge_Debug_Index_2 = 0;
+				P_Discharge_Debug_Index_3 = 0;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 13:
+				P_Discharge_Debug_Index_1 = N_Act_First_Unloader_Pos_Chk;
+				P_Discharge_Debug_Index_2 = 0;
+				P_Discharge_Debug_Index_3 = 0;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 14:
+				P_Discharge_Debug_Index_1 = N_Act_First_Unloader_Handover_Pos;
+				P_Discharge_Debug_Index_2 = 0;
+				P_Discharge_Debug_Index_3 = 0;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 15:
+				P_Discharge_Debug_Index_1 = N_Act_Unloader_Grip_ON;
+				P_Discharge_Debug_Index_2 = N_Act_Grip_Chk_First_Unloader_Grip_OFF;
+				P_Discharge_Debug_Index_3 = 0;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+			
+			case 16:
+				P_Discharge_Debug_Index_1 = N_Act_First_Unloader_Wait_Pos;
+				P_Discharge_Debug_Index_2 = 0;
+				P_Discharge_Debug_Index_3 = 0;
+				P_Discharge_Debug_Index_4 = 0;
+			break;
+		}
+	return;
+																																
+	Sub:Suspend_Discharge_Debug_Save(void)																						
+		P_Suspend_Discharge_Debug_Value(1) = P(P_Suspend_Discharge_Debug_Address(1));		// 디버깅 변수에 업데이트.									
+		P_Suspend_Discharge_Debug_Value(2) = P(P_Suspend_Discharge_Debug_Address(2));		// 디버깅 변수에 업데이트.							
+		P_Suspend_Discharge_Debug_Value(3) = P(P_Suspend_Discharge_Debug_Address(3));		// 디버깅 변수에 업데이트.
+		P_Suspend_Discharge_Debug_Value(4) = P(P_Suspend_Discharge_Debug_Address(4));		// 디버깅 변수에 업데이트.
+	return;
+																																
+//=====================================================================================//										
+// ARC - Error 발생 시 디버깅 함수 실행.		[ 참조 : 25.09.12 Suspend 디버깅 함수 추가 ]																 
+//=====================================================================================//										
+	Sub:ARC_Debug_Init(Index)
+		P_Suspend_ARC_Debug_Value(0),5 = 0;					// 초기화.
+		call Suspend_Debug.Debug_ARC_Index_Update(Index)
+		P_Suspend_ARC_Debug_Address(1) = &P_Module_Act_State_Machine_Array(P_ARC_Debug_Index_1);	
+		P_Suspend_ARC_Debug_Address(2) = &P_Module_Act_State_Machine_Array(P_ARC_Debug_Index_2);	
+		P_Suspend_ARC_Debug_Address(3) = &P_Module_Act_State_Machine_Array(P_ARC_Debug_Index_3);																		 
+		P_Suspend_ARC_Debug_Address(4) = &P_Module_Act_State_Machine_Array(P_ARC_Debug_Index_4);																		 
+	return;
+	
+	Sub:Debug_ARC_Index_Update(Index)
+		Switch(Index)
+		{
+			case 1:
+				P_ARC_Debug_Index_1 = N_Act_ARC_Pre_Act;
+				P_ARC_Debug_Index_2 = 0;
+				P_ARC_Debug_Index_3 = 0;
+				P_ARC_Debug_Index_4 = 0;
+			break;
+			
+			case 2:
+				P_ARC_Debug_Index_1 = N_Act_Nip_Roll_FWD;
+				P_ARC_Debug_Index_2 = 0;
+				P_ARC_Debug_Index_3 = 0;
+				P_ARC_Debug_Index_4 = 0;
+			break;
+			
+			case 3:
+				P_ARC_Debug_Index_1 = N_Act_Replace_Plate_FWD;
+				P_ARC_Debug_Index_2 = 0;
+				P_ARC_Debug_Index_3 = 0;
+				P_ARC_Debug_Index_4 = 0;
+			break;
+			
+			case 4:
+				P_ARC_Debug_Index_1 = N_Act_Plate_Blow_ON;
+				P_ARC_Debug_Index_2 = 0;
+				P_ARC_Debug_Index_3 = 0;
+				P_ARC_Debug_Index_4 = 0;
+			break;
+			
+			case 5:
+				P_ARC_Debug_Index_1 = N_Act_Replace_Plate_Clamp_ON;
+				P_ARC_Debug_Index_2 = 0;
+				P_ARC_Debug_Index_3 = 0;
+				P_ARC_Debug_Index_4 = 0;
+			break;
+			
+			case 6:
+				P_ARC_Debug_Index_1 = N_Act_Replace_Plate_Cutter_FWD;
+				P_ARC_Debug_Index_2 = 0;
+				P_ARC_Debug_Index_3 = 0;
+				P_ARC_Debug_Index_4 = 0;
+			break;
+			
+			case 7:
+				P_ARC_Debug_Index_1 = N_Act_Replace_Plate_Cutter_BWD;
+				P_ARC_Debug_Index_2 = 0;
+				P_ARC_Debug_Index_3 = 0;
+				P_ARC_Debug_Index_4 = 0;
+			break;
+			
+			case 8:
+				P_ARC_Debug_Index_1 = N_Act_Replace_Plate_Clamp_OFF;
+				P_ARC_Debug_Index_2 = 0;
+				P_ARC_Debug_Index_3 = 0;
+				P_ARC_Debug_Index_4 = 0;
+			break;
+			
+			case 9:
+				P_ARC_Debug_Index_1 = N_Act_Replace_Plate_BWD;
+				P_ARC_Debug_Index_2 = 0;
+				P_ARC_Debug_Index_3 = 0;
+				P_ARC_Debug_Index_4 = 0;
+			break;
+			
+			case 10:
+				P_ARC_Debug_Index_1 = N_Act_Plate_Blow_OFF;
+				P_ARC_Debug_Index_2 = N_Act_Nip_Roll_BWD;
+				P_ARC_Debug_Index_3 = 0;
+				P_ARC_Debug_Index_4 = 0;
+			break;
+			
+			case 11:
+				P_ARC_Debug_Index_1 = N_Act_Spool_Change;
+				P_ARC_Debug_Index_2 = 0;
+				P_ARC_Debug_Index_3 = 0;
+				P_ARC_Debug_Index_4 = 0;
+			break;
+			
+			case 12:
+				P_ARC_Debug_Index_1 = N_Act_ARC_Post_Act;
+				P_ARC_Debug_Index_2 = 0;
+				P_ARC_Debug_Index_3 = 0;
+				P_ARC_Debug_Index_4 = 0;
+			break;
+			
+			case 13:
+				P_ARC_Debug_Index_1 = N_Act_Previous_Spool_Remain_Winding;
+				P_ARC_Debug_Index_2 = 0;
+				P_ARC_Debug_Index_3 = 0;
+				P_ARC_Debug_Index_4 = 0;
+			break;
+			
+		}
+	return;
+																																
+	Sub:Suspend_ARC_Debug_Save(void)																						
+		P_Suspend_ARC_Debug_Value(1) = P(P_Suspend_ARC_Debug_Address(1));		// 디버깅 변수에 업데이트.									
+		P_Suspend_ARC_Debug_Value(2) = P(P_Suspend_ARC_Debug_Address(2));		// 디버깅 변수에 업데이트.							
+		P_Suspend_ARC_Debug_Value(3) = P(P_Suspend_ARC_Debug_Address(3));		// 디버깅 변수에 업데이트.
+		P_Suspend_ARC_Debug_Value(4) = P(P_Suspend_ARC_Debug_Address(4));		// 디버깅 변수에 업데이트.
+	return;		
+
+//=====================================================================================//										
+// Anode_1TR_Supply_Cell - Error 발생 시 디버깅 함수 실행. - [ 참조 : 2025.10.24 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]															 
+//=====================================================================================//										
+	Sub:An_1TR_Supply_Debug_Init(Index)
+		P_Suspend_An_1TR_Supply_Debug_Value(0),5 = 0;					// 초기화.
+		call Suspend_Debug.Debug_An_1TR_Supply_Cell_Index_Update(Index)
+		P_Suspend_An_1TR_Supply_Debug_Address(1) = &P_Module_Act_State_Machine_Array(P_An_1TR_Supply_Debug_Index_1);	
+		P_Suspend_An_1TR_Supply_Debug_Address(2) = &P_Module_Act_State_Machine_Array(P_An_1TR_Supply_Debug_Index_2);	
+		P_Suspend_An_1TR_Supply_Debug_Address(3) = &P_Module_Act_State_Machine_Array(P_An_1TR_Supply_Debug_Index_3);																		 
+		P_Suspend_An_1TR_Supply_Debug_Address(4) = &P_Module_Act_State_Machine_Array(P_An_1TR_Supply_Debug_Index_4);																		 
+	return;
+	
+	Sub:Debug_An_1TR_Supply_Cell_Index_Update(Index)
+		Switch(Index)
+		{
+			case 1:
+				P_An_1TR_Supply_Debug_Index_1 = N_Act_1st_Anode_Mem_Pos  ;
+				P_An_1TR_Supply_Debug_Index_2 = 0;
+				P_An_1TR_Supply_Debug_Index_3 = 0;
+				P_An_1TR_Supply_Debug_Index_4 = 0;
+			break;
+			
+			case 2:
+				P_An_1TR_Supply_Debug_Index_1 = N_Act_Motion_to_Belt;
+				P_An_1TR_Supply_Debug_Index_2 = 0;
+				P_An_1TR_Supply_Debug_Index_3 = 0;
+				P_An_1TR_Supply_Debug_Index_4 = 0;
+			break;
+			
+			case 3:
+				P_An_1TR_Supply_Debug_Index_1 = N_Act_Motion_to_PickUp;
+				P_An_1TR_Supply_Debug_Index_2 = 0;
+				P_An_1TR_Supply_Debug_Index_3 = 0;
+				P_An_1TR_Supply_Debug_Index_4 = 0;
+			break;
+			
+			case 4:
+				P_An_1TR_Supply_Debug_Index_1 = N_Act_Motion_to_Ready ;
+				P_An_1TR_Supply_Debug_Index_2 = 0;
+				P_An_1TR_Supply_Debug_Index_3 = 0;
+				P_An_1TR_Supply_Debug_Index_4 = 0;
+			break;
+							
+		}
+	return;
+																																
+	Sub:Suspend_An_1TR_Supply_Debug_Save(void)																						
+		P_Suspend_An_1TR_Supply_Debug_Value(1) = P(P_Suspend_An_1TR_Supply_Debug_Address(1));		// 디버깅 변수에 업데이트.									
+		P_Suspend_An_1TR_Supply_Debug_Value(2) = P(P_Suspend_An_1TR_Supply_Debug_Address(2));		// 디버깅 변수에 업데이트.							
+		P_Suspend_An_1TR_Supply_Debug_Value(3) = P(P_Suspend_An_1TR_Supply_Debug_Address(3));		// 디버깅 변수에 업데이트.
+		P_Suspend_An_1TR_Supply_Debug_Value(4) = P(P_Suspend_An_1TR_Supply_Debug_Address(4));		// 디버깅 변수에 업데이트.
+	return;		
+close

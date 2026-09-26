@@ -1,0 +1,1371 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.29 
+// 알람 프로그램 표준화 작업 - [ 참조 : 25.07.29 알람 프로그램 표준화 작업 진행 ]
+// 알람변수정의 추가 - [ 참조 : 2025.08.26 알람변수정의 추가 ]
+#define N_Alarm_None					0
+#define N_High_Alarm_Emergency_Stop     1  // 중알람 즉시 정지
+#define N_High_Alarm_Cycle_Stop         2  // 중알람 사이클 정지
+#define N_Low_Alarm                     3  // 경알람 경고
+
+#define N_Alarm_Arr_Length 100
+
+//========================//
+// 알람 프로그램 변수 선언 //
+//========================//
+global P_Alarm_Arr(N_Alarm_Arr_Length);				// 알람 버퍼
+P_Alarm_Arr(0), N_Alarm_Arr_Length = 0;
+
+global P_Alarm_Occur_Flag = 0;							// 알람 타입 확인 플래그
+global P_Alarm_Occur_Index_Flag(4);						// 알람 타입 플래그 
+P_Alarm_Occur_Index_Flag(0), 4 = 0;
+
+global P_Alarm_Wait_Time = 2000;						// PLC 터치 패널의 시스템 상 순서를 위해 2초 딜레이 후 전송
+global P_Alarm_Delay_Timer = 0; 
+
+global P_Compare_Priority = 4;							// 알람 타입 비교를 위해 기본값을 4로 지정 ( 경알람 : 3, 중알람 : 2, 즉시 정지 : 1 )
+
+global P_Alarm_Report = 0;								// 나머지 알람 시작 변수
+
+global P_Alarm_Num = 0;									// 알람 M변수 번호
+global P_Alarm_Index = 0;								// 현재 처리중인 알람 인덱스
+global P_First_Alarm_Flag = 0;							// 첫번째 알람 플래그
+
+global P_Alarm_Log(100);									// 알람 로그
+P_Alarm_Log(0),100 = 0;
+
+// 260715 첫번째 발생한 알람 로그 추가
+global P_First_Alarm_Log(30)
+P_First_Alarm_Log(0),30 = 0
+
+global P_Servo_Alarm_Check = 0;
+global P_Ecat_Servo_Alarm_Check = 0;
+
+global P_Alarm_duplicate_Check_Arr(670);				// 알람 중복 확인용 배열
+P_Alarm_duplicate_Check_Arr(0), 670 = 0;
+
+#define def_Ecat_Drive_Alarm_Bit	$8							// Ecat 모터 드라이브 알람 비트 ( Statusword )
+
+global P_Old_Drive_Alarm(50);
+P_Old_Drive_Alarm(0), 50 = 0;
+//===============================================================================================================================================================
+// Alarm M변수 선언
+//===============================================================================================================================================================
+// 알람변수정의 추가		[ 참조 : 2025.08.26 알람변수정의 추가 ]
+#define	 N_Alarm_2S01_Servo_Alarm											0	//	[서보 알람] 양극 1차 PNP T축 
+#define	 N_Alarm_2S02_Servo_Alarm											1	//	[서보 알람] 음극 1차 PNP T축 
+#define	 N_Alarm_2S03_Servo_Alarm											2	//	[서보 알람] 양극 2차 PNP T축 
+#define	 N_Alarm_2S04_Servo_Alarm											3	//	[서보 알람] 음극 2차 PNP T축 
+#define	 N_Alarm_2S05_Servo_Alarm											4	//	[서보 알람] 양극 클램프 Y1축 
+#define	 N_Alarm_2S06_Servo_Alarm											5	//	[서보 알람] 음극 클램프 Y1축  
+#define	 N_Alarm_2S07_Servo_Alarm											6	//	[서보 알람] 양극 클램프 Y2축   
+#define	 N_Alarm_2S08_Servo_Alarm											7	//	[서보 알람] 음극 클램프 Y2축 
+//																			8		축카드 Spare
+//																			9		축카드 Spare
+#define	 N_Alarm_2S11_Servo_Alarm											10	//	[서보 알람] 스텍 Main Table Z축   
+#define	 N_Alarm_2S12_Servo_Alarm											11	//	[서보 알람] 파이널롤 X축   
+#define	 N_Alarm_2S13_Servo_Alarm											12	//	[서보 알람] 파이널롤 Z축   
+//#define	 N_Alarm_2S14_Servo_Alarm											13	//	[서보 알람] 서브 피딩 롤
+#define	 N_Alarm_2S15_Servo_Alarm											14	//	[서보 알람] 드라이빙 피딩 롤
+#define	 N_Alarm_2S16_Servo_Alarm											15	//	[서보 알람] 서보 댄서 
+#define	 N_Alarm_2S17_Servo_Alarm											16	//	[서보 알람] 양극 1차 PNP Z축 
+#define	 N_Alarm_2S18_Servo_Alarm											17	//	[서보 알람] 음극 1차 PNP Z축 
+#define	 N_Alarm_2S19_Servo_Alarm											18	//	[서보 알람] 양극 1차 PNP 피커 T축 
+#define	 N_Alarm_2S20_Servo_Alarm											19	//	[서보 알람] 음극 1차 PNP 피커 T축 
+#define	 N_Alarm_2S21_Servo_Alarm											20	//	[서보 알람] 양극 2차 PNP Z축 
+#define	 N_Alarm_2S22_Servo_Alarm											21	//	[서보 알람] 음극 2차 PNP Z축 
+#define	 N_Alarm_2S23_Servo_Alarm											22	//	[서보 알람] 세파 상단 언와인더 
+#define	 N_Alarm_2S24_Servo_Alarm											23	//	[서보 알람] 세파 하단 언와인더  
+#define	 N_Alarm_2S25_Servo_Alarm											24	//	[서보 알람] 양극 클램프 Z2축  
+#define	 N_Alarm_2S26_Servo_Alarm											25	//	[서보 알람] 음극 클램프 Z2축  
+#define	 N_Alarm_2S27_Servo_Alarm											26	//	[서보 알람] 양극 클램프 Z1축
+#define	 N_Alarm_2S28_Servo_Alarm											27	//	[서보 알람] 음극 클램프 Z1축
+//																			28	//	
+//																			29	//	
+//																			30	//	
+//																			31	//	
+#define	 N_Alarm_2S33_Servo_Alarm											32	//	[서보 알람] 세파 EPC 센서
+#define	 N_Alarm_2S34_Servo_Alarm											33	//	[서보 알람] 세파 스텍 비전
+#define	 N_Alarm_2S35_Servo_Alarm											34	//	[서보 알람] 1차 시트 페이퍼 X축   
+#define	 N_Alarm_2S36_Servo_Alarm											35	//	[서보 알람] 양극 얼라인테이블 X축
+#define	 N_Alarm_2S37_Servo_Alarm											36	//	[서보 알람] 양극 얼라인테이블 Y축
+#define	 N_Alarm_2S38_Servo_Alarm											37	//	[서보 알람] 양극 얼라인테이블 T축  
+#define	 N_Alarm_2S39_Servo_Alarm											38	//	[서보 알람] 음극 얼라인테이블 X축
+#define	 N_Alarm_2S40_Servo_Alarm											39	//	[서보 알람] 음극 얼라인테이블 Y축
+#define	 N_Alarm_2S41_Servo_Alarm											40	//	[서보 알람] 음극 얼라인테이블 T축  
+#define	 N_Alarm_2S42_Servo_Alarm											41	//	[서보 알람] 양극 NG PNP T축 
+#define	 N_Alarm_2S43_Servo_Alarm											42	//	[서보 알람] 음극 NG PNP T축 
+#define	 N_Alarm_2S44_Servo_Alarm											43	//	[서보 알람] 양극 NG PNP Z축  
+#define	 N_Alarm_2S45_Servo_Alarm											44	//	[서보 알람] 음극 NG PNP Z축  
+#define	 N_Alarm_2S46_Servo_Alarm											45	//	[서보 알람] 1차 언로더 X축 
+#define	 N_Alarm_2S47_Servo_Alarm											46	//	[서보 알람] 1차 언로더 Z축
+#define	 N_Alarm_2S48_Servo_Alarm											47	//	[서보 알람] 1차 언로더 T축
+//																			48		모터 추가 시 spare
+//																			49		모터 추가 시 spare
+//																			50		모터 추가 시 spare
+//																			51		모터 추가 시 spare
+//																			52		모터 추가 시 spare
+#define	N_Alarm_Minus_Limit_Motor_1											53	//	[마이너스(-) 리미트] 양극 1차 PNP T축 
+#define	N_Alarm_Minus_Limit_Motor_2											54	//	[마이너스(-) 리미트] 음극 1차 PNP T축 
+#define	N_Alarm_Minus_Limit_Motor_3											55	//	[마이너스(-) 리미트] 양극 2차 PNP T축 
+#define	N_Alarm_Minus_Limit_Motor_4											56	//	[마이너스(-) 리미트] 음극 2차 PNP T축 
+#define	N_Alarm_Minus_Limit_Motor_5											57	//	[마이너스(-) 리미트] 양극 클램프 Y1축 
+#define	N_Alarm_Minus_Limit_Motor_6											58	//	[마이너스(-) 리미트] 음극 클램프 Y1축  
+#define	N_Alarm_Minus_Limit_Motor_7											59	//	[마이너스(-) 리미트] 양극 클램프 Y2축   
+#define	N_Alarm_Minus_Limit_Motor_8											60	//	[마이너스(-) 리미트] 음극 클램프 Y2축 
+//																			61		축카드 Spare
+//																			62		축카드 Spare  																				
+#define	N_Alarm_Minus_Limit_Motor_11										63	//	[마이너스(-) 리미트] 스텍 Main Table Z축    
+#define	N_Alarm_Minus_Limit_Motor_12										64	//	[마이너스(-) 리미트] 파이널롤 X축    
+#define	N_Alarm_Minus_Limit_Motor_13										65	//	[마이너스(-) 리미트] 파이널롤 Z축   
+//#define	N_Alarm_Minus_Limit_Motor_14										66	//	[마이너스(-) 리미트] 서브 피딩 롤
+#define	N_Alarm_Minus_Limit_Motor_15										67	//	[마이너스(-) 리미트] 드라이빙 피딩 롤
+#define	N_Alarm_Minus_Limit_Motor_16										68	//	[마이너스(-) 리미트] 서보 댄서 
+#define	N_Alarm_Minus_Limit_Motor_17										69	//	[마이너스(-) 리미트] 양극 1차 PNP Z축 
+#define	N_Alarm_Minus_Limit_Motor_18										70	//	[마이너스(-) 리미트] 음극 1차 PNP Z축 
+#define	N_Alarm_Minus_Limit_Motor_19										71	//	[마이너스(-) 리미트] 양극 1차 PNP 피커 T축 
+#define	N_Alarm_Minus_Limit_Motor_20										72	//	[마이너스(-) 리미트] 음극 1차 PNP 피커 T축 
+#define	N_Alarm_Minus_Limit_Motor_21										73	//	[마이너스(-) 리미트] 양극 2차 PNP Z축 
+#define	N_Alarm_Minus_Limit_Motor_22										74	//	[마이너스(-) 리미트] 음극 2차 PNP Z축 
+#define	N_Alarm_Minus_Limit_Motor_23										75	//	[마이너스(-) 리미트] 세파 상단 언와인더 
+#define	N_Alarm_Minus_Limit_Motor_24										76	//	[마이너스(-) 리미트] 세파 하단 언와인더  
+#define	N_Alarm_Minus_Limit_Motor_25										77	//	[마이너스(-) 리미트] 양극 클램프 Z2축  
+#define	N_Alarm_Minus_Limit_Motor_26										78	//	[마이너스(-) 리미트] 음극 클램프 Z2축  
+#define	N_Alarm_Minus_Limit_Motor_27										79	//	[마이너스(-) 리미트] 양극 클램프 Z1축
+#define	N_Alarm_Minus_Limit_Motor_28										80	//	[마이너스(-) 리미트] 음극 클램프 Z1축																			
+//																			81	
+//																			82		
+//																			83		
+//																			84		
+#define	N_Alarm_Minus_Limit_Motor_33										85	//	[마이너스(-) 리미트] 세파 EPC 센서
+#define	N_Alarm_Minus_Limit_Motor_34										86	//	[마이너스(-) 리미트] 세파 스텍 비전
+#define	N_Alarm_Minus_Limit_Motor_35										87	//	[마이너스(-) 리미트] 1차 시트 페이퍼 X축  
+#define	N_Alarm_Minus_Limit_Motor_36										88	//	[마이너스(-) 리미트] 양극 얼라인테이블 X축
+#define	N_Alarm_Minus_Limit_Motor_37										89	//	[마이너스(-) 리미트] 양극 얼라인테이블 Y축
+#define	N_Alarm_Minus_Limit_Motor_38										90	//	[마이너스(-) 리미트] 양극 얼라인테이블 T축  
+#define	N_Alarm_Minus_Limit_Motor_39										91	//	[마이너스(-) 리미트] 음극 얼라인테이블 X축
+#define	N_Alarm_Minus_Limit_Motor_40										92	//	[마이너스(-) 리미트] 음극 얼라인테이블 Y축
+#define	N_Alarm_Minus_Limit_Motor_41										93	//	[마이너스(-) 리미트] 음극 얼라인테이블 T축  
+#define	N_Alarm_Minus_Limit_Motor_42										94	//	[마이너스(-) 리미트] 양극 NG PNP T축 
+#define	N_Alarm_Minus_Limit_Motor_43										95	//	[마이너스(-) 리미트] 음극 NG PNP T축 
+#define	N_Alarm_Minus_Limit_Motor_44										96	//	[마이너스(-) 리미트] 양극 NG PNP Z축  
+#define	N_Alarm_Minus_Limit_Motor_45										97	//	[마이너스(-) 리미트] 음극 NG PNP Z축  
+#define	N_Alarm_Minus_Limit_Motor_46										98	//	[마이너스(-) 리미트] 1차 언로더 X축 
+#define	N_Alarm_Minus_Limit_Motor_47										99	//	[마이너스(-) 리미트] 1차 언로더 Z축 
+#define	N_Alarm_Minus_Limit_Motor_48										100	//	[마이너스(-) 리미트] 1차 언로더 T축
+//																			101
+//																			102
+//																			103
+//																			104
+//																			105
+#define	N_Alarm_Minus_Plus_Motor_1											106	//	[플러스(+) 리미트] 양극 1차 PNP T축 
+#define	N_Alarm_Minus_Plus_Motor_2											107	//	[플러스(+) 리미트] 음극 1차 PNP T축 
+#define	N_Alarm_Minus_Plus_Motor_3											108	//	[플러스(+) 리미트] 양극 2차 PNP T축 
+#define	N_Alarm_Minus_Plus_Motor_4											109	//	[플러스(+) 리미트] 음극 2차 PNP T축 
+#define	N_Alarm_Minus_Plus_Motor_5											110	//	[플러스(+) 리미트] 양극 클램프 Y1축 
+#define	N_Alarm_Minus_Plus_Motor_6											111	//	[플러스(+) 리미트] 음극 클램프 Y1축  
+#define	N_Alarm_Minus_Plus_Motor_7											112	//	[플러스(+) 리미트] 양극 클램프 Y2축   
+#define	N_Alarm_Minus_Plus_Motor_8											113	//	[플러스(+) 리미트] 음극 클램프 Y2축 
+//																			114	
+//  																		115
+#define	N_Alarm_Minus_Plus_Motor_11											116	//	[플러스(+) 리미트] 스텍 Main Table Z축  
+#define	N_Alarm_Minus_Plus_Motor_12											117	//	[플러스(+) 리미트] 파이널롤 X축  
+#define	N_Alarm_Minus_Plus_Motor_13											118	//	[플러스(+) 리미트] 파이널롤 Z축   
+//#define	N_Alarm_Minus_Plus_Motor_14										119	//	[플러스(+) 리미트] 서브 피딩 롤
+#define	N_Alarm_Minus_Plus_Motor_15											120	//	[플러스(+) 리미트] 드라이빙 피딩 롤
+#define	N_Alarm_Minus_Plus_Motor_16											121	//	[플러스(+) 리미트] 서보 댄서 
+#define	N_Alarm_Minus_Plus_Motor_17											122	//	[플러스(+) 리미트] 양극 1차 PNP Z축 
+#define	N_Alarm_Minus_Plus_Motor_18											123	//	[플러스(+) 리미트] 음극 1차 PNP Z축 
+#define	N_Alarm_Minus_Plus_Motor_19											124	//	[플러스(+) 리미트] 양극 1차 PNP 피커 T축 
+#define	N_Alarm_Minus_Plus_Motor_20											125	//	[플러스(+) 리미트] 음극 1차 PNP 피커 T축 
+#define	N_Alarm_Minus_Plus_Motor_21											126	//	[플러스(+) 리미트] 양극 2차 PNP Z축 
+#define	N_Alarm_Minus_Plus_Motor_22											127	//	[플러스(+) 리미트] 음극 2차 PNP Z축 
+#define	N_Alarm_Minus_Plus_Motor_23											128	//	[플러스(+) 리미트] 세파 상단 언와인더 
+#define	N_Alarm_Minus_Plus_Motor_24											129	//	[플러스(+) 리미트] 세파 하단 언와인더  
+#define	N_Alarm_Minus_Plus_Motor_25											130	//	[플러스(+) 리미트] 양극 클램프 Z2축  
+#define	N_Alarm_Minus_Plus_Motor_26											131	//	[플러스(+) 리미트] 음극 클램프 Z2축  
+#define	N_Alarm_Minus_Plus_Motor_27											132	//	[플러스(+) 리미트] 양극 클램프 Z1축  
+#define	N_Alarm_Minus_Plus_Motor_28											133	//	[플러스(+) 리미트] 음극 클램프 Z1축
+//																			134	
+//																			135
+//																			136		
+//																			137		
+#define	N_Alarm_Minus_Plus_Motor_33											138	//	[플러스(+) 리미트] 세파 EPC 센서
+#define	N_Alarm_Minus_Plus_Motor_34											139	//	[플러스(+) 리미트] 세파 스텍 비전
+#define	N_Alarm_Minus_Plus_Motor_35											140	//	[플러스(+) 리미트] 1차 시트 페이퍼 X축   
+#define	N_Alarm_Minus_Plus_Motor_36											141	//	[플러스(+) 리미트] 양극 얼라인테이블 X축
+#define	N_Alarm_Minus_Plus_Motor_37											142	//	[플러스(+) 리미트] 양극 얼라인테이블 Y축
+#define	N_Alarm_Minus_Plus_Motor_38											143	//	[플러스(+) 리미트] 양극 얼라인테이블 T축  
+#define	N_Alarm_Minus_Plus_Motor_39											144	//	[플러스(+) 리미트] 음극 얼라인테이블 X축
+#define	N_Alarm_Minus_Plus_Motor_40											145	//	[플러스(+) 리미트] 음극 얼라인테이블 Y축
+#define	N_Alarm_Minus_Plus_Motor_41											146	//	[플러스(+) 리미트] 음극 얼라인테이블 T축  
+#define	N_Alarm_Minus_Plus_Motor_42											147	//	[플러스(+) 리미트] 양극 NG PNP T축 
+#define	N_Alarm_Minus_Plus_Motor_43											148	//	[플러스(+) 리미트] 음극 NG PNP T축 
+#define	N_Alarm_Minus_Plus_Motor_44											149	//	[플러스(+) 리미트] 양극 NG PNP Z축 
+#define	N_Alarm_Minus_Plus_Motor_45											150	//	[플러스(+) 리미트] 음극 NG PNP Z축 
+#define	N_Alarm_Minus_Plus_Motor_46											151	//	[플러스(+) 리미트] 1차 언로더 X축 
+#define	N_Alarm_Minus_Plus_Motor_47											152	//	[플러스(+) 리미트] 1차 언로더 Z축 
+#define	N_Alarm_Minus_Plus_Motor_48											153	//	[플러스(+) 리미트] 1차 언로더 T축
+//																			154
+//																			155
+//																			156
+//																			157
+//																			158
+#define	N_Alarm_2S01_Servo_Driver											159	//	[서보 드라이브 알람] 양극 1차 PNP T축 #1
+#define	N_Alarm_2S02_Servo_Driver											160	//	[서보 드라이브 알람] 음극 1차 PNP T축 #2
+#define	N_Alarm_2S03_Servo_Driver											161	//	[서보 드라이브 알람] 양극 2차 PNP T축 #3
+#define	N_Alarm_2S04_Servo_Driver											162	//	[서보 드라이브 알람] 음극 2차 PNP T축 #4
+#define	N_Alarm_2S05_Servo_Driver											163	//	[서보 드라이브 알람] 양극 클램프 Y1축 #5
+#define	N_Alarm_2S06_Servo_Driver											164	//	[서보 드라이브 알람] 음극 클램프 Y1축 #6
+#define	N_Alarm_2S07_Servo_Driver											165	//	[서보 드라이브 알람] 양극 클램프 Y2축 #7
+#define	N_Alarm_2S08_Servo_Driver											166	//	[서보 드라이브 알람] 음극 클램프 Y2축 #8
+//																			167
+//																			168
+#define	N_Alarm_2S11_Servo_Driver											169	//	[서보 드라이브 알람] 스텍 Main Table Z축 #11 
+#define	N_Alarm_2S12_Servo_Driver											170	//	[서보 드라이브 알람] 파이널롤 X축 #12
+#define	N_Alarm_2S13_Servo_Driver											171	//	[서보 드라이브 알람] 파이널롤 Z축 #13
+//#define	N_Alarm_2S14_Servo_Driver										172	//	[서보 드라이브 알람] 서브 피딩 롤 #14
+#define	N_Alarm_2S15_Servo_Driver											173	//	[서보 드라이브 알람] 드라이빙 피딩 롤 #15
+#define	N_Alarm_2S16_Servo_Driver											174	//	[서보 드라이브 알람] 서보 댄서 #16
+#define	N_Alarm_2S17_Servo_Driver											175	//	[서보 드라이브 알람] 양극 1차 PNP Z축 #17
+#define	N_Alarm_2S18_Servo_Driver											176	//	[서보 드라이브 알람] 음극 1차 PNP Z축 #18
+#define	N_Alarm_2S19_Servo_Driver											177	//	[서보 드라이브 알람] 양극 1차 PNP 피커 T축 #19
+#define	N_Alarm_2S20_Servo_Driver											178	//	[서보 드라이브 알람] 음극 1차 PNP 피커 T축 #20
+#define	N_Alarm_2S21_Servo_Driver											179	//	[서보 드라이브 알람] 양극 2차 PNP Z축 #21
+#define	N_Alarm_2S22_Servo_Driver											180	//	[서보 드라이브 알람] 음극 2차 PNP Z축 #22
+#define	N_Alarm_2S23_Servo_Driver											181	//	[서보 드라이브 알람] 세파 상단 언와인더 #23
+#define	N_Alarm_2S24_Servo_Driver											182	//	[서보 드라이브 알람] 세파 하단 언와인더 #24
+#define	N_Alarm_2S25_Servo_Driver											183	//	[서보 드라이브 알람] 양극 클램프 Z2축 #25
+#define	N_Alarm_2S26_Servo_Driver											184	//	[서보 드라이브 알람] 음극 클램프 Z2축 #26
+#define	N_Alarm_2S27_Servo_Driver											185	//	[서보 드라이브 알람] 양극 클램프 Z1축 #27
+#define	N_Alarm_2S28_Servo_Driver											186	//	[서보 드라이브 알람] 음극 클램프 Z1축 #28
+//																			187	//	
+//																			188	//	
+//																			189	//	
+//																			190	//	
+#define	N_Alarm_2S33_Servo_Driver											191	//	[서보 드라이브 알람] EPC 센서_#33
+#define	N_Alarm_2S34_Servo_Driver											192	//	[서보 드라이브 알람] 스텍 비전_#34
+#define	N_Alarm_2S35_Servo_Driver											193	//	[서보 드라이브 알람] 1차 시트 페이퍼 X축_#35
+#define	N_Alarm_2S36_Servo_Driver											194	//	[서보 드라이브 알람] 양극 얼라인테이블 X축_#36
+#define	N_Alarm_2S37_Servo_Driver											195	//	[서보 드라이브 알람] 양극 얼라인테이블 Y축_#37
+#define	N_Alarm_2S38_Servo_Driver											196	//	[서보 드라이브 알람] 양극 얼라인테이블 T축_#38 
+#define	N_Alarm_2S39_Servo_Driver											197	//	[서보 드라이브 알람] 음극 얼라인테이블 X축_#39
+#define	N_Alarm_2S40_Servo_Driver											198	//	[서보 드라이브 알람] 음극 얼라인테이블 Y축_#40
+#define	N_Alarm_2S41_Servo_Driver											199	//	[서보 드라이브 알람] 음극 얼라인테이블 T축_#41  
+#define	N_Alarm_2S42_Servo_Driver											200	//	[서보 드라이브 알람] 양극 NG PNP T축_#42 
+#define	N_Alarm_2S43_Servo_Driver											201	//	[서보 드라이브 알람] 음극 NG PNP T축_#43
+#define	N_Alarm_2S44_Servo_Driver											202	//	[서보 드라이브 알람] 양극 NG PNP Z축_#44 
+#define	N_Alarm_2S45_Servo_Driver											203	//	[서보 드라이브 알람] 음극 NG PNP Z축_#45 
+#define	N_Alarm_2S46_Servo_Driver											204	//	[서보 드라이브 알람] 1차 언로더 X축_#46 
+#define	N_Alarm_2S47_Servo_Driver											205	//	[서보 드라이브 알람] 1차 언로더 Z축_#47 
+#define	N_Alarm_2S48_Servo_Driver											206	//	[서보 드라이브 알람] 1차 언로더 T축_#48
+//																			207	
+//																			208	
+//																			209	
+//																			210	
+//																			211		
+#define	N_Alarm_Cathode_1st_PNP_T_Move										212	//	[이동 오류] 양극 1차 PNP T축 
+#define	N_Alarm_Anode_1st_PNP_T_Move										213	//	[이동 오류] 음극 1차 PNP T축 
+#define	N_Alarm_Cathode_2st_PNP_T_Move										214	//	[이동 오류] 양극 2차 PNP T축 
+#define	N_Alarm_Anode_2st_PNP_T_Move										215	//	[이동 오류] 음극 2차 PNP T축 
+#define	N_Alarm_Cathode_Clamp_Y1_Move										216	//	[이동 오류] 양극 클램프 Y1축 
+#define	N_Alarm_Anode_Clamp_Y1_Move											217	//	[이동 오류] 음극 클램프 Y1축 
+#define	N_Alarm_Cathode_Clamp_Y2_Move										218	//	[이동 오류] 양극 클램프 Y2축 
+#define	N_Alarm_Anode_Clamp_Y2_Move											219	//	[이동 오류] 음극 클램프 Y2축 
+//																			220
+//																			221
+#define	N_Alarm_Stack_Table_Main_Z_Move										222	//	[이동 오류] 스텍 Main Table Z축 
+#define	N_Alarm_Final_Roll_X_Move											223	//	[이동 오류] 파이널롤 X축
+#define	N_Alarm_Final_Roll_Z_Move											224	//	[이동 오류] 파이널롤 Z축 
+//#define	N_Alarm_Sub_Feeding_Roll_Move										225	//	[이동 오류] 서브 피딩 롤 
+#define	N_Alarm_Driving_Roll_Move											226	//	[이동 오류] 드라이빙 피딩 롤 
+#define	N_Alarm_Servo_Dancer_Move											227	//	[이동 오류] 서보 댄서 
+#define	N_Alarm_Cathode_1st_PNP_Z_Move										228	//	[이동 오류] 양극 1차 PNP Z축 
+#define	N_Alarm_Anode_1st_PNP_Z_Move										229	//	[이동 오류] 음극 1차 PNP Z축 
+#define	N_Alarm_Cathode_1st_PNP_Picker_T_Move								230	//	[이동 오류] 양극 1차 PNP 피커 T축
+#define	N_Alarm_Anode_1st_PNP_Picker_T_Move									231	//	[이동 오류] 음극 1차 PNP 피커 T축 
+#define	N_Alarm_Cathode_2st_PNP_Z_Move										232	//	[이동 오류] 양극 2차 PNP Z축 
+#define	N_Alarm_Anode_2st_PNP_Z_Move										233	//	[이동 오류] 음극 2차 PNP Z축 
+#define	N_Alarm_Sepa_Unwinder_Upper_Move									234	//	[이동 오류] 세파 상단 언와인더 
+#define	N_Alarm_Sepa_Unwinder_Lower_Move									235	//	[이동 오류] 세파 하단 언와인더 
+#define	N_Alarm_Cathode_Clamp_Z2_Move										236	//	[이동 오류] 양극 클램프 Z2축 
+#define	N_Alarm_Anode_Clamp_Z2_Move											237	//	[이동 오류] 음극 클램프 Z2축 
+#define	N_Alarm_Cathode_Clamp_Z1_Move										238	//	[이동 오류] 양극 클램프 Z1축 
+#define	N_Alarm_Anode_Clamp_Z1_Move											239	//	[이동 오류] 음극 클램프 Z1축 
+//																			240	//	
+//																			241	//	
+//																			242	//	
+//																			243	//	
+#define	N_EPC_Sensor_Move													244	//	[이동 오류] EPC 센서
+#define	N_Stack_Vision_Move													245	//	[이동 오류] 스텍 비전
+#define	N_1st_Sheet_Paper_X_Move											246	//	[이동 오류] 1차 시트 페이퍼 X축
+#define	N_Cathode_AT_X_Move													247	//	[이동 오류] 양극 얼라인테이블 X축
+#define	N_Cathode_AT_Y_Move													248	//	[이동 오류] 양극 얼라인테이블 Y축
+#define	N_Cathode_AT_T_Move													249	//	[이동 오류] 양극 얼라인테이블 T축
+#define	N_Anode_AT_X_Move													250	//	[이동 오류] 음극 얼라인테이블 X축
+#define	N_Anode_AT_Y_Move													251	//	[이동 오류] 음극 얼라인테이블 Y축
+#define	N_Anode_AT_T_Move													252	//	[이동 오류] 음극 얼라인테이블 T축
+#define	N_Cathode_NG_PNP_T_Move												253	//	[이동 오류] 양극 NG PNP T축
+#define	N_Anode_NG_PNP_T_Move												254	//	[이동 오류] 음극 NG PNP T축
+#define	N_Cathode_NG_PNP_Z_Move												255	//	[이동 오류] 양극 NG PNP Z축
+#define	N_Anode_NG_PNP_Z_Move												256	//	[이동 오류] 음극 NG PNP Z축
+#define	N_1st_ULD_X_Move													257	//	[이동 오류] 1차 언로더 X축 
+#define	N_1st_ULD_Z_Move													258	//	[이동 오류] 1차 언로더 Z축 
+#define	N_1st_ULD_T_Move													259	//	[이동 오류] 1차 언로더 T축
+//																			260
+//																			261
+//																			262
+//																			263
+//																			264
+#define	N_Alarm_Ready_Pos_Motor_1											265	//	[시작 위치 오류] 양극 1차 PNP T축 
+#define	N_Alarm_Ready_Pos_Motor_2											266	//	[시작 위치 오류] 음극 1차 PNP T축 
+#define	N_Alarm_Ready_Pos_Motor_3											267	//	[시작 위치 오류] 양극 2차 PNP T축 
+#define	N_Alarm_Ready_Pos_Motor_4											268	//	[시작 위치 오류] 음극 2차 PNP T축 
+#define	N_Alarm_Ready_Pos_Motor_5											269	//	[시작 위치 오류] 양극 클램프 Y1축 
+#define	N_Alarm_Ready_Pos_Motor_6											270	//	[시작 위치 오류] 음극 클램프 Y1축 
+#define	N_Alarm_Ready_Pos_Motor_7											271	//	[시작 위치 오류] 양극 클램프 Y2축 
+#define	N_Alarm_Ready_Pos_Motor_8											272	//	[시작 위치 오류] 음극 클램프 Y2축 
+//																			273
+//																			274
+#define	N_Alarm_Ready_Pos_Motor_11											275	//	[시작 위치 오류] 스텍 Main Table Z축 
+#define	N_Alarm_Ready_Pos_Motor_12											276	//	[시작 위치 오류] 파이널롤 X축
+#define	N_Alarm_Ready_Pos_Motor_13											277	//	[시작 위치 오류] 파이널롤 Z축 
+#define	N_Alarm_Ready_Pos_Motor_14											278	//	[시작 위치 오류] 서브 피딩 롤 
+#define	N_Alarm_Ready_Pos_Motor_15											279	//	[시작 위치 오류] 드라이빙 피딩 롤 
+#define	N_Alarm_Ready_Pos_Motor_16											280	//	[시작 위치 오류] 서보 댄서 
+#define	N_Alarm_Ready_Pos_Motor_17											281	//	[시작 위치 오류] 양극 1차 PNP Z축 
+#define	N_Alarm_Ready_Pos_Motor_18											282	//	[시작 위치 오류] 음극 1차 PNP Z축 
+#define	N_Alarm_Ready_Pos_Motor_19											283	//	[시작 위치 오류] 양극 1차 PNP 피커 T축
+#define	N_Alarm_Ready_Pos_Motor_20											284	//	[시작 위치 오류] 음극 1차 PNP 피커 T축 
+#define	N_Alarm_Ready_Pos_Motor_21											285	//	[시작 위치 오류] 양극 2차 PNP Z축 
+#define	N_Alarm_Ready_Pos_Motor_22											286	//	[시작 위치 오류] 음극 2차 PNP Z축 
+#define	N_Alarm_Ready_Pos_Motor_23											287	//	[시작 위치 오류] 세파 상단 언와인더 
+#define	N_Alarm_Ready_Pos_Motor_24											288	//	[시작 위치 오류] 세파 하단 언와인더 
+#define	N_Alarm_Ready_Pos_Motor_25											289	//	[시작 위치 오류] 양극 클램프 Z2축 
+#define	N_Alarm_Ready_Pos_Motor_26											290	//	[시작 위치 오류] 음극 클램프 Z2축
+#define	N_Alarm_Ready_Pos_Motor_9											291	//	[시작 위치 오류] 양극 클램프 Z1축 
+#define	N_Alarm_Ready_Pos_Motor_10											292	//	[시작 위치 오류] 음극 클램프 Z1축  
+//																			293	//	
+//																			294	//	
+//																			295	//	
+//																			296	//		
+#define	N_Alarm_Ready_Pos_Motor_33											297	//	[시작 위치 오류] EPC 센서
+#define	N_Alarm_Ready_Pos_Motor_34											298	//	[시작 위치 오류] 스텍 비전
+#define	N_Alarm_Ready_Pos_Motor_35											299	//	[시작 위치 오류] 1차 시트 페이퍼 X축
+#define	N_Alarm_Ready_Pos_Motor_36											300	//	[시작 위치 오류] 양극 얼라인테이블 X축
+#define	N_Alarm_Ready_Pos_Motor_37											301	//	[시작 위치 오류] 양극 얼라인테이블 Y축
+#define	N_Alarm_Ready_Pos_Motor_38											302	//	[시작 위치 오류] 양극 얼라인테이블 T축
+#define	N_Alarm_Ready_Pos_Motor_39											303	//	[시작 위치 오류] 음극 얼라인테이블 X축
+#define	N_Alarm_Ready_Pos_Motor_40											304	//	[시작 위치 오류] 음극 얼라인테이블 Y축
+#define	N_Alarm_Ready_Pos_Motor_41											305	//	[시작 위치 오류] 음극 얼라인테이블 T축
+#define	N_Alarm_Ready_Pos_Motor_42											306	//	[시작 위치 오류] 양극 NG PNP T축
+#define	N_Alarm_Ready_Pos_Motor_43											307	//	[시작 위치 오류] 음극 NG PNP T축
+#define	N_Alarm_Ready_Pos_Motor_44											308	//	[시작 위치 오류] 양극 NG PNP Z축
+#define	N_Alarm_Ready_Pos_Motor_45											309	//	[시작 위치 오류] 음극 NG PNP Z축
+#define	N_Alarm_Ready_Pos_Motor_46											310	//	[시작 위치 오류] 1차 언로더 X축 
+#define	N_Alarm_Ready_Pos_Motor_47											311	//	[시작 위치 오류] 1차 언로더 Z축 
+#define	N_Alarm_Ready_Pos_Motor_48											312	//	[시작 위치 오류] 1차 언로더 T축
+//																			313
+//																			314
+//																			315
+//																			316
+//																			317
+#define	N_Alarm_Cathode_1st_PNP_T_Home										318	//	[홈 알람] 양극 1차 PNP T축 
+#define	N_Alarm_Anode_1st_PNP_T_Home										319	//	[홈 알람] 음극 1차 PNP T축 
+#define	N_Alarm_Cathode_2st_PNP_T_Home										320	//	[홈 알람] 양극 2차 PNP T축 
+#define	N_Alarm_Anode_2st_PNP_T_Home										321	//	[홈 알람] 음극 2차 PNP T축 
+#define	N_Alarm_Cathode_Clamp_Y1_Home										322	//	[홈 알람] 양극 클램프 Y1축 
+#define	N_Alarm_Anode_Clamp_Y1_Home											323	//	[홈 알람] 음극 클램프 Y1축 
+#define	N_Alarm_Cathode_Clamp_Y2_Home										324	//	[홈 알람] 양극 클램프 Y2축 
+#define	N_Alarm_Anode_Clamp_Y2_Home											325	//	[홈 알람] 음극 클램프 Y2축 
+//																			326
+// 																			327
+#define	N_Alarm_Stack_Table_Main_Z_Home										328	//	[홈 알람] 스텍 Main Table Z축 
+#define	N_Alarm_Final_Roll_X_Home											329	//	[홈 알람] 파이널롤 X축
+#define	N_Alarm_Final_Roll_Z_Home											330	//	[홈 알람] 파이널롤 Z축 
+//																			331	//	
+#define	N_Alarm_Driving_Roll_Home											332	//	[홈 알람] 드라이빙 피딩 롤 
+#define	N_Alarm_Servo_Dancer_Home											333	//	[홈 알람] 서보 댄서 
+#define	N_Alarm_Cathode_1st_PNP_Z_Home										334	//	[홈 알람] 양극 1차 PNP Z축 
+#define	N_Alarm_Anode_1st_PNP_Z_Home										335	//	[홈 알람] 음극 1차 PNP Z축 
+#define	N_Alarm_Cathode_1st_PNP_Picker_T_Home								336	//	[홈 알람] 양극 1차 PNP 피커 T축
+#define	N_Alarm_Anode_1st_PNP_Picker_T_Home									337	//	[홈 알람] 음극 1차 PNP 피커 T축 
+#define	N_Alarm_Cathode_2st_PNP_Z_Home										338	//	[홈 알람] 양극 2차 PNP Z축 
+#define	N_Alarm_Anode_2st_PNP_Z_Home										339	//	[홈 알람] 음극 2차 PNP Z축 
+#define	N_Alarm_Sepa_Unwinder_Upper_Home									340	//	[홈 알람] 세파 상단 언와인더 
+#define	N_Alarm_Sepa_Unwinder_Lower_Home									341	//	[홈 알람] 세파 하단 언와인더 
+#define	N_Alarm_Cathode_Clamp_Z2_Home										342	//	[홈 알람] 양극 클램프 Z1축 
+#define	N_Alarm_Anode_Clamp_Z2_Home											343	//	[홈 알람] 음극 클램프 Z1축//	
+#define	N_Alarm_Cathode_Clamp_Z1_Home										344	//	[홈 알람] 양극 클램프 Z1축 
+#define	N_Alarm_Anode_Clamp_Z1_Home											345	//	[홈 알람] 음극 클램프 Z1축//		
+//																			346	//	
+//																			347	//	
+//																			348	//	
+//																			349	//	
+#define	N_Alarm_EPC_Sensor_Home												350	//	[홈 알람] EPC 센서
+#define	N_Alarm_Stack_Vision_Home											351	//	[홈 알람] 스텍 비전
+#define	N_Alarm_1st_Sheet_Paper_X_Home										352	//	[홈 알람] 1차 시트 페이퍼 X축
+#define	N_Alarm_Cathode_AT_X_Home											353	//	[홈 알람] 양극 얼라인테이블 X축
+#define	N_Alarm_Cathode_AT_Y_Home											354	//	[홈 알람] 양극 얼라인테이블 Y축
+#define	N_Alarm_Cathode_AT_T_Home											355	//	[홈 알람] 양극 얼라인테이블 T축
+#define	N_Alarm_Anode_AT_X_Home												356	//	[홈 알람] 음극 얼라인테이블 X축
+#define	N_Alarm_Anode_AT_Y_Home												357	//	[홈 알람] 음극 얼라인테이블 Y축
+#define	N_Alarm_Anode_AT_T_Home												358	//	[홈 알람] 음극 얼라인테이블 T축
+#define	N_Alarm_Cathode_NG_PNP_T_Home										359	//	[홈 알람] 양극 NG PNP T축
+#define	N_Alarm_Anode_NG_PNP_T_Home											360	//	[홈 알람] 음극 NG PNP T축
+#define	N_Alarm_Cathode_NG_PNP_Z_Home										361	//	[홈 알람] 양극 NG PNP Z축
+#define	N_Alarm_Anode_NG_PNP_Z_Home											362	//	[홈 알람] 음극 NG PNP Z축
+#define	N_Alarm_1st_ULD_X_Home												363	//	[홈 알람] 1차 언로더 X축 
+#define	N_Alarm_1st_ULD_Z_Home												364	//	[홈 알람] 1차 언로더 Z축 
+#define	N_Alarm_1st_ULD_T_Home												365	//	[홈 알람] 1차 언로더 T축
+//																			366
+//																			367
+//																			368
+//																			369
+//																			370
+#define	N_Alarm_Anode_1st_PNP_Sub_Master_Motion_Prog_Down					371	//	[서브마스터 모션 다운] 음극 1차 PNP
+#define	N_Alarm_Anode_1st_PNP_Picker_Sub_Master_Motion_Prog_Down			372	//	[서브마스터 모션 다운] 음극 1차 PNP 피커
+#define	N_Alarm_Anode_2nd_PNP_Sub_Master_Motion_Prog_Down					373	//	[서브마스터 모션 다운] 음극 2차 PNP 
+#define	N_Alarm_Anode_Clamp_Sub_Master_Motion_Prog_Down						374	//	[서브마스터 모션 다운] 음극 클램프
+#define N_Alarm_Fianl_Roll_Sub_Master_Motion_Prog_Down						375	//	[서브마스터 모션 다운] 파이널 롤 
+#define N_Alarm_Stack_Table_Sub_Master_Motion_Prog_Down						376	//	[서브마스터 모션 다운] 스택 테이블
+#define N_Alarm_Cathode_Clamp_Sub_Master_Motion_Prog_Down					377	//	[서브마스터 모션 다운] 양극 클램프
+#define N_Alarm_Cathode_2nd_PNP_Sub_Master_Motion_Prog_Down					378	//	[서브마스터 모션 다운] 양극 2차 PNP
+#define	N_Alarm_Cathode_1st_PNP_Picker_Sub_Master_Motion_Prog_Down			379	//	[서브마스터 모션 다운] 양극 1차 PNP 피커
+#define	N_Alarm_Cathode_1st_PNP_Sub_Master_Motion_Prog_Down					380	//	[서브마스터 모션 다운] 양극 1차 PNP
+//																			381	//	
+//																			382	//	
+//																			383	//	
+#define	N_Alarm_Anode_1st_PNP_T_Slave_Motion_Prog_Down						384	//	[슬레이브 모션 다운] 음극 1차 PNP T축 
+#define	N_Alarm_Anode_1st_PNP_Picker_T_Slave_Motion_Prog_Down				385	//	[슬레이브 모션 다운] 음극 1차 PNP 피커 T축 
+#define	N_Alarm_Anode_2nd_PNP_T_Slave_Motion_Prog_Down						386	//	[슬레이브 모션 다운] 음극 2차 PNP T축
+#define	N_Alarm_Anode_Clamp_Slave_Motion_Prog_Down							387	//	[슬레이브 모션 다운] 음극 클램프
+#define	N_Alarm_Fianl_Roll_Slave_Motion_Prog_Down							388	//	[슬레이브 모션 다운] 파이널 롤
+#define	N_Alarm_Stack_Table_Slave_Motion_Prog_Down							389	//	[슬레이브 모션 다운] 스택 테이블
+#define	N_Alarm_Cathode_Clamp_Slave_Motion_Prog_Down						390	//	[슬레이브 모션 다운] 양극 클램프
+#define	N_Alarm_Cathode_2nd_PNP_T_Slave_Motion_Prog_Down					391	//	[슬레이브 모션 다운] 양극 2차 PNP T축
+#define	N_Alarm_Cathode_1st_PNP_Picker_T_Slave_Motion_Prog_Down				392	//	[슬레이브 모션 다운] 양극 1차 PNP 피커 T축
+#define	N_Alarm_Cathode_1st_PNP_T_Slave_Motion_Prog_Down					393	//	[슬레이브 모션 다운] 양극 1차 PNP T축
+#define	N_Alarm_1st_Sheet_Paper_X_Slave_Motion_Prog_Down					394	//	[슬레이브 모션 다운] 시트 페이퍼 X축 
+#define	N_Alarm_Cathode_NG_PNP_Slave_Motion_Prog_Down						395	//	[슬레이브 모션 다운] 양극 NG PNP
+#define	N_Alarm_Anode_NG_PNP_Slave_Motion_Prog_Down							396	//	[슬레이브 모션 다운] 음극 NG PNP
+#define	N_Alarm_1st_Unloader_Slave_Motion_Prog_Down							397	//	[슬레이브 모션 다운] 1차 언로더
+#define	N_Alarm_Motion_Camtable_Slave_Motion_Prog_Down						398	//	[슬레이브 모션 다운] 모션 캠테이블
+#define	N_Alarm_Unwinder_Slave_Motion_Prog_Down								399	//	[슬레이브 모션 다운] 언와인더
+#define	N_Alarm_Anode_1st_PNP_Z_Slave_Motion_Prog_Down						400	//	[슬레이브 모션 다운] 음극 1차 PNP Z축
+#define N_Alarm_Anode_2nd_PNP_Z_Slave_Motion_Prog_Down						401	//	[슬레이브 모션 다운] 음극 2차 PNP Z축
+#define N_Alarm_Cathode_2nd_PNP_Z_Slave_Motion_Prog_Down					402	//	[슬레이브 모션 다운] 양극 1차 PNP Z축
+#define N_Alarm_Cathode_1st_PNP_Z_Slave_Motion_Prog_Down					403	//	[슬레이브 모션 다운] 양극 2차 PNP Z축
+//																			404	//	
+//																			405	//	
+#define	N_Alarm_Opposite_Lane_Abort_Alram									406	//	반대열 abort 알람
+#define	N_Alarm_Light_Curtain_Detect										407	//	라이트 커튼 감지 알람
+#define	N_Alarm_X_Stack_Cell_Over											408	//	Stack Cell 적재 개수 이상 알람	
+#define	N_Alarm_Cathode_1ST_PNP_Down_POS_Vaccume							409	//	[진공 알람] 양극 1차 PNP 
+#define	N_Alarm_Anode_1ST_PNP_Down_POS_Vaccume								410	//	[진공 알람] 음극 1차 PNP 
+#define	N_Alarm_Cathode_2ST_PNP_Down_POS_Vaccume							411	//	[진공 알람] 양극 2차 PNP 
+#define	N_Alarm_Anode_2ST_PNP_Down_POS_Vaccume								412	//	[진공 알람] 음극 2차 PNP 
+#define	N_Alarm_Cathode_NG_PNP_Down_POS_Vaccume								413	//	[진공 알람] 양극 NG PNP
+#define	N_Alarm_Anode_NG_PNP_Down_POS_Vaccume								414	//	[진공 알람] 음극 NG PNP
+#define	N_Alarm_Cathode_AT_Down_POS_Vaccume									415	//	[진공 알람] 양극 얼라인테이블 
+#define	N_Alarm_Anode_AT_Down_POS_Vaccume									416	//	[진공 알람] 음극 얼라인테이블 
+#define	N_Alarm_Main_Stack_Table_Down_POS_Vaccume							417	//	[진공 알람] 스텍 테이블 
+#define	N_Alarm_Main_Stack_T_Plate_Down_POS_Vaccume							418	//	[진공 알람] 스텍 테이블 첫장 플레이트 
+#define	N_Alarm_Cathode_2ST_PNP_Blow_NG										419	//	[진공 알람] 양극 2차 P&P Blow미동작 알람
+#define	N_Alarm_Anode_2ST_PNP_Blow_NG										420	//	[진공 알람] 음극 2차 P&P Blow미동작 알람
+//#define																	421	//	
+//#define																	422	//	
+//#define																	423	//	
+//#define																	424	//	
+//#define																	425	//	
+//#define																	426	//	
+#define	N_Alarm_AB_Cathode_1st_Pnp_Pos_Jog_CollisionRisk					427	//	A, B열 양극 PNP 1차 PNP 충돌 위험
+#define	N_Alarm_AB_Anode_1st_Pnp_Pos_Jog_CollisionRisk						428	//	A, B열 음극 PNP 1차 PNP 충돌 위험
+#define	N_Alarm_Cathode_1st_2st_Pnp_Jog_Move_CollisionRisk					429	//	양극 1차, 2차 PNP 조그 이동 시 충돌 위험 
+#define	N_Alarm_Anode_1st_2st_Pnp_Jog_Move_CollisionRisk					430	//	음극 1차, 2차 PNP 조그 이동 시 충돌 위험 
+#define	N_Alarm_Cathode_2st_Pnp_And_FR_Jog_Move_CollisionRisk				431	//	양극 2차 PNP, Final Roll 조그 이동 시 충돌 위험
+#define	N_Alarm_Anode_2st_Pnp_And_FR_Jog_Move_CollisionRisk					432	//	음극 2차 PNP, Final Roll 조그 이동 시 충돌 위험
+#define	N_Alarm_StackT_And_2st_Pnp_Jog_Move_CollisionRisk					433	//	스텍 테이블, 2차 PNP 조그 이동 시 충돌 위험
+#define	N_Alarm_AB_Cathode_1st_Pnp_IF_Error									434	//	A, B열 양극 1차 PNP 이동 인터페이스 신호 이상 알람
+#define	N_Alarm_AB_Anode_1st_Pnp_IF_Error									435	//	A, B열 음극 1차 PNP 이동 인터페이스 신호 이상 알람
+#define N_Alarm_Opposite_Lane_1st_PNP_Near_Belt_Pos							436	//	반대열 1차 PNP 벨트 근접 알람
+#define N_Alarm_Opposite_Lane_Pause_IO_Err									437	//	반대열 Pause IO 이상 알람	
+#define	N_Alarm_Cathode_1st_Pnp_Cell_Data_Mismatch							438	//	양극 1차 PNP 극판 데이터 불일치 
+#define	N_Alarm_Anode_1st_Pnp_Cell_Data_Mismatch							439	//	음극 1차 PNP 극판 데이터 불일치 
+#define	N_Alarm_Cathode_2st_Pnp_Cell_Data_Mismatch							440	//	양극 2차 PNP 극판 데이터 불일치
+#define	N_Alarm_Anode_2st_Pnp_Cell_Data_Mismatch							441	//	음극 2차 PNP 극판 데이터 불일치
+#define	N_Alarm_Cathode_NG_Pnp_Cell_Data_Mismatch							442	//	양극 NG PNP 극판 데이터 불일치 
+#define	N_Alarm_Anode_NG_Pnp_Cell_Data_Mismatch								443	//	음극 NG PNP 극판 데이터 불일치
+#define	N_Alarm_Cathode_AT_Cell_Data_Mismatch								444	//	양극 얼라인 테이블 극판 데이터 불일치
+#define	N_Alarm_Anode_AT_Cell_Data_Mismatch									445	//	음극 얼라인 테이블 극판 데이터 불일치
+#define	N_Alarm_1st_ULD_Cell_Data_Mismatch									446	//	1차 언로더 극판 데이터 불일치
+//#define																	447 
+#define	N_Alarm_Cathode_Align_Vision_TimeOut								448	//	[타임아웃] 양극 얼라인 비전 판정 결과 타임아웃
+#define	N_Alarm_Anode_Align_Vision_TimeOut									449	//	[타임아웃] 음극 얼라인 비전 판정 결과 타임아웃
+#define	N_Alarm_Stack_Vision_TimeOut										450	//	[타임아웃] 스텍 비전 판정 결과 타임아웃 
+#define	N_Alarm_Sepa_ARC_TimeOut											451	//	[타임아웃] 세파 ARC 타임아웃 
+#define	N_Alarm_SEPA_ARC_Upper_Chuck_Unchuck_Error							452	//	세파 ARC Upper 언와인더 척/언척 오류
+#define	N_Alarm_SEPA_ARC_Lower_Chuck_Unchuck_Error							453	//	세파 ARC Lower 언와인더 척/언척 오류
+#define	N_Alarm_Cathode_AT_Clamp_ON_OFF_Error								454	//	양극 얼라인테이블 제로 클램프/언클램프 오류
+#define	N_Alarm_Anode_AT_Clamp_ON_OFF_Error									455	//	음극 얼라인테이블 제로 클램프/언클램프 오류
+// #define																	456	//	
+// #define																	457	//	
+#define	N_Alarm_FR_Clamp_ON_OFF_Error										458	//	파이널롤 클램프/언클램프 오류
+#define	N_Alarm_Cathode_Clamp_ON_OFF_Error									459	//	양극 클램프 클램프/언클램프 오류
+#define	N_Alarm_Anode_Clamp_ON_OFF_Error									460	//	음극 클램프 클램프/언클램프 오류
+#define	N_Alarm_StackT_Job_Clamp_ON_OFF_Error								461	//	스텍 테이블 잡체인지 클램프/언클램프 오류
+#define	N_Alarm_StackT_Up_Down_Error										462	//	스텍 테이블 상승/하강 오류
+#define	N_Alarm_StackT_Back_Roll_Clamp_ON_OFF_Error							463	//	스텍 테이블 백업 롤 클램프/언클램프 오류
+#define	N_Alarm_StackT_Cutter_ON_OFF_Error									464	//	스텍 테이블 커터 히터 On/Off 오류
+#define	N_Alarm_StackT_Sepa_Up_Down_Error									465	//	스텍 테이블 세파 커터 상승/하강 오류
+#define	N_Alarm_StackT_First_Plate_Fwd_Bwd_Error							466	//	스텍 테이블 첫장 플레이트 전진/후진 오류
+#define	N_Alarm_StackT_First_Plate_Vacuum_ON_OFF_Error						467	//	스텍 테이블 첫장 플레이트 진공 On/Off 오류
+#define	N_Alarm_SEPA_ARC_Upper_Plate_UP_Down_Error							468	//	세파 ARC Upper 플레이트 상승/하강 오류
+#define	N_Alarm_SEPA_ARC_Upper_Tilting_0_90_Error							469	//	세파 ARC Upper 틸팅 0'/90' 오류
+#define	N_Alarm_SEPA_ARC_Upper_Cutter_Fwd_Bwd_Error							470	//	세파 ARC Upper 커터 전진/후진 오류
+#define	N_Alarm_SEPA_ARC_Upper_Clamp_On_Off_Error							471	//	세파 ARC Upper 클램프 클램프/언클램프 오류
+#define	N_Alarm_SEPA_ARC_Upper_Vacuum_On_Off_Error							472	//	세파 ARC Upper 진공 On/Off 오류
+#define	N_Alarm_SEPA_ARC_Lower_Plate_Up_Down_Error							473	//	세파 ARC Lower 플레이트 상승/하강 오류
+#define	N_Alarm_SEPA_ARC_Lower_Tilting_0_90_Error							474	//	세파 ARC Lower 틸팅 0'/90' 오류
+#define	N_Alarm_SEPA_ARC_Lower_Cutter_Fwd_Bwd_Error							475	//	세파 ARC Lower 커터 전진/후진 오류
+#define	N_Alarm_SEPA_ARC_Lower_Clamp_On_Off_Error							476	//	세파 ARC Lower 클램프 클램프/언클램프 오류
+#define	N_Alarm_SEPA_ARC_Lower_Vacuum_On_Off_Error							477	//	세파 ARC Lower 진공 On/Off 오류
+//#define																	478	
+#define	N_Alarm_Vision_Camera_Lock_Unlock_Error								479	//	비전 카메라 잠금/해제 오류 
+#define	N_Alarm_SEPA_Passive_Dancer_On_Off_Error							480	//	세파 패시브댄서 On/Off 오류
+#define	N_Alarm_1st_Unloader_GripperGrip_Ungrip_Error						481	//	1차 언로더 그립/언그립 오류
+#define	N_Alarm_1st_Unloader_Blow_On_Off_Error 								482	//	1차 언로더 블로우 On/Off 오류
+//#define																	483
+#define	N_Alarm_SEPA_Cutter_Current_Undervoltage							484	//	세파 커터 전류값 미달 알람 
+#define	N_Alarm_FR_Sepa_Unclamp_Cylinder_Malfunction 						485	//	파이널롤 세파 언클램프 실린더 오작동
+#define N_Alarm_SEPA_ARC_Home_Error											486	//	세파 ARC 정위치 오류					
+#define N_Alarm_SEPA_ARC_Driving_Roll_FWD_BWD_Error							487	//	세파 ARC 드라이빙 롤 전진/후진 오류	
+#define	N_Alarm_Cathode_Align_NG_Over_Count									488	//	양극 얼라인 연속 NG 알람
+#define	N_Alarm_Anode_Align_NG_Over_Count									489	//	음극 얼라인 연속 NG 알람
+#define	N_Alarm_Stack_Vision_Count_NG										490	//	스텍 비전 연속 NG 알람
+#define	N_Alarm_Cathode_Retry_Align_Count_NG 								491	//	양극 리트라이 비젼 연속 NG 알람
+#define	N_Alarm_Anode_Retry_Align_Count_NG									492	//	음극 리트라이 비젼 연속 NG 알람
+#define	N_Alarm_Y_EPC_Align_Mode_Retry_Continuous_Error						493	//	EPC 보정 모드 재시도 연속 알람 
+#define	N_Alarm_Anode_Align_Scrap_NG										494	//	음극 얼라인 비젼 스크랩 NG
+#define	N_Alarm_Cathode_Align_Scrap_NG										495	//	양극 얼라인 비젼 스크랩 NG
+#define	N_Alarm_Anode_Front_Scrap_NG										496	//	음극 프론트 비젼 스크랩 NG
+#define	N_Alarm_Cathode_Front_Scrap_NG										497	//	양극 프론트 비젼 스크랩 NG
+//#define																	498	
+//#define																	499	
+#define	N_Alarm_Cathode_Align_Vision_HeartBit								500	//	[ 통신오류 알람 ] 양극 얼라인 비젼
+#define	N_Alarm_Anode_Align_Vision_HeartBit									501	//	[ 통신오류 알람 ] 음극 얼라인 비젼
+#define	N_Alarm_Stack_Align_Vision_HeartBit									502	//	[ 통신오류 알람 ] 스택 얼라인 비젼
+#define	N_Alarm_Cathode_Align_Vision_Ready_Check							503	//	[ 레디 신호 오류 ] 양극 얼라인 비젼 Ready
+#define	N_Alarm_Anode_Align_Vision_Ready_Check								504	//	[ 레디 신호 오류 ] 음극 얼라인 비젼 Ready
+#define	N_Alarm_Stack_Align_Vision_Ready_Check								505	//	[ 레디 신호 오류 ] 스택 얼라인 비젼 Ready
+#define	N_Alarm_Sepa_ARC_Ready_Check										506	//	[ 레디 신호 오류 ] Sepa ARC Ready 상태 확인
+#define	N_Alarm_Cathode_Align_Continuous_NG									507	//	양극 얼라인 NG 횟수 초과 
+#define	N_Alarm_Anode_Align_Continuous_NG									508	//	음극 얼라인 NG 횟수 초과 
+#define	N_Alarm_Stack_Align_Continuous_NG									509	//	스택 얼라인 NG 횟수 초과 
+#define	N_Alarm_Upper_Sepa_Thickness_Chk									510	//	상단 세파 언와인더 소재 잔량 부족
+#define	N_Alarm_Lower_Sepa_Thickness_Chk									511	//	하단 세파 언와인더 소재 잔량 부족
+#define	N_Alarm_Cathode_Align_Detach										512	//	양극 얼라인테이블 미부착 알람
+#define	N_Alarm_Anode_Align_Detach											513	//	음극 얼라인테이블 미부착 알람
+#define	N_Alarm_EPC_Disconnectde											514	//	EPC 미연결 상태
+#define	N_Alarm_EPC_EDGE_Mismatch											515	//	EPC 오른쪽 or 왼쪽 엣지 값 미매칭 
+#define	N_Alarm_EPC_Sensor_Unsel											516	//	EPC 오른쪽/왼쪽 센서 미선택
+#define	N_Alarm_EPC_HeartBit_Error											517	//	EPC 통신 알람
+#define	N_Alarm_EPC_Limit_Error												518	//	EPC 리밋 에러
+#define	N_Alarm_Cathode_NG_Box_None											519	//	양극 NG BOX 없음
+#define	N_Alarm_Anode_NG_Box_None											520	//	음극 NG BOX 없음
+#define	N_Alarm_AT_Detach_Mode_Error										521	//	얼라인테이블 탈착 모드 실행 불가
+#define	N_Alarm_1st_ULD_Pos_Interlock 										522	//	1차 언로더 위치 인터락 알람
+//#define	 																523	
+//#define																	524	//	
+#define N_Alarm_Servo_Dancer_Angle											525	//	서보댄서 각도 알람
+#define N_Alarm_Ecat_Connection_Error										526	//	ECAT 통신 오류 알람
+//#define																	527
+//#define 																	528 
+//#define																	529
+#define N_Alarm_Cathode_Anode_Reel_Door_Open_Chk							530 // 양극 또는 음극 릴컷 도어 오픈 알람  [ 참조 : 260513 : 양음극 릴컷부 도어 오픈 시 1차 PNP 인터락 ]
+// 260708 빈테이블 및 유무검사 알람 세분화, 타임아웃 알람 추가
+#define N_Cathode_Align_Empty_Inspection_NG_Alarm							531 // 양극 빈테이블 검사 ng 알람
+#define N_Anode_Align_Empty_Inspection_NG_Alarm								532	// 음극 빈테이블 검사 ng 알람
+#define	N_Cathode_Align_Empty_Inspection_TimeOut_Alarm						533	// 양극 빈테이블 검사 타임아웃 알람
+#define	N_Anode_Align_Empty_Inspection_TimeOut_Alarm						534	// 음극 빈테이블 검사 타임아웃 알람
+#define N_Alarm_Cathode_AT_Cell_Data_Mismatch_TimeOut_Alarm					535 // 양극 극판 유무검사 타임아웃 알람
+#define N_Alarm_Anode_AT_Cell_Data_Mismatch_TimeOut_Alarm					536 // 음극 극판 유무검사 타임아웃 알람
+#define	N_Cathode_Surface_Vision_TimeOut_Alarm								537	// 양극 표면검사 타임아웃 알람
+#define	N_Anode_Surface_Vision_TimeOut_Alarm								538	// 음극 표면검사 타임아웃 알람
+#define	N_Stack_Vision_TimeOut_Alarm										539 // 스택 비전 타임아웃 알람
+//#define																	540
+//#define																	541
+//#define																	542
+//#define																	543
+//#define																	544
+//#define																	545
+//#define																	546
+//#define																	547
+//#define																	548
+//#define																	549
+//#define																	550
+//#define																	551
+//#define																	552
+//#define																	553
+//#define																	554
+//#define																	555
+//#define																	556
+//#define																	557
+//#define																	558
+//#define																	559
+//#define																	560
+//#define																	561
+//#define																	562
+//#define																	563
+//#define																	564
+//#define																	565
+//#define																	566
+//#define																	567
+//#define																	568
+//#define																	569
+//#define																	570
+//#define																	571
+//#define																	572
+//#define																	573
+//#define																	574
+//#define																	575
+//#define																	576
+//#define																	577
+//#define																	578
+//#define																	579
+//#define																	580
+//#define																	581
+//#define																	582
+//#define																	583
+//#define																	584
+//#define																	585
+//#define																	586
+//#define																	587
+//#define																	588
+//#define																	589
+//#define																	590
+//#define																	591
+//#define																	592
+//#define																	593
+//#define																	594
+//#define																	595
+//#define																	596
+//#define																	597
+//#define																	598
+//#define																	599
+//#define																	600
+//#define																	601
+//#define																	602
+//#define																	603
+//#define																	604
+//#define																	605
+//#define																	606
+//#define																	607
+//#define																	608
+//#define																	609
+//#define																	610
+//#define																	611
+//#define																	612
+//#define																	613
+//#define																	614
+//#define																	615
+//#define																	616
+//#define																	617
+//#define																	618
+//#define																	619
+//#define																	620
+//#define																	621
+//#define																	622
+//#define																	623
+//#define																	624
+//#define																	625
+//#define																	626
+//#define																	627
+//#define																	628
+//#define																	629
+//#define																	630
+//#define																	631
+//#define																	632
+//#define																	633
+//#define																	634
+//#define																	635
+//#define																	636
+//#define																	637
+//#define																	638
+//#define																	639
+//#define																	640		// M640 ~ M655 경알람 영역
+//#define																	641		// M640 ~ M655 경알람 영역
+//#define																	642		// M640 ~ M655 경알람 영역
+//#define																	643		// M640 ~ M655 경알람 영역
+//#define																	644		// M640 ~ M655 경알람 영역
+//#define																	645		// M640 ~ M655 경알람 영역
+//#define																	646		// M640 ~ M655 경알람 영역
+//#define																	647		// M640 ~ M655 경알람 영역
+//#define																	648		// M640 ~ M655 경알람 영역
+//#define																	649		// M640 ~ M655 경알람 영역
+//#define																	650		// M640 ~ M655 경알람 영역
+//#define																	651		// M640 ~ M655 경알람 영역
+//#define																	652		// M640 ~ M655 경알람 영역
+//#define																	653		// M640 ~ M655 경알람 영역
+//#define																	654		// M640 ~ M655 경알람 영역
+#define N_Alarm_Cycle_Stop_Done												655		//	사이클 스탑 완료  260611 사이클 스탑 영역 변경
+
+
+// 알람 포인팅
+M0->u.user:$0145A4.16.1 
+M1->u.user:$0145A4.17.1	
+M2->u.user:$0145A4.18.1	
+M3->u.user:$0145A4.19.1	
+M4->u.user:$0145A4.20.1	
+M5->u.user:$0145A4.21.1	
+M6->u.user:$0145A4.22.1	
+M7->u.user:$0145A4.23.1	
+M8->u.user:$0145A4.24.1	
+M9->u.user:$0145A4.25.1	
+M10->u.user:$0145A4.26.1	
+M11->u.user:$0145A4.27.1	
+M12->u.user:$0145A4.28.1	
+M13->u.user:$0145A4.29.1	
+M14->u.user:$0145A4.30.1	
+M15->u.user:$0145A4.31.1	
+M16->u.user:$0145A8.0.1	
+M17->u.user:$0145A8.1.1	
+M18->u.user:$0145A8.2.1	
+M19->u.user:$0145A8.3.1	
+M20->u.user:$0145A8.4.1	
+M21->u.user:$0145A8.5.1	
+M22->u.user:$0145A8.6.1	
+M23->u.user:$0145A8.7.1	
+M24->u.user:$0145A8.8.1	
+M25->u.user:$0145A8.9.1	
+M26->u.user:$0145A8.10.1	
+M27->u.user:$0145A8.11.1	
+M28->u.user:$0145A8.12.1	
+M29->u.user:$0145A8.13.1	
+M30->u.user:$0145A8.14.1	
+M31->u.user:$0145A8.15.1	
+M32->u.user:$0145A8.16.1	
+M33->u.user:$0145A8.17.1	
+M34->u.user:$0145A8.18.1	
+M35->u.user:$0145A8.19.1	
+M36->u.user:$0145A8.20.1	
+M37->u.user:$0145A8.21.1	
+M38->u.user:$0145A8.22.1	
+M39->u.user:$0145A8.23.1	
+M40->u.user:$0145A8.24.1	
+M41->u.user:$0145A8.25.1	
+M42->u.user:$0145A8.26.1	
+M43->u.user:$0145A8.27.1	
+M44->u.user:$0145A8.28.1	
+M45->u.user:$0145A8.29.1	
+M46->u.user:$0145A8.30.1	
+M47->u.user:$0145A8.31.1	
+M48->u.user:$0145AC.0.1	
+M49->u.user:$0145AC.1.1	
+M50->u.user:$0145AC.2.1	
+M51->u.user:$0145AC.3.1	
+M52->u.user:$0145AC.4.1	
+M53->u.user:$0145AC.5.1	
+M54->u.user:$0145AC.6.1	
+M55->u.user:$0145AC.7.1	
+M56->u.user:$0145AC.8.1	
+M57->u.user:$0145AC.9.1	
+M58->u.user:$0145AC.10.1	
+M59->u.user:$0145AC.11.1	
+M60->u.user:$0145AC.12.1	
+M61->u.user:$0145AC.13.1	
+M62->u.user:$0145AC.14.1	
+M63->u.user:$0145AC.15.1	
+M64->u.user:$0145AC.16.1	
+M65->u.user:$0145AC.17.1	
+M66->u.user:$0145AC.18.1	
+M67->u.user:$0145AC.19.1	
+M68->u.user:$0145AC.20.1	
+M69->u.user:$0145AC.21.1	
+M70->u.user:$0145AC.22.1	
+M71->u.user:$0145AC.23.1	
+M72->u.user:$0145AC.24.1	
+M73->u.user:$0145AC.25.1	
+M74->u.user:$0145AC.26.1	
+M75->u.user:$0145AC.27.1	
+M76->u.user:$0145AC.28.1	
+M77->u.user:$0145AC.29.1	
+M78->u.user:$0145AC.30.1	
+M79->u.user:$0145AC.31.1	
+M80->u.user:$0145B0.0.1	
+M81->u.user:$0145B0.1.1	
+M82->u.user:$0145B0.2.1	
+M83->u.user:$0145B0.3.1	
+M84->u.user:$0145B0.4.1	
+M85->u.user:$0145B0.5.1	
+M86->u.user:$0145B0.6.1	
+M87->u.user:$0145B0.7.1	
+M88->u.user:$0145B0.8.1	
+M89->u.user:$0145B0.9.1	
+M90->u.user:$0145B0.10.1	
+M91->u.user:$0145B0.11.1	
+M92->u.user:$0145B0.12.1	
+M93->u.user:$0145B0.13.1	
+M94->u.user:$0145B0.14.1	
+M95->u.user:$0145B0.15.1	
+M96->u.user:$0145B0.16.1	
+M97->u.user:$0145B0.17.1	
+M98->u.user:$0145B0.18.1	
+M99->u.user:$0145B0.19.1	
+M100->u.user:$0145B0.20.1	
+M101->u.user:$0145B0.21.1	
+M102->u.user:$0145B0.22.1	
+M103->u.user:$0145B0.23.1	
+M104->u.user:$0145B0.24.1	
+M105->u.user:$0145B0.25.1	
+M106->u.user:$0145B0.26.1	
+M107->u.user:$0145B0.27.1	
+M108->u.user:$0145B0.28.1	
+M109->u.user:$0145B0.29.1	
+M110->u.user:$0145B0.30.1	
+M111->u.user:$0145B0.31.1	
+M112->u.user:$0145B4.0.1	
+M113->u.user:$0145B4.1.1	
+M114->u.user:$0145B4.2.1	
+M115->u.user:$0145B4.3.1	
+M116->u.user:$0145B4.4.1	
+M117->u.user:$0145B4.5.1	
+M118->u.user:$0145B4.6.1	
+M119->u.user:$0145B4.7.1	
+M120->u.user:$0145B4.8.1	
+M121->u.user:$0145B4.9.1	
+M122->u.user:$0145B4.10.1	
+M123->u.user:$0145B4.11.1	
+M124->u.user:$0145B4.12.1	
+M125->u.user:$0145B4.13.1	
+M126->u.user:$0145B4.14.1	
+M127->u.user:$0145B4.15.1	
+M128->u.user:$0145B4.16.1	
+M129->u.user:$0145B4.17.1	
+M130->u.user:$0145B4.18.1	
+M131->u.user:$0145B4.19.1	
+M132->u.user:$0145B4.20.1	
+M133->u.user:$0145B4.21.1	
+M134->u.user:$0145B4.22.1	
+M135->u.user:$0145B4.23.1	
+M136->u.user:$0145B4.24.1	
+M137->u.user:$0145B4.25.1	
+M138->u.user:$0145B4.26.1	
+M139->u.user:$0145B4.27.1	
+M140->u.user:$0145B4.28.1	
+M141->u.user:$0145B4.29.1	
+M142->u.user:$0145B4.30.1	
+M143->u.user:$0145B4.31.1	
+M144->u.user:$0145B8.0.1	
+M145->u.user:$0145B8.1.1	
+M146->u.user:$0145B8.2.1	
+M147->u.user:$0145B8.3.1	
+M148->u.user:$0145B8.4.1	
+M149->u.user:$0145B8.5.1	
+M150->u.user:$0145B8.6.1	
+M151->u.user:$0145B8.7.1	
+M152->u.user:$0145B8.8.1	
+M153->u.user:$0145B8.9.1	
+M154->u.user:$0145B8.10.1	
+M155->u.user:$0145B8.11.1	
+M156->u.user:$0145B8.12.1	
+M157->u.user:$0145B8.13.1	
+M158->u.user:$0145B8.14.1	
+M159->u.user:$0145B8.15.1	
+M160->u.user:$0145B8.16.1	
+M161->u.user:$0145B8.17.1	
+M162->u.user:$0145B8.18.1	
+M163->u.user:$0145B8.19.1	
+M164->u.user:$0145B8.20.1	
+M165->u.user:$0145B8.21.1	
+M166->u.user:$0145B8.22.1	
+M167->u.user:$0145B8.23.1	
+M168->u.user:$0145B8.24.1	
+M169->u.user:$0145B8.25.1	
+M170->u.user:$0145B8.26.1	
+M171->u.user:$0145B8.27.1	
+M172->u.user:$0145B8.28.1	
+M173->u.user:$0145B8.29.1	
+M174->u.user:$0145B8.30.1	
+M175->u.user:$0145B8.31.1	
+M176->u.user:$0145BC.0.1	
+M177->u.user:$0145BC.1.1	
+M178->u.user:$0145BC.2.1	
+M179->u.user:$0145BC.3.1	
+M180->u.user:$0145BC.4.1	
+M181->u.user:$0145BC.5.1	
+M182->u.user:$0145BC.6.1	
+M183->u.user:$0145BC.7.1	
+M184->u.user:$0145BC.8.1	
+M185->u.user:$0145BC.9.1	
+M186->u.user:$0145BC.10.1	
+M187->u.user:$0145BC.11.1	
+M188->u.user:$0145BC.12.1	
+M189->u.user:$0145BC.13.1	
+M190->u.user:$0145BC.14.1	
+M191->u.user:$0145BC.15.1	
+M192->u.user:$0145BC.16.1	
+M193->u.user:$0145BC.17.1	
+M194->u.user:$0145BC.18.1	
+M195->u.user:$0145BC.19.1	
+M196->u.user:$0145BC.20.1	
+M197->u.user:$0145BC.21.1	
+M198->u.user:$0145BC.22.1	
+M199->u.user:$0145BC.23.1	
+M200->u.user:$0145BC.24.1	
+M201->u.user:$0145BC.25.1	
+M202->u.user:$0145BC.26.1	
+M203->u.user:$0145BC.27.1	
+M204->u.user:$0145BC.28.1	
+M205->u.user:$0145BC.29.1	
+M206->u.user:$0145BC.30.1	
+M207->u.user:$0145BC.31.1	
+M208->u.user:$0145C0.0.1	
+M209->u.user:$0145C0.1.1	
+M210->u.user:$0145C0.2.1	
+M211->u.user:$0145C0.3.1	
+M212->u.user:$0145C0.4.1	
+M213->u.user:$0145C0.5.1	
+M214->u.user:$0145C0.6.1	
+M215->u.user:$0145C0.7.1	
+M216->u.user:$0145C0.8.1	
+M217->u.user:$0145C0.9.1	
+M218->u.user:$0145C0.10.1	
+M219->u.user:$0145C0.11.1	
+M220->u.user:$0145C0.12.1	
+M221->u.user:$0145C0.13.1	
+M222->u.user:$0145C0.14.1	
+M223->u.user:$0145C0.15.1	
+M224->u.user:$0145C0.16.1	
+M225->u.user:$0145C0.17.1	
+M226->u.user:$0145C0.18.1	
+M227->u.user:$0145C0.19.1	
+M228->u.user:$0145C0.20.1	
+M229->u.user:$0145C0.21.1	
+M230->u.user:$0145C0.22.1	
+M231->u.user:$0145C0.23.1	
+M232->u.user:$0145C0.24.1	
+M233->u.user:$0145C0.25.1	
+M234->u.user:$0145C0.26.1	
+M235->u.user:$0145C0.27.1	
+M236->u.user:$0145C0.28.1	
+M237->u.user:$0145C0.29.1	
+M238->u.user:$0145C0.30.1	
+M239->u.user:$0145C0.31.1	
+M240->u.user:$0145C4.0.1	
+M241->u.user:$0145C4.1.1	
+M242->u.user:$0145C4.2.1	
+M243->u.user:$0145C4.3.1	
+M244->u.user:$0145C4.4.1	
+M245->u.user:$0145C4.5.1	
+M246->u.user:$0145C4.6.1	
+M247->u.user:$0145C4.7.1	
+M248->u.user:$0145C4.8.1	
+M249->u.user:$0145C4.9.1	
+M250->u.user:$0145C4.10.1	
+M251->u.user:$0145C4.11.1	
+M252->u.user:$0145C4.12.1	
+M253->u.user:$0145C4.13.1	
+M254->u.user:$0145C4.14.1	
+M255->u.user:$0145C4.15.1	
+M256->u.user:$0145C4.16.1	
+M257->u.user:$0145C4.17.1	
+M258->u.user:$0145C4.18.1	
+M259->u.user:$0145C4.19.1	
+M260->u.user:$0145C4.20.1	
+M261->u.user:$0145C4.21.1	
+M262->u.user:$0145C4.22.1	
+M263->u.user:$0145C4.23.1	
+M264->u.user:$0145C4.24.1	
+M265->u.user:$0145C4.25.1	
+M266->u.user:$0145C4.26.1	
+M267->u.user:$0145C4.27.1	
+M268->u.user:$0145C4.28.1	
+M269->u.user:$0145C4.29.1	
+M270->u.user:$0145C4.30.1	
+M271->u.user:$0145C4.31.1	
+M272->u.user:$0145C8.0.1	
+M273->u.user:$0145C8.1.1	
+M274->u.user:$0145C8.2.1	
+M275->u.user:$0145C8.3.1	
+M276->u.user:$0145C8.4.1	
+M277->u.user:$0145C8.5.1	
+M278->u.user:$0145C8.6.1	
+M279->u.user:$0145C8.7.1	
+M280->u.user:$0145C8.8.1	
+M281->u.user:$0145C8.9.1	
+M282->u.user:$0145C8.10.1	
+M283->u.user:$0145C8.11.1	
+M284->u.user:$0145C8.12.1	
+M285->u.user:$0145C8.13.1	
+M286->u.user:$0145C8.14.1	
+M287->u.user:$0145C8.15.1	
+M288->u.user:$0145C8.16.1	
+M289->u.user:$0145C8.17.1	
+M290->u.user:$0145C8.18.1	
+M291->u.user:$0145C8.19.1	
+M292->u.user:$0145C8.20.1	
+M293->u.user:$0145C8.21.1	
+M294->u.user:$0145C8.22.1	
+M295->u.user:$0145C8.23.1	
+M296->u.user:$0145C8.24.1	
+M297->u.user:$0145C8.25.1	
+M298->u.user:$0145C8.26.1	
+M299->u.user:$0145C8.27.1	
+M300->u.user:$0145C8.28.1	
+M301->u.user:$0145C8.29.1	
+M302->u.user:$0145C8.30.1	
+M303->u.user:$0145C8.31.1	
+M304->u.user:$0145CC.0.1	
+M305->u.user:$0145CC.1.1	
+M306->u.user:$0145CC.2.1	
+M307->u.user:$0145CC.3.1	
+M308->u.user:$0145CC.4.1	
+M309->u.user:$0145CC.5.1	
+M310->u.user:$0145CC.6.1	
+M311->u.user:$0145CC.7.1	
+M312->u.user:$0145CC.8.1	
+M313->u.user:$0145CC.9.1	
+M314->u.user:$0145CC.10.1	
+M315->u.user:$0145CC.11.1	
+M316->u.user:$0145CC.12.1	
+M317->u.user:$0145CC.13.1	
+M318->u.user:$0145CC.14.1	
+M319->u.user:$0145CC.15.1	
+M320->u.user:$0145CC.16.1	
+M321->u.user:$0145CC.17.1	
+M322->u.user:$0145CC.18.1	
+M323->u.user:$0145CC.19.1	
+M324->u.user:$0145CC.20.1	
+M325->u.user:$0145CC.21.1	
+M326->u.user:$0145CC.22.1	
+M327->u.user:$0145CC.23.1	
+M328->u.user:$0145CC.24.1	
+M329->u.user:$0145CC.25.1	
+M330->u.user:$0145CC.26.1	
+M331->u.user:$0145CC.27.1	
+M332->u.user:$0145CC.28.1	
+M333->u.user:$0145CC.29.1	
+M334->u.user:$0145CC.30.1	
+M335->u.user:$0145CC.31.1	
+M336->u.user:$0145D0.0.1	
+M337->u.user:$0145D0.1.1	
+M338->u.user:$0145D0.2.1	
+M339->u.user:$0145D0.3.1	
+M340->u.user:$0145D0.4.1	
+M341->u.user:$0145D0.5.1	
+M342->u.user:$0145D0.6.1	
+M343->u.user:$0145D0.7.1	
+M344->u.user:$0145D0.8.1	
+M345->u.user:$0145D0.9.1	
+M346->u.user:$0145D0.10.1	
+M347->u.user:$0145D0.11.1	
+M348->u.user:$0145D0.12.1	
+M349->u.user:$0145D0.13.1	
+M350->u.user:$0145D0.14.1	
+M351->u.user:$0145D0.15.1	
+M352->u.user:$0145D0.16.1	
+M353->u.user:$0145D0.17.1	
+M354->u.user:$0145D0.18.1	
+M355->u.user:$0145D0.19.1	
+M356->u.user:$0145D0.20.1	
+M357->u.user:$0145D0.21.1	
+M358->u.user:$0145D0.22.1	
+M359->u.user:$0145D0.23.1	
+M360->u.user:$0145D0.24.1	
+M361->u.user:$0145D0.25.1	
+M362->u.user:$0145D0.26.1	
+M363->u.user:$0145D0.27.1	
+M364->u.user:$0145D0.28.1	
+M365->u.user:$0145D0.29.1	
+M366->u.user:$0145D0.30.1	
+M367->u.user:$0145D0.31.1	
+M368->u.user:$0145D4.0.1	
+M369->u.user:$0145D4.1.1	
+M370->u.user:$0145D4.2.1	
+M371->u.user:$0145D4.3.1	
+M372->u.user:$0145D4.4.1	
+M373->u.user:$0145D4.5.1	
+M374->u.user:$0145D4.6.1	
+M375->u.user:$0145D4.7.1	
+M376->u.user:$0145D4.8.1	
+M377->u.user:$0145D4.9.1	
+M378->u.user:$0145D4.10.1	
+M379->u.user:$0145D4.11.1	
+M380->u.user:$0145D4.12.1	
+M381->u.user:$0145D4.13.1	
+M382->u.user:$0145D4.14.1	
+M383->u.user:$0145D4.15.1	
+M384->u.user:$0145D4.16.1	
+M385->u.user:$0145D4.17.1	
+M386->u.user:$0145D4.18.1	
+M387->u.user:$0145D4.19.1	
+M388->u.user:$0145D4.20.1	
+M389->u.user:$0145D4.21.1	
+M390->u.user:$0145D4.22.1	
+M391->u.user:$0145D4.23.1	
+M392->u.user:$0145D4.24.1	
+M393->u.user:$0145D4.25.1	
+M394->u.user:$0145D4.26.1	
+M395->u.user:$0145D4.27.1	
+M396->u.user:$0145D4.28.1	
+M397->u.user:$0145D4.29.1	
+M398->u.user:$0145D4.30.1	
+M399->u.user:$0145D4.31.1	
+M400->u.user:$0145D8.0.1	
+M401->u.user:$0145D8.1.1	
+M402->u.user:$0145D8.2.1	
+M403->u.user:$0145D8.3.1	
+M404->u.user:$0145D8.4.1	
+M405->u.user:$0145D8.5.1	
+M406->u.user:$0145D8.6.1	
+M407->u.user:$0145D8.7.1	
+M408->u.user:$0145D8.8.1	
+M409->u.user:$0145D8.9.1	
+M410->u.user:$0145D8.10.1	
+M411->u.user:$0145D8.11.1	
+M412->u.user:$0145D8.12.1	
+M413->u.user:$0145D8.13.1	
+M414->u.user:$0145D8.14.1	
+M415->u.user:$0145D8.15.1	
+M416->u.user:$0145D8.16.1	
+M417->u.user:$0145D8.17.1	
+M418->u.user:$0145D8.18.1	
+M419->u.user:$0145D8.19.1	
+M420->u.user:$0145D8.20.1	
+M421->u.user:$0145D8.21.1	
+M422->u.user:$0145D8.22.1	
+M423->u.user:$0145D8.23.1	
+M424->u.user:$0145D8.24.1	
+M425->u.user:$0145D8.25.1	
+M426->u.user:$0145D8.26.1	
+M427->u.user:$0145D8.27.1	
+M428->u.user:$0145D8.28.1	
+M429->u.user:$0145D8.29.1	
+M430->u.user:$0145D8.30.1	
+M431->u.user:$0145D8.31.1	
+M432->u.user:$0145DC.0.1	
+M433->u.user:$0145DC.1.1	
+M434->u.user:$0145DC.2.1	
+M435->u.user:$0145DC.3.1	
+M436->u.user:$0145DC.4.1	
+M437->u.user:$0145DC.5.1	
+M438->u.user:$0145DC.6.1	
+M439->u.user:$0145DC.7.1	
+M440->u.user:$0145DC.8.1	
+M441->u.user:$0145DC.9.1	
+M442->u.user:$0145DC.10.1	
+M443->u.user:$0145DC.11.1	
+M444->u.user:$0145DC.12.1	
+M445->u.user:$0145DC.13.1	
+M446->u.user:$0145DC.14.1	
+M447->u.user:$0145DC.15.1	
+M448->u.user:$0145DC.16.1	
+M449->u.user:$0145DC.17.1	
+M450->u.user:$0145DC.18.1	
+M451->u.user:$0145DC.19.1	
+M452->u.user:$0145DC.20.1	
+M453->u.user:$0145DC.21.1	
+M454->u.user:$0145DC.22.1	
+M455->u.user:$0145DC.23.1	
+M456->u.user:$0145DC.24.1	
+M457->u.user:$0145DC.25.1	
+M458->u.user:$0145DC.26.1	
+M459->u.user:$0145DC.27.1	
+M460->u.user:$0145DC.28.1	
+M461->u.user:$0145DC.29.1	
+M462->u.user:$0145DC.30.1	
+M463->u.user:$0145DC.31.1	
+M464->u.user:$0145E0.0.1	
+M465->u.user:$0145E0.1.1	
+M466->u.user:$0145E0.2.1	
+M467->u.user:$0145E0.3.1	
+M468->u.user:$0145E0.4.1	
+M469->u.user:$0145E0.5.1	
+M470->u.user:$0145E0.6.1	
+M471->u.user:$0145E0.7.1	
+M472->u.user:$0145E0.8.1	
+M473->u.user:$0145E0.9.1	
+M474->u.user:$0145E0.10.1	
+M475->u.user:$0145E0.11.1	
+M476->u.user:$0145E0.12.1	
+M477->u.user:$0145E0.13.1	
+M478->u.user:$0145E0.14.1	
+M479->u.user:$0145E0.15.1	
+M480->u.user:$0145E0.16.1	
+M481->u.user:$0145E0.17.1	
+M482->u.user:$0145E0.18.1	
+M483->u.user:$0145E0.19.1	
+M484->u.user:$0145E0.20.1	
+M485->u.user:$0145E0.21.1	
+M486->u.user:$0145E0.22.1	
+M487->u.user:$0145E0.23.1	
+M488->u.user:$0145E0.24.1	
+M489->u.user:$0145E0.25.1	
+M490->u.user:$0145E0.26.1	
+M491->u.user:$0145E0.27.1	
+M492->u.user:$0145E0.28.1	
+M493->u.user:$0145E0.29.1	
+M494->u.user:$0145E0.30.1	
+M495->u.user:$0145E0.31.1	
+M496->u.user:$0145E4.0.1	
+M497->u.user:$0145E4.1.1	
+M498->u.user:$0145E4.2.1	
+M499->u.user:$0145E4.3.1	
+M500->u.user:$0145E4.4.1	
+M501->u.user:$0145E4.5.1	
+M502->u.user:$0145E4.6.1	
+M503->u.user:$0145E4.7.1	
+M504->u.user:$0145E4.8.1	
+M505->u.user:$0145E4.9.1	
+M506->u.user:$0145E4.10.1	
+M507->u.user:$0145E4.11.1	
+M508->u.user:$0145E4.12.1	
+M509->u.user:$0145E4.13.1	
+M510->u.user:$0145E4.14.1	
+M511->u.user:$0145E4.15.1	
+M512->u.user:$0145E4.16.1	
+M513->u.user:$0145E4.17.1	
+M514->u.user:$0145E4.18.1	
+M515->u.user:$0145E4.19.1	
+M516->u.user:$0145E4.20.1	
+M517->u.user:$0145E4.21.1	
+M518->u.user:$0145E4.22.1	
+M519->u.user:$0145E4.23.1	
+M520->u.user:$0145E4.24.1	
+M521->u.user:$0145E4.25.1	
+M522->u.user:$0145E4.26.1	
+M523->u.user:$0145E4.27.1	
+M524->u.user:$0145E4.28.1	
+M525->u.user:$0145E4.29.1	
+M526->u.user:$0145E4.30.1	
+M527->u.user:$0145E4.31.1	
+M528->u.user:$0145E8.0.1	
+M529->u.user:$0145E8.1.1	
+M530->u.user:$0145E8.2.1	
+M531->u.user:$0145E8.3.1	
+M532->u.user:$0145E8.4.1	
+M533->u.user:$0145E8.5.1	
+M534->u.user:$0145E8.6.1	
+M535->u.user:$0145E8.7.1	
+M536->u.user:$0145E8.8.1	
+M537->u.user:$0145E8.9.1	
+M538->u.user:$0145E8.10.1	
+M539->u.user:$0145E8.11.1	
+M540->u.user:$0145E8.12.1	
+M541->u.user:$0145E8.13.1	
+M542->u.user:$0145E8.14.1	
+M543->u.user:$0145E8.15.1	
+M544->u.user:$0145E8.16.1	
+M545->u.user:$0145E8.17.1	
+M546->u.user:$0145E8.18.1	
+M547->u.user:$0145E8.19.1	
+M548->u.user:$0145E8.20.1	
+M549->u.user:$0145E8.21.1	
+M550->u.user:$0145E8.22.1	
+M551->u.user:$0145E8.23.1	
+M552->u.user:$0145E8.24.1	
+M553->u.user:$0145E8.25.1	
+M554->u.user:$0145E8.26.1	
+M555->u.user:$0145E8.27.1	
+M556->u.user:$0145E8.28.1	
+M557->u.user:$0145E8.29.1	
+M558->u.user:$0145E8.30.1	
+M559->u.user:$0145E8.31.1	
+M560->u.user:$0145EC.0.1	
+M561->u.user:$0145EC.1.1	
+M562->u.user:$0145EC.2.1	
+M563->u.user:$0145EC.3.1	
+M564->u.user:$0145EC.4.1	
+M565->u.user:$0145EC.5.1	
+M566->u.user:$0145EC.6.1	
+M567->u.user:$0145EC.7.1	
+M568->u.user:$0145EC.8.1	
+M569->u.user:$0145EC.9.1	
+M570->u.user:$0145EC.10.1	
+M571->u.user:$0145EC.11.1	
+M572->u.user:$0145EC.12.1	
+M573->u.user:$0145EC.13.1	
+M574->u.user:$0145EC.14.1	
+M575->u.user:$0145EC.15.1	
+M576->u.user:$0145EC.16.1	
+M577->u.user:$0145EC.17.1	
+M578->u.user:$0145EC.18.1	
+M579->u.user:$0145EC.19.1	
+M580->u.user:$0145EC.20.1	
+M581->u.user:$0145EC.21.1	
+M582->u.user:$0145EC.22.1	
+M583->u.user:$0145EC.23.1	
+M584->u.user:$0145EC.24.1	
+M585->u.user:$0145EC.25.1	
+M586->u.user:$0145EC.26.1	
+M587->u.user:$0145EC.27.1	
+M588->u.user:$0145EC.28.1	
+M589->u.user:$0145EC.29.1	
+M590->u.user:$0145EC.30.1	
+M591->u.user:$0145EC.31.1	
+M592->u.user:$0145F0.0.1	
+M593->u.user:$0145F0.1.1	
+M594->u.user:$0145F0.2.1	
+M595->u.user:$0145F0.3.1	
+M596->u.user:$0145F0.4.1	
+M597->u.user:$0145F0.5.1	
+M598->u.user:$0145F0.6.1	
+M599->u.user:$0145F0.7.1	
+M600->u.user:$0145F0.8.1	
+M601->u.user:$0145F0.9.1	
+M602->u.user:$0145F0.10.1	
+M603->u.user:$0145F0.11.1	
+M604->u.user:$0145F0.12.1	
+M605->u.user:$0145F0.13.1	
+M606->u.user:$0145F0.14.1	
+M607->u.user:$0145F0.15.1	
+M608->u.user:$0145F0.16.1	
+M609->u.user:$0145F0.17.1	
+M610->u.user:$0145F0.18.1	
+M611->u.user:$0145F0.19.1	
+M612->u.user:$0145F0.20.1	
+M613->u.user:$0145F0.21.1	
+M614->u.user:$0145F0.22.1	
+M615->u.user:$0145F0.23.1	
+M616->u.user:$0145F0.24.1	
+M617->u.user:$0145F0.25.1	
+M618->u.user:$0145F0.26.1	
+M619->u.user:$0145F0.27.1	
+M620->u.user:$0145F0.28.1	
+M621->u.user:$0145F0.29.1	
+M622->u.user:$0145F0.30.1	
+M623->u.user:$0145F0.31.1	
+M624->u.user:$0145F4.0.1	
+M625->u.user:$0145F4.1.1	
+M626->u.user:$0145F4.2.1	
+M627->u.user:$0145F4.3.1	
+M628->u.user:$0145F4.4.1	
+M629->u.user:$0145F4.5.1	
+M630->u.user:$0145F4.6.1	
+M631->u.user:$0145F4.7.1	
+M632->u.user:$0145F4.8.1	
+M633->u.user:$0145F4.9.1	
+M634->u.user:$0145F4.10.1	
+M635->u.user:$0145F4.11.1	
+M636->u.user:$0145F4.12.1	
+M637->u.user:$0145F4.13.1	
+M638->u.user:$0145F4.14.1	
+M639->u.user:$0145F4.15.1	
+M640->u.user:$0145F4.16.1	
+M641->u.user:$0145F4.17.1	
+M642->u.user:$0145F4.18.1	
+M643->u.user:$0145F4.19.1	
+M644->u.user:$0145F4.20.1	
+M645->u.user:$0145F4.21.1	
+M646->u.user:$0145F4.22.1	
+M647->u.user:$0145F4.23.1	
+M648->u.user:$0145F4.24.1	
+M649->u.user:$0145F4.25.1	
+M650->u.user:$0145F4.26.1	
+M651->u.user:$0145F4.27.1	
+M652->u.user:$0145F4.28.1	
+M653->u.user:$0145F4.29.1	
+M654->u.user:$0145F4.30.1	
+M655->u.user:$0145F4.31.1	

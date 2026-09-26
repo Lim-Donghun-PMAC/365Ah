@@ -1,0 +1,1095 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.11.17 
+// 음,양극 Vac에러 발생 시, 인포지션 밴드 trg 동기화 구문 삭제 - [ 참조 : 25.11.17 음,양극 Run Error 발생 시, 인포지션 밴드 삭제, 배열값 변경 함수 추가 ]
+
+//=======================================================================================================
+// 프로그램 목록. - Execute 생산모드관리에서 사용되는 서브프로그램.
+// 1.Sub_Vision_Result
+//	각각의 상황에서 체크해야할 비전연산결과를 체크하여 우선처리해야할 비전결과를 보고하는 서브프로그램.
+// 2. Mode Init Program
+//	모드의 모션배열값과 인포지션을 변경해주는 서브프로그램.
+//	2.1) Sub_Init_Wait_Mode_Array :	Wait모드의 인포지션을 변경해준다.
+//  2.2) Sub_Init_Run_Mode_Array : 음극런, 양극런 모드의 모션값과 인포지션을 변경해준다.
+//---------------------------------------------------------------------------------------------------------------//
+
+// 1. Sub_Vision_Result				-------------------------------------------------------------------------//
+open subprog Sub_Vision_Result( void )
+	// 비전촬상결과를 보고하는 서브프로그램.
+	// 음극런중, 양극런중, 음극런시작전, 양극런시작전 4가지의 각각의 경우에서 감시해야할 비전결과 중 최우선 처리해야할 비전결과를 보고.
+	// List	//
+	// 1) Sub_Vision_Result.Anode_Run(&Result)
+	// 2) Sub_Vision_Result.Cathode_Run(&Result)
+	// 3) Sub_Vision_Result.Anode_Run_Start(&Result)
+	// 4) Sub_Vision_Result.Cathode_Run_Start(&Result)
+	
+	sub:Anode_Run(&Result)	// 음극 런 중 감시해야할 Vision NG
+		// Stack Table NG Flag 존재 시 라스트런 진입가능하도록.
+		local L_Align_NG_Result=0;	// 얼라인 NG결과값.  1: 有 , 0 : 無
+		local L_Surface_NG_Result=0;	// 표면검사 NG결과값. 1: 有 , 0 : 無
+		// 양극얼라인결과. - 양극얼라인테이블 시트 데이터.
+		Result = 0;
+		if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Align_NG )
+			L_Align_NG_Result = 1;	// NG
+		else
+			L_Align_NG_Result = 0;	 // OK		
+		// 음극 표면검사결과. - 음극 2차P&P 시트 데이터.
+		if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Surf_NG )	
+			L_Surface_NG_Result = 1;	// NG
+		else
+			L_Surface_NG_Result = 0;	// OK 	
+		// Stack NG결과. - 스택테이블 시트데이터.
+		if( Sys_Stack_Sheet_LO_Vision_BYTE & Hex_Stack_NG ) // StackNG 또는 TimeOut이면
+		{
+			if( M_Function_BTN_2.Stack_Vision_NG_Enable == 0 )					// [ 참조 : 25.09.12 중간 배출 무시 조건 추가 ]
+				P_Stack_Table_NG_Flag = 1;	// Stack NG 존재 시 플래그 On. -> 배출할때마다 플래그 Off하는것으로 하자.ㅠ
+		}
+		// 결과값 리턴.
+		if( P_Stack_Table_NG_Flag )		// 1순위 : 스택 NG.			
+			Result = F_Vision_Result_Stack_NG;
+		else if( L_Surface_NG_Result )	// 2순위 : 표면검사 NG 
+			Result = F_Vision_Result_Surface_NG;
+		else if( L_Align_NG_Result )	// 3순위 : 얼라인 NG
+		{
+			if( P_Cathode_Count < P_Cathode_Recipe_Count )
+				Result = F_Vision_Result_Align_NG;
+			else
+				Result = F_Vision_Result_OK				// 마지막 얼라인 ng는 무시 후 젤리롤 배출 후 제거하기 위해
+		}
+		else	// 아무것도 없을 때.
+			Result = F_Vision_Result_OK;
+
+			p6000 = Sys_Cathode_Align_Sheet_LO_Vision_BYTE
+			p6001 = Sys_Cathode_2nd_Sheet_LO_Vision_BYTE
+			p6002++;
+	return	
+	
+	sub:Cathode_Run(&Result)	// 양극 런 중 감시해야할 Vision NG
+		// Stack Table NG Flag 존재 시 OK 처리로?
+		local L_Align_NG_Result=0;	// 얼라인 NG결과값.  1: 有 , 0 : 無
+		local L_Surface_NG_Result=0;	// 표면검사 NG결과값. 1: 有 , 0 : 無
+		Result = 0;
+		// 음극얼라인결과. - - 음극얼라인테이블 시트 데이터.
+		if( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Align_NG )
+			L_Align_NG_Result = 1;  // NG	
+		else
+			L_Align_NG_Result = 0;	 // OK
+		// 양극 표면검사결과. - 양극2차P&P 시트 데이터.	
+		if( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Surf_NG )	
+			L_Surface_NG_Result = 1;	// NG	
+		else
+			L_Surface_NG_Result =	0;	// OK	
+		// Stack NG결과. - 스택테이블 시트데이터.
+		if( Sys_Stack_Sheet_LO_Vision_BYTE & Hex_Stack_NG ) // StackNG 또는 TimeOut이면
+		{
+			if( M_Function_BTN_2.Stack_Vision_NG_Enable == 0 )					// [ 참조 : 25.09.12 중간 배출 무시 조건 추가 ]
+				P_Stack_Table_NG_Flag = 1;	// Stack NG 존재 시 플래그 On. -> 배출할때마다 플래그 Off하는것으로 하자.ㅠ	
+		}
+		// 결과값 리턴.
+		//if( P_Stack_Table_NG_Flag )		// 1순위 : 스택 NG. // - [ 참조 : 240408 양극 Stack Ng 감시 구문 삭제]			
+		//	//Result = F_Vision_Result_Stack_NG;
+		if( L_Surface_NG_Result )	// 2순위 : 표면검사 NG 
+			Result = F_Vision_Result_Surface_NG;
+		else if( L_Align_NG_Result )	// 3순위 : 얼라인 NG
+			Result = F_Vision_Result_Align_NG;
+		else	// 아무것도 없을 때.
+			Result = F_Vision_Result_OK;
+
+	return
+	
+	sub:Anode_Run_Start(&Result)	// 음극런 시작 전 감시해야할 Vision NG - 양극Align, 양극Surface.
+		// Stack Table NG Flag 존재 시 라스트런 진입가능하도록.
+		local L_Align_NG_Result=0;	// 얼라인 NG결과값.  1: 有 , 0 : 無
+		local L_Surface_NG_Result=0;	// 표면검사 NG결과값. 1: 有 , 0 : 無
+		// 양극얼라인결과. - 양극AlignTable 시트데이터.
+		if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Align_NG )
+			L_Align_NG_Result = 1;  // NG
+		else
+			L_Align_NG_Result = 0;	 // OK		
+		// 양극 표면검사결과. - 양극2차P&P 시트데이터.
+		if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Surf_NG )	
+			L_Surface_NG_Result = 1;	// NG		
+		else
+			L_Surface_NG_Result = 0;	// OK		
+		// Stack NG결과. - 스택테이블 시트데이터.
+		if( Sys_Stack_Sheet_LO_Vision_BYTE & Hex_Stack_NG ) // StackNG 또는 TimeOut이면
+		{
+			if( M_Function_BTN_2.Stack_Vision_NG_Enable == 0 )					// [ 참조 : 25.09.12 중간 배출 무시 조건 추가 ]
+				P_Stack_Table_NG_Flag = 1;	// Stack NG 존재 시 플래그 On. -> 배출할때마다 플래그 Off하는것으로 하자.ㅠ	
+		}
+		// 결과값 리턴.
+		if( P_Stack_Table_NG_Flag )		// 1순위 : 스택 NG.			
+			Result = F_Vision_Result_Stack_NG;
+		else if( L_Surface_NG_Result )	// 2순위 : 표면검사 NG 
+			Result = F_Vision_Result_Surface_NG;
+		else if( L_Align_NG_Result )	// 3순위 : 얼라인 NG
+			Result = F_Vision_Result_Align_NG;
+		else	// 아무것도 없을 때.
+			Result = F_Vision_Result_OK;		
+	return
+	
+	sub:Cathode_Run_Start(&Result)	// 양극런 시작 전 감시해야할 Vision NG - 음극Align, 음극Surface.
+		// Stack Table NG Flag 존재 시 라스트런 진입가능하도록.
+		local L_Align_NG_Result=0;	// 얼라인 NG결과값.  1: 有 , 0 : 無
+		local L_Surface_NG_Result=0;	// 표면검사 NG결과값. 1: 有 , 0 : 無
+		// 음극얼라인결과. - 음극AlignTable 시트데이터.
+		if( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Align_NG )
+			L_Align_NG_Result = 1;  // NG
+		else
+			L_Align_NG_Result = 0;	 // OK		
+		// 음극 표면검사결과. - 음극2차P&P 시트데이터.
+		if( Sys_Anode_2nd_Sheet_LO_Vision_BYTE & Hex_Surf_NG )	
+			L_Surface_NG_Result = 1;	// NG		
+		else
+			L_Surface_NG_Result = 0;	// OK	
+		// Stack NG결과. - 스택테이블 시트데이터.
+		if( Sys_Stack_Sheet_LO_Vision_BYTE & Hex_Stack_NG ) // StackNG 또는 TimeOut이면
+		{
+			if( M_Function_BTN_2.Stack_Vision_NG_Enable == 0 )					// [ 참조 : 25.09.12 중간 배출 무시 조건 추가 ]
+				P_Stack_Table_NG_Flag = 1;	// Stack NG 존재 시 플래그 On. -> 배출할때마다 플래그 Off하는것으로 하자.ㅠ	
+		}
+		// 결과값 리턴.
+		if( P_Stack_Table_NG_Flag )		// 1순위 : 스택 NG.			
+			Result = F_Vision_Result_Stack_NG;
+		else if( L_Surface_NG_Result )	// 2순위 : 표면검사 NG 
+			Result = F_Vision_Result_Surface_NG;
+		else if( L_Align_NG_Result )	// 3순위 : 얼라인 NG
+			Result = F_Vision_Result_Align_NG;
+		else	// 아무것도 없을 때.
+			Result = F_Vision_Result_OK;		
+	return	
+close
+//-----------------------------------------------------------------------------------------------------------//
+
+// 2.1) Wait Mode Init Program					-------------------------------------------------------------------------//
+open subprog Sub_Init_Wait_Mode_Array( Trg, &Result )
+	//P_In_Position(F_Wait_Command) = Trg;
+	P_In_Position(F_Dynamic_Wait_Command) = Trg;
+	
+	Result = 1;
+close
+//-----------------------------------------------------------------------------------------------------------//
+
+// 2.2) Run Mode Init Program					-------------------------------------------------------------------------//
+open subprog Sub_Init_Run_Mode_Array(void)
+// 런모드 배열 및 인포지션 설정 프로그램.
+// 2.2.1) Sub_Init_Run_Mode_Array.Anode_Run( Type, Trg, &Result )
+// case - F_Normal_Run, F_Sepa_Run, F_Dry_Run, F_NG
+// 2.2.2) Sub_Init_Run_Mode_Array.Cathode_Run( Type, Trg, &Result )
+// case - F_Normal_Run, F_Last_Run, F_Sepa_Run, F_Sepa_Last_Run, F_Dry_Run, F_Dry_Last_Run, F_NG
+
+sub:Anode_Run( Type, Trg, &Result )
+	switch(Type)
+	{
+		case F_Normal_Run :		// 일반 런.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Anode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.
+				// 2.1) Init
+				P_Slave1_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Anode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				P_Slave1_Anode_Run_Motion_Array(0)=5;		// Belt하강
+				P_Slave1_Anode_Run_Motion_Array(8)=13;		// Belt 흡착
+				P_Slave1_Anode_Run_Motion_Array(15)=6;		// Belt상승	
+				P_Slave1_Anode_Run_Motion_Array(22)=1;		// Belt -> A/S 이동.		
+				//////음극 Picker T //////
+				P_Slave2_Anode_Run_Motion_Array(22)=1;		// 180 Deg 회전.		[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				//////음극 2차 P&P //////
+				P_Slave3_Anode_Run_Motion_Array(0)=5;		// A/S하강
+				P_Slave3_Anode_Run_Motion_Array(8)=10;		// A/S흡착
+				P_Slave3_Anode_Run_Motion_Array(15)=6;		// A/S상승
+				P_Slave3_Anode_Run_Motion_Array(22)=1;		// A/S -> Stack 이동.
+				//////음극 클램프 //////
+				P_Slave4_Anode_Run_Motion_Array(1)=2;		// Clamp On.
+				P_Slave4_Anode_Run_Motion_Array(11) = 3;	// 극판 두께만큼 하강
+				//P_Slave4_Anode_Run_Motion_Array(16)=3;		// 극판 두께만큼 하강
+				//////FINAL ROLL //////
+				P_Slave5_Anode_Run_Motion_Array(22)=2;		// 양극방향  이동
+				//////STACK TABLE //////
+				P_Slave6_Anode_Run_Motion_Array(11) = 2;	// 극판 두께만큼 하강
+				//P_Slave6_Anode_Run_Motion_Array(16) = 2;	// 극판 두께만큼 하강
+				//////양극 클램프 //////
+				P_Slave7_Anode_Run_Motion_Array(33)=1;		// Clamp Off
+				//////양극 2차 P&P //////
+				P_Slave8_Anode_Run_Motion_Array(0)=3; 		// Stack 하강.	
+				P_Slave8_Anode_Run_Motion_Array(8)=11; 		// Stack 블로우.
+				P_Slave8_Anode_Run_Motion_Array(15)=4;		// Stack 상승.
+				P_Slave8_Anode_Run_Motion_Array(22)=2;		// Stack -> A/S 이동	
+				//////양극 1차 P&P //////
+				P_Slave10_Anode_Run_Motion_Array(0)=3;		// A/S 하강.
+				P_Slave10_Anode_Run_Motion_Array(8)=12;		// A/S 블로우	
+				P_Slave10_Anode_Run_Motion_Array(15)=4;		// A/S 상승	
+				P_Slave10_Anode_Run_Motion_Array(22)=2;		// belt 이동	
+
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;
+
+				P_Anode_Cur_Mode = F_Normal_Run;
+		break;
+		case F_Sepa_Run :		// 세파 런.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Anode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.
+				// 2.1) Init
+				P_Slave1_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Anode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				//////음극 2차 P&P //////
+				P_Slave3_Anode_Run_Motion_Array(22)=1;		// A/S -> Stack 이동.
+				//////음극 클램프 //////
+				P_Slave4_Anode_Run_Motion_Array(1)=2;		// Clamp On.
+				P_Slave4_Anode_Run_Motion_Array(11)=3;		// 극판 두께만큼 하강
+				//P_Slave4_Anode_Run_Motion_Array(16)=3;		// 극판 두께만큼 하강
+				//////FINAL ROLL //////
+				P_Slave5_Anode_Run_Motion_Array(22)=2;		// 양극방향  이동
+				//////STACK TABLE //////
+				P_Slave6_Anode_Run_Motion_Array(11) = 2;	// 극판 두께만큼 하강
+				//P_Slave6_Anode_Run_Motion_Array(16) = 2;	// 극판 두께만큼 하강
+				//////양극 클램프 //////
+				P_Slave7_Anode_Run_Motion_Array(33)=1;		// Clamp Off
+				//////양극 2차 P&P //////
+				P_Slave8_Anode_Run_Motion_Array(0)=3; 		// Stack 하강.
+				// [ 참조 : 2025.07.25 Sepa Blow 모션 추가 ]	
+				P_Slave8_Anode_Run_Motion_Array(8)=13; 		// 세파모드 블로우.
+				P_Slave8_Anode_Run_Motion_Array(15)=4;		// Stack 상승.
+				P_Slave8_Anode_Run_Motion_Array(22)=2;		// Stack -> A/S 이동	
+				//////양극 1차 P&P //////
+				//////양극 1차 P&P //////	
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;		
+
+				P_Anode_Cur_Mode = F_Sepa_Run;
+		break;
+		case F_Dry_Run :		// 드라이 런.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Anode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.
+				// 2.1) Init
+				P_Slave1_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Anode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				P_Slave1_Anode_Run_Motion_Array(0)=5;		// Belt하강
+				P_Slave1_Anode_Run_Motion_Array(15)=6;		// Belt상승	
+				P_Slave1_Anode_Run_Motion_Array(22)=1;		// Belt -> A/S 이동.		
+				//////음극 Picker T //////
+				P_Slave2_Anode_Run_Motion_Array(22)=1;		// 180 Deg 회전.		[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				//////음극 2차 P&P //////
+				P_Slave3_Anode_Run_Motion_Array(0)=5;		// A/S하강
+				P_Slave3_Anode_Run_Motion_Array(15)=6;		// A/S상승
+				P_Slave3_Anode_Run_Motion_Array(22)=1;		// A/S -> Stack 이동.
+				//////음극 클램프 //////
+				P_Slave4_Anode_Run_Motion_Array(1)=2;		// Clamp On.
+				P_Slave4_Anode_Run_Motion_Array(11)=3;		// Clamp On.
+				//////FINAL ROLL //////
+				P_Slave5_Anode_Run_Motion_Array(22)=2;		// 양극방향  이동
+				//////STACK TABLE //////
+				//////양극 클램프 //////
+				P_Slave7_Anode_Run_Motion_Array(33)=1;		// Clamp Off
+				//////양극 2차 P&P //////
+				P_Slave8_Anode_Run_Motion_Array(0)=3; 		// Stack 하강.	
+				P_Slave8_Anode_Run_Motion_Array(15)=4;		// Stack 상승.
+				P_Slave8_Anode_Run_Motion_Array(22)=2;		// Stack -> A/S 이동	
+				//////양극 1차 P&P //////
+				P_Slave10_Anode_Run_Motion_Array(0)=3;		// A/S 하강	
+				P_Slave10_Anode_Run_Motion_Array(15)=4;		// A/S 상승	
+				P_Slave10_Anode_Run_Motion_Array(22)=2;		// belt 이동	
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;		
+
+				P_Anode_Cur_Mode = F_Dry_Run;
+		break;
+
+		case F_NG :		// 양극 얼라인 NG처리를 위한 음극런 사이클.	24.01.31 추가.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Anode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.
+				// 2.1) Init
+				P_Slave1_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Anode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				P_Slave1_Anode_Run_Motion_Array(0)=5;		// Belt하강
+				P_Slave1_Anode_Run_Motion_Array(8)=13;		// Belt 흡착
+				P_Slave1_Anode_Run_Motion_Array(15)=6;		// Belt상승	
+				P_Slave1_Anode_Run_Motion_Array(22)=9;		// Belt -> 대기 위치 이동.		
+				//////음극 Picker T //////
+				P_Slave2_Anode_Run_Motion_Array(22)=1;		// 180 Deg 회전.		[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				//////음극 2차 P&P //////
+				P_Slave3_Anode_Run_Motion_Array(22)=1;		// A/S -> Stack 이동.
+				//////음극 클램프 //////
+				P_Slave4_Anode_Run_Motion_Array(1)=2;		// Clamp On.
+				P_Slave4_Anode_Run_Motion_Array(16)=3;		// 극판 두께만큼 하강
+				//////FINAL ROLL //////
+				P_Slave5_Anode_Run_Motion_Array(22)=2;		// 양극방향  이동
+				//////STACK TABLE //////
+				P_Slave6_Anode_Run_Motion_Array(11) = 2;	// 극판 두께만큼 하강
+				//P_Slave6_Anode_Run_Motion_Array(16) = 2;	// 극판 두께만큼 하강
+				//////양극 클램프 //////
+				P_Slave7_Anode_Run_Motion_Array(33)=1;		// Clamp Off
+				//////양극 2차 P&P //////
+				P_Slave8_Anode_Run_Motion_Array(0)=3; 		// Stack 하강.
+				P_Slave8_Anode_Run_Motion_Array(8)=11;		// Stack 블로우.	
+				P_Slave8_Anode_Run_Motion_Array(15)=4;		// Stack 상승.
+				P_Slave8_Anode_Run_Motion_Array(22)=2;		// Stack -> A/S 이동	
+				//////양극 1차 P&P //////
+				//P_Slave10_Anode_Run_Motion_Array(25)=9;	// A/S -> 대기 위치 이동.	
+				P_Slave10_Anode_Run_Motion_Array(0)=3;		// A/S 하강	.
+				P_Slave10_Anode_Run_Motion_Array(8)=12;		// A/S 블로우	
+				P_Slave10_Anode_Run_Motion_Array(15)=4;		// A/S 상승	
+				P_Slave10_Anode_Run_Motion_Array(22)=9;		// 대기 위치
+
+				P_Align_NG_Tack_Flag = 1;
+				
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;
+
+				P_Anode_Cur_Mode = F_NG;
+		break;
+		case F_Semi_Run :		// 양극 얼라인 NG처리를 위한 음극런 사이클.	24.01.31 추가.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Anode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.
+				// 2.1) Init
+				P_Slave1_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Anode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				P_Slave1_Anode_Run_Motion_Array(22)=10;		// 대기 -> A/S 위치 이동.		
+				//////음극 2차 P&P //////
+				P_Slave3_Anode_Run_Motion_Array(22)=1;		// A/S -> Stack 이동.
+				//////음극 클램프 //////
+				//////FINAL ROLL //////
+				//////STACK TABLE //////
+				//////양극 클램프 //////
+				//////양극 2차 P&P //////
+				//////양극 1차 P&P //////
+				P_Slave10_Anode_Run_Motion_Array(22)=11;	// 대기 -> belt 이동				
+
+				P_Align_NG_Tack_Flag = 1;
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;
+
+				P_Anode_Cur_Mode = F_Semi_Run;
+		break;
+
+		case F_Sepa_Semi_Run :		// 양극 얼라인 NG처리를 위한 음극런 사이클.	24.01.31 추가.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Anode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.
+				// 2.1) Init
+				P_Slave1_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Anode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				//////음극 2차 P&P //////
+				P_Slave3_Anode_Run_Motion_Array(22)=1;		// A/S -> Stack 이동.
+				//////음극 클램프 //////
+				//////FINAL ROLL //////
+				//////STACK TABLE //////
+				//////양극 클램프 //////
+				//////양극 2차 P&P //////
+				//////양극 1차 P&P //////
+				P_Align_NG_Tack_Flag = 1;
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;
+
+				P_Anode_Cur_Mode = F_Sepa_Semi_Run;
+		break;
+
+		case F_Vac_Err :
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Anode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.
+				// 2.1) Init
+				P_Slave1_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Anode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				P_Slave1_Anode_Run_Motion_Array(22)=9;		// Belt -> 대기 위치 이동.	
+				//////음극 Picker T //////
+				P_Slave2_Anode_Run_Motion_Array(22)=1;		// 180 Deg 회전.		[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				//////음극 2차 P&P //////
+				//////음극 클램프 //////
+				//////FINAL ROLL //////
+				P_Slave5_Anode_Run_Motion_Array(22)=2;		// 양극방향  이동
+				//////STACK TABLE //////
+				P_Slave6_Anode_Run_Motion_Array(11) = 2;	// 극판 두께만큼 하강
+				//P_Slave6_Anode_Run_Motion_Array(16) = 2;	// 극판 두께만큼 하강
+				//////양극 클램프 //////
+				P_Slave7_Anode_Run_Motion_Array(33)=1;		// Clamp Off
+				//////양극 2차 P&P //////
+				P_Slave8_Anode_Run_Motion_Array(0)=3; 		// Stack 하강.	
+				P_Slave8_Anode_Run_Motion_Array(15)=4;		// Stack 상승.
+				P_Slave8_Anode_Run_Motion_Array(22)=2;		// Stack -> A/S 이동	
+				//////양극 1차 P&P //////
+				P_Slave10_Anode_Run_Motion_Array(22)=9;		// A/S -> 대기 위치 이동.	
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;
+
+				P_Anode_Cur_Mode = F_Vac_Err;
+		break;
+
+		case F_Stop :
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Anode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.
+				// 2.1) Init
+				P_Slave1_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Anode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Anode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				P_Slave1_Anode_Run_Motion_Array(0)=9;		// 대기 위치 이동.	
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;
+
+				P_Anode_Cur_Mode = F_Stop;
+		break;
+		default: 	break;
+	}
+return
+
+sub: Cathode_Run( Type, Trg, &Result )
+	switch(Type)
+	{
+		case F_Normal_Run :	// 일반 런.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Cathode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.	
+				// 2.1) Init
+				P_Slave1_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Cathode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				P_Slave1_Cathode_Run_Motion_Array(45)=3;	// A/S 하강.	
+				P_Slave1_Cathode_Run_Motion_Array(53)=12;	// A/S 블로우.	
+				P_Slave1_Cathode_Run_Motion_Array(60)=4;	// A/S 상승.	
+				P_Slave1_Cathode_Run_Motion_Array(67)=2;	// A/S -> Belt이동.	
+				//////음극 2차 P&P //////
+				P_Slave3_Cathode_Run_Motion_Array(45)=3;	// Stack 하강.
+				P_Slave3_Cathode_Run_Motion_Array(53)=11;	// Stack 블로우.
+				P_Slave3_Cathode_Run_Motion_Array(60)=4;	// Stack 상승.
+				P_Slave3_Cathode_Run_Motion_Array(67)=2;	// Align 이동.
+				//////음극 클램프 //////
+				P_Slave4_Cathode_Run_Motion_Array(78)=1;	// Clamp Off.
+				//////FINAL ROLL //////
+				P_Slave5_Cathode_Run_Motion_Array(67)=1;	// 음극방향 이동
+				//////STACK TABLE //////
+				P_Slave6_Anode_Run_Motion_Array(56) = 2;	// 극판 두께만큼 하강
+				//P_Slave6_Anode_Run_Motion_Array(61) = 2;	// 극판 두께만큼 하강
+				//////양극 클램프 //////
+				P_Slave7_Cathode_Run_Motion_Array(46)=2;	// 클램프 on.
+				P_Slave7_Cathode_Run_Motion_Array(56)=3;	// 클램프 on.
+				//P_Slave7_Cathode_Run_Motion_Array(61)=3;	// 클램프 on.
+				//////양극 2차 P&P //////
+				P_Slave8_Cathode_Run_Motion_Array(45)=5;	// A/S하강.
+				P_Slave8_Cathode_Run_Motion_Array(53)=10;	// A/S흡착.
+				P_Slave8_Cathode_Run_Motion_Array(60)=6;	// A/S상승.
+				P_Slave8_Cathode_Run_Motion_Array(67)=1;	// Stack 이동.
+				//////양극 Picker T //////
+				P_Slave9_Cathode_Run_Motion_Array(67)=1;	// 180 Deg 회전.		[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				//////양극 1차 P&P //////
+				P_Slave10_Cathode_Run_Motion_Array(45)=5;   // BELT 하강.
+				P_Slave10_Cathode_Run_Motion_Array(53)=13;  // BELT 흡착.
+				P_Slave10_Cathode_Run_Motion_Array(60)=6;   // BELT 상승.
+				P_Slave10_Cathode_Run_Motion_Array(67)=1;   // Align 이동.
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;		
+				
+				P_Cathode_Cur_Mode = F_Normal_Run;	
+		break;
+		case F_Last_Run :	// 일반 라스트런.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Cathode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.	
+				// 2.1) Init
+				P_Slave1_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Cathode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				P_Slave1_Cathode_Run_Motion_Array(45)=3;	// A/S 하강.	
+				P_Slave1_Cathode_Run_Motion_Array(53)=12;	// A/S 블로우.	
+				P_Slave1_Cathode_Run_Motion_Array(60)=4;	// A/S 상승.	
+				P_Slave1_Cathode_Run_Motion_Array(67)=9;	// A/S -> 대기 위치 이동.	
+				//////음극 2차 P&P //////
+				P_Slave3_Cathode_Run_Motion_Array(45)=3;	// Stack 하강.
+				P_Slave3_Cathode_Run_Motion_Array(53)=11;	// Stack 블로우.
+				P_Slave3_Cathode_Run_Motion_Array(60)=4;	// Stack 상승.
+				P_Slave3_Cathode_Run_Motion_Array(67)=2;	// Align 이동.
+				//////음극 클램프 //////
+				P_Slave4_Cathode_Run_Motion_Array(78)=1;	// Clamp Off.
+				//////FINAL ROLL //////
+				P_Slave5_Cathode_Run_Motion_Array(67)=1;	// 음극방향 이동
+				//////STACK TABLE //////
+				P_Slave6_Anode_Run_Motion_Array(56) = 2;	// 극판 두께만큼 하강
+				//P_Slave6_Anode_Run_Motion_Array(61) = 2;	// 극판 두께만큼 하강
+				//////양극 클램프 //////
+				P_Slave7_Cathode_Run_Motion_Array(46)=2;	// 클램프 on.
+				P_Slave7_Cathode_Run_Motion_Array(56)=3;	// 클램프 on.
+				//P_Slave7_Cathode_Run_Motion_Array(61)=3;	// 클램프 on.
+				//////양극 2차 P&P //////
+				//////양극 1차 P&P //////
+				P_Slave10_Cathode_Run_Motion_Array(67)=9;   // Align 이동.
+				P_Execute_Last_Run_Flag = 1;				// 배출 시작 플래그 ON [ 2025.06.18 서스펜드 추가 ]	 
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;			
+
+				P_Cathode_Cur_Mode = F_Last_Run;	
+		break;
+		case F_Sepa_Run : 	// 세파 런.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Cathode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.	
+				// 2.1) Init
+				P_Slave1_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Cathode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				//////음극 2차 P&P //////
+				P_Slave3_Cathode_Run_Motion_Array(45)=3;	// Stack 하강.
+				// [ 참조 : 2025.07.25 Sepa Blow 모션 추가 ]
+				P_Slave3_Cathode_Run_Motion_Array(53)=13;	// Stack 블로우.
+				P_Slave3_Cathode_Run_Motion_Array(60)=4;	// Stack 상승.
+				P_Slave3_Cathode_Run_Motion_Array(67)=2;	// Align 이동.
+				//////음극 클램프 //////
+				P_Slave4_Cathode_Run_Motion_Array(78)=1;	// Clamp Off.
+				//////FINAL ROLL //////
+				P_Slave5_Cathode_Run_Motion_Array(67)=1;	// 음극방향 이동
+				//////STACK TABLE //////
+				P_Slave6_Anode_Run_Motion_Array(56) = 2;	// 극판 두께만큼 하강
+				//P_Slave6_Anode_Run_Motion_Array(61) = 2;	// 극판 두께만큼 하강
+				//////양극 클램프 //////
+				P_Slave7_Cathode_Run_Motion_Array(46)=2;	// 클램프 on.
+				P_Slave7_Cathode_Run_Motion_Array(56)=3;	// 클램프 on.
+				//P_Slave7_Cathode_Run_Motion_Array(61)=3;	// 클램프 on.
+				//////양극 2차 P&P //////
+				P_Slave8_Cathode_Run_Motion_Array(67)=1;	// Stack 이동.
+				//////양극 1차 P&P ///////
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;	
+
+				P_Cathode_Cur_Mode = F_Sepa_Run;	
+		break;
+		case F_Sepa_Last_Run : // 세파 라스트런.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Cathode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.	
+			// 2.1) Init
+				P_Slave1_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Cathode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 2차 P&P //////
+				P_Slave3_Cathode_Run_Motion_Array(45)=3;	// Stack 하강.
+				// [ 참조 : 2025.07.25 Sepa Blow 모션 추가 ]
+				P_Slave3_Cathode_Run_Motion_Array(53)=13;	// Stack 블로우.
+				P_Slave3_Cathode_Run_Motion_Array(60)=4;	// Stack 상승.
+				P_Slave3_Cathode_Run_Motion_Array(67)=2;	// Align 이동.
+				//////음극 클램프 //////
+				P_Slave4_Cathode_Run_Motion_Array(78)=1;	// Clamp Off.
+				//////FINAL ROLL //////
+				P_Slave5_Cathode_Run_Motion_Array(67)=1;	// 음극방향 이동
+				//////STACK TABLE //////
+				P_Slave6_Anode_Run_Motion_Array(56) = 2;	// 극판 두께만큼 하강
+				//P_Slave6_Anode_Run_Motion_Array(61) = 2;	// 극판 두께만큼 하강
+				//////양극 클램프 //////
+				P_Slave7_Cathode_Run_Motion_Array(46)=2;	// 클램프 on.
+				P_Slave7_Cathode_Run_Motion_Array(56)=3;	// 클램프 on.
+				//P_Slave7_Cathode_Run_Motion_Array(61)=3;	// 클램프 on.
+				//////양극 2차 P&P //////
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;	
+				
+				P_Execute_Last_Run_Flag = 1;				// 배출 시작 플래그 ON [ 2025.06.18 서스펜드 추가 ]	
+
+				P_Cathode_Cur_Mode = F_Sepa_Last_Run;		
+		break;		
+		case F_Dry_Run :	// 드라이 런.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Cathode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.	
+				// 2.1) Init
+				P_Slave1_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Cathode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				P_Slave1_Cathode_Run_Motion_Array(45)=3;	// A/S 하강.	
+				P_Slave1_Cathode_Run_Motion_Array(60)=4;	// A/S 상승.	
+				P_Slave1_Cathode_Run_Motion_Array(67)=2;	// A/S -> Belt이동.	
+				//////음극 2차 P&P //////
+				P_Slave3_Cathode_Run_Motion_Array(45)=3;	// Stack 하강.
+				P_Slave3_Cathode_Run_Motion_Array(60)=4;	// Stack 상승.
+				P_Slave3_Cathode_Run_Motion_Array(67)=2;	// Align 이동.
+				//////음극 클램프 //////
+				P_Slave4_Cathode_Run_Motion_Array(78)=1;	// Clamp Off.
+				//////FINAL ROLL //////
+				P_Slave5_Cathode_Run_Motion_Array(67)=1;	// 음극방향 이동
+				//////STACK TABLE //////
+				//////양극 클램프 //////
+				P_Slave7_Cathode_Run_Motion_Array(46)=2;	// 클램프 on.
+				P_Slave7_Cathode_Run_Motion_Array(56)=3;	// 클램프 on.
+				//////양극 2차 P&P //////
+				P_Slave8_Cathode_Run_Motion_Array(45)=5;	// A/S하강.
+				P_Slave8_Cathode_Run_Motion_Array(60)=6;	// A/S상승.
+				P_Slave8_Cathode_Run_Motion_Array(67)=1;	// Stack 이동.
+				//////양극 Picker T //////
+				P_Slave9_Cathode_Run_Motion_Array(67)=1;	// 180 Deg 회전.		[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				//////양극 1차 P&P //////
+				P_Slave10_Cathode_Run_Motion_Array(45)=5;   // BELT 하강.
+				P_Slave10_Cathode_Run_Motion_Array(60)=6;   // BELT 상승.
+				P_Slave10_Cathode_Run_Motion_Array(67)=1;   // Align 이동.
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;		
+
+				P_Cathode_Cur_Mode = F_Dry_Run;		
+		break;
+		case F_Dry_Last_Run :	// 드라이 라스트런.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Cathode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.	
+				// 2.1) Init
+				P_Slave1_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Cathode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				P_Slave1_Cathode_Run_Motion_Array(45)=3;	// A/S 하강.	
+				P_Slave1_Cathode_Run_Motion_Array(60)=4;	// A/S 상승.	
+				P_Slave1_Cathode_Run_Motion_Array(67)=9;	// A/S -> 대기 위치 이동.	
+				//////음극 2차 P&P //////
+				P_Slave3_Cathode_Run_Motion_Array(45)=3;	// Stack 하강.
+				P_Slave3_Cathode_Run_Motion_Array(60)=4;	// Stack 상승.
+				P_Slave3_Cathode_Run_Motion_Array(67)=2;	// Align 이동.
+				//////음극 클램프 //////
+				P_Slave4_Cathode_Run_Motion_Array(78)=1;	// Clamp Off.
+				//////FINAL ROLL //////
+				P_Slave5_Cathode_Run_Motion_Array(67)=1;	// 음극방향 이동
+				//////STACK TABLE //////
+				//양극 클램프 //////
+				P_Slave7_Cathode_Run_Motion_Array(46)=2;	// 클램프 on.
+				P_Slave7_Cathode_Run_Motion_Array(56)=3;	// 클램프 on.
+				//////양극 2차 P&P //////
+				//////양극 Picker T //////
+				P_Slave9_Cathode_Run_Motion_Array(67)=1;	// 180 Deg 회전.		[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				//////양극 1차 P&P ///////
+				P_Slave10_Cathode_Run_Motion_Array(67)=9;   // Align 이동.
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;		
+
+				P_Cathode_Cur_Mode = F_Dry_Last_Run;	
+		break;
+		case F_NG :		// 음극 얼라인 NG처리를 위한 음극런 사이클.	24.01.31 추가.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Cathode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.	
+			// 2.1) Init
+				P_Slave1_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Cathode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				P_Slave1_Cathode_Run_Motion_Array(45)=3;	// A/S 하강.	
+				P_Slave1_Cathode_Run_Motion_Array(53)=12;	// A/S 블로우.
+				P_Slave1_Cathode_Run_Motion_Array(60)=4;	// A/S 상승.	
+				P_Slave1_Cathode_Run_Motion_Array(67)=9;	// A/S -> 대기 위치 이동.	
+				//////음극 2차 P&P //////
+				P_Slave3_Cathode_Run_Motion_Array(45)=3;	// Stack 하강.
+				P_Slave3_Cathode_Run_Motion_Array(53)=11;	// Stack 블로우.
+				P_Slave3_Cathode_Run_Motion_Array(60)=4;	// Stack 상승.
+				P_Slave3_Cathode_Run_Motion_Array(67)=2;	// Align 이동.
+				//////음극 클램프 //////
+				P_Slave4_Cathode_Run_Motion_Array(78)=1;	// Clamp Off.
+				//////FINAL ROLL //////
+				P_Slave5_Cathode_Run_Motion_Array(67)=1;	// 음극방향 이동
+				//////STACK TABLE //////
+				P_Slave6_Anode_Run_Motion_Array(56) = 2;		// 극판 두께만큼 하강
+				//P_Slave6_Anode_Run_Motion_Array(61) = 2;		// 극판 두께만큼 하강
+				//////양극 클램프 //////
+				P_Slave7_Cathode_Run_Motion_Array(46)=2;	// 클램프 on.
+				P_Slave7_Cathode_Run_Motion_Array(56)=3;	// 클램프 on.
+				//P_Slave7_Cathode_Run_Motion_Array(61)=3;	// 클램프 on.
+				//////양극 2차 P&P //////
+				P_Slave8_Cathode_Run_Motion_Array(67)=1;	// Stack 이동.
+				//////양극 Picker T //////
+				P_Slave9_Cathode_Run_Motion_Array(67)=1;	// 180 Deg 회전.		[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				//////양극 1차 P&P //////
+				P_Slave10_Cathode_Run_Motion_Array(45)=5;   // BELT 하강.
+				P_Slave10_Cathode_Run_Motion_Array(53)=13;  // BELT 하강.
+				P_Slave10_Cathode_Run_Motion_Array(60)=6;   // BELT 상승.
+				P_Slave10_Cathode_Run_Motion_Array(67)=9;   // Align -> 대기 위치 이동.
+				// 3) 결과값 리턴.
+				Result = F_Result_Complete;			
+
+				P_Cathode_Cur_Mode = F_NG;	
+		break;	
+		case F_Semi_Run :		// 양극 얼라인 NG처리를 위한 음극런 사이클.	24.01.31 추가.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Cathode_Run_Command) = Trg;
+				// 2) 모션 배열값 갱신.	
+				// 2.1) Init
+				P_Slave1_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Cathode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				P_Slave1_Cathode_Run_Motion_Array(67)=11;	// A/S -> Belt이동.	
+				//////음극 2차 P&P //////
+				//////음극 클램프 //////
+				//////FINAL ROLL //////
+				//////STACK TABLE //////
+				//////양극 클램프 //////
+				//////양극 2차 P&P //////
+				P_Slave8_Cathode_Run_Motion_Array(67)=1;	// Stack 이동.
+				//////양극 1차 P&P //////
+				P_Slave10_Cathode_Run_Motion_Array(67)=10;   // 대기 위치 -> Align 이동.
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;
+
+				P_Cathode_Cur_Mode = F_Semi_Run;	
+		break;
+
+		case F_Sepa_Semi_Run :		// 양극 얼라인 NG처리를 위한 음극런 사이클.	24.01.31 추가.
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Cathode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.	
+				// 2.1) Init
+				P_Slave1_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Cathode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				//////음극 2차 P&P //////
+				//////음극 클램프 //////
+				//////FINAL ROLL //////
+				//////STACK TABLE //////
+				//////양극 클램프 //////
+				//////양극 2차 P&P //////
+				P_Slave8_Cathode_Run_Motion_Array(67)=1;	// Stack 이동.
+				//////양극 1차 P&P //////
+				//////양극 1차 P&P //////
+			// 3) 결과값 리턴.
+				Result = F_Result_Complete;
+
+				P_Cathode_Cur_Mode = F_Sepa_Semi_Run;	
+		break;
+
+		case F_Vac_Err :
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Cathode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.	
+				// 2.1) Init
+				P_Slave1_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Cathode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////음극 1차 P&P //////
+				P_Slave1_Cathode_Run_Motion_Array(67)=9;	// A/S -> 대기 위치 이동.	
+				//음극 2차 P&P //////
+				P_Slave3_Cathode_Run_Motion_Array(67)=2;	// Align 이동.
+				//////음극 클램프 //////
+				P_Slave4_Cathode_Run_Motion_Array(78)=1;	// Clamp Off.
+				//////FINAL ROLL //////
+				P_Slave5_Cathode_Run_Motion_Array(67)=1;	// 음극방향 이동
+				//////STACK TABLE //////
+				P_Slave6_Anode_Run_Motion_Array(56) = 2;	// 극판 두께만큼 하강
+				//P_Slave6_Anode_Run_Motion_Array(61) = 2;	// 극판 두께만큼 하강
+				//////양극 클램프 //////
+				//////양극 2차 P&P //////
+				//////양극 Picker T //////
+				P_Slave9_Cathode_Run_Motion_Array(67)=1;	// 180 Deg 회전.		[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				//////양극 1차 P&P //////
+				P_Slave10_Cathode_Run_Motion_Array(67)=9;   // BELT -> 대기위치 이동.
+			// 3) 결과값 리턴
+				Result = F_Result_Complete;
+
+				P_Cathode_Cur_Mode = F_Vac_Err;	
+		break;
+
+		case F_Stop :
+			// 1) 모드 Inposition 트리거 지정.
+				P_In_Position(F_Half_Cathode_Run_Command) = Trg;
+			// 2) 모션 배열값 갱신.	
+				// 2.1) Init
+				P_Slave1_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave2_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave3_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave4_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave5_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave6_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave7_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave8_Cathode_Run_Motion_Array(0),100,1 = 0;
+				P_Slave9_Cathode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+				P_Slave10_Cathode_Run_Motion_Array(0),100,1 = 0;
+				// 2.2) 입력.
+				//////양극 1차 P&P //////
+				P_Slave10_Cathode_Run_Motion_Array(45)=9;   // 대기위치 이동.
+			// 3) 결과값 리턴
+				Result = F_Result_Complete;
+
+				P_Cathode_Cur_Mode = F_Stop;	
+		break;
+		default: 	Result=F_Result_None;	// 잘못된 호출 시.
+		break;
+	}
+return
+
+	// [ 참조 : 25.11.17 음,양극 Run Error 발생 시, 인포지션 밴드 삭제, 배열값 변경 함수 추가 ]
+	sub:Anode_Run_Error(Type, &Result)
+		switch(Type)
+		{
+			case F_Vac_Err :		// 일반 런.
+				// 1.1) Init
+					P_Slave1_Anode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave2_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+					P_Slave3_Anode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave4_Anode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave5_Anode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave6_Anode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave7_Anode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave8_Anode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave9_Anode_Run_Motion_Array(0),100,1 = 0;		//	[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+					P_Slave10_Anode_Run_Motion_Array(0),100,1 = 0;
+				// 1.2) 입력.
+					//////음극 1차 P&P //////
+					P_Slave1_Anode_Run_Motion_Array(22)=9;		// Belt -> 대기 위치 이동.	
+					//////음극 Picker T //////
+					P_Slave2_Anode_Run_Motion_Array(22)=1;		// 180 Deg 회전.		[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+					//////음극 2차 P&P //////
+					//////음극 클램프 //////
+					//////FINAL ROLL //////
+					P_Slave5_Anode_Run_Motion_Array(22)=2;		// 양극방향  이동
+					//////STACK TABLE //////
+					P_Slave6_Anode_Run_Motion_Array(11) = 2;	// 극판 두께만큼 하강
+					//P_Slave6_Anode_Run_Motion_Array(16) = 2;	// 극판 두께만큼 하강
+					//////양극 클램프 //////
+					P_Slave7_Anode_Run_Motion_Array(33)=1;		// Clamp Off
+					//////양극 2차 P&P //////
+					P_Slave8_Anode_Run_Motion_Array(0)=3; 		// Stack 하강.	
+					P_Slave8_Anode_Run_Motion_Array(15)=4;		// Stack 상승.
+					P_Slave8_Anode_Run_Motion_Array(22)=2;		// Stack -> A/S 이동	
+					//////양극 1차 P&P //////
+					P_Slave10_Anode_Run_Motion_Array(22)=9;		// A/S -> 대기 위치 이동.	
+				// 2) 결과값 리턴.
+					Result = F_Result_Complete;
+	
+					P_Anode_Cur_Mode = F_Vac_Err;
+			break;
+	
+			default: 	Result=F_Result_None;	// 잘못된 호출 시.
+			break;
+		}
+	
+	return
+
+	// [ 참조 : 25.11.17 음,양극 Run Error 발생 시, 인포지션 밴드 삭제, 배열값 변경 함수 추가 ]
+	sub:Cathode_Run_Error(Type, &Result)
+		switch(Type)
+		{
+			case F_Vac_Err :		// 일반 런.
+				// 1.1) Init
+					P_Slave1_Cathode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave2_Cathode_Run_Motion_Array(0),100,1 = 0;		
+					P_Slave3_Cathode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave4_Cathode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave5_Cathode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave6_Cathode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave7_Cathode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave8_Cathode_Run_Motion_Array(0),100,1 = 0;
+					P_Slave9_Cathode_Run_Motion_Array(0),100,1 = 0;		
+					P_Slave10_Cathode_Run_Motion_Array(0),100,1 = 0;
+				// 1.2) 입력.
+					//////음극 1차 P&P //////
+					P_Slave1_Cathode_Run_Motion_Array(67)=9;	// A/S -> 대기 위치 이동.	
+					//음극 2차 P&P //////
+					P_Slave3_Cathode_Run_Motion_Array(67)=2;	// Align 이동.
+					//////음극 클램프 //////
+					P_Slave4_Cathode_Run_Motion_Array(78)=1;	// Clamp Off.
+					//////FINAL ROLL //////
+					P_Slave5_Cathode_Run_Motion_Array(67)=1;	// 음극방향 이동
+					//////STACK TABLE //////
+					P_Slave6_Anode_Run_Motion_Array(56) = 2;	// 극판 두께만큼 하강
+					//P_Slave6_Anode_Run_Motion_Array(61) = 2;	// 극판 두께만큼 하강
+					//////양극 클램프 //////
+					//////양극 2차 P&P //////
+					//////양극 Picker T //////
+					P_Slave9_Cathode_Run_Motion_Array(67)=1;	// 180 Deg 회전.		[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+					//////양극 1차 P&P //////
+					P_Slave10_Cathode_Run_Motion_Array(67)=9;   // BELT -> 대기위치 이동.
+				// 2) 결과값 리턴
+					Result = F_Result_Complete;
+	
+					P_Cathode_Cur_Mode = F_Vac_Err;	
+			break;
+	
+			default: 	Result=F_Result_None;	// 잘못된 호출 시.
+			break;
+		}
+	
+	return
+
+
+close
+//-----------------------------------------------------------------------------------------------------------//
+
+
+// 3. Sub_PNP_Pos_Update
+open subprog Sub_PNP_Pos_Update(Input, &Result)
+// Execute Module에서 사용하는 PNP_Pos 변수를 업데이트해주는 서브프로그램.
+	switch( Input )
+	{
+		case F_Equipment_Anode_Run_Pos : Result = N_Pos_Anode_Run_Start;			
+			break;	// ↑ 음극 런 시작위치.
+		case F_Equipment_Cathode_Run_Pos : Result = N_Pos_Cathode_Run_Start;		
+			break;	// ↑ 양극 런 시작위치.
+		case F_Equipment_Stack_Completed_Pos : Result = N_Pos_Execute_Finish; 		
+			break;	// ↑ 적층완료위치.
+		case F_Equipment_Anode_Side_Pos : 
+
+		default : Result=N_Error_Step;	// 에러표시.	
+			
+		break;
+	}
+close
+

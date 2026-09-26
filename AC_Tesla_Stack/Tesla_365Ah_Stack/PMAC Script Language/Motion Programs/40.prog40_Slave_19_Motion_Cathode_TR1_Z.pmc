@@ -1,0 +1,205 @@
+// [ 참 조 : 2025.11.24 Z축 분리 ]
+&40
+#17->1000z			// 양극 1차 PNP Z축
+
+open prog 40
+ABS					// 절대좌표모드
+LINEAR
+
+while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(19) == 1 && P_Slave_Motion_Program_Flag(19) == 1 )
+{
+	switch( P_Slave19_Motion_Command )
+	{
+		case 0:		break;
+		// case 1
+		case N_1st_PNP_Belt_To_Align_Motion :					// 음극 1차 PNP 벨트 -> 얼라인 이동
+			P_Cathode_1TR_Z_Belt_To_Align = P_Master_Motion_Trigger
+			P_Slave19_Motion_Command = 0;						// Command 초기화
+			linear
+			ta(80)ts(30)td(30)tsd(30)tm(0)							// 110 + 30	= 140					
+			z(P_Cathode_1st_Fwd_Bwd_Rise)												
+			ta(30)ts(30)td(40)tsd(20)tm(0)							// 30 + 60 = 90				145 + 85 = 230			
+			//z(17.898)											// 0위치에서 10mm 하강위치
+			z(P_Cathode_1st_Z_Ready_Up)
+			P_First_PNP_Z_Belt_To_Align_Status == F_Status_COMPLETE;
+			dwell(0)
+		break;
+		// case 2
+		case N_1st_PNP_Align_To_Belt_Motion :					// 음극 1차 PNP 얼라인 -> 벨트 이동
+			P_Cathode_1TR_Z_Align_To_Belt = P_Master_Motion_Trigger
+			P_Slave19_Motion_Command = 0;						// Command 초기화
+			linear
+			ta(80)ts(30)td(30)tsd(30)tm(0)							// 110 + 30	= 140					
+			z(P_Cathode_1st_Fwd_Bwd_Rise)
+			ta(30)ts(30)td(40)tsd(20)tm(0)							// 30 + 60 = 90				145 + 85 = 230
+			//z(17.898)											// 0위치에서 10mm 하강위치 
+			z(P_Cathode_1st_Z_Ready_Up)
+			P_First_PNP_Z_Align_To_Belt_Status == F_Status_COMPLETE;
+			dwell(0)
+		break;
+		// case 3
+		case N_1st_PNP_Align_Down_Motion :						// 양극 1차 PNP 얼라인 하강
+			P_Cathode_1TR_Z_Align_Down = P_Master_Motion_Trigger
+			P_Slave19_Motion_Command = 0;						// Command 초기화
+			if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )
+			{
+				M_Y_Cathode_AT_Vac_Ejector_Vac_On == 1;			// 양극 얼라인 흡착 ON
+				M_Y_Cathode_AT_Vac_Ejector_Vac_Off == 0;		// 양극 얼라인 흡착 OFF
+			}
+			dwell(0)
+			linear
+			ta(35)ts(5)tm(0)									//	80ms 리니어 테스트
+			//z(68.987)											//	68.987; ( 0위치에서 30mm 하강위치 )
+			z(P_Cathode_1st_Z_Align_Down)
+			dwell(0)
+			if ( P_SemiRun_Cathode_1th_AT_Z_Axis_Pos_Flag == 1 )			// PV 항목 : 위치 값 보고 (세미 런 진입 + 모터 이동 완료 후 위치 값 저장)	[ 참조 : 26.09.14 MES PV 수정 ]
+			{
+				P_Motion_Cathode_1th_AT_Z_Axis_Pos_Flag == 1;				// 위치 값 저장 Flag On.
+			}
+			P_Cathode_1st_Motion_Complete == 1;
+			P_First_PNP_Z_Align_Down_Status == F_Status_COMPLETE;
+			dwell(0)
+		break;
+		// case 4
+		case N_1st_PNP_Align_Up_Motion :						// 음극 1차 PNP 얼라인 상승
+			P_Cathode_1TR_Z_Align_UP = P_Master_Motion_Trigger
+			P_Slave19_Motion_Command = 0;						// Command 초기화
+			dwell(0)
+			linear
+			ta(30) ts(5) tm(0)									//	70ms
+			//z(38.542)											// 38.542; ( 하강위치에서 10mm 상승위치 )
+			Z(P_Cathode_1st_Z_Align_Up)
+			P_Cathode_1st_Motion_Complete == 1;
+			P_First_PNP_Z_Align_Up_Status == F_Status_COMPLETE;
+			dwell(0)
+		break;
+		// case 5
+		case N_1st_PNP_Belt_Down_Motion :						// 음극 1차 PNP 벨트 하강
+			P_Cathode_1TR_Z_Belt_Down = P_Master_Motion_Trigger
+			P_Slave19_Motion_Command = 0;						// Command 초기화
+			P_Cathode_1st_TR_Belt_Down_Flag == 1;
+			if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )
+			{
+				M_Y_Cathode_1st_Vac_Sol_On	== 1;				// 흡착 ON
+				M_Y_Cathode_1st_Vac_Sol_Off == 0;				// 흡착 OFF
+			}
+			linear
+			ta(35)ts(5)tm(0)									//	80ms 리니어 테스트
+			//z(68.987)											//	68.987; ( 0위치에서 30mm 하강위치 )
+			Z(P_Cathode_1st_Z_Belt_Down)
+			dwell(0)
+			if ( P_SemiRun_Cathode_1th_CV_Z_Axis_Pos_Flag == 1 )			// PV 항목 : 위치 값 보고 (세미 런 진입 + 모터 이동 완료 후 위치 값 저장)	[ 참조 : 26.09.14 MES PV 수정 ]
+			{
+				P_Motion_Cathode_1th_CV_Z_Axis_Pos_Flag == 1;				// 위치 값 저장 Flag On.
+			}
+			// [ 참조: 26.01.21 극판 인터페이스 추가 ]	
+			M_Y_PLC_A_Cathode_Sheet_Start == 1;
+			M_Y_PLC_A_Cathode_Interlock == 0;
+			P_Cathode_1st_Motion_Complete == 1;
+			P_First_PNP_Z_Belt_Down_Status == F_Status_COMPLETE;
+			dwell(0)
+		break;
+		// case 6
+		case N_1st_PNP_Belt_Up_Motion :							// 음극 1차 PNP 벨트 상승
+			P_Cathode_1TR_Z_Belt_UP = P_Master_Motion_Trigger
+			P_Slave19_Motion_Command = 0;						// Command 초기화
+			P_PLC12_Cathode_Sheet_Pick_Up_Flag == 1;				// 벨트 픽업 체크 플래그
+			linear
+			ta(30) ts(5) tm(0)									//	70ms
+			//z(38.542)											// 38.542; ( 하강위치에서 10mm 상승위치 )
+			Z(P_Cathode_1st_Z_Belt_Up)
+			P_Hold_Cathode_Sheet_Pick_Up_Flag == 1;				// Hold 벨트 픽업 체크 플래그 - Hold 진행 시 Pause로 MasterTrigger가 아닌 벨트 상승 완료 후 벨트 극판 공급 시작	[ 참조 : 26.05.08 Hold 중 벨트 극판 공급 인터페이스 조건 추가 ]
+			P_Cathode_1st_Motion_Complete == 1;
+			P_First_PNP_Z_Belt_Up_Status == F_Status_COMPLETE;
+			dwell(0)
+		break;
+		// case 9
+		case N_1st_PNP_Ready_Pos_Motion :						// 음극 1차 PNP 대기위치 이동
+			P_Cathode_1TR_Z_Ready = P_Master_Motion_Trigger
+			P_Slave19_Motion_Command = 0;						// Command 초기화
+			P_First_PNP_Z_Wait_Status == F_Status_EXECUTE;	
+			linear
+			tm(P_PNP_Ready_TM) ta(P_PNP_Ready_TA) ts(P_PNP_Ready_TS) //	170ms
+			//z(17.898)											// 대기위치
+			Z(P_Cathode_1st_Z_Ready_Up)
+			P_First_PNP_Z_Wait_Status == F_Status_COMPLETE;
+			dwell(0)
+		break;
+		// case 12
+		case N_1st_PNP_Align_Blow :								// 음극 1차 PNP 얼라인 블로우
+			P_Cathode_1TR_Z_Align_Blow = P_Master_Motion_Trigger
+			P_Slave19_Motion_Command = 0
+			P_Cathode_1st_TR_Align_Down_Flag == 1
+			P_Vision_Align_Command == N_Cathode_Unit
+			// 2026.02.24 DIO 추가
+			M_Y_Cathode_1st_Vac_Sol_On	== 0;				// 흡착 ON
+			M_Y_Cathode_1st_Vac_Sol_Off == 1;				// 흡착 OFF
+			P_PLC12_Blow_MNTR(N_1st_Cathode) == 1;							// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+			dwell(10)
+			// 얼라인 테이블 흡착
+			if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )
+			{
+				M_Y_Cathode_AT_Vac_Ejector_Vac_On == 1;			// 양극 얼라인 흡착 ON
+				M_Y_Cathode_AT_Vac_Ejector_Vac_Off == 0;		// 양극 얼라인 흡착 OFF
+			}
+			P_PLC12_Vacuum_MNTR(N_Align_Cathode) == 1;						// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+			dwell(40)
+			P_Cathode_1st_Motion_Complete == 1;
+			P_Cathode_Trigger_IO_Test_Motion_Loop++;						// 모션, PLC 실제 Vision측 루프 카운트 측정 변수
+			P_First_PNP_Blow_On_Status == F_Status_COMPLETE;
+			dwell(0)
+		break;
+		// case 13
+		case N_1st_PNP_Belt_Vac :								// 음극 1차 PNP 벨트 흡착
+			P_Cathode_1TR_Z_Belt_Vac = P_Master_Motion_Trigger
+			P_Slave19_Motion_Command = 0
+			P_Tact_Time_Check(N_Cathode_1st_PNP) == 1;						// Tact Time 측정 시작 및 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+			// 2026.02.24 DIO 추가
+			if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )
+			{
+				M_Y_Cathode_1st_Vac_Sol_On	== 1;				// 흡착 ON
+				M_Y_Cathode_1st_Vac_Sol_Off == 0;				// 흡착 OFF
+			}
+
+			P_PLC12_Vacuum_MNTR(N_1st_Cathode) == 1;						// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+			P_Cathode_1st_TR_Belt_Pick_Up_Flag == 1
+			// [ 참조 : 26.04.28 Picker T축 탭방향에 따른 홈방식 변경 ]
+			// 참조 260604 1차 피커 홈 버그로 인한 극판 뒤집힘 수정
+			P_Ca_Picker_T_Turn_Cnt++;										// 양극 피커 T 회전 카운트 증가
+			dwell(5)
+			P_Ca_Picker_T_Turn_Cnt_Flag == 1;								// B/G PLC12 MNTR Start
+			dwell(45)
+			P_Cathode_1st_Motion_Complete == 1;
+			P_First_PNP_Vac_On_Status == F_Status_COMPLETE;
+			dwell(0)
+		break;
+		// case 14
+		case N_1st_PNP_Align_Vac :								// 음극 1차 PNP 얼라인 흡착
+			P_Slave19_Motion_Command = 0
+			P_Cathode_1st_TR_Align_Pick_Up_Flag == 1
+			// 2026.02.24 DIO 추가
+			if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )
+			{
+				M_Y_Cathode_1st_Vac_Sol_On	== 1;				// 흡착 ON
+				M_Y_Cathode_1st_Vac_Sol_Off == 0;				// 흡착 OFF
+			}
+			M_Y_Cathode_AT_Vac_Ejector_Vac_On == 0;			// 양극 얼라인 흡착 ON
+			M_Y_Cathode_AT_Vac_Ejector_Vac_Off == 1;		// 양극 얼라인 흡착 OFF
+
+			P_PLC12_Vacuum_MNTR(N_1st_Cathode) == 1;		// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+			P_PLC12_Blow_MNTR(N_Align_Cathode) == 1;		// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+			dwell(50)
+			// [ 참조 : 26.05.06 1,2차,NG PNP 및 얼라인 흡착 해제 타이밍 수정 ]
+			M_Y_Cathode_AT_Vac_Ejector_Vac_On == 0;				// 양극 얼라인 흡착 ON
+			M_Y_Cathode_AT_Vac_Ejector_Vac_Off == 0;			// 양극 얼라인 흡착 OFF
+			dwell(0)
+			P_Anode_1st_Motion_Complete == 1;
+			dwell(0)
+		break;
+
+		default: 
+			P_Slave19_Motion_Command = 0;
+		break;
+	}
+}
+close

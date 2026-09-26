@@ -1,0 +1,141 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+
+open subprog Modbus_Interface(void)
+
+	Sub: ModBus_Connect(void)
+		Ldata.CmdStatus = 1;
+		cmd "ModbusConnect 1";
+		sendallcmds;
+		while(Ldata.CmdStatus > 0) {}
+		
+		P_Modbus_Connected_Flag = 1;
+	return
+
+Sub: ReadData(void)
+		
+		if(P_Modbus_Connected_Flag == 1)
+		{
+			Ldata.CmdStatus = 1;
+			cmd "ModbusFloatRead 1, P10, 10, P10";
+			sendallcmds;
+			while(Ldata.CmdStatus > 0) {}
+		}
+
+	return
+
+	Sub: WriteData(void)
+		
+		if(P_Modbus_Connected_Flag == 1)
+		{
+			Ldata.CmdStatus = 1;
+			cmd "ModbusFloatWrite 1, P30, 10, P30";
+			sendallcmds;
+			while(Ldata.CmdStatus > 0) {}	
+		}
+
+	return
+
+	Sub: Heartbeat(void)
+		local L_Heartbeat_Timer = 0;
+		local L_Old_Heartbeat = 0;
+
+		L_Heartbeat_Timer = int(Sys.Time * 10);
+
+		if(L_Heartbeat_Timer == L_Old_Heartbeat)
+		{
+			P_Write_Modbus_HeartBeat = P_Write_Modbus_HeartBeat ^ 1;
+		}
+		L_Old_Heartbeat = L_Heartbeat_Timer;
+	return
+
+	Sub: Pos_ReadData(void)
+		
+		if(P_Modbus_Connected_Flag == 1)
+		{
+			Ldata.CmdStatus = 1;
+			cmd "ModbusFloatRead 1, P800, 2, P800";
+			sendallcmds;
+			while(Ldata.CmdStatus > 0) {}
+		}
+
+	return
+
+	Sub: Pos_WriteData(void)
+		
+		if(P_Modbus_Connected_Flag == 1)
+		{
+			Ldata.CmdStatus = 1;
+			cmd "ModbusFloatWrite 1, P810, 2, P810";
+			sendallcmds;
+			while(Ldata.CmdStatus > 0) {}	
+		}
+
+	return
+
+	Sub: Debug_Pos_WriteData(void)
+		
+		if(P_Modbus_Connected_Flag == 1)
+		{
+			Ldata.CmdStatus = 1;
+			cmd "ModbusFloatWrite 1, P8000, 60, P8000";
+			sendallcmds;
+			while(Ldata.CmdStatus > 0) {}
+		}
+
+	return
+close
+
+
+
+
+open subprog Bit_Masking_Function(void)
+
+// [ 2025.06.24 추가 ] =======================
+// 비트 마스킹 함수 
+//============================================
+sub: Check(Bit,Bit_Pos,&rtn)			// 체크 함수 ( 비트값, 비트 위치, 결과값 )
+	if( Bit >> ( Bit_Pos - 1 ) & 1 )	
+	{
+		rtn = N_TRUE;
+	}
+	else
+	{
+		rtn = N_NoValue;
+	}
+return;
+
+sub: Add(Input,&Output,Bit_Pos,&rtn)	// 추가 함수 ( 입력 비트값, 출력 비트값, 비트 위치, 결과값 )
+	local L_Input_Bit = Input;
+	L_Input_Bit |= 1 << (Bit_Pos - 1);
+	Output = L_Input_Bit;
+	rtn = N_TRUE;
+return;
+
+sub: Remove(Input,&Output,Bit_Pos,&rtn)	// 제거 함수 ( 입력 비트값, 출력 비트값, 비트 위치, 결과값 )
+	local L_Input_Bit = Input;
+	Output = L_Input_Bit & (~(1 << (Bit_Pos - 1))); 
+	rtn = N_TRUE;
+return;
+
+sub: Toggle(Input,&Output,Bit_Pos,&rtn)	// 반전 함수 ( 입력 비트값, 출력 비트값, 비트 위치, 결과값 )
+	local L_Input_Bit = Input;
+	L_Input_Bit ^= 1 << (Bit_Pos - 1);
+	Output = L_Input_Bit;
+	rtn = N_TRUE;
+return;
+
+sub: All(Bit,Bit_Pos,&rtn)
+
+return;
+
+sub: Empty(&Bit,&Bit_Pos)
+	Bit = 0;
+	Bit_Pos = 0;
+return;
+
+close

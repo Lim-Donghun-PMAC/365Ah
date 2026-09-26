@@ -1,0 +1,283 @@
+			
+open plc 23
+#define	L_System_Timer				Sys.Time				// 시스템 타이머
+
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[23].Ldata.L[0] 시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[23].Ldata.L[1] 시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[23].Ldata.L[2] 시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[23].Ldata.L[3] 타이머 초기화 플래그
+Local	L_Motor_Num										// Plc[23].Ldata.L[4] 모터 번호
+Local	L_500ms_On_Off_Timer(50);						// PLC[23].Ldata.L[5 ~ 54] 홈진행 타이머
+
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	// 시간 간격 초기화
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 00.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+// 00.3) 시간 업데이트
+if(L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{
+	L_500ms_On_Off_Timer(1) = L_500ms_On_Off_Timer(1) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(2) = L_500ms_On_Off_Timer(2) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(3) = L_500ms_On_Off_Timer(3) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(4) = L_500ms_On_Off_Timer(4) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(5) = L_500ms_On_Off_Timer(5) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(6) = L_500ms_On_Off_Timer(6) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(7) = L_500ms_On_Off_Timer(7) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(8) = L_500ms_On_Off_Timer(8) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(11) = L_500ms_On_Off_Timer(11) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(12) = L_500ms_On_Off_Timer(12) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(13) = L_500ms_On_Off_Timer(13) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(14) = L_500ms_On_Off_Timer(14) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(15) = L_500ms_On_Off_Timer(15) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(16) = L_500ms_On_Off_Timer(16) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(17) = L_500ms_On_Off_Timer(17) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(18) = L_500ms_On_Off_Timer(18) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(19) = L_500ms_On_Off_Timer(19) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(20) = L_500ms_On_Off_Timer(20) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(21) = L_500ms_On_Off_Timer(21) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(22) = L_500ms_On_Off_Timer(22) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(23) = L_500ms_On_Off_Timer(23) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(24) = L_500ms_On_Off_Timer(24) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(25) = L_500ms_On_Off_Timer(25) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(26) = L_500ms_On_Off_Timer(26) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(27) = L_500ms_On_Off_Timer(27) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(28) = L_500ms_On_Off_Timer(28) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(33) = L_500ms_On_Off_Timer(33) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(34) = L_500ms_On_Off_Timer(34) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(35) = L_500ms_On_Off_Timer(35) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(36) = L_500ms_On_Off_Timer(36) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(37) = L_500ms_On_Off_Timer(37) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(38) = L_500ms_On_Off_Timer(38) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(39) = L_500ms_On_Off_Timer(39) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(40) = L_500ms_On_Off_Timer(40) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(41) = L_500ms_On_Off_Timer(41) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(42) = L_500ms_On_Off_Timer(42) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(43) = L_500ms_On_Off_Timer(43) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(44) = L_500ms_On_Off_Timer(44) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(45) = L_500ms_On_Off_Timer(45) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(46) = L_500ms_On_Off_Timer(46) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(47) = L_500ms_On_Off_Timer(47) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_500ms_On_Off_Timer(48) = L_500ms_On_Off_Timer(48) + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+
+// 홈진행 상태 램프
+
+if(P_Current_Homming_Status(L_Motor_Num) == F_Status_STARTING)
+{
+	if( L_500ms_On_Off_Timer(L_Motor_Num) > 500 )
+	{
+		P_Current_Homming_Status_To_PLC(L_Motor_Num) ^= $1;
+		L_500ms_On_Off_Timer(L_Motor_Num) = 0;
+	}
+}
+else if(P_Current_Homming_Status(L_Motor_Num) == F_Status_COMPLETE)
+{
+	P_Current_Homming_Status_To_PLC(L_Motor_Num) = $1;
+}
+
+if( P_PMAC_Current_Mode == F_Current_Automatic )
+{
+    if( P_Alarm_Occur_Index_Flag(N_High_Alarm_Cycle_Stop) == 0 && P_Alarm_Occur_Index_Flag(N_High_Alarm_Emergency_Stop) == 0 ) // 알람 플래그가 0이라면.
+	{
+		P_Motor_Unit_Status(L_Motor_Num) = $20;
+	}
+	else
+	{
+		// 자동 운전 중
+		if( Motor[L_Motor_Num].AmpEna == 0 || Motor[L_Motor_Num].MinusLimit == 1 || Motor[L_Motor_Num].PlusLimit == 1)
+		{
+		   // 알람 발생
+		   P_Motor_Unit_Status(L_Motor_Num) = $40;
+		}
+	}
+}
+else if(P_PMAC_Current_Mode == F_Current_Manual)
+{
+	if((P_Current_Homming_Status(L_Motor_Num) == F_Status_COMPLETE) || P_PMAC_Homing_CHK(L_Motor_Num) == 1 && ((P_Motor_Current_Pos(L_Motor_Num) >= P_Axis_Ready_Pos(L_Motor_Num) - 0.02) && (P_Motor_Current_Pos(L_Motor_Num) <= P_Axis_Ready_Pos(L_Motor_Num) + 0.02)))
+	{
+	    // 홈동작 완료
+		P_Motor_Unit_Status(L_Motor_Num) = $02;
+	}
+	else if( ( ( P_PMAC_Homing_CHK(L_Motor_Num) == 0 || ( P_Motor_Current_Pos(L_Motor_Num) < P_Axis_Ready_Pos(L_Motor_Num) - 0.02 ) ||( P_Motor_Current_Pos(L_Motor_Num) > P_Axis_Ready_Pos(L_Motor_Num) + 0.02 ) ) && Motor[L_Motor_Num].DesVelZero == 1 ) )
+	{	
+	    // 홈동작 미완료
+	    P_Motor_Unit_Status(L_Motor_Num) = $01;		
+	}
+	else if( P_Current_Homming_Status(L_Motor_Num) == F_Status_STARTING )
+	{
+	    // 홈동작 중
+		P_Motor_Unit_Status(L_Motor_Num) = $08;
+	}
+}
+
+
+if(P_PMAC_Current_Mode == F_Current_Manual)
+{
+	// 세파 유닛
+	if(P_Motor_Unit_Status(N_UNWINDER_UPPER) == $02 && P_Motor_Unit_Status(N_UNWINDER_LOWER) == $02)
+	{
+		P_UI_Unit_Status(N_Unwinder_Unit_Lamp) = $02;
+	}
+	else if(P_Motor_Unit_Status(N_UNWINDER_UPPER) == $01 || P_Motor_Unit_Status(N_UNWINDER_LOWER) == $01)
+	{
+		P_UI_Unit_Status(N_Unwinder_Unit_Lamp) = $01;
+	}
+	else if(P_Motor_Unit_Status(N_UNWINDER_UPPER) == $08 || P_Motor_Unit_Status(N_UNWINDER_LOWER) == $08)
+	{
+		P_UI_Unit_Status(N_Unwinder_Unit_Lamp) = $08;
+	}
+
+	// 음극 유닛
+	if(P_Motor_Unit_Status(N_1st_PnP_AN_T) == $02 && P_Motor_Unit_Status(N_2nd_PnP_AN_T) == $02 && P_Motor_Unit_Status(N_1st_PnP_AN_Z) == $02 && P_Motor_Unit_Status(N_1st_Picker_AN_T) == $02 && P_Motor_Unit_Status(N_2nd_PnP_AN_Z) == $02 && P_Motor_Unit_Status(N_Align_AN_X) == $02 && P_Motor_Unit_Status(N_Align_AN_Y) == $02 && P_Motor_Unit_Status(N_Align_AN_T) == $02 && P_Motor_Unit_Status(N_NG_PnP_AN_T) == $02 && P_Motor_Unit_Status(N_NG_PnP_AN_Z) == $02)
+	{
+		P_UI_Unit_Status(N_Anode_Unit_Lamp) = $02;
+	}
+	else if(P_Motor_Unit_Status(N_1st_PnP_AN_T) == $01 || P_Motor_Unit_Status(N_2nd_PnP_AN_T) == $01 || P_Motor_Unit_Status(N_1st_PnP_AN_Z) == $01 || P_Motor_Unit_Status(N_1st_Picker_AN_T) == $01 || P_Motor_Unit_Status(N_2nd_PnP_AN_Z) == $01 || P_Motor_Unit_Status(N_Align_AN_X) == $01 || P_Motor_Unit_Status(N_Align_AN_Y) == $01 || P_Motor_Unit_Status(N_Align_AN_T) == $01 || P_Motor_Unit_Status(N_NG_PnP_AN_T) == $01 || P_Motor_Unit_Status(N_NG_PnP_AN_Z) == $01)
+	{	
+		P_UI_Unit_Status(N_Anode_Unit_Lamp) = $01;
+	}
+	else if(P_Motor_Unit_Status(N_1st_PnP_AN_T) == $08 || P_Motor_Unit_Status(N_2nd_PnP_AN_T) == $08 || P_Motor_Unit_Status(N_1st_PnP_AN_Z) == $08 || P_Motor_Unit_Status(N_1st_Picker_AN_T) == $08 || P_Motor_Unit_Status(N_2nd_PnP_AN_Z) == $08 || P_Motor_Unit_Status(N_Align_AN_X) == $08 || P_Motor_Unit_Status(N_Align_AN_Y) == $08 || P_Motor_Unit_Status(N_Align_AN_T) == $08 || P_Motor_Unit_Status(N_NG_PnP_AN_T) == $08 || P_Motor_Unit_Status(N_NG_PnP_AN_Z) == $08)
+	{	
+		P_UI_Unit_Status(N_Anode_Unit_Lamp) = $08;
+	}
+
+	// 양극 유닛
+	if(P_Motor_Unit_Status(N_1st_PnP_CA_T) == $02 && P_Motor_Unit_Status(N_1st_PnP_CA_Z) == $02 && P_Motor_Unit_Status(N_1st_Picker_CA_T) == $02 && P_Motor_Unit_Status(N_2nd_PnP_CA_Z)	== $02 && P_Motor_Unit_Status(N_2nd_PnP_CA_T) == $02 && P_Motor_Unit_Status(N_Align_CA_X) == $02 && P_Motor_Unit_Status(N_Align_CA_Y) == $02 && P_Motor_Unit_Status(N_Align_CA_T) == $02 && P_Motor_Unit_Status(N_NG_PnP_CA_T) == $02 && P_Motor_Unit_Status(N_NG_PnP_CA_Z) == $02)
+	{
+		P_UI_Unit_Status(N_Cathode_Unit_Lamp) = $02;
+	}
+	else if(P_Motor_Unit_Status(N_1st_PnP_CA_T) == $01 || P_Motor_Unit_Status(N_1st_PnP_CA_Z) == $01 || P_Motor_Unit_Status(N_1st_Picker_CA_T) == $01 || P_Motor_Unit_Status(N_2nd_PnP_CA_Z)	== $01 || P_Motor_Unit_Status(N_2nd_PnP_CA_T) == $01 || P_Motor_Unit_Status(N_Align_CA_X) == $01 || P_Motor_Unit_Status(N_Align_CA_Y) == $01 || P_Motor_Unit_Status(N_Align_CA_T) == $01 || P_Motor_Unit_Status(N_NG_PnP_CA_T) == $01 || P_Motor_Unit_Status(N_NG_PnP_CA_Z) == $01)
+	{
+		P_UI_Unit_Status(N_Cathode_Unit_Lamp) = $01;
+	}
+	else if(P_Motor_Unit_Status(N_1st_PnP_CA_T) == $08 || P_Motor_Unit_Status(N_1st_PnP_CA_Z) == $08 || P_Motor_Unit_Status(N_1st_Picker_CA_T) == $08 || P_Motor_Unit_Status(N_2nd_PnP_CA_Z)	== $08 || P_Motor_Unit_Status(N_2nd_PnP_CA_T) == $08 || P_Motor_Unit_Status(N_Align_CA_X) == $08 || P_Motor_Unit_Status(N_Align_CA_Y) == $08 || P_Motor_Unit_Status(N_Align_CA_T) == $08 || P_Motor_Unit_Status(N_NG_PnP_CA_T) == $08 || P_Motor_Unit_Status(N_NG_PnP_CA_Z) == $08)
+	{
+		P_UI_Unit_Status(N_Cathode_Unit_Lamp) = $08;
+	}
+
+	// 스택 유닛
+	if(P_Motor_Unit_Status(N_Clamp_CA_Y1) == $02 && P_Motor_Unit_Status(N_Clamp_AN_Y1) == $02 && P_Motor_Unit_Status(N_Clamp_CA_Y2) == $02 && P_Motor_Unit_Status(N_Clamp_AN_Y2) == $02 && P_Motor_Unit_Status(N_MAIN_Z) == $02 && P_Motor_Unit_Status(N_FINAL_ROLL_X) == $02 && P_Motor_Unit_Status(N_FINAL_ROLL_Z) == $02 && P_Motor_Unit_Status(N_DRIVING_ROLL) == $02 && P_Motor_Unit_Status(N_SERVO_DANCER) == $02 && P_Motor_Unit_Status(N_Clamp_CA_Z2) == $02 && P_Motor_Unit_Status(N_Clamp_AN_Z2) == $02 && P_Motor_Unit_Status(N_Clamp_CA_Z1) == $02 && P_Motor_Unit_Status(N_Clamp_AN_Z1) == $02)
+	{
+		P_UI_Unit_Status(N_Stack_Unit_Lamp) = $02;
+	}
+	else if(P_Motor_Unit_Status(N_Clamp_CA_Y1) == $01 || P_Motor_Unit_Status(N_Clamp_AN_Y1) == $01 || P_Motor_Unit_Status(N_Clamp_CA_Y2) == $01 || P_Motor_Unit_Status(N_Clamp_AN_Y2) == $01 || P_Motor_Unit_Status(N_MAIN_Z) == $01 || P_Motor_Unit_Status(N_FINAL_ROLL_X) == $01 || P_Motor_Unit_Status(N_FINAL_ROLL_Z) == $01 || P_Motor_Unit_Status(N_DRIVING_ROLL) == $01 || P_Motor_Unit_Status(N_SERVO_DANCER) == $01 || P_Motor_Unit_Status(N_Clamp_CA_Z2) == $01 || P_Motor_Unit_Status(N_Clamp_AN_Z2) == $01 || P_Motor_Unit_Status(N_Clamp_CA_Z1) == $01 || P_Motor_Unit_Status(N_Clamp_AN_Z1) == $01)
+	{
+		if( P_Stack_Judgement_Memory == 1 )		// 젤리롤 적층 중엔 stack 부 Home Command 없음
+			P_UI_Unit_Status(N_Stack_Unit_Lamp) = $02;
+		else
+			P_UI_Unit_Status(N_Stack_Unit_Lamp) = $01;
+	}
+	else if(P_Motor_Unit_Status(N_Clamp_CA_Y1) == $08 || P_Motor_Unit_Status(N_Clamp_AN_Y1) == $08 || P_Motor_Unit_Status(N_Clamp_CA_Y2) == $08 || P_Motor_Unit_Status(N_Clamp_AN_Y2) == $08 || P_Motor_Unit_Status(N_MAIN_Z) == $08 || P_Motor_Unit_Status(N_FINAL_ROLL_X) == $08 || P_Motor_Unit_Status(N_FINAL_ROLL_Z) == $08 || P_Motor_Unit_Status(N_DRIVING_ROLL) == $08 || P_Motor_Unit_Status(N_SERVO_DANCER) == $08 || P_Motor_Unit_Status(N_Clamp_CA_Z2) == $08 || P_Motor_Unit_Status(N_Clamp_AN_Z2) == $08 || P_Motor_Unit_Status(N_Clamp_CA_Z1) == $08 || P_Motor_Unit_Status(N_Clamp_AN_Z1) == $08)
+	{
+		P_UI_Unit_Status(N_Stack_Unit_Lamp) = $08;
+	}
+
+	// 1차 언로더
+	if(P_Motor_Unit_Status(N_UNLOADER_X) == $02 && P_Motor_Unit_Status(N_UNLOADER_Z) == $02 && P_Motor_Unit_Status(N_UNLOADER_T) == $02)
+	{
+		P_UI_Unit_Status(N_1st_Unloader_Lamp) = $02;
+	}
+	else if(P_Motor_Unit_Status(N_UNLOADER_X) == $01 || P_Motor_Unit_Status(N_UNLOADER_Z) == $01 || P_Motor_Unit_Status(N_UNLOADER_T) == $01)
+	{
+		P_UI_Unit_Status(N_1st_Unloader_Lamp) = $01;
+	}
+	else if(P_Motor_Unit_Status(N_UNLOADER_X) == $08 || P_Motor_Unit_Status(N_UNLOADER_Z) == $08 || P_Motor_Unit_Status(N_UNLOADER_T) == $08)
+	{
+		P_UI_Unit_Status(N_1st_Unloader_Lamp) = $08;
+	}
+
+	P_UI_Unit_Status(N_ARC_Unit_Lamp) = $02;
+
+}
+else if(P_PMAC_Current_Mode == F_Current_Automatic)
+{
+	// 세파 유닛
+	if(P_Motor_Unit_Status(N_UNWINDER_UPPER) == $20 && P_Motor_Unit_Status(N_UNWINDER_LOWER) == $20)
+	{
+		P_UI_Unit_Status(N_Unwinder_Unit_Lamp) = $20;
+	}
+	else if(P_Motor_Unit_Status(N_UNWINDER_UPPER) == $40 || P_Motor_Unit_Status(N_UNWINDER_LOWER) == $40)
+	{
+		P_UI_Unit_Status(N_Unwinder_Unit_Lamp) = $40;
+	}
+
+	// 음극 유닛
+	if(P_Motor_Unit_Status(N_1st_PnP_AN_T) == $20 && P_Motor_Unit_Status(N_2nd_PnP_AN_T) == $20 && P_Motor_Unit_Status(N_1st_PnP_AN_Z) == $20 && P_Motor_Unit_Status(N_1st_Picker_AN_T) == $20 && P_Motor_Unit_Status(N_2nd_PnP_AN_Z) == $20 && P_Motor_Unit_Status(N_Align_AN_X) == $20 && P_Motor_Unit_Status(N_Align_AN_Y) == $20 && P_Motor_Unit_Status(N_Align_AN_T) == $20 && P_Motor_Unit_Status(N_NG_PnP_AN_T) == $20 && P_Motor_Unit_Status(N_NG_PnP_AN_Z) == $20)
+	{
+		P_UI_Unit_Status(N_Anode_Unit_Lamp) = $20;
+	}
+	else if(P_Motor_Unit_Status(N_1st_PnP_AN_T) == $40 || P_Motor_Unit_Status(N_2nd_PnP_AN_T) == $40 || P_Motor_Unit_Status(N_1st_PnP_AN_Z) == $40 || P_Motor_Unit_Status(N_1st_Picker_AN_T) == $40 || P_Motor_Unit_Status(N_2nd_PnP_AN_Z) == $40 || P_Motor_Unit_Status(N_Align_AN_X) == $40 || P_Motor_Unit_Status(N_Align_AN_Y) == $40 || P_Motor_Unit_Status(N_Align_AN_T) == $40 || P_Motor_Unit_Status(N_NG_PnP_AN_T) == $40 || P_Motor_Unit_Status(N_NG_PnP_AN_Z) == $40)
+	{	
+		P_UI_Unit_Status(N_Anode_Unit_Lamp) = $40;
+	}
+
+	// 양극 유닛
+	if(P_Motor_Unit_Status(N_1st_PnP_CA_T) == $20 && P_Motor_Unit_Status(N_1st_PnP_CA_Z) == $20 && P_Motor_Unit_Status(N_1st_Picker_CA_T) == $20 && P_Motor_Unit_Status(N_2nd_PnP_CA_Z)	== $20 && P_Motor_Unit_Status(N_2nd_PnP_CA_T) == $20 && P_Motor_Unit_Status(N_Align_CA_X) == $20 && P_Motor_Unit_Status(N_Align_CA_Y) == $20 && P_Motor_Unit_Status(N_Align_CA_T) == $20 && P_Motor_Unit_Status(N_NG_PnP_CA_T) == $20 && P_Motor_Unit_Status(N_NG_PnP_CA_Z) == $20)
+	{
+		P_UI_Unit_Status(N_Cathode_Unit_Lamp) = $20;
+	}
+	else if(P_Motor_Unit_Status(N_1st_PnP_CA_T) == $40 || P_Motor_Unit_Status(N_1st_PnP_CA_Z) == $40 || P_Motor_Unit_Status(N_1st_Picker_CA_T) == $40 || P_Motor_Unit_Status(N_2nd_PnP_CA_Z)	== $40 || P_Motor_Unit_Status(N_2nd_PnP_CA_T) == $40 || P_Motor_Unit_Status(N_Align_CA_X) == $40 || P_Motor_Unit_Status(N_Align_CA_Y) == $40 || P_Motor_Unit_Status(N_Align_CA_T) == $40 || P_Motor_Unit_Status(N_NG_PnP_CA_T) == $40 || P_Motor_Unit_Status(N_NG_PnP_CA_Z) == $40)
+	{
+		P_UI_Unit_Status(N_Cathode_Unit_Lamp) = $40;
+	}
+
+	// 스택 유닛
+	if(P_Motor_Unit_Status(N_Clamp_CA_Y1) == $20 && P_Motor_Unit_Status(N_Clamp_AN_Y1) == $20 && P_Motor_Unit_Status(N_Clamp_CA_Y2) == $20 && P_Motor_Unit_Status(N_Clamp_AN_Y2) == $20 && P_Motor_Unit_Status(N_MAIN_Z) == $20 && P_Motor_Unit_Status(N_FINAL_ROLL_X) == $20 && P_Motor_Unit_Status(N_FINAL_ROLL_Z) == $20 && P_Motor_Unit_Status(N_DRIVING_ROLL) == $20 && P_Motor_Unit_Status(N_SERVO_DANCER) == $20 && P_Motor_Unit_Status(N_Clamp_CA_Z2) == $20 && P_Motor_Unit_Status(N_Clamp_AN_Z2) == $20 && P_Motor_Unit_Status(N_Clamp_CA_Z1) == $20 && P_Motor_Unit_Status(N_Clamp_AN_Z1) == $20)
+	{
+		P_UI_Unit_Status(N_Stack_Unit_Lamp) = $20;
+	}
+	else if(P_Motor_Unit_Status(N_Clamp_CA_Y1) == $40 || P_Motor_Unit_Status(N_Clamp_AN_Y1) == $40 || P_Motor_Unit_Status(N_Clamp_CA_Y2) == $40 || P_Motor_Unit_Status(N_Clamp_AN_Y2) == $40 || P_Motor_Unit_Status(N_MAIN_Z) == $40 || P_Motor_Unit_Status(N_FINAL_ROLL_X) == $40 || P_Motor_Unit_Status(N_FINAL_ROLL_Z) == $40 || P_Motor_Unit_Status(N_DRIVING_ROLL) == $40 || P_Motor_Unit_Status(N_SERVO_DANCER) == $40 || P_Motor_Unit_Status(N_Clamp_CA_Z2) == $40 || P_Motor_Unit_Status(N_Clamp_AN_Z2) == $40 || P_Motor_Unit_Status(N_Clamp_CA_Z1) == $40 || P_Motor_Unit_Status(N_Clamp_AN_Z1) == $40)
+	{
+		P_UI_Unit_Status(N_Stack_Unit_Lamp) = $40;
+	}
+
+	// 1차 언로더
+	if(P_Motor_Unit_Status(N_UNLOADER_X) == $20 && P_Motor_Unit_Status(N_UNLOADER_Z) == $20 && P_Motor_Unit_Status(N_UNLOADER_T) == $20)
+	{
+		P_UI_Unit_Status(N_1st_Unloader_Lamp) = $20;
+	}
+	else if(P_Motor_Unit_Status(N_UNLOADER_X) == $40 || P_Motor_Unit_Status(N_UNLOADER_Z) == $40 || P_Motor_Unit_Status(N_UNLOADER_T) == $40)
+	{
+		P_UI_Unit_Status(N_1st_Unloader_Lamp) = $40;
+	}
+
+
+	if(P_UI_Unit_Status(N_1st_Unloader_Lamp) == $20 && P_UI_Unit_Status(N_Stack_Unit_Lamp) == $20 && P_UI_Unit_Status(N_Unwinder_Unit_Lamp) == $20 && P_UI_Unit_Status(N_Anode_Unit_Lamp) == $20 && P_UI_Unit_Status(N_Cathode_Unit_Lamp) == $20 )
+	{
+		P_UI_Unit_Status(N_ARC_Unit_Lamp) = $20;
+	}
+	else if(P_UI_Unit_Status(N_1st_Unloader_Lamp) == $40 || P_UI_Unit_Status(N_Stack_Unit_Lamp) == $40 || P_UI_Unit_Status(N_Unwinder_Unit_Lamp) == $40 || P_UI_Unit_Status(N_Anode_Unit_Lamp) == $40 || P_UI_Unit_Status(N_Cathode_Unit_Lamp) == $40 )
+	{
+		P_UI_Unit_Status(N_ARC_Unit_Lamp) = $40;
+	}
+}
+
+
+L_Motor_Num++;
+
+if( L_Motor_Num > 49 )
+{
+	L_Motor_Num = 1;
+}
+
+close

@@ -1,0 +1,2685 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.04 임동훈 선임
+// 모듈화 프로그래밍 진행 (배출) - [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+// 25.06.04 김형진 책임
+// 모듈화 프로그래밍 진행 (ARC) - [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+
+/*
+1. Discharge Acting Module
+2. ARC Acting Module
+[search]	ㄴㄷㅁㄱ
+//-- Discharge_Fine --//
+//-- ARC_Fine --//
+//--Supply_Fine--//
+*/
+open subprog Subprog_Subprocess_Act_Module(void)
+	/*---------- Discharge_Fine ----------//
+	- FR_Clamp_OFF						[실린더]		[파이널 롤러 언클램프]
+	- FR_Clamp_ON						[실린더]		[파이널 롤러 클램프]
+	- FR_Discharge_Pos					[모터]		[파이널 롤러 배출 위치]
+	- FR_Stack_Pos						[모터]		[파이널 롤러 스텍 위치]
+	- First_Unloadaer_UP				[모터]		[1차 언로더 상승 - 스텍 위치 이동]
+	- First_Unloadaer_FWD				[모터]		[1차 언로더 전진 - 스텍 진입 이동]
+	- First_Unloader_Grip_ON			[실린더]		[1차 언로더 그립 ON]
+	- First_Unloader_Grip_OFF			[실린더]		[1차 언로더 그립 OFF]
+	- First_Unloader_Grip_Cell_Pos		[모터]		[1차 언로더 셀 부착 위치 이동]
+	- First_Unloader_BWD_Wait_Pos		[모터]		[1차 언로더 그립 후 후진을 위한 대기 위치 이동]
+	- First_Unloader_Stack_BWD			[모터]		[1차 언로더 그립 후 후진 위치 이동]
+	- First_Unloader_Stack_Down			[모터]		[1차 언로더 하강 위치 이동]
+	- First_Unloader_Turn				[모터]		[1차 언로더 회피위치 이동 - 45도 위치 회전]
+	- First_Unloader_Handover_Pos		[모터]		[1차 언로더 인계위치 이동 - 90도 위치 회전]
+	- Cathode_Clamp_OFF					[모터]		[양극 클램프 OFF]
+	- Sepa_Cutter_Heating				[실린더]		[세파 커티 열선 ON]
+	- Sepa_Cutter_Cylinder_FWD			[실린더]		[세파 커터 전진]
+	- Sepa_Cutter_Cylinder_BWD			[실린더]		[세파 커터 후진]
+	- Main_Z_Init_Pos					[모터]		[메인Z축 대기 위치 이동]	  
+	- After_Action_Init					[x]			[배출 후 액션 함수 초기화]
+	- Sheet_Paper_BWD					[모터]		[시트 페이퍼 후진]
+	- Sheet_Paper_Vacuum_ON				[실린더]		[시트 페이퍼 진공 ON]
+	- Master_Coord_Pause				[x]			[ 마스터 좌표계 정지 ]
+	- Master_Coord_Resume				[x]			[ 마스터 좌표계 재시작 ]
+	---------------- PMAC ↔ PLC Interface ----------------
+	- First_Unloader_Pos_Chk			[Interface]	[1차 언로더 위치 확인]
+	- Unloader_Grip_ON					[Interface]	[언로더 그립 요청] (A열 : 2차 언로더, B열 : 3차 언로더)
+	- Grip_Chk_First_Unloader_Grip_OFF	[실린더]		[1차 언로더 언그립] (A열 : 2차 언로더 확인, B열 : 3차 언로더 확인)
+	- First_Unloader_Wait_Pos			[모터]		[1차 언로더 대기 위치 이동 - 0도 위치 회전]
+	//------------------------------------*/
+
+	// 파이널 롤러 언클램프.
+	sub:FR_Clamp_OFF(&FR_Clamp_OFF_RTN)
+		// 0.0) 반환값 초기화.
+		FR_Clamp_OFF_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_OFF) == N_Ready_Step )											// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_FR_Clamp_OFF) = Sys.Time;																	// 타이머 설정.
+			if ( P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module) == N_Normal_Status_Sequence )
+			{
+				P_Discharge_Vision_DIO_RTN = 0;																				// 반환값 초기화.	
+				call Discharge_Sub_Prog.Discharge_Vision_DIO(&P_Discharge_Vision_DIO_RTN);									// 비전 인터페이스 신호.
+			}
+			else
+				P_Discharge_Vision_DIO_RTN = F_TRUE;																		// 드라이런 및 세파모드일떄 반환값 트루 추가
+
+			M_Y_FR_Sepa_Clamp_FWD_Sol = 0;																					// 파이널 롤러 언클램프.
+			M_Y_FR_Sepa_Clamp_BWD_Sol = 1;																					// 파이널 롤러 언클램프.
+			P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_OFF) = 1;														// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_OFF) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_FR_Clamp_OFF) + P_Act_Time_Out(N_Act_FR_Clamp_OFF) )						// 일정 시간 전에 완료 될 경우.
+			{
+				if( M_X_FR_Sepa_Clamp_Front_Sensor == 0 && M_X_FR_Sepa_Clamp_Rear_Sensor == 0 && M_X_FR_Sepa_UnClamp_Front_Sensor == 1 && M_X_FR_Sepa_UnClamp_Rear_Sensor == 1 && P_Discharge_Vision_DIO_RTN == F_TRUE )	// 완료 상태 확인 후
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_FR_Clamp_OFF) + P_Act_Delay_Time(N_Act_FR_Clamp_OFF) )				// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_OFF) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_OFF) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_OFF) == N_Error_Step )											// 애러 상태 일 경우.
+		{
+			FR_Clamp_OFF_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_OFF) == N_Complete_Step )										// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_FR_Clamp_OFF) = 1;																		// 동작 완료 Bit On.
+			FR_Clamp_OFF_RTN = N_COMPLETE;																					// 반환값 : COMPLETE
+		}
+	return
+	
+	// 파이널 롤러 클램프.
+	sub:FR_Clamp_ON(&FR_Clamp_ON_RTN)
+		// 0.0) 반환값 초기화.
+		FR_Clamp_ON_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_ON) == N_Ready_Step )											// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_FR_Clamp_ON) = Sys.Time;																	// 타이머 설정.
+			M_Y_FR_Sepa_Clamp_FWD_Sol = 1;																					// 파이널 롤러 클램프.
+			M_Y_FR_Sepa_Clamp_BWD_Sol = 0;																					// 파이널 롤러 클램프.
+			P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_ON) = 1;														// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_ON) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_FR_Clamp_ON) + P_Act_Time_Out(N_Act_FR_Clamp_ON) )							// 일정 시간 전에 완료 될 경우.
+			{
+				if( M_X_FR_Sepa_Clamp_Front_Sensor == 1 && M_X_FR_Sepa_Clamp_Rear_Sensor == 1 && M_X_FR_Sepa_UnClamp_Front_Sensor == 0 && M_X_FR_Sepa_UnClamp_Rear_Sensor == 0 ) // 완료 상태 확인 후
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_FR_Clamp_ON) + P_Act_Delay_Time(N_Act_FR_Clamp_ON) )				// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_ON) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_ON) = N_Error_Step;											// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_ON) == N_Error_Step )											// 애러 상태 일 경우.
+		{
+			FR_Clamp_ON_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_ON) == N_Complete_Step )										// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_FR_Clamp_ON) = 1;																		// 동작 완료 Bit On.
+			FR_Clamp_ON_RTN = N_COMPLETE;																					// 반환값 : COMPLETE
+		}
+	return
+	
+	// 파이널 롤러 배출 위치 이동.
+	sub:FR_Discharge_Pos(&FR_Discharge_Pos_RTN)
+		// 0.0) 반환값 초기화.
+		FR_Discharge_Pos_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Discharge_Pos) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_FR_Discharge_Pos) = Sys.Time;																// 타이머 설정.
+			P_Final_Roll_Discharge_Status = F_Status_Nonseatus;																// 상태 초기화.
+			P_Slave5_Motion_Command = N_FR_Discharge_Move_Motion;															// FR 배출 위치 Slave Motion Cmd		200ms
+			P_Module_Act_State_Machine_Array(N_Act_FR_Discharge_Pos) = 1;													// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Discharge_Pos) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_FR_Discharge_Pos) + P_Act_Time_Out(N_Act_FR_Discharge_Pos) )				// 일정 시간 전에 완료 될 경우.
+			{
+				if( P_Final_Roll_Discharge_Status == F_Status_COMPLETE )													// 모션 완료 일 경우.
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_FR_Discharge_Pos) + P_Act_Delay_Time(N_Act_FR_Discharge_Pos) )		// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_FR_Discharge_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_FR_Discharge_Pos) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Discharge_Pos) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			FR_Discharge_Pos_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Discharge_Pos) == N_Complete_Step )									// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_FR_Discharge_Pos) = 1;																	// 동작 완료 Bit On.
+			FR_Discharge_Pos_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return
+
+	// 파이널 롤러 스텍 위치 이동.
+	sub:FR_Stack_Pos(&FR_Stack_Pos_RTN)
+		// 0.0) 반환값 초기화.
+		FR_Stack_Pos_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Stack_Pos) == N_Ready_Step )											// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_FR_Stack_Pos) = Sys.Time;																	// 타이머 설정.
+			P_Final_Roll_Stack_Up_Pos_Status = F_Status_Nonseatus;															// 상태 초기화.
+			P_Slave5_Motion_Command = N_FR_Stack_UP_Motion;																	// FR 상승 위치 Slave Motion Cmd		200ms
+			P_Module_Act_State_Machine_Array(N_Act_FR_Stack_Pos) = 1;														// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Stack_Pos) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_FR_Stack_Pos) + P_Act_Time_Out(N_Act_FR_Stack_Pos) )						// 일정 시간 전에 완료 될 경우.
+			{
+				if( P_Final_Roll_Stack_Up_Pos_Status == F_Status_COMPLETE )													// 모션 완료 일 경우.
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_FR_Stack_Pos) + P_Act_Delay_Time(N_Act_FR_Stack_Pos) )				// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_FR_Stack_Pos) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_FR_Stack_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Stack_Pos) == N_Error_Step )											// 애러 상태 일 경우.
+		{
+			FR_Stack_Pos_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_FR_Stack_Pos) == N_Complete_Step )										// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_FR_Stack_Pos) = 1;																		// 동작 완료 Bit On.
+			FR_Stack_Pos_RTN = N_COMPLETE;																					// 반환값 : COMPLETE
+		}
+	return
+	
+	// 1차 언로더 상승 (스텍 위치 이동)
+	sub:First_Unloadaer_UP(&First_Unloadaer_UP_RTN)
+		// 0.0) 반환값 초기화.
+		First_Unloadaer_UP_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_UP) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_First_Unloader_UP) = Sys.Time;																// 타이머 설정.
+			P_First_Unloader_Stack_Up_Status = F_Status_Nonseatus;															// 상태 초기화.
+			P_Slave14_Motion_Command = N_1st_UND_Stack_UP_Motion;															// 언로더 스텍위치 Slave Cmd.				200ms
+			M_Y_ST_Center_Cyl_Dn_Sol = 1;																					// 스텍 테이블 하강 IO ON
+			M_Y_ST_Center_Cyl_Up_Sol = 0;																					// 스텍 테이블 상승 IO OFF
+			P_Module_Act_State_Machine_Array(N_Act_First_Unloader_UP) = 1;													// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_UP) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_UP) + P_Act_Time_Out(N_Act_First_Unloader_UP) )				// 일정 시간 전에 완료 될 경우.
+			{
+				// 스텍 테이블 하강 IO 입력 센서 확인 추가.
+				if( P_First_Unloader_Stack_Up_Status == F_Status_COMPLETE )													// 모션 완료 일 경우 + IO 입력 완료 될 경우.
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_First_Unloader_UP) + P_Act_Delay_Time(N_Act_First_Unloader_UP) )	// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_First_Unloader_UP) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_UP) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_UP) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			First_Unloadaer_UP_RTN = N_FALSE;																				// 반환값 : FALSE.
+		}
+		
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_UP) == N_Complete_Step )									// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_First_Unloader_UP) = 1;																// 동작 완료 Bit On.
+			First_Unloadaer_UP_RTN = N_COMPLETE;																			// 반환값 : COMPLETE
+		}
+	return
+	
+	// 1차 언로더 전진 (스텍 진입 이동)
+	sub:First_Unloadaer_FWD(&First_Unloadaer_FWD_RTN)
+		// 0.0) 반환값 초기화.
+		First_Unloadaer_FWD_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_FWD) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_First_Unloader_FWD) = Sys.Time;															// 타이머 설정.
+			if ( M_X_ST_Center_CYL_Dn_Sensor == 1 && M_X_ST_Center_CYL_Up_Sensor == 0 && M_X_1st_Unloader_Grip_Detect_Sensor == 0 && M_X_1st_Unloader_UnGrip_Detect_Sensor == 1 )	// 스텍테이블 하강, 1차 언로더 언그립 상태 확인 후 전진
+			{
+				P_First_Unloader_Stack_FWD_Status = F_Status_Nonseatus;														// 상태 초기화.
+				P_Slave14_Motion_Command = N_1st_UND_Stack_FWD_Motion;														// 언로더 진입 Slave Cmd.			500ms + 200ms = 700ms
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_FWD) = 1;												// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_FWD) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_FWD) + P_Act_Time_Out(N_Act_First_Unloader_FWD) )			// 일정 시간 전에 완료 될 경우.
+			{
+				if( P_First_Unloader_Stack_FWD_Status == F_Status_COMPLETE )												// 모션 완료 일 경우.
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_First_Unloader_FWD) + P_Act_Delay_Time(N_Act_First_Unloader_FWD) )	// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_First_Unloader_FWD) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_FWD) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_FWD) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			First_Unloadaer_FWD_RTN = N_FALSE;																				// 반환값 : FALSE.
+		}
+		
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_FWD) == N_Complete_Step )								// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_First_Unloader_FWD) = 1;																// 동작 완료 Bit On.
+			First_Unloadaer_FWD_RTN = N_COMPLETE;																			// 반환값 : COMPLETE
+		}
+	return
+	
+	// 1차 언로더 그립 ON
+	sub:First_Unloader_Grip_ON(&First_Unloader_Grip_ON_RTN)
+		// 0.0) 반환값 초기화.
+		First_Unloader_Grip_ON_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_ON) == N_Ready_Step )								// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_First_Unloader_Grip_ON) = Sys.Time;														// 타이머 설정.
+			M_Y_1st_Unloader_Grip_Sol = 1;																					// 1차 언로더 그립 ON.
+			M_Y_1st_Unloader_UnGrip_Sol = 0;																				// 1차 언로더 그립 ON.
+			P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_ON) = 1;												// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_ON) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_Grip_ON) + P_Act_Time_Out(N_Act_First_Unloader_Grip_ON) )	// 일정 시간 전에 완료 될 경우.
+			{
+				//if( M_X_1st_Unloader_Grip_Detect_Sensor == 1 && M_X_1st_Unloader_UnGrip_Detect_Sensor == 0 )			// 완료 상태.
+				//if( M_X_1st_Unloader_JR_Grip_Pressure_Sensor == 1 )														// 완료 상태.
+				//{
+					if( Sys.Time > P_Act_Old_Time(N_Act_First_Unloader_Grip_ON) + P_Act_Delay_Time(N_Act_First_Unloader_Grip_ON) )	// 일정 딜레이 시간을 넘길 경우.	[ 참조 : 25.07.04 1차 언로더 그립 시퀀스 조건 수정 ]
+					{
+						P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_ON) = N_Complete_Step;					// 완료 스텟 머신으로 이동.
+					}
+				//}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_ON) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_ON) == N_Error_Step )								// 애러 상태 일 경우.
+		{
+			First_Unloader_Grip_ON_RTN = N_FALSE;																			// 반환값 : FALSE.
+		}
+		
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_ON) == N_Complete_Step )							// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_First_Unloader_Grip_ON) = 1;															// 동작 완료 Bit On.
+			First_Unloader_Grip_ON_RTN = N_COMPLETE;																		// 반환값 : COMPLETE
+		}
+	return
+	
+	// 1차 언로더 그립 OFF
+	sub:First_Unloader_Grip_OFF(&First_Unloader_Grip_OFF_RTN)
+		// 0.0) 반환값 초기화.
+		First_Unloader_Grip_OFF_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_OFF) == N_Ready_Step )								// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_First_Unloader_Grip_OFF) = Sys.Time;														// 타이머 설정.
+			M_Y_1st_Unloader_Grip_Sol = 0;																					// 1차 언로더 그립 OFF.
+			M_Y_1st_Unloader_UnGrip_Sol = 1;																				// 1차 언로더 그립 OFF.
+			P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_OFF) = 1;											// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_OFF) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_Grip_OFF) + P_Act_Time_Out(N_Act_First_Unloader_Grip_OFF) )	// 일정 시간 전에 완료 될 경우.
+			{
+				if( M_X_1st_Unloader_Grip_Detect_Sensor == 0 && M_X_1st_Unloader_UnGrip_Detect_Sensor == 1 )				// 완료 상태
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_First_Unloader_Grip_OFF) + P_Act_Delay_Time(N_Act_First_Unloader_Grip_OFF) )	// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_OFF) = N_Complete_Step;					// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_OFF) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_OFF) == N_Error_Step )								// 애러 상태 일 경우.
+		{
+			First_Unloader_Grip_OFF_RTN = N_FALSE;																			// 반환값 : FALSE.
+		}
+		
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_OFF) == N_Complete_Step )							// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_First_Unloader_Grip_OFF) = 1;															// 동작 완료 Bit On.
+			First_Unloader_Grip_OFF_RTN = N_COMPLETE;																		// 반환값 : COMPLETE
+		}
+	return
+	
+	// 1차 언로더 셀 부착 위치 이동
+	sub:First_Unloader_Grip_Cell_Pos(&First_Unloader_Grip_Cell_Pos_RTN)
+		// 0.0) 반환값 초기화.
+		First_Unloader_Grip_Cell_Pos_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_Cell_Pos) == N_Ready_Step )							// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_First_Unloader_Grip_Cell_Pos) = Sys.Time;													// 타이머 설정.
+			P_First_Unloader_Grip_Cell_Status = F_Status_Nonseatus;															// 상태 초기화.
+			P_Slave14_Motion_Command = N_1st_UND_Cell_Grip_UP_Motion;														// 극판 받쳐주는 위치. Slave Motion Cmd 50ms + 700ms = 750ms
+			P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_Cell_Pos) = 1;										// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_Cell_Pos) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_Grip_Cell_Pos) + P_Act_Time_Out(N_Act_First_Unloader_Grip_Cell_Pos) )	// 일정 시간 전에 완료 될 경우.
+			{
+				if( P_First_Unloader_Grip_Cell_Status == F_Status_COMPLETE )												// 모션 완료 일 경우.
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_First_Unloader_Grip_Cell_Pos) + P_Act_Delay_Time(N_Act_First_Unloader_Grip_Cell_Pos) )	// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_Cell_Pos) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_Cell_Pos) = N_Error_Step;						// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_Cell_Pos) == N_Error_Step )							// 애러 상태 일 경우.
+		{
+			First_Unloader_Grip_Cell_Pos_RTN = N_FALSE;																		// 반환값 : FALSE.
+		}
+		
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Grip_Cell_Pos) == N_Complete_Step )						// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_First_Unloader_Grip_Cell_Pos) = 1;														// 동작 완료 Bit On.
+			First_Unloader_Grip_Cell_Pos_RTN = N_COMPLETE;																	// 반환값 : COMPLETE
+		}
+	return
+	
+	// 1차 언로더 그립 후 후진을 위한 대기 위치 이동
+	sub:First_Unloader_BWD_Wait_Pos(&First_Unloader_BWD_Wait_RTN)
+		// 0.0) 반환값 초기화.
+		First_Unloader_BWD_Wait_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD_Wait_Pos) == N_Ready_Step )							// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_First_Unloader_BWD_Wait_Pos) = Sys.Time;													// 타이머 설정.
+			P_First_Unloader_Stack_BWD_Wait_Status = F_Status_Nonseatus;													// 상태 초기화.
+			P_Slave14_Motion_Command = N_1st_UND_BWD_UP_Motion;																// 후진을 위한 대기 위치. Slave Motion Cmd 50ms + 700ms = 750ms
+			P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD_Wait_Pos) = 1;										// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD_Wait_Pos) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_BWD_Wait_Pos) + P_Act_Time_Out(N_Act_First_Unloader_BWD_Wait_Pos) )	// 일정 시간 전에 완료 될 경우.
+			{
+				if( P_First_Unloader_Stack_BWD_Wait_Status == F_Status_COMPLETE )											// 모션 완료 일 경우.
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_First_Unloader_BWD_Wait_Pos) + P_Act_Delay_Time(N_Act_First_Unloader_BWD_Wait_Pos) )	// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD_Wait_Pos) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD_Wait_Pos) = N_Error_Step;							// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD_Wait_Pos) == N_Error_Step )							// 애러 상태 일 경우.
+		{
+			First_Unloader_BWD_Wait_RTN = N_FALSE;																			// 반환값 : FALSE.
+		}
+		
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD_Wait_Pos) == N_Complete_Step )						// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_First_Unloader_BWD_Wait_Pos) = 1;														// 동작 완료 Bit On.
+			First_Unloader_BWD_Wait_RTN = N_COMPLETE;																		// 반환값 : COMPLETE
+		}
+	return
+	
+	// 1차 언로더 그립 후 후진 위치 이동
+	sub:First_Unloader_Stack_BWD(&First_Unloader_BWD_RTN)
+		// 0.0) 반환값 초기화.
+		First_Unloader_BWD_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_First_Unloader_BWD) = Sys.Time;															// 타이머 설정.
+			P_First_Unloader_Stack_BWD_Status = F_Status_Nonseatus;															// 상태 초기화.
+			P_Slave14_Motion_Command = N_1st_UND_BWD_Motion;																// 후진 위치 Slave Motion Cmd. 50ms + 700ms = 750ms
+			P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD) = 1;													// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_BWD) + P_Act_Time_Out(N_Act_First_Unloader_BWD) )			// 일정 시간 전에 완료 될 경우.
+			{
+				if( P_First_Unloader_Stack_BWD_Status == F_Status_COMPLETE )												// 모션 완료 일 경우.
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_First_Unloader_BWD) + P_Act_Delay_Time(N_Act_First_Unloader_BWD) )	// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			First_Unloader_BWD_RTN = N_FALSE;																				// 반환값 : FALSE.
+		}
+		
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_BWD) == N_Complete_Step )								// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_First_Unloader_BWD) = 1;																// 동작 완료 Bit On.
+			First_Unloader_BWD_RTN = N_COMPLETE;																			// 반환값 : COMPLETE
+		}
+	return
+	
+	// 1차 언로더 하강 위치 이동
+	sub:First_Unloader_Stack_Down(&First_Unloader_Stack_Down_RTN)
+		// 0.0) 반환값 초기화.
+		First_Unloader_Stack_Down_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Stack_Down) == N_Ready_Step )							// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_First_Unloader_Stack_Down) = Sys.Time;														// 타이머 설정.
+			P_First_Unloader_Stack_Down_Status = F_Status_Nonseatus;														// 상태 초기화.
+			P_Slave14_Motion_Command = N_1st_UND_BWD_Down_Motion;															// 하강 위치 Slave Motion Cmd. 50ms + 700ms = 750ms
+			P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Stack_Down) = 1;											// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Stack_Down) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_Stack_Down) + P_Act_Time_Out(N_Act_First_Unloader_Stack_Down) )	// 일정 시간 전에 완료 될 경우.
+			{
+				if( P_First_Unloader_Stack_Down_Status == F_Status_COMPLETE )												// 모션 완료 일 경우.
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_First_Unloader_Stack_Down) + P_Act_Delay_Time(N_Act_First_Unloader_Stack_Down) )	// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Stack_Down) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Stack_Down) = N_Error_Step;							// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Stack_Down) == N_Error_Step )							// 애러 상태 일 경우.
+		{
+			First_Unloader_Stack_Down_RTN = N_FALSE;																		// 반환값 : FALSE.
+		}
+		
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Stack_Down) == N_Complete_Step )							// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_First_Unloader_Stack_Down) = 1;														// 동작 완료 Bit On.
+			First_Unloader_Stack_Down_RTN = N_COMPLETE;																		// 반환값 : COMPLETE
+		}
+	return
+	
+	// 1차 언로더 회전 - [45도 회전] (T축)
+	sub:First_Unloader_Turn(&First_Unloader_Turn_RTN)
+		// 0.0) 반환값 초기화.
+		First_Unloader_Turn_RTN = 0;																						// 반환값 초기화.
+		// 222) 2차 언로더 진입 완료 확인 + 2차 언로더 그립 요청
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Turn) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_First_Unloader_Turn) = Sys.Time;															// 타이머 설정.
+			P_First_Unloader_Avoid_Status = F_Status_Nonseatus;																// 상태 초기화.
+			P_Slave14_Motion_Command = N_1st_UND_Avoid_Motion;																// 1차 언로더 회전 (45도).
+			if ( P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module) != N_Dryrun_Status_Sequence )						// 드라이런 모드가 아닐 경우. (일반 모드, 세파 모드)	// [ 참조 : 25.10.14 모드에 따른 배출 진행 수정 ]
+			{
+				if( P_Jelly_Roll_Total_Count >= P_Jelly_Roll_Recipe_Count )													// 생산 수량이 Recipe 수량보다 많거나 같을 경우. (배출 모두 완료 후 종료하기 위함) [ 참조 : 25.07.29 배출 프로그램 수정 ]
+					P_Suspend_Discharge_To_Execute_Flag = 0;																// 배출 중 Execute 진행 가능 Flag OFF.
+				else																										// 생산 수량이 Recipe 수량보다 작을 경우.
+				{
+					if ( P_PMAC_Status == F_Status_SUSPENDED )																// 배출 진행 중 SUSPENDED 상태 일 경우.
+						P_Suspend_Discharge_To_Execute_Flag = 1;															// 배출 중 Execute 진행 가능 Flag ON.
+					else																									// 배출 진행 중 SUSPENDED 상태가 아닐 경우.
+						P_Suspend_Discharge_To_Execute_Flag = 0;															// 배출 중 Execute 진행 가능 Flag OFF.
+				}
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Turn) = 1;											// 다음 스텟 머신으로 이동.
+			}
+			else																											// 드라이런 모드 일 경우.		// [ 참조 : 25.10.14 모드에 따른 배출 진행 수정 ]
+			{
+				P_Suspend_Discharge_To_Execute_Flag = 1;																	// 배출 중 Execute 진행 가능 Flag ON.
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Turn) = 1;											// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 1) 1차 언로더 45도 위치 (T축)
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Turn) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_Turn) + P_Act_Time_Out(N_Act_First_Unloader_Turn) )			// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_Unloader_Avoid_Status == F_Status_COMPLETE )													// 모션 완료 일 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Turn) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Turn) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Turn) == N_Error_Step )									// 애러 상태 일 경우.
+		{	
+			First_Unloader_Turn_RTN = N_FALSE;																				// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Turn) == N_Complete_Step )								// 완료 상태 일 경
+		{			
+			P_Act_Complete_Bit(N_Act_First_Unloader_Turn) = 1;																// 동작 완료 Bit On.
+			First_Unloader_Turn_RTN = N_COMPLETE;																			// 반환값 : COMPLETE
+		}	
+	return
+
+	// 1차 언로더 인계위치 이동 [90도 회전] (T축)
+	sub:First_Unloader_Handover_Pos(&First_Unloader_Handover_Pos_RTN)
+		// 0.0) 반환값 초기화.
+		First_Unloader_Handover_Pos_RTN = 0;																				// 반환값 초기화.
+		// 222) 1차 언로더 90도 이동.
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Handover_Pos) == N_Ready_Step )							// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_First_Unloader_Handover_Pos) = Sys.Time;													// 타이머 설정.
+			P_First_Unloader_Handover_Status = F_Status_Nonseatus;															// 상태 초기화.
+			P_Slave14_Motion_Command = N_1st_UND_Handover_Motion;															// 1차 언로더 회전 (90도).
+			P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Handover_Pos) = 1;										// 다음 스텟 머신으로 이동.
+		}
+		// 1) 1차 언로더 인계위치 이동(T축)
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Handover_Pos) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_Handover_Pos) + P_Act_Time_Out(N_Act_First_Unloader_Handover_Pos) )	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_Unloader_Handover_Status == F_Status_COMPLETE )												// 모션 완료 일 경우.
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_First_Unloader_Handover_Pos) + P_Act_Delay_Time(N_Act_First_Unloader_Handover_Pos) )	// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Handover_Pos) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Handover_Pos) = N_Error_Step;							// 애러 스텟 머신으로 이동.
+			}
+		}
+
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Handover_Pos) == N_Error_Step )							// 애러 상태 일 경우.
+		{
+			First_Unloader_Handover_Pos_RTN = N_FALSE;																		// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Handover_Pos) == N_Complete_Step )						// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_First_Unloader_Handover_Pos) = 1;														// 동작 완료 Bit On.
+			First_Unloader_Handover_Pos_RTN = N_COMPLETE;																	// 반환값 : COMPLETE
+		}
+	return
+
+	// 양극 클램프 OFF
+	sub:Cathode_Clamp_OFF(&Cathode_Clamp_OFF_RTN)
+		// 0.0) 반환값 초기화.
+		Cathode_Clamp_OFF_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_Cathode_Clamp_OFF) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Cathode_Clamp_OFF) = Sys.Time;																// 타이머 설정.
+			P_Cathode_Clamp_OFF_Status = F_Status_Nonseatus;																// 상태 초기화.
+			P_Slave7_Motion_Command = N_Clamp_Off_Motion;																	// 클램프 off Slave Cmd	
+			P_Module_Act_State_Machine_Array(N_Act_Cathode_Clamp_OFF) = 1;													// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Cathode_Clamp_OFF) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_Cathode_Clamp_OFF) + P_Act_Time_Out(N_Act_Cathode_Clamp_OFF) )				// 일정 시간 전에 완료 될 경우.
+			{
+				if( P_Cathode_Clamp_OFF_Status == F_Status_COMPLETE )														// 모션 완료 일 경우.
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_Cathode_Clamp_OFF) + P_Act_Delay_Time(N_Act_Cathode_Clamp_OFF) )	// 일정 딜레이 시간을 넘길 경우.
+					{
+						// Trans IN Signal [ 참조 : Trans IN, OUT 시점 추가 ]
+						M_Y_PLC_Trans_IN_Signal = 1;																		// PLC에게 트랜스 IN 신호 넘겨줌
+						P_Module_Act_State_Machine_Array(N_Act_Cathode_Clamp_OFF) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Cathode_Clamp_OFF) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_Cathode_Clamp_OFF) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			Cathode_Clamp_OFF_RTN = N_FALSE;																				// 반환값 : FALSE.
+		}
+		
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_Cathode_Clamp_OFF) == N_Complete_Step )									// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_Cathode_Clamp_OFF) = 1;																// 동작 완료 Bit On.
+			Cathode_Clamp_OFF_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return
+
+	// 파이널 롤러 세파 커팅 히팅
+	sub:Sepa_Cutter_Heating(&Sepa_Cutter_Heating_RTN)
+		// 0.0) 반환값 초기화.
+		Sepa_Cutter_Heating_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Heating) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Sepa_Cutter_Heating) = Sys.Time;															// 타이머 설정.
+			//M_Y_Final_Roll_Heating = 1;																					// 커터 열선 ON.
+			// ↓ [ 참고 : 2025.10.15 미비 사항 추가 건 ]
+			M_Y_Sepa_Cutter_SSR_On = 1;																						// 커터 열선 ON.
+			M_Y_First_Sheet_Paper_Plate_Ejector_Vac_On = 1;																	// Sheet Paper 진공 ON.
+			M_Y_First_Sheet_Paper_Plate_Ejector_Vac_Off = 0;																// Sheet Paper 진공 ON.
+			P_Suspend_Cutter_Heating_Timer = 0;
+			P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Heating) = 1;												// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Heating) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_Sepa_Cutter_Heating) + P_Act_Time_Out(N_Act_Sepa_Cutter_Heating) )			// 일정 시간 전에 완료 될 경우.
+			{
+				#ifdef F_Debug_Mode		// 가상축 모드일때
+				if( Sys.Time > P_Act_Old_Time(N_Act_Sepa_Cutter_Heating) + P_Act_Delay_Time(N_Act_Sepa_Cutter_Heating) )	// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Heating) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+				}
+				#else					// 실제 장비 모드일때 
+				// ↓ [ 참고 : 2025.10.15 미비 사항 추가 건 ]																					
+				if( M_X_Heat_Cable_Meter_GO )																				// 설정값 도달
+				{
+					P_Cutter_Heat_Amp_Data_Bit = N_TRUE;																	// Heating 전류값 전송
+					P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Heating) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+				}
+				else if( M_X_Heat_Cable_Meter_LO )																			// 설정값보다 Low
+				{
+					P_Suspend_Cutter_Heating_Time = P_Suspend_Cutter_Heating_Timer;											// 히팅 타임 업데이트
+				}
+				else if( M_X_Heat_Cable_Meter_HI )																			// 설정값보다 High
+				{
+					M_Y_Sepa_Cutter_SSR_On = 0;																				// SSR Relay OFF
+					// 과전류발생 알람 필요
+				}
+				#endif
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Heating) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Heating) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			Sepa_Cutter_Heating_RTN = N_FALSE;																				// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Heating) == N_Complete_Step )								// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_Sepa_Cutter_Heating) = 1;																// 동작 완료 Bit On.
+			Sepa_Cutter_Heating_RTN = N_COMPLETE;																			// 반환값 : COMPLETE
+		}
+	return
+
+
+	// 커터 전진 실린더 + JR Data ID 전송.
+	sub:Sepa_Cutter_Cylinder_FWD(&Sepa_Cutter_Cylinder_FWD_RTN)
+		// 0.0) 반환값 초기화.
+		Sepa_Cutter_Cylinder_FWD_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_FWD) == N_Ready_Step )								// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Sepa_Cutter_Cylinder_FWD) = Sys.Time;														// 타이머 설정.
+			M_Y_FR_Sepa_Cutter_Dn_Sol = 1;																					// 커터 전진.
+			M_Y_FR_Sepa_Cutter_Up_Sol = 0;																					// 커터 전진.
+			P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_FWD) = 1;											// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_FWD) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_Sepa_Cutter_Cylinder_FWD) + P_Act_Time_Out(N_Act_Sepa_Cutter_Cylinder_FWD) )	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( M_X_FR_Sepa_Cutter_Dn_Sensor == 1 && M_X_FR_Sepa_Cutter_Up_Sensor == 0 )
+				{
+					P_Suspend_Discharge_Last_Run_Bit = 0;																	// 라스트 런 진행 확인 변수 초기화. (세파를 자르며 JR이 Stack으로 부터 자유로워 짐)	[ 참조 : 25.06.20 배출 프로그램 수정 ]
+					P_Suspend_Discharge_1st_Unloader_JR_Grip = 1;															// 1차 언로더 JR 집은 상태 확인. (45도 정지 후 Resetting 시 필요)	[ 참조 : 25.07.08 배출 재가동 진행 추가 ]
+					P_Discharge_Sub_RTN = 0;																				// 반환값 선언.
+					call Discharge_Sub_Prog.Discharge_Host_ID_Result(&P_Discharge_Sub_RTN);									// ID 전송.
+					if( P_Discharge_Sub_RTN == F_TRUE )																		// ID 전송 완료 일 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_FWD) = 2;								// 다음 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_FWD) = N_Error_Step;							// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 2) Trans 
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_FWD) == 2 )
+		{
+			if( Sys.Time > P_Act_Old_Time(N_Act_Sepa_Cutter_Cylinder_FWD) + P_Act_Delay_Time(N_Act_Sepa_Cutter_Cylinder_FWD) )	// 일정 딜레이 시간을 넘길 경우.
+			{
+				// [ 참조 : 2025.07.25 Retry 알람 발생 시점 변경 ]
+				if( P_EPC_Retry_Over_Alarm_Flag == N_TRUE )	// 알람 발생 타이밍 
+				{
+					P_EPC_Retry_Over_Alarm_Flag = N_FALSE; // 초기화 
+					P_PMAC_Commands = F_Command_Stop;
+				}
+				
+				// Trans IN 을 진행.
+				// call Discharge_Sub_Prog.Trans_In();
+				P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_FWD) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_FWD) == N_Error_Step )								// 애러 상태 일 경우.
+		{
+			Sepa_Cutter_Cylinder_FWD_RTN = N_FALSE;																			// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_FWD) == N_Complete_Step )							// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_Sepa_Cutter_Cylinder_FWD) = 1;															// 동작 완료 Bit On.
+			Sepa_Cutter_Cylinder_FWD_RTN = N_COMPLETE;																		// 반환값 : COMPLETE
+		}
+	return
+	
+	// 커터 후진 실린더 
+	sub:Sepa_Cutter_Cylinder_BWD(&Sepa_Cutter_Cylinder_BWD_RTN)
+		// 0.0) 반환값 초기화.
+		Sepa_Cutter_Cylinder_BWD_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_BWD) == N_Ready_Step )								// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Sepa_Cutter_Cylinder_BWD) = Sys.Time;														// 타이머 설정.
+			//M_Y_Final_Roll_Heating = 0;																					// 커터 열선 OFF.
+			// ↓ [ 참고 : 2025.10.15 미비 사항 추가 건 ]
+			M_Y_Sepa_Cutter_SSR_On = 0;																						// 커터 열선 OFF.
+			M_Y_EPC_Vertical_Panel_Manual_Signal = 0;																		// EPC 수동 → 자동 요청
+
+			M_Y_FR_Sepa_Cutter_Dn_Sol = 0;																					// 커터 후진.
+			M_Y_FR_Sepa_Cutter_Up_Sol = 1;																					// 커터 후진.
+			P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_BWD) = 1;											// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_BWD) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_Sepa_Cutter_Cylinder_BWD) + P_Act_Time_Out(N_Act_Sepa_Cutter_Cylinder_BWD) )	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( M_X_FR_Sepa_Cutter_Dn_Sensor == 0 && M_X_FR_Sepa_Cutter_Up_Sensor == 1 )								// 완료 확인
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_Sepa_Cutter_Cylinder_BWD) + P_Act_Delay_Time(N_Act_Sepa_Cutter_Cylinder_BWD) )	// 일정 딜레이 시간을 넘길 경우.
+					{
+						// Trans OUT 시점 [ 참조 : Trans IN, OUT 시점 추가 ]	→ 트랜스 아웃 신호 필요 없다고 함
+						//M_Y_PLC_Trans_OUT_Signal = 1;																		// Trans OUT 
+						P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_BWD) = N_Complete_Step;					// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_BWD) = N_Error_Step;							// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_BWD) == N_Error_Step )								// 애러 상태 일 경우.
+		{
+			Sepa_Cutter_Cylinder_BWD_RTN = N_FALSE;																			// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sepa_Cutter_Cylinder_BWD) == N_Complete_Step )							// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_Sepa_Cutter_Cylinder_BWD) = 1;															// 동작 완료 Bit On.
+			Sepa_Cutter_Cylinder_BWD_RTN = N_COMPLETE;																		// 반환값 : COMPLETE
+		}
+	return
+	
+	// Main Z축 대기 위치 
+	sub:Main_Z_Init_Pos(&Main_Z_Init_Pos_RTN)
+		// 0.0) 반환값 초기화.
+		Main_Z_Init_Pos_RTN = 0;
+		// 222) 동작 실행
+		if ( P_Module_Act_State_Machine_Array(N_Act_Main_Z_Init_Pos) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Main_Z_Init_Pos) = Sys.Time;																// 타이머 설정.
+			P_Main_Z_Init_Pos_Status = F_Status_Nonseatus;																	// 상태 초기화.
+			P_Slave6_Motion_Command = N_Stack_Table_Ready_Pos_Moton;																// Main Z축 대기 위치 Slave Cmd 
+			M_Y_ST_Center_Cyl_Up_Sol = 1;																					// 스텍 테이블 상승 IO ON
+			M_Y_ST_Center_Cyl_Dn_Sol = 0;																					// 스텍 테이블 하강 IO OFF
+			P_Module_Act_State_Machine_Array(N_Act_Main_Z_Init_Pos) = 1;													// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Main_Z_Init_Pos) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_Main_Z_Init_Pos) + P_Act_Time_Out(N_Act_Main_Z_Init_Pos) )					// 일정 시간 전에 완료 될 경우.
+			{
+				if( P_Main_Z_Init_Pos_Status == F_Status_COMPLETE && M_X_ST_Center_CYL_Up_Sensor == 1 && M_X_ST_Center_CYL_Dn_Sensor == 0 )	// 완료 확인
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_Main_Z_Init_Pos) + P_Act_Delay_Time(N_Act_Main_Z_Init_Pos) )		// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Main_Z_Init_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Main_Z_Init_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_Main_Z_Init_Pos) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			Main_Z_Init_Pos_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_Main_Z_Init_Pos) == N_Complete_Step )									// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_Main_Z_Init_Pos) = 1;																	// 동작 완료 Bit On.
+			Main_Z_Init_Pos_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return
+
+	// 배출 후 액션 함수 초기화.
+	sub:After_Action_Init(&After_Action_Init_RTN)
+		// 0.0) 반환값 초기화.
+		After_Action_Init_RTN = 0;																							// 반환값 초기화.
+		// 222) ID 전송 + 배출 후 액션 함수 초기화
+		if ( P_Module_Act_State_Machine_Array(N_Act_After_Action_Init) == N_Ready_Step )
+		{
+			P_1st_Discharge_State = F_Status_COMPLETE;																		// 완료.
+			P_Stack_Vision_NG_Code_IN_Timer = 0;																			// NG Code 보고 타이머 초기화.
+			call Discharge_Sub_Prog.Discharge_After_Action();																// 배출 후 액션 함수 ( 초기화 ).				// 1610ms + 세파 첫장 220ms = 1830ms		6500ms - 1830ms = 4670ms 여유 --> 실린더
+			P_Module_Act_State_Machine_Array(N_Act_After_Action_Init) = 1;													// 다음 스텟 머신으로 이동.
+		}
+		// 1) NG Code 보고
+		if ( P_Module_Act_State_Machine_Array(N_Act_After_Action_Init) == 1 )
+		{
+			if ( P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module) != N_Dryrun_Status_Sequence )						// 드라이런 모드가 아닐 경우. (일반 모드, 세파 모드)	// [ 참조 : 25.10.14 모드에 따른 배출 진행 수정 ]
+			{
+				P_Discharge_NG_Code_Report_RTN = 0;																			// 반환값 선언.
+				call Discharge_Sub_Prog.NG_Code_Report(&P_Discharge_NG_Code_Report_RTN);									// NG Code 보고
+				if( P_Discharge_NG_Code_Report_RTN == F_TRUE )
+				{
+					P_Module_Act_State_Machine_Array(N_Act_After_Action_Init) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+				}
+			}
+			else																											// 드라이런 모드 일 경우.		// [ 참조 : 25.10.14 모드에 따른 배출 진행 수정 ]
+				P_Module_Act_State_Machine_Array(N_Act_After_Action_Init) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_After_Action_Init) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			After_Action_Init_RTN = N_FALSE;																				// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_After_Action_Init) == N_Complete_Step )									// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_After_Action_Init) = 1;																// 동작 완료 Bit On.
+			After_Action_Init_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return
+
+	// 시트 페이퍼 후진.
+	sub:Sheet_Paper_BWD(&Sheet_Paper_BWD_RTN)
+		// 0.0) 반환값 초기화.
+		Sheet_Paper_BWD_RTN = 0;																							// 반환값 초기화.
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_BWD) == N_Ready_Step )
+		{
+			P_Act_Old_Time(N_Act_Sheet_Paper_BWD) = Sys.Time;																// 타이머 설정.
+			P_Sheet_Paper_BWD_Status = 0;																					// 상태 초기화.
+			P_Slave11_Motion_Command = N_Sheet_Paper_BWD_Motion;																// 시트 페이퍼 후진 cmd.
+			P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_BWD) = 1;													// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_BWD) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_Sheet_Paper_BWD) + P_Act_Time_Out(N_Act_Sheet_Paper_BWD) )					// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_Sheet_Paper_BWD_Status == F_Status_COMPLETE )														// 모션 완료 일 경우.
+				{
+					if ( Sys.Time > P_Act_Old_Time(N_Act_Sheet_Paper_BWD) + P_Act_Delay_Time(N_Act_Sheet_Paper_BWD ))		// 일정 딜레이 시간을 넘길 경우.
+					P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_BWD) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_BWD) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_BWD) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			Sheet_Paper_BWD_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_BWD) == N_Complete_Step )									// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_Sheet_Paper_BWD) = 1;																	// 동작 완료 Bit On.
+			Sheet_Paper_BWD_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return
+
+	// 시트 페이퍼 진공 ON.
+	sub:Sheet_Paper_Vacuum_ON(&Sheet_Paper_Vacuum_ON_RTN)
+		// 0.0) 반환값 초기화.
+		Sheet_Paper_Vacuum_ON_RTN = 0;																						// 반환값 초기화.
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_Vacuum_ON) == N_Ready_Step )
+		{
+			P_Act_Old_Time(N_Act_Sheet_Paper_Vacuum_ON) = Sys.Time;															// 타이머 설정.
+			M_Y_First_Sheet_Paper_Plate_Ejector_Vac_On = 1;																	// 시트 페이퍼 진공 ON.
+			M_Y_First_Sheet_Paper_Plate_Ejector_Vac_Off = 0;																// 시트 페이퍼 진공 ON.
+			P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_Vacuum_ON) = 1;												// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_Vacuum_ON) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_Sheet_Paper_Vacuum_ON) + P_Act_Time_Out(N_Act_Sheet_Paper_Vacuum_ON) )		// 일정 시간 전에 완료 될 경우.
+			{
+				if ( M_X_First_Sheet_Paper_Plate_Vac_Sensor == 1 )															// 시트 페이퍼 진공 신호 ON 일 경우.
+				{
+					if ( Sys.Time > P_Act_Old_Time(N_Act_Sheet_Paper_Vacuum_ON) + P_Act_Delay_Time(N_Act_Sheet_Paper_Vacuum_ON ))	// 일정 딜레이 시간을 넘길 경우.
+						P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_Vacuum_ON) = N_Complete_Step;					// 완료 스텟 머신으로 이동.
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_Vacuum_ON) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_Vacuum_ON) == N_Error_Step )								// 애러 상태 일 경우.
+		{
+			Sheet_Paper_Vacuum_ON_RTN = N_FALSE;																			// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_Sheet_Paper_Vacuum_ON) == N_Complete_Step )								// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_Sheet_Paper_Vacuum_ON) = 1;															// 동작 완료 Bit On.
+			Sheet_Paper_Vacuum_ON_RTN = N_COMPLETE;																			// 반환값 : COMPLETE
+		}
+	return
+
+	// 1차 언로더 위치 및 2,3차 언로더 인계 가능 확인 [ 1차 언로더 45도 위치 확인 ]
+	sub:First_Unloader_Pos_Chk(&First_Unloader_Pos_Chk_RTN)
+		// 0.0) 반환값 초기화.
+		First_Unloader_Pos_Chk_RTN = 0;																						// 반환값 초기화.
+		// 222) 1차 언로더 회피 위치 확인 + 배출 전 위치 완료 DIO 출력
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Pos_Chk) == N_Ready_Step )								// 진행 준비 완료 일 경우.
+		{
+			if ( P_Motor_Current_Pos(N_UNLOADER_T) ~ P_1st_ULD_T_45_Angle )															// 1차 언로더 T축 위치 확인.	[ 참조 : 25.09.09 배출 프로그램 수정 - 1차 언로더 위치 확인 추가 ]
+			{	
+				P_Act_Old_Time(N_Act_First_Unloader_Pos_Chk) = Sys.Time;													// 타이머 설정.
+				P_Discharge_Unloader_Handover_Timer = 0;																	// 2차 언로더 인계 대기 확인 시간 초기화.	[ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ]
+				M_Y_Discharge_Avoid_Complete = 1;																			// 1차 언로더 배출 전 위치 완료, 2차 언로더 대기 위치 요청 신호.
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Pos_Chk) = 1;											// 다음 스텟 머신으로 이동.
+			}
+			else																											// 1차 언로더 T축 위치가 맞지 않을 경우.
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Pos_Chk) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+		}
+		// 1) 2차 언로더 인계 가능 위치 확인
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Pos_Chk) == 1 )
+		{
+			if ( M_X_Discharge_Avoid_Complete_Ack == 1 && M_X_PLC_Unloader_Ready_Pos == 1 )									// 2,3차 언로더 J/R 인계 가능 위치 IO
+			{
+				P_Suspend_Discharge_Cell_Out_Restart = 0;																	// 배출 완료 전 JR Cnt 중복 증가 방지 변수 초기화.	[ 참조 : 25.06.05 배출 시 JR Cnt 관리 ]
+				M_Y_Discharge_Avoid_Complete = 0;																			// 1차 언로더 배출 전 위치 완료, 2차 언로더 대기 위치 요청 신호 초기화.
+				M_Y_PLC_Unloader_Ready_Pos_Ack = 1;																			// 2,3차 언로더 J/R 인계가능위치 Ack신호
+				if( Sys.Time > P_Act_Old_Time(N_Act_First_Unloader_Pos_Chk) + P_Act_Delay_Time(N_Act_First_Unloader_Pos_Chk) )	// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Discharge_Unloader_Handover_Time = P_Discharge_Unloader_Handover_Timer;								// 2차 언로더 인계 대기 확인 시간 업데이트.	[ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ] 
+					P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Pos_Chk) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+				}
+			}
+			if ( P_PMAC_Status == F_Status_STOPPING )																		// 1차 언로더 45도 회전 후 2차 언로더 대기 중 Stopping으로 바뀔 경우 정지.		[ 참조 : 25.07.08 배출 재가동 진행 추가 ]
+			{
+				call Discharge_Sub_Prog.Interface_Init();																	// PMAC ↔ PLC Interface 초기화.
+				P_Discharge_Unloader_Handover_Time = P_Discharge_Unloader_Handover_Timer;									// 2차 언로더 인계 대기 확인 시간 업데이트.	[ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ] 
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Pos_Chk) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Pos_Chk) == N_Error_Step )								// 애러 상태 일 경우.
+		{
+			First_Unloader_Pos_Chk_RTN = N_FALSE;																			// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Pos_Chk) == N_Complete_Step )							// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_First_Unloader_Pos_Chk) = 1;															// 동작 완료 Bit On.
+			First_Unloader_Pos_Chk_RTN = N_COMPLETE;																		// 반환값 : COMPLETE
+		}
+	return
+	
+	// 2,3차 언로더 그립 (언로더 진입 확인) (A열 : 2차 언로더, B열 : 3차 언로더)
+	sub:Unloader_Grip_ON(&Unloader_Grip_ON_RTN)
+		// 0.0) 반환값 초기화.
+		Unloader_Grip_ON_RTN = 0;																							// 반환값 초기화.
+		// 222) 2차 언로더 진입 완료 확인 + 2차 언로더 그립 요청
+		if ( P_Module_Act_State_Machine_Array(N_Act_Unloader_Grip_ON) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			if ( P_Motor_Current_Pos(N_UNLOADER_T) ~ P_1st_ULD_T_90_Angle )															// 1차 언로더 T축 위치 확인. (90도)	[ 참조 : 25.09.09 배출 프로그램 수정 - 1차 언로더 위치 확인 추가 ]
+			{
+				P_Act_Old_Time(N_Act_Unloader_Grip_ON) = Sys.Time;															// 타이머 설정.
+				M_Y_PLC_Unloader_Grip_Request = 1;																			// 2,3차 언로더 그립 요청 DIO
+				P_Module_Act_State_Machine_Array(N_Act_Unloader_Grip_ON) = 1;												// 다음 스텟 머신으로 이동.
+			}
+			else																											// 1차 언로더 T축 위치가 맞지 않을 경우.
+				P_Module_Act_State_Machine_Array(N_Act_Unloader_Grip_ON) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+		}
+		// 1) 2차 언로더 그립 확인
+		if ( P_Module_Act_State_Machine_Array(N_Act_Unloader_Grip_ON) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_Unloader_Grip_ON) + P_Act_Time_Out(N_Act_Unloader_Grip_ON) )				// 일정 시간 전에 완료 될 경우.
+			{
+				if ( M_X_PLC_Unloader_Grip == 1 && M_X_PLC_Unloader_Grip_Request_Ack == 1 )									// 2,3차 언로더 그립 확인. [ Write : 2차 언로더 그립 요청 DIO ]
+				{
+					M_Y_PLC_Unloader_Grip_Request = 0;																		// 2,3차 언로더 그립 요청 DIO 초기화.
+					M_Y_PLC_Unloader_Grip_Ack = 1;
+					if( Sys.Time > P_Act_Old_Time(N_Act_Unloader_Grip_ON) + P_Act_Delay_Time(N_Act_Unloader_Grip_ON) )		// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Unloader_Grip_ON) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Unloader_Grip_ON) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_Unloader_Grip_ON) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			Unloader_Grip_ON_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_Unloader_Grip_ON) == N_Complete_Step )									// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_Unloader_Grip_ON) = 1;																	// 동작 완료 Bit On.
+			Unloader_Grip_ON_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return
+	
+	// 1차 언로더 언그립 (언로더 그랩 확인) (A열 : 2차 언로더 확인, B열 : 3차 언로더 확인)
+	sub:Grip_Chk_First_Unloader_Grip_OFF(&Grip_Chk_First_Unloader_Grip_OFF_RTN)
+		// 0.0) 반환값 초기화.
+		Grip_Chk_First_Unloader_Grip_OFF_RTN = 0;																			// 반환값 초기화.
+		// 222) 2차 언로더 그립 확인 + 1차 언로더 언그립
+		if ( P_Module_Act_State_Machine_Array(N_Act_Grip_Chk_First_Unloader_Grip_OFF) == N_Ready_Step )						// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Grip_Chk_First_Unloader_Grip_OFF) = Sys.Time;												// 타이머 설정.
+			if ( M_X_PLC_Unloader_Grip == 1 && M_Y_PLC_Unloader_Grip_Ack == 1 )												// 2,3차 언로더 그립 확인. [ Write : 3차 언로더 그립 요청 DIO ]
+			{
+				M_Y_PLC_Unloader_Grip_Ack = 0;																				// 2,3차 언로더 그립 아크신호.
+				M_Y_1st_Unloader_Grip_Sol = 0;																				// 1차 언로더 언그립.
+				M_Y_1st_Unloader_UnGrip_Sol = 1;																			// 1차 언로더 언그립.
+				P_Module_Act_State_Machine_Array(N_Act_Grip_Chk_First_Unloader_Grip_OFF) = 1;								// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 1) 1차 언로더 언그립 확인
+		if ( P_Module_Act_State_Machine_Array(N_Act_Grip_Chk_First_Unloader_Grip_OFF) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_Grip_Chk_First_Unloader_Grip_OFF) + P_Act_Time_Out(N_Act_Grip_Chk_First_Unloader_Grip_OFF) )	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( M_X_1st_Unloader_UnGrip_Detect_Sensor == 1 && M_X_1st_Unloader_Grip_Detect_Sensor == 0 )				// 1차 언로더 언그립 확인.
+				{
+					P_Act_Old_Time(N_Act_Grip_Chk_First_Unloader_Grip_OFF) = Sys.Time;										// 타이머 설정.
+					P_Suspend_Discharge_1st_Unloader_JR_Grip = 0;															// 1차 언로더 JR 집은 상태 확인. (45도 정지 후 Resetting 시 필요)	[ 참조 : 25.07.08 배출 재가동 진행 추가 ]
+					M_Y_1st_Unloader_UnGrip_Complete = 1;																	// 1차 언로더 언그립 완료 신호.	
+					P_Module_Act_State_Machine_Array(N_Act_Grip_Chk_First_Unloader_Grip_OFF) = 2;							// 다음 스텟 머신으로 이동.
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Grip_Chk_First_Unloader_Grip_OFF) = N_Error_Step;					// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 2) 1차 언로더 언그립 확인완료 ack신호 체크
+		if ( P_Module_Act_State_Machine_Array(N_Act_Grip_Chk_First_Unloader_Grip_OFF) == 2 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_Grip_Chk_First_Unloader_Grip_OFF) + P_Act_Time_Out(N_Act_Grip_Chk_First_Unloader_Grip_OFF) )	// 일정 시간 전에 완료 될 경우.
+			{														
+				if ( M_X_1st_Unloader_UnGrip_Ack == 1 )
+				{
+					M_Y_1st_Unloader_UnGrip_Complete = 0;
+					if( Sys.Time > P_Act_Old_Time(N_Act_Grip_Chk_First_Unloader_Grip_OFF) + P_Act_Delay_Time(N_Act_Grip_Chk_First_Unloader_Grip_OFF) )	// 일정 딜레이 시간을 넘길 경우.
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Grip_Chk_First_Unloader_Grip_OFF) = N_Complete_Step;			// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Grip_Chk_First_Unloader_Grip_OFF) = N_Error_Step;					// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_Grip_Chk_First_Unloader_Grip_OFF) == N_Error_Step )						// 애러 상태 일 경우.
+		{
+			Grip_Chk_First_Unloader_Grip_OFF_RTN = N_FALSE;																	// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_Grip_Chk_First_Unloader_Grip_OFF) == N_Complete_Step )					// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_Grip_Chk_First_Unloader_Grip_OFF) = 1;													// 동작 완료 Bit On.
+			Grip_Chk_First_Unloader_Grip_OFF_RTN = N_COMPLETE;																// 반환값 : COMPLETE
+		}
+	return
+	
+	// 1차 언로더 대기 위치 이동 [후진 후 회전] (T축) (1차 언로더 언그립 확인)
+	sub:First_Unloader_Wait_Pos(&First_Unloader_Wait_Pos_RTN)
+		// 0.0) 반환값 초기화.
+		First_Unloader_Wait_Pos_RTN = 0;																					// 반환값 초기화.
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) == N_Ready_Step )								// 진행 준비 완료 일 경우.
+		{
+			if ( P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module) != N_Dryrun_Status_Sequence )						// 드라이런 모드가 아닐 경우. (일반 모드, 세파 모드)	// [ 참조 : 25.10.14 모드에 따른 배출 진행 수정 ]
+			{
+				P_Act_Old_Time(N_Act_First_Unloader_Wait_Pos) = Sys.Time;													// 타이머 설정.
+				if ( M_X_PLC_to_1st_Avoid_Request == 1 )																	// 1차 언로더 회피 요청.
+				{
+					P_First_Unloader_Avoid_Status = F_Status_Nonseatus;														// 상태 초기화.
+					P_Slave14_Motion_Command = N_1st_UND_Avoid_Motion;														// 1차 언로더 45도 이동.
+					P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) = 1;									// 다음 스텟 머신으로 이동.
+				}
+			}
+			else																											// 드라이런 모드 일 경우.		// [ 참조 : 25.10.14 모드에 따른 배출 진행 수정 ]
+			{
+				P_Act_Old_Time(N_Act_First_Unloader_Wait_Pos) = Sys.Time;													// 타이머 설정.
+				P_First_Unloader_Avoid_Status = F_Status_COMPLETE;															// 상태 완료. [ 45도 위치에서 모션을 날리지 않기 위함 ]
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) = 1;										// 완료 스텟 머신으로 이동.			
+			}
+		}
+		// 1) 1차 언로더 회피위치 복귀(T축) 확인 + 1차 언로더 그립 명령
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_Wait_Pos) + P_Act_Time_Out(N_Act_First_Unloader_Wait_Pos) )	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_Unloader_Avoid_Status == F_Status_COMPLETE && P_Motor_Current_Pos(N_UNLOADER_T) ~ P_1st_ULD_T_45_Angle )	// 1차 언로더 회피 위치 확인.
+				{
+					M_Y_PLC_to_1st_Avoid_Request_Ack = 1;																	// 1차 언로더 45도 이동 완료 Ack 신호.
+					P_Act_Old_Time(N_Act_First_Unloader_Wait_Pos) = Sys.Time;												// 타이머 설정.
+					M_Y_1st_Unloader_Grip_Sol = 1;																			// 1차 언로더 그립 DIO 출력
+					M_Y_1st_Unloader_UnGrip_Sol = 0;																		// 1차 언로더 언그립 DIO OFF
+					if ( P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module) != N_Dryrun_Status_Sequence )				// 드라이런 모드가 아닐 경우. (일반 모드, 세파 모드)	// [ 참조 : 25.10.14 모드에 따른 배출 진행 수정 ]
+						P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) = 2;								// 다음 스텟 머신으로 이동.
+					else																									// 드라이런 모드 일 경우.		// [ 참조 : 25.10.14 모드에 따른 배출 진행 수정 ]
+						P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) = 3;								// 다다음 스텟 머신으로 이동. [ 1차 언로더 인계 후 회피위치 이동 완료 IO를 하지 않기 위함 ]
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 2) 1차 언로더 그립 확인 + 회피위치 이동 완료 IO 출력
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) == 2 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_Wait_Pos) + P_Act_Time_Out(N_Act_First_Unloader_Wait_Pos) )	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( M_X_1st_Unloader_Grip_Detect_Sensor == 1 && M_X_1st_Unloader_UnGrip_Detect_Sensor == 0 )				// 1차 언로더 그립 센서 확인.
+				{
+					P_Act_Old_Time(N_Act_First_Unloader_Wait_Pos) = Sys.Time;												// 타이머 설정.
+					M_Y_1st_Avoid_Pos_Discharge_Complete = 1;																// 1차 언로더 인계 후 회피위치 이동 완료 IO
+					P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) = 3;									// 다음 스텟 머신으로 이동.
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 3) T축 대기 위치 복귀
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) == 3 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_Wait_Pos) + P_Act_Time_Out(N_Act_First_Unloader_Wait_Pos) )	// 일정 시간 전에 완료 될 경우.
+			{
+				P_Act_Old_Time(N_Act_First_Unloader_Wait_Pos) = Sys.Time;													// 타이머 설정.
+				P_First_Unloader_Turn_Status = F_Status_Nonseatus;															// 상태 초기화.
+				P_Slave14_Motion_Command = N_1st_UND_Turn_Motion;															// 언로더 T축 복귀
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) = 4;										// 다음 스텟 머신으로 이동.
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 4) 1차 언로더 대기 위치 복귀 확인(T축)
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) == 4 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_First_Unloader_Wait_Pos) + P_Act_Time_Out(N_Act_First_Unloader_Wait_Pos) )	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_Unloader_Turn_Status == F_Status_COMPLETE && P_Motor_Current_Pos(N_UNLOADER_T) ~ P_1st_ULD_T_Wait )		// 1차 언로더 T축 대기 위치 확인.												
+				{
+					if( Sys.Time > P_Act_Old_Time(N_Act_First_Unloader_Wait_Pos) + P_Act_Delay_Time(N_Act_First_Unloader_Wait_Pos) )		// 일정 딜레이 시간을 넘길 경우.
+					{
+						call Discharge_Sub_Prog.Interface_Init();															// PMAC ↔ PLC Interface 초기화.
+						P_Suspend_Discharge_Complete_Flag = 1;																// 배출 완료 Flag ON. [메모리 타워 확인용]
+						P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) = N_Complete_Step;					// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																											// 일정 시간을 넘길 경우. [타임 아웃]
+			{
+				P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) == N_Error_Step )								// 애러 상태 일 경우.
+		{
+			First_Unloader_Wait_Pos_RTN = N_FALSE;																			// 반환값 : FALSE.
+		}
+		// 999) 완료
+		if ( P_Module_Act_State_Machine_Array(N_Act_First_Unloader_Wait_Pos) == N_Complete_Step )							// 완료 상태 일 경우.
+		{			
+			P_Act_Complete_Bit(N_Act_First_Unloader_Wait_Pos) = 1;															// 동작 완료 Bit On.
+			First_Unloader_Wait_Pos_RTN = N_COMPLETE;																		// 반환값 : COMPLETE
+		}	
+	return
+
+	/*------------- ARC_Fine -------------//
+	- ARC_Pre_Act						[x]			[ARC 진행 전 사전 작업]
+	- Nip_Roll_FWD						[실린더]		[닙롤 전진]	
+	- Nip_Roll_BWD						[실린더]		[닙롤 후진]
+	- Replace_Plate_FWD					[실린더]		[교체 플레이트 전진]
+	- Replace_Plate_BWD					[실린더]		[교체 플레이트 후진]
+	- Replace_Plate_Clamp_ON			[실린더]		[교체 플레이트 클램프 ON]
+	- Replace_Plate_Clamp_OFF			[실린더]		[교체 플레이트 클램프 OFF]
+	- Replace_Plate_Cutter_FWD			[실린더]		[교체 플레이트 커터 전진]
+	- Replace_Plate_Cutter_BWD			[실린더]		[교체 플레이트 커터 후진]
+	- Plate_Blow_ON						[실린더]		[플레이트 블로우 ON]
+	- Plate_Blow_OFF					[실린더]		[플레이트 블로우 OFF]
+	- Spool_Change						[x]			[ARC 완료 후 스풀 교체]
+	- Previous_Spool_Remain_Winding		[모터]		[이전 스풀 잔량 감기]
+	- ARC_Post_Act						[x]			[ARC 진행 후 사후 작업]
+	//------------------------------------*/
+	// ARC 진행 전 사전 작업.		
+	sub:ARC_Pre_Act(&ARC_Pre_Act_RTN)
+		// 0.0) 반환값 초기화.
+		ARC_Pre_Act_RTN = 0;
+		// 222) 케스케이드 링크 해제.
+		if ( P_Module_Act_State_Machine_Array(N_Act_ARC_Pre_Act) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			// 2025.06.01 추가
+			P_Com_ARC_Sepa_Consume_Mode_Flag = 1;																		// ARC 이후 세파 소비 모드
+			P_System_Cascading_OFF_Cmd = F_Command_Start;																// Cascading 해제
+			P_System_Master_Following_OFF_Cmd = F_Command_Start;														// 마스터팔로잉 해제
+			// ↓[ 참고 : 2025.10.15 미비 사항 추가 건 ]	닙롤을 닫기 위하여 Servo Dancer Close Loop 변환
+			CMD"#%d j/",N_SERVO_DANCER;
+			P_Prev_Sepa_Stack_Completed_Flag = 0;																		// 세파 모드 변경 필요해서 우선 넣어놓음.[?]
+			P_Module_Act_State_Machine_Array(N_Act_ARC_Pre_Act) = 1														// 다음 스텟 머신으로 이동.
+		}
+		// 1) 서보 댄서 가상축 및 실축 설정.
+		if ( P_Module_Act_State_Machine_Array(N_Act_ARC_Pre_Act) == 1 )
+		{
+			if( P_System_Cascading_OFF_Complete_Flag & P_System_Master_Following_OFF_Complete_Flag & Motor[N_SERVO_DANCER].ClosedLoop )// 완료 후
+			{
+				P_System_Cascading_OFF_Complete_Flag = 0;
+				P_System_Master_Following_OFF_Complete_Flag = 0;
+				P_Act_Old_Time(N_Act_ARC_Pre_Act) = Sys.Time;															// 시간 업데이트.
+				P_Module_Act_State_Machine_Array(N_Act_ARC_Pre_Act) = 2;												// 다음 스텟 머신으로 이동.
+				
+			}
+		}
+
+		// 2) 기존 플레이트 진공 Blow ON. ( 공압을 OFF 하기 위해서 Blow ON → Blow OFF 진행 )
+		if ( P_Module_Act_State_Machine_Array(N_Act_ARC_Pre_Act) == 2 )
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{																											
+				M_Y_Sepa_Upper_ARC_Ejector_Vac_On = 0;																	// 상부 플레이트 Blow ON.
+				M_Y_Sepa_Upper_ARC_Ejector_Vac_Off = 1;																	// 상부 플레이트 Blow ON.
+				if( Sys.Time > P_Act_Old_Time(N_Act_ARC_Pre_Act) + P_Act_Delay_Time(N_Act_ARC_Pre_Act) )				// 일정 딜레이 시간을 넘길 경우. [블로우 후 잔압 빠지는 시간 필요]
+				{
+					P_Act_Old_Time(N_Act_ARC_Pre_Act) = Sys.Time;														// 타이머 설정.
+					P_Module_Act_State_Machine_Array(N_Act_ARC_Pre_Act) = 3;											// 다음 스텟 머신으로 이동.
+				}
+			}																											
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{																											
+				M_Y_Sepa_Lower_ARC_Ejector_Vac_On = 0;																	// 하부 플레이트 Blow ON.
+				M_Y_Sepa_Lower_ARC_Ejector_Vac_Off = 1;																	// 하부 플레이트 Blow ON.
+				if( Sys.Time > P_Act_Old_Time(N_Act_ARC_Pre_Act) + P_Act_Delay_Time(N_Act_ARC_Pre_Act) )				// 일정 딜레이 시간을 넘길 경우. [블로우 후 잔압 빠지는 시간 필요]
+				{
+					P_Act_Old_Time(N_Act_ARC_Pre_Act) = Sys.Time;														// 타이머 설정.
+					P_Module_Act_State_Machine_Array(N_Act_ARC_Pre_Act) = 3;											// 다음 스텟 머신으로 이동.
+				}
+			}																											   
+		}																												
+		// 3) 기존 플레이트 진공 Blow OFF. ( 공압을 OFF 하기 위해서 Blow ON → Blow OFF 진행 )								   
+		if ( P_Module_Act_State_Machine_Array(N_Act_ARC_Pre_Act) == 3 )											
+		{														
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.																		   
+			{																											
+				M_Y_Sepa_Upper_ARC_Ejector_Vac_On = 0;																	// 상부 플레이트 Blow OFF.
+				M_Y_Sepa_Upper_ARC_Ejector_Vac_Off = 0;																	// 상부 플레이트 Blow OFF.
+				if( Sys.Time > P_Act_Old_Time(N_Act_ARC_Pre_Act) + P_Act_Delay_Time(N_Act_ARC_Pre_Act) )				// 일정 딜레이 시간을 넘길 경우.
+				{	
+					P_Module_Act_State_Machine_Array(N_Act_ARC_Pre_Act) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+				}
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_Lower_ARC_Ejector_Vac_On = 0;																	// 하부 플레이트 Blow OFF.
+				M_Y_Sepa_Lower_ARC_Ejector_Vac_Off = 0;																	// 하부 플레이트 Blow OFF.				
+				if( Sys.Time > P_Act_Old_Time(N_Act_ARC_Pre_Act) + P_Act_Delay_Time(N_Act_ARC_Pre_Act) )				// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_ARC_Pre_Act) = N_Complete_Step;								// 완료 스텟 머신으로 이동.				
+				}
+			}			
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_ARC_Pre_Act) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			ARC_Pre_Act_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_ARC_Pre_Act) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_ARC_Pre_Act) = 1;																	// 동작 완료 Bit On.
+			ARC_Pre_Act_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return
+
+	// 닙롤 전진.
+	sub:Nip_Roll_FWD(&Nip_Roll_FWD_RTN)
+		// 0.0) 반환값 초기화.
+		Nip_Roll_FWD_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_FWD) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Nip_Roll_FWD) = Sys.Time;																// 타이머 설정.
+			M_Y_Sepa_Driving_Roll_Clamp_Sol = 1;																		// 드라이빙 롤 전진.
+			P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_FWD) = 1;													// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_FWD) == 1 )
+		{
+			if( Sys.Time < P_Act_Old_Time(N_Act_Nip_Roll_FWD) + P_Act_Time_Out(N_Act_Nip_Roll_FWD) )					// 일정 딜레이 시간을 넘기지 않을 경우.
+			{
+				if( M_X_Sepa_Driving_Roll_Clamp_Sensor == 1 && M_X_Sepa_Driving_Roll_UnClamp_Sensor == 0 )				// 완료 상태 확인 후.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_FWD) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+				}
+			}
+			else																										// 일정 딜레이 시간을 넘길 경우.
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_FWD) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_FWD) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			M_SEPA_ARC_Driving_Roll_FWD_BWD_Error_Alarm = 1;															// 드라이빙 롤 알람 발생.
+			Nip_Roll_FWD_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_FWD) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Nip_Roll_FWD) = 1;																	// 동작 완료 Bit On.
+			Nip_Roll_FWD_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return
+
+	// 닙롤 후진.
+	sub:Nip_Roll_BWD(&Nip_Roll_BWD_RTN)
+		// 0.0) 반환값 초기화.
+		Nip_Roll_BWD_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_BWD) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Nip_Roll_BWD) = Sys.Time;																// 타이머 설정.
+			M_Y_Sepa_Driving_Roll_Clamp_Sol = 0;																		// 드라이빙 롤 후진.
+			P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_BWD) = 1;													// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시	.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_BWD) == 1 )
+		{
+			if( Sys.Time < P_Act_Old_Time(N_Act_Nip_Roll_BWD) + P_Act_Time_Out(N_Act_Nip_Roll_BWD) )					// 일정 딜레이 시간을 넘기지 않을 경우.
+			{
+				if( M_X_Sepa_Driving_Roll_Clamp_Sensor == 0 && M_X_Sepa_Driving_Roll_UnClamp_Sensor == 1 )				// 완료 상태 확인 후.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_BWD) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+				}
+			}
+			else																										// 일정 딜레이 시간을 넘길 경우.
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_FWD) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_BWD) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			M_SEPA_ARC_Driving_Roll_FWD_BWD_Error_Alarm = 1;															// 드라이빙 롤 알람 발생.
+			Nip_Roll_BWD_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Nip_Roll_BWD) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Nip_Roll_BWD) = 1;																	// 동작 완료 Bit On.
+			Nip_Roll_BWD_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return
+
+	// 교체 플레이트 전진. [ 상부 선택 → 하부 : 상승, 하부 선택 → 상부 : 하강 ]
+	sub:Replace_Plate_FWD(&Replace_Plate_FWD_RTN)
+		// 0.0) 반환값 초기화.
+		Replace_Plate_FWD_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_FWD) == N_Ready_Step )								// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Replace_Plate_FWD) = Sys.Time;															// 타이머 설정.
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_ARC_Lower_Up_Sol = 1;																			// 교체 플레이트 전진. [하부 플레이트 상승]
+				M_Y_Sepa_ARC_Lower_Dn_Sol = 0;																			// 교체 플레이트 전진. [하부 플레이트 상승]
+
+				P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_FWD) = 1;											// 다음 스텟 머신으로 이동.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_ARC_Upper_Up_Sol = 0;																			// 교체 플레이트 전진. [상부 플레이트 하강]
+				M_Y_Sepa_ARC_Upper_Dn_Sol = 1;																			// 교체 플레이트 전진. [상부 플레이트 하강]
+
+				P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_FWD) = 1;											// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_FWD) == 1 )
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Replace_Plate_FWD) + P_Act_Time_Out(N_Act_Replace_Plate_FWD) )		// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if( M_X_Sepa_Lower_ARC_Up_Sensor == 1 && M_X_Sepa_Lower_ARC_Dn_Sensor == 0 )						// 완료 상태 확인 후.	
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_FWD) = N_Complete_Step;					// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_FWD) = N_Error_Step;							// 애러 스텟 머신으로 이동.
+				}
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Replace_Plate_FWD) + P_Act_Time_Out(N_Act_Replace_Plate_FWD) )		// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if( M_X_Sepa_Upper_ARC_Up_Sensor == 0 && M_X_Sepa_Upper_ARC_Dn_Sensor == 1 )						// 완료 상태 확인 후.					
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_FWD) = N_Complete_Step;					// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_FWD) = N_Error_Step;							// 애러 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_FWD) == N_Error_Step )								// 애러 상태 일 경우.
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Lower_Plate_Up_Down_Error_Alarm = 1															// 하부 플레이트 알람 발생.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Upper_Plate_UP_Down_Error_Alarm = 1															// 상부 플레이트 알람 발생.
+			}
+			Replace_Plate_FWD_RTN = N_FALSE;																			// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_FWD) == N_Complete_Step )								// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Replace_Plate_FWD) = 1;															// 동작 완료 Bit On.
+			Replace_Plate_FWD_RTN = N_COMPLETE;																			// 반환값 : COMPLETE
+		}
+	return
+
+	// 교체 플레이트 후진. [ 상부 선택 → 하부 : 하강, 하부 선택 → 상부 : 상승 ]
+	sub:Replace_Plate_BWD(&Replace_Plate_BWD_RTN)
+		// 0.0) 반환값 초기화.
+		Replace_Plate_BWD_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_BWD) == N_Ready_Step )								// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Replace_Plate_BWD) = Sys.Time;															// 타이머 설정.
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_ARC_Lower_Up_Sol = 0;																			// 교체 플레이트 전진. [하부 플레이트 하강]
+				M_Y_Sepa_ARC_Lower_Dn_Sol = 1;																			// 교체 플레이트 전진. [하부 플레이트 하강]
+
+				P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_BWD) = 1;											// 다음 스텟 머신으로 이동.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_ARC_Upper_Up_Sol = 1;																			// 교체 플레이트 전진. [상부 플레이트 상승]
+				M_Y_Sepa_ARC_Upper_Dn_Sol = 0;																			// 교체 플레이트 전진. [상부 플레이트 상승]
+
+				P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_BWD) = 1;											// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_BWD) == 1 )
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Replace_Plate_BWD) + P_Act_Time_Out(N_Act_Replace_Plate_BWD) )		// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if( M_X_Sepa_Lower_ARC_Up_Sensor == 0 && M_X_Sepa_Lower_ARC_Dn_Sensor == 1 )						// 완료 상태 확인 후.	
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_BWD) = N_Complete_Step;					// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_BWD) = N_Error_Step;							// 애러 스텟 머신으로 이동.
+				}
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Replace_Plate_BWD) + P_Act_Time_Out(N_Act_Replace_Plate_BWD) )		// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if( M_X_Sepa_Upper_ARC_Up_Sensor == 1 && M_X_Sepa_Upper_ARC_Dn_Sensor == 0 )						// 완료 상태 확인 후.		
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_BWD) = N_Complete_Step;					// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_BWD) = N_Error_Step;							// 애러 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_BWD) == N_Error_Step )								// 애러 상태 일 경우.
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Lower_Plate_Up_Down_Error_Alarm = 1															// 하부 플레이트 알람 발생.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Upper_Plate_UP_Down_Error_Alarm = 1															// 상부 플레이트 알람 발생.
+			}
+			Replace_Plate_BWD_RTN = N_FALSE;																			// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_BWD) == N_Complete_Step )								// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Replace_Plate_BWD) = 1;															// 동작 완료 Bit On.
+			Replace_Plate_BWD_RTN = N_COMPLETE;																			// 반환값 : COMPLETE
+		}
+	return
+
+	// 교체 플레이트 클램프 ON. [ 상부 선택 → 하부 : 클램프 ON, 하부 선택 → 상부 : 클램프 ON ]
+	sub:Replace_Plate_Clamp_ON(&Replace_Plate_Clamp_ON_RTN)
+		// 0.0) 반환값 초기화.
+		Replace_Plate_Clamp_ON_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_ON) == N_Ready_Step )							// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Replace_Plate_Clamp_ON) = Sys.Time;													// 타이머 설정.
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_ARC_Lower_Stopper_Sol = 1;																		// 교체 플레이트 클램프 ON. [하부 플레이트 클램프 ON]
+				P_ARC_TEST_Flag = 1;		// plc25 테스트용 변수
+				P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_ON) = 1;										// 다음 스텟 머신으로 이동.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_ARC_Upper_Stopper_Sol = 1;																		// 교체 플레이트 클램프 ON. [상부 플레이트 클램프 ON]
+				P_ARC_TEST_Flag = 1;		// plc25 테스트용 변수
+				P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_ON) = 1;										// 다음 스텟 머신으로 이동.
+			
+			}
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_ON) == 1 )
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Replace_Plate_Clamp_ON) + P_Act_Time_Out(N_Act_Replace_Plate_Clamp_ON) )	// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if ( M_X_Sepa_Lower_ARC_UnStopper_Front_Sensor == 0 && M_X_Sepa_Lower_ARC_UnStopper_Rear_Sensor == 0 && M_X_Sepa_Lower_ARC_Stopper_Front_Sensor == 1 && M_X_Sepa_Lower_ARC_Stopper_Rear_Sensor == 1 )	// 완료 상태 확인 후.	
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_ON) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_ON) = N_Error_Step;						// 애러 스텟 머신으로 이동.
+				}
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Replace_Plate_Clamp_ON) + P_Act_Time_Out(N_Act_Replace_Plate_Clamp_ON) )	// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if ( M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor == 0 && M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor == 0 && M_X_Sepa_Upper_ARC_Stopper_Front_Sensor == 1 && M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor == 1 )	// 완료 상태 확인 후.		
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_ON) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_ON) = N_Error_Step;						// 애러 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_ON) == N_Error_Step )							// 애러 상태 일 경우.
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Lower_Clamp_On_Off_Error_Alarm = 1															// 하부 플레이트 클램프 알람 발생.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Upper_Clamp_On_Off_Error_Alarm = 1;															// 상부 플레이트 클램프 알람 발생.
+			}
+			Replace_Plate_Clamp_ON_RTN = N_FALSE;																		// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_ON) == N_Complete_Step )						// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Replace_Plate_Clamp_ON) = 1;														// 동작 완료 Bit On.
+			Replace_Plate_Clamp_ON_RTN = N_COMPLETE;																	// 반환값 : COMPLETE
+		}
+	return
+
+	// 교체 플레이트 클램프 OFF. [ 상부 선택 → 하부 : 클램프 OFF, 하부 선택 → 상부 : 클램프 OFF ]
+	sub:Replace_Plate_Clamp_OFF(&Replace_Plate_Clamp_OFF_RTN)
+		// 0.0) 반환값 초기화.
+		Replace_Plate_Clamp_OFF_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_OFF) == N_Ready_Step )							// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Replace_Plate_Clamp_OFF) = Sys.Time;													// 타이머 설정.
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_ARC_Lower_Stopper_Sol = 0;																		// 교체 플레이트 클램프 OFF. [하부 플레이트 클램프 OFF]
+
+				P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_OFF) = 1;									// 다음 스텟 머신으로 이동.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_ARC_Upper_Stopper_Sol = 0;																		// 교체 플레이트 클램프 OFF. [상부 플레이트 클램프 OFF]
+
+				P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_OFF) = 1;									// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_OFF) == 1 )
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Replace_Plate_Clamp_OFF) + P_Act_Time_Out(N_Act_Replace_Plate_Clamp_OFF) )	// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if ( M_X_Sepa_Lower_ARC_UnStopper_Front_Sensor == 1 && M_X_Sepa_Lower_ARC_UnStopper_Rear_Sensor == 1 && M_X_Sepa_Lower_ARC_Stopper_Front_Sensor == 0 && M_X_Sepa_Lower_ARC_Stopper_Rear_Sensor == 0 )	// 완료 상태 확인 후.	
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_OFF) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_OFF) = N_Error_Step;						// 애러 스텟 머신으로 이동.
+				}
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Replace_Plate_Clamp_OFF) + P_Act_Time_Out(N_Act_Replace_Plate_Clamp_OFF) )	// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if ( M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor == 1 && M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor == 1 && M_X_Sepa_Upper_ARC_Stopper_Front_Sensor == 0 && M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor == 0 )	// 완료 상태 확인 후.		
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_OFF) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_OFF) = N_Error_Step;						// 애러 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_OFF) == N_Error_Step )							// 애러 상태 일 경우.
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Lower_Clamp_On_Off_Error_Alarm = 1															// 하부 플레이트 클램프 알람 발생.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Upper_Clamp_On_Off_Error_Alarm = 1;															// 상부 플레이트 클램프 알람 발생.
+			}
+			Replace_Plate_Clamp_OFF_RTN = N_FALSE;																		// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Clamp_OFF) == N_Complete_Step )						// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Replace_Plate_Clamp_OFF) = 1;														// 동작 완료 Bit On.
+			Replace_Plate_Clamp_OFF_RTN = N_COMPLETE;																	// 반환값 : COMPLETE
+		}
+	return
+
+	// 교체 플레이트 커터 전진. [ 상부 선택 → 하부 : 커터 전진, 하부 선택 → 상부 : 커터 전진 ]
+	sub:Replace_Plate_Cutter_FWD(&Replace_Plate_Cutter_FWD_RTN)
+		// 0.0) 반환값 초기화.
+		Replace_Plate_Cutter_FWD_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_FWD) == N_Ready_Step )							// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Replace_Plate_Cutter_FWD) = Sys.Time;													// 타이머 설정.
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_ARC_Lower_Cutting_FWD_Sol = 1;																	// 교체 플레이트 커터 전진. [하부 플레이트 커터 전진]
+
+				P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_FWD) = 1;									// 다음 스텟 머신으로 이동.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_ARC_Upper_Cutting_FWD_Sol = 1;																	// 교체 플레이트 커터 전진. [상부 플레이트 커터 전진]
+
+				P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_FWD) = 1;									// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_FWD) == 1 )
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Replace_Plate_Cutter_FWD) + P_Act_Time_Out(N_Act_Replace_Plate_Cutter_FWD) )	// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if ( M_X_Sepa_Lower_ARC_Cutting_FWD_Sensor == 1 && M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor == 0 )		// 완료 상태 확인 후.	
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_FWD) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_FWD) = N_Error_Step;					// 애러 스텟 머신으로 이동.
+				}
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Replace_Plate_Cutter_FWD) + P_Act_Time_Out(N_Act_Replace_Plate_Cutter_FWD) )	// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if ( M_X_Sepa_Upper_ARC_Cutting_FWD_Sensor == 1 && M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor == 0 )		// 완료 상태 확인 후.		
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_FWD) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_FWD) = N_Error_Step;					// 애러 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_FWD) == N_Error_Step )							// 애러 상태 일 경우.
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Lower_Cutter_Fwd_Bwd_Error_Alarm = 1															// 하부 플레이트 커터 알람 발생.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Upper_Cutter_Fwd_Bwd_Error_Alarm = 1;														// 상부 플레이트 커터 알람 발생.
+			}
+			Replace_Plate_Cutter_FWD_RTN = N_FALSE;																		// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_FWD) == N_Complete_Step )						// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Replace_Plate_Cutter_FWD) = 1;														// 동작 완료 Bit On.
+			Replace_Plate_Cutter_FWD_RTN = N_COMPLETE;																	// 반환값 : COMPLETE
+		}
+	return	
+
+	// 교체 플레이트 커터 후진. [ 상부 선택 → 하부 : 커터 후진, 하부 선택 → 상부 : 커터 후진 ]
+	sub:Replace_Plate_Cutter_BWD(&Replace_Plate_Cutter_BWD_RTN)
+		// 0.0) 반환값 초기화.
+		Replace_Plate_Cutter_BWD_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_BWD) == N_Ready_Step )							// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Replace_Plate_Cutter_BWD) = Sys.Time;													// 타이머 설정.
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_ARC_Lower_Cutting_FWD_Sol = 0;																	// 교체 플레이트 커터 후진. [하부 플레이트 커터 후진]
+
+				P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_BWD) = 1;									// 다음 스텟 머신으로 이동.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_ARC_Upper_Cutting_FWD_Sol = 0;																	// 교체 플레이트 커터 후진. [상부 플레이트 커터 후진]
+
+				P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_BWD) = 1;									// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_BWD) == 1 )
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Replace_Plate_Cutter_BWD) + P_Act_Time_Out(N_Act_Replace_Plate_Cutter_BWD) )	// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if ( M_X_Sepa_Lower_ARC_Cutting_FWD_Sensor == 0 && M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor == 1 )		// 완료 상태 확인 후.	
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_BWD) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_BWD) = N_Error_Step;					// 애러 스텟 머신으로 이동.
+				}
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Replace_Plate_Cutter_BWD) + P_Act_Time_Out(N_Act_Replace_Plate_Cutter_BWD) )	// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if ( M_X_Sepa_Upper_ARC_Cutting_FWD_Sensor == 0 && M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor == 1 )		// 완료 상태 확인 후.		
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_BWD) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_BWD) = N_Error_Step;					// 애러 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_BWD) == N_Error_Step )							// 애러 상태 일 경우.
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Lower_Cutter_Fwd_Bwd_Error_Alarm = 1															// 하부 플레이트 커터 알람 발생.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Upper_Cutter_Fwd_Bwd_Error_Alarm = 1;														// 상부 플레이트 커터 알람 발생.
+			}
+			Replace_Plate_Cutter_BWD_RTN = N_FALSE;																		// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Replace_Plate_Cutter_BWD) == N_Complete_Step )						// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Replace_Plate_Cutter_BWD) = 1;														// 동작 완료 Bit On.
+			Replace_Plate_Cutter_BWD_RTN = N_COMPLETE;																	// 반환값 : COMPLETE
+		}
+	return	
+
+	// 플레이트 블로우 ON. [ 상부 선택 → 상부 : 블로우, 하부 선택 → 하부 : 블로우 ]
+	sub:Plate_Blow_ON(&Plate_Blow_ON_RTN)
+		// 0.0) 반환값 초기화.
+		Plate_Blow_ON_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_ON) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Plate_Blow_ON) = Sys.Time;																// 타이머 설정.
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_Upper_ARC_Ejector_Vac_On = 0;																	// 본인 플레이트 블로우 ON. [상부 플레이트 블로우 ON]
+				M_Y_Sepa_Upper_ARC_Ejector_Vac_Off = 1;																	// 본인 플레이트 블로우 ON. [상부 플레이트 블로우 ON]
+
+				P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_ON) = 1;												// 다음 스텟 머신으로 이동.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_Lower_ARC_Ejector_Vac_On = 0;																	// 본인 플레이트 블로우 ON. [하부 플레이트 블로우 ON]
+				M_Y_Sepa_Lower_ARC_Ejector_Vac_Off = 1;																	// 본인 플레이트 블로우 ON. [하부 플레이트 블로우 ON]
+
+				P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_ON) = 1;												// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_ON) == 1 )
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Plate_Blow_ON) + P_Act_Time_Out(N_Act_Plate_Blow_ON) )				// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if( M_X_ARC_NP_Upper_Plate_Vac_On == 0 )															// 완료 상태 확인 후.	
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_ON) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_ON) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+				}
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Plate_Blow_ON) + P_Act_Time_Out(N_Act_Plate_Blow_ON) )				// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if( M_X_ARC_NP_Lower_Plate_Vac_On == 0 )															// 완료 상태 확인 후.		
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_ON) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_ON) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_ON) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Upper_Vacuum_On_Off_Error_Alarm = 1															// 상부 플레이트 진공 알람 발생.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Lower_Vacuum_On_Off_Error_Alarm = 1															// 하부 플레이트 진공 알람 발생.
+			}
+			Plate_Blow_ON_RTN = N_FALSE;																				// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_ON) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Plate_Blow_ON) = 1;																// 동작 완료 Bit On.
+			Plate_Blow_ON_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return
+
+	// 플레이트 블로우 OFF. [ 상부 선택 → 상부 : 진공 OFF, 하부 선택 → 하부 : 진공 OFF ]
+	sub:Plate_Blow_OFF(&Plate_Blow_OFF_RTN)
+		// 0.0) 반환값 초기화.
+		Plate_Blow_OFF_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_OFF) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Plate_Blow_OFF) = Sys.Time;															// 타이머 설정.
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_Upper_ARC_Ejector_Vac_On = 0;																	// 본인 플레이트 진공 OFF. [상부 플레이트 진공 OFF]
+				M_Y_Sepa_Upper_ARC_Ejector_Vac_Off = 0;																	// 본인 플레이트 진공 OFF. [상부 플레이트 진공 OFF]
+
+				P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_OFF) = 1;												// 다음 스텟 머신으로 이동.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_Y_Sepa_Lower_ARC_Ejector_Vac_On = 0;																	// 본인 플레이트 진공 OFF. [하부 플레이트 진공 OFF]
+				M_Y_Sepa_Lower_ARC_Ejector_Vac_Off = 0;																	// 본인 플레이트 진공 OFF. [하부 플레이트 진공 OFF]
+
+				P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_OFF) = 1;												// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_OFF) == 1 )
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Plate_Blow_OFF) + P_Act_Time_Out(N_Act_Plate_Blow_OFF) )			// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if( M_X_ARC_NP_Upper_Plate_Vac_On == 0 )															// 완료 상태 확인 후.	
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_OFF) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_OFF) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+				}
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				if( Sys.Time < P_Act_Old_Time(N_Act_Plate_Blow_OFF) + P_Act_Time_Out(N_Act_Plate_Blow_OFF) )			// 일정 딜레이 시간을 넘기지 않을 경우.
+				{
+					if( M_X_ARC_NP_Lower_Plate_Vac_On == 0 )					// 완료 상태 확인 후.		
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_OFF) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																									// 일정 딜레이 시간을 넘길 경우.
+				{
+					P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_OFF) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_OFF) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Upper_Vacuum_On_Off_Error_Alarm = 1															// 상부 플레이트 진공 알람 발생.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				M_SEPA_ARC_Lower_Vacuum_On_Off_Error_Alarm = 1															// 하부 플레이트 진공 알람 발생.
+			}
+			Plate_Blow_OFF_RTN = N_FALSE;																				// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Plate_Blow_OFF) == N_Complete_Step )								// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Plate_Blow_OFF) = 1;																// 동작 완료 Bit On.
+			Plate_Blow_OFF_RTN = N_COMPLETE;																			// 반환값 : COMPLETE
+		}
+	return
+
+	// ARC 완료 후 스풀 교체. [ 상부 → 하부, 하부 → 상부 ]
+	sub:Spool_Change(&Spool_Change_RTN)
+		// 0.0) 반환값 초기화.
+		Spool_Change_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Spool_Change) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			P_Act_Old_Time(N_Act_Spool_Change) = Sys.Time;																// 타이머 설정.
+			P_ARC_Home_Check_RTN = 0;																					// 함수 반환값 초기화.
+			call ARC_Motion_State_Function.ARC_Home_Check(&P_ARC_Home_Check_RTN)										// ARC 홈 상태 확인 함수 호출.
+			P_Module_Act_State_Machine_Array(N_Act_Spool_Change) = 1;													// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Spool_Change) == 1 )
+		{
+			if ( Sys.Time < P_Act_Old_Time(N_Act_Spool_Change) + P_Act_Time_Out(N_Act_Spool_Change) )					// 일정 딜레이 시간을 넘기지 않을 경우.
+			{
+				if ( P_ARC_Home_Check_RTN == F_TRUE )
+				{
+					if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )													// 상부 스풀 선택 일 경우.
+					{
+						P_Selected_Spool_Number = N_ARC_Lower_Spool;													// 하부 언와인더로 변경.
+						M_Y_Sepa_Upper_Unwinder_Status = 0;																// 상부 언와인더 선택 OFF.	[ 참조 : 25.10.17 언와인더 Number 설정 조건 추가 ]
+						M_Y_Sepa_Lower_Unwinder_Status = 1;																// 하부 언와인더 선택 ON.		[ 참조 : 25.10.17 언와인더 Number 설정 조건 추가 ]
+						P_Module_Act_State_Machine_Array(N_Act_Spool_Change) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+					else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )											// 하부 스풀 선택 일 경우.
+					{
+						P_Selected_Spool_Number = N_ARC_Upper_Spool;													// 상부 언와인더로 변경.
+						M_Y_Sepa_Upper_Unwinder_Status = 0;																// 상부 언와인더 선택 ON.		[ 참조 : 25.10.17 언와인더 Number 설정 조건 추가 ]
+						M_Y_Sepa_Lower_Unwinder_Status = 1;																// 하부 언와인더 선택 OFF.	[ 참조 : 25.10.17 언와인더 Number 설정 조건 추가 ]
+						P_Module_Act_State_Machine_Array(N_Act_Spool_Change) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Spool_Change) = N_Error_Step;									// 애러 스텟 머신으로 이동.			
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Spool_Change) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			// ARC 홈 상태 애러 알람.
+			Spool_Change_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Spool_Change) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Spool_Change) = 1;																	// 동작 완료 Bit On.
+			Spool_Change_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return	
+
+	// 이전 스풀 잔량 감기.
+	sub:Previous_Spool_Remain_Winding(&Previous_Spool_Remain_Winding_RTN)
+		// 0.0) 반환값 초기화.
+		Previous_Spool_Remain_Winding_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Previous_Spool_Remain_Winding) == N_Ready_Step )					// 진행 준비 완료 일 경우.
+		{
+			Local L_Not_Selected_Spool_Number;
+			if ( P_Selected_Spool_Number == N_ARC_Upper_Spool )															// 상부 스풀 선택 일 경우.
+			{
+				L_Not_Selected_Spool_Number = N_ARC_Lower_Spool;
+				P_Not_Selected_Spool_Radius = P_Sensor_To_Unwinder_Core_Disatance_mm - P_Sensor_To_Sepa_Curr_Distance_mm(N_ARC_Lower_Spool);
+				P_Not_Selected_Spool_Circumference = 2 * P_PI * P_Not_Selected_Spool_Radius;
+				P_Spool_Rotate_Distance = ((P_After_ARC_Rotate_Distance * 360)/P_Not_Selected_Spool_Circumference) * 1000
+				P_Module_Act_State_Machine_Array(N_Act_Previous_Spool_Remain_Winding) = 1;								// 다음 스텟 머신으로 이동.
+			}
+			else if ( P_Selected_Spool_Number == N_ARC_Lower_Spool )													// 하부 스풀 선택 일 경우.
+			{
+				L_Not_Selected_Spool_Number = N_ARC_Upper_Spool;
+				P_Not_Selected_Spool_Radius = P_Sensor_To_Unwinder_Core_Disatance_mm - P_Sensor_To_Sepa_Curr_Distance_mm(N_ARC_Upper_Spool);
+				P_Not_Selected_Spool_Circumference = 2 * P_PI * P_Not_Selected_Spool_Radius;
+				P_Spool_Rotate_Distance = ((P_After_ARC_Rotate_Distance * 360)/P_Not_Selected_Spool_Circumference) * 1000
+				P_Module_Act_State_Machine_Array(N_Act_Previous_Spool_Remain_Winding) = 1;								// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 1) 동작 설정. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Previous_Spool_Remain_Winding) == 1 )
+		{
+			Ldata.motor = L_Not_Selected_Spool_Number																	// 모터 설정.
+			P_ARC_Buffer_Jog_Speed = Motor[L_Not_Selected_Spool_Number].JogSpeed;										// 모터 속도 저장.
+			Motor[L_Not_Selected_Spool_Number].JogSpeed = 90;															// 모터 속도 업데이트.
+			Motor[L_Not_Selected_Spool_Number].ProgJogPos = P_Spool_Rotate_Distance;									// 잔량 감기 거리 업데이트.
+			if( Ldata.motor == L_Not_Selected_Spool_Number )															// 모터 설정 완료 될 경우.
+			{
+				P_Act_Old_Time(N_Act_Previous_Spool_Remain_Winding) = Sys.Time;											// 타이머 설정.
+				P_Module_Act_State_Machine_Array(N_Act_Previous_Spool_Remain_Winding) = 2;								// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 2) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Previous_Spool_Remain_Winding) == 2 )
+		{
+			if( Sys.Time > P_Act_Old_Time(N_Act_Previous_Spool_Remain_Winding) + 0.2 )									// 일정 딜레이가 지났을 경우.
+			{
+				Jog:*																									// 조그 이동.
+				P_Act_Old_Time(N_Act_Previous_Spool_Remain_Winding) = Sys.Time;											// 타이머 설정.
+				P_Module_Act_State_Machine_Array(N_Act_Previous_Spool_Remain_Winding) = 3;								// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 3) 동작 완료 감시.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Previous_Spool_Remain_Winding) == 3 )
+		{
+			if ( Sys.Time > P_Act_Old_Time(N_Act_Previous_Spool_Remain_Winding) + P_Act_Delay_Time(N_Act_Previous_Spool_Remain_Winding) )	// 일정 딜레이가 지났을 경우. [무조건 딜레이를 줘야함 : 그렇지 않을 경우 DesVelZero를 뚥고 스텟머신 통과]
+			{
+				if ( Motor[L_Not_Selected_Spool_Number].DesVelZero == 1 )												// 모터가 멈출 경우.
+				{
+					Motor[L_Not_Selected_Spool_Number].JogSpeed = P_ARC_Buffer_Jog_Speed;								// 모터 스피드 업데이트.
+					P_Module_Act_State_Machine_Array(N_Act_Previous_Spool_Remain_Winding) = N_Complete_Step;			// 완료 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Previous_Spool_Remain_Winding) == N_Error_Step )					// 애러 상태 일 경우.
+		{
+			Previous_Spool_Remain_Winding_RTN = N_FALSE;																// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Previous_Spool_Remain_Winding) == N_Complete_Step )					// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Previous_Spool_Remain_Winding) = 1;												// 동작 완료 Bit On.
+			Previous_Spool_Remain_Winding_RTN = N_COMPLETE;																// 반환값 : COMPLETE
+		}
+	return	
+
+	// [ARC 진행 후 사후 작업]
+	sub:ARC_Post_Act(&ARC_Post_Act_RTN)
+		// 0.0) 반환값 초기화.
+		ARC_Post_Act_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_ARC_Post_Act) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			// 2025.06.01 추가
+			P_System_Cascading_ON_Cmd = F_Command_Start;																// 케스케이딩
+			P_System_Master_Following_ON_Cmd = F_Command_Start;															// 마스터 팔로잉 
+			//P_Command_Set_Cascade(1) = F_Command_Ready																// 케스케이드 모드 실행.
+			P_Module_Act_State_Machine_Array(N_Act_ARC_Post_Act) = 1;													// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_ARC_Post_Act) == 1 )							
+		{	
+			 if ( P_System_Cascading_ON_Complete_Flag & P_System_Master_Following_ON_Complete_Flag )					// 케스케이드 완료했을 경우.
+			{
+				P_System_Cascading_ON_Complete_Flag = 0;
+				P_System_Master_Following_ON_Complete_Flag = 0;
+				P_Module_Act_State_Machine_Array(N_Act_ARC_Post_Act) = N_Complete_Step;									// 완료 스텟 머신으로 이동.
+			}
+
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_ARC_Post_Act) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			ARC_Post_Act_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_ARC_Post_Act) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_ARC_Post_Act) = 1;																	// 동작 완료 Bit On.
+			P_Suspend_ARC_Complete_Flag = 1;																			// 완료 플래그 on
+			ARC_Post_Act_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+
+	return
+
+	// [ 2025.06.20 추가 ] - 마스터 좌표계 퍼즈
+	sub:Master_Coord_Pause(&Master_Coord_Pause_Act_RTN)
+		// 0.0) 반환값 초기화.
+		Master_Coord_Pause_Act_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Discharge_Master_Coord_Pause) == N_Ready_Step )						// 진행 준비 완료 일 경우.
+		{					
+			//pause 1;																									// 마스터 좌표계 퍼즈
+			P_Suspend_Discharge_Pause_Flag = 1
+			P_Module_Act_State_Machine_Array(N_Act_Discharge_Master_Coord_Pause) = 1;									// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Discharge_Master_Coord_Pause) == 1 )							
+		{	
+			// if ( coord[1].ProgRunning == 0 )																			// 좌표계 정지 됐을때
+			//{	
+				P_Module_Act_State_Machine_Array(N_Act_Discharge_Master_Coord_Pause) = N_Complete_Step;					// 완료 스텟 머신으로 이동.
+			//}
+
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Discharge_Master_Coord_Pause) == N_Error_Step )						// 애러 상태 일 경우.
+		{
+			Master_Coord_Pause_Act_RTN = N_FALSE;																		// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Discharge_Master_Coord_Pause) == N_Complete_Step )					// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Discharge_Master_Coord_Pause) = 1;													// 동작 완료 Bit On.
+			Master_Coord_Pause_Act_RTN = N_COMPLETE;																	// 반환값 : COMPLETE
+		}
+
+	return;
+
+	// [ 2025.06.20 추가 ] - 마스터 좌표계 리줌
+	sub:Master_Coord_Resume(&Master_Coord_Resume_Act_RTN)
+		// 0.0) 반환값 초기화.
+		Master_Coord_Resume_Act_RTN = 0;
+		// 222) 동작 실행.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Discharge_Master_Coord_Resume) == N_Ready_Step )					// 진행 준비 완료 일 경우.
+		{					
+			//P_Suspend_Discharge_Resume_Flag = 1;																		// 리줌 플래그 
+			P_Module_Act_State_Machine_Array(N_Act_Discharge_Master_Coord_Resume) = 1;									// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Discharge_Master_Coord_Resume) == 1 )							
+		{	
+			 if ( Coord[1].ProgRunning == 1 )															// 좌표계 정지 됐을때
+			{	
+				P_Suspend_Discharge_Resume_Complete = 0;																// 변수 초기화
+				P_Module_Act_State_Machine_Array(N_Act_Discharge_Master_Coord_Resume) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+			}
+
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Discharge_Master_Coord_Resume) == N_Error_Step )					// 애러 상태 일 경우.
+		{
+			Master_Coord_Resume_Act_RTN = N_FALSE;																		// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Discharge_Master_Coord_Resume) == N_Complete_Step )					// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Discharge_Master_Coord_Resume) = 1;													// 동작 완료 Bit On.
+			Master_Coord_Resume_Act_RTN = N_COMPLETE;																	// 반환값 : COMPLETE
+		}
+
+	return;
+
+	/*------------- Supply_Fine -------------// - // [ 참조 : 2025.10.28 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]
+	- Supply_Memory_tower 				[모션]		[위치 확인]
+	- Supply_Motion_to_Belt				[모션]		[벨트 진입 및 퍼즈]	
+	- Supply_Motion_to_PickUp			[모션]		[음극 극판 확인 및 픽업]
+	- Supply_Motion_to_Ready			[모션]		[대기위치 진입 및 리줌]
+	//------------------------------------*/
+	sub:Supply_Memory_tower(&Anode_1st_Supply_Mem_Pos_RTN)
+		Anode_1st_Supply_Mem_Pos_RTN = 0;
+		local L_individual_return = 0;
+
+		if ( P_Module_Act_State_Machine_Array(N_Act_1st_Anode_Mem_Pos) == N_Ready_Step )					// 진행 준비 완료 일 경우.
+		{					
+			L_individual_return = 0;																		// 결과 변수 초기화
+			call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP,&P_Anode_1st_Unit_Status,&L_individual_return);
+			P_Act_Old_Time(N_Act_1st_Anode_Mem_Pos) = Sys.Time;	
+			P_Module_Act_State_Machine_Array(N_Act_1st_Anode_Mem_Pos) = 1;									// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_1st_Anode_Mem_Pos) == 1 )							
+		{	
+			if ( P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )											// 1차 PNP 대기 상승위치 확인 후
+			{
+				P_Anode_Suspend_Supply_Complete(0),N_Suspend_Supply_Seq = 0;								// 모션 완료 신호 초기화
+				P_Module_Act_State_Machine_Array(N_Act_1st_Anode_Mem_Pos) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+			}
+			else if( Sys.Time >= P_Act_Old_Time(N_Act_1st_Anode_Mem_Pos) + P_Act_Delay_Time(N_Act_1st_Anode_Mem_Pos))	// 1초 이상 확인이 안된다면
+				P_Module_Act_State_Machine_Array(N_Act_1st_Anode_Mem_Pos) = N_Error_Step;					// 에러 스텝이동
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_1st_Anode_Mem_Pos) == N_Error_Step )					// 애러 상태 일 경우.
+		{
+			Anode_1st_Supply_Mem_Pos_RTN = N_FALSE;															// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_1st_Anode_Mem_Pos) == N_Complete_Step )					// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_1st_Anode_Mem_Pos) = 1;												// 동작 완료 Bit On.
+			Anode_1st_Supply_Mem_Pos_RTN = N_COMPLETE;														// 반환값 : COMPLETE
+		}
+	return;
+
+	sub:Supply_Motion_to_Belt(&Anode_1st_Supply_Belt_Pos_RTN)
+		Anode_1st_Supply_Belt_Pos_RTN = 0;
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_Belt) == N_Ready_Step )					// 진행 준비 완료 일 경우.
+		{					
+			if(P_Master_Motion_Trigger == N_Suspend_Supply_Trg )										// 벨트 진입 트리거 67
+			{
+				P_Slave1_Motion_Command = N_1st_PNP_Ready_To_Belt_Motion;								// 벨트 진입 커맨드
+				P_Suspend_Supply_Pause_Flag = 1;														// 퍼즈 커맨드
+				P_Act_Old_Time(N_Act_Motion_to_Belt) = Sys.Time;										// 시간 저장
+				P_Module_Act_State_Machine_Array(N_Act_Motion_to_Belt) = 1;								// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_Belt) == 1 )							
+		{	
+			if( P_Anode_Suspend_Supply_Complete(N_Supply_to_Belt) == 1 )								// 벨트 진입 완료 신호
+			{ 
+				P_Module_Act_State_Machine_Array(N_Act_Motion_to_Belt) = 2;								// 다음 스텟머신으로 이동
+			}
+			else if( Sys.Time >= P_Act_Old_Time(N_Act_Motion_to_Belt) + P_Act_Delay_Time(N_Act_Motion_to_Belt))	// 0.3초 지났다면
+			{
+				P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion;									// 대기위치 이동 커맨드
+				P_Module_Act_State_Machine_Array(N_Act_Motion_to_Belt) = N_Error_Step;					// 에러 스텝
+			}
+		}
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_Belt) == 2 )								// 2번째 스텟 머신
+		{
+			if( Coord[1].ProgRunning == 0 )																// 퍼즈 완료 확인 
+			{
+				P_Module_Act_State_Machine_Array(N_Act_Motion_to_Belt) = N_Complete_Step;				// 컴플리트 반환
+			}
+			else if( P_Master_Motion_Trigger > 0 && P_Master_Motion_Trigger <= N_Max_Wait_Trg )			// 퍼즈가 안되어 마스터가 돈다면
+			{
+				P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion;									// 대기위치 이동 커맨드
+				P_Module_Act_State_Machine_Array(N_Act_Motion_to_Belt) = N_Error_Step;					// 에러 스텝
+			}	
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_Belt) == N_Error_Step )					// 애러 상태 일 경우.
+		{
+			Anode_1st_Supply_Belt_Pos_RTN = N_FALSE;													// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_Belt) == N_Complete_Step )				// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Motion_to_Belt) = 1;												// 동작 완료 Bit On.
+			Anode_1st_Supply_Belt_Pos_RTN = N_COMPLETE;													// 반환값 : COMPLETE
+		}
+	return;
+
+	sub:Supply_Motion_to_PickUp(&Anode_1st_Supply_PickUp_RTN)
+		Anode_1st_Supply_PickUp_RTN = 0;
+		local L_Suspend_Supply_PickUp_Arr(4)
+		L_Suspend_Supply_PickUp_Arr(0) = N_1st_PNP_Belt_Down_Motion;									// Motion Data Input
+		L_Suspend_Supply_PickUp_Arr(1) = N_1st_PNP_Belt_Vac;											// Motion Data Input
+		L_Suspend_Supply_PickUp_Arr(2) = N_1st_PNP_Belt_Up_Motion;										// Motion Data Input
+		L_Suspend_Supply_PickUp_Arr(3) = N_Supply_Verify;												// Motion Data Input
+
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp) == N_Ready_Step )					// 진행 준비 완료 일 경우.
+		{
+			if( M_X_PLC_Anode_Sheet_Ready == N_TRUE )													// 극판레디 신호 확인
+			{
+				P_Suspend_Supply_Index = 0;																// 인덱스 초기화
+				P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp) = 1;							// 다음 스텟 머신으로 이동.
+			}
+			else	// → 극판 레디신호가 없다면, 처리를 어떻게 할지 생각 필요함
+			{		// 일단 대기위치로 복귀시키자
+				P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion;									// 대기위치 이동 커맨드
+				P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp) = N_Error_Step;				// 에러 스텝
+			}					
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp) == 1 )							
+		{	
+			switch( L_Suspend_Supply_PickUp_Arr(P_Suspend_Supply_Index) )
+			{
+				case N_1st_PNP_Belt_Down_Motion:
+					P_Slave1_Motion_Command = N_1st_PNP_Belt_Down_Motion;								// 하강 커맨드
+					P_Act_Old_Time(N_Act_Motion_to_PickUp) = Sys.Time;									// 시간 저장
+					P_Suspend_Supply_Index++;															// 인덱스 업
+				break;
+
+				case N_1st_PNP_Belt_Vac:
+					if( P_Anode_Suspend_Supply_Complete(N_Supply_to_Down) == N_TRUE )					// 하강 완료 신호
+					{
+						P_Slave1_Motion_Command = N_1st_PNP_Belt_Vac;									// 흡착 커맨드
+						P_Act_Old_Time(N_Act_Motion_to_PickUp) = Sys.Time;								// 시간 저장
+						P_Suspend_Supply_Index++;														// 인덱스 업
+					}
+					else if( Sys.Time > P_Act_Old_Time(N_Act_Motion_to_PickUp) + P_Act_Delay_Time(N_Act_Motion_to_PickUp) )		// 0.1초동안 발생 안하면
+					{
+						P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion;							// 대기위치 이동 커맨드
+						P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp) = N_Error_Step;		// 에러 스텝
+					}
+				break;
+
+				case N_1st_PNP_Belt_Up_Motion:
+					if( P_Anode_Suspend_Supply_Complete(N_Supply_to_Vac) == N_TRUE )					// 흡착 완료 신호
+					{
+						P_Slave1_Motion_Command = N_1st_PNP_Belt_Up_Motion;								// 상승 커맨드
+						P_Act_Old_Time(N_Act_Motion_to_PickUp) = Sys.Time;								// 시간 저장
+						P_Suspend_Supply_Index++;														// 인덱스 업
+					}
+					else if( Sys.Time > P_Act_Old_Time(N_Act_Motion_to_PickUp) + P_Act_Delay_Time(N_Act_Motion_to_PickUp) )		// 0.1초동안 발생 안하면
+					{
+						P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion;							// 대기위치 이동 커맨드
+						P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp) = N_Error_Step;		// 에러 스텝
+					}
+				break;
+
+				case N_Supply_Verify:
+					if( P_Anode_Suspend_Supply_Complete(N_Supply_to_Up) == N_TRUE )						// 상승 완료 신호
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp) = N_Complete_Step;		// 컴플리트 반환
+					}
+					else if( Sys.Time > P_Act_Old_Time(N_Act_Motion_to_PickUp) + P_Act_Delay_Time(N_Act_Motion_to_PickUp) )		// 0.1초동안 발생 안하면
+					{
+						P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion;							// 대기위치 이동 커맨드
+						P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp) = N_Error_Step;		// 에러 스텝
+					}
+				break;
+
+				default:
+					P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion;									// 대기위치 이동 커맨드
+					P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp) = N_Error_Step;					// 에러 스텝
+				break;
+			}
+
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp) == N_Error_Step )					// 애러 상태 일 경우.
+		{
+			Anode_1st_Supply_PickUp_RTN = N_FALSE;														// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp) == N_Complete_Step )				// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Motion_to_PickUp) = 1;												// 동작 완료 Bit On.
+			Anode_1st_Supply_PickUp_RTN = N_COMPLETE;													// 반환값 : COMPLETE
+		}
+	return;
+
+	sub:Supply_Motion_to_PickUp2(&Anode_2nd_Supply_PickUp_RTN)
+		Anode_2nd_Supply_PickUp_RTN = 0;
+		local L_Suspend_Supply_PickUp_Arr(4)
+		L_Suspend_Supply_PickUp_Arr(0) = N_2nd_PNP_Align_Down_Motion;									// Motion Data Input
+		L_Suspend_Supply_PickUp_Arr(1) = N_2nd_PNP_Align_Vac;											// Motion Data Input
+		L_Suspend_Supply_PickUp_Arr(2) = N_2nd_PNP_Align_Up_Motion;										// Motion Data Input
+		L_Suspend_Supply_PickUp_Arr(3) = N_Supply_Verify;												// Motion Data Input
+
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp_2nd) == N_Ready_Step )				// 진행 준비 완료 일 경우.
+		{
+			P_Suspend_Supply_Index_2nd = 0;																// 인덱스 초기화
+			P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp_2nd) = 1;							// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp_2nd) == 1 )							
+		{	
+			switch( L_Suspend_Supply_PickUp_Arr(P_Suspend_Supply_Index_2nd) )
+			{
+				case N_2nd_PNP_Align_Down_Motion:
+					P_Slave3_Motion_Command = N_2nd_PNP_Align_Down_Motion;									// 하강 커맨드
+					P_Act_Old_Time(N_Act_Motion_to_PickUp_2nd) = Sys.Time;									// 시간 저장
+					P_Suspend_Supply_Index_2nd++;															// 인덱스 업
+				break;
+
+				case N_2nd_PNP_Align_Vac:
+					if( P_Anode_Suspend_Supply_Complete(N_2nd_Supply_to_Down) == N_TRUE )					// 하강 완료 신호
+					{
+						P_Slave3_Motion_Command = N_2nd_PNP_Align_Vac;										// 흡착 커맨드
+						P_Act_Old_Time(N_Act_Motion_to_PickUp_2nd) = Sys.Time;								// 시간 저장
+						P_Suspend_Supply_Index_2nd++;														// 인덱스 업
+					}
+					else if( Sys.Time > P_Act_Old_Time(N_Act_Motion_to_PickUp_2nd) + P_Act_Delay_Time(N_Act_Motion_to_PickUp_2nd) )		// 0.1초동안 발생 안하면
+					{
+						P_Slave3_Motion_Command = N_2nd_PNP_Align_Up_Motion;								// 얼라인 상승으로 보내야함
+						P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp_2nd) = N_Error_Step;		// 에러 스텝
+					}
+				break;
+
+				case N_2nd_PNP_Align_Up_Motion:
+					if( P_Anode_Suspend_Supply_Complete(N_2nd_Supply_to_Vac) == N_TRUE )					// 흡착 완료 신호
+					{
+						P_Slave3_Motion_Command = N_2nd_PNP_Align_Up_Motion;								// 상승 커맨드
+						P_Act_Old_Time(N_Act_Motion_to_PickUp_2nd) = Sys.Time;								// 시간 저장
+						P_Suspend_Supply_Index_2nd++;														// 인덱스 업
+					}
+					else if( Sys.Time > P_Act_Old_Time(N_Act_Motion_to_PickUp_2nd) + P_Act_Delay_Time(N_Act_Motion_to_PickUp_2nd) )		// 0.1초동안 발생 안하면
+					{
+						P_Slave3_Motion_Command = N_2nd_PNP_Align_Up_Motion;								// 얼라인 상승으로 보내야함
+						P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp_2nd) = N_Error_Step;		// 에러 스텝
+					}
+				break;
+
+				case N_Supply_Verify:
+					if( P_Anode_Suspend_Supply_Complete(N_2nd_Supply_to_Up) == N_TRUE )						// 상승 완료 신호
+					{
+						P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp_2nd) = N_Complete_Step;		// 컴플리트 반환
+					}
+					else if( Sys.Time > P_Act_Old_Time(N_Act_Motion_to_PickUp_2nd) + P_Act_Delay_Time(N_Act_Motion_to_PickUp_2nd) )		// 0.1초동안 발생 안하면
+					{
+						P_Slave3_Motion_Command = N_2nd_PNP_Align_Up_Motion;								// 얼라인 상승으로 보내야함
+						P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp_2nd) = N_Error_Step;		// 에러 스텝
+					}
+				break;
+
+				default:
+					P_Slave3_Motion_Command = N_2nd_PNP_Align_Up_Motion;								// 얼라인 상승으로 보내야함
+					P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp_2nd) = N_Error_Step;			// 에러 스텝
+				break;
+			}
+
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp_2nd) == N_Error_Step )					// 애러 상태 일 경우.
+		{
+			Anode_2nd_Supply_PickUp_RTN = N_FALSE;															// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_PickUp_2nd) == N_Complete_Step )				// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Motion_to_PickUp_2nd) = 1;												// 동작 완료 Bit On.
+			Anode_2nd_Supply_PickUp_RTN = N_COMPLETE;														// 반환값 : COMPLETE
+		}
+	return;
+
+	sub:Supply_Motion_to_Ready(&Anode_1st_Supply_Ready_Pos_RTN)
+		Anode_1st_Supply_Ready_Pos_RTN = 0;
+
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_Ready) == N_Ready_Step )					// 진행 준비 완료 일 경우.
+		{					
+			P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion;										// 대기위치 진입 커맨드
+			P_Act_Old_Time(N_Act_Motion_to_Ready) = Sys.Time;											// 시간 저장
+			P_Module_Act_State_Machine_Array(N_Act_Motion_to_Ready) = 1;								// 다음 스텟 머신으로 이동.
+		}
+		// 1) 동작 완료 감시. 	
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_Ready) == 1 )							
+		{	
+			if( P_Anode_Suspend_Supply_Complete(N_Supply_to_Ready) == 1 )								// 대기위치 진입 완료 신호
+			{ 
+				P_Suspend_Supply_Resume_Flag = 1;														// 리줌 커맨드
+				P_Module_Act_State_Machine_Array(N_Act_Motion_to_Ready) = N_Complete_Step;				// 다음 스텟머신으로 이동
+			}
+			else if( Sys.Time >= P_Act_Old_Time(N_Act_Motion_to_Ready) + P_Act_Delay_Time(N_Act_Motion_to_Ready))	// 0.2초 지났다면
+			{
+				P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion;									// 대기위치 이동 커맨드
+				P_Module_Act_State_Machine_Array(N_Act_Motion_to_Ready) = N_Error_Step;					// 에러 스텝
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_Ready) == N_Error_Step )					// 애러 상태 일 경우.
+		{
+			Anode_1st_Supply_Ready_Pos_RTN = N_FALSE;													// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_State_Machine_Array(N_Act_Motion_to_Ready) == N_Complete_Step )				// 완료 상태 일 경우.
+		{
+			P_Act_Complete_Bit(N_Act_Motion_to_Ready) = 1;												// 동작 완료 Bit On.
+			Anode_1st_Supply_Ready_Pos_RTN = N_COMPLETE;												// 반환값 : COMPLETE
+		}
+	return;
+
+
+close

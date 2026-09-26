@@ -1,0 +1,772 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.09.01 - 이상준 선임
+// 레시피변수수정 - [ 참조 : 25.09.01 유닛별 위치값 레시피 변수 수정 ]
+
+
+
+//==========================================================================================================
+
+/* 
+ !모션 이동량 변수 사용법!
+ 타겟 포지션 = 시작위치 + 이동량 + 티칭오프셋
+
+*/  
+global P_Slave5_Target_Z_Wait_Pos  = 0;
+global P_Slave5_Target_Z_Start_Pos = 0;
+global	P_Sepa_First_Clamp_On_Up = 12;
+global	P_Slave6_Target_X_Wait_Pos = 0;
+	
+//==========================================================================================================
+// 01. 타겟 포지션 변수 선언
+//==========================================================================================================
+ //-------------------------------------------------------------------
+ // Slave 1 - Anode TR 1
+ //-------------------------------------------------------------------
+ 	// #2 음극 1차 PNP T축	
+	//-- T축 ----------------------------------
+	global  P_Anode_1st_T_Belt_To_Align = 0;			// Slave1 음극 1차 PNP 벨트 -> 얼라인 이동
+	global 	P_Anode_1st_T_Align_To_Belt = 0;			// Slave1 음극 1차 PNP 얼라인 -> 벨트 이동
+	global 	P_Anode_1st_T_Ready = 0;					// Slave1 음극 1차 PNP 대기위치 이동 
+	
+	//-- Z축 -----------------------------------
+ 	global	P_Recipe_A_1st_Z_Belt_Down					// Slave1 Z축 Belt 하강 타겟 포지션
+ 	global	P_Recipe_A_1st_Z_Belt_Up					// Slave1 Z축 Belt 상승 타겟 포지션
+ 	global	P_Recipe_A_1st_Z_Align_Down					// Slave1 Z축 A/S 하강 타겟 포지션
+ 	global	P_Recipe_A_1st_Z_Align_Up					// Slave1 Z축 A/S 상승 타겟 포지션
+ 	global	P_Recipe_A_1st_Z_Ready_Up         			// Slave1 Z축 대기위치 상승 타겟 포지션
+ 	global	P_Recipe_A_1st_Z_Ready_Down       			// Slave1 Z축 대기위치 하강 타겟 포지션
+		 
+ 	//-- Z축 Crank 각도변환 결과값-----------------------------------
+ 	global	P_Anode_1st_Z_Belt_Down  = 0;   			// Slave1 Z축 Belt 하강 타겟 포지션
+ 	global	P_Anode_1st_Z_Belt_Up    = 0;   			// Slave1 Z축 Belt 상승 타겟 포지션
+ 	global	P_Anode_1st_Z_Align_Down = 0;   			// Slave1 Z축 A/S 하강 타겟 포지션
+ 	global	P_Anode_1st_Z_Align_Up   = 0;   			// Slave1 Z축 A/S 상승 타겟 포지션
+ 	global	P_Anode_1st_Z_Ready_Up   = 0;   			// Slave1 Z축 대기위치 상승 타겟 포지션	  
+ 	global	P_Anode_1st_Z_Ready_Down = 0;   			// Slave1 Z축 대기위치 하강 타겟 포지션	
+
+ //-------------------------------------------------------------------
+ // Slave 3 - Anode TR 2
+ //-------------------------------------------------------------------
+	//-- T축 ----------------------------------
+	global	P_Anode_2st_T_Align_To_Stack = 0;			// Slave3 T축 A/S->S/T 1번째 타겟포지션
+	global	P_Anode_2st_T_Stack_To_Align = 0;			// Slave3 T축 S/T->A/S 1번째 타겟 포지션
+
+	//-- Z축 -----------------------------------
+
+	global	P_Recipe_A_2st_Z_Align_Up					// Slave3 Z축 A/S 상승 타겟 포지션
+	global	P_Recipe_A_2st_Z_Align_Down					// Slave3 Z축 A/S 하강 타겟 포지션
+	global	P_Recipe_A_2st_Z_Stack_Up					// Slave3 Z축 S/T 상승 타겟 포지션
+	global	P_Recipe_A_2st_Z_Stack_Down					// Slave3 Z축 S/T 하강 타겟 포지션
+	global	P_Recipe_A_2st_Z_Ready_Up = 0;				// Slave3 Z축 대기 상승 타겟 포지션
+	global	P_Recipe_A_2st_Z_Ready_Down  = 0;			// Slave3 Z축 대기 하강 타켓 포지션
+
+	//-- Z축 Crank 각도변환 결과값-----------------------------------
+	global	P_Anode_2st_Z_Align_Up	  = 0;				// Slave3 Z축 A/S 상승 타겟 포지션
+	global	P_Anode_2st_Z_Align_Down  = 0;				// Slave3 Z축 A/S 하강 타겟 포지션
+	global	P_Anode_2st_Z_Stack_Up	  = 0;				// Slave3 Z축 S/T 상승 타겟 포지션
+	global	P_Anode_2st_Z_Stack_Down  = 0;				// Slave3 Z축 S/T 하강 타겟 포지션
+	global	P_Anode_2st_Z_Ready_Up = 0;					// Slave3 Z축 대기 상승 타겟 포지션 
+	global	P_Anode_2st_Z_Ready_Down  = 0;				// Slave3 Z축 대기 하강 타겟 포지션 
+
+ //-------------------------------------------------------------------
+ // Slave 4 - Anode Clamp
+ //-------------------------------------------------------------------	
+ 	//-- Y1축 ----------------------------------
+	global	P_Anode_Clamp_Y1_On_1st	=0;					// Slave4 Y1축 클램프 온 1번째 타겟 포지션	
+	global	P_Anode_Clamp_Y1_On_2nd	=0;					// Slave4 Y1축 클램프 온 2번째 타겟 포지션
+	global	P_Anode_Clamp_Y1_On_3rd	=0;					// Slave4 Y1축 클램프 온 3번째 타겟 포지션
+	global	P_Anode_Clamp_Y1_On_4th	=0;					// Slave4 Y1축 클램프 온 4번째 타겟 포지션
+	global	P_Anode_Clamp_Y1_Off_1st=0;					// Slave4 Y1축 클램프 오프 1번째 타겟 포지션
+	global	P_Anode_Clamp_Y1_Off_2nd=0;					// Slave4 Y1축 클램프 오프 2번째 타겟 포지션
+	global	P_Anode_Clamp_Y1_Off_3rd=0;					// Slave4 Y1축 클램프 오프 3번째 타겟 포지션
+	//-- Y2축 ----------------------------------
+	global	P_Anode_Clamp_Y2_On_1st	=0;					// Slave4 Y1축 클램프 온 1번째 타겟 포지션	
+	global	P_Anode_Clamp_Y2_On_2nd	=0;					// Slave4 Y1축 클램프 온 2번째 타겟 포지션
+	global	P_Anode_Clamp_Y2_On_3rd	=0;					// Slave4 Y1축 클램프 온 3번째 타겟 포지션
+	global	P_Anode_Clamp_Y2_On_4th	=0;					// Slave4 Y1축 클램프 온 4번째 타겟 포지션
+	global	P_Anode_Clamp_Y2_Off_1st=0;					// Slave4 Y1축 클램프 오프 1번째 타겟 포지션
+	global	P_Anode_Clamp_Y2_Off_2nd=0;					// Slave4 Y1축 클램프 오프 2번째 타겟 포지션
+	global	P_Anode_Clamp_Y2_Off_3rd=0;					// Slave4 Y1축 클램프 오프 3번째 타겟 포지션
+
+	//-- Z축 ----------------------------------	
+	global	P_Anode_Clamp_Z1_On_1st	=0;					// Slave4 Z축 클램프온 1번째 타겟 포지션
+	global	P_Anode_Clamp_Z1_On_2nd	=0;					// Slave4 Z축 클램프온 2번째 타겟 포지션
+	global	P_Anode_Clamp_Z1_On_3rd	=0;					// Slave4 Z축 클램프온 3번째 타겟 포지션
+	global	P_Anode_Clamp_Z1_On_4th	=0;					// Slave4 Z축 클램프온 4번째 타겟 포지션
+	global	P_Anode_Clamp_Z1_Off_1st=0;					// Slave4 Z축 클램프오프 1번째 타겟 포지션
+	global	P_Anode_Clamp_Z1_Off_2nd=0;					// Slave4 Z축 클램프오프 2번째 타겟 포지션
+	global	P_Anode_Clamp_Z1_Off_3rd=0;					// Slave4 Z축 클램프오프 3번째 타겟 포지션
+	global	P_Anode_Clamp_Z1_Down	=0;					// Slave4 Z축 클램프하강 타겟 포지션
+
+ //-------------------------------------------------------------------
+ // Slave 5 - Final Roll
+ //-------------------------------------------------------------------	
+ 	//-- X축 ----------------------------------
+	global	P_Final_Roll_X_Sepa_1st	= 0;			// Slave5 X축 세파모션 1번째 타겟 포지션
+	global	P_Final_Roll_X_Sepa_2nd	= 0;			// Slave5 X축 세파모션 2번째 타겟 포지션
+	global	P_Final_Roll_X_Sepa_3rd	= 0;			// Slave5 X축 세파모션 3번째 타겟 포지션
+	global	P_Final_Roll_X_Sepa_4th	= 0;			// Slave5 X축 세파모션 4번째 타겟 포지션
+	global	P_Final_Roll_X_Sepa_5th	= 0;			// Slave5 X축 세파모션 5번째 타겟 포지션
+	global	P_Final_Roll_X_Anode_Move = -168		// Slave5 X축 음극이동 1번째 타겟 포지션 
+	global	P_Final_Roll_X_Discharge	= -197		// Slave5 X축 배출 포지션
+	global	P_Final_Roll_X_Cathode_Move = 168		// Slave5 X축 양극이동 1번째 타겟 포지션
+	global	P_Final_Roll_X_Run_Wait_Pos = 0;		// Slave5 X축 적층 전 대기위치   
+	
+	//-- Z축 ----------------------------------		
+	global	P_Final_Roll_Z_Cutting = 60.5			// Slave5 Z축 커팅위치 타겟 포지션
+	global	P_Final_Roll_Z_Run_Pos = 0;				// Slave5 Z축 적층 포지션
+	global	P_Final_Roll_Z_Sepa_3rd	= 0;			// Slave5 Z축 세파모션 3번째 타겟 포지션
+	global	P_Final_Roll_Z_Sepa_4th	= 0;			// Slave5 Z축 세파모션 4번째 타겟 포지션
+	global	P_Final_Roll_Z_Sepa_5th	= 0;			// Slave5 Z축 세파모션 5번째 타겟 포지션	
+ //-------------------------------------------------------------------
+ // Slave 6 - Stack Table
+ //-------------------------------------------------------------------		
+	
+	// Z축
+	global	P_Stack_Table_Z_For_Sepa			// Slave6 Z축 세파모드 타겟 포지션
+	global	P_Stack_Table_Z_For_Run			    // Slave6 Z축 런모드 타겟 포지션
+	global  P_Stack_Table_Z_For_Init			// slave 6 z축 대기위치 포지션
+	
+	
+ //-------------------------------------------------------------------
+ // Slave 7 - Cathode Clamp
+ //-------------------------------------------------------------------	
+	//-- Y1축 ----------------------------------
+	global	P_Cathode_Clamp_Y1_On_1st=0;					// Slave4 Y1축 클램프 온 1번째 타겟 포지션	
+	global	P_Cathode_Clamp_Y1_On_2nd=0;					// Slave4 Y1축 클램프 온 2번째 타겟 포지션
+	global	P_Cathode_Clamp_Y1_On_3rd=0;					// Slave4 Y1축 클램프 온 3번째 타겟 포지션
+	global	P_Cathode_Clamp_Y1_On_4th=0;					// Slave4 Y1축 클램프 온 4번째 타겟 포지션
+	global	P_Cathode_Clamp_Y1_Off_1st=0;					// Slave4 Y1축 클램프 오프 1번째 타겟 포지션
+	global	P_Cathode_Clamp_Y1_Off_2nd=0;					// Slave4 Y1축 클램프 오프 2번째 타겟 포지션
+	global	P_Cathode_Clamp_Y1_Off_3rd=0;					// Slave4 Y1축 클램프 오프 3번째 타겟 포지션
+	//-- Y2축 ----------------------------------
+	global	P_Cathode_Clamp_Y2_On_1st=0;					// Slave4 Y1축 클램프 온 1번째 타겟 포지션	
+	global	P_Cathode_Clamp_Y2_On_2nd=0;					// Slave4 Y1축 클램프 온 2번째 타겟 포지션
+	global	P_Cathode_Clamp_Y2_On_3rd=0;					// Slave4 Y1축 클램프 온 3번째 타겟 포지션
+	global	P_Cathode_Clamp_Y2_On_4th=0;					// Slave4 Y1축 클램프 온 4번째 타겟 포지션
+	global	P_Cathode_Clamp_Y2_Off_1st=0;					// Slave4 Y1축 클램프 오프 1번째 타겟 포지션
+	global	P_Cathode_Clamp_Y2_Off_2nd=0;					// Slave4 Y1축 클램프 오프 2번째 타겟 포지션
+	global	P_Cathode_Clamp_Y2_Off_3rd=0;					// Slave4 Y1축 클램프 오프 3번째 타겟 포지션
+
+	//-- Z축 ----------------------------------	
+	global	P_Cathode_Clamp_Z1_On_1st=0;					// Slave4 Z축 클램프온 1번째 타겟 포지션
+	global	P_Cathode_Clamp_Z1_On_2nd=0;					// Slave4 Z축 클램프온 2번째 타겟 포지션
+	global	P_Cathode_Clamp_Z1_On_3rd=0;					// Slave4 Z축 클램프온 3번째 타겟 포지션
+	global	P_Cathode_Clamp_Z1_On_4th=0;					// Slave4 Z축 클램프온 4번째 타겟 포지션
+	global	P_Cathode_Clamp_Z1_Off_1st=0;					// Slave4 Z축 클램프오프 1번째 타겟 포지션
+	global	P_Cathode_Clamp_Z1_Off_2nd=0;					// Slave4 Z축 클램프오프 2번째 타겟 포지션
+	global	P_Cathode_Clamp_Z1_Off_3rd=0;					// Slave4 Z축 클램프오프 3번째 타겟 포지션
+	global	P_Cathode_Clamp_Z1_Down	=0;						// Slave4 Z축 클램프하강 타겟 포지션	
+	
+ //-------------------------------------------------------------------
+ // Slave 8 - Cathode TR 2
+ //-------------------------------------------------------------------
+ 	//-- T축 ----------------------------------
+	global	P_Cathode_2st_T_Align_To_Stack = 0;				// Slave3 T축 A/S->S/T 1번째 타겟포지션
+	global	P_Cathode_2st_T_Stack_To_Align = 0;				// Slave3 T축 S/T->A/S 1번째 타겟 포지션
+
+	//-- X축 ----------------------------------
+	global	P_Slave8_Target_X_Align_To_Stack_1st	// Slave8 X축 A/S->S/T 1번째 타겟포지션
+	global	P_Slave8_Target_X_Align_To_Stack_2nd	// Slave8 X축 A/S->S/T 2번째 타겟포지션
+	global	P_Slave8_Target_X_Stack_To_Align_1st	// Slave8 X축 S/T->A/S 1번째 타겟 포지션
+	global	P_Slave8_Target_X_Stack_To_Align_2nd	// Slave8 X축 S/T->A/S 2번째 타겟 포지션
+	global	P_Slave8_Target_X_Stack_To_Align_3rd	// Slave8 X축 S/T->A/S 3번째 타겟 포지션
+	//-- Z축 Crank 각도변환 결과값-----------------------------------
+	global	P_Cathode_2st_Z_Align_Up = 0;				// Slave3 Z축 A/S 상승 타겟 포지션
+	global	P_Cathode_2st_Z_Align_Down  = 0;			// Slave3 Z축 A/S 하강 타겟 포지션
+	global	P_Cathode_2st_Z_Stack_Up = 0;				// Slave3 Z축 S/T 상승 타겟 포지션
+	global	P_Cathode_2st_Z_Stack_Down  = 0;			// Slave3 Z축 S/T 하강 타겟 포지션
+	global	P_Cathode_2st_Z_Ready_Up = 0;				// Slave3 Z축 대기 상승 타겟 포지션 
+	global  P_Cathode_2st_Z_Ready_Down = 0;				// Slave3 Z축 대기 하강 타겟 포지션
+	//-- Z축 -----------------------------------
+	global	P_Recipe_C_2st_Z_Align_Up = 0;				// Slave3 Z축 A/S 상승 타겟 포지션
+	global	P_Recipe_C_2st_Z_Align_Down = 0;			// Slave3 Z축 A/S 하강 타겟 포지션
+	global	P_Recipe_C_2st_Z_Stack_Up	= 0;			// Slave3 Z축 S/T 상승 타겟 포지션
+	global	P_Recipe_C_2st_Z_Stack_Down = 0;			// Slave3 Z축 S/T 하강 타겟 포지션
+	global	P_Recipe_C_2st_Z_Ready_Up    = 0;			// Slave3 Z축 대기 상승 타겟 포지션
+	global	P_Recipe_C_2st_Z_Ready_Down  = 0;			// Slave3 Z축 대기 하강 타겟 포지션
+		
+ //-------------------------------------------------------------------
+ // Slave 10 - Cathode TR 1
+ //-------------------------------------------------------------------
+ 	//-- T축 ----------------------------------
+ 	global	P_Cathode_1st_T_Belt_To_Align = 0;			// Slave10 T축 벨트 -> 얼라인 이동 타겟 포지션
+ 	global	P_Cathode_1st_T_Align_To_Belt = 0;			// Slave10 T축 얼라인 -> 벨트 이동 타겟 포지션
+ 	global	P_Cathode_1st_T_Ready = 0;   				// Slave10 T축 대기위치 이동 
+
+	//-- Z축 Crank 각도변환 결과값 ----------------------------------
+ 	global	P_Cathode_1st_Z_Belt_Down  = 0;   			// Slave10 Z축 Belt 하강 타겟 포지션
+ 	global	P_Cathode_1st_Z_Belt_Up    = 0;   			// Slave10 Z축 Belt 상승 타겟 포지션
+ 	global	P_Cathode_1st_Z_Align_Down = 0;   			// Slave10 Z축 A/S 하강 타겟 포지션
+ 	global	P_Cathode_1st_Z_Align_Up   = 0;   			// Slave10 Z축 A/S 상승 타겟 포지션
+ 	global	P_Cathode_1st_Z_Ready_Up   = 0;      		// Slave10 Z축 대기위치 상승 타겟 포지션
+ 	global	P_Cathode_1st_Z_Ready_Down = 0;      		// Slave10 Z축 대기위치 하강 타겟 포지션
+
+	//-- Z축  ----------------------------------
+ 	global	P_Recipe_C_1st_Z_Belt_Down  = 0;   			// Slave10 Z축 Belt 하강 타겟 포지션
+ 	global	P_Recipe_C_1st_Z_Belt_Up    = 0;   			// Slave10 Z축 Belt 상승 타겟 포지션
+ 	global	P_Recipe_C_1st_Z_Align_Down = 0;   			// Slave10 Z축 A/S 하강 타겟 포지션
+ 	global	P_Recipe_C_1st_Z_Align_Up   = 0;   			// Slave10 Z축 A/S 상승 타겟 포지션
+ 	global	P_Recipe_C_1st_Z_Ready_Up   = 0;      		// Slave10 Z축 대기위치 상승 타겟 포지션
+ 	global	P_Recipe_C_1st_Z_Ready_Down = 0;      		// Slave10 Z축 대기위치 하강 타겟 포지션
+
+
+
+//==========================================================================================================
+
+// 2025.04.17 추가
+
+//-------------------------------------------------------------------
+ // Slave 11 - Sheet Paper
+ //-------------------------------------------------------------------
+ 	global	P_1st_Sheet_Paper_X_FWD 	= 120.1		// Slave11 X축 전진
+ 	global	P_1st_Sheet_Paper_X_BWD 	= 87.9		// Slave11 X축 후진
+
+ //-------------------------------------------------------------------
+ // Slave 12 - Cathode_NG 
+ //-------------------------------------------------------------------
+ 	// 양극 NG PNP t축	
+ 	global	P_Cathode_NG_T_NG_To_Align 	=90							// Slave12 NG 박스 --> 얼라인
+ 	global	P_Cathode_NG_T_Align_To_NG	=0 							// Slave12 얼라인 --> NG 박스
+	// 양극 NG PNP z축
+	global	P_Cathode_NG_Z_NG_Down		=25							// Slave12 NG 하강
+ 	global	P_Cathode_NG_Z_NG_Up		=0							// Slave12 NG 상승
+	global	P_Cathode_NG_Z_Align_Down	=25							// Slave12 얼라인 하강
+ 	global	P_Cathode_NG_Z_Align_Up		=0							// Slave12 얼라인 상승
+ //-------------------------------------------------------------------
+ // Slave 13 - Anode_NG 
+ //-------------------------------------------------------------------
+	// 음극 NG PNP t축
+ 	global	P_Anode_NG_T_NG_To_Align 	=90							// Slave12 NG 박스 --> 얼라인
+ 	global	P_Anode_NG_T_Align_To_NG 	=0 							// Slave12 얼라인 --> NG 박스
+	// 음극 NG PNP z축
+	global	P_Anode_NG_Z_NG_Down		=25							// Slave12 NG 하강
+ 	global	P_Anode_NG_Z_NG_Up			=0							// Slave12 NG 상승
+	global	P_Anode_NG_Z_Align_Down		=25							// Slave12 얼라인 하강
+ 	global	P_Anode_NG_Z_Align_Up		=0							// Slave12 얼라인 상승
+ //-------------------------------------------------------------------
+ // Slave 14 - 1st_Unloader  [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ]
+ //-------------------------------------------------------------------
+	// 1st ULD X축
+	global	P_1st_ULD_X_Stack 				= 100					// Slave14 X축 스택위치 타겟 포지션
+ 	global	P_1st_ULD_X_FWD					= 487.8					// Slave14 X축 언로더 진입 포지션
+	global	P_1st_ULD_X_Init_Pos 			= -5.4					// Slave14 X축 언로더 대기위치
+	global	P_1st_ULD_X_Target_BWD			= -6.55					// Slave14 언로더 후진위치
+
+	// 1st ULD Z축
+ 	global	P_1st_ULD_Z_Stack				= -9.79					// Slave14 Z축 스택위치 타겟 포지션
+	global  P_1st_ULD_Z_Cutting_For_Cell	= -12.79				// Slave14 Z축 언로더 극판 부착 위치
+	global  P_1st_ULD_Z_Discharge_For_Cell	= -20.79				// Slave14 Z축 언로더 그립 후 배출 필요 위치
+ 	global	P_1st_ULD_Z_Target_Down			= 69					// Slave14 언로더 하강위치 
+
+	// 1st ULD T축
+	global	P_1st_ULD_T_Wait				= -2.817				// Slave14 1차 언로더 대기 위치.
+	global	P_1st_ULD_T_45_Angle			= 42.19					// Slave14 1차 언로더 45도 위치.
+	global	P_1st_ULD_T_90_Angle			= 87.12					// Slave14 1차 언로더 90도 위치.
+//==========================================================================================================
+// 02. 시작위치 변수 선언
+//==========================================================================================================
+ //-------------------------------------------------------------------
+ // Slave 1 - Anode TR 1
+ //-------------------------------------------------------------------	
+	global	P_Slave1_Start_X_Belt				// Slave1 X축 벨트위치		
+	global	P_Slave1_Start_X_Align				// Slave1 X축 얼라인위치
+	global	P_Slave1_Start_X_NG					// Slave1 X축 NG위치
+	global	P_Slave1_Start_Z_Up					// Slave1 Z축 상승위치
+	global	P_Slave1_Start_Z_Down_Belt			// Slave1 Z축 벨트하강위치
+	global	P_Slave1_Start_Z_Down_Align			// Slave1 Z축 얼라인하강위치
+	global	P_Slave1_Start_Z_Down_NG			// Slave1 Z축 NG하강위치
+	
+ //-------------------------------------------------------------------
+ // Slave 3 - Anode TR 2
+ //-------------------------------------------------------------------
+	//-- X축 ---------------------------------- 
+	global	P_Slave3_Start_X_Align				// Slave3 X축 얼라인 시작위치							
+	global	P_Slave3_Start_X_Align_To_Stack     // Slave3 X축 얼라인->스택 시작위치
+	global	P_Slave3_Start_X_Stack              // Slave3 X축 스택 시작위치
+	global	P_Slave3_Start_X_Stack_To_Align_2   // Slave3 X축 스택->얼라인2번째 시작위치
+	global	P_Slave3_Start_X_Stack_To_Align_3   // Slave3 X축 스택->얼라인3번째 시작위치
+	
+	//-- Z축 ----------------------------------	
+	global	P_Slave3_Start_Z_Align_To_Stack_1	// Slave3 A/S->S/T이동 1번째 시작위치
+	global	P_Slave3_Start_Z_Align_To_Stack_2	// Slave3 A/S->S/T이동 2번째 시작위치
+	global	P_Slave3_Start_Z_Stack_To_Align_1	// Slave3 S/T->A/S이동 1번째 시작위치
+	global	P_Slave3_Start_Z_Stack_To_Align_2	// Slave3 S/T->A/S이동 2번째 시작위치
+	global	P_Slave3_Start_Z_Stack_To_Align_3	// Slave3 S/T->A/S이동 3번째 시작위치
+	global	P_Slave3_Start_Z_Align_Down			// Slave3 A/S 하강 시작위치
+	global	P_Slave3_Start_Z_Align_Up			// Slave3 A/S 상승 시작위치
+	global	P_Slave3_Start_Z_Stack_Down			// Slave3 S/T 하강 시작위치
+	global	P_Slave3_Start_Z_Stack_Up			// Slave3 S/T 상승 시작위치
+	
+
+ //-------------------------------------------------------------------
+ // Slave 4 - Anode Clamp
+ //-------------------------------------------------------------------
+	//-- X축 ---------------------------------- 	
+	global	P_Slave4_Start_X_Clamp_On_1st 		// Slave4 X축 클램프 온 1번째 시작위치
+	global	P_Slave4_Start_X_Clamp_On_2nd		// Slave4 X축 클램프 온 2번째 시작위치
+	global	P_Slave4_Start_X_Clamp_On_3rd		// Slave4 X축 클램프 온 3번째 시작위치
+	global	P_Slave4_Start_X_Clamp_On_4th		// Slave4 X축 클램프 온 4번째 시작위치
+	global	P_Slave4_Start_X_Clamp_Off_1st		// Slave4 X축 클램프 오프 1번째 시작위치
+	global	P_Slave4_Start_X_Clamp_Off_2nd		// Slave4 X축 클램프 오프 2번째 시작위치
+	global	P_Slave4_Start_X_Clamp_Off_3rd		// Slave4 X축 클램프 오프 3번째 시작위치
+	
+	//-- Z축 ---------------------------------- 	
+	global	P_Slave4_Start_Z_Clamp_On_1st 		// Slave4 Z축 클램프 온 1번째 시작위치
+	global	P_Slave4_Start_Z_Clamp_On_2nd		// Slave4 Z축 클램프 온 2번째 시작위치
+	global	P_Slave4_Start_Z_Clamp_On_3rd		// Slave4 Z축 클램프 온 3번째 시작위치
+	global	P_Slave4_Start_Z_Clamp_On_4th		// Slave4 Z축 클램프 온 4번째 시작위치
+	global	P_Slave4_Start_Z_Clamp_Off_1st		// Slave4 Z축 클램프 오프 1번째 시작위치
+	global	P_Slave4_Start_Z_Clamp_Off_2nd		// Slave4 Z축 클램프 오프 2번째 시작위치
+	global	P_Slave4_Start_Z_Clamp_Off_3rd		// Slave4 Z축 클램프 오프 3번째 시작위치
+	global	P_Slave4_Start_Z_Down				// Slave4 Z축 하강 시작위치	
+	
+ //-------------------------------------------------------------------
+ // Slave 5 - Final Roll
+ //-------------------------------------------------------------------	
+ 	//-- X축 ----------------------------------	
+	global	P_Slave5_Start_X_Anode_Move_1st		// Slave5 X축 음극이동 1번째 시작위치
+	global	P_Slave5_Start_X_Anode_Move_2nd     // Slave5 X축 음극이동 2번째 시작위치
+	global	P_Slave5_Start_X_Cathode_Move_1st   // Slave5 X축 양극이동 1번째 시작위치
+	global	P_Slave5_Start_X_Cathode_Move_2nd   // Slave5 X축 양극이동 2번째 시작위치
+	global	P_Slave5_Start_X_Sepa_1st           // Slave5 X축 세파모션 1번째 시작위치
+	global	P_Slave5_Start_X_Sepa_2nd           // Slave5 X축 세파모션 2번째 시작위치
+	global	P_Slave5_Start_X_Sepa_3rd           // Slave5 X축 세파모션 3번째 시작위치
+	global	P_Slave5_Start_X_Sepa_4th           // Slave5 X축 세파모션 4번째 시작위치
+	global	P_Slave5_Start_X_Sepa_5th           // Slave5 X축 세파모션 5번째 시작위치
+	
+	//-- Z축 ----------------------------------	
+	global 	P_Slave5_Start_Z_Sepa_1st			// Slave5 Z축 세파모션 1번째 시작위치
+	global 	P_Slave5_Start_Z_Sepa_2nd			// Slave5 Z축 세파모션 2번째 시작위치
+	global 	P_Slave5_Start_Z_Sepa_3rd			// Slave5 Z축 세파모션 3번째 시작위치
+	global 	P_Slave5_Start_Z_Sepa_4th			// Slave5 Z축 세파모션 4번째 시작위치
+	global 	P_Slave5_Start_Z_Sepa_5th			// Slave5 Z축 세파모션 5번째 시작위치
+	
+ //-------------------------------------------------------------------
+ // Slave 6 - Stack Table
+ //-------------------------------------------------------------------		
+	// Z축
+	global	P_Slave6_Start_Z_Wait_Pos				// Slave6 Z축 대기위치
+	global	P_Slave6_Start_Z_For_Sepa_Mode	    	// Slave6 Z축 세파모드 시작위치	
+	
+ //-------------------------------------------------------------------
+ // Slave 7 - Cathde Clamp
+ //-------------------------------------------------------------------
+	//-- X축 ---------------------------------- 	
+	global	P_Slave7_Start_X_Clamp_On_1st 		// Slave7 X축 클램프 온 1번째 시작위치
+	global	P_Slave7_Start_X_Clamp_On_2nd		// Slave7 X축 클램프 온 2번째 시작위치
+	global	P_Slave7_Start_X_Clamp_On_3rd		// Slave7 X축 클램프 온 3번째 시작위치
+	global	P_Slave7_Start_X_Clamp_On_4th		// Slave7 X축 클램프 온 4번째 시작위치
+	global	P_Slave7_Start_X_Clamp_Off_1st		// Slave7 X축 클램프 오프 1번째 시작위치
+	global	P_Slave7_Start_X_Clamp_Off_2nd		// Slave7 X축 클램프 오프 2번째 시작위치
+	global	P_Slave7_Start_X_Clamp_Off_3rd		// Slave7 X축 클램프 오프 3번째 시작위치
+	
+	//-- Z축 ---------------------------------- 	
+	global	P_Slave7_Start_Z_Clamp_On_1st 		// Slave7 Z축 클램프 온 1번째 시작위치
+	global	P_Slave7_Start_Z_Clamp_On_2nd		// Slave7 Z축 클램프 온 2번째 시작위치
+	global	P_Slave7_Start_Z_Clamp_On_3rd		// Slave7 Z축 클램프 온 3번째 시작위치
+	global	P_Slave7_Start_Z_Clamp_On_4th		// Slave7 Z축 클램프 온 4번째 시작위치
+	global	P_Slave7_Start_Z_Clamp_Off_1st		// Slave7 Z축 클램프 오프 1번째 시작위치
+	global	P_Slave7_Start_Z_Clamp_Off_2nd		// Slave7 Z축 클램프 오프 2번째 시작위치
+	global	P_Slave7_Start_Z_Clamp_Off_3rd		// Slave7 Z축 클램프 오프 3번째 시작위치
+	global	P_Slave7_Start_Z_Down				// Slave7 Z축 하강 시작위치	
+	
+ //-------------------------------------------------------------------
+ // Slave 8 - Cathde TR 2
+ //-------------------------------------------------------------------
+	//-- X축 ---------------------------------- 
+	global	P_Slave8_Start_X_Align				// Slave8 X축 얼라인 시작위치							
+	global	P_Slave8_Start_X_Align_To_Stack     // Slave8 X축 얼라인->스택 시작위치
+	global	P_Slave8_Start_X_Stack              // Slave8 X축 스택 시작위치
+	global	P_Slave8_Start_X_Stack_To_Align_2   // Slave8 X축 스택->얼라인2번째 시작위치
+	global	P_Slave8_Start_X_Stack_To_Align_3   // Slave8 X축 스택->얼라인3번째 시작위치
+	
+	//-- Z축 ----------------------------------	
+	global	P_Slave8_Start_Z_Align_To_Stack_1	// Slave8 A/S->S/T이동 1번째 시작위치
+	global	P_Slave8_Start_Z_Align_To_Stack_2	// Slave8 A/S->S/T이동 2번째 시작위치
+	global	P_Slave8_Start_Z_Stack_To_Align_1	// Slave8 S/T->A/S이동 1번째 시작위치
+	global	P_Slave8_Start_Z_Stack_To_Align_2	// Slave8 S/T->A/S이동 2번째 시작위치
+	global	P_Slave8_Start_Z_Stack_To_Align_3	// Slave8 S/T->A/S이동 3번째 시작위치
+	global	P_Slave8_Start_Z_Align_Down			// Slave8 A/S 하강 시작위치
+	global	P_Slave8_Start_Z_Align_Up			// Slave8 A/S 상승 시작위치
+	global	P_Slave8_Start_Z_Stack_Down			// Slave8 S/T 하강 시작위치
+	global	P_Slave8_Start_Z_Stack_Up			// Slave8 S/T 상승 시작위치	
+	
+ //-------------------------------------------------------------------
+ // Slave 10 - Cathde TR 1
+ //-------------------------------------------------------------------	
+	global	P_Slave10_Start_X_Belt				// Slave10 X축 벨트위치		
+	global	P_Slave10_Start_X_Align				// Slave10 X축 얼라인위치
+	global	P_Slave10_Start_X_NG				// Slave10 X축 NG위치
+	global	P_Slave10_Start_Z_Up				// Slave10 Z축 상승위치
+	global	P_Slave10_Start_Z_Down_Belt			// Slave10 Z축 벨트하강위치
+	global	P_Slave10_Start_Z_Down_Align		// Slave10 Z축 얼라인하강위치
+	global	P_Slave10_Start_Z_Down_NG			// Slave10 Z축 NG하강위치	
+	
+//==========================================================================================================	
+	
+	
+//==========================================================================================================
+// 03. 이동량 변수 선언
+//==========================================================================================================	
+ //-------------------------------------------------------------------
+ // Slave 1 - Anode TR 1
+ //-------------------------------------------------------------------		
+	global	P_Slave1_Move_X_Belt_Align		// Slave1 X축 벨트 -> 얼라인 이동 이동량
+	global	P_Slave1_Move_X_Align_Belt      // Slave1 X축 얼라인 -> 벨트 이동 이동량
+	global	P_Slave1_Move_X_Belt_NG         // Slave1 X축 벨트 -> NG 이동 이동량
+	global	P_Slave1_Move_X_NG_Belt         // Slave1 X축 NG -> 벨트 이동 이동량
+	global	P_Slave1_Move_X_Align_NG        // Slave1 X축 얼라인 -> NG 이동 이동량
+	global	P_Slave1_Move_Z_Belt_Down       // Slave1 Z축 Belt 하강 이동량
+	global	P_Slave1_Move_Z_Belt_Up         // Slave1 Z축 Belt 상승 이동량
+	global	P_Slave1_Move_X_NG_Align        // Slave1 X축 NG -> A/S 이동 이동량
+	global	P_Slave1_Move_Z_Align_Down      // Slave1 Z축 A/S 하강 이동량
+	global	P_Slave1_Move_Z_Align_Up        // Slave1 Z축 A/S 상승 이동량
+	global	P_Slave1_Move_Z_NG_Down         // Slave1 Z축 NG 상승 이동량
+	global	P_Slave1_Move_Z_NG_Up           // Slave1 Z축 NG 하강 이동량
+	
+ //-------------------------------------------------------------------
+ // Slave 3 - Anode TR 2
+ //-------------------------------------------------------------------	
+	//-- X축 ---------------------------------- 	
+	global	P_Slave3_Move_X_Align_To_Stack_1st 	// Slave3 X축 A/S->S/T 1번째 이동량
+	global	P_Slave3_Move_X_Align_To_Stack_2nd 	// Slave3 X축 A/S->S/T 2번째 이동량
+	global	P_Slave3_Move_X_Stack_To_Align_1st 	// Slave3 X축 S/T->A/S 1번째 이동량
+	global	P_Slave3_Move_X_Stack_To_Align_2nd 	// Slave3 X축 S/T->A/S 2번째 이동량
+	global	P_Slave3_Move_X_Stack_To_Align_3rd 	// Slave3 X축 S/T->A/S 3번째 이동량
+		
+	//-- Z축 ----------------------------------		
+	global	P_Slave3_Move_Z_Align_To_Stack_1st 	// Slave3 Z축 A/S->S/T 1번째 이동량
+	global	P_Slave3_Move_Z_Align_To_Stack_2nd 	// Slave3 Z축 A/S->S/T 2번째 이동량
+	global	P_Slave3_Move_Z_Stack_To_Align_1st 	// Slave3 Z축 S/T->A/S 1번째 이동량
+	global	P_Slave3_Move_Z_Stack_To_Align_2nd 	// Slave3 Z축 S/T->A/S 2번째 이동량
+	global	P_Slave3_Move_Z_Stack_To_Align_3rd 	// Slave3 Z축 S/T->A/S 3번째 이동량
+	global	P_Slave3_Move_Z_Align_Up           	// Slave3 Z축 A/S 상승
+	global	P_Slave3_Move_Z_Align_Down         	// Slave3 Z축 A/S 하강
+	global	P_Slave3_Move_Z_Stack_Up           	// Slave3 Z축 S/T 상승
+	global	P_Slave3_Move_Z_Stack_Down         	// Slave3 Z축 S/T 하강
+
+ //-------------------------------------------------------------------
+ // Slave 4 - Anode Clamp
+ //-------------------------------------------------------------------	
+	//-- X축 ---------------------------------- 	
+	global	P_Slave4_Move_X_Clamp_On_1st 		// Slave4 X축 클램프온 1번째 이동량
+	global	P_Slave4_Move_X_Clamp_On_2nd 	    // Slave4 X축 클램프온 2번째 이동량
+	global	P_Slave4_Move_X_Clamp_On_3rd 	    // Slave4 X축 클램프온 3번째 이동량
+	global	P_Slave4_Move_X_Clamp_On_4th 	    // Slave4 X축 클램프온 4번째 이동량
+	global	P_Slave4_Move_X_Clamp_Off_1st	    // Slave4 X축 클램프오프 1번째 이동량
+	global	P_Slave4_Move_X_Clamp_Off_2nd	    // Slave4 X축 클램프오프 2번째 이동량
+	global	P_Slave4_Move_X_Clamp_Off_3rd	    // Slave4 X축 클램프오프 3번째 이동량
+	//-- Z축 ----------------------------------		
+	global	P_Slave4_Move_Z_Clamp_On_1st		// Slave4 Z축 클램프온 1번째 이동량
+	global	P_Slave4_Move_Z_Clamp_On_2nd        // Slave4 Z축 클램프온 2번째 이동량
+	global	P_Slave4_Move_Z_Clamp_On_3rd        // Slave4 Z축 클램프온 3번째 이동량
+	global	P_Slave4_Move_Z_Clamp_On_4th        // Slave4 Z축 클램프온 4번째 이동량
+	global	P_Slave4_Move_Z_Clamp_Off_1st		// Slave4 Z축 클램프오프 1번째 이동량
+	global	P_Slave4_Move_Z_Clamp_Off_2nd       // Slave4 Z축 클램프오프 2번째 이동량
+	global	P_Slave4_Move_Z_Clamp_Off_3rd       // Slave4 Z축 클램프오프 3번째 이동량
+	global	P_Slave4_Move_Z_Down				// Slave4 Z축 클램프하강 이동량
+
+ //-------------------------------------------------------------------
+ // Slave 5 - Final Roll
+ //-------------------------------------------------------------------	
+ 	//-- X축 ----------------------------------		
+	global	P_Slave5_Move_X_Anode_Move_1st		// Slave5 X축 음극이동 1번째 이동량 
+	global	P_Slave5_Move_X_Anode_Move_2nd      // Slave5 X축 음극이동 2번째 이동량 
+	global	P_Slave5_Move_X_Cathode_Move_1st    // Slave5 X축 양극이동 1번째 이동량
+	global	P_Slave5_Move_X_Cathode_Move_2nd    // Slave5 X축 양극이동 2번째 이동량
+	global	P_Slave5_Move_X_Sepa_1st            // Slave5 X축 세파모션 1번째 이동량
+	global	P_Slave5_Move_X_Sepa_2nd            // Slave5 X축 세파모션 2번째 이동량
+	global	P_Slave5_Move_X_Sepa_3rd            // Slave5 X축 세파모션 3번째 이동량
+	global	P_Slave5_Move_X_Sepa_4th            // Slave5 X축 세파모션 4번째 이동량
+	global	P_Slave5_Move_X_Sepa_5th            // Slave5 X축 세파모션 5번째 이동량
+	
+	
+	//-- Z축 ----------------------------------	
+	global	P_Slave5_Move_Z_Sepa_1st			// Slave5 Z축 세파모션 1번째 이도량
+	global	P_Slave5_Move_Z_Sepa_2nd			// Slave5 Z축 세파모션 2번째 이도량
+	global	P_Slave5_Move_Z_Sepa_3rd			// Slave5 Z축 세파모션 3번째 이도량
+	global	P_Slave5_Move_Z_Sepa_4th			// Slave5 Z축 세파모션 4번째 이도량
+	global	P_Slave5_Move_Z_Sepa_5th			// Slave5 Z축 세파모션 5번째 이도량
+	
+	
+	
+ //-------------------------------------------------------------------
+ // Slave 6 - Stack Table
+ //-------------------------------------------------------------------		
+	// Z축	
+	global	P_Slave6_Move_Z_For_Sepa_Mode		// Slave6 세파모션 Z축 이동량
+	global	P_Slave6_Move_Z_For_Run_Mode        // Slave6 런모션 Z축 이동량
+	
+ //-------------------------------------------------------------------
+ // Slave 7 - Cathde Clamp
+ //-------------------------------------------------------------------	
+	//-- X축 ---------------------------------- 	
+	global	P_Slave7_Move_X_Clamp_On_1st 		// Slave7 X축 클램프온 1번째 이동량
+	global	P_Slave7_Move_X_Clamp_On_2nd 	    // Slave7 X축 클램프온 2번째 이동량
+	global	P_Slave7_Move_X_Clamp_On_3rd 	    // Slave7 X축 클램프온 3번째 이동량
+	global	P_Slave7_Move_X_Clamp_On_4th 	    // Slave7 X축 클램프온 4번째 이동량
+	global	P_Slave7_Move_X_Clamp_Off_1st	    // Slave7 X축 클램프오프 1번째 이동량
+	global	P_Slave7_Move_X_Clamp_Off_2nd	    // Slave7 X축 클램프오프 2번째 이동량
+	global	P_Slave7_Move_X_Clamp_Off_3rd	    // Slave7 X축 클램프오프 3번째 이동량
+	//-- Z축 ----------------------------------			
+	global	P_Slave7_Move_Z_Clamp_On_1st		// Slave7 Z축 클램프온 1번째 이동량
+	global	P_Slave7_Move_Z_Clamp_On_2nd        // Slave7 Z축 클램프온 2번째 이동량
+	global	P_Slave7_Move_Z_Clamp_On_3rd        // Slave7 Z축 클램프온 3번째 이동량
+	global	P_Slave7_Move_Z_Clamp_On_4th        // Slave7 Z축 클램프온 4번째 이동량
+	global	P_Slave7_Move_Z_Clamp_Off_1st		// Slave7 Z축 클램프오프 1번째 이동량
+	global	P_Slave7_Move_Z_Clamp_Off_2nd       // Slave7 Z축 클램프오프 2번째 이동량
+	global	P_Slave7_Move_Z_Clamp_Off_3rd       // Slave7 Z축 클램프오프 3번째 이동량
+	global	P_Slave7_Move_Z_Down				// Slave7 Z축 클램프하강 이동량
+	
+
+ //-------------------------------------------------------------------
+ // Slave 8 - Cathde TR 2
+ //-------------------------------------------------------------------	
+	//-- X축 ---------------------------------- 	
+	global	P_Slave8_Move_X_Align_To_Stack_1st 	// Slave8 X축 A/S->S/T 1번째 이동량
+	global	P_Slave8_Move_X_Align_To_Stack_2nd 	// Slave8 X축 A/S->S/T 2번째 이동량
+	global	P_Slave8_Move_X_Stack_To_Align_1st 	// Slave8 X축 S/T->A/S 1번째 이동량
+	global	P_Slave8_Move_X_Stack_To_Align_2nd 	// Slave8 X축 S/T->A/S 2번째 이동량
+	global	P_Slave8_Move_X_Stack_To_Align_3rd 	// Slave8 X축 S/T->A/S 3번째 이동량
+		
+	//-- Z축 ----------------------------------		
+	global	P_Slave8_Move_Z_Align_To_Stack_1st 	// Slave8 Z축 A/S->S/T 1번째 이동량
+	global	P_Slave8_Move_Z_Align_To_Stack_2nd 	// Slave8 Z축 A/S->S/T 2번째 이동량
+	global	P_Slave8_Move_Z_Stack_To_Align_1st 	// Slave8 Z축 S/T->A/S 1번째 이동량
+	global	P_Slave8_Move_Z_Stack_To_Align_2nd 	// Slave8 Z축 S/T->A/S 2번째 이동량
+	global	P_Slave8_Move_Z_Stack_To_Align_3rd 	// Slave8 Z축 S/T->A/S 3번째 이동량
+	global	P_Slave8_Move_Z_Align_Up           	// Slave8 Z축 A/S 상승
+	global	P_Slave8_Move_Z_Align_Down         	// Slave8 Z축 A/S 하강
+	global	P_Slave8_Move_Z_Stack_Up           	// Slave8 Z축 S/T 상승
+	global	P_Slave8_Move_Z_Stack_Down         	// Slave8 Z축 S/T 하강
+	
+ //-------------------------------------------------------------------
+ // Slave 10 - Cathde TR 1
+ //-------------------------------------------------------------------		
+	global	P_Slave10_Move_X_Belt_Align		 // Slave10 X축 벨트 -> 얼라인 이동 이동량
+	global	P_Slave10_Move_X_Align_Belt      // Slave10 X축 얼라인 -> 벨트 이동 이동량
+	global	P_Slave10_Move_X_Belt_NG         // Slave10 X축 벨트 -> NG 이동 이동량
+	global	P_Slave10_Move_X_NG_Belt         // Slave10 X축 NG -> 벨트 이동 이동량
+	global	P_Slave10_Move_X_Align_NG        // Slave10 X축 얼라인 -> NG 이동 이동량
+	global	P_Slave10_Move_Z_Belt_Down       // Slave10 Z축 Belt 하강 이동량
+	global	P_Slave10_Move_Z_Belt_Up         // Slave10 Z축 Belt 상승 이동량
+	global	P_Slave10_Move_X_NG_Align        // Slave10 X축 NG -> A/S 이동 이동량
+	global	P_Slave10_Move_Z_Align_Down      // Slave10 Z축 A/S 하강 이동량
+	global	P_Slave10_Move_Z_Align_Up        // Slave10 Z축 A/S 상승 이동량
+	global	P_Slave10_Move_Z_NG_Down         // Slave10 Z축 NG 상승 이동량
+	global	P_Slave10_Move_Z_NG_Up           // Slave10 Z축 NG 하강 이동량	
+	
+//==========================================================================================================
+	
+	
+//==========================================================================================================
+// 04. 티칭오프셋 변수 선언
+//==========================================================================================================	
+ //-------------------------------------------------------------------
+ // Slave 1 - Anode TR 1
+ //-------------------------------------------------------------------		
+	global	P_Slave1_Offset_X_Align		// Slave1 X축 A/S 오프셋
+	global	P_Slave1_Offset_X_Belt      // Slave1 X축 Belt 오프셋
+	global	P_Slave1_Offset_X_NG        // Slave1 X축 NG 오프셋
+	global	P_Slave1_Offset_Z_Belt      // Slave1 Z축 벨트하강 오프셋
+	global	P_Slave1_Offset_Z_Align     // Slave1 Z축 얼라인하강 오프셋
+	global	P_Slave1_Offset_Z_NG        // Slave1 Z축 NG하강 오프셋
+	global	P_Slave1_Offset_Z_Up        // Slave1 Z축 상승위치 오프셋
+	
+ //-------------------------------------------------------------------
+ // Slave 3 - Anode TR 2
+ //-------------------------------------------------------------------	
+	//-- X축 ---------------------------------- 	
+	global	P_Slave3_Offset_X_Stack			// Slave3 X축 S/T 오프셋 
+	global	P_Slave3_Offset_X_Align			// Slave3 X축 A/S 오프셋 
+		
+	//-- Z축 ----------------------------------
+	global	P_Slave3_Offset_Z_Stack			// Slave3 Z축 S/T 오프셋
+	global	P_Slave3_Offset_Z_Align     	// Slave3 Z축 A/S 오프셋
+	global	P_Slave3_Offset_Z_Align_Up  	// Slave3 Z축 A/S 상승 모션 오프셋
+	global	P_Slave3_Offset_Z_Align_Down	// Slave3 Z축 A/S 하강 모션 오프셋
+	global	P_Slave3_Offset_Z_Stack_Up  	// Slave3 Z축 S/T 상승 모션 오프셋
+	global	P_Slave3_Offset_Z_Stack_Down	// Slave3 Z축 S/T 하강 모션 오프셋
+	global	P_Slave3_Offset_Z_Wait_Pos		// Slave3 Z축 대기위치 오프셋
+ //-------------------------------------------------------------------
+ // Slave 4 - Anode Clamp
+ //-------------------------------------------------------------------	
+	//-- X축 ---------------------------------- 	
+	global	P_Slave4_Offset_X_Clamp_On		// Slave4 X축 클럄프온 오프셋 
+	global	P_Slave4_Offset_X_Clamp_Off		// Slave4 X축 클램프오프 오프셋 
+		
+	//-- Z축 ----------------------------------
+	global	P_Slave4_Offset_Z_Clamp_On		// Slave4 Z축 클럄프온 오프셋 
+	global	P_Slave4_Offset_Z_Clamp_Off     // Slave4 Z축 클램프오프 오프셋 	
+
+ //-------------------------------------------------------------------
+ // Slave 5 - Final Roll
+ //-------------------------------------------------------------------		
+	//-- X축 ---------------------------------- 
+	global	P_Slave5_Offset_X_Anode_Move_1st	// Slave5 X축 음극 1차 이동 오프셋
+	global	P_Slave5_Offset_X_Anode_Move_2nd    // Slave5 X축 음극 2차 이동 오프셋
+	global	P_Slave5_Offset_X_Cathode_Move_1st  // Slave5 X축 양극 1차 이동 오프셋
+	global	P_Slave5_Offset_X_Cathode_Move_2nd  // Slave5 X축 양극 2차 이동 오프셋
+	global	P_Slave5_Offset_X_Sepa_1st			// Slave5 X축 세파모션 1번째 오프셋
+	global	P_Slave5_Offset_X_Sepa_2nd			// Slave5 X축 세파모션 2번째 오프셋
+	global	P_Slave5_Offset_X_Sepa_3rd			// Slave5 X축 세파모션 3번째 오프셋
+	global	P_Slave5_Offset_X_Sepa_4th			// Slave5 X축 세파모션 4번째 오프셋
+	global	P_Slave5_Offset_X_Sepa_5th			// Slave5 X축 세파모션 5번째 오프셋
+	
+	//-- Z축 ----------------------------------	
+	global	P_Slave5_Offset_Z_Sepa_1st			// Slave5 Z축 세파모션 1번째 오프셋
+	global	P_Slave5_Offset_Z_Sepa_2nd			// Slave5 Z축 세파모션 2번째 오프셋
+	global	P_Slave5_Offset_Z_Sepa_3rd			// Slave5 Z축 세파모션 3번째 오프셋
+	global	P_Slave5_Offset_Z_Sepa_4th			// Slave5 Z축 세파모션 4번째 오프셋
+	global	P_Slave5_Offset_Z_Sepa_5th			// Slave5 Z축 세파모션 5번째 오프셋
+
+ //-------------------------------------------------------------------
+ // Slave 6 - Stack Table
+ //-------------------------------------------------------------------		
+	//-- X축 ---------------------------------- 
+	global	P_Slave6_Offset_X_For_Sepa_Mode		// Slave6 X축 세파모션 오프셋
+	//-- Z축 ---------------------------------- 
+	global	P_Slave6_Offset_Z_Wait_Pos			// Slave6 Z축 대기위치 오프셋
+
+ //-------------------------------------------------------------------
+ // Slave 7 - Cathde Clamp
+ //-------------------------------------------------------------------	
+	//-- X축 ---------------------------------- 	
+	global	P_Slave7_Offset_X_Clamp_On		// Slave7 X축 클럄프온 오프셋 
+	global	P_Slave7_Offset_X_Clamp_Off		// Slave7 X축 클램프오프 오프셋 
+		
+	//-- Z축 ----------------------------------
+	global	P_Slave7_Offset_Z_Clamp_On		// Slave7 Z축 클럄프온 오프셋 
+	global	P_Slave7_Offset_Z_Clamp_Off     // Slave7 Z축 클램프오프 오프셋 
+	
+ //-------------------------------------------------------------------
+ // Slave 8 - Cathde TR 2
+ //-------------------------------------------------------------------	
+	//-- X축 ---------------------------------- 	
+	global	P_Slave8_Offset_X_Stack			// Slave8 X축 S/T 오프셋 
+	global	P_Slave8_Offset_X_Align			// Slave8 X축 A/S 오프셋 
+		
+	//-- Z축 ----------------------------------
+	global	P_Slave8_Offset_Z_Stack			// Slave8 Z축 S/T 오프셋
+	global	P_Slave8_Offset_Z_Align     	// Slave8 Z축 A/S 오프셋
+	global	P_Slave8_Offset_Z_Align_Up  	// Slave8 Z축 A/S 상승 모션 오프셋
+	global	P_Slave8_Offset_Z_Align_Down	// Slave8 Z축 A/S 하강 모션 오프셋
+	global	P_Slave8_Offset_Z_Stack_Up  	// Slave8 Z축 S/T 상승 모션 오프셋
+	global	P_Slave8_Offset_Z_Stack_Down	// Slave8 Z축 S/T 하강 모션 오프셋		
+	global	P_Slave8_Offset_Z_Wait_Pos		// Slave8 Z축 대기위치 오프셋
+ //-------------------------------------------------------------------
+ // Slave 10 - Cathde TR 1
+ //-------------------------------------------------------------------		
+	global	P_Slave10_Offset_X_Align	 // Slave10 X축 A/S 오프셋
+	global	P_Slave10_Offset_X_Belt      // Slave10 X축 Belt 오프셋
+	global	P_Slave10_Offset_X_NG        // Slave10 X축 NG 오프셋
+	global	P_Slave10_Offset_Z_Belt      // Slave10 Z축 벨트하강 오프셋
+	global	P_Slave10_Offset_Z_Align     // Slave10 Z축 얼라인하강 오프셋
+	global	P_Slave10_Offset_Z_NG        // Slave10 Z축 NG하강 오프셋
+	global	P_Slave10_Offset_Z_Up        // Slave10 Z축 상승위치 오프셋	
+	
+//==========================================================================================================	
+	
+	
+
+//==========================================================================================================
+// 21.02.24 링블로우Off 동작 관련 변수 추가.
+//==========================================================================================================
+	global  P_Slave1_Target_Z_CV_Blower_On_Pos      // Slave1 Z축 CV BLOWER ON 포지션
+	global  P_Slave1_Target_Z_CV_Blower_Off_Pos     // Slave1 Z축 CV BLOWER OFF 포지션
+	global  P_Slave10_Target_Z_CV_Blower_On_Pos     // Slave10 Z축 CV BLOWER ON 포지션
+	global  P_Slave10_Target_Z_CV_Blower_Off_Pos    // Slave10 Z축 CV BLOWER OFF 포지션
+
+	global	P_Anode_CV_Blower_On_Flag = 0;		// 음극 CV BLOWER ON 플래그 
+	global	P_Anode_CV_Blower_Off_Flag = 0;		// 음극 CV BLOWER OFF 플래그 
+	global	P_Cathode_CV_Blower_On_Flag = 0;	// 양극 CV BLOWER ON 플래그 
+	global	P_Cathode_CV_Blower_Off_Flag = 0;	// 양극 CV BLOWER OFF 플래그
+
+	global	P_Select_RingBlow_Off_Use=1;//0;//1;	// 링블로우Off SOL동작 사용여부 변수.	( 1 : 사용, 0 : 미사용)
+											// PLC에서 거리값 터치작화 제작 전까지는 미사용으로 사용할것.	
+
+
+// 모션 좌표계 Define 추가 [ 2025.06.19 추가 ]
+
+//PROG 프로그램 
+//마스터
+#define N_Prog_Master_Motion_Sub_Program			1
+//서브
+#define N_Prog_Servo_Dancer_Sub_Program				8
+#define N_Prog_Anode_TR1_Sub_Program				11
+#define N_Prog_Anode_TR1_Picker_Sub_Program			12
+#define N_Prog_Anode_TR2_Sub_Program				13
+#define N_Prog_Anode_Clamp_Sub_Program				14
+#define N_Prog_Final_Roll_Sub_Program				15
+#define N_Prog_Stack_Table_Sub_Program				16
+#define N_Prog_Cathode_Clamp_Sub_Program			17
+#define N_Prog_Cathode_TR2_Sub_Program				18
+#define N_Prog_Cathode_TR1_Picker_Sub_Program		19
+#define N_Prog_Cathode_TR1_Sub_Program				20
+//슬레이브
+#define N_Prog_Anode_TR1_Slave_Program				21
+#define N_Prog_Anode_TR1_Picker_Slave_Program		22
+#define N_Prog_Anode_TR2_Slave_Program				23
+#define N_Prog_Anode_Clamp_Slave_Program			24
+#define N_Prog_Final_Roll_Slave_Program				25
+#define N_Prog_Stack_Table_Slave_Program			26
+#define N_Prog_Cathode_Clamp_Slave_Program			27
+#define N_Prog_Cathode_TR2_Slave_Program			28
+#define N_Prog_Cathode_TR1_Picker_Slave_Program		29
+#define N_Prog_Cathode_TR1_Slave_Program			30
+#define N_Prog_Sheet_Paper_TR1_Slave_Program		31
+#define	N_Prog_Cathode_NG_TR_Slave_Program			32
+#define	N_Prog_Anode_NG_TR_Slave_Program			33
+#define N_Prog_Unload_TR1_Slave_Program				34
+#define N_Prog_Camtable_Slave_Program				35
+
+//좌표계
+//마스터
+#define N_Coord_Master_Motion						1
+//서브
+#define N_Coord_Servo_Dancer_Sub					8
+#define N_Coord_Anode_TR1_Sub						11
+#define N_Coord_Anode_TR1_Picker_Sub				12
+#define N_Coord_Anode_TR2_Sub						13
+#define N_Coord_Anode_Clamp_Sub						14
+#define N_Coord_Final_Roll_Sub						15
+#define N_Coord_Stack_Table_Sub						16
+#define N_Coord_Cathode_Clamp_Sub					17
+#define N_Coord_Cathode_TR2_Sub						18
+#define N_Coord_Cathode_TR1_Picker_Sub				19
+#define N_Coord_Cathode_TR1_Sub						20
+//슬레이브
+#define N_Coord_Anode_TR1_Slave						21
+#define N_Coord_Anode_TR1_Picker_Slave				22
+#define N_Coord_Anode_TR2_Slave						23
+#define N_Coord_Anode_Clamp_Slave					24
+#define N_Coord_Final_Roll_Slave					25
+#define N_Coord_Stack_Table_Slave					26
+#define N_Coord_Cathode_Clamp_Slave					27
+#define N_Coord_Cathode_TR2_Slave					28
+#define N_Coord_Cathode_TR1_Picker_Slave			29
+#define N_Coord_Cathode_TR1_Slave					30
+#define N_Coord_Sheet_Paper_TR1_Slave				31
+#define	N_Coord_Cathode_NG_TR_Slave					32
+#define	N_Coord_Anode_NG_TR_Slave					33
+#define N_Coord_Unload_TR1_Slave					34
+#define N_Coord_Camtable_Slave						35
+
+global P_2nd_PNP_Stack_Down_Pos	= 59.7;
+global P_2nd_PNP_Stack_Up_Pos = 42.023;
+
+global P_Anode_Clamp_Down_MNTR = 0;
+global P_Cathode_Clamp_Down_MNTR = 0;
+
+global P_Clamp_1st_Vector_Y = 2;
+global P_Clamp_1st_Vector_Z = 11;
+global P_Clamp_1st_Vector_Vel = 520;
+global P_Clamp_2nd_Vector_Y = 43;
+global P_Clamp_2nd_Vector_Z = 1.6;
+global P_Clamp_2nd_Vector_Vel = 706;
+
+// 클램프 Vector 모션 속도 수식 [ 참조 : 25.10.13 클램프 Vector 모션 속도 수식 추가 ]
+global P_Clamp_2nd_TM_Time = 59.5;		// 클램프 두번째 모션 TM 시간.[ms] (두번째 모션 속도 자동 계산 시 필요)	

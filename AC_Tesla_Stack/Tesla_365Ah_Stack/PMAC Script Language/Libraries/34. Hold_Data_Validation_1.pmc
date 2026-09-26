@@ -1,0 +1,220 @@
+open subprog Hold_Data_Validation(data, &rtn)
+
+	rtn = 0;
+	P_DataList(0),5,1 = 0;
+
+	P_DataList(N_Obj) = data & Hex_Unit_Masking;	// 유닛 선택(양/음극 구분)
+	P_DataList(N_Cmd) = data & Hex_Cmd_Masking;		// 수평이동, 수직이동, 진공, 블로우, 스탑
+	P_DataList(N_Dst) = data & Hex_Dst_Masking;		// 목적지
+	P_DataList(N_Cur) = data & Hex_Cur_Masking;		// 현재위치
+	P_DataList(N_Elec) = data & Hex_Elec_Masking;	// 음극 or 양극
+
+	P_Hold_Data_Err(0),10 = 0						// 에러 모니터링 변수 초기화
+	local L_individual_return1 = 0;					// 결과 변수 초기화
+	local L_individual_return2 = 0;					// 결과 변수 초기화
+
+	// 스탑 포인트이면 데이터 유효성 검사 하지않고 리턴, 데이터 유효성 검사를 할게 없음
+	if( P_DataList(N_Cmd) == Hex_Cmd_Stop )
+	{
+		rtn = 1
+		return
+	}
+
+
+	// 충돌 여부 파악을 위해 1차, 2차 메모리 타워 실행
+	if( P_DataList(N_Elec) == Hex_Anode_Unit )
+	{
+		// 음극 1차 메모리타워 실행
+		call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP,&P_Anode_1st_Unit_Status,&L_individual_return1);
+		// 음극 2차 메모리타워 실행
+		call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,&P_Anode_2nd_Unit_Status,&L_individual_return2);
+	}
+	else if ( P_DataList(N_Elec) == Hex_Cathode_Unit )
+	{
+		// 양극 1차 메모리타워 실행
+		call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP,&P_Cathode_1st_Unit_Status,&L_individual_return1);
+		// 양극 2차 메모리타워 실행
+		call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,&P_Cathode_2nd_Unit_Status,&L_individual_return2);
+	}
+	
+	
+
+    // 1. 동작 유닛 Data 유효성 검사
+
+	if( !( P_DataList(N_Obj) == Hex_1stPNP || P_DataList(N_Obj) == Hex_2ndPNP || P_DataList(N_Obj) == Hex_12PNP || P_DataList(N_Obj) == Hex_NgPNP || P_DataList(N_Obj) == Hex_An_1stPNP || P_DataList(N_Obj) == Hex_An_2ndPNP || P_DataList(N_Obj) == Hex_An_12PNP || P_DataList(N_Obj) == Hex_An_NgPNP ))
+		P_Hold_Data_Err(N_Obj) = 1
+
+
+
+	// 2. 양/음극 선택 Data 유효성 검사
+	if( !(P_DataList(N_Elec) == Hex_Anode_Unit || P_DataList(N_Elec) == Hex_Cathode_Unit ))
+		P_Hold_Data_Err(N_Elec) = 1
+	
+
+
+    // 3. 동작 방향 Data 유효성 검사
+	if( !(P_DataList(N_Cmd) == Hex_Cmd_Vertical || P_DataList(N_Cmd) == Hex_Cmd_Horizontal || P_DataList(N_Cmd) == Hex_Cmd_Vac || P_DataList(N_Cmd) == Hex_Cmd_Blow || P_DataList(N_Cmd) == Hex_Cmd_Stop))
+		P_Hold_Data_Err(N_Cmd) = 1
+
+
+    // 4. 동작 명령 Data 유효성 검사
+	if ( P_DataList(N_Dst) == Comb_DstComb_BeltUp || P_DataList(N_Dst) == Comb_DstComb_BeltDn )
+	else if (P_DataList(N_Dst) == Comb_DstComb_1stReadyUP || P_DataList(N_Dst) == Comb_DstComb_1stReadyDn )
+	else if (P_DataList(N_Dst) == Comb_DstComb_AlignUp || P_DataList(N_Dst) == Comb_DstComb_AlignDn )
+	else if (P_DataList(N_Dst) == Comb_DstComb_StackUp || P_DataList(N_Dst) == Comb_DstComb_StackDn )
+	else if (P_DataList(N_Dst) == Comb_DstComb_NGReadyUp || P_DataList(N_Dst) == Comb_DstComb_NGReadyDn )
+	else if (P_DataList(N_Dst) == (Comb_DstComb_BeltUp | Comb_DstComb_AlignUp))
+	else if (P_DataList(N_Dst) == (Comb_DstComb_BeltDn | Comb_DstComb_AlignDn))
+	else if (P_DataList(N_Dst) == (Comb_DstComb_AlignUp | Comb_DstComb_StackUp))
+	else if (P_DataList(N_Dst) == (Comb_DstComb_1stReadyUP | Comb_DstComb_StackUp))
+	else
+		P_Hold_Data_Err(N_Dst) = 1
+
+		
+
+	// 5. 동작 명령 Data 인터락
+	switch( P_DataList(N_Cmd) )
+	{
+		// 5.1. 수직 이동
+		case Hex_Cmd_Vertical :
+			// 5.1.1. 현재 위치 : 벨트 상승 or 벨트 하강 -> 동작 가능한 명령 : 벨트 상승 or 벨트 하강, 그 외 명령은 인터락
+			if( P_DataList(N_Cur) == Comb_CurComb_BeltUp || P_DataList(N_Cur) == Comb_CurComb_BeltDn )
+			{
+				if( !(P_DataList(N_Dst) == Comb_DstComb_BeltUp || P_DataList(N_Dst) == Comb_DstComb_BeltDn) )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 1
+			}
+			// 5.1.2. 현재 위치 : 얼라인 상승 or 얼라인 하강 -> 동작 가능한 명령 : 얼라인 상승 or 얼라인 하강, 그 외 명령은 인터락
+			else if( P_DataList(N_Cur) == Comb_CurComb_AlignUp || P_DataList(N_Cur) == Comb_CurComb_AlignDn )
+			{
+				if( !(P_DataList(N_Dst) == Comb_DstComb_AlignUp || P_DataList(N_Dst) == Comb_DstComb_AlignDn) )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 2
+			}
+			// 5.1.3. 현재 위치 : 스택 상승 or 스택 하강 -> 동작 가능한 명령 : 스택 상승 or 스택 하강, 그 외 명령은 인터락
+			else if( P_DataList(N_Cur) == Comb_CurComb_StackUp || P_DataList(N_Cur) == Comb_CurComb_StackDn )
+			{
+				if( !(P_DataList(N_Dst) == Comb_DstComb_StackUp || P_DataList(N_Dst) == Comb_DstComb_StackDn) )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 3
+			}
+		break;
+
+		// 5.2. 수평 이동
+		case Hex_Cmd_Horizontal :
+			// 5.2.1. 수평이동이지만 동작 명령이 하강 명령이면 인터락
+			if( P_DataList(N_Dst) & Comb_DstComb_Dn )
+				P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 5
+			// 5.2.2. 양극 1차 PNP 얼라인 이동 명령 시 2차 PNP가 얼라인 위치면 인터락
+			if( P_DataList(N_Obj) == Hex_1stPNP && P_DataList(N_Dst) == Comb_DstComb_AlignUp )
+			{
+				if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos || P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Down_Pos )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 6
+			}
+			// 5.2.3. 양극 2차 PNP 얼라인 이동 명령 시 1차 PNP가 얼라인 위치면 인터락
+			else if( P_DataList(N_Obj) == Hex_2ndPNP && P_DataList(N_Dst) == Comb_DstComb_AlignUp )
+			{
+				if( P_Cathode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos || P_Cathode_1st_Unit_Status == F_1st_PNP_Align_Down_Pos )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 7
+			}
+			// 5.2.4. 음극 1차 PNP 얼라인 이동 명령 시 음극 2차 PNP가 얼라인 위치면 인터락
+			else if( P_DataList(N_Obj) == Hex_An_1stPNP && P_DataList(N_Dst) == Comb_DstComb_AlignUp )
+			{
+				if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos || P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Down_Pos )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 8
+			}
+			// 5.2.5. 음극 2차 PNP 얼라인 이동 명령 시 음극 1차 PNP가 얼라인 위치면 인터락
+			else if( P_DataList(N_Obj) == Hex_An_2ndPNP && P_DataList(N_Dst) == Comb_DstComb_AlignUp )
+			{
+				if( P_Anode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos || P_Anode_1st_Unit_Status == F_1st_PNP_Align_Down_Pos )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 9
+			}
+			// 5.2.6. 움직일려는 모터 위치가 하강되어 있는 위치면 수평이동 시 충돌하여 인터락
+			else if( P_DataList(N_Cur) & Comb_CurComb_Dn_Pos )
+				P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 10
+			// 5.2.7. 1차 2차 PNP 동시 수평 이동 선택, 도착 명령이 얼라인이면 1차와 2차가 얼라인으로 들어오게되어 인터락
+			else if ( P_DataList(N_Obj) == Hex_12PNP || P_DataList(N_Obj) == Hex_An_12PNP )
+			{
+				if( P_DataList(N_Dst) == Comb_CurComb_AlignUp )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 11
+			}
+		break
+
+		// 5.3 진공
+		case Hex_Cmd_Vac :
+			// 5.3.1. 양/음극 1차 PNP 흡착은 벨트 하강 위치에서만 가능
+			if( P_DataList(N_Obj) == Hex_1stPNP || P_DataList(N_Obj) == Hex_An_1stPNP )
+			{
+				if( !(P_DataList(N_Cur) == Comb_CurComb_BeltDn) )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 12
+			}
+			// 5.3.2. 양/음극 2차 PNP 흡착은 얼라인 하강 상태에서만 가능
+			else if( P_DataList(N_Obj) == Hex_2ndPNP || P_DataList(N_Obj) == Hex_An_2ndPNP )
+			{
+				if( !(P_DataList(N_Cur) == Comb_CurComb_AlignDn) )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 13
+			}
+			// 5.3.3. 양/음극 1차, 2차 PNP 동시 흡착은 1차는 벨트 하강, 2차는 얼라인 하강 상태에서만 가능
+			else if( P_DataList(N_Obj) == Hex_12PNP || P_DataList(N_Obj) == Hex_An_12PNP )
+			{
+				if( !( P_DataList(N_Cur) == ( Comb_CurComb_BeltDn | Comb_CurComb_AlignDn )))
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 14
+			}
+			// 5.3.4. 양/음극 NG PNP 흡착은 얼라인 하강 상태에서만 가능
+			else if( P_DataList(N_Obj) == Hex_NgPNP || P_DataList(N_Obj) == Hex_An_NgPNP )
+			{
+				if( !(P_DataList(N_Cur) == Comb_CurComb_AlignDn) )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 15
+			}			
+		break;
+
+		// 5.4. 블로우
+		case Hex_Cmd_Blow :
+			// 5.3.1. 양/음극 1차 PNP 블로우는 얼라인 하강 위치에서만 가능
+			if( P_DataList(N_Obj) == Hex_1stPNP || P_DataList(N_Obj) == Hex_An_1stPNP )
+			{
+				if( !(P_DataList(N_Cur) == Comb_CurComb_AlignDn) )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 16
+			}
+			// 5.3.2. 양/음극 2차 PNP 블로우는 얼라인 하강 상태에서만 가능( 스택 블로우는 HOLD 상태에서는 하지 않음)
+			else if( P_DataList(N_Obj) == Hex_2ndPNP || P_DataList(N_Obj) == Hex_An_2ndPNP )
+			{
+				if( !(P_DataList(N_Cur) == Comb_CurComb_AlignDn) )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 17
+			}
+			// 5.3.3. 양/음극 NG PNP 블로우는 NG 상승 또는 NG 하강 위치에서만 가능
+			else if( P_DataList(N_Obj) == Hex_NgPNP || P_DataList(N_Obj) == Hex_An_NgPNP )
+			{
+				if( !(P_DataList(N_Cur) == Comb_CurComb_NGReadyUp || P_DataList(N_Cur) == Comb_CurComb_NGReadyDn) )
+					P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) = 18
+			}
+		break;
+
+		case Hex_Cmd_Stop :
+		break;
+
+		default :
+		break;
+	}	
+
+	if( P_Hold_Data_Err(N_Obj) != 0 || P_Hold_Data_Err(N_Elec) != 0 || P_Hold_Data_Err(N_Cmd) != 0 || P_Hold_Data_Err(N_Dst) != 0 || P_Hold_Data_Err(N_Hold_CMD_Pos_Mismatch) != 0 )
+	{
+		//P_HOLD_Data_Err_Queue = P_Queue_Command_Status
+		//if( P_HOLD_Data_Err_Queue == N_Function_Hold_Existence_Insp_Process )
+		//{
+		//	P_HOLD_Data_Err_State_Machine = P_HOLD_Existence_Insp_Queue_State_Machine		// 에러 발생한 스탭 저장
+		//	P_HOLD_Err_Set_Data = P_Get_Data_Idx											// 몇번째 set data에서 문제가 생겼는지 파악
+		//}
+		//else if( P_HOLD_Data_Err_Queue == N_Function_Hold_Process )
+		//{
+		//	P_HOLD_Data_Err_State_Machine = P_HOLD_Hold_Process_State_Machine				// 에러 발생한 스탭 저장
+		//	P_HOLD_Err_Set_Data = P_Get_Data_Idx                                            // 몇번째 set data에서 문제가 생겼는지 파악
+		//}
+		P_Hold_Err_MNTR(N_Hold_Data_Err) = 1
+		rtn = N_Hold_Data_Err;
+	}
+	else
+		rtn = 1;
+
+
+
+
+
+close

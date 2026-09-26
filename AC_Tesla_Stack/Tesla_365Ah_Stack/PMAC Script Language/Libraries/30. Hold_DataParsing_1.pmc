@@ -1,0 +1,409 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+
+
+open subprog DataParsing(void)
+	// Selected_Obj : 1차, 2차, NG, Both
+	// Cur_Pos : Obj 에 대한 현재 위치
+	// Cmd_Pos : 모션 실행을 해야 할 위치
+	// SlaveCmd : 현재 위치 to 실행 위치 Slave 트리거.
+	// call 위치 메모리 함수 부르고, 그 값을 CurPos를 Parsing하는 작업이 필요하다.
+
+
+sub:Get_CurPos(Data, &HoldCurPos)
+
+	P_individual_return = 0;
+	P_individual_return2 = 0;
+	P_HoldCurPosBit1 = 0;
+	P_HoldCurPosBit2 = 0;
+	P_Parsing_Status = 0;
+	P_DataList(0),5,1 = 0;
+	P_DataList(N_Obj) = Data & Hex_Obj_Masking;			// 유닛 선택
+	P_DataList(N_Cmd) = Data & Hex_Cmd_Masking;			// 수평이동, 수직이동, 진공, 블로우, 스탑
+	P_DataList(N_Dst) = Data & Hex_Dst_Masking;			// 목적지
+	P_DataList(N_Cur) = Data & Hex_Cur_Masking;			// 현재위치
+	P_DataList(N_Elec) = Data & Hex_Elec_Masking;		// 음극 or 양극
+
+	P_Error = 0;
+
+	switch(P_DataList(N_Obj))
+	{
+		case Hex_1stPNP :
+			if(P_DataList(N_Elec) == Hex_Anode_Unit)
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP, &P_Anode_1st_Unit_Status, &P_individual_return);		// 1st pnp
+				if(P_individual_return == 1)
+				{
+					call DataParsing.CurPosConv_1stPNP(P_Anode_1st_Unit_Status, &P_HoldCurPosBit1);
+					if( P_HoldCurPosBit1 != -1 )
+						P_Parsing_Status = 1;
+					else
+						P_Parsing_Status = -1;
+				}
+				else
+				{
+					P_Parsing_Status = -1;
+				}
+			}
+			else
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP, &P_Cathode_1st_Unit_Status, &P_individual_return);		// 1st pnp
+				if(P_individual_return == 1)
+				{
+
+					call DataParsing.CurPosConv_1stPNP(P_Cathode_1st_Unit_Status, &P_HoldCurPosBit1);
+					if( P_HoldCurPosBit1 != -1 )
+					{
+						P_Parsing_Status = 1;
+					}
+					else
+					{
+						P_Parsing_Status = -1;
+					}
+				}
+				else
+				{
+					P_Parsing_Status = -1;
+				}
+			}
+
+		break;
+
+		case Hex_2ndPNP :
+			if(P_DataList(N_Elec) == Hex_Anode_Unit)
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP, &P_Anode_2nd_Unit_Status, &P_individual_return);		// 1st pnp
+				if(P_individual_return == 1)
+				{
+					call DataParsing.CurPosConv_2ndPNP(P_Anode_2nd_Unit_Status, &P_HoldCurPosBit1);
+					if( P_HoldCurPosBit1 != -1 )
+						P_Parsing_Status = 1;
+					else
+						P_Parsing_Status = -1;
+				}
+				else
+				{
+					P_Parsing_Status = -1;
+				}
+			}
+			else
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP, &P_Cathode_2nd_Unit_Status, &P_individual_return);		// 1st pnp
+				if(P_individual_return == 1)
+				{
+					call DataParsing.CurPosConv_2ndPNP(P_Cathode_2nd_Unit_Status, &P_HoldCurPosBit1);
+					if( P_HoldCurPosBit1 != -1 )
+						P_Parsing_Status = 1;
+					else
+						P_Parsing_Status = -1;
+				}
+				else
+				{
+					P_Parsing_Status = -1;
+				}
+			}
+
+		break;
+
+		case Hex_NgPNP :
+			if(P_DataList(N_Elec) == Hex_Anode_Unit)
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_NG_PNP, &P_Anode_NG_Unit_Status, &P_individual_return);		// 1st pnp
+				if(P_individual_return == 1)
+				{
+					call DataParsing.CurPosConv_NgPNP(P_Anode_NG_Unit_Status, &P_HoldCurPosBit1);
+					if( P_HoldCurPosBit1 != -1 )
+						P_Parsing_Status = 1;
+					else
+						P_Parsing_Status = -1;
+				}
+				else
+				{
+					P_Parsing_Status = -1;
+				}
+			}
+			else
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_NG_PNP, &P_Cathode_NG_Unit_Status, &P_individual_return);		// 1st pnp
+				if(P_individual_return == 1)
+				{
+					call DataParsing.CurPosConv_NgPNP(P_Cathode_NG_Unit_Status, &P_HoldCurPosBit1);
+					if( P_HoldCurPosBit1 != -1 )
+						P_Parsing_Status = 1;
+					else
+						P_Parsing_Status = -1;
+
+				}
+				else
+				{
+					P_Parsing_Status = -1;
+				}		
+			}
+
+		break;
+
+		case Hex_12PNP:
+			if(P_DataList(N_Elec) == Hex_Anode_Unit)
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP, &P_Anode_1st_Unit_Status, &P_individual_return);		// 1st pnp
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP, &P_Anode_2nd_Unit_Status, &P_individual_return2);		// 1st pnp
+				if(P_individual_return & P_individual_return2 )
+				{
+					call DataParsing.CurPosConv_1stPNP(P_Anode_1st_Unit_Status, &P_HoldCurPosBit1);
+					call DataParsing.CurPosConv_2ndPNP(P_Anode_2nd_Unit_Status, &P_HoldCurPosBit2);
+					if( P_HoldCurPosBit1 != -1 && P_HoldCurPosBit2 != -1 )
+						P_Parsing_Status = 1;
+					else
+						P_Parsing_Status = -1;
+				}
+				else
+				{
+					P_Parsing_Status = -1;
+				}
+			}
+			else
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP, &P_Cathode_1st_Unit_Status, &P_individual_return);		// 1st pnp
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP, &P_Cathode_2nd_Unit_Status, &P_individual_return2);		// 1st pnp
+				if(P_individual_return & P_individual_return2 )
+				{
+					call DataParsing.CurPosConv_1stPNP(P_Cathode_1st_Unit_Status, &P_HoldCurPosBit1);
+					call DataParsing.CurPosConv_2ndPNP(P_Cathode_2nd_Unit_Status, &P_HoldCurPosBit2);
+					if( P_HoldCurPosBit1 != -1 && P_HoldCurPosBit2 != -1 )
+						P_Parsing_Status = 1;
+					else
+						P_Parsing_Status = -1;
+				}
+				else
+				{
+					P_Parsing_Status = -1;
+				}	
+			}
+
+		break;
+
+		case Hex_1NGPNP:
+
+			if(P_DataList(N_Elec) == Hex_Anode_Unit)
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP, &P_Anode_1st_Unit_Status, &P_individual_return);		// 1st pnp
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_NG_PNP, &P_Anode_NG_Unit_Status, &P_individual_return2);		// 1st pnp
+				if(P_individual_return & P_individual_return2 )
+				{
+					call DataParsing.CurPosConv_1stPNP(P_Anode_1st_Unit_Status, &P_HoldCurPosBit1);
+					call DataParsing.CurPosConv_NgPNP(P_Anode_NG_Unit_Status, &P_HoldCurPosBit2);
+					if( P_HoldCurPosBit1 != -1 && P_HoldCurPosBit2 != -1 )
+						P_Parsing_Status = 1;
+					else
+						P_Parsing_Status = -1;
+				}
+				else
+				{
+					P_Parsing_Status = -1;
+				}
+			}
+			else
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP, &P_Cathode_1st_Unit_Status, &P_individual_return);		// 1st pnp
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_NG_PNP, &P_Cathode_NG_Unit_Status, &P_individual_return2);		// 1st pnp
+				if(P_individual_return & P_individual_return2 )
+				{
+					call DataParsing.CurPosConv_1stPNP(P_Cathode_1st_Unit_Status, &P_HoldCurPosBit1);
+					call DataParsing.CurPosConv_NgPNP(P_Cathode_NG_Unit_Status, &P_HoldCurPosBit2);
+					if( P_HoldCurPosBit1 != -1 && P_HoldCurPosBit2 != -1 )
+						P_Parsing_Status = 1;
+					else
+						P_Parsing_Status = -1;
+				}
+				else
+				{
+					P_Parsing_Status = -1;
+				}
+			}
+
+
+		break;
+
+
+		case Hex_2NGPNP:
+			if(P_DataList(N_Elec) == Hex_Anode_Unit)
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP, &P_Anode_2nd_Unit_Status, &P_individual_return);		// 1st pnp
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_NG_PNP, &P_Anode_NG_Unit_Status, &P_individual_return2);		// 1st pnp
+				if(P_individual_return & P_individual_return2 )
+				{
+					call DataParsing.CurPosConv_2ndPNP(P_Anode_2nd_Unit_Status, &P_HoldCurPosBit1);
+					call DataParsing.CurPosConv_NgPNP(P_Anode_NG_Unit_Status, &P_HoldCurPosBit2);
+					if( P_HoldCurPosBit1 != -1 && P_HoldCurPosBit2 != -1 )
+						P_Parsing_Status = 1;
+					else
+						P_Parsing_Status = -1;
+				}
+				else
+				{
+					P_Parsing_Status = -1;
+				}
+			}
+			else
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP, &P_Cathode_2nd_Unit_Status, &P_individual_return);		// 1st pnp
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_NG_PNP, &P_Cathode_NG_Unit_Status, &P_individual_return2);		// 1st pnp
+				if(P_individual_return & P_individual_return2 )
+				{
+					call DataParsing.CurPosConv_2ndPNP(P_Cathode_2nd_Unit_Status, &P_HoldCurPosBit1);
+					call DataParsing.CurPosConv_NgPNP(P_Cathode_NG_Unit_Status, &P_HoldCurPosBit2);
+					if( P_HoldCurPosBit1 != -1 && P_HoldCurPosBit2 != -1 )
+						P_Parsing_Status = 1;
+					else
+						P_Parsing_Status = -1;
+				}
+				else
+				{
+					P_Parsing_Status = -1;
+				}
+			}
+
+
+		break;
+
+		default:
+
+		break;
+	}
+
+	
+	if( Data == Hex_Cmd_Stop )
+	{
+		HoldCurPos = Hex_Cmd_Stop
+	}
+	else if(P_Parsing_Status != -1)
+	{
+		P101 = P_HoldCurPosBit1 | P_HoldCurPosBit2;
+		HoldCurPos = P_HoldCurPosBit1 | P_HoldCurPosBit2;
+	}
+	else
+	{
+		P_Hold_Err_MNTR(N_Memory_Tower_Err) = 1;
+		HoldCurPos = -1;
+	}
+
+
+
+return
+
+
+sub:CurPosConv_1stPNP(CurPos, &ConvCurPos)
+
+	switch(CurPos)
+	{
+		case F_1st_PNP_Belt_Up_Pos:
+			ConvCurPos = Comb_CurComb_BeltUp;
+		break;
+
+		case F_1st_PNP_Belt_Down_Pos:
+			ConvCurPos = Comb_CurComb_BeltDn;
+		break;
+
+		case F_1st_PNP_Init_Up_Pos:
+			ConvCurPos = Comb_CurComb_1stReadyUP;
+		break;
+		case F_1st_PNP_Init_Down_Pos:
+			ConvCurPos = Comb_CurComb_1stReadyDn;
+		break;
+
+		case F_1st_PNP_Align_Up_Pos:
+			ConvCurPos = Comb_CurComb_AlignUp;
+		break;
+
+		case F_1st_PNP_Align_Down_Pos:
+			ConvCurPos = Comb_CurComb_AlignDn;
+		break;
+
+		default:
+			ConvCurPos = -1;
+		break;
+
+	}
+
+return;
+
+
+sub:CurPosConv_2ndPNP(CurPos, &ConvCurPos)
+	switch(CurPos)
+	{
+		case F_2nd_PNP_Align_Up_Pos:
+			ConvCurPos = Comb_CurComb_AlignUp;
+		break;
+
+		case F_2nd_PNP_Align_Down_Pos:
+			ConvCurPos = Comb_CurComb_AlignDn;
+		break;
+
+		case F_2nd_PNP_Stack_Up_Pos:
+			ConvCurPos = Comb_CurComb_StackUp;
+		break;
+		case F_2nd_PNP_Stack_Down_Pos:
+			ConvCurPos = Comb_CurComb_StackDn;
+		break;
+
+		case F_2nd_PNP_NG_Avoid_Up_Pos:
+			ConvCurPos = Comb_CurComb_DodgeUp;
+		break;
+
+		//case F_2nd_PNP_NG_Avoid_Down_Pos:
+		//	ConvCurPos = Comb_CurComb_DodgeDn;
+		//break;
+
+		default:
+			ConvCurPos = -1;
+		break;
+
+	}
+
+return;
+
+sub:CurPosConv_NgPNP(CurPos, &ConvCurPos)
+	switch(CurPos)
+	{
+		case F_NG_PNP_NgBox_Up_Pos:
+			ConvCurPos = Comb_CurComb_NGReadyUp;
+		break;
+
+		case F_NG_PNP_NgBox_Down_Pos:
+			ConvCurPos = Comb_CurComb_NGReadyDn;
+		break;
+
+		case F_NG_PNP_Align_Up_Pos:
+			ConvCurPos = Comb_CurComb_AlignUp;
+		break;
+		case F_NG_PNP_Align_Down_Pos:
+			ConvCurPos = Comb_CurComb_AlignDn;
+		break;
+
+		default:
+			ConvCurPos = -1;
+		break;
+
+	}
+return;
+ 
+sub:Check_SamePosDestCur(Dest, Cur, &rtn)
+
+	local L_Dest_RShift = (Dest >> 12)
+	if( L_Dest_RShift == Cur)
+	{
+		rtn = 1;
+	}
+	else
+	{
+		rtn = -1;
+	}
+
+return;
+
+
+close

@@ -1,0 +1,29 @@
+// Stack Table SubMaster Program
+// 좌표계 &16
+// 가상축 #56
+
+/* 프로그램 설명
+서브마스터 프로그램은 5ms마다 서브프로그램을 호출하여 명령값을 검사.
+서브프로그램 안에서는 모드에 따라 트리거 카운트에 맞춰 배열값을 로컬변수에 저장한 후 트리거 상승시에만 슬레이브에 커멘드값 전달.
+커멘드값은 슬레이브 프로그램안에서만 초기화가 됨. 
+*/
+
+&16
+#56 -> X
+
+open prog 16
+
+INC
+LINEAR
+TA(0)TS(0)
+TM(5)	// 5ms
+// TM(1)->TM(2)로 수정 2019.12.14 구준영S -> CPU 오버 플로우로 인해 서브마스터 프로그램 다운.
+
+while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(6) == 1 )
+{			// 프로그램 허용 플래그
+	X(5)
+	call Sub_ModeArray_Stack_Table_Slave_6( P_Current_Mode,P_Master_Motion_Trigger )	// 1ms에 한번씩 명령어 체크 및 전달
+}
+close
+
+

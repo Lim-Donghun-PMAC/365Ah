@@ -1,0 +1,847 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+
+// Background C 프로그램에서 사용하는 M변수 Define
+// 2024.01.02
+ptr M_Sys_Time->Sys.Time;	// Test
+// C - home
+global	P_Homing_Step_Monitor(50);	// 홈실행중인 스텝번호를 P변수로 확인하기 위해 추가된 변수.
+P_Homing_Step_Monitor(0),50=0;
+
+// 축카드 구조체를 M변수로 포인팅하여 사용.
+ptr M_Gate3_MinusLimit(27)->*;	
+M_Gate3_MinusLimit(0)->*;
+M_Gate3_MinusLimit(1)->Gate3[0].Chan[0].MinusLimit;
+M_Gate3_MinusLimit(2)->Gate3[0].Chan[1].MinusLimit;
+M_Gate3_MinusLimit(3)->Gate3[0].Chan[2].MinusLimit;
+M_Gate3_MinusLimit(4)->Gate3[0].Chan[3].MinusLimit;
+M_Gate3_MinusLimit(5)->Gate3[2].Chan[0].MinusLimit;
+M_Gate3_MinusLimit(6)->Gate3[2].Chan[1].MinusLimit;
+M_Gate3_MinusLimit(7)->Gate3[2].Chan[2].MinusLimit;
+M_Gate3_MinusLimit(8)->Gate3[2].Chan[3].MinusLimit;
+M_Gate3_MinusLimit(9)->Gate3[3].Chan[0].MinusLimit;
+M_Gate3_MinusLimit(10)->Gate3[3].Chan[1].MinusLimit;
+M_Gate3_MinusLimit(11)->Gate3[3].Chan[2].MinusLimit;
+M_Gate3_MinusLimit(12)->Gate3[3].Chan[3].MinusLimit;
+M_Gate3_MinusLimit(13)->Gate3[4].Chan[0].MinusLimit;
+M_Gate3_MinusLimit(14)->Gate3[4].Chan[1].MinusLimit;
+M_Gate3_MinusLimit(15)->Gate3[4].Chan[2].MinusLimit;
+M_Gate3_MinusLimit(16)->Gate3[4].Chan[3].MinusLimit;
+M_Gate3_MinusLimit(17)->Gate3[5].Chan[0].MinusLimit;
+M_Gate3_MinusLimit(18)->Gate3[5].Chan[1].MinusLimit;
+M_Gate3_MinusLimit(19)->Gate3[5].Chan[2].MinusLimit;
+M_Gate3_MinusLimit(20)->Gate3[5].Chan[3].MinusLimit;
+M_Gate3_MinusLimit(21)->Gate3[6].Chan[0].MinusLimit;
+M_Gate3_MinusLimit(22)->Gate3[6].Chan[1].MinusLimit;
+M_Gate3_MinusLimit(23)->Gate3[6].Chan[2].MinusLimit;
+M_Gate3_MinusLimit(24)->Gate3[6].Chan[3].MinusLimit;
+M_Gate3_MinusLimit(25)->Gate3[7].Chan[0].MinusLimit;
+M_Gate3_MinusLimit(26)->Gate3[7].Chan[1].MinusLimit;
+// 축카드 구조체를 M변수로 포인팅하여 사용.
+ptr M_Gate3_HomeLimit(27)->*;
+M_Gate3_HomeLimit(0)->*;
+M_Gate3_HomeLimit(1)->Gate3[0].Chan[0].HomeFlag;
+M_Gate3_HomeLimit(2)->Gate3[0].Chan[1].HomeFlag;
+M_Gate3_HomeLimit(3)->Gate3[0].Chan[2].HomeFlag;
+M_Gate3_HomeLimit(4)->Gate3[0].Chan[3].HomeFlag;
+M_Gate3_HomeLimit(5)->Gate3[2].Chan[0].HomeFlag;
+M_Gate3_HomeLimit(6)->Gate3[2].Chan[1].HomeFlag;
+M_Gate3_HomeLimit(7)->Gate3[2].Chan[2].HomeFlag;
+M_Gate3_HomeLimit(8)->Gate3[2].Chan[3].HomeFlag;
+M_Gate3_HomeLimit(9)->Gate3[3].Chan[0].HomeFlag;
+M_Gate3_HomeLimit(10)->Gate3[3].Chan[1].HomeFlag;
+M_Gate3_HomeLimit(11)->Gate3[3].Chan[2].HomeFlag;
+M_Gate3_HomeLimit(12)->Gate3[3].Chan[3].HomeFlag;
+M_Gate3_HomeLimit(13)->Gate3[4].Chan[0].HomeFlag;
+M_Gate3_HomeLimit(14)->Gate3[4].Chan[1].HomeFlag;
+M_Gate3_HomeLimit(15)->Gate3[4].Chan[2].HomeFlag;
+M_Gate3_HomeLimit(16)->Gate3[4].Chan[3].HomeFlag;
+M_Gate3_HomeLimit(17)->Gate3[5].Chan[0].HomeFlag;
+M_Gate3_HomeLimit(18)->Gate3[5].Chan[1].HomeFlag;
+M_Gate3_HomeLimit(19)->Gate3[5].Chan[2].HomeFlag;
+M_Gate3_HomeLimit(20)->Gate3[5].Chan[3].HomeFlag;
+M_Gate3_HomeLimit(21)->Gate3[6].Chan[0].HomeFlag;
+M_Gate3_HomeLimit(22)->Gate3[6].Chan[1].HomeFlag;
+M_Gate3_HomeLimit(23)->Gate3[6].Chan[2].HomeFlag;
+M_Gate3_HomeLimit(24)->Gate3[6].Chan[3].HomeFlag;
+M_Gate3_HomeLimit(25)->Gate3[7].Chan[0].HomeFlag;
+M_Gate3_HomeLimit(26)->Gate3[7].Chan[1].HomeFlag;
+
+global	P_231213_Test_Status(50);
+
+
+// C - jog
+// 원섭 테스트
+#define	F_NONE								0
+#define	F_RISING_EDGE						1
+#define	F_HOLD								2
+#define	F_FALLING_EDGE						3
+
+// 엄원섭
+//global	P_BTN_Flag(10);
+//P_BTN_Flag(0),10,1 = 0;
+//
+//global	P_btn_Status_Update_Complete = 0;
+//global	P_MAN_TIME = 1;
+//global	P_Flag_Status_Clear = 0;
+//
+//ptr M_BTN_Servo_On_Off(30)->*;
+//ptr M_BTN_Home(30)->*;
+//ptr M_BTN_Jog_Stop(30)->*;
+//ptr M_BTN_Recipe_POS_RUN(30)->*;
+//ptr M_BTN_JOG_INC(30)->*;
+//ptr M_BTN_JOG_ABS(30)->*;
+//ptr M_BTN_JOG_Move_Plus(30)->*;
+//ptr	M_BTN_JOG_Move_Minus(30)->*;
+//ptr M_Recipe_POS_Flag(30)->*;
+//
+//// ↓ jog.c에서 버튼에 대한 정보를 읽어오기 위해 각 버튼들은 udata의 bit를 가리켜 udata에 정보를 담고
+//// 버튼에 대한 실제 값(커멘드)는 plc07에서 대입하여 준다.
+///* #1 Upper Unwinder Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1001] */
+//M_BTN_Servo_On_Off(1)		->	u.user:$000FA4.01.1;
+//M_BTN_Home(1)				->	u.user:$000FA4.02.1;
+//M_BTN_Jog_Stop(1)			->	u.user:$000FA4.03.1;
+//M_BTN_Recipe_POS_RUN(1)		->	u.user:$000FA4.04.1;
+//M_BTN_JOG_INC(1)			->	u.user:$000FA4.05.1;
+//M_BTN_JOG_ABS(1)			->	u.user:$000FA4.06.1;
+//M_BTN_JOG_Move_Plus(1)		->	u.user:$000FA4.07.1;		
+//M_BTN_JOG_Move_Minus(1)		->	u.user:$000FA4.08.1;		
+//M_Recipe_POS_Flag(1)		->	u.user:$000FA4.16.16;
+//
+///* #2 Lower Unwinder Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1002] */
+//M_BTN_Servo_On_Off(2)		->	u.user:$000FA8.01.1;
+//M_BTN_Home(2)				->	u.user:$000FA8.02.1;
+//M_BTN_Jog_Stop(2)			->	u.user:$000FA8.03.1;
+//M_BTN_Recipe_POS_RUN(2)		->	u.user:$000FA8.04.1;
+//M_BTN_JOG_INC(2)			->	u.user:$000FA8.05.1;
+//M_BTN_JOG_ABS(2)			->	u.user:$000FA8.06.1;
+//M_BTN_JOG_Move_Plus(2)		->	u.user:$000FA8.07.1;
+//M_BTN_JOG_Move_Minus(2)		->	u.user:$000FA8.08.1;
+//M_Recipe_POS_Flag(2)		->	u.user:$000FA8.16.16;
+//
+///* #3 Active Dancer Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1003] */
+//M_BTN_Servo_On_Off(3)		->	u.user:$000FAC.01.1;
+//M_BTN_Home(3)				->	u.user:$000FAC.02.1;
+//M_BTN_Jog_Stop(3)			->	u.user:$000FAC.03.1;
+//M_BTN_Recipe_POS_RUN(3)		->	u.user:$000FAC.04.1;
+//M_BTN_JOG_INC(3)			->	u.user:$000FAC.05.1;
+//M_BTN_JOG_ABS(3)			->	u.user:$000FAC.06.1;
+//M_BTN_JOG_Move_Plus(3)		->	u.user:$000FAC.07.1;
+//M_BTN_JOG_Move_Minus(3)		->	u.user:$000FAC.08.1;
+//M_Recipe_POS_Flag(3)		->	u.user:$000FAC.16.16;
+//
+//
+///* #4 EPC Sensor Jog 관련 PTR 변수 Define 영역 sys.udata[1004] */
+//M_BTN_Servo_On_Off(4)		->	u.user:$000FB0.01.1;
+//M_BTN_Home(4)				->	u.user:$000FB0.02.1;
+//M_BTN_Jog_Stop(4)			->	u.user:$000FB0.03.1;
+//M_BTN_Recipe_POS_RUN(4)		->	u.user:$000FB0.04.1;
+//M_BTN_JOG_INC(4)			->	u.user:$000FB0.05.1;
+//M_BTN_JOG_ABS(4)			->	u.user:$000FB0.06.1;
+//M_BTN_JOG_Move_Plus(4)		->	u.user:$000FB0.07.1;
+//M_BTN_JOG_Move_Minus(4)		->	u.user:$000FB0.08.1;
+//M_Recipe_POS_Flag(4)		->	u.user:$000FB0.16.16;
+//
+//
+///* #5 Final Roller X Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1005] */
+//M_BTN_Servo_On_Off(5)		->	u.user:$000FB4.01.1;
+//M_BTN_Home(5)				->	u.user:$000FB4.02.1;
+//M_BTN_Jog_Stop(5)			->	u.user:$000FB4.03.1;
+//M_BTN_Recipe_POS_RUN(5)		->	u.user:$000FB4.04.1;
+//M_BTN_JOG_INC(5)			->	u.user:$000FB4.05.1;
+//M_BTN_JOG_ABS(5)			->	u.user:$000FB4.06.1;
+//M_BTN_JOG_Move_Plus(5)		->	u.user:$000FB4.07.1;
+//M_BTN_JOG_Move_Minus(5)		->	u.user:$000FB4.08.1;
+//M_Recipe_POS_Flag(5)		->	u.user:$000FB4.16.16;
+//
+///* #6 Final Roller Z Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1006] */
+//M_BTN_Servo_On_Off(6)		->	u.user:$000FB8.01.1;
+//M_BTN_Home(6)				->	u.user:$000FB8.02.1;
+//M_BTN_Jog_Stop(6)			->	u.user:$000FB8.03.1;
+//M_BTN_Recipe_POS_RUN(6)		->	u.user:$000FB8.04.1;
+//M_BTN_JOG_INC(6)			->	u.user:$000FB8.05.1;
+//M_BTN_JOG_ABS(6)			->	u.user:$000FB8.06.1;
+//M_BTN_JOG_Move_Plus(6)		->	u.user:$000FB8.07.1;
+//M_BTN_JOG_Move_Minus(6)		->	u.user:$000FB8.08.1;
+//M_Recipe_POS_Flag(6)		->	u.user:$000FB8.16.16;
+//
+///* #7 Stack Main Z Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1007] */
+//M_BTN_Servo_On_Off(7)		->	u.user:$000FBC.01.1;
+//M_BTN_Home(7)				->	u.user:$000FBC.02.1;
+//M_BTN_Jog_Stop(7)			->	u.user:$000FBC.03.1;
+//M_BTN_Recipe_POS_RUN(7)		->	u.user:$000FBC.04.1;
+//M_BTN_JOG_INC(7)			->	u.user:$000FBC.05.1;
+//M_BTN_JOG_ABS(7)			->	u.user:$000FBC.06.1;
+//M_BTN_JOG_Move_Plus(7)		->	u.user:$000FBC.07.1;
+//M_BTN_JOG_Move_Minus(7)		->	u.user:$000FBC.08.1;
+//M_Recipe_POS_Flag(7)		->	u.user:$000FBC.16.16;
+//
+///* #8 Stack Sub Z Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1008] */
+//M_BTN_Servo_On_Off(8)		->	u.user:$000FC0.01.1;
+//M_BTN_Home(8)				->	u.user:$000FC0.02.1;
+//M_BTN_Jog_Stop(8)			->	u.user:$000FC0.03.1;
+//M_BTN_Recipe_POS_RUN(8)		->	u.user:$000FC0.04.1;
+//M_BTN_JOG_INC(8)			->	u.user:$000FC0.05.1;
+//M_BTN_JOG_ABS(8)			->	u.user:$000FC0.06.1;
+//M_BTN_JOG_Move_Plus(8)		->	u.user:$000FC0.07.1;
+//M_BTN_JOG_Move_Minus(8)		->	u.user:$000FC0.08.1;
+//M_Recipe_POS_Flag(8)		->	u.user:$000FC0.16.16;
+//
+///* #9 Cathode Clamp X Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1009] */
+//M_BTN_Servo_On_Off(9)		->	u.user:$000FC4.01.1;
+//M_BTN_Home(9)				->	u.user:$000FC4.02.1;
+//M_BTN_Jog_Stop(9)			->	u.user:$000FC4.03.1;
+//M_BTN_Recipe_POS_RUN(9)		->	u.user:$000FC4.04.1;
+//M_BTN_JOG_INC(9)			->	u.user:$000FC4.05.1;
+//M_BTN_JOG_ABS(9)			->	u.user:$000FC4.06.1;
+//M_BTN_JOG_Move_Plus(9)		->	u.user:$000FC4.07.1;
+//M_BTN_JOG_Move_Minus(9)		->	u.user:$000FC4.08.1;
+//M_Recipe_POS_Flag(9)		->	u.user:$000FC4.16.16;
+//
+///* #10 Anode Clamp X Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1010] */
+//M_BTN_Servo_On_Off(10)		->	u.user:$000FC8.01.1;
+//M_BTN_Home(10)				->	u.user:$000FC8.02.1;
+//M_BTN_Jog_Stop(10)			->	u.user:$000FC8.03.1;
+//M_BTN_Recipe_POS_RUN(10)	->	u.user:$000FC8.04.1;
+//M_BTN_JOG_INC(10)			->	u.user:$000FC8.05.1;
+//M_BTN_JOG_ABS(10)			->	u.user:$000FC8.06.1;
+//M_BTN_JOG_Move_Plus(10)		->	u.user:$000FC8.07.1;
+//M_BTN_JOG_Move_Minus(10)	->	u.user:$000FC8.08.1;
+//M_Recipe_POS_Flag(10)		->	u.user:$000FC8.16.16;
+//
+///* #11 Cathode Clamp Z Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1011] */
+//M_BTN_Servo_On_Off(11)		->	u.user:$000FCC.01.1;
+//M_BTN_Home(11)				->	u.user:$000FCC.02.1;
+//M_BTN_Jog_Stop(11)			->	u.user:$000FCC.03.1;
+//M_BTN_Recipe_POS_RUN(11)	->	u.user:$000FCC.04.1;
+//M_BTN_JOG_INC(11)			->	u.user:$000FCC.05.1;
+//M_BTN_JOG_ABS(11)			->	u.user:$000FCC.06.1;
+//M_BTN_JOG_Move_Plus(11)		->	u.user:$000FCC.07.1;
+//M_BTN_JOG_Move_Minus(11)	->	u.user:$000FCC.08.1;
+//M_Recipe_POS_Flag(11)		->	u.user:$000FCC.16.16;
+//
+///* #12 Anode Clamp Z Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1012] */
+//M_BTN_Servo_On_Off(12)		->	u.user:$000FD0.01.1;
+//M_BTN_Home(12)				->	u.user:$000FD0.02.1;
+//M_BTN_Jog_Stop(12)			->	u.user:$000FD0.03.1;
+//M_BTN_Recipe_POS_RUN(12)	->	u.user:$000FD0.04.1;
+//M_BTN_JOG_INC(12)			->	u.user:$000FD0.05.1;
+//M_BTN_JOG_ABS(12)			->	u.user:$000FD0.06.1;
+//M_BTN_JOG_Move_Plus(12)		->	u.user:$000FD0.07.1;
+//M_BTN_JOG_Move_Minus(12)	->	u.user:$000FD0.08.1;
+//M_Recipe_POS_Flag(12)		->	u.user:$000FD0.16.16;
+//
+///* #13 Cathode 1st Z Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1013] */
+//M_BTN_Servo_On_Off(13)		->	u.user:$000FD4.01.1;
+//M_BTN_Home(13)				->	u.user:$000FD4.02.1;
+//M_BTN_Jog_Stop(13)			->	u.user:$000FD4.03.1;
+//M_BTN_Recipe_POS_RUN(13)	->	u.user:$000FD4.04.1;
+//M_BTN_JOG_INC(13)			->	u.user:$000FD4.05.1;
+//M_BTN_JOG_ABS(13)			->	u.user:$000FD4.06.1;
+//M_BTN_JOG_Move_Plus(13)		->	u.user:$000FD4.07.1;
+//M_BTN_JOG_Move_Minus(13)	->	u.user:$000FD4.08.1;
+//M_Recipe_POS_Flag(13)		->	u.user:$000FD4.16.16;
+//
+///* #14 Anode 1st Z Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1014] */
+//M_BTN_Servo_On_Off(14)		->	u.user:$000FD8.01.1;
+//M_BTN_Home(14)				->	u.user:$000FD8.02.1;
+//M_BTN_Jog_Stop(14)			->	u.user:$000FD8.03.1;
+//M_BTN_Recipe_POS_RUN(14)	->	u.user:$000FD8.04.1;
+//M_BTN_JOG_INC(14)			->	u.user:$000FD8.05.1;
+//M_BTN_JOG_ABS(14)			->	u.user:$000FD8.06.1;
+//M_BTN_JOG_Move_Plus(14)		->	u.user:$000FD8.07.1;
+//M_BTN_JOG_Move_Minus(14)	->	u.user:$000FD8.08.1;
+//M_Recipe_POS_Flag(14)		->	u.user:$000FD8.16.16;
+//
+///* #15 Cathode 2nd Z Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1015] */
+//M_BTN_Servo_On_Off(15)		->	u.user:$000FDC.01.1;
+//M_BTN_Home(15)				->	u.user:$000FDC.02.1;
+//M_BTN_Jog_Stop(15)			->	u.user:$000FDC.03.1;
+//M_BTN_Recipe_POS_RUN(15)	->	u.user:$000FDC.04.1;
+//M_BTN_JOG_INC(15)			->	u.user:$000FDC.05.1;
+//M_BTN_JOG_ABS(15)			->	u.user:$000FDC.06.1;
+//M_BTN_JOG_Move_Plus(15)		->	u.user:$000FDC.07.1;
+//M_BTN_JOG_Move_Minus(15)	->	u.user:$000FDC.08.1;
+//M_Recipe_POS_Flag(15)		->	u.user:$000FDC.16.16;
+//
+///* #16 Anode 2nd Z Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1016] */
+//M_BTN_Servo_On_Off(16)		->	u.user:$000FE0.01.1;
+//M_BTN_Home(16)				->	u.user:$000FE0.02.1;
+//M_BTN_Jog_Stop(16)			->	u.user:$000FE0.03.1;
+//M_BTN_Recipe_POS_RUN(16)	->	u.user:$000FE0.04.1;
+//M_BTN_JOG_INC(16)			->	u.user:$000FE0.05.1;
+//M_BTN_JOG_ABS(16)			->	u.user:$000FE0.06.1;
+//M_BTN_JOG_Move_Plus(16)		->	u.user:$000FE0.07.1;
+//M_BTN_JOG_Move_Minus(16)	->	u.user:$000FE0.08.1;
+//M_Recipe_POS_Flag(16)		->	u.user:$000FE0.16.16;
+//
+///* #17 Cathode 1st X Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1017] */
+//M_BTN_Servo_On_Off(17)		->	u.user:$000FE4.01.1;
+//M_BTN_Home(17)				->	u.user:$000FE4.02.1;
+//M_BTN_Jog_Stop(17)			->	u.user:$000FE4.03.1;
+//M_BTN_Recipe_POS_RUN(17)	->	u.user:$000FE4.04.1;
+//M_BTN_JOG_INC(17)			->	u.user:$000FE4.05.1;
+//M_BTN_JOG_ABS(17)			->	u.user:$000FE4.06.1;
+//M_BTN_JOG_Move_Plus(17)		->	u.user:$000FE4.07.1;
+//M_BTN_JOG_Move_Minus(17)	->	u.user:$000FE4.08.1;
+//M_Recipe_POS_Flag(17)		->	u.user:$000FE4.16.16;
+//
+///* #18 Anode 1st X Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1018] */
+//M_BTN_Servo_On_Off(18)		->	u.user:$000FE8.01.1;
+//M_BTN_Home(18)				->	u.user:$000FE8.02.1;
+//M_BTN_Jog_Stop(18)			->	u.user:$000FE8.03.1;
+//M_BTN_Recipe_POS_RUN(18)	->	u.user:$000FE8.04.1;
+//M_BTN_JOG_INC(18)			->	u.user:$000FE8.05.1;
+//M_BTN_JOG_ABS(18)			->	u.user:$000FE8.06.1;
+//M_BTN_JOG_Move_Plus(18)		->	u.user:$000FE8.07.1;
+//M_BTN_JOG_Move_Minus(18)	->	u.user:$000FE8.08.1;
+//M_Recipe_POS_Flag(18)		->	u.user:$000FE8.16.16;
+//
+///* #19 Cathode 2nd X Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1019] */
+//M_BTN_Servo_On_Off(19)		->	u.user:$000FEC.01.1;
+//M_BTN_Home(19)				->	u.user:$000FEC.02.1;
+//M_BTN_Jog_Stop(19)			->	u.user:$000FEC.03.1;
+//M_BTN_Recipe_POS_RUN(19)	->	u.user:$000FEC.04.1;
+//M_BTN_JOG_INC(19)			->	u.user:$000FEC.05.1;
+//M_BTN_JOG_ABS(19)			->	u.user:$000FEC.06.1;
+//M_BTN_JOG_Move_Plus(19)		->	u.user:$000FEC.07.1;
+//M_BTN_JOG_Move_Minus(19)	->	u.user:$000FEC.08.1;
+//M_Recipe_POS_Flag(19)		->	u.user:$000FEC.16.16;
+//
+///* #20 Anode 2nd X Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1020] */
+//M_BTN_Servo_On_Off(20)		->	u.user:$000FF0.01.1;
+//M_BTN_Home(20)				->	u.user:$000FF0.02.1;
+//M_BTN_Jog_Stop(20)			->	u.user:$000FF0.03.1;
+//M_BTN_Recipe_POS_RUN(20)	->	u.user:$000FF0.04.1;
+//M_BTN_JOG_INC(20)			->	u.user:$000FF0.05.1;
+//M_BTN_JOG_ABS(20)			->	u.user:$000FF0.06.1;
+//M_BTN_JOG_Move_Plus(20)		->	u.user:$000FF0.07.1;
+//M_BTN_JOG_Move_Minus(20)	->	u.user:$000FF0.08.1;
+//M_Recipe_POS_Flag(20)		->	u.user:$000FF0.16.16;
+//
+///* #21 Cathode Align X Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1021] */
+//M_BTN_Servo_On_Off(21)		->	u.user:$000FF4.01.1;
+//M_BTN_Home(21)				->	u.user:$000FF4.02.1;
+//M_BTN_Jog_Stop(21)			->	u.user:$000FF4.03.1;
+//M_BTN_Recipe_POS_RUN(21)	->	u.user:$000FF4.04.1;
+//M_BTN_JOG_INC(21)			->	u.user:$000FF4.05.1;
+//M_BTN_JOG_ABS(21)			->	u.user:$000FF4.06.1;
+//M_BTN_JOG_Move_Plus(21)		->	u.user:$000FF4.07.1;
+//M_BTN_JOG_Move_Minus(21)	->	u.user:$000FF4.08.1;
+//M_Recipe_POS_Flag(21)		->	u.user:$000FF4.16.16;
+//
+///* #22 Cathode Align Y Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1022] */
+//M_BTN_Servo_On_Off(22)		->	u.user:$000FF8.01.1;
+//M_BTN_Home(22)				->	u.user:$000FF8.02.1;
+//M_BTN_Jog_Stop(22)			->	u.user:$000FF8.03.1;
+//M_BTN_Recipe_POS_RUN(22)	->	u.user:$000FF8.04.1;
+//M_BTN_JOG_INC(22)			->	u.user:$000FF8.05.1;
+//M_BTN_JOG_ABS(22)			->	u.user:$000FF8.06.1;
+//M_BTN_JOG_Move_Plus(22)		->	u.user:$000FF8.07.1;
+//M_BTN_JOG_Move_Minus(22)	->	u.user:$000FF8.08.1;
+//M_Recipe_POS_Flag(22)		->	u.user:$000FF8.16.16;
+//
+///* #23 Cathode Align T Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1023] */
+//M_BTN_Servo_On_Off(23)		->	u.user:$000FFC.01.1;
+//M_BTN_Home(23)				->	u.user:$000FFC.02.1;
+//M_BTN_Jog_Stop(23)			->	u.user:$000FFC.03.1;
+//M_BTN_Recipe_POS_RUN(23)	->	u.user:$000FFC.04.1;
+//M_BTN_JOG_INC(23)			->	u.user:$000FFC.05.1;
+//M_BTN_JOG_ABS(23)			->	u.user:$000FFC.06.1;
+//M_BTN_JOG_Move_Plus(23)		->	u.user:$000FFC.07.1;
+//M_BTN_JOG_Move_Minus(23)	->	u.user:$000FFC.08.1;
+//M_Recipe_POS_Flag(23)		->	u.user:$000FFC.16.16;
+//
+///* #24 Anode Align X Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1024] */
+//M_BTN_Servo_On_Off(24)		->	u.user:$001000.01.1;
+//M_BTN_Home(24)				->	u.user:$001000.02.1;
+//M_BTN_Jog_Stop(24)			->	u.user:$001000.03.1;
+//M_BTN_Recipe_POS_RUN(24)	->	u.user:$001000.04.1;
+//M_BTN_JOG_INC(24)			->	u.user:$001000.05.1;
+//M_BTN_JOG_ABS(24)			->	u.user:$001000.06.1;
+//M_BTN_JOG_Move_Plus(24)		->	u.user:$001000.07.1;
+//M_BTN_JOG_Move_Minus(24)	->	u.user:$001000.08.1;
+//M_Recipe_POS_Flag(24)		->	u.user:$001000.16.16;
+//
+///* #25 Anode Align Y Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1025] */
+//M_BTN_Servo_On_Off(25)		->	u.user:$001004.01.1;
+//M_BTN_Home(25)				->	u.user:$001004.02.1;
+//M_BTN_Jog_Stop(25)			->	u.user:$001004.03.1;
+//M_BTN_Recipe_POS_RUN(25)	->	u.user:$001004.04.1;
+//M_BTN_JOG_INC(25)			->	u.user:$001004.05.1;
+//M_BTN_JOG_ABS(25)			->	u.user:$001004.06.1;
+//M_BTN_JOG_Move_Plus(25)		->	u.user:$001004.07.1;
+//M_BTN_JOG_Move_Minus(25)	->	u.user:$001004.08.1;
+//M_Recipe_POS_Flag(25)		->	u.user:$001004.16.16;
+//
+///* #26 Anode Align T Motor Jog 관련 PTR 변수 Define 영역 sys.udata[1026] */
+//M_BTN_Servo_On_Off(26)		->	u.user:$001008.01.1;
+//M_BTN_Home(26)				->	u.user:$001008.02.1;
+//M_BTN_Jog_Stop(26)			->	u.user:$001008.03.1;
+//M_BTN_Recipe_POS_RUN(26)	->	u.user:$001008.04.1;
+//M_BTN_JOG_INC(26)			->	u.user:$001008.05.1;
+//M_BTN_JOG_ABS(26)			->	u.user:$001008.06.1;
+//M_BTN_JOG_Move_Plus(26)		->	u.user:$001008.07.1;
+//M_BTN_JOG_Move_Minus(26)	->	u.user:$001008.08.1;
+//M_Recipe_POS_Flag(26)		->	u.user:$001008.16.16;
+//
+///* #27 EPC Actuator Jog 관련 PTR 변수 Define 영역 sys.udata[1027] */ //[ 참조 : 240408 #4,#27모터 주소매칭 ]
+//M_BTN_Servo_On_Off(27)		->	u.user:$00100C.01.1;
+//M_BTN_Home(27)				->	u.user:$00100C.02.1;
+//M_BTN_Jog_Stop(27)			->	u.user:$00100C.03.1;
+//M_BTN_Recipe_POS_RUN(27)	->	u.user:$00100C.04.1;
+//M_BTN_JOG_INC(27)			->	u.user:$00100C.05.1;
+//M_BTN_JOG_ABS(27)			->	u.user:$00100C.06.1;
+//M_BTN_JOG_Move_Plus(27)		->	u.user:$00100C.07.1;
+//M_BTN_JOG_Move_Minus(27)	->	u.user:$00100C.08.1;
+//M_Recipe_POS_Flag(27)		->	u.user:$00100C.16.16;
+
+
+
+
+
+
+
+//===============================================================================
+// C-Language
+//===============================================================================
+global	P_BTN_Sepa_Stack_Mode = 0;
+global	P_BTN_Dryrun_Mode = 0;			// 드라이런 버튼 추가
+
+global	P_X_Btn_Align_Table_Take_Off=0;				// A/T 꺼내기모드 버튼 
+global	P_Align_Table_Take_Off_Flag=0;				// A/T 꺼내기모드 플래그.
+global	P_Flag_AT_Take_Off_Home_Chk_Flag=0;			// A/T 꺼내기모드 관련 모터 홈체크 플래그. [ 1: 정상 0: 비정상 ]
+global	P_Align_Table_Take_Off_State_Machine=0;		// A/T 꺼내기모드 스텟머신.
+global	P_Align_Table_Take_Off_Status=0;			// A/T 꺼내기모드 상태.
+global	P_AT_Take_Off_Jog_Speed = 30;				// A/T 꺼내기모드 조그속도.
+global	P_2nd_Transfer_AT_Take_Off_Pos = 225;//260;	// A/T 꺼내기모드 가능한 위치_2차 P&P ( mm 단위 )		
+
+// Stack Vision 명령어 변수 // [ 참조 : 240409 비전 cal 프로그램 업데이트]
+global P_VISION_Initial_Pos_Cmd = 0;						// Vision 초기 위치 이동 커멘드			
+global P_VISION_Cal_Pos_Cmd = 0;							// Vision Cal 대기 위치 이동 커멘드 ( 실제 Cal 위치 )
+global P_FR_Anode_Dritection_Pos_Cmd = 0;					// Final Roll 음극 방향 위치 이동 커멘드
+global P_FR_Cahode_Dritection_Pos_Cmd = 0;      			// Final Roll 양극 방향 위치 이동 커멘드
+global P_Anode_AT_Resolution_Cal_Pos_Cmd = 0;					// 음극 얼라인 테이블 해상도 Cal 위치 이동 커멘드
+global P_Cathode_AT_Resolution_Cal_Pos_Cmd = 0;					// 양극 얼라인 테이블 해상도 Cal 위치 이동 커멘드
+
+// Stack Vision 스텟 머신 변수
+global P_Vision_Initial_Pos_Status_Machine = 0;				// Vision 초기 위치 이동 스텟 머신 
+global P_Vision_Cal_Pos_Status_Machine = 0;                 // Vision Cal 대기 위치 이동 스텟 머신 ( 실제 Cal 위치 )
+global P_FR_Anode_Dritection_Pos_Status_Machine = 0;        // Final Roll 음극 방향 위치 이동 스텟 머신
+global P_FR_Cahode_Dritection_Pos_Status_Machine = 0;       // Final Roll 양극 방향 위치 이동 스텟 머신
+global P_Anode_AT_Resolution_Cal_Pos_Status_Machine = 0;		// 음극 얼라인 테이블 해상도 Cal 위치 이동 스텟 머신
+global P_Cathode_AT_Resolution_Cal_Pos_Status_Machine = 0;		// 양극 얼라인 테이블 해상도 Cal 위치 이동 스텟 머신
+
+// Stack Vision 상태 변수 
+global P_Status_Vision_Initial_Pos = 0;						// Vision 스텍 비전 초기 위치 모드 상태
+global P_Status_Vision_Cal_Pos = 0;                         // Vision 스텍 비전 켈 위치 모드 상태
+global P_Status_FR_Anode_Dritection_Pos = 0;                // Vision 스텍 비전 파이널 롤러 음극 방향 위치 상태
+global P_Status_FR_Cahode_Dritection_Pos = 0;               // Vision 스텍 비전 파이널 롤러 양극 방향 위치 상태
+global P_Status_An_AT_Resolution_Cal_Pos = 0;				// 음극 얼라인 테이블 해상도 Cal 위치 모드 상태
+global P_Status_Ca_AT_Resolution_Cal_Pos = 0;				// 양극 얼라인 테이블 해상도 Cal 위치 모드 상태
+
+// 클리닝 모드 명령어 변수
+global P_CMD_Cleaning_Pos = 0;								// 클리닝 모드 위치 이동 커멘드
+// 클리닝 모드 스텟 머신 변수
+global P_Cleaning_Pos_Status_Machine = 0;					// 클리닝 모드 위치 이동 스텟 머신
+// 클리닝 모드 상태 변수
+global P_Status_Cleaning_Pos = 0;							// 클리닝 모드 위치 모드 상태 
+
+#define F_Cathode_Align_Cal_Ready_Pos 	1					// 양극 얼라인 캘 디파인
+#define F_Anode_Align_Cal_Ready_Pos 	2					// 음극 얼라인 캘 디파인
+
+global	P_Push_Manual_ARC_Button = 0;						// 강제 세파 arc 교체 버튼
+global	P_Push_Cycle_Stop_Button = 0;						// 무언 정지 시 강제 사이클 스탑
+global	P_BTN_Push_Cathode_MSA_Mode = 0;					// 양극 MSA 푸쉬 버튼
+global	P_BTN_Push_Anode_MSA_Mode = 0;						// 음극 MSA 푸쉬 버튼
+global	P_BTN_Push_Cathode_Align_MSA = 0;					// 양극 얼라인 MSA 푸쉬 버튼
+global	P_BTN_Push_Anode_Align_MSA = 0;						// 음극 얼라인 MSA 푸쉬 버튼
+
+//============================================================
+//비전 캘 버튼 변수
+//============================================================
+global P_Btn_Vision_Initial_Pos = 0;						// Vision Cal 초기 위치 버튼
+global P_Btn_Vision_Cal_Pos = 0;							// Vision Cal 위치 버튼
+global P_Btn_Vision_Cal_Anode_Move = 0;						// Final Roll 음극 방향 이동 버튼
+global P_Btn_Vision_Cal_Cathode_Move = 0;					// Final Roll 양극 방향 이동 버튼
+global P_Btn_An_AT_Resolution_Cal_Pos = 0;					// 음극 얼라인 해상도 위치 이동 버튼
+global P_Btn_Ca_AT_Resolution_Cal_Pos = 0;					// 양극 얼라인 해상도 위치 이동 버튼
+global P_Btn_Cleaning_Mode_Pos = 0;							// 클리닝 모드 위치 이동 버튼
+//============================================================
+//비전 오토 캘 시작 위치 이동 버튼
+//============================================================
+global	P_BTN_Push_Align_Auto_Cal_Ready_Pos_Move(3)			//	얼라인 오토 캘 준비 위치 이동 버튼 변수 배열 선언
+P_BTN_Push_Align_Auto_Cal_Ready_Pos_Move(0),3 = 0;
+//============================================================
+
+global P_CMD_MSA_Run(5)										// MSA모드 실행 명령어 배열 변수
+P_CMD_MSA_Run(0),5 = 0;
+
+global	P_AutoVisionCal_StMachine	 = 0;						// 스테이터스 머신
+global  P_CMD_Cathode_Align_Complete = 0;
+global  P_CMD_Anode_Align_Complete	= 0;
+
+global	P_CMD_Align_Auto_Cal_Ready_Pos_Move_Run(3)				//	얼라인 오토 캘 준비 위치 이동 명령 변수 배열 선언
+P_CMD_Align_Auto_Cal_Ready_Pos_Move_Run(0),3 = 0;
+
+global	P_Align_Auto_Cal_Ready_Pos_Move_Run_State_Machine(3);	//	얼라인 오토 캘 준비 위치 이동 스텟머신 선언
+P_Align_Auto_Cal_Ready_Pos_Move_Run_State_Machine(0),3 = 0;
+
+global	P_Align_Auto_Cal_Ready_Pos_Move_Run_Status(3);			//	얼라인 오토 캘 준비 위치 이동 상태변수 배열 선언
+P_Align_Auto_Cal_Ready_Pos_Move_Run_Status(0),3 = 0;
+
+global	P_Align_Auto_Cal_Ready_Pos_Move_Run_Complete(3);		//	얼라인 오토 캘 준비 위치 이동 완료 확인 비트 배열 선언
+P_Align_Auto_Cal_Ready_Pos_Move_Run_Complete(0),3 = 0;
+
+global	P_Cal_Ready_Pos_Move_TR_Z_Jog_Speed = 5;				// 얼라인 캘 준비 위치 이동 TR Z축 조그 스피드 정의 // 5mm/sec
+
+global	P_Cal_Ready_Pos_Move_TR_X_Jog_Speed = 30;				// 얼라인 캘 준비 위치 이동 TR X축 조그 스피드 정의// 30mm/sec
+
+
+// 디파인 변수 초기화
+P5600,11,1 = 0;
+
+global	P_CMD_Cell_Align(10);
+P_CMD_Cell_Align(0),10,1 = 0;
+
+global	P_CMD_Cell_Stop(10);
+P_CMD_Cell_Stop(0),10,1 = 0;
+
+global	P_CMD_Cell_Reset(10);
+P_CMD_Cell_Reset(0),10,1 = 0;
+
+// Stack Vision 움직임 관련 변수
+global P_Anode_Clamp_Z1_Initial_Pos_mm = 0;	
+global P_Anode_Clamp_Z2_Initial_Pos_mm = 0;								
+global P_Cathode_Clamp_Z1_Initial_Pos_mm = 0;     					
+global P_Cathode_Clamp_Z2_Initial_Pos_mm = 0;                       
+global P_Stack_Table_Z_Initial_Pos_mm = 0;                            
+global P_FR_Initial_Pos_mm = 0;                             
+
+global P_Anode_Clamp_Z1_Cal_Pos_mm = 0;	
+global P_Anode_Clamp_Z2_Cal_Pos_mm = 0;								
+global P_Cathode_Clamp_Z1_Cal_Pos_mm = 0;     					
+global P_Cathode_Clamp_Z2_Cal_Pos_mm = 0;                       
+global P_Stack_Table_Z_Cal_Pos_mm = 0;                            
+global P_FR_Cal_Pos_mm = 0;         
+
+
+global P_Anode_Clamp_Z1_Move_Speed = 30;
+global P_Anode_Clamp_Z2_Move_Speed = 30;
+global P_Cathode_Clamp_Z1_Move_Speed = 30;
+global P_Cathode_Clamp_Z2_Move_Speed = 30;
+global P_Stack_Table_Z_Move_Speed = 30;
+global P_FR_Cal_Move_Speed =30;
+
+global P_Old_Anode_Clamp_Z1_Move_Speed = 0;
+global P_Old_Anode_Clamp_Z2_Move_Speed = 0;
+global P_Old_Cathode_Clamp_Z1_Move_Speed = 0;
+global P_Old_Cathode_Clamp_Z2_Move_Speed = 0;
+global P_Old_Stack_Table_Z_Move_Speed = 0;
+global P_Old_FR_Cal_Move_Speed =0;
+
+// 음극 얼라인 해상도 Cal 모드 움직임 관련 변수
+global P_An_AT_Resolution_Anode_2th_Z_Pos_mm = 0;
+global P_An_AT_Resolution_Anode_2th_T_Pos_mm = 0;
+global P_An_AT_Resolution_Cathode_2th_Z_Pos_mm = 0;
+global P_An_AT_Resolution_Cathode_2th_T_Pos_mm= 0;
+global P_FR_AT_Resolution_Pos_mm = 0;
+
+
+global P_Old_AT_Resolution_Anode_2th_Z_Pos_Move_Speed = 0;
+global P_Old_AT_Resolution_Anode_2th_T_Pos_Move_Speed = 0;
+global P_Old_AT_Resolution_Cathode_2th_Z_Pos_Move_Speed = 0;
+global P_Old_AT_Resolution_Cathode_2th_T_Pos_Move_Speed = 0;
+global P_Old_FR_AT_Resolution_Move_Speed = 0;
+
+// 양극 얼라인 해상도 Cal 모드 움직임 관련 변수
+global P_Ca_AT_Resolution_Anode_2th_Z_Pos_mm  = 0;
+global P_Ca_AT_Resolution_Anode_2th_T_Pos_mm = 0;
+global P_Ca_AT_Resolution_Cathode_2th_Z_Pos_mm = 0;
+global P_Ca_AT_Resolution_Cathode_2th_T_Pos_mm  = 0;
+
+global P_AT_Resolution_Anode_2th_Z_Pos_Move_Speed = 20;
+global P_AT_Resolution_Anode_2th_T_Pos_Move_Speed = 20;
+global P_AT_Resolution_Cathode_2th_Z_Pos_Move_Speed = 20;
+global P_AT_Resolution_Cathode_2th_T_Pos_Move_Speed = 20;
+global P_FR_AT_Resolution_Move_Speed = 20;
+
+	
+global 	P_Anode_1th_MES_APC_Move_mm_PLC = 0;
+global 	P_Cathode_1th_MES_APC_Move_mm_PLC = 0;
+	
+global 	P_Anode_1th_MES_APC_Move_mm_PMAC = 0;
+global 	P_Cathode_1th_MES_APC_Move_mm_PMAC = 0;
+	
+global	P_Anode_X_before_Comp_mm = 0;	
+global	P_Cathode_X_before_Comp_mm =0;
+
+global	P_Flag_Anode_1PNP_APC_Apply_Point = 0;
+global	P_Flag_Cathode_1PNP_APC_Apply_Point = 0;
+
+global	P_MES_APC_Active = 123456;		// MES 테스트 완료 후 활성화 예정
+#define N_Active	123456			// MES APC 테스트 완료 후 삭제 예정
+
+global P_OLD_Slave1_Target_X_Belt_To_Align = 0;
+global P_OLD_Slave10_Target_X_Belt_To_Align = 0;
+// [ 참조 : MES APC 기반 MES -> PLC-> PMAC 보정값 영역 추가 ]
+global P_Anode_MES_X_Average_mm = 0;
+global P_Cathode_MES_X_Average_mm = 0;
+
+
+global P_Anode_X_Sum_Move_mm = 0;		// 실제 PV에 올리는 음극 1차 P&P 벨트->얼라인 테이블 이동 거리 ( APC 적용 값 )
+
+// [ 참조 : 20210315 APC 리밋값 수정 7.01 -> 7.1 ]
+#define N_Anode_X_Move_Max_mm		7.1
+#define N_Anode_X_Move_Min_mm		-7.1
+
+#define N_Anode_Aling_Stage_Max_mm	 	 5.01				// 음극 얼라인 APC 보정값 Max 거리
+#define N_Anode_Aling_Stage_T_Max_mm	 3.01               // 음극 얼라인 APC 보정값 Max 거리
+#define N_Anode_Aling_Stage_Min_mm	 	 -5.01              // 음극 얼라인 APC 보정값 Min 거리
+#define N_Anode_Aling_Stage_T_Min_mm	 -3.01              // 음극 얼라인 APC 보정값 Min 거리
+
+// [ 참조 : 241205 035s, 0.4s얼라인 모션 변경, 0.35s 얼라인 검사 타이밍 수정 및 극판 데이터 타이밍 수정 ]
+//#ifdef F_05_Tack_Enable	
+//Global P_Anode_Align_Stage_TM = 110;						// 음극 얼라인 스테이지 등속 시간
+//Global P_Anode_Align_Stage_TS = 10;							// 음극 얼라인 스테이지 S-Curve 시간
+//Global P_Anode_Align_Stage_TA = 30;							// 음극 얼라인 스테이지 가감속 시간
+//#endif
+//
+//// [ 참조 : 241205 035s, 0.4s얼라인 모션 변경, 0.35s 얼라인 검사 타이밍 수정 및 극판 데이터 타이밍 수정 ]
+//#ifdef F_045_Tack_Enable	
+//Global P_Anode_Align_Stage_TM = 110;						// 음극 얼라인 스테이지 등속 시간
+//Global P_Anode_Align_Stage_TS = 10;							// 음극 얼라인 스테이지 S-Curve 시간
+//Global P_Anode_Align_Stage_TA = 30;							// 음극 얼라인 스테이지 가감속 시간
+//#endif
+//
+//// [ 참조 : 241205 035s, 0.4s얼라인 모션 변경, 0.35s 얼라인 검사 타이밍 수정 및 극판 데이터 타이밍 수정 ]
+//#ifdef F_04_Tack_Enable	
+//Global P_Anode_Align_Stage_TM = 80;						// 음극 얼라인 스테이지 등속 시간
+//Global P_Anode_Align_Stage_TS = 10;							// 음극 얼라인 스테이지 S-Curve 시간
+//Global P_Anode_Align_Stage_TA = 25;							// 음극 얼라인 스테이지 가감속 시간
+//#endif
+//
+//// [ 참조 : 241205 035s, 0.4s얼라인 모션 변경, 0.35s 얼라인 검사 타이밍 수정 및 극판 데이터 타이밍 수정 ]
+//#ifdef F_035_Tack_Enable	
+//Global P_Anode_Align_Stage_TM = 80;						// 음극 얼라인 스테이지 등속 시간
+//Global P_Anode_Align_Stage_TS = 10;							// 음극 얼라인 스테이지 S-Curve 시간
+//Global P_Anode_Align_Stage_TA = 25;							// 음극 얼라인 스테이지 가감속 시간
+//#endif
+
+// Align 100ms -> 120ms
+Global P_Anode_Align_Stage_TM = 10;//60;        					// 음극 얼라인 스테이지 등속 시간
+Global P_Anode_Align_Stage_TS = 10;//10;       					// 음극 얼라인 스테이지 S-Curve 시간
+Global P_Anode_Align_Stage_TA = 50;//25;       					// 음극 얼라인 스테이지 가감속 시간
+
+Global P_Status_Anode_Prog = 0;								// 음극 얼라인 스테이지 모션 상태 변수
+
+global P_Cathode_X_Sum_Move_mm = 0;		// 실제 PV에 올리는 양극 1차 P&P 벨트->얼라인 테이블 이동 거리 ( APC 적용 값 )
+
+// [ 참조 : 20210315 APC 리밋값 수정 7.01 -> 7.1 ]
+#define N_Cathode_X_Move_Max_mm		7.1
+#define N_Cathode_X_Move_Min_mm		-7.1
+
+Global P_X_Move_Recipe_Percent = 100;						// APC 보정값 적용 %
+
+#define N_Cathode_Aling_Stage_Max_mm	 	5.01			// 양극 얼라인 APC 보정값 Max 거리
+#define N_Cathode_Aling_Stage_T_Max_mm	 	3.01            // 양극 얼라인 APC 보정값 Max 거리
+#define N_Cathode_Aling_Stage_Min_mm	 	-5.01           // 양극 얼라인 APC 보정값 Min 거리
+#define N_Cathode_Aling_Stage_T_Min_mm	 	-3.01           // 양극 얼라인 APC 보정값 Min 거리
+// [ 참조 : 241205 035s, 0.4s얼라인 모션 변경, 0.35s 얼라인 검사 타이밍 수정 및 극판 데이터 타이밍 수정 ]
+//#ifdef F_05_Tack_Enable
+//Global P_Cathode_Align_Stage_TM = 110;        				// 양극 얼라인 스테이지 등속 시간
+//Global P_Cathode_Align_Stage_TS = 10;       				// 양극 얼라인 스테이지 S-Curve 시간
+//Global P_Cathode_Align_Stage_TA = 30;       				// 양극 얼라인 스테이지 가감속 시간
+//#endif
+//// [ 참조 : 241205 035s, 0.4s얼라인 모션 변경, 0.35s 얼라인 검사 타이밍 수정 및 극판 데이터 타이밍 수정 ]
+//#ifdef F_045_Tack_Enable
+//Global P_Cathode_Align_Stage_TM = 110;        				// 양극 얼라인 스테이지 등속 시간
+//Global P_Cathode_Align_Stage_TS = 10;       				// 양극 얼라인 스테이지 S-Curve 시간
+//Global P_Cathode_Align_Stage_TA = 30;       				// 양극 얼라인 스테이지 가감속 시간
+//#endif
+//// [ 참조 : 241205 035s, 0.4s얼라인 모션 변경, 0.35s 얼라인 검사 타이밍 수정 및 극판 데이터 타이밍 수정 ]
+//#ifdef F_04_Tack_Enable
+//Global P_Cathode_Align_Stage_TM = 80;        				// 양극 얼라인 스테이지 등속 시간
+//Global P_Cathode_Align_Stage_TS = 10;       				// 양극 얼라인 스테이지 S-Curve 시간
+//Global P_Cathode_Align_Stage_TA = 25;       				// 양극 얼라인 스테이지 가감속 시간
+//#endif
+//// [ 참조 : 241205 035s, 0.4s얼라인 모션 변경, 0.35s 얼라인 검사 타이밍 수정 및 극판 데이터 타이밍 수정 ]
+//#ifdef F_035_Tack_Enable
+//Global P_Cathode_Align_Stage_TM = 80;        				// 양극 얼라인 스테이지 등속 시간
+//Global P_Cathode_Align_Stage_TS = 10;       				// 양극 얼라인 스테이지 S-Curve 시간
+//Global P_Cathode_Align_Stage_TA = 25;       				// 양극 얼라인 스테이지 가감속 시간
+//#endif
+
+// Align 100ms -> 120ms
+Global P_Cathode_Align_Stage_TM = 10;//60;        				// 양극 얼라인 스테이지 등속 시간
+Global P_Cathode_Align_Stage_TS = 10;//10;       				// 양극 얼라인 스테이지 S-Curve 시간
+Global P_Cathode_Align_Stage_TA = 50;//25;       				// 양극 얼라인 스테이지 가감속 시간
+
+
+Global P_Status_Cathode_Prog = 0;     						// 양극 얼라인 스테이지 모션 상태 변수
+
+// 모션 무브 관련 스텟 머신	
+Global P_Anode_Align_Move_Machine = 0;				// 음극 얼라인 무브 시퀀스 머신
+Global P_Cathode_Align_Move_Machine = 0;			// 양극 얼라인 무브 시퀀스 머신
+Global P_Stack_Table_Move_Machine = 0;				// 스텍 테이블 무브 시퀀스 머신
+		
+// 모션 무브 관련 상태		
+Global P_Status_Anode_Align_Move = 0;				// 음극 모션 무브 관련 상태 변수
+Global P_Status_Cathode_Align_Move = 0;       		// 양극 모션 무브 관련 상태 변수
+Global P_Status_Stack_Table_Move = 0;				// 스텍 테이블 모션 무브 관련 상태 변수
+		
+Global P_Anode_Align_Start_Bit = 0;					// 음극 얼라인 무브 0이면 대기 1이면 시작
+Global P_Cathode_Align_Start_Bit = 0;				// 양극 얼라인 무브 0이면 대기 1이면 시작
+Global P_Anode_Retry_Start_Bit = 0;					// 음극 표면검사 무브 0이면 대기 1이면 시작
+Global P_Cathode_Retry_Start_Bit = 0;				// 양극 표면검사 무브 0이면 대기 1이면 시작
+	
+// 세파 첫장 관련 스텟 머신	2020.04.20	// 이보훈 추가	
+Global P_Vision_Spea_Run_Complete_Machine = 0;		// 세파 첫장 완료 스텟 머신
+Global P_Vision_Sepa_Run_Complete_CMD = 0;			// 세파 첫장 커멘드 스텟 머신
+	
+Global P_Vision_Clamp_Complete_Machine = 0;			// 클램프 동작 완료 스텟 머신
+Global P_Vision_Clamp_Complete_CMD = 0;				// 클램프 동작 완료 스텟 머신
+
+
+
+//// Stack Vision PLC측에 전달할 상태 변수 (PLC 7번에 선언 되어 있음 )
+//global P_PLC_To_Vision_Initial_Pos = 0;				// Vision 스텍 비전 초기 위치 이동 완료 상태
+//global P_PLC_To_Vision_Cal_Pos = 0;                 // Vision 스텍 비전 켈 위치 이동 완료 상태
+//global P_PLC_To_FR_Anode_Dritection_Pos = 0;        // Vision 스텍 비전 파이널 롤러 음극 방향 위치 이동 완료 상태
+//global P_PLC_To_FR_Cahode_Dritection_Pos = 0;       // Vision 스텍 비전 파이널 롤러 양극 방향 위치 이동 완료 상태
+//global P_PLC_To_Anode_AT_Resolution_Cal_Pos = 0;		// 음극 얼라인 테이블 해상도 Cal 위치 이동 완료 상태
+//global P_PLC_To_Cleaning_Mode_Pos = 0;				// 클리닝 모드 위치 이동 완료 상태
+//global P_PLC_To_Cathode_AT_Resolution_Cal_Pos = 0;		// 양극 얼라인 테이블 해상도 Cal 위치 이동 완료 상태
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Stack Vision Cal 위치 관련
+// [ 침조 : Clamp 높이 및 초기 위치 Sub_Z 높이 변경 ]
+//#define N_Vision_Cal_Sub_Z_Pos						11				// 스텍 비전 오토 켈 위치 Stack Table Z축 -> 차르코 보드
+// [ 참조 : 20230706 스텍 비전 캘 작업 시 SUB Z축 하강 위치 -> 35mm로 요청 ]
+#define N_Vision_Cal_Sub_Z_Pos							5				// 스텍 비전 오토 켈 위치 Stack Table Z축 
+#define N_Vision_Cal_Anode_Clamp_Pos					1               // 스텍 비전 오토 켈 위치 음극 클램프 Z축
+#define N_Vision_Cal_Cathode_Clamp_Pos					1               // 스텍 비전 오토 켈 위치 양극 클램프 Z축
+
+
+#define N_Vision_Cal_Sub_Z_Initial_Pos					0               // 스텍 비전 오토 켈 초기 위치 Stack Table Z축
+#define N_Vision_Cal_Anode_Clamp_Initial_Pos			2               // 스텍 비전 오토 켈 초기 위치 음극 클램프 Z축
+#define N_Vision_Cal_Cathode_Clamp_Initial_Pos			2               // 스텍 비전 오토 켈 초기 위치 양극 클램프 Z축
+
+// Cleaning_Mode 위치 관련
+#define N_AT_Resolution_Anode_2th_Z_Pos					0			// 음/양극 얼라인 해상도 위치 음극 2차 P&P Z축
+#define N_AT_Resolution_Cathode_2th_Z_Pos				0           // 음/양극 얼라인 해상도 위치 양극 2차 P&P Z축
+#define N_An_AT_Resolution_Anode_2th_X_Pos				290			// 음극 얼라인 해상도 위치 음극 2차 P&P X축
+#define N_An_AT_Resolution_Cathode_2th_X_Pos			0			// 음극 얼라인 해상도 위치 양극 2차 P&P X축
+#define N_Ca_AT_Resolution_Anode_2th_X_Pos				0			// 양극 얼라인 해상도 위치 음극 2차 P&P X축
+#define N_Ca_AT_Resolution_Cathode_2th_X_Pos			290         // 양극 얼라인 해상도 위치 양극 2차 P&P X축
+
+// 모터 위치 관련	
+#define N_1mm_Count							1000		// 1mm당 카운트
+#define N_CW_Direction						1			// 정방향
+#define N_CCW_Direction						-1			// 역방향
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#define P_PC_Jog_Motor_No		P4301			// 조그 구동할 모터						Sub_Jog
+P_PC_Jog_Motor_No=0;
+
+#define P_PC_Jog_Speed			P4254			// 조그속도 설정							Sub_Jog					
+P_PC_Jog_Speed=0;
+// ↓ P_PC_Jog_Speed 에 사용되는 값
+#define Low		1
+#define Middle	2
+#define High	3
+#define Custom	4
+
+#define	P_Custom_Speed			P4500			// 조그 구동 사용자지정 속도					Sub_Jog
+P_Custom_Speed=0;
+// ↓ P_Custom_Speed 에 사용되는 값
+//Speed Example
+#define Low_Speed		5
+#define Middle_Speed	15
+#define High_Speed		30
+
+#define P_Jog_Position			p4300			// 조그 이동할 거리						Sub_Jog
+P_Jog_Position=0;
+
+global	P_Jog_Work_Speed(31);					// 조그 생산속도(모터)					Sub_Jog
+P_Jog_Work_Speed(31)=0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+
+
+global P_Anode_Recipe_Count = 78;//0;						// 음극 적재카운트 레시피변수
+global P_Cathode_Recipe_Count = 77;//0;					// 양극 적재카운트 레시피변수
+
+// 모터별 홈잉 속도
+global P_Recipe_Homing_Speed(49);	// 홈잉 속도(모터번호)   0번은 버림.
+P_Recipe_Homing_Speed(1),49 = 10;
+
+P_Recipe_Homing_Speed(1) = 10
+P_Recipe_Homing_Speed(2) = 10
+P_Recipe_Homing_Speed(3) = 10
+P_Recipe_Homing_Speed(4) = 10
+P_Recipe_Homing_Speed(5) = 25
+P_Recipe_Homing_Speed(6) = 25
+P_Recipe_Homing_Speed(7) = 25
+P_Recipe_Homing_Speed(8) = 25
+P_Recipe_Homing_Speed(11) = 25
+P_Recipe_Homing_Speed(12) = 40
+P_Recipe_Homing_Speed(13) = 5
+P_Recipe_Homing_Speed(16) = 15
+P_Recipe_Homing_Speed(17) = 15
+P_Recipe_Homing_Speed(18) = 15
+P_Recipe_Homing_Speed(19) = 120
+P_Recipe_Homing_Speed(20) = 120
+P_Recipe_Homing_Speed(21) = 15
+P_Recipe_Homing_Speed(22) = 15
+P_Recipe_Homing_Speed(25) = 15
+P_Recipe_Homing_Speed(26) = 15
+P_Recipe_Homing_Speed(27) = 15
+P_Recipe_Homing_Speed(28) = 15
+P_Recipe_Homing_Speed(35) = 25
+P_Recipe_Homing_Speed(36) = 15
+P_Recipe_Homing_Speed(37) = 15
+P_Recipe_Homing_Speed(38) = 15
+P_Recipe_Homing_Speed(39) = 15
+P_Recipe_Homing_Speed(40) = 15
+P_Recipe_Homing_Speed(41) = 15
+P_Recipe_Homing_Speed(42) = 25
+P_Recipe_Homing_Speed(43) = 25
+P_Recipe_Homing_Speed(44) = 25
+P_Recipe_Homing_Speed(45) = 25
+P_Recipe_Homing_Speed(46) = 25
+P_Recipe_Homing_Speed(47) = 25
+P_Recipe_Homing_Speed(48) = 25
+
+
+
+
+
+

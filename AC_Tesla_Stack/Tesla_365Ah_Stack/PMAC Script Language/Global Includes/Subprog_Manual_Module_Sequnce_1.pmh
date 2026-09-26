@@ -1,0 +1,209 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.09 김성중 선임
+// MSA 모듈화 프로그래밍 진행 - [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+// 25.07.28 김성중 선임 
+// Cal, Cleaning 위치 이동, Align 탈착 모드 프로그래밍 진행 - [ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ] 
+
+//=========================================================================================
+// MSA 종류별 디파인
+//=========================================================================================
+#define N_MSA_Anode_Align					1				//음극 얼라인 MSA
+#define N_MSA_Cathode_Align					2				//양극 얼라인 MSA
+#define N_MSA_Anode_Stack					3				//음극 스텍 MSA
+#define N_MSA_Cathode_Stack					4				//양극 스텍 MSA
+
+//=========================================================================================
+// MSA Buffer Array
+//=========================================================================================
+#define N_MSA_Buffer_EA						50
+global P_Buffer_Seqdata_MSA_Array(N_MSA_Buffer_EA)
+P_Buffer_Seqdata_MSA_Array(0),N_MSA_Buffer_EA = 0;
+
+//=========================================================================================
+// MSA 모듈 Index 넘버
+//=========================================================================================
+#define N_SEQ_Normal_MSA_No_1				1
+#define N_SEQ_Normal_MSA_No_2				2
+#define N_SEQ_Normal_MSA_No_3				3
+#define N_SEQ_Normal_MSA_No_4				4
+#define N_SEQ_Normal_MSA_No_5				5
+#define N_SEQ_Normal_MSA_No_6				6
+#define N_SEQ_Normal_MSA_No_7				7
+#define N_SEQ_Normal_MSA_No_8				8
+#define N_SEQ_Normal_MSA_No_9				9
+#define N_SEQ_Normal_MSA_No_10				10
+#define N_SEQ_Normal_MSA_No_11				11
+#define N_SEQ_Normal_MSA_No_12				12
+#define N_SEQ_Normal_MSA_No_13				13
+#define N_SEQ_Normal_MSA_No_14				14
+#define N_SEQ_Normal_MSA_No_15				15
+#define N_SEQ_Normal_MSA_No_16				16
+#define N_SEQ_Normal_MSA_No_17				17
+#define N_SEQ_Normal_MSA_No_18				18
+#define N_SEQ_Normal_MSA_No_19				19
+#define N_SEQ_Normal_MSA_No_20				20
+#define N_SEQ_Normal_MSA_No_21				21
+#define N_SEQ_Normal_MSA_No_22				22
+#define N_SEQ_Normal_MSA_No_23				23
+#define N_SEQ_Normal_MSA_No_24				24
+#define N_SEQ_Normal_MSA_No_25				25
+#define N_SEQ_Normal_MSA_No_26				26
+#define N_SEQ_Normal_MSA_No_27				27
+#define N_SEQ_Normal_MSA_No_28				28
+#define N_SEQ_Normal_MSA_No_29				29
+#define N_SEQ_Normal_MSA_No_30				30
+#define N_SEQ_Normal_MSA_No_31				31
+#define N_SEQ_Normal_MSA_No_32				32
+
+//=========================================================================================
+//Align MSA Index
+//=========================================================================================
+#define N_MSA_Align_Index_EA							33
+// MSA Module Define Num -> Align
+#define N_MSA_Align_SET									1			// 카운트 초기화 및 모터 서보 체크
+#define N_MSA_Align_Motor_Pos_Check						2			// Motor 위치 체크
+#define N_MSA_Align_1st_Init_to_Belt_Move				3			// 1차 PNP Belt 위치 이동
+#define N_MSA_Align_1st_Belt_Down_Move					4			// 1차 PNP Belt 하강
+#define N_MSA_Align_2nd_Align_Down_Move					5			// 2차 PNP 얼라인 하강
+#define N_MSA_Align_1st_Belt_Vacume_ON					6			// 1차 PNP 벨트 베큠 ON
+#define N_MSA_Align_2nd_Vacume_ON						7			// 2차 PNP 베큠 ON
+#define N_MSA_Align_1st_Belt_Up_Move					8			// 1차 PNP 벨트 상승
+#define N_MSA_Align_2nd_Align_Up_Move					9			// 2차 PNP 얼라인 상승
+#define N_MSA_Align_FinalRoll_Move						10			// 파이널롤러 위치 이동
+#define N_MSA_Align_2nd_Stack_Move						11			// 2차 PNP 스텍 이동
+#define N_MSA_Align_1st_Align_Move						12			// 1차 PNP 얼라인 이동
+#define N_MSA_Align_1st_Align_Down_Move					13			// 1차 PNP 얼라인 하강
+#define N_MSA_Align_1st_Align_Blow_ON					14			// 1차 PNP 블로우 
+#define N_MSA_Align_Vision_Trg_ON						15			// Align Vision Trigger ON
+#define N_MSA_Align_1st_Align_Vacume_ON					16			// 1차 PNP 얼라인 베큠 ON
+#define N_MSA_Align_1st_Align_Up_Move					17			// 1차 PNP 얼라인 상승
+#define N_MSA_Align_1st_Blet_Move						18			// 1차 PNP 벨트 이동
+#define N_MSA_Align_MSA_Move_Cnt						19			// 카운트 증가 및 종료 확인
+//Align MSA 동작 완료 후
+#define N_MSA_Align_Discharge_1st_Align_Move			20			// 1차 PNP 얼라인 이동(MSA 완료)
+#define N_MSA_Align_Discharge_1st_Align_Down_Move		21			// 1차 PNP 얼라인 하강(MSA 완료)
+#define N_MSA_Align_Discharge_1st_Align_Blow_ON			22			// 1차 PNP 얼라인 파기(MSA 완료)
+#define N_MSA_Align_Discharge_1st_Align_Up_Move			23			// 1차 PNP 얼라인 상승(MSA 완료)
+#define N_MSA_Align_Discharge_1st_Align_to_Init_Move	24			// 1차 PNP 대기 위치 이동(MSA 완료)
+#ifdef F_MSA_Discharge_Use
+#define N_MSA_Align_Discharge_NG_PNP_Align_Move			25			// NG PNP 얼라인 이동(MSA 완료)
+#define N_MSA_Align_Discharge_NG_PNP_Align_Down_Move	26			// NG PNP 얼라인 하강(MSA 완료)
+#define N_MSA_Align_Discharge_NG_PNP_Vacume_ON			27			// NG PNP 얼라인 흡착(MSA 완료) 
+#define N_MSA_Align_Discharge_NG_PNP_Align_Up_Move		28			// NG PNP 얼라인 상승(MSA 완료)
+#define N_MSA_Align_Discharge_NG_PNP_NGBox_Move			29			// NG PNP NGBox 이동(MSA 완료)
+#define N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON		30			// NG PNP NGBox 파기(MSA 완료) 
+#define N_MSA_Align_Discharge_2nd_Align_Move			31			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+#define N_MSA_Align_Discharge_FinalRoll_Init_Move		32			// 파이널롤러 대기 위치 이동(MSA 완료)
+#else 
+#define N_MSA_Align_Discharge_2nd_Align_Move			25			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+#define N_MSA_Align_Discharge_FinalRoll_Init_Move		26			// 파이널롤러 대기 위치 이동(MSA 완료)
+#endif
+
+//=========================================================================================
+//Stack MSA Index
+//=========================================================================================
+#define N_MSA_Stack_Index_EA							23
+// MSA Module Define Num -> Stack
+#define N_MSA_Stack_Set									1			// 카운트 초기화 및 모터 서보 체크
+#define N_MSA_Stack_Motor_Pos_Check						2			// Motor 위치 체크
+#define N_MSA_Stack_2nd_Align_Down_Move					3			// 2차 PNP 얼라인 하강 
+#define N_MSA_Stack_2nd_PNP_Vacume_ON					4			// 2차 PNP 얼라인 흡착
+#define N_MSA_Stack_2nd_Align_Up_Move					5			// 2차 PNP 얼라인 상승
+#define N_MSA_Stack_2nd_Stack_Move						6			// 2차 Stack Table 위치 이동
+#define N_MSA_Stack_2nd_Stack_Down_Move					7			// 2차 Stack Down 
+#define N_MSA_Stack_Vision_Trg_ON						8			// Stack Vision Trigger ON
+#define N_MSA_Stack_2nd_Stack_Up_Move					9			// 2차 Stack UP
+#define N_MSA_Stack_2nd_Align_Move						10			// 2차 Align 위치 이동
+#define N_MSA_Stack_MSA_Move_Cnt						11			// 카운트 증가 및 종료 확인
+//Stack MSA 동작 완료 후
+#ifdef F_MSA_Discharge_Use
+#define N_MSA_Stack_Discharge_2nd_Align_Down_Move		12			// 2차 PNP 얼라인 하강(MSA 완료)
+#define N_MSA_Stack_Discharge_2nd_Align_Blow_ON			13			// 2차 PNP 얼라인 파기(MSA 완료) 
+#define N_MSA_Stack_Discharge_2nd_Align_Up_Move			14			// 2차 PNP 얼라인 상승(MSA 완료)
+#define N_MSA_Stack_Discharge_2nd_Stack_Move			15			// 2차 PNP 스텍 위치 이동(MSA 완료)
+#define N_MSA_Stack_Discharge_NG_PNP_Align_Move			16			// NG PNP 얼라인 이동(MSA 완료)
+#define N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move	17			// NG PNP 얼라인 하강(MSA 완료)
+#define N_MSA_Stack_Discharge_NG_PNP_Vacume_ON			18			// NG PNP 얼라인 흡착(MSA 완료) 
+#define N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move		19			// NG PNP 얼라인 상승(MSA 완료)
+#define N_MSA_Stack_Discharge_NG_PNP_NGBox_Move			20			// NG PNP NGBox 이동(MSA 완료)
+#define N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON		21			// NG PNP NGBox 파기(MSA 완료) 
+#define N_MSA_Stack_Discharge_2nd_Align_Move			22			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+#endif
+
+// module Arry
+#define N_MSA_Module_Define_Num_EA						100
+#define M_Align_Take_Off_Module_Define_Num_EA			100
+
+//=========================================================================================
+//얼라인 테이블 탈착 모드 Index
+//=========================================================================================
+#define N_Align_Take_Off_Index_EA						40		//얼라인 탈착 모드 인덱스 개수 
+
+//7) 얼라인 테이블 탈착 모드 
+#define N_Align_Take_Off_Ready_Pos_Check				1		// 2차 PNP 파이널롤 서버 온, 대기위치 확인 
+#define N_Align_Take_Off_Ready_Pos_Set 					2		// 이동 속도 설정 및 레시피 위치 받아옴 
+#define N_Align_Take_Off_FR_Move						3		// 파이널롤러 회피 방향 이동 및 확인 
+#define N_Align_Take_Off_2nd_PNP_Stack_Move				4		// 2차 PNP T축 스텍 위치 이동 및 확인   
+
+
+//=========================================================================================
+// 얼라인 탈착 모드 디파인
+//=========================================================================================
+#define N_Align_AN_Take_Off							1		//음극 얼라인 테이블 탈착 모드 
+#define N_Align_CA_Take_Off						2		//양극 얼라인 테이블 탈착 모드 
+//=========================================================================================
+// 얼라인 탈착 모드 Buffer Array
+//=========================================================================================
+#define N_Cal_Buffer_EA						50
+global P_Buffer_Seqdata_Align_Take_Off_Array(N_Cal_Buffer_EA)
+P_Buffer_Seqdata_Align_Take_Off_Array(0),N_Cal_Buffer_EA = 0;
+//=========================================================================================
+// 얼라인 탈착 모드 모듈 Index 넘버
+//=========================================================================================
+#define N_SEQ_Normal_Align_Take_Off_No_1				1
+#define N_SEQ_Normal_Align_Take_Off_No_2				2
+#define N_SEQ_Normal_Align_Take_Off_No_3				3
+#define N_SEQ_Normal_Align_Take_Off_No_4				4
+#define N_SEQ_Normal_Align_Take_Off_No_5				5
+#define N_SEQ_Normal_Align_Take_Off_No_6				6
+#define N_SEQ_Normal_Align_Take_Off_No_7				7
+#define N_SEQ_Normal_Align_Take_Off_No_8				8
+#define N_SEQ_Normal_Align_Take_Off_No_9				9
+#define N_SEQ_Normal_Align_Take_Off_No_10				10
+
+
+//=========================================================================================
+// MSA 모듈 시퀀스 스테이트 머신 배열 
+//=========================================================================================
+global P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Module_Define_Num_EA)
+P_VISION_MSA_Align_Module_Complete_Bit(0),N_MSA_Module_Define_Num_EA = 0;
+
+global P_Module_Manual_MSA_Act_Command_Array(N_MSA_Module_Define_Num_EA)
+P_Module_Manual_MSA_Act_Command_Array(0),N_MSA_Module_Define_Num_EA = 0;
+
+global P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Module_Define_Num_EA)
+P_OLD_Module_Manual_MSA_Act_Command_Array(0),N_MSA_Module_Define_Num_EA = 0;
+
+global P_Module_MSA_Act_State_Machine_Array(N_MSA_Module_Define_Num_EA);
+P_Module_MSA_Act_State_Machine_Array(0),N_MSA_Module_Define_Num_EA,1 = 0;
+
+global P_VISION_MSA_Seq_Stopping_Point(N_MSA_Align_Index_EA)
+P_VISION_MSA_Seq_Stopping_Point(0),N_MSA_Align_Index_EA = 0;
+
+//=========================================================================================
+// 얼라인 탈착 모드 모듈 시퀀스 스테이트 머신 배열 
+//=========================================================================================
+global P_Align_Take_Off_Module_Complete_Bit(M_Align_Take_Off_Module_Define_Num_EA)
+P_Align_Take_Off_Module_Complete_Bit(0),M_Align_Take_Off_Module_Define_Num_EA = 0;
+
+global P_Module_Manual_Align_Take_Off_Act_Command_Array(M_Align_Take_Off_Module_Define_Num_EA)
+P_Module_Manual_Align_Take_Off_Act_Command_Array(0),M_Align_Take_Off_Module_Define_Num_EA = 0;
+
+global P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(M_Align_Take_Off_Module_Define_Num_EA)
+P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(0),M_Align_Take_Off_Module_Define_Num_EA = 0;
+
+global P_Module_Align_Take_Off_Act_State_Machine_Array(M_Align_Take_Off_Module_Define_Num_EA);
+P_Module_Align_Take_Off_Act_State_Machine_Array(0),M_Align_Take_Off_Module_Define_Num_EA,1 = 0;
+

@@ -1,0 +1,751 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.29 
+// 알람 프로그램 표준화 작업 - [ 참조 : 25.07.29 알람 프로그램 표준화 작업 진행 ]
+// 알람변수정의 추가 - [ 참조 : 2025.08.26 알람변수정의 추가 ]
+#define N_Alarm_None					0
+#define N_High_Alarm_Emergency_Stop     1  // 중알람 즉시 정지
+#define N_High_Alarm_Cycle_Stop         2  // 중알람 사이클 정지
+#define N_Low_Alarm                     3  // 경알람 경고
+
+// 알람 테스트 용 변수 선언
+#define M_Cathode_1st_PNP_Vac_Alarm										P140
+#define M_Cathode_2nd_PNP_Vac_Alarm										P141
+#define M_Cathode_NG_PNP_Vac_Alarm										P142
+#define M_Cathode_Align_Vac_Alram										P143
+#define M_Anode_1st_PNP_Vac_Alarm										P144
+#define M_Anode_2nd_PNP_Vac_Alarm										P145
+#define M_Anode_NG_PNP_Vac_Alarm										P146
+#define M_Anode_Align_Vac_Alram											P147
+
+#define M_Cathode_1st_PNP_Blow_Alarm									P150
+#define M_Cathode_2nd_PNP_Blow_Alarm									P151
+#define M_Cathode_NG_PNP_Blow_Alarm										P152
+#define M_Cathode_Align_Blow_Alram										P153
+#define M_Anode_1st_PNP_Blow_Alarm										P154
+#define M_Anode_2nd_PNP_Blow_Alarm										P155
+#define M_Anode_NG_PNP_Blow_Alarm										P156
+#define M_Anode_Align_Blow_Alram										P157
+
+#define M_Spool_OtherSide_lack_Alarm									P158 
+
+#define N_Heap_Arr_Length 100
+
+//========================//
+// 알람 프로그램 변수 선언 //
+//========================//
+global P_Alarm_Heap_Arr(N_Heap_Arr_Length);				// 힙정렬 버퍼
+P_Alarm_Heap_Arr(0), N_Heap_Arr_Length = 0;
+
+global P_Alarm_Send_To_PLC(4);							// 우선순위 알람 발생시 M변수를 순차적으로 발생시키기 위한 버퍼
+P_Alarm_Send_To_PLC(0), 4 = 0;
+
+global P_Alarm_Remain_Check = 0;						// 나머지 알람 유무 여부 플래그
+global P_Alarm_First_Request_Flag = 0;					// 첫번째 알람 플래그
+global P_Alarm_Command_Active = 0;						// 알람 발생시 P_PMAC_Command 발생 플래그
+
+global P_Alarm_Number_RTN = 0;							// delete 데이터의 M변수 번호 값
+global P_Alarm_Priority_RTN = 0;						// delete 데이터의 우선순위 값
+global P_Alarm_Occur_Flag = 0;							// 알람 타입 확인 플래그
+
+global P_Alarm_Priority_Cnt = 0;						// 우선순위 발생 카운트
+global P_Old_Alarm_Priority_Cnt = 0;					// 우선순위 발생 카운트 이전값
+
+global P_Alarm_Priority_Report = 0;						// 우선순위 알람 발생으로 인한 버퍼 사용 플래그
+global P_Alarm_Priority_Request_Flag = 0;				// 우선순위 알람 플래그
+
+#define N_Alarm_Wait 2000								// PLC 터치 패널의 시스템 상 순서를 위해 2초 딜레이 후 전송
+global P_Alarm_Wait_Timer = 0;							// 알람 발생 타이머
+
+#define N_Init_Prev_Priority 4							// 알람 타입 비교를 위해 기본값을 4로 지정 ( 경알람 : 3, 중알람 : 2, 즉시 정지 : 1 )
+global P_Compare_Priority = N_Init_Prev_Priority;		// 우선순위 비교 변수
+global P_Alarm_Priority_Occur_Cnt = 0;					// 우선 순위 알람 발생 카운트
+
+global P_Alarm_Report = 0;								// 나머지 알람 시작 변수
+
+#define N_Alarm_Log_Length 30							// 알람 로그 버퍼 사이즈
+global P_Alarm_Log(N_Alarm_Log_Length);					// 알람 로그
+P_Alarm_Log(0), N_Alarm_Log_Length = 0;					// 초기화
+global P_Alarm_Data = 0;								// 알람 데이터
+
+//===============================================================================================================================================================
+// Alarm M변수 선언
+//===============================================================================================================================================================
+// 알람변수정의 추가		[ 참조 : 2025.08.26 알람변수정의 추가 ]
+#define	 M_X_Alarm_2S01_Servo_Alarm											M0	//	[서보 알람] 양극 1차 PNP T축 
+#define	 M_X_Alarm_2S02_Servo_Alarm											M1	//	[서보 알람] 음극 1차 PNP T축 
+#define	 M_X_Alarm_2S03_Servo_Alarm											M2	//	[서보 알람] 양극 2차 PNP T축 
+#define	 M_X_Alarm_2S04_Servo_Alarm											M3	//	[서보 알람] 음극 2차 PNP T축 
+#define	 M_X_Alarm_2S05_Servo_Alarm											M4	//	[서보 알람] 양극 클램프 Y1축 
+#define	 M_X_Alarm_2S06_Servo_Alarm											M5	//	[서보 알람] 음극 클램프 Y1축  
+#define	 M_X_Alarm_2S07_Servo_Alarm											M6	//	[서보 알람] 양극 클램프 Y2축   
+#define	 M_X_Alarm_2S08_Servo_Alarm											M7	//	[서보 알람] 음극 클램프 Y2축   
+#define	 M_X_Alarm_2S09_Servo_Alarm											M8	//	[서보 알람] 양극 클램프 Z1축  
+#define	 M_X_Alarm_2S10_Servo_Alarm											M9	//	[서보 알람] 음극 클램프 Z1축  
+#define	 M_X_Alarm_2S11_Servo_Alarm											M10	//	[서보 알람] 스텍 Main Table Z축  
+#define	 M_X_Alarm_2S12_Servo_Alarm											M11	//	[서보 알람] 파이널롤 X축  
+#define	 M_X_Alarm_2S13_Servo_Alarm											M12	//	[서보 알람] 파이널롤 Z축   
+#define	 M_X_Alarm_2S14_Servo_Alarm											M13	//	[서보 알람] 서브 피딩 롤
+#define	 M_X_Alarm_2S15_Servo_Alarm											M14	//	[서보 알람] 드라이빙 피딩 롤
+#define	 M_X_Alarm_2S16_Servo_Alarm											M15	//	[서보 알람] 서보 댄서 
+#define	 M_X_Alarm_2S17_Servo_Alarm											M16	//	[서보 알람] 양극 1차 PNP Z축 
+#define	 M_X_Alarm_2S18_Servo_Alarm											M17	//	[서보 알람] 음극 1차 PNP Z축 
+#define	 M_X_Alarm_2S19_Servo_Alarm											M18	//	[서보 알람] 양극 1차 PNP 피커 T축 
+#define	 M_X_Alarm_2S20_Servo_Alarm											M19	//	[서보 알람] 음극 1차 PNP 피커 T축 
+#define	 M_X_Alarm_2S21_Servo_Alarm											M20	//	[서보 알람] 양극 2차 PNP Z축 
+#define	 M_X_Alarm_2S22_Servo_Alarm											M21	//	[서보 알람] 음극 2차 PNP Z축 
+#define	 M_X_Alarm_2S23_Servo_Alarm											M22	//	[서보 알람] 세파 상단 언와인더 
+#define	 M_X_Alarm_2S24_Servo_Alarm											M23	//	[서보 알람] 세파 하단 언와인더  
+#define	 M_X_Alarm_2S25_Servo_Alarm											M24	//	[서보 알람] 양극 클램프 Z2축  
+#define	 M_X_Alarm_2S26_Servo_Alarm											M25	//	[서보 알람] 음극 클램프 Z2축  
+//																			M26	//	
+//																			M27	//	
+//																			M28	//	
+//																			M29	//	
+//																			M30	//	
+#define	 M_X_Alarm_2S33_Servo_Alarm											M31	//	[서보 알람] 세파 EPC 센서
+#define	 M_X_Alarm_2S34_Servo_Alarm											M32	//	[서보 알람] 세파 스텍 비전
+#define	 M_X_Alarm_2S35_Servo_Alarm											M33	//	[서보 알람] 1차 시트 페이퍼 X축   
+#define	 M_X_Alarm_2S36_Servo_Alarm											M34	//	[서보 알람] 양극 얼라인테이블 X축
+#define	 M_X_Alarm_2S37_Servo_Alarm											M35	//	[서보 알람] 양극 얼라인테이블 Y축
+#define	 M_X_Alarm_2S38_Servo_Alarm											M36	//	[서보 알람] 양극 얼라인테이블 T축  
+#define	 M_X_Alarm_2S39_Servo_Alarm											M37	//	[서보 알람] 음극 얼라인테이블 X축
+#define	 M_X_Alarm_2S40_Servo_Alarm											M38	//	[서보 알람] 음극 얼라인테이블 Y축
+#define	 M_X_Alarm_2S41_Servo_Alarm											M39	//	[서보 알람] 음극 얼라인테이블 T축  
+#define	 M_X_Alarm_2S42_Servo_Alarm											M40	//	[서보 알람] 양극 NG PNP T축 
+#define	 M_X_Alarm_2S43_Servo_Alarm											M41	//	[서보 알람] 음극 NG PNP T축 
+#define	 M_X_Alarm_2S44_Servo_Alarm											M42	//	[서보 알람] 양극 NG PNP Z축  
+#define	 M_X_Alarm_2S45_Servo_Alarm											M43	//	[서보 알람] 음극 NG PNP Z축  
+#define	 M_X_Alarm_2S46_Servo_Alarm											M44	//	[서보 알람] 1차 언로더 X축 
+#define	 M_X_Alarm_2S47_Servo_Alarm											M45	//	[서보 알람] 1차 언로더 Z축
+#define	 M_X_Alarm_2S48_Servo_Alarm											M46	//	[서보 알람] 1차 언로더 T축
+//																			M47	//	
+//																			M48	//	
+//																			M49	//	
+//																			M50	//	
+//																			M51	//	
+//																			M52	//	
+//																			M53	//	
+//																			M54	//	
+//																			M55	//	
+//																			M56	//	
+//																			M57	//	
+//																			M58	//	
+//																			M59	//	
+//																			M60	//	
+#define	M_Y_Minus_Limit_Alarm_Motor_1										M61	//	[마이너스(-) 리미트] 양극 1차 PNP T축 
+#define	M_Y_Minus_Limit_Alarm_Motor_2										M62	//	[마이너스(-) 리미트] 음극 1차 PNP T축 
+#define	M_Y_Minus_Limit_Alarm_Motor_3										M63	//	[마이너스(-) 리미트] 양극 2차 PNP T축 
+#define	M_Y_Minus_Limit_Alarm_Motor_4										M64	//	[마이너스(-) 리미트] 음극 2차 PNP T축 
+#define	M_Y_Minus_Limit_Alarm_Motor_5										M65	//	[마이너스(-) 리미트] 양극 클램프 Y1축 
+#define	M_Y_Minus_Limit_Alarm_Motor_6										M66	//	[마이너스(-) 리미트] 음극 클램프 Y1축  
+#define	M_Y_Minus_Limit_Alarm_Motor_7										M67	//	[마이너스(-) 리미트] 양극 클램프 Y2축   
+#define	M_Y_Minus_Limit_Alarm_Motor_8										M68	//	[마이너스(-) 리미트] 음극 클램프 Y2축   
+#define	M_Y_Minus_Limit_Alarm_Motor_9										M69	//	[마이너스(-) 리미트] 양극 클램프 Z1축  
+#define	M_Y_Minus_Limit_Alarm_Motor_10										M70	//	[마이너스(-) 리미트] 음극 클램프 Z1축  
+#define	M_Y_Minus_Limit_Alarm_Motor_11										M71	//	[마이너스(-) 리미트] 스텍 Main Table Z축  
+#define	M_Y_Minus_Limit_Alarm_Motor_12										M72	//	[마이너스(-) 리미트] 파이널롤 X축  
+#define	M_Y_Minus_Limit_Alarm_Motor_13										M73	//	[마이너스(-) 리미트] 파이널롤 Z축   
+#define	M_Y_Minus_Limit_Alarm_Motor_14										M74	//	[마이너스(-) 리미트] 서브 피딩 롤
+#define	M_Y_Minus_Limit_Alarm_Motor_15										M75	//	[마이너스(-) 리미트] 드라이빙 피딩 롤
+#define	M_Y_Minus_Limit_Alarm_Motor_16										M76	//	[마이너스(-) 리미트] 서보 댄서 
+#define	M_Y_Minus_Limit_Alarm_Motor_17										M77	//	[마이너스(-) 리미트] 양극 1차 PNP Z축 
+#define	M_Y_Minus_Limit_Alarm_Motor_18										M78	//	[마이너스(-) 리미트] 음극 1차 PNP Z축 
+#define	M_Y_Minus_Limit_Alarm_Motor_19										M79	//	[마이너스(-) 리미트] 양극 1차 PNP 피커 T축 
+#define	M_Y_Minus_Limit_Alarm_Motor_20										M80	//	[마이너스(-) 리미트] 음극 1차 PNP 피커 T축 
+#define	M_Y_Minus_Limit_Alarm_Motor_21										M81	//	[마이너스(-) 리미트] 양극 2차 PNP Z축 
+#define	M_Y_Minus_Limit_Alarm_Motor_22										M82	//	[마이너스(-) 리미트] 음극 2차 PNP Z축 
+#define	M_Y_Minus_Limit_Alarm_Motor_23										M83	//	[마이너스(-) 리미트] 세파 상단 언와인더 
+#define	M_Y_Minus_Limit_Alarm_Motor_24										M84	//	[마이너스(-) 리미트] 세파 하단 언와인더  
+#define	M_Y_Minus_Limit_Alarm_Motor_25										M85	//	[마이너스(-) 리미트] 양극 클램프 Z2축  
+#define	M_Y_Minus_Limit_Alarm_Motor_26										M86	//	[마이너스(-) 리미트] 음극 클램프 Z2축  
+//																			M87	//	
+//																			M88	//	
+//																			M89	//	
+//																			M90	//	
+#define	M_Y_Minus_Limit_Alarm_Motor_33										M91	//	[마이너스(-) 리미트] 세파 EPC 센서
+#define	M_Y_Minus_Limit_Alarm_Motor_34										M92	//	[마이너스(-) 리미트] 세파 스텍 비전
+#define	M_Y_Minus_Limit_Alarm_Motor_35										M93	//	[마이너스(-) 리미트] 1차 시트 페이퍼 X축  
+#define	M_Y_Minus_Limit_Alarm_Motor_36										M94	//	[마이너스(-) 리미트] 양극 얼라인테이블 X축
+#define	M_Y_Minus_Limit_Alarm_Motor_37										M95	//	[마이너스(-) 리미트] 양극 얼라인테이블 Y축
+#define	M_Y_Minus_Limit_Alarm_Motor_38										M96	//	[마이너스(-) 리미트] 양극 얼라인테이블 T축  
+#define	M_Y_Minus_Limit_Alarm_Motor_39										M97	//	[마이너스(-) 리미트] 음극 얼라인테이블 X축
+#define	M_Y_Minus_Limit_Alarm_Motor_40										M98	//	[마이너스(-) 리미트] 음극 얼라인테이블 Y축
+#define	M_Y_Minus_Limit_Alarm_Motor_41										M99	//	[마이너스(-) 리미트] 음극 얼라인테이블 T축  
+#define	M_Y_Minus_Limit_Alarm_Motor_42										M100	//	[마이너스(-) 리미트] 양극 NG PNP T축 
+#define	M_Y_Minus_Limit_Alarm_Motor_43										M101	//	[마이너스(-) 리미트] 음극 NG PNP T축 
+#define	M_Y_Minus_Limit_Alarm_Motor_44										M102	//	[마이너스(-) 리미트] 양극 NG PNP Z축  
+#define	M_Y_Minus_Limit_Alarm_Motor_45										M103	//	[마이너스(-) 리미트] 음극 NG PNP Z축  
+#define	M_Y_Minus_Limit_Alarm_Motor_46										M104	//	[마이너스(-) 리미트] 1차 언로더 X축 
+#define	M_Y_Minus_Limit_Alarm_Motor_47										M105	//	[마이너스(-) 리미트] 1차 언로더 Z축 
+#define	M_Y_Minus_Limit_Alarm_Motor_48										M106	//	[마이너스(-) 리미트] 1차 언로더 T축
+//																			M107	//	
+//																			M108	//	
+//																			M109	//	
+//																			M110	//	
+//																			M111	//	
+//																			M112	//	
+//																			M113	//	
+//																			M114	//	
+//																			M115	//	
+//																			M116	//	
+//																			M117	//	
+//																			M118	//	
+//																			M119	//	
+//																			M120	//	
+#define	M_Y_Minus_Plus_Alarm_Motor_1										M121	//	[플러스(+) 리미트] 양극 1차 PNP T축 
+#define	M_Y_Minus_Plus_Alarm_Motor_2										M122	//	[플러스(+) 리미트] 음극 1차 PNP T축 
+#define	M_Y_Minus_Plus_Alarm_Motor_3										M123	//	[플러스(+) 리미트] 양극 2차 PNP T축 
+#define	M_Y_Minus_Plus_Alarm_Motor_4										M124	//	[플러스(+) 리미트] 음극 2차 PNP T축 
+#define	M_Y_Minus_Plus_Alarm_Motor_5										M125	//	[플러스(+) 리미트] 양극 클램프 Y1축 
+#define	M_Y_Minus_Plus_Alarm_Motor_6										M126	//	[플러스(+) 리미트] 음극 클램프 Y1축  
+#define	M_Y_Minus_Plus_Alarm_Motor_7										M127	//	[플러스(+) 리미트] 양극 클램프 Y2축   
+#define	M_Y_Minus_Plus_Alarm_Motor_8										M128	//	[플러스(+) 리미트] 음극 클램프 Y2축   
+#define	M_Y_Minus_Plus_Alarm_Motor_9										M129	//	[플러스(+) 리미트] 양극 클램프 Z1축  
+#define	M_Y_Minus_Plus_Alarm_Motor_10										M130	//	[플러스(+) 리미트] 음극 클램프 Z1축  
+#define	M_Y_Minus_Plus_Alarm_Motor_11										M131	//	[플러스(+) 리미트] 스텍 Main Table Z축  
+#define	M_Y_Minus_Plus_Alarm_Motor_12										M132	//	[플러스(+) 리미트] 파이널롤 X축  
+#define	M_Y_Minus_Plus_Alarm_Motor_13										M133	//	[플러스(+) 리미트] 파이널롤 Z축   
+#define	M_Y_Minus_Plus_Alarm_Motor_14										M134	//	[플러스(+) 리미트] 서브 피딩 롤
+#define	M_Y_Minus_Plus_Alarm_Motor_15										M135	//	[플러스(+) 리미트] 드라이빙 피딩 롤
+#define	M_Y_Minus_Plus_Alarm_Motor_16										M136	//	[플러스(+) 리미트] 서보 댄서 
+#define	M_Y_Minus_Plus_Alarm_Motor_17										M137	//	[플러스(+) 리미트] 양극 1차 PNP Z축 
+#define	M_Y_Minus_Plus_Alarm_Motor_18										M138	//	[플러스(+) 리미트] 음극 1차 PNP Z축 
+#define	M_Y_Minus_Plus_Alarm_Motor_19										M139	//	[플러스(+) 리미트] 양극 1차 PNP 피커 T축 
+#define	M_Y_Minus_Plus_Alarm_Motor_20										M140	//	[플러스(+) 리미트] 음극 1차 PNP 피커 T축 
+#define	M_Y_Minus_Plus_Alarm_Motor_21										M141	//	[플러스(+) 리미트] 양극 2차 PNP Z축 
+#define	M_Y_Minus_Plus_Alarm_Motor_22										M142	//	[플러스(+) 리미트] 음극 2차 PNP Z축 
+#define	M_Y_Minus_Plus_Alarm_Motor_23										M143	//	[플러스(+) 리미트] 세파 상단 언와인더 
+#define	M_Y_Minus_Plus_Alarm_Motor_24										M144	//	[플러스(+) 리미트] 세파 하단 언와인더  
+#define	M_Y_Minus_Plus_Alarm_Motor_25										M145	//	[플러스(+) 리미트] 양극 클램프 Z2축  
+#define	M_Y_Minus_Plus_Alarm_Motor_26										M146	//	[플러스(+) 리미트] 음극 클램프 Z2축  
+//																			M147	//	
+//																			M148	//	
+//																			M149	//	
+//																			M150	//	
+#define	M_Y_Minus_Plus_Alarm_Motor_33										M151	//	[플러스(+) 리미트] 세파 EPC 센서
+#define	M_Y_Minus_Plus_Alarm_Motor_34										M152	//	[플러스(+) 리미트] 세파 스텍 비전
+#define	M_Y_Minus_Plus_Alarm_Motor_35										M153	//	[플러스(+) 리미트] 1차 시트 페이퍼 X축   
+#define	M_Y_Minus_Plus_Alarm_Motor_36										M154	//	[플러스(+) 리미트] 양극 얼라인테이블 X축
+#define	M_Y_Minus_Plus_Alarm_Motor_37										M155	//	[플러스(+) 리미트] 양극 얼라인테이블 Y축
+#define	M_Y_Minus_Plus_Alarm_Motor_38										M156	//	[플러스(+) 리미트] 양극 얼라인테이블 T축  
+#define	M_Y_Minus_Plus_Alarm_Motor_39										M157	//	[플러스(+) 리미트] 음극 얼라인테이블 X축
+#define	M_Y_Minus_Plus_Alarm_Motor_40										M158	//	[플러스(+) 리미트] 음극 얼라인테이블 Y축
+#define	M_Y_Minus_Plus_Alarm_Motor_41										M159	//	[플러스(+) 리미트] 음극 얼라인테이블 T축  
+#define	M_Y_Minus_Plus_Alarm_Motor_42										M160	//	[플러스(+) 리미트] 양극 NG PNP T축 
+#define	M_Y_Minus_Plus_Alarm_Motor_43										M161	//	[플러스(+) 리미트] 음극 NG PNP T축 
+#define	M_Y_Minus_Plus_Alarm_Motor_44										M162	//	[플러스(+) 리미트] 양극 NG PNP Z축 
+#define	M_Y_Minus_Plus_Alarm_Motor_45										M163	//	[플러스(+) 리미트] 음극 NG PNP Z축 
+#define	M_Y_Minus_Plus_Alarm_Motor_46										M164	//	[플러스(+) 리미트] 1차 언로더 X축 
+#define	M_Y_Minus_Plus_Alarm_Motor_47										M165	//	[플러스(+) 리미트] 1차 언로더 Z축 
+#define	M_Y_Minus_Plus_Alarm_Motor_48										M166	//	[플러스(+) 리미트] 1차 언로더 T축
+//																			M167	//	
+//																			M168	//	
+//																			M169	//	
+//																			M170	//	
+//																			M171	//	
+//																			M172	//	
+//																			M173	//	
+//																			M174	//	
+//																			M175	//	
+//																			M176	//	
+//																			M177	//	
+//																			M178	//	
+//																			M179	//	
+//																			M180	//	
+//																			M181	//	
+//																			M182	//	
+#define	 M_X_Alarm_2S01_Servo_Driver_Alarm									M183	//	[서보 드라이브 알람] 양극 1차 PNP T축 #1
+#define	 M_X_Alarm_2S02_Servo_Driver_Alarm									M184	//	[서보 드라이브 알람] 음극 1차 PNP T축 #2
+#define	 M_X_Alarm_2S03_Servo_Driver_Alarm									M185	//	[서보 드라이브 알람] 양극 2차 PNP T축 #3
+#define	 M_X_Alarm_2S04_Servo_Driver_Alarm									M186	//	[서보 드라이브 알람] 음극 2차 PNP T축 #4
+//																			M187	//	
+//																			M188	//	
+//																			M189	//	
+//																			M190	//	
+#define	 M_X_Alarm_2S05_Servo_Driver_Alarm									M191	//	[서보 드라이브 알람] 양극 클램프 Y1축 #5
+#define	 M_X_Alarm_2S06_Servo_Driver_Alarm									M192	//	[서보 드라이브 알람] 음극 클램프 Y1축 #6
+#define	 M_X_Alarm_2S07_Servo_Driver_Alarm									M193	//	[서보 드라이브 알람] 양극 클램프 Y2축 #7
+#define	 M_X_Alarm_2S08_Servo_Driver_Alarm									M194	//	[서보 드라이브 알람] 음극 클램프 Y2축 #8
+#define	 M_X_Alarm_2S09_Servo_Driver_Alarm									M195	//	[서보 드라이브 알람] 양극 클램프 Z1축 #9
+#define	 M_X_Alarm_2S10_Servo_Driver_Alarm									M196	//	[서보 드라이브 알람] 음극 클램프 Z1축 #10
+#define	 M_X_Alarm_2S11_Servo_Driver_Alarm									M197	//	[서보 드라이브 알람] 스텍 Main Table Z축 #11 
+#define	 M_X_Alarm_2S12_Servo_Driver_Alarm									M198	//	[서보 드라이브 알람] 파이널롤 X축 #12
+#define	 M_X_Alarm_2S13_Servo_Driver_Alarm									M199	//	[서보 드라이브 알람] 파이널롤 Z축 #13
+#define	 M_X_Alarm_2S14_Servo_Driver_Alarm									M200	//	[서보 드라이브 알람] 서브 피딩 롤 #14
+#define	 M_X_Alarm_2S15_Servo_Driver_Alarm									M201	//	[서보 드라이브 알람] 드라이빙 피딩 롤 #15
+#define	 M_X_Alarm_2S16_Servo_Driver_Alarm									M202	//	[서보 드라이브 알람] 서보 댄서 #16
+#define	 M_X_Alarm_2S17_Servo_Driver_Alarm									M203	//	[서보 드라이브 알람] 양극 1차 PNP Z축 #17
+#define	 M_X_Alarm_2S18_Servo_Driver_Alarm									M204	//	[서보 드라이브 알람] 음극 1차 PNP Z축 #18
+#define	 M_X_Alarm_2S19_Servo_Driver_Alarm									M205	//	[서보 드라이브 알람] 양극 1차 PNP 피커 T축 #19
+#define	 M_X_Alarm_2S20_Servo_Driver_Alarm									M206	//	[서보 드라이브 알람] 음극 1차 PNP 피커 T축 #20
+#define	 M_X_Alarm_2S21_Servo_Driver_Alarm									M207	//	[서보 드라이브 알람] 양극 2차 PNP Z축 #21
+#define	 M_X_Alarm_2S22_Servo_Driver_Alarm									M208	//	[서보 드라이브 알람] 음극 2차 PNP Z축 #22
+#define	 M_X_Alarm_2S23_Servo_Driver_Alarm									M209	//	[서보 드라이브 알람] 세파 상단 언와인더 #23
+#define	 M_X_Alarm_2S24_Servo_Driver_Alarm									M210	//	[서보 드라이브 알람] 세파 하단 언와인더 #24
+#define	 M_X_Alarm_2S25_Servo_Driver_Alarm									M211	//	[서보 드라이브 알람] 양극 클램프 Z2축 #25
+#define	 M_X_Alarm_2S26_Servo_Driver_Alarm									M212	//	[서보 드라이브 알람] 음극 클램프 Z2축 #26
+//																			M213	//	
+//																			M214	//	
+//																			M215	//	
+//																			M216	//	
+//																			M217	//	
+//																			M218	//	
+#define	 M_X_Alarm_2S33_Servo_Driver_Alarm									M219	//	[서보 드라이브 알람] EPC 센서_#33
+#define	 M_X_Alarm_2S34_Servo_Driver_Alarm									M220	//	[서보 드라이브 알람] 스텍 비전_#34
+#define	 M_X_Alarm_2S35_Servo_Driver_Alarm									M221	//	[서보 드라이브 알람] 1차 시트 페이퍼 X축_#35
+#define	 M_X_Alarm_2S36_Servo_Driver_Alarm									M222	//	[서보 드라이브 알람] 양극 얼라인테이블 X축_#36
+#define	 M_X_Alarm_2S37_Servo_Driver_Alarm									M223	//	[서보 드라이브 알람] 양극 얼라인테이블 Y축_#37
+#define	 M_X_Alarm_2S38_Servo_Driver_Alarm									M224	//	[서보 드라이브 알람] 양극 얼라인테이블 T축_#38 
+#define	 M_X_Alarm_2S39_Servo_Driver_Alarm									M225	//	[서보 드라이브 알람] 음극 얼라인테이블 X축_#39
+#define	 M_X_Alarm_2S40_Servo_Driver_Alarm									M226	//	[서보 드라이브 알람] 음극 얼라인테이블 Y축_#40
+#define	 M_X_Alarm_2S41_Servo_Driver_Alarm									M227	//	[서보 드라이브 알람] 음극 얼라인테이블 T축_#41  
+#define	 M_X_Alarm_2S42_Servo_Driver_Alarm									M228	//	[서보 드라이브 알람] 양극 NG PNP T축_#42 
+#define	 M_X_Alarm_2S43_Servo_Driver_Alarm									M229	//	[서보 드라이브 알람] 음극 NG PNP T축_#43
+#define	 M_X_Alarm_2S44_Servo_Driver_Alarm									M230	//	[서보 드라이브 알람] 양극 NG PNP Z축_#44 
+#define	 M_X_Alarm_2S45_Servo_Driver_Alarm									M231	//	[서보 드라이브 알람] 음극 NG PNP Z축_#45 
+#define	 M_X_Alarm_2S46_Servo_Driver_Alarm									M232	//	[서보 드라이브 알람] 1차 언로더 X축_#46 
+#define	 M_X_Alarm_2S47_Servo_Driver_Alarm									M233	//	[서보 드라이브 알람] 1차 언로더 Z축_#47 
+#define	 M_X_Alarm_2S48_Servo_Driver_Alarm									M234	//	[서보 드라이브 알람] 1차 언로더 T축_#48
+//																			M235	//	
+//																			M236	//	
+//																			M237	//	
+//																			M238	//	
+//																			M239	//	
+//																			M240	//	
+//																			M241	//	
+//																			M242	//	
+//																			M243	//	
+#define	M_Cathode_1st_PNP_Sub_Master_Motion_Prog_Down_Alarm					M244	//	[슬레이브 모션 다운] 양극 1차 PNP T축 
+#define	M_Anode_1st_PNP_Sub_Master_Motion_Prog_Down_Alarm					M245	//	[슬레이브 모션 다운] 음극 1차 PNP T축 
+#define	M_Cathode_2st_PNP_Sub_Master_Motion_Prog_Down_Alarm					M246	//	[슬레이브 모션 다운] 양극 2차 PNP T축 
+#define	M_Anode_2st_PNP_Sub_Master_Motion_Prog_Down_Alarm					M247	//	[슬레이브 모션 다운] 음극 2차 PNP T축 
+//																			M248	//	
+//																			M249	//	
+//																			M250	//	
+//																			M251	//	
+#define	M_Cathode_Clamp_Y1_Sub_Master_Motion_Prog_Down_Alarm				M252	//	[슬레이브 모션 다운] 양극 클램프 Y1축 
+#define	M_Anode_Clamp_Y1_Sub_Master_Motion_Prog_Down_Alarm					M253	//	[슬레이브 모션 다운] 음극 클램프 Y1축 
+#define	M_Cathode_Clamp_Y2_Sub_Master_Motion_Prog_Down_Alarm				M254	//	[슬레이브 모션 다운] 양극 클램프 Y2축 
+#define	M_Anode_Clamp_Y2_Sub_Master_Motion_Prog_Down_Alarm					M255	//	[슬레이브 모션 다운] 음극 클램프 Y2축 
+#define	M_Cathode_Clamp_Z1_Sub_Master_Motion_Prog_Down_Alarm				M256	//	[슬레이브 모션 다운] 양극 클램프 Z1축 
+#define	M_Anode_Clamp_Z1_Sub_Master_Motion_Prog_Down_Alarm					M257	//	[슬레이브 모션 다운] 음극 클램프 Z1축 
+#define	M_Stack_Table_Sub_Master_Motion_Prog_Down_Alarm						M258	//	[슬레이브 모션 다운] 스텍 Main Table Z축 
+#define	M_Final_Roll_X_Motion_Prog_Down_Alarm								M259	//	[슬레이브 모션 다운] 파이널롤 X축
+#define	M_Final_Roll_Z_Motion_Prog_Down_Alarm								M260	//	[슬레이브 모션 다운] 파이널롤 Z축 
+#define	M_Sub_Feeding_Roll_Sub_Master_Motion_Prog_Down_Alarm				M261	//	[슬레이브 모션 다운] 서브 피딩 롤 
+#define	M_Driving_Roll_Sub_Master_Motion_Prog_Down_Alarm					M262	//	[슬레이브 모션 다운] 드라이빙 피딩 롤 
+#define	M_Servo_Dancer_Sub_Master_Motion_Prog_Down_Alarm					M263	//	[슬레이브 모션 다운] 서보 댄서 
+#define	M_Cathode_1st_PNP_Z_Sub_Master_Motion_Prog_Down_Alarm				M264	//	[슬레이브 모션 다운] 양극 1차 PNP Z축 
+#define	M_Anode_1st_PNP_Z_Sub_Master_Motion_Prog_Down_Alarm					M265	//	[슬레이브 모션 다운] 음극 1차 PNP Z축 
+#define	M_Cathode_1st_PNP_Picker_T_Sub_Master_Motion_Prog_Down_Alarm		M266	//	[슬레이브 모션 다운] 양극 1차 PNP 피커 T축
+#define	M_Anode_1st_PNP_Picker_T_Sub_Master_Motion_Prog_Down_Alarm			M267	//	[슬레이브 모션 다운] 음극 1차 PNP 피커 T축 
+#define	M_Cathode_2st_PNP_Z_Sub_Master_Motion_Prog_Down_Alarm				M268	//	[슬레이브 모션 다운] 양극 2차 PNP Z축 
+#define	M_Anode_2st_PNP_Z_Sub_Master_Motion_Prog_Down_Alarm					M269	//	[슬레이브 모션 다운] 음극 2차 PNP Z축 
+#define	M_Sepa_Unwinder_Upper_Sub_Master_Motion_Prog_Down_Alarm				M270	//	[슬레이브 모션 다운] 세파 상단 언와인더 
+#define	M_Sepa_Unwinder_Lower_Sub_Master_Motion_Prog_Down_Alarm				M271	//	[슬레이브 모션 다운] 세파 하단 언와인더 
+#define	M_Cathode_Clamp_Z2_Sub_Master_Motion_Prog_Down_Alarm				M272	//	[슬레이브 모션 다운] 양극 클램프 Z2축 
+#define	M_Anode_Clamp_Z2_Sub_Master_Motion_Prog_Down_Alarm					M273	//	[슬레이브 모션 다운] 음극 클램프 Z2축 
+//																			M274	//	
+//																			M275	//	
+//																			M276	//	
+//																			M277	//	
+//																			M278	//	
+//																			M279	//	
+#define	M_EPC_Sensor_Sub_Master_Motion_Prog_Down_Alarm						M280	//	[슬레이브 모션 다운] EPC 센서
+#define	M_Stack_Vision_Sub_Master_Motion_Prog_Down_Alarm					M281	//	[슬레이브 모션 다운] 스텍 비전
+#define	M_1st_Sheet_Paper_X_Sub_Master_Motion_Prog_Down_Alarm				M282	//	[슬레이브 모션 다운] 1차 시트 페이퍼 X축
+#define	M_AT_Cathode_X_Sub_Master_Motion_Prog_Down_Alarm					M283	//	[슬레이브 모션 다운] 양극 얼라인테이블 X축
+#define	M_AT_Cathode_Y_Sub_Master_Motion_Prog_Down_Alarm					M284	//	[슬레이브 모션 다운] 양극 얼라인테이블 Y축
+#define	M_AT_Cathode_T_Sub_Master_Motion_Prog_Down_Alarm					M285	//	[슬레이브 모션 다운] 양극 얼라인테이블 T축
+#define	M_AT_Anode_X_Sub_Master_Motion_Prog_Down_Alarm						M286	//	[슬레이브 모션 다운] 음극 얼라인테이블 X축
+#define	M_AT_Anode_Y_Sub_Master_Motion_Prog_Down_Alarm						M287	//	[슬레이브 모션 다운] 음극 얼라인테이블 Y축
+#define	M_AT_Anode_T_Sub_Master_Motion_Prog_Down_Alarm						M288	//	[슬레이브 모션 다운] 음극 얼라인테이블 T축
+#define	M_Cathode_NG_PNP_T_Sub_Master_Motion_Prog_Down_Alarm				M289	//	[슬레이브 모션 다운] 양극 NG PNP T축
+#define	M_Anode_NG_PNP_T_Sub_Master_Motion_Prog_Down_Alarm					M290	//	[슬레이브 모션 다운] 음극 NG PNP T축
+#define	M_Cathode_NG_PNP_Z_Sub_Master_Motion_Prog_Down_Alarm				M291	//	[슬레이브 모션 다운] 양극 NG PNP Z축
+#define	M_Anode_NG_PNP_Z_Sub_Master_Motion_Prog_Down_Alarm					M292	//	[슬레이브 모션 다운] 음극 NG PNP Z축
+#define	M_1st_ULD_X_Sub_Master_Motion_Prog_Down_Alarm						M293	//	[슬레이브 모션 다운] 1차 언로더 X축 
+#define	M_1st_ULD_Z_Sub_Master_Motion_Prog_Down_Alarm						M294	//	[슬레이브 모션 다운] 1차 언로더 Z축 
+#define	M_1st_ULD_T_Sub_Master_Motion_Prog_Down_Alarm						M295	//	[슬레이브 모션 다운] 1차 언로더 T축
+//																			M296	//	
+//																			M297	//	
+//																			M298	//	
+//																			M299	//	
+//																			M300	//	
+//																			M301	//	
+//																			M302	//	
+//																			M303	//	
+//																			M304	//	
+#define	M_Light_Curtain_Detect_Alarm										M305	//	라이트 커튼 감지 알람
+#define	M_X_Stack_Cell_Over_Alarm											M306	//	Stack Cell 적재 개수 이상 알람
+//																			M307	//	
+//																			M308	//	
+//																			M309	//	
+//																			M310	//	
+#define	M_Cathode_1st_PNP_T_Move_Alarm										M311	//	[이동 오류] 양극 1차 PNP T축 
+#define	M_Anode_1st_PNP_T_Move_Alarm										M312	//	[이동 오류] 음극 1차 PNP T축 
+#define	M_Cathode_2st_PNP_T_Move_Alarm										M313	//	[이동 오류] 양극 2차 PNP T축 
+#define	M_Anode_2st_PNP_T_Move_Alarm										M314	//	[이동 오류] 음극 2차 PNP T축 
+#define	M_Cathode_Clamp_Y1_Move_Alarm										M315	//	[이동 오류] 양극 클램프 Y1축 
+#define	M_Anode_Clamp_Y1_Move_Alarm											M316	//	[이동 오류] 음극 클램프 Y1축 
+#define	M_Cathode_Clamp_Y2_Move_Alarm										M317	//	[이동 오류] 양극 클램프 Y2축 
+#define	M_Anode_Clamp_Y2_Move_Alarm											M318	//	[이동 오류] 음극 클램프 Y2축 
+#define	M_Cathode_Clamp_Z1_Move_Alarm										M319	//	[이동 오류] 양극 클램프 Z1축 
+#define	M_Anode_Clamp_Z1_Move_Alarm											M320	//	[이동 오류] 음극 클램프 Z1축 
+#define	M_Stack_Table_Main_Z_Move_Alarm										M321	//	[이동 오류] 스텍 Main Table Z축 
+#define	M_Final_Roll_X_Move_Alarm											M322	//	[이동 오류] 파이널롤 X축
+#define	M_Final_Roll_Z_Move_Alarm											M323	//	[이동 오류] 파이널롤 Z축 
+#define	M_Sub_Feeding_Roll_Move_Alarm										M324	//	[이동 오류] 서브 피딩 롤 
+#define	M_Driving_Roll_Move_Alarm											M325	//	[이동 오류] 드라이빙 피딩 롤 
+#define	M_Servo_Dancer_Move_Alarm											M326	//	[이동 오류] 서보 댄서 
+#define	M_Cathode_1st_PNP_Z_Move_Alarm										M327	//	[이동 오류] 양극 1차 PNP Z축 
+#define	M_Anode_1st_PNP_Z_Move_Alarm										M328	//	[이동 오류] 음극 1차 PNP Z축 
+#define	M_Cathode_1st_PNP_Picker_T_Move_Alarm								M329	//	[이동 오류] 양극 1차 PNP 피커 T축
+#define	M_Anode_1st_PNP_Picker_T_Move_Alarm									M330	//	[이동 오류] 음극 1차 PNP 피커 T축 
+#define	M_Cathode_2st_PNP_Z_Move_Alarm										M331	//	[이동 오류] 양극 2차 PNP Z축 
+#define	M_Anode_2st_PNP_Z_Move_Alarm										M332	//	[이동 오류] 음극 2차 PNP Z축 
+#define	M_Sepa_Unwinder_Upper_Move_Alarm									M333	//	[이동 오류] 세파 상단 언와인더 
+#define	M_Sepa_Unwinder_Lower_Move_Alarm									M334	//	[이동 오류] 세파 하단 언와인더 
+#define	M_Cathode_Clamp_Z2_Move_Alarm										M335	//	[이동 오류] 양극 클램프 Z2축 
+#define	M_Anode_Clamp_Z2_Move_Alarm											M336	//	[이동 오류] 음극 클램프 Z2축 
+//																			M337	//	
+//																			M338	//	
+//																			M339	//	
+//																			M340	//	
+#define	M_EPC_Sensor_Move_Alarm												M341	//	[이동 오류] EPC 센서
+#define	M_Stack_Vision_Move_Alarm											M342	//	[이동 오류] 스텍 비전
+#define	M_1st_Sheet_Paper_X_Move_Alarm										M343	//	[이동 오류] 1차 시트 페이퍼 X축
+#define	M_Cathode_AT_X_Move_Alarm											M344	//	[이동 오류] 양극 얼라인테이블 X축
+#define	M_Cathode_AT_Y_Move_Alarm											M345	//	[이동 오류] 양극 얼라인테이블 Y축
+#define	M_Cathode_AT_T_Move_Alarm											M346	//	[이동 오류] 양극 얼라인테이블 T축
+#define	M_Anode_AT_X_Move_Alarm												M347	//	[이동 오류] 음극 얼라인테이블 X축
+#define	M_Anode_AT_Y_Move_Alarm												M348	//	[이동 오류] 음극 얼라인테이블 Y축
+#define	M_Anode_AT_T_Move_Alarm												M349	//	[이동 오류] 음극 얼라인테이블 T축
+#define	M_Cathode_NG_PNP_T_Move_Alarm										M350	//	[이동 오류] 양극 NG PNP T축
+#define	M_Anode_NG_PNP_T_Move_Alarm											M351	//	[이동 오류] 음극 NG PNP T축
+#define	M_Cathode_NG_PNP_Z_Move_Alarm										M352	//	[이동 오류] 양극 NG PNP Z축
+#define	M_Anode_NG_PNP_Z_Move_Alarm											M353	//	[이동 오류] 음극 NG PNP Z축
+#define	M_1st_ULD_X_Move_Alarm												M354	//	[이동 오류] 1차 언로더 X축 
+#define	M_1st_ULD_Z_Move_Alarm												M355	//	[이동 오류] 1차 언로더 Z축 
+#define	M_1st_ULD_T_Move_Alarm												M356	//	[이동 오류] 1차 언로더 T축
+//																			M357	//	
+//																			M358	//	
+//																			M359	//	
+//																			M360	//	
+//																			M361	//	
+//																			M362	//	
+//																			M363	//	
+//																			M364	//	
+//																			M365	//	
+//																			M366	//	
+//																			M367	//	
+//																			M368	//	
+//																			M369	//	
+//																			M370	//	
+//																			M371	//	
+//																			M372	//	
+#define	M_Y_Ready_Pos_Alarm_Motor_1											M373	//	[시작 위치 오류] 양극 1차 PNP T축 
+#define	M_Y_Ready_Pos_Alarm_Motor_2											M374	//	[시작 위치 오류] 음극 1차 PNP T축 
+#define	M_Y_Ready_Pos_Alarm_Motor_3											M375	//	[시작 위치 오류] 양극 2차 PNP T축 
+#define	M_Y_Ready_Pos_Alarm_Motor_4											M376	//	[시작 위치 오류] 음극 2차 PNP T축 
+//																			M377	//	
+//																			M378	//	
+//																			M379	//	
+//																			M380	//	
+#define	M_Y_Ready_Pos_Alarm_Motor_5											M381	//	[시작 위치 오류] 양극 클램프 Y1축 
+#define	M_Y_Ready_Pos_Alarm_Motor_6											M382	//	[시작 위치 오류] 음극 클램프 Y1축 
+#define	M_Y_Ready_Pos_Alarm_Motor_7											M383	//	[시작 위치 오류] 양극 클램프 Y2축 
+#define	M_Y_Ready_Pos_Alarm_Motor_8											M384	//	[시작 위치 오류] 음극 클램프 Y2축 
+#define	M_Y_Ready_Pos_Alarm_Motor_9											M385	//	[시작 위치 오류] 양극 클램프 Z1축 
+#define	M_Y_Ready_Pos_Alarm_Motor_10										M386	//	[시작 위치 오류] 음극 클램프 Z1축 
+#define	M_Y_Ready_Pos_Alarm_Motor_11										M387	//	[시작 위치 오류] 스텍 Main Table Z축 
+#define	M_Y_Ready_Pos_Alarm_Motor_12										M388	//	[시작 위치 오류] 파이널롤 X축
+#define	M_Y_Ready_Pos_Alarm_Motor_13										M389	//	[시작 위치 오류] 파이널롤 Z축 
+#define	M_Y_Ready_Pos_Alarm_Motor_14										M390	//	[시작 위치 오류] 서브 피딩 롤 
+#define	M_Y_Ready_Pos_Alarm_Motor_15										M391	//	[시작 위치 오류] 드라이빙 피딩 롤 
+#define	M_Y_Ready_Pos_Alarm_Motor_16										M392	//	[시작 위치 오류] 서보 댄서 
+#define	M_Y_Ready_Pos_Alarm_Motor_17										M393	//	[시작 위치 오류] 양극 1차 PNP Z축 
+#define	M_Y_Ready_Pos_Alarm_Motor_18										M394	//	[시작 위치 오류] 음극 1차 PNP Z축 
+#define	M_Y_Ready_Pos_Alarm_Motor_19										M395	//	[시작 위치 오류] 양극 1차 PNP 피커 T축
+#define	M_Y_Ready_Pos_Alarm_Motor_20										M396	//	[시작 위치 오류] 음극 1차 PNP 피커 T축 
+#define	M_Y_Ready_Pos_Alarm_Motor_21										M397	//	[시작 위치 오류] 양극 2차 PNP Z축 
+#define	M_Y_Ready_Pos_Alarm_Motor_22										M398	//	[시작 위치 오류] 음극 2차 PNP Z축 
+#define	M_Y_Ready_Pos_Alarm_Motor_23										M399	//	[시작 위치 오류] 세파 상단 언와인더 
+#define	M_Y_Ready_Pos_Alarm_Motor_24										M400	//	[시작 위치 오류] 세파 하단 언와인더 
+#define	M_Y_Ready_Pos_Alarm_Motor_25										M401	//	[시작 위치 오류] 양극 클램프 Z2축 
+#define	M_Y_Ready_Pos_Alarm_Motor_26										M402	//	[시작 위치 오류] 음극 클램프 Z2축 
+//																			M403	//	
+//																			M404	//	
+//																			M405	//	
+//																			M406	//	
+//																			M407	//	
+//																			M408	//	
+#define	M_Y_Ready_Pos_Alarm_Motor_33										M409	//	[시작 위치 오류] EPC 센서
+#define	M_Y_Ready_Pos_Alarm_Motor_34										M410	//	[시작 위치 오류] 스텍 비전
+#define	M_Y_Ready_Pos_Alarm_Motor_35										M411	//	[시작 위치 오류] 1차 시트 페이퍼 X축
+#define	M_Y_Ready_Pos_Alarm_Motor_36										M412	//	[시작 위치 오류] 양극 얼라인테이블 X축
+#define	M_Y_Ready_Pos_Alarm_Motor_37										M413	//	[시작 위치 오류] 양극 얼라인테이블 Y축
+#define	M_Y_Ready_Pos_Alarm_Motor_38										M414	//	[시작 위치 오류] 양극 얼라인테이블 T축
+#define	M_Y_Ready_Pos_Alarm_Motor_39										M415	//	[시작 위치 오류] 음극 얼라인테이블 X축
+#define	M_Y_Ready_Pos_Alarm_Motor_40										M416	//	[시작 위치 오류] 음극 얼라인테이블 Y축
+#define	M_Y_Ready_Pos_Alarm_Motor_41										M417	//	[시작 위치 오류] 음극 얼라인테이블 T축
+#define	M_Y_Ready_Pos_Alarm_Motor_42										M418	//	[시작 위치 오류] 양극 NG PNP T축
+#define	M_Y_Ready_Pos_Alarm_Motor_43										M419	//	[시작 위치 오류] 음극 NG PNP T축
+#define	M_Y_Ready_Pos_Alarm_Motor_44										M420	//	[시작 위치 오류] 양극 NG PNP Z축
+#define	M_Y_Ready_Pos_Alarm_Motor_45										M421	//	[시작 위치 오류] 음극 NG PNP Z축
+#define	M_Y_Ready_Pos_Alarm_Motor_46										M422	//	[시작 위치 오류] 1차 언로더 X축 
+#define	M_Y_Ready_Pos_Alarm_Motor_47										M423	//	[시작 위치 오류] 1차 언로더 Z축 
+#define	M_Y_Ready_Pos_Alarm_Motor_48										M424	//	[시작 위치 오류] 1차 언로더 T축
+//																			M425	//	
+//																			M426	//	
+//																			M427	//	
+//																			M428	//	
+//																			M429	//	
+//																			M430	//	
+#define	M_Cathode_1st_PNP_T_Home_Alarm										M431	//	[홈 알람] 양극 1차 PNP T축 
+#define	M_Anode_1st_PNP_T_Home_Alarm										M432	//	[홈 알람] 음극 1차 PNP T축 
+#define	M_Cathode_2st_PNP_T_Home_Alarm										M433	//	[홈 알람] 양극 2차 PNP T축 
+#define	M_Anode_2st_PNP_T_Home_Alarm										M434	//	[홈 알람] 음극 2차 PNP T축 
+#define	M_Cathode_Clamp_Y1_Home_Alarm										M435	//	[홈 알람] 양극 클램프 Y1축 
+#define	M_Anode_Clamp_Y1_Home_Alarm											M436	//	[홈 알람] 음극 클램프 Y1축 
+#define	M_Cathode_Clamp_Y2_Home_Alarm										M437	//	[홈 알람] 양극 클램프 Y2축 
+#define	M_Anode_Clamp_Y2_Home_Alarm											M438	//	[홈 알람] 음극 클램프 Y2축 
+#define	M_Cathode_Clamp_Z1_Home_Alarm										M439	//	[홈 알람] 양극 클램프 Z1축 
+#define	M_Anode_Clamp_Z1_Home_Alarm											M440	//	[홈 알람] 음극 클램프 Z1축 
+#define	M_Stack_Table_Main_Z_Home_Alarm										M441	//	[홈 알람] 스텍 Main Table Z축 
+#define	M_Final_Roll_X_Home_Alarm											M442	//	[홈 알람] 파이널롤 X축
+#define	M_Final_Roll_Z_Home_Alarm											M443	//	[홈 알람] 파이널롤 Z축 
+#define	M_Sub_Feeding_Roll_Home_Alarm										M444	//	[홈 알람] 서브 피딩 롤 
+#define	M_Driving_Roll_Home_Alarm											M445	//	[홈 알람] 드라이빙 피딩 롤 
+#define	M_Servo_Dancer_Home_Alarm											M446	//	[홈 알람] 서보 댄서 
+#define	M_Cathode_1st_PNP_Z_Home_Alarm										M447	//	[홈 알람] 양극 1차 PNP Z축 
+#define	M_Anode_1st_PNP_Z_Home_Alarm										M448	//	[홈 알람] 음극 1차 PNP Z축 
+#define	M_Cathode_1st_PNP_Picker_T_Home_Alarm								M449	//	[홈 알람] 양극 1차 PNP 피커 T축
+#define	M_Anode_1st_PNP_Picker_T_Home_Alarm									M450	//	[홈 알람] 음극 1차 PNP 피커 T축 
+#define	M_Cathode_2st_PNP_Z_Home_Alarm										M451	//	[홈 알람] 양극 2차 PNP Z축 
+#define	M_Anode_2st_PNP_Z_Home_Alarm										M452	//	[홈 알람] 음극 2차 PNP Z축 
+#define	M_Sepa_Unwinder_Upper_Home_Alarm									M453	//	[홈 알람] 세파 상단 언와인더 
+#define	M_Sepa_Unwinder_Lower_Home_Alarm									M454	//	[홈 알람] 세파 하단 언와인더 
+//																			M455	//	
+//																			M456	//	
+//																			M457	//	
+//																			M458	//	
+//																			M459	//	
+//																			M460	//	
+#define	M_EPC_Sensor_Home_Alarm												M461	//	[홈 알람] EPC 센서
+#define	M_Stack_Vision_Home_Alarm											M462	//	[홈 알람] 스텍 비전
+#define	M_1st_Sheet_Paper_X_Home_Alarm										M463	//	[홈 알람] 1차 시트 페이퍼 X축
+#define	M_Cathode_AT_X_Home_Alarm											M464	//	[홈 알람] 양극 얼라인테이블 X축
+#define	M_Cathode_AT_Y_Home_Alarm											M465	//	[홈 알람] 양극 얼라인테이블 Y축
+#define	M_Cathode_AT_T_Home_Alarm											M466	//	[홈 알람] 양극 얼라인테이블 T축
+#define	M_Anode_AT_X_Home_Alarm												M467	//	[홈 알람] 음극 얼라인테이블 X축
+#define	M_Anode_AT_Y_Home_Alarm												M468	//	[홈 알람] 음극 얼라인테이블 Y축
+#define	M_Anode_AT_T_Home_Alarm												M469	//	[홈 알람] 음극 얼라인테이블 T축
+#define	M_Cathode_NG_PNP_T_Home_Alarm										M470	//	[홈 알람] 양극 NG PNP T축
+#define	M_Anode_NG_PNP_T_Home_Alarm											M471	//	[홈 알람] 음극 NG PNP T축
+#define	M_Cathode_NG_PNP_Z_Home_Alarm										M472	//	[홈 알람] 양극 NG PNP Z축
+#define	M_Anode_NG_PNP_Z_Home_Alarm											M473	//	[홈 알람] 음극 NG PNP Z축
+#define	M_1st_ULD_X_Home_Alarm												M474	//	[홈 알람] 1차 언로더 X축 
+#define	M_1st_ULD_Z_Home_Alarm												M475	//	[홈 알람] 1차 언로더 Z축 
+#define	M_1st_ULD_T_Home_Alarm												M476	//	[홈 알람] 1차 언로더 T축
+//																			M477	//	
+//																			M478	//	
+//																			M479	//	
+//																			M480	//	
+//																			M481	//	
+//																			M482	//	
+//																			M483	//	
+//																			M484	//	
+//																			M485	//	
+//																			M486	//	
+//																			M487	//	
+//																			M488	//	
+//																			M489	//	
+//																			M490	//	
+//																			M491	//	
+//																			M492	//	
+//																			M493	//	
+//																			M494	//	
+#define	M_Cathode_1ST_PNP_Down_POS_Vaccume_Alarm							M495	//	[진공 알람] 양극 1차 PNP 
+#define	M_Anode_1ST_PNP_Down_POS_Vaccume_Alarm								M496	//	[진공 알람] 음극 1차 PNP 
+#define	M_Cathode_2ST_PNP_Down_POS_Vaccume_Alarm							M497	//	[진공 알람] 양극 2차 PNP 
+#define	M_Anode_2ST_PNP_Down_POS_Vaccume_Alarm								M498	//	[진공 알람] 음극 2차 PNP 
+#define	M_Cathode_NG_PNP_Down_POS_Vaccume_Alarm								M499	//	[진공 알람] 양극 NG PNP
+#define	M_Anode_NG_PNP_Down_POS_Vaccume_Alarm								M500	//	[진공 알람] 음극 NG PNP
+#define	M_Cathode_AT_Down_POS_Vaccume_Alarm									M501	//	[진공 알람] 양극 얼라인테이블 
+#define	M_Anode_AT_Down_POS_Vaccume_Alarm									M502	//	[진공 알람] 음극 얼라인테이블 
+#define	M_Main_Stack_Table_Down_POS_Vaccume_Alarm							M503	//	[진공 알람] 스텍 테이블 
+#define	M_Main_Stack_T_Plate_Down_POS_Vaccume_Alarm							M504	//	[진공 알람] 스텍 테이블 첫장 플레이트 
+#define	M_Cathode_2ST_PNP_Blow_NG_Alarm										M505	//	[진공 알람] 양극 2차 P&P Blow미동작 알람
+#define	M_Anode_2ST_PNP_Blow_NG_Alarm										M506	//	[진공 알람] 음극 2차 P&P Blow미동작 알람
+#define	M_Cathode_1ST_PNP_AT_Down_POS_Vaccume_Alarm							M507	//	[진공 알람] 양극 1차 PNP A/T 하강위치 흡착 알람
+#define	M_Anode_1ST_PNP_AT_Down_POS_Vaccume_Alarm							M508	//	[진공 알람] 음극 1차 PNP A/T 하강위치 흡착 알람
+#define	M_Cathode_1ST_PNP_AT_UP_POS_Vaccume_Alarm							M509	//	[진공 알람] 양극 1차 PNP A/T 상승위치 흡착 알람
+#define	M_Anode_1ST_PNP_AT_UP_POS_Vaccume_Alarm								M510	//	[진공 알람] 음극 1차 PNP A/T 상승위치 흡착 알람
+#define	M_Cathode_1ST_PNP_Belt_Up_POS_Sheet_Check_Vaccume_Alarm				M511	//	[진공 알람] 양극 1차 PNP 벨트 상승 위치 극판 감지 알람
+#define	M_Anode_1ST_PNP_Belt_Up_POS_Sheet_Check_Vaccume_Alarm				M512	//	[진공 알람] 음극 1차 PNP 벨트 상승 위치 극판 감지 알람
+//																			M513	//	
+//																			M514	//	
+//																			M515	//	
+//																			M516	//	
+//																			M517	//	
+//																			M518	//	
+#define	M_AB_Cathode_1st_Pnp_Pos_Jog_CollisionRisk_Alarm					M519	//	A, B열 양극 PNP 1차 PNP 충돌 위험
+#define	M_AB_Anode_1st_Pnp_Pos_Jog_CollisionRisk_Alarm						M520	//	A, B열 음극 PNP 1차 PNP 충돌 위험
+#define	M_Cathode_1st_2st_Pnp_Jog_Move_CollisionRisk_Alarm					M521	//	양극 1차, 2차 PNP 조그 이동 시 충돌 위험 
+#define	M_Anode_1st_2st_Pnp_Jog_Move_CollisionRisk_Alarm					M522	//	음극 1차, 2차 PNP 조그 이동 시 충돌 위험 
+#define	M_Cathode_2st_Pnp_And_FR_Jog_Move_CollisionRisk_Alarm				M523	//	양극 2차 PNP, Final Roll 조그 이동 시 충돌 위험
+#define	M_Anode_2st_Pnp_And_FR_Jog_Move_CollisionRisk_Alarm					M524	//	음극 2차 PNP, Final Roll 조그 이동 시 충돌 위험
+#define	M_StackT_And_2st_Pnp_Jog_Move_CollisionRisk_Alarm					M525	//	스텍 테이블, 2차 PNP 조그 이동 시 충돌 위험
+#define	M_AB_Cathode_1st_Pnp_IF_Error_Alarm									M526	//	A, B열 양극 1차 PNP 이동 인터페이스 신호 이상 알람
+#define	M_AB_Anode_1st_Pnp_IF_Error_Alarm									M527	//	A, B열 음극 1차 PNP 이동 인터페이스 신호 이상 알람
+//																			M528	//	
+//																			M529	//	
+//																			M530	//	
+//																			M531	//	
+//																			M532	//	
+//																			M533	//	
+#define	M_Y_Cathode_1st_Pnp_Cell_Data_Mismatch								M534	//	양극 1차 PNP 극판 데이터 불일치 
+#define	M_Y_Anode_1st_Pnp_Cell_Data_Mismatch								M535	//	음극 1차 PNP 극판 데이터 불일치 
+#define	M_Y_Cathode_2st_Pnp_Cell_Data_Mismatch								M536	//	양극 2차 PNP 극판 데이터 불일치
+#define	M_Y_Anode_2st_Pnp_Cell_Data_Mismatch								M537	//	음극 2차 PNP 극판 데이터 불일치
+#define	M_Y_Cathode_NG_Pnp_Cell_Data_Mismatch								M538	//	양극 NG PNP 극판 데이터 불일치 
+#define	M_Y_Anode_NG_Pnp_Cell_Data_Mismatch									M539	//	음극 NG PNP 극판 데이터 불일치
+#define	M_Y_Cathode_AT_Cell_Data_Mismatch									M540	//	양극 얼라인 테이블 극판 데이터 불일치
+#define	M_Y_Anode_AT_Cell_Data_Mismatch										M541	//	음극 얼라인 테이블 극판 데이터 불일치
+#define	M_Y_1st_ULD_Cell_Data_Mismatch										M542	//	1차 언로더 극판 데이터 불일치
+#define	M_Y_2st_ULD_Cell_Data_Mismatch										M543	//	2차 언로더 극판 데이터 불일치 
+//																			M544	//	
+//																			M545	//	
+//																			M546	//	
+//																			M547	//	
+//																			M548	//	
+//																			M549	//	
+#define	M_Cathode_Align_Vision_TimeOut_Alarm								M550	//	[타임아웃] 양극 얼라인 비전 판정 결과 타임아웃
+#define	M_Anode_Align_Vision_TimeOut_Alarm									M551	//	[타임아웃] 음극 얼라인 비전 판정 결과 타임아웃
+#define	M_Stack_Vision_TimeOut_Alarm										M552	//	[타임아웃] 스텍 비전 판정 결과 타임아웃 
+#define	M_Sepa_ARC_TimeOut_Alarm											M553	//	[타임아웃] 세파 ARC 타임아웃 
+//																			M554	//	
+//																			M555	//	
+//																			M556	//	
+//																			M557	//	
+//																			M558	//	
+//																			M559	//	
+#define	M_SEPA_ARC_Upper_Chuck_Unchuck_Error_Alarm							M560	//	세파 ARC Upper 언와인더 척/언척 오류
+#define	M_SEPA_ARC_Lower_Chuck_Unchuck_Error_Alarm							M561	//	세파 ARC Lower 언와인더 척/언척 오류
+#define	M_Cathode_AT_Clamp_ON_OFF_Error_Alarm								M562	//	양극 얼라인테이블 제로 클램프/언클램프 오류
+#define	M_Anode_AT_Clamp_ON_OFF_Error_Alarm									M563	//	음극 얼라인테이블 제로 클램프/언클램프 오류
+#define	M_Cathode_2st_Pnp_Clamp_ON_OFF_Error_Alarm							M564	//	양극 2차 PNP 제로 클램프/언클램프 오류
+#define	M_Anode_2st_Pnp_Clamp_ON_OFF_Error_Alarm							M565	//	음극 2차 PNP 제로 클램프/언클램프 오류
+#define	M_FR_Clamp_ON_OFF_Error_Alarm										M566	//	파이널롤 클램프/언클램프 오류
+#define	M_Cathode_Clamp_ON_OFF_Error_Alarm									M567	//	양극 클램프 클램프/언클램프 오류
+#define	M_Anode_Clamp_ON_OFF_Error_Alarm									M568	//	음극 클램프 클램프/언클램프 오류
+#define	M_StackT_Job_Clamp_ON_OFF_Error_Alarm								M569	//	스텍 테이블 잡체인지 클램프/언클램프 오류
+#define	M_StackT_Up_Down_Error_Alarm										M570	//	스텍 테이블 상승/하강 오류
+#define	M_StackT_Back_Roll_Clamp_ON_OFF_Error_Alarm							M571	//	스텍 테이블 백업 롤 클램프/언클램프 오류
+#define	M_StackT_Cutter_ON_OFF_Error_Alarm									M572	//	스텍 테이블 커터 히터 On/Off 오류
+#define	M_StackT_Sepa_Up_Down_Error_Alarm									M573	//	스텍 테이블 세파 히터 상승/하강 오류
+#define	M_StackT_First_Plate_Fwd_Bwd_Error_Alarm							M574	//	스텍 테이블 첫장 플레이트 전진/후진 오류
+#define	M_StackT_First_Plate_Vacuum_ON_OFF_Error_Alarm						M575	//	스텍 테이블 첫장 플레이트 진공 On/Off 오류
+#define	M_SEPA_ARC_Upper_Plate_UP_Down_Error_Alarm							M576	//	세파 ARC Upper 플레이트 상승/하강 오류
+#define	M_SEPA_ARC_Upper_Tilting_0_90_Error_Alarm							M577	//	세파 ARC Upper 틸팅 0'/90' 오류
+#define	M_SEPA_ARC_Upper_Cutter_Fwd_Bwd_Error_Alarm							M578	//	세파 ARC Upper 커터 전진/후진 오류
+#define	M_SEPA_ARC_Upper_Clamp_On_Off_Error_Alarm							M579	//	세파 ARC Upper 클램프 클램프/언클램프 오류
+#define	M_SEPA_ARC_Upper_Vacuum_On_Off_Error_Alarm							M580	//	세파 ARC Upper 진공 On/Off 오류
+#define	M_SEPA_ARC_Lower_Plate_Up_Down_Error_Alarm							M581	//	세파 ARC Lower 플레이트 상승/하강 오류
+#define	M_SEPA_ARC_Lower_Tilting_0_90_Error_Alarm							M582	//	세파 ARC Lower 틸팅 0'/90' 오류
+#define	M_SEPA_ARC_Lower_Cutter_Fwd_Bwd_Error_Alarm							M583	//	세파 ARC Lower 커터 전진/후진 오류
+#define	M_SEPA_ARC_Lower_Clamp_On_Off_Error_Alarm							M584	//	세파 ARC Lower 클램프 클램프/언클램프 오류
+#define	M_SEPA_ARC_Lower_Vacuum_On_Off_Error_Alarm							M585	//	세파 ARC Lower 진공 On/Off 오류
+#define	M_SEPA_Enc_Roll_Clamp_ON_OFF_Error_Alarm							M586	//	세파 엔코더 롤 클램프/언클램프 오류
+#define	M_Vision_Camera_Lock_Unlock_Error_Alarm								M587	//	비전 카메라 잠금/해제 오류 
+#define	M_SEPA_Passive_Dancer_On_Off_Error_Alarm							M588	//	세파 패시브댄서 On/Off 오류
+#define	M_1st_Unloader_GripperGrip_Ungrip_Error_Alarm						M589	//	1차 언로더 그립/언그립 오류
+#define	M_1st_Unloader_Blow_On_Off_Error_Alarm 								M590	//	1차 언로더 블로우 On/Off 오류
+#define	M_2st_Unloader_Gripper_Grip_Ungrip_Error_Alarm						M591	//	2차 언로더 그리퍼 그립/언그립 오류
+#define	M_SEPA_Cutter_Current_Undervoltage_Alarm							M592	//	세파 커터 전류값 미달 알람 
+#define	M_FR_Sepa_Unclamp_Cylinder_Malfunction_Alarm 						M593	//	파이널롤 세파 언클램프 실린더 오작동
+#define M_SEPA_ARC_Home_Error_Alarm											M594	//	세파 ARC 정위치 오류					
+#define M_SEPA_ARC_Driving_Roll_FWD_BWD_Error_Alarm							M595	//	세파 ARC 드라이빙 롤 전진/후진 오류	
+//			M596	//	
+//			M597	//	
+//			M598	//	
+//			M599	//	
+#define	M_Cathode_Align_NG_Over_Count_Alarm									M600	//	양극 얼라인 연속 NG 알람
+#define	M_Anode_Align_NG_Over_Count_Alarm									M601	//	음극 얼라인 연속 NG 알람
+#define	M_Stack_Vision_Count_NG_Alarm										M602	//	스텍 비전 연속 NG 알람
+#define	M_Anode_Retry_Align_Count_NG_Alarm 									M603	//	양극 리트라이 비젼 연속 NG 알람
+#define	M_Cathode_Retry_Align_Count_NG_Alarm								M604	//	음극 리트라이 비젼 연속 NG 알람
+#define	M_Y_EPC_Align_Mode_Retry_Continuous_Error_Alarm						M605	//	EPC 보정 모드 재시도 연속 알람 
+#define	M_Anode_Align_Scrap_NG_Alarm										M606	//	음극 얼라인 비젼 스크랩 NG
+#define	M_Cathode_Align_Scrap_NG_Alarm										M607	//	양극 얼라인 비젼 스크랩 NG
+#define	M_Anode_Front_Scrap_NG_Alarm										M608	//	음극 프론트 비젼 스크랩 NG
+#define	M_Cathode_Front_Scrap_NG_Alarm										M609	//	양극 프론트 비젼 스크랩 NG
+#define	M_Cathode_Align_Cal_Angle_Alarm										M610	//	양극 얼라인 캘 틀어짐 알람 
+#define	M_Anode_Align_Cal_Angle_Alarm										M611	//	음극 얼라인 캘 틀어짐 알람 
+//																			M612	//	
+//																			M613	//	
+//																			M614	//	
+//																			M615	//	
+//																			M616	//	
+//																			M617	//	
+#define	M_Cathode_Align_Vision_HeartBit_Alarm								M618	//	[ 통신오류 알람 ] 양극 얼라인 비젼
+#define	M_Anode_Align_Vision_HeartBit_Alarm									M619	//	[ 통신오류 알람 ] 음극 얼라인 비젼
+#define	M_Stack_Align_Vision_HeartBit_Alarm									M620	//	[ 통신오류 알람 ] 스택 얼라인 비젼
+#define	M_Cathode_Align_Vision_Ready_Check_Alarm							M621	//	[ 레디 신호 오류 ] 양극 얼라인 비젼 Ready
+#define	M_Anode_Align_Vision_Ready_Check_Alarm								M622	//	[ 레디 신호 오류 ] 음극 얼라인 비젼 Ready
+#define	M_Stack_Align_Vision_Ready_Check_Alarm								M623	//	[ 레디 신호 오류 ] 스택 얼라인 비젼 Ready
+#define	M_Sepa_ARC_Ready_Check_Alarm										M624	//	[ 레디 신호 오류 ] Sepa ARC Ready 상태 확인
+//																			M625	//	
+//																			M626	//	
+//																			M627	//	
+//																			M628	//	
+//																			M629	//	
+//																			M630	//	
+#define	M_Cathode_Align_Continuous_NG_Alarm									M631	//	양극 얼라인 NG 횟수 초과 
+#define	M_Anode_Align_Continuous_NG_Alarm									M632	//	음극 얼라인 NG 횟수 초과 
+#define	M_Stack_Align_Continuous_NG_Alarm									M633	//	스택 얼라인 NG 횟수 초과 
+//																			M634	//	
+//																			M635	//	
+//																			M636	//	
+//																			M637	//	
+//																			M638	//	
+//																			M639	//	
+#define	M_Upper_Sepa_Thickness_Chk_Alarm									M640	//	상단 세파 언와인더 소재 잔량 부족
+#define	M_Lower_Sepa_Thickness_Chk_Alarm									M641	//	하단 세파 언와인더 소재 잔량 부족
+#define	M_Cathode_Align_Detach_Alarm										M642	//	양극 얼라인테이블 미부착 알람
+#define	M_Anode_Align_Detach_Alarm											M643	//	음극 얼라인테이블 미부착 알람
+//																			M644	//	
+//																			M645	//	
+//																			M646	//	
+#define	M_EPC_Disconnectde_Alarm											M647	//	EPC 미연결 상태
+#define	M_EPC_EDGE_Mismatch_Alarm											M648	//	EPC 오른쪽 or 왼쪽 엣지 값 미매칭 
+#define	M_EPC_Sensor_Unsel_Alarm											M649	//	EPC 오른쪽/왼쪽 센서 미선택
+//																			M650	//	
+//																			M651	//	
+//																			M652	//	
+//																			M653	//	
+//																			M654	//	
+//																			M655	//	
+#define	M_EPC_HeartBit_Error_Alarm											M656	//	EPC 통신 알람
+#define	M_EPC_Limit_Error_Alarm												M657	//	EPC 리밋 에러
+#define	M_Cathode_NG_Box_None_Alarm											M658	//	양극 NG BOX 없음
+#define	M_Anode_NG_Box_None_Alarm											M659	//	음극 NG BOX 없음
+#define	M_AT_Detach_Mode_Error_Alarm										M660	//	얼라인테이블 탈착 모드 실행 불가
+#define	M_1st_ULD_Pos_Interlock_Alarm 										M661	//	1차 언로더 위치 인터락 알람
+#define	M_2st_ULD_Pos_Interlock_Alarm 										M662	//	2차 언로더 위치 인터락 알람
+#define	M_Cycle_Stop_Done_Alarm												M663	//	사이클 스탑 완료
+//																			M664	//	
+//																			M665	//	
+//																			M666	//	
+//																			M667	//	
+//																			M668	//	
+//																			M669	//	
+//																			M670	//	
+//																			M671	//	
+//																			M672	//	
+//																			M673	//	
+//																			M674	//	
+//																			M675	//	

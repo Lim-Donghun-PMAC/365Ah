@@ -1,0 +1,251 @@
+// 
+open plc 10
+
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[4].ldata.L[0] 시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[4].ldata.L[1] 시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[4].ldata.L[2] 시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[4].ldata.L[3] 타이머 초기화 플래그
+// 지역변수 선언
+local L_Discharge_Sub_Rtn = 0;							// 
+local L_Final_Roll_Heating_Wait_Timer;					// 히팅 대기 타이머
+
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_PLC01_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_PLC01_System_Timer;
+}
+
+// 00.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_PLC01_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{		
+	
+	L_Final_Roll_Heating_Wait_Timer = L_Final_Roll_Heating_Wait_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+//========================================================================================================================
+if( P_Shared_Discharge_Cmd == 1 )
+{
+	P_Shared_Discharge_Cmd = 0;
+	P_Shared_Discharge_State_Machine = 1;
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+// A열 B열 공통 배출 실행 모듈
+// suspend에서 관리할 배출 스텟머신
+// 서스펜드 상태일때 이거나 스탑 불가 포인트 라면 배출 진행
+if( P_PMAC_Status == F_Status_SUSPENDED ||  P_Discharge_Dont_Stop_Point_Flag == 1 )
+{
+	switch( P_Shared_Discharge_State_Machine )
+	{
+		case 0 :
+			// idle
+		break;
+
+		case 1 :	// 양품 불량 판정 및 배출 필요 동작
+			P_1st_Discharge_State = F_Status_STARTING;															// 배출 상태 스타팅
+			if( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence )
+			{
+				// Vision DIO communication
+				call Discharge_Sub_Prog.Discharge_Vision_DIO();
+			}
+			// 필요 동작은 1번만 읽게 하면 되므로 스탑 커맨드가 들어와도 멈추지 말고 넘기자
+			P_Discharge_Dont_Stop_Point_Flag = 1;																// 배출중 스탑 불가 플래그 on 
+			//M_Y_Sheet_Enable_Flag = 0;																			// 극판 투입 허가 플래그 off
+			// 드라이빙 모터로 인해 롤러가 움직이지 않으므로, 파이널롤 클램프 off
+			M_Y_SOL_Final_Roll_Sepa_Clamp = 0;		
+			M_Y_SOL_Final_Roll_Sepa_UnClamp = 1;	
+			L_Discharge_Sub_Rtn = 0;
+			call Discharge_Sub_Prog.Discharge_Host_ID_Result(&L_Discharge_Sub_Rtn);
+			if( L_Discharge_Sub_Rtn == N_TRUE )
+			{
+				P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;		// 다음스텝으로 이동
+			}
+
+		break;
+
+		case 2 :	// stop point 
+			P_Discharge_Dont_Stop_Point_Flag = 0;
+			P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;			// 다음스텝으로 이동
+		break;
+	
+		case 3 :	// FR 배출위치로 이동 및 언로더 스텍위치 확인
+			P_1st_Discharge_State = F_Status_EXECUTE;															// 배출 상태 스타팅
+ 
+			P_Slave5_Motion_Command = 3;																		// FR 배출위치 Slave Motion Cmd		200ms
+			P_Slave14_Motion_Command = 1;																		// 언로더 스텍위치 Slave Cmd			200ms
+				
+			P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;			// 다음스텝으로 이동
+		break;
+	
+		case 4 :	// 언로더 진입 cmd
+			P_1st_Discharge_State = F_Status_EXECUTE;				// 배출 상태 익스큐트
+			if( P_Motor_Current_Pos(12) ~ P_Slave5_Target_X_Discharge && P_Motor_Current_Pos(13) ~ P_Slave5_Target_Z_Cutting && P_Motor_Current_Pos(46) ~ P_Slave14_Unloader_X_Target_Stack_Pos && P_Motor_Current_Pos(47) ~ P_Slave14_Unloader_Z_Target_Stack_Pos )	// 모터 위치 확인 ( FR 배출위치, 스텍 상승위치 )
+			{
+				if( M_X_1st_Unloader_Unclamp )																	// 언로더 언클램프 확인 후 
+				{
+					P_Slave14_Motion_Command = 2;																// 언로더 진입 Slave Cmd				500ms + 200ms = 700ms
+					P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;	// 다음스텝으로 이동
+				}
+			}
+		break;
+
+		case 5 :	// 언로더 그립 후 셀 부착위치 cmd
+			if( P_Motor_Current_Pos(46) ~ P_Slave14_Unloader_X_FWD )											// 언로더 진입 확인 후
+			{
+				P_Slave14_Motion_Command = 3;																	// 극판 받쳐주는 위치 Slave Motion Cmd 50ms + 700ms = 750ms
+				P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;	// 다음스텝으로 이동
+			}
+		break;
+	
+		case 6 :	// 언로더 그립 cmd
+			if( P_Motor_Current_Pos(47) ~ P_Slave14_Unloader_Z_Cell_Pos )	// 모터 위치 확인 ( 진입 )
+			{
+				P_Discharge_DIO_Trg = 1;																		// 그립 커맨드
+				P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;		// 다음스텝으로 이동
+			}
+		break;
+	
+		case 7 :	// 클램프 off cmd
+			if(  M_X_1st_Unloader_Clamp  )																		// 그립 신호 확인 후
+			{
+				P_Slave7_Motion_Command = 1;																	// 클램프 off Slave Cmd				110ms + 750 = 860ms
+				P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;		// 다음스텝으로 이동
+			}
+		break;
+	
+		case 8 :	// 열선 히팅 cmd --> 이부분부터 Cycle Stop 불가
+			//if( P_Motor_Current_Pos(5) ~ P_Recipe_M5_POS(2) & P_Motor_Current_Pos(7) ~ P_Recipe_M7_POS(2) & P_Motor_Current_Pos(9) ~ P_Recipe_M9_POS(2) )	// 모터 위치 확인 ( Clamp OFF )
+			//{
+				P_Discharge_Dont_Stop_Point_Flag = 1;															// 플래그가 살면 후진 까지 Cycle stop 무시
+				P_Discharge_DIO_Trg = 2;																		// FR 열선 히팅  Cmd  & FR 클램프 cmd	 & sheet paper 흡착 on	
+				L_Final_Roll_Heating_Wait_Timer = 0;															// 열선 타이머 초기화
+				P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;		// 다음스텝으로 이동
+			//}
+		break;
+
+	
+		case 9 :	// 커팅
+			if( M_X_SOL_Final_Roll_Sepa_Clamp == 1 && M_X_SOL_Final_Roll_Sepa_UnClamp == 0 )					// 커팅전 클램프 on 확인	
+			{
+				if( M_X_Final_Roll_Heating )																	// 히팅 온
+				{
+					P_Discharge_DIO_Trg = 3;																	// 커팅 Cmd
+					P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;	// 다음스텝으로 이동
+				}
+				else if( L_Final_Roll_Heating_Wait_Timer > 100 )												// 100ms 
+				{
+					//M_Alarm_Not_Heating = 1;																	// 알람
+					//P_Shared_Discharge_State_Machine = 444;														// error
+				}
+			}
+			else																								// FR 클램프를 하고 컷팅하도록
+			{
+				M_Y_SOL_Final_Roll_Sepa_Clamp = 1;
+				M_Y_SOL_Final_Roll_Sepa_UnClamp = 0;
+			}
+			
+		break;
+	
+		case 10 :	// 커팅 실린더 복귀 및 후진
+			if( M_X_Final_Roll_Cutter_Cylinder_FWD )															// 커팅 완료 신호
+			{
+				P_Discharge_DIO_Trg = 4;																		// 커팅 실린더 복귀 
+				P_Slave14_Motion_Command = 4;																	// 언로더 후진을 위한 위치 slave motion cmd  100ms + 860ms = 960ms
+				 
+				P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;		// 다음스텝으로 이동
+			}
+		break;
+
+	
+		case 11 :	// 언로더 후진  메인Z축 FR 초기위치 cmd
+			if( P_Motor_Current_Pos(47) ~ P_Slave14_Unloader_Z_Discharge_For_Cell_Pos )							// 모터 위치 확인 ( 그립 후 후진을 위한 위치 )
+			{
+				P_Slave14_Motion_Command = 5;																	// 언로더 후진 slave motion cmd 650ms + 960ms = 1610ms
+				P_Slave5_Motion_Command = 4;																	// 파이널 롤러 적층위치 복귀 slave motion cmd
+				P_Slave6_Motion_Command = 1;																	// 메인z축 대기위치 slave motion cmd
+				P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;		// 다음스텝으로 이동
+			}
+		break;
+
+		case 12 :	// 언로더 하강
+			if( P_Motor_Current_Pos(46) ~ P_Slave14_Unloader_Target_BWD &&  P_Motor_Current_Pos(12) ~ P_Slave5_Target_X_Anode_Move && P_Motor_Current_Pos(13) ~ P_Slave5_Target_Z_Run_Pos && P_Motor_Current_Pos(11) ~ P_Slave6_Target_Z_For_Init_Pos  )										// 모터 위치 확인 ( FR 초기위치 (음극) & 스텍테이블 대기위치 )
+			{
+				P_1st_Discharge_State = F_Status_COMPLETE;														// 완료
+				call Discharge_Sub_Prog.Discharge_After_Action();												// 배출 후 액션 함수 ( 초기화 )				// 1610ms + 세파 첫장 220ms = 1830ms		6500ms - 1830ms = 4670ms 여유 --> 실린더 
+				P_Slave14_Motion_Command = 6;																	// 언로더 하강 slave motion cmd
+				P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;		// 다음스텝으로 이동
+			}
+		break;
+
+		case 13 :	// 언로더 인계위치 이동
+			if( P_Motor_Current_Pos(47) ~ P_Slave14_Unloader_Target_Down )										// 언로더 타겟 
+			{
+				P_Slave14_Motion_Command = 7;																	// 언로더 PLC 인계위치 slave motion cmd		
+				P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;		// 다음스텝으로 이동
+			}
+
+		break;
+
+		case 14 :	// 언로더 T회전 확인
+			if( P_Motor_Current_Pos(48) ~ P_Slave14_Unloader_Target_2nd_Handle_Pos && P_Motor_Current_Pos(46) ~ P_Slave14_Unloader_X_Init_Pos )
+			{
+				#ifdef F_Def_Stack_A							// A열 배출
+				P_A_1st_to_2nd_Discharge_cmd = 1;				// 2차언로더 인계 커맨드  
+				#endif
+	
+				#ifdef F_Def_Stack_B							// B열 배출
+				P_B_1st_to_3rd_Discharge_cmd = 1;				// 3차언로더 인계 커맨드  
+				#endif
+
+				P_Shared_Discharge_State_Machine = P_Shared_Discharge_State_Machine + P_Upcount_NextStep ;	// 다음스텝으로 이동
+			}
+		break;
+
+		case 15 :	// 배출 큐에서 완료 신호가 넘어온다면, 스텟머신 초기화
+			if( P_Discharge_Queue_Complete_Flag == 1 )
+			{
+				P_Discharge_Queue_Complete_Flag = 0;		// 플래그 초기화
+				P_1st_Discharge_State = F_Status_IDLE;		// 상태 초기화
+				P_Discharge_Dont_Stop_Point_Flag = 0;													// 완료하였으니 Cycle stop 가능
+				P_Jelly_Roll_Prod_Count = P_Jelly_Roll_Count + P_Jelly_Roll_NG_Count;					// 극판 카운트 지정
+				P_Real_Stacking_Host_ID_Count = P_Anode_Count + P_Cathode_Count;						// 데이터 파싱 (배출 전, 데이터 이동 시, 디스플레이 화면 일치) 
+				P_Data_Parsing_Flag = 1;																// -> PLC 데이터 전송 해주는 Flag
+				P_Cell_Out_Restart = 0;																	// 배출 중 스탑 시 살았던 플래그 초기화
+				P_Shared_Discharge_State_Machine = 0;		// 스텟머신 초기화
+			}
+		break;
+	
+		case 444 :	// error
+			
+		break;
+	}
+}
+// 사이클 스탑 커맨드가 왔으면서, 스탑 포인트 플래그가 켜져 있지 않을때
+else if( P_PMAC_Status == F_Status_STOPPING &&  P_Discharge_Dont_Stop_Point_Flag == 0 )
+{
+	P_Cell_Out_Restart = 1;																				// 배출中 스탑 플래그
+	P_Memory_Discharge_Data = P_Shared_Discharge_State_Machine;
+	P_1st_Discharge_State = F_Status_STOPPED;
+	P_Shared_Discharge_State_Machine = 0;
+}
+
+
+close

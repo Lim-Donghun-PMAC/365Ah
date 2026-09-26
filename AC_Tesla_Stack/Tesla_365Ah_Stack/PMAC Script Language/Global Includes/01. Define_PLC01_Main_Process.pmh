@@ -1,0 +1,470 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.04 
+// Queue 일원화 코드, 부분보완 (자동화 처리, 실시간보정타이밍) - [ 참조 : 25.06.04 프로그램 상세 주석 변경 및 부분 보완 ]
+
+
+// 상태 변경 프로그램 변수
+
+
+global P_Process_Function_Command = 0;					// 큐 커맨드 처리 변수
+// HOLD
+//global P_HOLD_FUNC_Remove_STEP = 0;						// Remove - 스텝 머신
+//global P_HOLD_FUNC_Supply_STEP = 0;						// Supply - 스텝 머신
+//global P_HOLD_FUNC_MoveToProdPos_STEP = 0;				// 생산위치이동 - 스텝 머신
+global P_HOLD_Existence_Insp_State_Machine = 0;			// existence 상태머신
+
+// EXECUTE
+global P_Execute_IsEnable_State_Machine = 0;				// Execute - 실행 가능 조건 확인
+global P_EXECUTE_FUNC_Ready_STEP = 0;					// Execute - 생산 준비 상태 확인	[ 참조 : 세파첫장 커맨드 큐 분리_240304]
+global P_Execute_First_Sepa_Ontable_State_Machine = 0;					// Execute - 세파 깔기 모드 스탭
+global P_Execute_Prod_Manage_State_Machine	= 0;
+//global P_EXECUTE_FUNC_ProdPos_STEP = 0;					// Execute - 생산 위치 이동
+//global P_EXECUTE_FUNC_Switching_STEP = 0;				// Execute - 스위칭 모드
+
+global	P_Execute_Enqueue_State_Machine	= 0;
+
+
+// STOPPING
+global P_STOP_Initial_Process_STEP = 0;					// CycleStop - 스텝 머신
+global P_STOP_Cylce_Stop_STEP = 0;					// 정지위치이동 - 스텝 머신
+//global P_STOP_FUNC_StopComplete_STEP = 0;
+global P_Stop_CycleStop_Position = 0;	// 다운
+
+global P_Upcount_NextStep = 1;
+
+// 배출
+//global P_SUSPEND_FUNC_JR_Discharge_STEP_Debug = 0;
+global P_SUSPEND_FUNC_JR_Discharge_STEP = 0;
+
+//ARC
+global P_SUSPEND_FUNC_ARC_STEP = 0;
+global P_Suspend_ARC_Complete_Flag = 0;;
+
+
+// 디버그 변수
+//global P_Debug_Process_Function_Command = 0;			// 큐 에러 진입 시 이전 모드 감시
+//global P_HOLD_FUNC_Debug_Remove_STEP = 0;						// Remove - 스텝 머신
+//global P_HOLD_FUNC_Debug_Supply_STEP = 0;						// Supply - 스텝 머신
+//global P_HOLD_FUNC_Debug_MoveToProdPos_STEP = 0;				// 생산위치이동 - 스텝 머신
+//global P_HOLD_FUNC_Debug_CycleStop_STEP = 0;					// CycleStop - 스텝 머신
+//global P_HOLD_FUNC_Debug_PauseProc_STEP = 0;					// 정지위치이동 - 스텝 머신
+//global P_EXECUTE_FUNC_Debug_Ready_STEP = 0;
+//global P_EXECUTE_FUNC_Debug_ProdPos_STEP = 0;	
+//global P_EXECUTE_FUNC_Debug_Switching_STEP = 0;
+global P_EXECUTE_FUNC_Debug_On_Sepa_STEP = 0;			// Execute 세파모드 큐 분리로 인해 디버그 변수 추가. [ 참조 : 세파첫장 커맨드 큐 분리_240304]
+//global P_SUSPEND_FUNC_Debug_MoveToProdPos_STEP = 0;
+
+global P_QueueCommand_Occurs		// 큐 커맨드 감시 변수	
+global P_EXECUTE_STEP = 0;			// EXECUTE 삽입 스텝		
+global P_SUSPEND_STEP = 0;			// SUSPEND 삽입 스텝			
+global P_HOLD_STEP = 0;				// HOLD 삽입 스텝			
+global P_STOP_STEP = 0;				// STOP 삽입 스텝			
+global P_EXECUTE_Error_STEP = 0;	// EXECUTE 에러 스텝	
+global P_SUSPEND_Error_STEP = 0;	// SUSPEND 에러 스텝	
+global P_HOLD_Error_STEP = 0;		// HOLD 에러 스텝		
+global P_STOP_Error_STEP = 0;		// STOP 에러 스텝		
+global P_Queue_Enqueue_Command		// 인큐 커맨드
+global P_Queue_Enqueue_return		// 인큐 리턴											
+global P_Queue_Dequeue_Command		// 디큐 커맨드
+global P_Queue_Dequeue_return		// 디큐 리턴											
+global P_Queue_Peek_Command			// 픽 커맨드
+//global P_Queue_Peek_return			// 픽 티런
+//global P_Edge_Queue_Peek_return;	// Queue Peek 리턴 엣지 변수
+
+global P_Dequeue_Log(20);
+global P_Dummy_Dequeue = 0;
+
+//global P_Auto_Sub_Program_Active_array(20);
+//global P_Complete_Changing_Progrma_Status = 0;
+
+#define	N_Align_Suplly				10
+#define	N_Both_Supply				20
+#define	N_Supply_Result				99
+#define N_Execute_Step				111		// [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+#define N_Ready_Step				222
+#define N_Existence_Vision_STEP		333
+#define N_Error_Step				444
+#define	N_Exeption_Step				555
+#define N_Exeption_Step_2			666
+#define N_InterLock_Step			777		// [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+#define N_PreCondition_Check_Step	888		// [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+#define N_Complete_Step				999
+#define N_Not_Complete_Step			9494
+
+// 
+#define	N_GO_TO_EXECUTE_Status		500
+#define	N_GO_TO_SUSPEND_Status		501
+#define	N_GO_TO_HOLD_Status			502
+#define	N_GO_TO_STOP_Status			503
+
+
+//global P_Auto_Status_Change_Complete_Flag = 0;		
+global P_Queue_Command_Status = 0;					// 큐 커맨드 상태
+global P_Queue_Process_Command = 0;					// 큐 처리 커맨드 
+global P_Queue_Process_Status = 1;					// 큐 처리 상태 변수 - 디폴트 IDLE 상태
+
+
+
+// 생산 프로그램 함수 인덱스 정의
+#define N_Function_Execute_isEnable				1		// EXECUTE - 진입 가능한지
+#define N_Function_Execute_First_Sepa_OnTable	2		// EXECUTE - 첫장 세파 깔기		[ 참조 : 세파첫장 커맨드 큐 분리_240304]
+#define N_Function_Prod_Management				3		// EXECUTE - 생산 모드 관리
+
+#define N_Function_Hold_Existence_Insp_Process	5		// HOLD - 극판 유무 위치 이동
+#define N_Function_Hold_Process					6
+
+
+#define N_Function_Silent_Pause_Clear			10		// SUSPEND - 무언정지 클리어 큐
+#define N_Function_JR_Discharge					11		// SUSPEND - 젤리 롤 배출
+#define N_Function_Sepa_ARC_Mode				12		// SUSPEND - 세파 ARC
+
+//#define F_Function_Convert_After_Suspend		13		// SUSPEND - 종료 후 상태 변경
+#define N_Function_Stop_Initial_Process					14		// STOPPING - 사이클 정지
+#define	N_Function_CycleStop					15		// STOPPING - 정지 프로세스(대기위치이동) 
+//#define F_Function_Convert_After_Stopping		16		// STOPPING - 종료 후 상태 변경
+											
+
+#define N_Function_Complete						999		// 기능 완료
+#define N_Function_Error						444		// 기능 에러
+
+#define	N_Time_Scale						1000		// 타이머 스케일
+#define	L_PLC01_System_Timer				Sys.Time	// 시스템 타이머
+
+#define	ACTIVE_PLC_0						Plc[0].Active
+#define	ACTIVE_PLC_1						Plc[1].Active
+#define	ACTIVE_PLC_2						Plc[2].Active
+#define	ACTIVE_PLC_3						Plc[3].Active
+#define	ACTIVE_PLC_4						Plc[4].Active
+#define	ACTIVE_PLC_5						Plc[5].Active
+#define	ACTIVE_PLC_6						Plc[6].Active
+#define	ACTIVE_PLC_7						Plc[7].Active
+#define	ACTIVE_PLC_8						Plc[8].Active
+#define	ACTIVE_PLC_9						Plc[9].Active
+#define	ACTIVE_PLC_10						Plc[10].Active
+#define	ACTIVE_PLC_11						Plc[11].Active
+#define	ACTIVE_PLC_12						Plc[12].Active
+#define	ACTIVE_PLC_13						Plc[13].Active
+#define	ACTIVE_PLC_14						Plc[14].Active
+#define	ACTIVE_PLC_15						Plc[15].Active
+#define	ACTIVE_PLC_16						Plc[16].Active
+#define	ACTIVE_PLC_17						Plc[17].Active
+#define	ACTIVE_PLC_18						Plc[18].Active
+#define	ACTIVE_PLC_19						Plc[19].Active
+#define	ACTIVE_PLC_20						Plc[20].Active
+#define	ACTIVE_PLC_21						Plc[21].Active
+#define	ACTIVE_PLC_22						Plc[22].Active
+#define	ACTIVE_PLC_23						Plc[23].Active
+#define	ACTIVE_PLC_24						Plc[24].Active
+#define	ACTIVE_PLC_25						Plc[25].Active
+#define	ACTIVE_PLC_26						Plc[26].Active
+#define	ACTIVE_PLC_27						Plc[27].Active
+#define	ACTIVE_PLC_28						Plc[28].Active
+#define	ACTIVE_PLC_29						Plc[29].Active
+#define	ACTIVE_PLC_30						Plc[30].Active
+#define	ACTIVE_PLC_31						Plc[31].Active
+#define	ACTIVE_PLC_32						Plc[32].Active
+
+
+#define	ACTIVE_MoT_0						Coord[0].ProgActive
+#define	ACTIVE_MoT_1						Coord[1].ProgActive
+#define	ACTIVE_MoT_2						Coord[2].ProgActive
+#define	ACTIVE_MoT_3						Coord[3].ProgActive
+#define	ACTIVE_MoT_4						Coord[4].ProgActive
+#define	ACTIVE_MoT_5						Coord[5].ProgActive
+#define	ACTIVE_MoT_6						Coord[6].ProgActive
+#define	ACTIVE_MoT_7						Coord[7].ProgActive
+#define	ACTIVE_MoT_8						Coord[8].ProgActive
+#define	ACTIVE_MoT_9						Coord[9].ProgActive
+#define	ACTIVE_MoT_10						Coord[10].ProgActive
+#define	ACTIVE_MoT_11						Coord[11].ProgActive
+#define	ACTIVE_MoT_12						Coord[12].ProgActive
+#define	ACTIVE_MoT_13						Coord[13].ProgActive
+#define	ACTIVE_MoT_14						Coord[14].ProgActive
+#define	ACTIVE_MoT_15						Coord[15].ProgActive
+#define	ACTIVE_MoT_16						Coord[16].ProgActive
+#define	ACTIVE_MoT_17						Coord[17].ProgActive
+#define	ACTIVE_MoT_18						Coord[18].ProgActive
+#define	ACTIVE_MoT_19						Coord[19].ProgActive
+#define	ACTIVE_MoT_20						Coord[20].ProgActive
+#define	ACTIVE_MoT_21						Coord[21].ProgActive
+#define	ACTIVE_MoT_22						Coord[22].ProgActive
+#define	ACTIVE_MoT_23						Coord[23].ProgActive
+#define	ACTIVE_MoT_24						Coord[24].ProgActive
+#define	ACTIVE_MoT_25						Coord[25].ProgActive
+#define	ACTIVE_MoT_26						Coord[26].ProgActive
+#define	ACTIVE_MoT_27						Coord[27].ProgActive
+#define	ACTIVE_MoT_28						Coord[28].ProgActive
+#define	ACTIVE_MoT_29						Coord[29].ProgActive
+#define	ACTIVE_MoT_30						Coord[30].ProgActive
+#define	ACTIVE_MoT_31						Coord[31].ProgActive
+#define	ACTIVE_MoT_32						Coord[32].ProgActive
+#define	ACTIVE_MoT_33						Coord[33].ProgActive
+#define	ACTIVE_MoT_34						Coord[34].ProgActive
+global P_Coord_Test = 0;
+global P_Coord_Test3 = 0;
+global P_Coord_Test2 = 0;
+//[ 2025.06.24 추가 ]================================================================================================================================================================
+#define ACTIVE_SubMaster		 Coord[11].ProgActive | Coord[12].ProgActive << 1 | Coord[13].ProgActive << 2 | Coord[14].ProgActive << 3 \
+								| Coord[15].ProgActive << 4 | Coord[16].ProgActive << 5 | Coord[17].ProgActive << 6 | Coord[18].ProgActive << 7 \
+								| Coord[19].ProgActive << 8 | Coord[20].ProgActive << 9
+								
+
+#define ACTIVE_SlaveMaster_1	Coord[21].ProgActive | Coord[22].ProgActive << 1 | Coord[23].ProgActive << 2 | Coord[24].ProgActive << 3 \
+								| Coord[25].ProgActive << 4	| Coord[26].ProgActive << 5 | Coord[27].ProgActive << 6 | Coord[28].ProgActive << 7 \
+								| Coord[29].ProgActive << 8 | Coord[30].ProgActive << 9 | Coord[31].ProgActive << 10 | Coord[32].ProgActive << 11
+
+#define ACTIVE_SlaveMaster_2	Coord[33].ProgActive << 12 | Coord[34].ProgActive << 13 | Coord[35].ProgActive << 14 | Coord[37].ProgActive << 15 \
+								| Coord[38].ProgActive << 16 | Coord[39].ProgActive << 17 | Coord[40].ProgActive << 18 
+
+
+// ↓ 서브 마스터 및 슬레이브 마스터 좌표계 24개를 비트열에 저장		10번째 비트 시작을 위해 << 9칸 이동		0번지 비트부터 시작을 위해 >> 1칸 이동
+#define ACTIVE_SlaveMaster ACTIVE_SlaveMaster_1 | ACTIVE_SlaveMaster_2
+#define N_Coord_ProgActive_Total_Bit									( ACTIVE_SlaveMaster << 10 | ACTIVE_SubMaster )
+																			// 0000,0000,0000,0000,0000,0000
+#define N_Coord_Masking					$1FFFFFFF								// 0111,1111,1111,1111,1111,1111
+
+// [ 참조 : 2025.09.30 모션 다운 체크 변경 ]
+#define Sub_AN_1st_PnP_Coord	$1
+#define Sub_AN_Picker_Coord		$2
+#define Sub_AN_2nd_PnP_Coord	$4
+#define Sub_AN_Clamp_Coord		$8
+#define Sub_Final_Roll_Coord	$10
+#define Sub_Stack_Table_Coord	$20
+#define Sub_CA_Clamp_Coord		$40
+#define Sub_CA_2nd_PnP_Coord	$80
+#define Sub_CA_Picker_Coord		$100
+#define Sub_CA_1st_PnP_Coord	$200	
+#define AN_1st_PnP_Coord		$400
+#define AN_Picker_Coord			$800
+#define AN_2nd_PnP_Coord		$1000
+#define AN_Clamp_Coord			$2000
+#define Final_Roll_Coord		$4000
+#define Stack_Table_Coord		$8000
+#define CA_Clamp_Coord			$10000
+#define CA_2nd_PnP_Coord		$20000
+#define CA_Picker_Coord			$40000
+#define CA_1st_PnP_Coord		$80000
+#define Sheet_Paper_Coord		$100000
+#define CA_NG_PnP_Coord			$200000
+#define AN_NG_PnP_Coord			$400000
+#define Unloader_Coord			$800000
+#define CamTable_Coord			$1000000
+#define AN_1st_PNP_Z_Coord		$2000000
+#define AN_2nd_PNP_Z_Coord		$4000000
+#define CA_2nd_PNP_Z_Coord		$8000000
+#define CA_1st_PNP_Z_Coord		$10000000
+
+ // 슬레이브 모션 좌표계 감시 변수 추가
+ global P_Coord_Motion_Prog_Down_Entering_Bit = 0;
+ global P_PMAC_Coord_Status_Bit = 0;
+ global P_Coord_Down_Check_Bit = 0;			
+ global P_PMAC_Coord_Down_Inspection_Flag = 0;
+ global P_PMAC_Coord_Down_Num = 0;
+ global P_PMAC_Coord_Error_Status = 0;
+ 
+ // 서브마스터 좌표계 감시 변수
+ //global P_Sub_Master_Coord_Down_Inspection_Flag = 0;
+ //global P_Sub_Master_Coord_Down_Check_Bit = 0;
+ //global P_Sub_Master_Coord_Status_Bit = 0;
+//===================================================================================================================================================================================
+
+global P_Motor_Current_Pos(50);
+P_Motor_Current_Pos(0),50,1 = 0
+
+global P_Axis_Scale_Value(50);
+P_Axis_Scale_Value(0),50,1 = 1000;
+
+
+		
+                                                                    // 프로그램 수정내역	//
+//-------------------------------------------------------------//
+#define N_Func_Return_Limit_Count 100
+global P_Except_Return_Array(N_Func_Return_Limit_Count);    
+P_Except_Return_Array(0),N_Func_Return_Limit_Count,1 = 0;
+
+// Automatic Part EH
+#define	N_PLC01_Queue_Peek_RTN									1
+#define	N_PLC01_Queue_Dequeue_RTN								2
+#define	N_PLC01_Queue_IsFull_RTN								3
+//#define Spare													4
+//#define Spare													5
+// EXECUTE Part
+#define	N_PLC01_Execute_Enqueue_IsEnable_RTN					6
+#define	N_PLC01_Execute_Enqueue_First_Sepa_Ontable_RTN			7
+#define	N_PLC01_Execute_Enqueue_Prod_Manage_RTN					8
+#define	N_PLC01_Execute_Is_Ready_to_Run_RTN						9
+#define	N_PLC01_Execute_Set_Stack_Data_RTN						10
+// 세파 첫장 모듈																
+#define	N_PLC02_Execute_First_Sepa_Mode_Set_Seq_Occurs_RTN		11
+#define	N_PLC02_Execute_First_Sepa_Mode_Manage_Get_RTN			12	
+#define	N_PLC02_Execute_First_Sepa_Mode_Exe_Seq_RTN				13
+#define	N_PLC02_Execute_First_Sepa_Mode_Pre_Seq_Complete_RTN	14
+//#define Spare													15
+//#define Spare													16
+
+#define N_Hold_Memory_Tower_RTN									17	
+// 극판 유무 검사
+#define	N_PLC02_Hold_Exist_Insp_Set_Seq_Occurs_RTN				18
+#define	N_PLC02_Hold_Exist_Insp_Manage_Get_RTN					19	
+#define	N_PLC02_Hold_Exist_Insp_Exe_Seq_RTN						20
+#define	N_PLC02_Hold_Exist_Insp_Pre_Seq_Complete_RTN			21
+// NG PNP 제거 
+#define	N_PLC02_Hold_NG_PNP_Remove_Set_Seq_Occurs_RTN			22
+#define	N_PLC02_Hold_NG_PNP_Remove_Manage_Get_RTN				23	
+#define	N_PLC02_Hold_NG_PNP_Remove_Exe_Seq_RTN					24
+#define	N_PLC02_Hold_NG_PNP_Remove_Pre_Seq_Complete_RTN			25
+// Align 제거 
+#define	N_PLC02_Hold_Remove_Align_Set_Seq_Occurs_RTN			26
+#define	N_PLC02_Hold_Remove_Align_Manage_Get_RTN				27	
+#define	N_PLC02_Hold_Remove_Align_Exe_Seq_RTN					28
+#define	N_PLC02_Hold_Remove_Align_Pre_Seq_Complete_RTN			29
+// 2TR 제거 
+#define	N_PLC02_Hold_Remove_2TR_Set_Seq_Occurs_RTN				30
+#define	N_PLC02_Hold_Remove_2TR_Manage_Get_RTN					31
+#define	N_PLC02_Hold_Remove_2TR_Exe_Seq_RTN						32
+#define	N_PLC02_Hold_Remove_2TR_Pre_Seq_Complete_RTN			33
+// 1TR 공급 																
+#define	N_PLC02_Hold_Supply_1TR_Set_Seq_Occurs_RTN				34
+#define	N_PLC02_Hold_Supply_1TR_Manage_Get_RTN					35
+#define	N_PLC02_Hold_Supply_1TR_Exe_Seq_RTN						36
+#define	N_PLC02_Hold_Supply_1TR_Pre_Seq_Complete_RTN			37
+// Align 공급															
+#define	N_PLC02_Hold_Supply_Align_Set_Seq_Occurs_RTN			38
+#define	N_PLC02_Hold_Supply_Align_Manage_Get_RTN				39
+#define	N_PLC02_Hold_Supply_Align_Exe_Seq_RTN					40
+#define	N_PLC02_Hold_Supply_Align_Pre_Seq_Complete_RTN			41
+// 2TR 공급																	
+#define	N_PLC02_Hold_Supply_2TR_Set_Seq_Occurs_RTN				42
+#define	N_PLC02_Hold_Supply_2TR_Manage_Get_RTN					43
+#define	N_PLC02_Hold_Supply_2TR_Exe_Seq_RTN						44
+#define	N_PLC02_Hold_Supply_2TR_Pre_Seq_Complete_RTN			45
+// 세미런 위치 이동																
+#define	N_PLC02_Hold_Semi_Run_Pos_Move_Set_Seq_Occurs_RTN		46
+#define	N_PLC02_Hold_Semi_Run_Pos_Move_Manage_Get_RTN			47	
+#define	N_PLC02_Hold_Semi_Run_Pos_Move_Exe_Seq_RTN				48
+#define	N_PLC02_Hold_Semi_Run_Pos_Move_Pre_Seq_Complete_RTN		49
+// HOLD - NG PNP 제거 Sub Queue
+#define	N_PLC01_Hold_Remove_NG_PNP_Sub_RTN						50
+// HOLD - Align 제거 Sub Queue
+#define	N_PLC01_Hold_Remove_Align_Sub_RTN						51
+// HOLD - 1TR 공급 Sub Queue
+#define	N_PLC01_Hold_Supply_1TR_Sub_RTN							52
+// HOLD Spare
+// #define Spare												53
+// #define Spare												54
+
+// Suspend_리턴변수 EH// [ 참조 : 25.10.20 배출, ARC, Host ID 부여 시 텍 단축을 위한 RTI BCG 교체 건]
+// 배출 
+#define	N_PLC02_Discharge_Set_Seq_Occurs_RTN					55
+#define	N_PLC02_Discharge_Manage_Get_RTN						56	
+#define	N_PLC02_Discharge_Exe_Seq_RTN							57
+#define	N_PLC02_Discharge_Pre_Seq_Complete_RTN					58
+// ARC
+#define	N_PLC02_ARC_Set_Seq_Occurs_RTN							59
+#define	N_PLC02_ARC_Manage_Get_RTN								60	
+#define	N_PLC02_ARC_Exe_Seq_RTN									61
+#define	N_PLC02_ARC_Pre_Seq_Complete_RTN						62
+// 음극 1TR 극판 공급 - [ 참조 : 2025.10.24 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]
+#define	N_PLC02_Anode_1TR_Supply_Set_Seq_Occurs_RTN				63
+#define	N_PLC02_Anode_1TR_Supply_Manage_Get_RTN					64	
+#define	N_PLC02_Anode_1TR_Supply_Exe_Seq_RTN					65
+#define	N_PLC02_Anode_1TR_Supply_Pre_Seq_Complete_RTN			66
+// #define Spare												67
+// #define Spare												68
+// Manual_All_Home Sub Queue
+#define	N_PLC19_All_Home_Set_Seq_Occurs_RTN						69
+#define	N_PLC19_All_Home_Manage_Get_RTN							70	
+#define	N_PLC19_All_Home_Exe_Seq_RTN							71
+#define	N_PLC19_All_Home_Pre_Seq_Complete_RTN					72
+//#define Spare													73
+//#define Spare													74
+// Module Act RTI
+#define N_PLC02_Sub_Act_EXECUTE_Management_RTN					75
+#define N_PLC02_Sub_Act_Management_RTN							76
+#define N_PLC02_Sub_Act_HOLD_Management_RTN						77
+//#define Spare													78
+// Manual Part EH
+// Vision - Manual MSA
+#define N_Vision_Manual_Management_RTN							79
+#define N_PLC13_VISION_MSA										80
+#define N_PLC13_MSA_Set_Seq_Occurs_RTN							81
+#define N_PLC13_MSA_Manage_Get_RTN								82
+#define N_PLC13_VISION_MSA_Exe_Seq_RTN							83
+#define N_PLC13_VISION_MSA_Pre_Seq_Complete_RTN					84
+// Cycle Stop 
+#define N_PLC13_Sub_Cycle_Stop_Act_Management_RTN				85
+#define N_PLC13_CycleStop_Set_Seq_Occurs_RTN					86
+#define N_PLC13_CycleStop_Manage_Get_RTN						87
+#define N_PLC13_CycleStop_Exe_Seq_RTN							88
+#define N_PLC13_CycleStop_Pre_Seq_Complete_RTN					89
+//#define Spare													90
+// Manual ARC 
+#define N_PLC13_Manual_ARC_Management_RTN						91
+#define N_PLC29_Interlcok_Param_RTN								92
+
+//#define N_Hold_Existence_Insp_RTN									21
+//#define N_Hold_Anode_NG_PNP_Remove_RTN							22
+//#define N_Hold_Cathode_NG_PNP_Remove_RTN							23
+//#define N_Hold_Anode_Align_Remove_RTN								24
+//#define N_Hold_Cathode_Align_Remove_RTN							25
+//#define N_Hold_Anode_2nd_PNP_Remove_RTN							26
+//#define N_Hold_Cathode_2nd_PNP_Remove_RTN							27
+//#define N_Hold_Supply_1st_RTN										28
+//#define N_Hold_Supply_Align_RTN									29
+//#define N_Hold_Supply_2nd_RTN										30
+//#define N_Hold_Semi_Run_Enable_Pos_RTN							31
+//#define N_Get_Data_RTN											32
+//#define N_Data_Process_RTN										33
+//#define N_CurPosData_RTN											34
+//#define N_Motion_Action_RTN										35
+//#define N_Hold_Sequence_RTN										36
+//#define N_Same_Pos_Chk_RTN										37
+//#define N_Hold_Data_Validation									102
+
+//global P_PLC01_Retry_Sepa_Mode_Cnt = 0;
+//global P_First_Stacking_Cylcle = 0;
+
+
+global P_Hold_Memory(5);
+P_Hold_Memory(0),5,1 = 0;
+global P_Suspend_Memory(5);
+P_Suspend_Memory(0),5,1 = 0;
+global P_Execute_Memory(5);
+P_Execute_Memory(0),5,1 = 0;
+global P_Stop_Memory(5);
+P_Stop_Memory(0),5,1 = 0;
+//global	P_Discharge_Tact_Time_End_Bit = 0;
+//global	P_Discharge_end_time_check_flag = 0;
+//global P_Retry_Sepa_Mode_Time = 0;					
+global	P_PLC01_Process_Function_Enter_Flag = 0;		// 			새로운 큐 커맨드 발생 변수						
+//global	P_PLC01_Run_Init_Ret = 0;						// Def 1	IS Enable 시작 전 세팅 함수 리턴 변수
+global	P_PLC01_SubMotion_Active = 0;                   // Def 14	서브마스터 모션 활성화 변수						
+global	P_PLC01_SlaveMotion_Active = 0;                 // Def 14	슬레이브 모션 활성화 변수							
+//global	P_PLC01_Convert_to_Execute_Status = 0;          // 			현재 Execute -> 다음 활성화 상태 변수				
+//global	P_PLC01_Convert_to_Hold_Status = 0;             // 			현재 Hold-> 다음 활성화 상태 변수					
+//global	P_PLC01_Convert_to_Suspend_Status = 0;          // 			현재 Suspend-> 다음 활성화 상태 변수				
+//global	P_PLC01_Status_Convert_return = 0;	        // 			상태 Convert 후 리턴 완료 변수			
+
+
+// 신규추가 - [ 참조 : 25.06.04 프로그램 상세 주석 변경 및 부분 보완 ]
+Global P_EXECUTE_Isenable_MNTR = 0;						// 모니터링 변수
+global P_EXECUTE_IsEnable_Firt_Stacking_Flag = 0;		// 첫 번쨰 적층시 FLag
+//global P_Execute_EPC_Insp_Timer = 100;					// EPC 완료후 타임아웃체크
+//global P_Execute_Sepa_On_Table_Timer = 100;				// EPC 완료후 다음 스텝오버 시간
+global P_PLC01_Execute_Retry_Sepa_Mode_Count = 0;		// 세파 재시도 횟수 카운트 
+//global P_Execute_EPC_After_Sepa_Mode_Flag = 0;			// EPC NG판정후 Sepa 모드 변경하라는 Flag
+
+// 테스트 모니터링 변수 2025.06.18 추가 [ 삭제예정 ]
+//global P_EXECUTE_Isenable_MNTR = 0 ;
+global P_SUSPEND_MNTR = 0;
+global P_SUSPEND_MNTR_2 = 0;
+
+// [ 2025.06.18 서스펜드 추가 ]  
+global P_Execute_Last_Run_Flag = 0;						// 배출 플래그
+global P_Suspend_ARC_Request_Flag = 0;					// ARC 플래그 
+
+// 모니터링 변수 추가
+Global  P_Hold_Queue_Exist_Insp_MNTR = 0;
+

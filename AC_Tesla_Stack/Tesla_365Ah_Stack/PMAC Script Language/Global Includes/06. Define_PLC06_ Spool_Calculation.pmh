@@ -1,0 +1,150 @@
+// ARC 외경평균 추가
+global P_AVRG_Lower_Sepa_Thickness_mm = 10;	// test
+global P_AVRG_Upper_Sepa_Thickness_mm = 10;	// test
+global P_PLC06_Upper_Curr_Unwinder_Thickness_mm = 5;								// 세파 현재 두께 ( 상단 )
+global P_PLC06_Lower_Curr_Unwinder_Thickness_mm = 5;								// 세파 현재 두께 ( 하단 )
+// global P_PLC06_Curr_Spool_Radius = 0;
+global P_Upper_Curr_Spool_Radius = 0;												// 상부 반지름
+global P_Lower_Curr_Spool_Radius = 0;												// 하부 반지름
+//global P_PLC06_Spool_Circumference = 0;												// 세파 외경 
+global P_PLC06_Curr_Upper_Distance_mm = 0;											// 아날로그 -> mm 변환 값
+global P_PLC06_Curr_Lower_Distance_mm = 0;
+//global P_PLC06_Sepa_Min_Distance_mm = 0;											// 센서부터 세파 코어까지 거리
+global P_Upper_Sepa_Min_Distance_mm = 0;
+global P_Lower_Sepa_Min_Distance_mm = 0;
+global P_PLC06_Sepa_Change_Set = 5;
+
+
+// ↓ VE장비 기준 데이터로 가져옴
+//global	P_Sepa_To_Sensor_Min_Distance_mm = 170;									// 센서부터 세파 Min일때의 거리mm
+//global	P_Sepa_To_Sensor_Max_Distance_mm = 110;									// 센서부터 세파 Max일때의 거리mm
+//global	P_Sensor_To_Unwinder_Core_Disatance_mm = 270;							// 센서 → 언와인더 코어 거리
+//global	P_Sensor_Min_Analog_Data = 20;											// 최소 AI 값
+//global	P_Sensor_Max_Analog_Data = 29700;										// 최대 AI 값
+
+// 상부 언와인더
+global	P_Upper_Sepa_To_Sensor_Min_Dis = 161;//161.6;								// 센서부터 세파 Min일때의 거리mm
+global	P_Upper_Sepa_To_Sensor_Max_Dis = 101;//101.6;								// 센서부터 세파 Max일때의 거리mm
+global	P_Upper_Sensor_To_Unwinder_Core_Dis = 261;//261.6;							// 센서 → 언와인더 코어 거리
+global	P_Upper_Sensor_Min_AD = 20;													// 최소 AI 값
+global	P_Upper_Sensor_Max_AD = 29700;												// 최대 AI 값
+// 하부 언와인더
+global	P_Lower_Sepa_To_Sensor_Min_Dis = 157;										// 센서부터 세파 Min일때의 거리mm
+global	P_Lower_Sepa_To_Sensor_Max_Dis = 97;										// 센서부터 세파 Max일때의 거리mm
+global	P_Lower_Sensor_To_Unwinder_Core_Dis = 257;									// 센서 → 언와인더 코어 거리
+global	P_Lower_Sensor_Min_AD = 20;													// 최소 AI 값
+global	P_Lower_Sensor_Max_AD = 29700;												// 최대 AI 값									// 최대 AI 값
+
+
+// 테스트용 
+#define M_AI_Upper_Sepa_Sensing						p372							// 상단 AI 값
+#define M_AI_Lower_Sepa_Sensing						p373							// 하단 AI 값
+
+// [ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+global P_Status_NP_BTN_Lower_Unwinder = 0;
+global P_Status_NP_BTN_Upper_Unwinder = 0;
+
+// 드라이빙 캠테이블 스케일 변경. [ 참조 : 25.10.14 드라이빙 캠테이블 스케일 변경 수식 추가 ]
+global P_Driving_CamTable_Scale_Change_Flag = 0;	// 드라이빙 캠테이블 스케일 변경 플래그. [ 0:미사용, 1:사용 ]
+//global P_Sepa_Driving_Diameter = 60;				// 세파 드라이빙 롤러 지름 [mm] (세파 드라이빙 = 위쪽 롤러)
+global P_FR_Driving_Diameter = 40;					// 파이널 롤 드라이빙 롤러 지름 [mm] (파이널 롤러 드라이빙 = 아래쪽 롤러)
+global P_FR_Driving_Floating_Point = 0.026631135;	// 파이널 롤 드라이빙 부동 소수점으로 인한 Camtable과의 차이 (지름 변경 시 다시 구해야 함)
+global P_FR_Driving_Reward = 0;						// 파이널 롤 드라이빙 부동 소수점으로 인한 보상값.
+
+// 드라이빙 롤 회전 시 언와인더 마스터 팔로잉 스케일 변경.		[ 참조 : 25.10.16 드라이빙 롤 회전 시 언와인더 마스터 팔로잉 스케일 변경 추가 ]
+global P_Unwinder_Master_Following_Use_Flag = 0;	// 언와인더 마스터 팔로잉 사용 유무 [ 0 : 미사용, 1 : 마스터 팔로잉 ]
+global P_Unwinder_Master_Following_On= 0;			// 언와인더 마스터 팔로잉 유무.
+global P_Old_Master_Following_Start= 0;				// Edge 변수.
+global P_Unwinder_Master_Following_Scale = 0;		// 언와인더 마스터 팔로잉 스케일 값.
+// 드라이빙 롤 회전 시 언와인더 마스터 팔로잉 대신 Jog 이동.	[ 참조 : 25.10.16 드라이빙 롤 회전 시 언와인더 조그 이동 수식 추가 ]
+global P_Unwinder_Jog_Use_Flag = 0;					// 언와인더 조그 이동 사용 유무 [ 0 : 미사용, 1 : Jog 구동 ]
+global P_Old_Jog_Start = 0;							// Edge 변수.
+global P_Unwinder_Jog_Total_Time = ceil((230/233)*(233-70));	// 조그 이동 시간 = (CamTable 진행 시간 / CamTable 수) * (CamTable 수 - CamTable 활성화 시점))
+global P_Unwinder_Ta = 31;							// 거리, 총 시간으로 TM을 구함 → 전체 시간 - TM = TA + TS → TA, TS를 반으로 나눈 후 서로 차이가 5정도 나도록 구함.
+global P_Unwinder_Ts = 26;							// 거리, 총 시간으로 TM을 구함 → 전체 시간 - TM = TA + TS → TA, TS를 반으로 나눈 후 서로 차이가 5정도 나도록 구함.
+global P_Unwinder_Tm = P_Unwinder_Jog_Total_Time - (P_Unwinder_Ta + P_Unwinder_Ts);	// 조그 이동 TM 시간.
+global P_Unwinder_1mm_Deg = 0;						// 언와인더 1도 당 세파 길이.
+global P_Unwinder_Jog_Pos = 267.3461968;			// 세파 요구량. [mm]
+global P_Unwinder_Jog_Cnt = 0;						// 세파 요구량. [cnt]
+
+global P_PLC06_Frist_Flag = 1;						// PLC06번에서 맨드릴 Vector 계산이 들어가는데 $$$*** 안하고 재빌드하게 되면 안읽힐수있기 때문에 추가
+
+//Test 용 변수 Test 후 삭제 
+global P_Sepa_AI = 7.95;
+#define N_Reel_MAX		29000
+global P_PLC06_Reel_Upper_Change_Flag = 0;
+global P_PLC06_Reel_Lower_Change_Flag = 0;
+
+
+global P_Spool_Ready_Enable_Flag = 0;
+global P_Spool_Lack_Flag = 0;
+
+
+// 2026.02.03 Spool JOG ADD
+global P_Sepa_DR_Start_Flag = 0;		// 드라이빙 도는 시점 
+// 260326
+global P_cdTime_Tact_Sec = 0.9;//0.45;			// 0.45 x 2
+global P_Master_Tact_Sec = 0.45;		// 0.45 tac
+
+global P_Prev_Err_Pos = 0;				// Error Pos
+global P_Cur_Arc_Rad = 0;				// Rad 값
+global P_Cur_Arc_Deg = 0;				// Deg값
+global P_Spool_Velocity = 0;			// Vel 값
+global P_Lin_Prop_Vel = 0;				// Pgain vel값
+global P_Err_Pos = 0;					// Error Pos 값
+global P_Lin_Deriv_Vel = 0;				// Dgain Vel값
+
+global P_Lin_Dacer_Kd = 0;				// Kd Scale 
+global P_Lin_Dacer_Kp = 0;				// Kp scale
+
+global P_Running_CDTimer = 0;			// CDTIMER Run
+
+global P_Unwinder_Jog_Ta = 40;			// 기본 ta 
+global P_Unwinder_Jog_Ts = 20;			// 기본 ts
+global P_Unwinder_Vel_Test_Time = 5;	// 일단 5ms 마다 갱신
+
+
+
+global P_Set_Interval_Time = 5;
+
+
+global	P_PLC06_Upper_Sepa_AI_Timer=0;						// Plc[6].ldata.L[4]  상단 Sepa 순환평균 타이머
+global	P_PLC06_Upper_Sepa_AI_Data=0;							// Plc[6].ldata.L[5]  상단 순환평균 데이터
+global	P_PLC06_Upper_Sepa_AI_Cnt=0;							// Plc[6].ldata.L[6]  상단 순환평균 카운트
+global	P_PLC06_Upper_AVRG_Sensor_Data=0;						// Plc[6].ldata.L[7] 상단 AI 평균 데이터
+global	P_PLC06_Lower_Sepa_AI_Timer=0;						// Plc[6].ldata.L[8]  하단 Sepa 순환평균 타이머
+global	P_PLC06_Lower_Sepa_AI_Data=0;							// Plc[6].ldata.L[9]  하단 순환평균 데이터
+global	P_PLC06_Lower_Sepa_AI_Cnt=0;							// Plc[6].ldata.L[10]  하단 순환평균 카운트
+global	P_PLC06_Lower_AVRG_Sensor_Data=0;						// Plc[6].ldata.L[11] 하단 AI 평균 데이터
+// 세파 두께 Local 변수 
+global 	P_PLC06_Sepa_Upper_Thickness_Timer=0;					// Plc[6].ldata.L[12]  상단 Sepa 두께 순환평균 타이머
+global 	P_PLC06_Sepa_Upper_Thickness_Data=0;					// Plc[6].ldata.L[13]  상단 두께 순환평균 데이터
+global 	P_PLC06_Sepa_Upper_Thickness_Cnt=0;					// Plc[6].ldata.L[14]  상단 두께 순환평균 카운트
+global 	P_PLC06_Sepa_Lower_Thickness_Timer=0;					// Plc[6].ldata.L[15]  하단 Sepa 두께 순환평균 타이머
+global 	P_PLC06_Sepa_Lower_Thickness_Data=0;					// Plc[6].ldata.L[16]  하단 두께 순환평균 데이터
+global 	P_PLC06_Sepa_Lower_Thickness_Cnt=0;					// Plc[6].ldata.L[17]  하단 두께 순환평균 카운트
+
+global P_Sepa_Thickness_Chk_Timer = 0;
+
+global P_Spool_Length = 0;
+global P_Cascade_Sf_Driving_Value = -0.0012
+global P_Cascade_Sf_None_Driving_Value = -0.006
+
+global P_Sepa_Min_Value_Cal_Cmd = 0;		// cmd
+global P_Total_Sepa_Need_Length = 0;		// 1개의 젤리롤에 필요 Sepa 길이 
+global P_Alpa = 15;							// 30mm ( 배출 시 끌고가는 양 + a )
+global P_Sepa_Num_of_Turns = 0;				// 현재 세파 코어에 감긴 횟수 
+global P_Sepa_Turn_Num = 0;					// 반복문에 사용될 변수
+global P_Accumulate_Value = 0;				// 누적 값
+global P_Sharft_to_Sepa_Core_mm = 0; //P_Sensor_To_Unwinder_Core_Disatance_mm - P_Sepa_To_Sensor_Min_Distance_mm;	// Spool 샤프트에서 Core까지의 거리
+global P_Sepa_Cal_Circum = 0;				// 세파 감긴 횟수에 따른 외경값
+global P_Sepa_Min_Need_Thickness = 0;		// 최소 두께 값
+global P_Sepa_Min_Thickness_Cmd = 0;		// 최소 두께값 커맨드 
+global P_Sepa_Accumulate_Cmd = 0;			// 몇바퀴 찾기
+
+// 세파 소요량 
+global P_Sepa_Required_Amount = 0;						// 현재 세파 소요량
+global P_Sepa_Current_Thickness = 0;					// 현재 세파 두께
+global P_Sepa_Initial_Tickness = 0;						// 풀 젤리롤 세파 두께
+global P_Sepa_Required_Update_Timer = 0;				// 업데이트 타이머
+

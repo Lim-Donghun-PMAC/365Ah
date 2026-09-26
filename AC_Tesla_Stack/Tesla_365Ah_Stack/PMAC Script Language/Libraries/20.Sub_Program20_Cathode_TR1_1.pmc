@@ -1,0 +1,132 @@
+// =====================================================================================
+// 프로그램 개정이력
+// -------------------------------------------------------------------------------------
+// 24.01.26	Wait,Anode_Run,Cathode_Run 을 제외한 모드 삭제.
+/*
+서브마스터 모션프로그램에서 호출하는 서브프로그램
+각 모드(런,스타트,ng등등)의 배열값을 로컬변수(L_Mode_Command)에 저장하고 있다가 트리거 상승시에 모드에 맞는 커멘드값을 슬레이브에 넘겨준다.
+*/
+
+												// P_Current_Mode, P_Master_Motion_Trigger
+open subprog Sub_ModeArray_Cathode_TR1_Slave_10( Mode,TriggerCount )
+
+// local	L_Old_Command;		// 이전 명령어
+// local	L_Old_Mode;			// 이전 모드	
+// local	L_Old_Trigger; 		// 트리거 이전값
+// local	L_Mode_Command
+		
+// 모드가 바뀌면 내부 사용 변수 초기화		
+if( P_SubMaster_Sub_Old_Mode(10) != Mode )				//초기화 구문
+{	// 현재 모드와 이전모드가 다르면
+	P_SubMaster_Sub_Old_Command(10) = 0;				// 슬레이브에 전달한 이전 명령
+	P_Slave10_Motion_Command = 0;						// 슬레이브에 전달할 명령
+	P_SubMaster_Sub_Old_Trigger(10) = 0;				// 이전 마스터 트리거 값
+	P_SubMaster_Sub_Old_Mode(10) = Mode;				// 이전 모드 저장소 갱신
+}
+
+// 모드에 따른 명령어 추출
+// 모드에 따라 트리거 카운트에 맞춰 배열값을 로컬변수에 저장한다.
+switch( Mode )
+{
+	//==========================================================================================
+	// 0 . Wait_Mode ( 사이클 스탑도 여기 해당)
+	//------------------------------------------------------------------------------------------
+	case F_Wait_Mode :
+			P_SubMaster_Sub_Mode_Command(10) = 0;//P_Wait_Motion_Array( TriggerCount );
+	break;
+	//==========================================================================================
+	// 4. F_Half_Anode_Run_Mode
+	//------------------------------------------------------------------------------------------	
+	case F_Half_Anode_Run_Mode :
+		P_SubMaster_Sub_Mode_Command(10) = P_Slave10_Anode_Run_Motion_Array(TriggerCount);
+	break;	
+	//==========================================================================================
+	// 5. F_Half_Cathode_Run_Mode
+	//------------------------------------------------------------------------------------------	
+	case F_Half_Cathode_Run_Mode :
+		P_SubMaster_Sub_Mode_Command(10) = P_Slave10_Cathode_Run_Motion_Array(TriggerCount);
+	break;	
+	//==========================================================================================
+	//  Default
+	//------------------------------------------------------------------------------------------
+	default : // 예외처리
+			P_SubMaster_Sub_Mode_Command(10)= 0;
+	break;
+}
+
+// 트리거가 바뀌면 명령어 전달
+// 트리거 상승시에만 로컬변수에 저장된 커멘드값을 실제 슬레이브에 전달.
+if( P_SubMaster_Sub_Old_Trigger(10) != P_Master_Motion_Trigger )	// 트리거가 지금 바뀌었는지 확인
+{
+	P_SubMaster_Sub_Old_Trigger(10) = P_Master_Motion_Trigger;		// 트리거 값 갱신
+	if( P_SubMaster_Sub_Mode_Command(10) != 0 )						// 출력된 명령어가 무효한 명령이 아니라면
+	{
+		IF ( P_Slave10_Motion_Command > 0 )
+		{
+			//Coord[1].DesTimeBase = 0
+			P_InterLock_No3_Array(10)++;
+			
+			//[ 참조: 20231011 Slave Motion Command가 초기화가 되지 않을 시 이전 상태 및 현재 상태 확인 구문 추가 ]
+			If ( P_Old_InterLock_No3_Array(10) != P_InterLock_No3_Array(10) )
+			{
+			//마스터 모션 트리거 현재 및 이전 상태 모니터링 구문  
+				P_Old_P_Cathode_TR1_Master_Motion_Trigger(2) = P_Old_P_Cathode_TR1_Master_Motion_Trigger(1); 			//현재 마스터 트리거 상태_3
+				P_Old_P_Cathode_TR1_Master_Motion_Trigger(1) = P_Old_P_Cathode_TR1_Master_Motion_Trigger(0);			//현재 마스터 트리거 상태_2
+			    P_Old_P_Cathode_TR1_Master_Motion_Trigger(0) = P_Master_Motion_Trigger;									//현재 마스터 트리거 상태_1
+				//=============================================
+				//Current Mode 현재 및 이전 상태 모니터링 구문  
+				P_Cathode_TR1_Old_Mode(2) = P_Cathode_TR1_Old_Mode(1);													//현재 Current_Mode 상태_3
+				P_Cathode_TR1_Old_Mode(1) = P_Cathode_TR1_Old_Mode(0);													//현재 Current_Mode 상태_2
+				P_Cathode_TR1_Old_Mode(0) = P_Current_Mode;																//현재 Current_Mode 상태_1
+					
+				P_Older_Than_P_Cathode_TR1_Old_Mode(2) = P_Older_Than_P_Cathode_TR1_Old_Mode(1); 						//현재 Current_Mode 상태_3에서의 이전 상태 
+				P_Older_Than_P_Cathode_TR1_Old_Mode(1) = P_Older_Than_P_Cathode_TR1_Old_Mode(0); 						//현재 Current_Mode 상태_2에서의 이전 상태 
+				P_Older_Than_P_Cathode_TR1_Old_Mode(0) = P_Cathode_TR1_Old_Mode(1);				 						//현재 Current_Mode 상태_1에서의 이전 상태 
+				
+				P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Current_Mode_Trigger(2) = P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Current_Mode_Trigger(1);	//모드 변경 시 및 현재모드가 Wait모드가 아닐 때의 마스터 트리거 이전 값 
+				P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Current_Mode_Trigger(1) = P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Current_Mode_Trigger(0);	//모드 변경 시 및 현재모드가 Wait모드가 아닐 때의 마스터 트리거 이전 값 
+				P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Current_Mode_Trigger(0) = P_Sequence_Old_P_Current_Mode_Trigger(0);							//모드 변경 시 및 현재모드가 Wait모드가 아닐 때의 마스터 트리거 이전 값 
+				//=============================================									
+				//Mode Command 현재 및 이전 상태 모니터링 구문  
+				P_Old_P_Cathode_TR1_Mode_Command(2) = P_Old_P_Cathode_TR1_Mode_Command(1);								//현재 모드 커맨드 상태_3
+				P_Old_P_Cathode_TR1_Mode_Command(1) = P_Old_P_Cathode_TR1_Mode_Command(0);								//현재 모드 커맨드 상태_2
+				P_Old_P_Cathode_TR1_Mode_Command(0) = P_Mode_Command;													//현재 모드 커맨드 상태_1
+				
+				P_Older_Than_P_Old_P_Cathode_TR1_Mode_Command(2) = P_Older_Than_P_Old_P_Cathode_TR1_Mode_Command(1);	//현재 모드 커맨드 상태_3의 이전 상태
+				P_Older_Than_P_Old_P_Cathode_TR1_Mode_Command(1) = P_Older_Than_P_Old_P_Cathode_TR1_Mode_Command(0);	//현재 모드 커맨드 상태_2의 이전 상태
+				P_Older_Than_P_Old_P_Cathode_TR1_Mode_Command(0) = P_Old_P_Cathode_TR1_Mode_Command(1);					//현재 모드 커맨드 상태_1의 이전 상태 	
+				
+				P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Mode_Command_Trigger(2) = P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Mode_Command_Trigger(1);	//모드 커맨드가 변경 될 떄 마다 마스터 트리거 이전 값 
+				P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Mode_Command_Trigger(1) = P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Mode_Command_Trigger(0);	//모드 커맨드가 변경 될 떄 마다 마스터 트리거 이전 값 
+				P_Older_Than_P_Sequence_Old_P_Cathode_TR1_Mode_Command_Trigger(0) = P_Sequence_Old_P_Mode_Command_Trigger(0);							//모드 커맨드가 변경 될 떄 마다 마스터 트리거 이전 값 
+				//=============================================
+				//PMAC Status 현재 및 이전 상태 모니터링 구문  
+				P_Old_P_Cathode_TR1_PMAC_Status(2) = P_Old_P_Cathode_TR1_PMAC_Status(1);								//현재 PMAC 상태_3	
+				P_Old_P_Cathode_TR1_PMAC_Status(1) = P_Old_P_Cathode_TR1_PMAC_Status(0);								//현재 PMAC 상태_2					
+				P_Old_P_Cathode_TR1_PMAC_Status(0) = P_PMAC_Status;														//현재 PMAC 상태_1				
+				
+				P_Older_Than_P_Old_P_Cathode_TR1_PMAC_Status(2) = P_Older_Than_P_Old_P_Cathode_TR1_PMAC_Status(1);		//현재 PMAC 상태_3의 이전 상태
+				P_Older_Than_P_Old_P_Cathode_TR1_PMAC_Status(1) = P_Older_Than_P_Old_P_Cathode_TR1_PMAC_Status(0);		//현재 PMAC 상태_2의 이전 상태 
+				P_Older_Than_P_Old_P_Cathode_TR1_PMAC_Status(0) = P_Old_P_Cathode_TR1_PMAC_Status(1);					//현재 PMAC 상태_1의 이전 상태
+				//=============================================						
+				//Slave 모션 커맨드 현재 및 이전 상태 모니터링 구문  
+				P_Old_P_Slave10_Motion_Command(2) = P_Old_P_Slave10_Motion_Command(1);									//현재 슬레이브 모션 커맨드 상태_3
+				P_Old_P_Slave10_Motion_Command(1) = P_Old_P_Slave10_Motion_Command(0); 									//현재 슬레이브 모션 커맨드 상태_2
+				P_Old_P_Slave10_Motion_Command(0) = P_Slave10_Motion_Command;	 										//현재 슬레이브 모션 커맨드 상태_1
+				
+				P_Old_Slave10_P_SubMaster_Sub_Mode_Command(2) = P_Old_Slave10_P_SubMaster_Sub_Mode_Command(1);			//현재 슬레이브 모션 커맨드 상태_3에서의 이전 상태
+				P_Old_Slave10_P_SubMaster_Sub_Mode_Command(1) = P_Old_Slave10_P_SubMaster_Sub_Mode_Command(0);			//현재 슬레이브 모션 커맨드 상태_2에서의 이전 상태 
+				P_Old_Slave10_P_SubMaster_Sub_Mode_Command(0) = P_SubMaster_Sub_Mode_Command(10);						//현재 슬레이브 모션 커맨드 상태_1에서의 이전 상태
+				//=============================================			
+			}
+		}
+
+		else
+		{
+			P_Slave10_Motion_Command = P_SubMaster_Sub_Mode_Command(10);												// 명령어를 슬레이브에 전달
+			P_SubMaster_Sub_Old_Command(10) = P_Slave10_Motion_Command;													// 이전 명령어 갱신
+		}
+	}
+}
+
+close

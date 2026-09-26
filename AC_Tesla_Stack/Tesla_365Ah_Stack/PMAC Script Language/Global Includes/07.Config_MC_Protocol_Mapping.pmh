@@ -1,0 +1,71 @@
+ptr M_Read_Sector_Scan_Complete(9)->*
+ptr M_Write_Sector_Scan_Complete(9)->*;
+
+M_Read_Sector_Scan_Complete(1)->Sys.Udata[9000];
+M_Read_Sector_Scan_Complete(2)->Sys.Udata[9001];
+M_Read_Sector_Scan_Complete(3)->Sys.Udata[9002];
+M_Read_Sector_Scan_Complete(4)->Sys.Udata[9003];
+M_Read_Sector_Scan_Complete(5)->Sys.Udata[9004];
+M_Read_Sector_Scan_Complete(6)->Sys.Udata[9005];
+M_Read_Sector_Scan_Complete(7)->Sys.Udata[9006];
+M_Read_Sector_Scan_Complete(8)->Sys.Udata[9007];
+
+M_Write_Sector_Scan_Complete(1)->Sys.Udata[9010];
+M_Write_Sector_Scan_Complete(2)->Sys.Udata[9011];
+M_Write_Sector_Scan_Complete(3)->Sys.Udata[9012];
+M_Write_Sector_Scan_Complete(4)->Sys.Udata[9013];
+M_Write_Sector_Scan_Complete(5)->Sys.Udata[9014];
+M_Write_Sector_Scan_Complete(6)->Sys.Udata[9015];
+M_Write_Sector_Scan_Complete(7)->Sys.Udata[9016];
+M_Write_Sector_Scan_Complete(8)->Sys.Udata[9017];
+
+ptr M_Read_Sector_Scan_Cmd(9)->*;
+ptr M_Write_Sector_Scan_Cmd(9)->*;
+
+M_Read_Sector_Scan_Cmd(1)->Sys.Udata[9020];
+M_Read_Sector_Scan_Cmd(2)->Sys.Udata[9021];
+M_Read_Sector_Scan_Cmd(3)->Sys.Udata[9022];
+M_Read_Sector_Scan_Cmd(4)->Sys.Udata[9023];
+M_Read_Sector_Scan_Cmd(5)->Sys.Udata[9024];
+M_Read_Sector_Scan_Cmd(6)->Sys.Udata[9025];
+M_Read_Sector_Scan_Cmd(7)->Sys.Udata[9026];
+M_Read_Sector_Scan_Cmd(8)->Sys.Udata[9027];
+
+M_Write_Sector_Scan_Cmd(1)->Sys.Udata[9030];
+M_Write_Sector_Scan_Cmd(2)->Sys.Udata[9031];
+M_Write_Sector_Scan_Cmd(3)->Sys.Udata[9032];
+M_Write_Sector_Scan_Cmd(4)->Sys.Udata[9033];
+M_Write_Sector_Scan_Cmd(5)->Sys.Udata[9034];
+M_Write_Sector_Scan_Cmd(6)->Sys.Udata[9035];
+M_Write_Sector_Scan_Cmd(7)->Sys.Udata[9036];
+M_Write_Sector_Scan_Cmd(8)->Sys.Udata[9037];
+
+ptr M_Read_Sector_Scan_Time(9)->*;
+ptr M_Write_Sector_Scan_Time(9)->*;
+
+M_Read_Sector_Scan_Time(1)->Sys.Fdata[9040];
+M_Read_Sector_Scan_Time(2)->Sys.Fdata[9041];
+M_Read_Sector_Scan_Time(3)->Sys.Fdata[9042];
+M_Read_Sector_Scan_Time(4)->Sys.Fdata[9043];
+M_Read_Sector_Scan_Time(5)->Sys.Fdata[9044];
+M_Read_Sector_Scan_Time(6)->Sys.Fdata[9045];
+M_Read_Sector_Scan_Time(7)->Sys.Fdata[9046];
+M_Read_Sector_Scan_Time(8)->Sys.Fdata[9047];
+
+M_Write_Sector_Scan_Time(1)->Sys.Fdata[9050];
+M_Write_Sector_Scan_Time(2)->Sys.Fdata[9051];
+M_Write_Sector_Scan_Time(3)->Sys.Fdata[9052];
+M_Write_Sector_Scan_Time(4)->Sys.Fdata[9053];
+M_Write_Sector_Scan_Time(5)->Sys.Fdata[9054];
+M_Write_Sector_Scan_Time(6)->Sys.Fdata[9055];
+M_Write_Sector_Scan_Time(7)->Sys.Fdata[9056];
+M_Write_Sector_Scan_Time(8)->Sys.Fdata[9057];
+
+#define	Sys_Kill_MC_Protocol		Sys.Udata[9999]
+#define Sys_Kill_Manual_BG_C		P7777	
+#define	Sys_MC_Protocol_HeartBit	Sys.Udata[9998]
+
+global P_Max_Try_Reconnect_MC = 9999;
+global P_Cur_Try_Reconnect_MC = 0;
+
+//=====================================

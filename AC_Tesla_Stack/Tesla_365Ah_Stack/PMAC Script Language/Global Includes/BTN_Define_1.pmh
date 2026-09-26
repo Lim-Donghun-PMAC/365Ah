@@ -1,0 +1,2585 @@
+ptr P_BTN_Jog_BWD_M(50) ->*
+ptr P_BTN_Jog_FWD_M(50) ->*
+
+/*
+  1) 버튼 Define부
+  -> 사용방법 if(M_CYL_BTN.Cathode_Align_ZeroClamp == 1)
+  
+  2_ 모터 info부 
+  -> 사용방법 감시창: M_M1_Motor_BTN_Info.BTN_M1_Jog_Forward
+*/
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+																		 READ 영역 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+/* 
+M_CYL_BTN
+M_CYL_BTN_1
+M_Vacuum_BTN
+M_Vacuum_BTN_1
+M_ARC_BTN
+M_Func_BTN
+M_Function_BTN_1
+M_Function_BTN_2
+M_Option_Function_BTN
+M_Unit_Move_Function_BTN
+*/  
+// 버튼 카테고리 넘버 1
+#define	M_CYL_BTN			u.user:$00AE38
+
+//비트 선언
+#define	Cathode_2TR_ZeroClamp_Clamp				0			//양극 2차 P&P 제로 클램프 명령
+#define	Cathode_2TR_ZeroClamp_UnClamp			1			//양극 2차 P&P 제로 클램프 언 클램프 명령
+#define	Cathode_Align_ZeroClamp_Clamp			2			//양극 얼라인 테이블 제로 클램프 명령			
+#define	Cathode_Align_ZeroClamp_UnClamp			3			//양극 얼라인 테이블 제로 언 클램프 명령
+#define	Anode_2TR_ZeroClamp_Clamp				4			//음극 2차 P&P 제로 클램프 명령
+#define	Anode_2TR_ZeroClamp_UnClamp				5			//음극 2차 P&P 제로 클램프 언 클램프 명령
+#define	Anode_Align_ZeroClamp_Clamp				6			//음극 얼라인 테이블 제로 클램프 명령				
+#define	Anode_Align_ZeroClamp_UnClamp			7			//음극 얼라인 테이블 제로 언 클램프 명령
+#define Unwinder_Upper_Lock						8			//상단 언와인더 잠금 명령
+#define Unwinder_Upper_UnLock					9			//상단 언와인더 잠금 해제 명령
+#define Unwinder_Lower_Lock						10			//하단 언와인더 잠금 명령
+#define Unwinder_Lower_UnLock					11			//하단 언와인더 잠금 해제 명령
+#define Final_Roll_Clamp						12			//파이널 롤 클램프 명령
+#define Final_Roll_UnClamp						13			//파이널 롤 언 클램프 명령
+#define Final_Back_UP_Roll_Clamp				14			//파이널 백업롤 클램프 명령
+#define Final_Back_UP_Roll_UnClamp				15			//파이널 백업롤 언 클램프 명령
+																
+#define	Cathode_Clamp_Damper_UP					16			//양극 클램프 댐퍼 상승 명령
+#define	Cathode_Clamp_Damper_Down				17			//양극 클램프 댐퍼 하강 명령
+#define	Anode_Clamp_Damper_UP					18			//음극 클램프 댐퍼 상승 명령
+#define	Anode_Clamp_Damper_Down					19			//음극 클램프 댐퍼 하강 명령
+#define Stack_Job_Table_Lock					20			//스텍 잡 체인지 테이블 잠금 명령
+#define Stack_Job_Table_UnLock					21			//스텍 잡 체인지 테이블 잠금 해제 명령
+#define Stack_Table_UP							22			//스텍 테이블 상승 명령
+#define Stack_Table_Down						23			//스텍 테이블 하강 명령
+#define Sepa_Cutter_UP							24			//세파 커터 상승 명령
+#define Sepa_Cutter_Down						25			//세파 커터 하강 명령
+#define Cutter_Heater_ON						26			//커터 히터 ON 명령
+#define Cutter_Heater_OFF						27			//커터 히터 OFF 명령
+#define Sheet_Paper_X_Forward					28			//1st Sheet Paper X축 전진 명령
+#define Sheet_Paper_X_Backward					29			//1st Sheet Paper X축 후진 명령
+#define Sheet_Paper_Z_UP						30			//1st Sheet Paper Z축 상승 명령
+#define Sheet_Paper_Z_Down						31			//1st Sheet Paper Z축 하강 명령
+
+
+//버튼 카테고리 넘버 2
+#define M_CYL_BTN_1			u.user:$00AE3C
+
+//비트 선언
+#define Gripper_1st_Grip						0			//1st 언로더 그립퍼 그립 명령
+#define Gripper_1st_UnGrip						1			//1st 언로더 그립퍼 해제 명령
+#define Upper_JOG_Forward						2			//세파 언와인더 상부 조그 전진
+#define Upper_JOG_Backward						3			//세파 언와인더 상부 조그 후진
+#define Lower_JOG_Forward						4			//세파 언와인더 하부 조그 전진
+#define Lower_JOG_Backward						5			//세파 언와인더 하부 조그 후진
+#define Servo_Dancer_On							6			//서보 댄서 ON 명령
+#define Servo_Dancer_OFF						7			//서보 댄서 OFF 명령
+#define Buffer_Cyl_ON							8			//버퍼 실린더 ON 명령
+#define Buffer_Cyl_OFF							9			//버퍼 실린더 OFF 명령
+#define M_CYL_BTN_1_SPARE_8						10			//여분
+#define M_CYL_BTN_1_SPARE_9						11			//여분
+#define M_CYL_BTN_1_SPARE_10					12			//여분
+#define M_CYL_BTN_1_SPARE_11					13			//여분
+#define M_CYL_BTN_1_SPARE_12					14			//여분
+#define M_CYL_BTN_1_SPARE_13					15			//여분
+
+#define M_CYL_BTN_1_SPARE_14					16			//여분
+#define M_CYL_BTN_1_SPARE_15					17			//여분
+#define M_CYL_BTN_1_SPARE_16					18			//여분
+#define M_CYL_BTN_1_SPARE_17					19			//여분
+#define M_CYL_BTN_1_SPARE_18					20			//여분
+#define M_CYL_BTN_1_SPARE_19					21			//여분
+#define M_CYL_BTN_1_SPARE_20					22			//여분
+#define M_CYL_BTN_1_SPARE_21					23			//여분
+#define M_CYL_BTN_1_SPARE_22					24			//여분
+#define M_CYL_BTN_1_SPARE_23					25			//여분
+#define M_CYL_BTN_1_SPARE_24					26			//여분
+#define M_CYL_BTN_1_SPARE_25					27			//여분
+#define M_CYL_BTN_1_SPARE_26					28			//여분
+#define M_CYL_BTN_1_SPARE_27					29			//여분
+#define M_CYL_BTN_1_SPARE_28					30			//여분
+#define M_CYL_BTN_1_SPARE_29					31			//여분
+
+//버튼 카테고리 넘버 3
+#define M_Vacuum_BTN		u.user:$00AE40
+
+//비트 선언
+#define Cathode_Align_Table_Vaccum_ON			0			//양극 얼라인 테이블 흡착 명령
+#define Cathode_Align_Table_Vaccum_Blow			1			//양극 얼라인 테이블 블로우 명령
+#define Cathode_Align_Table_Vaccum_Release		2			//양극 얼라인 테이블 해제 명령
+#define Cathode_1th_Vaccum_ON					3			//양극 1차 트랜스퍼 흡착 명령
+#define Cathode_1th_Vaccum_Blow					4			//양극 1차 트랜스퍼 블로우 명령
+#define Cathode_1th_Vaccum_Release				5			//양극 1차 트랜스퍼 해제 명령
+#define Cathode_2th_Vaccum_ON					6			//양극 2차 트랜스퍼 흡착 명령
+#define Cathode_2th_Vaccum_Blow					7			//양극 2차 트랜스퍼 블로우 명령
+#define Cathode_2th_Vaccum_Release				8			//양극 2차 트랜스퍼 해제 명령
+#define BTN_M_Vacuum_BTN_SPARE					9			//여분
+#define BTN_M_Vacuum_BTN_SPARE_1				10			//여분
+#define BTN_M_Vacuum_BTN_SPARE_2				11			//여분
+#define BTN_M_Vacuum_BTN_SPARE_3				12			//여분
+#define BTN_M_Vacuum_BTN_SPARE_4				13			//여분
+#define BTN_M_Vacuum_BTN_SPARE_5				14			//여분
+#define BTN_M_Vacuum_BTN_SPARE_6				15			//여분
+																
+#define Anode_Align_Table_Vaccum_ON				16			//음극 얼라인 테이블 흡착 명령
+#define Anode_Align_Table_Vaccum_Blow			17			//음극 얼라인 테이블 블로우 명령
+#define Anode_Align_Table_Vaccum_Release		18			//음극 얼라인 테이블 해제 명령
+#define Anode_1th_Vaccum_ON						19			//음극 1차 트랜스퍼 흡착 명령
+#define Anode_1th_Vaccum_Blow					20			//음극 1차 트랜스퍼 블로우 명령
+#define Anode_1th_Vaccum_Release				21			//음극 1차 트랜스퍼 해제 명령
+#define Anode_2th_Vaccum_ON						22			//음극 2차 트랜스퍼 흡착 명령
+#define Anode_2th_Vaccum_Blow					23			//음극 2차 트랜스퍼 블로우 명령
+#define Anode_2th_Vaccum_Release				24			//음극 2차 트랜스퍼 해제 명령
+#define Sheet_Paper_1st_Vaccum_ON				25			//1st Sheet Paper 진공 흡착 명령
+#define Sheet_Paper_1st_Vaccum_Blow				26			//1st Sheet Paper 진공 블로우 명령
+#define Sheet_Paper_1st_Vaccum_Release			27			//1st Sheet Paper 진공 해제 명령
+#define M_Vacuum_BTN_SPARE_10					28			//여분
+#define M_Vacuum_BTN_SPARE_11					29			//여분
+#define M_Vacuum_BTN_SPARE_12					30			//여분
+#define M_Vacuum_BTN_SPARE_13					31			//여분
+
+//버튼 카테고리 넘버 4
+#define M_Vacuum_BTN_1		u.user:$00AE44
+
+//비트 선언
+#define Unloader_1st_Griper_Blow_ON				0			//1st 언로더 그립퍼 블로우 명령
+#define Unloader_1st_Griper_Blow_OFF			1			//1st 언로더 그립퍼 블로우 해제 명령
+#define Cathode_NG_PNP_Vaccum_ON				2			//양극 샘플 & NG 배출 진공 흡착 명령
+#define Cathode_NG_PNP_Vaccum_Blow				3			//양극 샘플 & NG 배출 진공 블로우 명령
+#define Cathode_NG_PNP_Vaccum_OFF				4			//양극 샘플 & NG 배출 진공 해제 명령
+#define Anode_NG_PNP_Vaccum_ON					5			//음극 샘플 & NG 배출 진공 흡착 명령
+#define Anode_NG_PNP_Vaccum_Blow				6			//음극 샘플 & NG 배출 진공 블로우 명령
+#define Anode_NG_PNP_Vaccum_OFF					7			//음극 샘플 & NG 배출 진공 해제 명령
+#define Stack_Table_Vaccum_ON					8			//스텍 테이블 흡착 명령
+#define Stack_Table_Vaccum_Blow					9			//스텍 테이블 블로우 명령
+#define Stack_Table_Vaccum_Release				10			//스텍 테이블해제 명령
+#define M_Vacuum_BTN_1_SPARE					11			//여분
+#define M_Vacuum_BTN_1_SPARE_1					12			//여분
+#define M_Vacuum_BTN_1_SPARE_2					13			//여분
+#define M_Vacuum_BTN_1_SPARE_3					14			//여분
+#define M_Vacuum_BTN_1_SPARE_20					15			//여분
+																
+#define M_Vacuum_BTN_1_SPARE_4					16			//여분
+#define M_Vacuum_BTN_1_SPARE_5					17			//여분
+#define M_Vacuum_BTN_1_SPARE_6					18			//여분
+#define M_Vacuum_BTN_1_SPARE_7					19			//여분
+#define M_Vacuum_BTN_1_SPARE_8					20			//여분
+#define M_Vacuum_BTN_1_SPARE_9					21			//여분
+#define M_Vacuum_BTN_1_SPARE_10					22			//여분
+#define M_Vacuum_BTN_1_SPARE_11					23			//여분
+#define M_Vacuum_BTN_1_SPARE_12					24			//여분
+#define M_Vacuum_BTN_1_SPARE_13					25			//여분
+#define M_Vacuum_BTN_1_SPARE_14					26			//여분
+#define M_Vacuum_BTN_1_SPARE_15					27			//여분
+#define M_Vacuum_BTN_1_SPARE_16					28			//여분
+#define M_Vacuum_BTN_1_SPARE_17					29			//여분
+#define M_Vacuum_BTN_1_SPARE_18					30			//여분
+#define M_Vacuum_BTN_1_SPARE_19					31			//여분
+
+
+//버튼 카테고리 넘버 5
+#define M_ARC_BTN				u.user:$00AE48
+
+//비트 선언
+#define	Nip_Roll_Forward						0			//[터치 패널 버튼] 닙롤 전진
+#define	Nip_Roll_Backward						1			//[터치 패널 버튼] 닙롤 후진
+#define Upper_Plate_UP							2			//[터치 패널 버튼] 상부 플레이트 상승
+#define Upper_Plate_Down						3			//[터치 패널 버튼] 상부 플레이트 하강
+#define Lower_Plate_UP							4			//[터치 패널 버튼] 하부 플레이트 상승
+#define Lower_Plate_Down						5			//[터치 패널 버튼] 하부 플레이트 하강
+#define Upper_Plate_Tilting_Forward				6			//[터치 패널 버튼] 상부 플레이트 틸팅 0도
+#define Upper_Plate_Tilting_Backward			7			//[터치 패널 버튼] 상부 플레이트 틸팅 90도
+#define Lower_Plate_Tilting_Forward				8			//[터치 패널 버튼] 하부 플렝이트 틸팅 0도
+#define Lower_Plate_Tilting_Backward			9			//[터치 패널 버튼] 하부 플렝이트 틸팅 90도
+#define Upper_Cutter_Forward					10			//[터치 패널 버튼] 상부 커터 전진
+#define Upper_Cutter_Backward					11			//[터치 패널 버튼] 상부 커터 후진
+#define Lower_Cutter_Forward					12			//[터치 패널 버튼] 하부 커터 전진
+#define Lower_Cutter_Backward					13			//[터치 패널 버튼] 하부 커터 후진
+#define Upper_Plate_UnClamp						14			//[터치 패널 버튼] 상부 플레이트 언클램프 
+#define Upper_Plate_Clamp						15			//[터치 패널 버튼] 상부 플레이트 클램프
+																
+#define Lower_Plate_UnClamp						16			//[터치 패널 버튼] 하부 플레이트 언클램프
+#define Lower_Plate_Clamp						17			//[터치 패널 버튼] 하부 플레이트 클램프
+#define Upper_Plate_Vaccum_ON					18			//[터치 패널 버튼] 상부 플레이트 흡착
+#define Upper_Plate_Vaccum_Blow					19			//[터치 패널 버튼] 상부 플레이트 블로우
+#define Upper_Plate_Vaccum_Release				20			//[터치 패널 버튼] 상부 플레이트 OFF
+#define Lower_Plate_Vaccum_ON					21			//[터치 패널 버튼] 하부 플레이트 흡착
+#define Lower_Plate_Vaccum_Blow					22			//[터치 패널 버튼] 하부 플레이트 블로우
+#define Lower_Plate_Vaccum_Release				23			//[터치 패널 버튼] 하부 플레이트 OFF
+#define Ionizer_1_4_OFF							24			//#1,#4 이오나이저 OFF  
+#define Ionizer_1_4_ON							25			//#1,#4 이오나이저 ON
+#define Ionizer_2_OFF							26			//#2 이오나이저 OFF
+#define Ionizer_2_ON							27			//#2 이오나이저 ON
+#define Ionizer_3_OFF							28			//#3 이오나이저 OFF
+#define Ionizer_3_ON							29			//#3 이오나이저 ON
+#define M_ARC_BTN_SPARE							30			//여분
+#define M_ARC_BTN_SPARE_1						31			//여분
+
+//버튼 카테고리 넘버 6
+#define M_Func_BTN			u.user:$00AE4C		//D42310
+
+//비트 선언
+
+#define Unwinder_Upper_200PI_Select				0			//상부 200파이 명령
+#define Unwinder_Lower_200PI_Select				1			//하부 200파이 명령
+#define Cathode_Clamp_Both_Action				2			//양극 클램프 동시 시작 명령
+#define Anode_Clamp_Both_Action					3			//음극 클램프 동시 시작 명령
+#define Sepa_Cascade							4			//Sepa 언와인더 케스케이딩 설정 버튼
+#define Cathode_Align_Take_OFF					5			//AlignTable 탈착모드 실행 버튼 (양극)
+#define Anode_Align_Take_OFF					6			//AlignTable 탈착모드 실행 버튼 (음극)
+#define Stack_2nd_PNP_Cleaning_Mode				7			//AlignTable 클리닝 모드 실행 버튼	
+#define Sepa_Run_Mode							8			//Sepa Run 모드 사용
+#define Status_Clear							9			//Status Clear 사용
+#define MES_APC_USE								10			//MES APC 사용
+#define Cathode_NG_Move_Count_Reset				11			//양극 1차 pnp NG이동횟수 초기화 명령
+#define Anode_NG_Move_Count_Reset				12			//음극 1차 pnp NG이동횟수 초기화 명령   
+#define Manual_ARC_Button						13			//강제 Sepa ARC 버튼
+#define Forcibly_DIO_Output_Mode				14			//DIO 강체 줄력 버튼
+#define Cathode_Andoe_Align_Input_Reset			15			//양,음극 얼라인 극판 투입 횟수
+				
+																
+#define Vision_Cal_Initial_Pos					16			//Vision Cal 초기 위치 이동 버튼
+#define	Vision_Cal_Pos							17			//Vision Cal 위치 이동 버튼
+#define Vision_Cal_Anode_Move					18			//Final Roll 음극 방향 이동 버튼
+#define Vision_Cal_Cathode_Move					19			//Final Roll 양극 방향 이동 버튼
+#define An_AT_Resolution_Cal_Pos				20			//음극 얼라인 해상도 Cal 위치 이동 버튼
+#define Ca_AT_Resolution_Cal_Pos				21			//양극 얼라인 해상도 Cal 위치 이동 버튼
+#define	Align_Auto_Cal_Jig_Equip_Complete		22			//양/음극 얼라인 오토캘 시작위치 관련 지그 장착 완료 버튼
+#define Cathode_Align_Cal_Ready_Pos				23			//양극 얼라인 오토캘 시작위치 이동버튼
+#define Anode_Align_Cal_Ready_Pos				24			//음극 얼라인 오토캘 시작위치 이동버튼
+#define Push_Cathode_Stack_MSA_Mode				25			//양극 스텍 MSA 버튼
+#define Push_Anode_Stack_MSA_Mode				26			//음극 스텍 MSA 버튼
+#define Push_Cathode_Align_MSA_Mode				27			//양극 얼라인 MSA 버튼
+#define Push_Anode_Align_MSA_Mode				28			//음극 얼라인 MSA 버튼
+#define M_Function_BTN_SPARE					29			//여분
+#define M_Function_BTN_SPARE_3					30			//여분
+#define M_Function_BTN_SPARE_4					31			//여분
+
+//버튼 카테고리 넘버 7
+#define M_Function_BTN_1		u.user:$00AE50
+	
+
+//비트 선언
+#define Cathode_NG_TR_Buffer_Clear				0		//양극 NG PNP 극판 존재 유무 설정/해제 버튼
+#define Anode_NG_TR_Buffer_Clear				1		//음극 NG PNP 극판 존재 유무 설정/해제 버튼
+#define Cathode_1ST_TR_Buffer_Clear				2		//양극 1차 pnp 극판 존재 유무 설정/해제 버튼
+#define Cathode_2ND_TR_Buffer_Clear				3		//양극 2차 pnp 극판 존재 유무 설정/해제 버튼
+#define Cathode_Align_Buffer_Clear				4		//양극 얼라인 테이블 극판 존재 유무 설정/해제 버튼
+#define Anode_1ST_TR_Buffer_Clear				5		//음극 1차 pnp 극판 존재 유무 설정/해제 버튼
+#define Anode_2ND_TR_Buffer_Clear				6		//음극 2차 pnp 극판 존재 유무 설정/해제 버튼
+#define Anode_Align_Buffer_Clear				7		//음극 얼라인 테이블 극판 존재 유무 설정/해제 버튼
+#define M_Function_BTN_1_SPARE					8
+#define M_Function_BTN_1_SPARE_1				9
+#define M_Function_BTN_1_SPARE_2				10
+#define M_Function_BTN_1_SPARE_3				11
+#define M_Function_BTN_1_SPARE_4				12
+#define M_Function_BTN_1_SPARE_5				13
+#define M_Function_BTN_1_SPARE_6				14
+#define M_Function_BTN_1_SPARE_7				15
+
+#define M_Function_BTN_1_SPARE_8				16
+#define M_Function_BTN_1_SPARE_9				17
+#define M_Function_BTN_1_SPARE_10				18
+#define M_Function_BTN_1_SPARE_11				19
+#define M_Function_BTN_1_SPARE_12				20
+#define M_Function_BTN_1_SPARE_13				21
+#define M_Function_BTN_1_SPARE_14				22
+#define M_Function_BTN_1_SPARE_15				23
+#define M_Function_BTN_1_SPARE_16				24
+#define M_Function_BTN_1_SPARE_17				25
+#define M_Function_BTN_1_SPARE_18				26
+#define M_Function_BTN_1_SPARE_19				27
+#define M_Function_BTN_1_SPARE_20				28
+#define M_Function_BTN_1_SPARE_21				29
+#define M_Function_BTN_1_SPARE_22				30
+#define M_Function_BTN_1_SPARE_23				31
+
+//버튼 카테고리 넘버 8
+
+#define M_Function_BTN_2		u.user:$00A2B0		//D40824
+
+//비트 선언	
+#define Cathode_Clamp_inside_Machine_Cylinder_Count_Clear	0		//양극 클램프 상단(설비안쪽) 실린더 사용 횟수 초기화 명령
+#define Cathode_Clamp_Middle_Cylinder_Count_Clear			1		//양극 클램프 중단 실린더 사용 횟수 초기화 명령
+#define Anode_Clamp_inside_Machine_Cylinder_Count_Clear		2		//음극 클램프 상단(설비안쪽) 실린더 사용 횟수 초기화 명령
+#define Anode_Clamp_Middle_Cylinder_Count_Clear				3		//음극 클램프 중단 실린더 사용 횟수 초기화 명령
+#define Unloader_1st_Cell_Data_Delete						4		//1차 언로더 Cell Data Delete
+#define Stack_Vision_NG_Enable								5		//중간 배출 무시 버튼 (P_Stack_Vision_NG_Enable)
+#define Stack_Servo_Camera_Lock								6		//Stack Servo CAMERA Lock 명령
+#define M_Function_BTN_2_SPARE_2							7		//SPARE
+#define Grip_Delay_Measur_Mode								8		//Grip Delay Measure Mode 버튼
+#define Unloader_2nd_Cell_Out_Mode							9		//2차 언로드 배출 모드
+#define Sepa_ARC_Touch_Use									10		//SEPA ARC S/W TOUCH USE 버튼 
+#define M_Function_BTN_2_SPARE								11		//SPARE
+#define Sepa_ARC_Rev_Change_Select							12		//세파 arc 회전 수 교체 사용
+#define Cathode_1ST_TR_Cylinder_Count_Clear					13		//양극 피커 실린더 사용 횟수 초기화 (기존 UI에는 존재- 일단 보류)
+#define Anode_1ST_TR_Cylinder_Count_Clear					14		//양극 피커 실린더 사용 횟수 초기화 (기존 UI에는 존재- 일단 보류)
+#define M_Function_BTN_2_SPARE_4							15		//SPARE
+
+#define M_Function_BTN_2_SPARE_6							16
+#define M_Function_BTN_2_SPARE_7							17
+#define M_Function_BTN_2_SPARE_8							18
+#define M_Function_BTN_2_SPARE_9							19
+#define M_Function_BTN_2_SPARE_10							20
+#define M_Function_BTN_2_SPARE_11							21
+#define M_Function_BTN_2_SPARE_12							22
+#define M_Function_BTN_2_SPARE_13							23
+#define M_Function_BTN_2_SPARE_14							24
+#define M_Function_BTN_2_SPARE_15							25
+#define M_Function_BTN_2_SPARE_16							26
+#define M_Function_BTN_2_SPARE_17							27
+#define M_Function_BTN_2_SPARE_18							28
+#define M_Function_BTN_2_SPARE_19							29
+#define M_Function_BTN_2_SPARE_20							30
+#define M_Function_BTN_2_SPARE_21							31
+
+//버튼 카테고리 넘버 9
+#define M_Option_Function_BTN		u.user:$00A2B4
+
+//250513	
+//비트 선언	
+#define Cathode_Align_Continuous_NG_Stop_Select				0		//양극 Align Vision 연속 불량 사용
+#define Anode_Align_Continuous_NG_Stop_Select				1		//음극 Align Vision 연속 불량 사용
+#define M_Option_Function_BTN_1_SPARE_20					2		//SPARE
+#define Cathode_Surface_Continuous_NG_Stop_Select			3		//양극 Surface Vision 연속 불량 사용 
+#define Anode_Surface_Continuous_NG_Stop_Select				4		//음극 Surface Vision 연속 불량 사용 
+#define BTN_Dryrun_Mode										5		//Dry Run 모드 사용
+#define Intelligentization_Enable							6		//지능화 모드 사용
+#define AnodeSurface_Enable									7		//음극 표면 검사 비전 사용
+#define CathodeSurface_Enable								8		//양극 표면 검사 비전 사용
+#define Sepa_Correction_Enable								9		//세파 보정 모드 사용 
+#define Sepa_Real_time_Correction_Enable					10		//세파 실시간 보정 모드 사용
+#define Separartor Cutting_Enable							11		//Separartor Cutting 전류 확인 모드 사용
+#define M_Option_Function_BTN_1_SPARE						12		//SPARE
+#define M_Option_Function_BTN_1_SPARE_1						13		//SPARE
+#define M_Option_Function_BTN_1_SPARE_2						14		//SPARE
+#define M_Option_Function_BTN_1_SPARE_3						15		//SPARE
+																
+#define M_Option_Function_BTN_1_SPARE_4						16
+#define M_Option_Function_BTN_1_SPARE_5						17
+#define M_Option_Function_BTN_1_SPARE_6						18
+#define M_Option_Function_BTN_1_SPARE_7						19
+#define M_Option_Function_BTN_1_SPARE_8						20
+#define M_Option_Function_BTN_1_SPARE_9						21
+#define M_Option_Function_BTN_1_SPARE_10					22
+#define M_Option_Function_BTN_1_SPARE_11					23
+#define M_Option_Function_BTN_1_SPARE_12					24
+#define M_Option_Function_BTN_1_SPARE_13					25
+#define M_Option_Function_BTN_1_SPARE_14					26
+#define M_Option_Function_BTN_1_SPARE_15					27
+#define M_Option_Function_BTN_1_SPARE_16					28
+#define	M_Option_Function_BTN_1_SPARE_17					29
+#define	M_Option_Function_BTN_1_SPARE_18					30
+#define	M_Option_Function_BTN_1_SPARE_19					31
+
+//버튼 카테고리 넘버 10
+#define M_Unit_Move_Function_BTN		u.user:$00A2B8
+	
+
+//비트 선언
+#define M_Unit_Move_Function_BTN_SPARE_7					0		//SPARE
+#define M_Unit_Move_Function_BTN_SPARE_8					1		//SPARE
+#define Unloader_1st_1Cycle									2		//1st Unloader 1Cycle 실행 버튼
+#define Unloader_1st_Stop									3		//1st Unloader STOP 버튼
+#define Unloader_1st_Step+									4		//1st Unloader STEP"+"버튼
+#define Cathode_Unit_1Cycle									5		//Cathode Unit 1Cycle 실행 버튼
+#define Cathode_Unit_Home									6		//Cathode Unit Home 버튼
+#define Cathode_Unit_Stop									7		//Cathode Unit STOP 버튼
+#define Cathode_Unit_Step+									8		//Cathode Unit STEP"+"버튼
+#define Anode_Unit_1Cycle									9		//Anode Unit 1Cycle 실행 버튼
+#define	Anode_Unit_Home										10		//Anode Unit Home 버튼
+#define	Anode_Unit_Stop										11		//Anode Unit STOP 버튼
+#define	Anode_Unit_Step+									12		//Anode Unit STEP"+"버튼
+#define	M_Unit_Move_Function_BTN_SPARE_9					13		//SPARE
+#define	M_Unit_Move_Function_BTN_SPARE_10					14		//SPARE
+#define	M_Unit_Move_Function_BTN_SPARE_11					15		//SPARE
+												
+#define Stack_Table_Unit_1Cycle								16		//Stack Table Unit 1Cycle 실행 버튼
+#define	Stack_Table_Unit_Home								17		//Stack Table Unit Home 버튼
+#define	Stack_Table_Unit_Stop								18		//Stack Table Unit STOP 버튼
+#define	Stack_Table_Unit_Step+								19		//Stack Table Unit STEP"+"버튼
+#define SEPA_Unwinder_Unit_1Cycle							20		//SEPA Unwinder 1Cycle 실행 버튼
+#define	SEPA_Unwinder_Unit_Home								21		//SEPA Unwinder Home 버튼
+#define SEPA_Unwinder_Unit_Step_Mode						22		//SEPA Unwinder 스탭 모드 버튼
+#define	SEPA_Unwinder_Unit_Stop								23		//SEPA Unwinder STOP 버튼
+#define	SEPA_Unwinder_Unit_Step+							24		//SEPA Unwinder STEP"+"버튼
+#define M_Unit_Move_Function_BTN_SPARE						25
+#define	M_Unit_Move_Function_BTN_SPARE_1					26
+#define	M_Unit_Move_Function_BTN_SPARE_2					27
+#define	M_Unit_Move_Function_BTN_SPARE_3					28
+#define	M_Unit_Move_Function_BTN_SPARE_4					29
+#define	M_Unit_Move_Function_BTN_SPARE_5					30
+#define	M_Unit_Move_Function_BTN_SPARE_6					31
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+															모터 정보 info
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+*/
+//(Axis 01) TR#1 CATHODE T
+#define M_M1_Motor_BTN_Info				u.user:$00A8C8
+
+//비트 선언
+
+#define BTN_M1_Jog_Forward											0
+#define BTN_M1_Jog_Backward											1
+#define BTN_M1_Servo_ON												2
+#define BTN_M1_Homing												3
+#define BTN_M1_Motor_STOP											4
+#define BTN_M1_Alarm_Reset											5
+#define BTN_M1_Recipe_Pos_Run										6
+#define BTN_M1_Jog_INC_Run											7
+#define BTN_M1_Jog_ABS_Run											8
+
+#define M_M1_Motor_Recipe_Info		 u.user:$00A8C8
+																	
+#define M1_Motor_Recipe_Pos_1										16
+#define M1_Motor_Recipe_Pos_2										17
+#define M1_Motor_Recipe_Pos_3										18
+#define M1_Motor_Recipe_Pos_4										19
+#define M1_Motor_Recipe_Pos_5										20
+#define M1_Motor_Recipe_Pos_6										21
+#define M1_Motor_Recipe_Pos_7										22
+#define M1_Motor_Recipe_Pos_8										23
+#define M1_Motor_Recipe_Pos_9										24
+#define M1_Motor_Recipe_Pos_10										25
+
+//(Axis 02) TR#1 ANODE T
+#define M_M2_Motor_BTN_Info			u.user:$00A8E4	
+
+#define BTN_M2_Jog_Forward											0
+#define BTN_M2_Jog_Backward											1
+#define BTN_M2_Servo_ON												2
+#define BTN_M2_Homing												3
+#define BTN_M2_Motor_STOP											4
+#define BTN_M2_Alarm_Reset											5
+#define BTN_M2_Recipe_Pos_Run										6
+#define BTN_M2_Jog_INC_Run											7
+#define BTN_M2_Jog_ABS_Run											8
+
+#define M_M2_Motor_Recipe_Info		u.user:$00A8E4
+
+#define M2_Motor_Recipe_Pos_1										16
+#define M2_Motor_Recipe_Pos_2										17
+#define M2_Motor_Recipe_Pos_3										18
+#define M2_Motor_Recipe_Pos_4										19
+#define M2_Motor_Recipe_Pos_5										20
+#define M2_Motor_Recipe_Pos_6										21
+#define M2_Motor_Recipe_Pos_7										22
+#define M2_Motor_Recipe_Pos_8										23
+#define M2_Motor_Recipe_Pos_9										24
+#define M2_Motor_Recipe_Pos_10										25
+
+//(Axis 03) TR#2 CATHODE T
+#define M_M3_Motor_BTN_Info			u.user:$00A900
+
+#define BTN_M3_Jog_Forward											0
+#define BTN_M3_Jog_Backward											1
+#define BTN_M3_Servo_ON												2
+#define BTN_M3_Homing												3
+#define BTN_M3_Motor_STOP											4
+#define BTN_M3_Alarm_Reset											5
+#define BTN_M3_Recipe_Pos_Run										6
+#define BTN_M3_Jog_INC_Run											7
+#define BTN_M3_Jog_ABS_Run											8
+
+#define M_M3_Motor_Recipe_Info		u.user:$00A900
+
+#define M3_Motor_Recipe_Pos_1										16
+#define M3_Motor_Recipe_Pos_2										17
+#define M3_Motor_Recipe_Pos_3										18
+#define M3_Motor_Recipe_Pos_4										19
+#define M3_Motor_Recipe_Pos_5										20
+#define M3_Motor_Recipe_Pos_6										21
+#define M3_Motor_Recipe_Pos_7										22
+#define M3_Motor_Recipe_Pos_8										23
+#define M3_Motor_Recipe_Pos_9										24
+#define M3_Motor_Recipe_Pos_10										25
+
+//(Axis 04) TR#2 ANODE T
+#define M_M4_Motor_BTN_Info			u.user:$00A91C
+ 
+#define BTN_M4_Jog_Forward											0
+#define BTN_M4_Jog_Backward											1
+#define BTN_M4_Servo_ON												2
+#define BTN_M4_Homing												3
+#define BTN_M4_Motor_STOP											4
+#define BTN_M4_Alarm_Reset											5
+#define BTN_M4_Recipe_Pos_Run										6
+#define BTN_M4_Jog_INC_Run											7
+#define BTN_M4_Jog_ABS_Run											8
+
+#define M_M4_Motor_Recipe_Info		u.user:$00A91C
+
+#define M4_Motor_Recipe_Pos_1										16
+#define M4_Motor_Recipe_Pos_2										17
+#define M4_Motor_Recipe_Pos_3										18
+#define M4_Motor_Recipe_Pos_4										19
+#define M4_Motor_Recipe_Pos_5										20
+#define M4_Motor_Recipe_Pos_6										21
+#define M4_Motor_Recipe_Pos_7										22
+#define M4_Motor_Recipe_Pos_8										23
+#define M4_Motor_Recipe_Pos_9										24
+#define M4_Motor_Recipe_Pos_10										25
+
+//(Axis 05) CATHODE CLAMP Y1
+#define M_M5_Motor_BTN_Info			u.user:$00A938
+
+#define BTN_M5_Jog_Forward											0
+#define BTN_M5_Jog_Backward											1
+#define BTN_M5_Servo_ON												2
+#define BTN_M5_Homing												3
+#define BTN_M5_Motor_STOP											4
+#define BTN_M5_Alarm_Reset											5
+#define BTN_M5_Recipe_Pos_Run										6
+#define BTN_M5_Jog_INC_Run											7
+#define BTN_M5_Jog_ABS_Run											8
+
+#define M_M5_Motor_Recipe_Info		u.user:$00A938
+
+#define M5_Motor_Recipe_Pos_1										16
+#define M5_Motor_Recipe_Pos_2										17
+#define M5_Motor_Recipe_Pos_3										18
+#define M5_Motor_Recipe_Pos_4										19
+#define M5_Motor_Recipe_Pos_5										20
+#define M5_Motor_Recipe_Pos_6										21
+#define M5_Motor_Recipe_Pos_7										22
+#define M5_Motor_Recipe_Pos_8										23
+#define M5_Motor_Recipe_Pos_9										24
+#define M5_Motor_Recipe_Pos_10										25
+
+//(Axis 06) ANODE CLAMP Y1
+#define M_M6_Motor_BTN_Info			u.user:$00A954
+
+#define BTN_M6_Jog_Forward											0
+#define BTN_M6_Jog_Backward											1
+#define BTN_M6_Servo_ON												2
+#define BTN_M6_Homing												3
+#define BTN_M6_Motor_STOP											4
+#define BTN_M6_Alarm_Reset											5
+#define BTN_M6_Recipe_Pos_Run										6
+#define BTN_M6_Jog_INC_Run											7
+#define BTN_M6_Jog_ABS_Run											8
+
+#define M_M6_Motor_Recipe_Info		u.user:$00A954
+
+#define M6_Motor_Recipe_Pos_1										16
+#define M6_Motor_Recipe_Pos_2										17
+#define M6_Motor_Recipe_Pos_3										18
+#define M6_Motor_Recipe_Pos_4										19
+#define M6_Motor_Recipe_Pos_5										20
+#define M6_Motor_Recipe_Pos_6										21
+#define M6_Motor_Recipe_Pos_7										22
+#define M6_Motor_Recipe_Pos_8										23
+#define M6_Motor_Recipe_Pos_9										24
+#define M6_Motor_Recipe_Pos_10										25
+
+//(Axis 07) CATHODE CLAMP Y2
+#define M_M7_Motor_BTN_Info			u.user:$00A970
+
+#define BTN_M7_Jog_Forward											0
+#define BTN_M7_Jog_Backward											1
+#define BTN_M7_Servo_ON												2
+#define BTN_M7_Homing												3
+#define BTN_M7_Motor_STOP											4
+#define BTN_M7_Alarm_Reset											5
+#define BTN_M7_Recipe_Pos_Run										6
+#define BTN_M7_Jog_INC_Run											7
+#define BTN_M7_Jog_ABS_Run											8
+
+#define M_M7_Motor_Recipe_Info		u.user:$00A970
+
+#define M7_Motor_Recipe_Pos_1										16
+#define M7_Motor_Recipe_Pos_2										17
+#define M7_Motor_Recipe_Pos_3										18
+#define M7_Motor_Recipe_Pos_4										19
+#define M7_Motor_Recipe_Pos_5										20
+#define M7_Motor_Recipe_Pos_6										21
+#define M7_Motor_Recipe_Pos_7										22
+#define M7_Motor_Recipe_Pos_8										23
+#define M7_Motor_Recipe_Pos_9										24
+#define M7_Motor_Recipe_Pos_10										25
+
+//(Axis 08) ANODE CLAMP Y2
+#define M_M8_Motor_BTN_Info			u.user:$00A98C
+
+#define BTN_M8_Jog_Forward											0
+#define BTN_M8_Jog_Backward											1
+#define BTN_M8_Servo_ON												2
+#define BTN_M8_Homing												3
+#define BTN_M8_Motor_STOP											4
+#define BTN_M8_Alarm_Reset											5
+#define BTN_M8_Recipe_Pos_Run										6
+#define BTN_M8_Jog_INC_Run											7
+#define BTN_M8_Jog_ABS_Run											8
+
+#define M_M8_Motor_Recipe_Info		u.user:$00A98C
+
+#define M8_Motor_Recipe_Pos_1										16
+#define M8_Motor_Recipe_Pos_2										17
+#define M8_Motor_Recipe_Pos_3										18
+#define M8_Motor_Recipe_Pos_4										19
+#define M8_Motor_Recipe_Pos_5										20
+#define M8_Motor_Recipe_Pos_6										21
+#define M8_Motor_Recipe_Pos_7										22
+#define M8_Motor_Recipe_Pos_8										23
+#define M8_Motor_Recipe_Pos_9										24
+#define M8_Motor_Recipe_Pos_10										25
+
+//(Axis 09) CATHODE CLAMP Z
+#define M_M9_Motor_BTN_Info			u.user:$00A9A8
+ 
+#define BTN_M9_Jog_Forward											0
+#define BTN_M9_Jog_Backward											1
+#define BTN_M9_Servo_ON												2
+#define BTN_M9_Homing												3
+#define BTN_M9_Motor_STOP											4
+#define BTN_M9_Alarm_Reset											5
+#define BTN_M9_Recipe_Pos_Run										6
+#define BTN_M9_Jog_INC_Run											7
+#define BTN_M9_Jog_ABS_Run											8
+
+#define M_M9_Motor_Recipe_Info		u.user:$00A9A8
+
+#define M9_Motor_Recipe_Pos_1										16
+#define M9_Motor_Recipe_Pos_2										17
+#define M9_Motor_Recipe_Pos_3										18
+#define M9_Motor_Recipe_Pos_4										19
+#define M9_Motor_Recipe_Pos_5										20
+#define M9_Motor_Recipe_Pos_6										21
+#define M9_Motor_Recipe_Pos_7										22
+#define M9_Motor_Recipe_Pos_8										23
+#define M9_Motor_Recipe_Pos_9										24
+#define M9_Motor_Recipe_Pos_10										25
+
+//(Axis 10) ANODE CLAMP Z
+#define M_M10_Motor_BTN_Info		u.user:$00A9C4
+	
+#define BTN_M10_Jog_Forward											0
+#define BTN_M10_Jog_Backward										1
+#define BTN_M10_Servo_ON											2
+#define BTN_M10_Homing												3
+#define BTN_M10_Motor_STOP											4
+#define BTN_M10_Alarm_Reset											5
+#define BTN_M10_Recipe_Pos_Run										6
+#define BTN_M10_Jog_INC_Run											7
+#define BTN_M10_Jog_ABS_Run											8
+
+#define M_M10_Motor_Recipe_Info		u.user:$00A9C4
+
+#define M10_Motor_Recipe_Pos_1										16
+#define M10_Motor_Recipe_Pos_2										17
+#define M10_Motor_Recipe_Pos_3										18
+#define M10_Motor_Recipe_Pos_4										19
+#define M10_Motor_Recipe_Pos_5										20
+#define M10_Motor_Recipe_Pos_6										21
+#define M10_Motor_Recipe_Pos_7										22
+#define M10_Motor_Recipe_Pos_8										23
+#define M10_Motor_Recipe_Pos_9										24
+#define M10_Motor_Recipe_Pos_10										25
+
+//(Axis 11) S/T MAIN Z
+#define M_M11_Motor_BTN_Info		u.user:$00A9E0
+
+#define BTN_M11_Jog_Forward											0
+#define BTN_M11_Jog_Backward										1
+#define BTN_M11_Servo_ON											2
+#define BTN_M11_Homing												3
+#define BTN_M11_Motor_STOP											4
+#define BTN_M11_Alarm_Reset											5
+#define BTN_M11_Recipe_Pos_Run										6
+#define BTN_M11_Jog_INC_Run											7
+#define BTN_M11_Jog_ABS_Run											8
+
+#define M_M11_Motor_Recipe_Info		u.user:$00A9E0
+
+#define M11_Motor_Recipe_Pos_1										16
+#define M11_Motor_Recipe_Pos_2										17
+#define M11_Motor_Recipe_Pos_3										18
+#define M11_Motor_Recipe_Pos_4										19
+#define M11_Motor_Recipe_Pos_5										20
+#define M11_Motor_Recipe_Pos_6										21
+#define M11_Motor_Recipe_Pos_7										22
+#define M11_Motor_Recipe_Pos_8										23
+#define M11_Motor_Recipe_Pos_9										24
+#define M11_Motor_Recipe_Pos_10										25
+
+//(Axis 12) FINAL ROLL X
+#define M_M12_Motor_BTN_Info		u.user:$00A9FC
+
+#define BTN_M12_Jog_Forward											0
+#define BTN_M12_Jog_Backward										1
+#define BTN_M12_Servo_ON											2
+#define BTN_M12_Homing												3
+#define BTN_M12_Motor_STOP											4
+#define BTN_M12_Alarm_Reset											5
+#define BTN_M12_Recipe_Pos_Run										6
+#define BTN_M12_Jog_INC_Run											7
+#define BTN_M12_Jog_ABS_Run											8
+
+#define M_M12_Motor_Recipe_Info		u.user:$00A9FC
+
+#define M12_Motor_Recipe_Pos_1										16
+#define M12_Motor_Recipe_Pos_2										17
+#define M12_Motor_Recipe_Pos_3										18
+#define M12_Motor_Recipe_Pos_4										19
+#define M12_Motor_Recipe_Pos_5										20
+#define M12_Motor_Recipe_Pos_6										21
+#define M12_Motor_Recipe_Pos_7										22
+#define M12_Motor_Recipe_Pos_8										23
+#define M12_Motor_Recipe_Pos_9										24
+#define M12_Motor_Recipe_Pos_10										25
+
+//(Axis 13) FINAL ROLL Z
+#define M_M13_Motor_BTN_Info		u.user:$00AA18
+
+#define BTN_M13_Jog_Forward											0
+#define BTN_M13_Jog_Backward										1
+#define BTN_M13_Servo_ON											2
+#define BTN_M13_Homing												3
+#define BTN_M13_Motor_STOP											4
+#define BTN_M13_Alarm_Reset											5
+#define BTN_M13_Recipe_Pos_Run										6
+#define BTN_M13_Jog_INC_Run											7
+#define BTN_M13_Jog_ABS_Run											8
+
+#define M_M13_Motor_Recipe_Info		u.user:$00AA18
+
+#define M13_Motor_Recipe_Pos_1										16
+#define M13_Motor_Recipe_Pos_2										17
+#define M13_Motor_Recipe_Pos_3										18
+#define M13_Motor_Recipe_Pos_4										19
+#define M13_Motor_Recipe_Pos_5										20
+#define M13_Motor_Recipe_Pos_6										21
+#define M13_Motor_Recipe_Pos_7										22
+#define M13_Motor_Recipe_Pos_8										23
+#define M13_Motor_Recipe_Pos_9										24
+#define M13_Motor_Recipe_Pos_10										25
+
+//(Axis 14) SUBFEEDING ROLL
+#define M_M14_Motor_BTN_Info		u.user:$00AA34
+
+#define BTN_M14_Jog_Forward											0
+#define BTN_M14_Jog_Backward										1
+#define BTN_M14_Servo_ON											2
+#define BTN_M14_Homing												3
+#define BTN_M14_Motor_STOP											4
+#define BTN_M14_Alarm_Reset											5
+#define BTN_M14_Recipe_Pos_Run										6
+#define BTN_M14_Jog_INC_Run											7
+#define BTN_M14_Jog_ABS_Run											8
+
+#define M_M14_Motor_Recipe_Info		u.user:$00AA34
+
+#define M14_Motor_Recipe_Pos_1										16
+#define M14_Motor_Recipe_Pos_2										17
+#define M14_Motor_Recipe_Pos_3										18
+#define M14_Motor_Recipe_Pos_4										19
+#define M14_Motor_Recipe_Pos_5										20
+#define M14_Motor_Recipe_Pos_6										21
+#define M14_Motor_Recipe_Pos_7										22
+#define M14_Motor_Recipe_Pos_8										23
+#define M14_Motor_Recipe_Pos_9										24
+#define M14_Motor_Recipe_Pos_10										25
+
+//(Axis 15) DRIVING ROLL
+#define M_M15_Motor_BTN_Info		u.user:$00AA50
+
+#define BTN_M15_Jog_Forward											0
+#define BTN_M15_Jog_Backward										1
+#define BTN_M15_Servo_ON											2
+#define BTN_M15_Homing												3
+#define BTN_M15_Motor_STOP											4
+#define BTN_M15_Alarm_Reset											5
+#define BTN_M15_Recipe_Pos_Run										6
+#define BTN_M15_Jog_INC_Run											7
+#define BTN_M15_Jog_ABS_Run											8
+
+#define M_M15_Motor_Recipe_Info		u.user:$00AA50
+
+#define M15_Motor_Recipe_Pos_1										16
+#define M15_Motor_Recipe_Pos_2										17
+#define M15_Motor_Recipe_Pos_3										18
+#define M15_Motor_Recipe_Pos_4										19
+#define M15_Motor_Recipe_Pos_5										20
+#define M15_Motor_Recipe_Pos_6										21
+#define M15_Motor_Recipe_Pos_7										22
+#define M15_Motor_Recipe_Pos_8										23
+#define M15_Motor_Recipe_Pos_9										24
+#define M15_Motor_Recipe_Pos_10										25
+
+//(Axis 16) SERVO DANCER
+#define M_M16_Motor_BTN_Info		u.user:$00AA6C
+
+#define BTN_M16_Jog_Forward											0
+#define BTN_M16_Jog_Backward										1
+#define BTN_M16_Servo_ON											2
+#define BTN_M16_Homing												3
+#define BTN_M16_Motor_STOP											4
+#define BTN_M16_Alarm_Reset											5
+#define BTN_M16_Recipe_Pos_Run										6
+#define BTN_M16_Jog_INC_Run											7
+#define BTN_M16_Jog_ABS_Run											8
+
+#define M_M16_Motor_Recipe_Info		u.user:$00AA6C
+
+#define M16_Motor_Recipe_Pos_1										16
+#define M16_Motor_Recipe_Pos_2										17
+#define M16_Motor_Recipe_Pos_3										18
+#define M16_Motor_Recipe_Pos_4										19
+#define M16_Motor_Recipe_Pos_5										20
+#define M16_Motor_Recipe_Pos_6										21
+#define M16_Motor_Recipe_Pos_7										22
+#define M16_Motor_Recipe_Pos_8										23
+#define M16_Motor_Recipe_Pos_9										24
+#define M16_Motor_Recipe_Pos_10										25
+
+//(Axis 17) TR#1 CAHTODE Z
+#define M_M17_Motor_BTN_Info		u.user:$00AA88
+
+#define BTN_M17_Jog_Forward											0
+#define BTN_M17_Jog_Backward										1
+#define BTN_M17_Servo_ON											2
+#define BTN_M17_Homing												3
+#define BTN_M17_Motor_STOP											4
+#define BTN_M17_Alarm_Reset											5
+#define BTN_M17_Recipe_Pos_Run										6
+#define BTN_M17_Jog_INC_Run											7
+#define BTN_M17_Jog_ABS_Run											8
+
+#define M_M17_Motor_Recipe_Info		u.user:$00AA88
+
+#define M17_Motor_Recipe_Pos_1										16
+#define M17_Motor_Recipe_Pos_2										17
+#define M17_Motor_Recipe_Pos_3										18
+#define M17_Motor_Recipe_Pos_4										19
+#define M17_Motor_Recipe_Pos_5										20
+#define M17_Motor_Recipe_Pos_6										21
+#define M17_Motor_Recipe_Pos_7										22
+#define M17_Motor_Recipe_Pos_8										23
+#define M17_Motor_Recipe_Pos_9										24
+#define M17_Motor_Recipe_Pos_10										25
+
+//(Axis 18) TR#1 ANODE Z	
+#define M_M18_Motor_BTN_Info		u.user:$00AAA4
+
+#define BTN_M18_Jog_Forward											0
+#define BTN_M18_Jog_Backward										1
+#define BTN_M18_Servo_ON											2
+#define BTN_M18_Homing												3
+#define BTN_M18_Motor_STOP											4
+#define BTN_M18_Alarm_Reset											5
+#define BTN_M18_Recipe_Pos_Run										6
+#define BTN_M18_Jog_INC_Run											7
+#define BTN_M18_Jog_ABS_Run											8
+
+#define M_M18_Motor_Recipe_Info		u.user:$00AAA4
+
+#define M18_Motor_Recipe_Pos_1										16
+#define M18_Motor_Recipe_Pos_2										17
+#define M18_Motor_Recipe_Pos_3										18
+#define M18_Motor_Recipe_Pos_4										19
+#define M18_Motor_Recipe_Pos_5										20
+#define M18_Motor_Recipe_Pos_6										21
+#define M18_Motor_Recipe_Pos_7										22
+#define M18_Motor_Recipe_Pos_8										23
+#define M18_Motor_Recipe_Pos_9										24
+#define M18_Motor_Recipe_Pos_10										25
+
+//(Axis 19) TR#1 CATHODE PICKER T
+#define M_M19_Motor_BTN_Info		u.user:$00AAC0
+
+#define BTN_M19_Jog_Forward											0
+#define BTN_M19_Jog_Backward										1
+#define BTN_M19_Servo_ON											2
+#define BTN_M19_Homing												3
+#define BTN_M19_Motor_STOP											4
+#define BTN_M19_Alarm_Reset											5
+#define BTN_M19_Recipe_Pos_Run										6
+#define BTN_M19_Jog_INC_Run											7
+#define BTN_M19_Jog_ABS_Run											8
+
+#define M_M19_Motor_Recipe_Info		u.user:$00AAC0
+
+#define M19_Motor_Recipe_Pos_1										16
+#define M19_Motor_Recipe_Pos_2										17
+#define M19_Motor_Recipe_Pos_3										18
+#define M19_Motor_Recipe_Pos_4										19
+#define M19_Motor_Recipe_Pos_5										20
+#define M19_Motor_Recipe_Pos_6										21
+#define M19_Motor_Recipe_Pos_7										22
+#define M19_Motor_Recipe_Pos_8										23
+#define M19_Motor_Recipe_Pos_9										24
+#define M19_Motor_Recipe_Pos_10										25
+
+//(Axis 20) TR#1 ANODE PICKER T
+#define M_M20_Motor_BTN_Info		u.user:$00AADC
+
+#define BTN_M20_Jog_Forward											0
+#define BTN_M20_Jog_Backward										1
+#define BTN_M20_Servo_ON											2
+#define BTN_M20_Homing												3
+#define BTN_M20_Motor_STOP											4
+#define BTN_M20_Alarm_Reset											5
+#define BTN_M20_Recipe_Pos_Run										6
+#define BTN_M20_Jog_INC_Run											7
+#define BTN_M20_Jog_ABS_Run											8
+
+#define M_M20_Motor_Recipe_Info		u.user:$00AADC
+
+#define M20_Motor_Recipe_Pos_1										16
+#define M20_Motor_Recipe_Pos_2										17
+#define M20_Motor_Recipe_Pos_3										18
+#define M20_Motor_Recipe_Pos_4										19
+#define M20_Motor_Recipe_Pos_5										20
+#define M20_Motor_Recipe_Pos_6										21
+#define M20_Motor_Recipe_Pos_7										22
+#define M20_Motor_Recipe_Pos_8										23		
+#define M20_Motor_Recipe_Pos_9										24
+#define M20_Motor_Recipe_Pos_10										25
+
+//(Axis 21) TR#2 CATHODE Z
+#define M_M21_Motor_BTN_Info		u.user:$00AAF8
+
+#define BTN_M21_Jog_Forward											0
+#define BTN_M21_Jog_Backward										1
+#define BTN_M21_Servo_ON											2
+#define BTN_M21_Homing												3
+#define BTN_M21_Motor_STOP											4
+#define BTN_M21_Alarm_Reset											5
+#define BTN_M21_Recipe_Pos_Run										6
+#define BTN_M21_Jog_INC_Run											7
+#define BTN_M21_Jog_ABS_Run											8
+
+#define M_M21_Motor_Recipe_Info		u.user:$00AAF8
+
+#define M21_Motor_Recipe_Pos_1										16
+#define M21_Motor_Recipe_Pos_2										17
+#define M21_Motor_Recipe_Pos_3										18
+#define M21_Motor_Recipe_Pos_4										19
+#define M21_Motor_Recipe_Pos_5										20
+#define M21_Motor_Recipe_Pos_6										21
+#define M21_Motor_Recipe_Pos_7										22
+#define M21_Motor_Recipe_Pos_8										23
+#define M21_Motor_Recipe_Pos_9										24
+#define M21_Motor_Recipe_Pos_10										25
+
+//(Axis 22) TR#2 ANODE Z
+#define M_M22_Motor_BTN_Info		u.user:$00AB14
+
+#define BTN_M22_Jog_Forward											0
+#define BTN_M22_Jog_Backward										1
+#define BTN_M22_Servo_ON											2
+#define BTN_M22_Homing												3
+#define BTN_M22_Motor_STOP											4
+#define BTN_M22_Alarm_Reset											5
+#define BTN_M22_Recipe_Pos_Run										6
+#define BTN_M22_Jog_INC_Run											7
+#define BTN_M22_Jog_ABS_Run											8
+
+#define M_M22_Motor_Recipe_Info		u.user:$00AB14
+
+#define M22_Motor_Recipe_Pos_1										16
+#define M22_Motor_Recipe_Pos_2										17
+#define M22_Motor_Recipe_Pos_3										18
+#define M22_Motor_Recipe_Pos_4										19
+#define M22_Motor_Recipe_Pos_5										20
+#define M22_Motor_Recipe_Pos_6										21
+#define M22_Motor_Recipe_Pos_7										22
+#define M22_Motor_Recipe_Pos_8										23
+#define M22_Motor_Recipe_Pos_9										24
+#define M22_Motor_Recipe_Pos_10										25
+
+//(Axis 23) S/U UPPER SPOOL ROTATE
+#define M_M23_Motor_BTN_Info		u.user:$00AB30
+
+#define BTN_M23_Jog_Forward											0
+#define BTN_M23_Jog_Backward										1
+#define BTN_M23_Servo_ON											2
+#define BTN_M23_Homing												3
+#define BTN_M23_Motor_STOP											4
+#define BTN_M23_Alarm_Reset											5
+#define BTN_M23_Recipe_Pos_Run										6
+#define BTN_M23_Jog_INC_Run											7
+#define BTN_M23_Jog_ABS_Run											8
+
+#define M_M23_Motor_Recipe_Info		u.user:$00AB30
+
+#define M23_Motor_Recipe_Pos_1										16
+#define M23_Motor_Recipe_Pos_2										17
+#define M23_Motor_Recipe_Pos_3										18
+#define M23_Motor_Recipe_Pos_4										19
+#define M23_Motor_Recipe_Pos_5										20
+#define M23_Motor_Recipe_Pos_6										21
+#define M23_Motor_Recipe_Pos_7										22
+#define M23_Motor_Recipe_Pos_8										23
+#define M23_Motor_Recipe_Pos_9										24
+#define M23_Motor_Recipe_Pos_10										25
+
+//(Axis 24) S/U LOWER SPOOL ROTATE
+#define M_M24_Motor_BTN_Info		u.user:$00AB4C
+
+#define BTN_M24_Jog_Forward											0
+#define BTN_M24_Jog_Backward										1
+#define BTN_M24_Servo_ON											2
+#define BTN_M24_Homing												3
+#define BTN_M24_Motor_STOP											4
+#define BTN_M24_Alarm_Reset											5
+#define BTN_M24_Recipe_Pos_Run										6
+#define BTN_M24_Jog_INC_Run											7
+#define BTN_M24_Jog_ABS_Run											8
+
+#define M_M24_Motor_Recipe_Info		u.user:$00AB4C
+
+#define M24_Motor_Recipe_Pos_1										16
+#define M24_Motor_Recipe_Pos_2										17
+#define M24_Motor_Recipe_Pos_3										18
+#define M24_Motor_Recipe_Pos_4										19
+#define M24_Motor_Recipe_Pos_5										20
+#define M24_Motor_Recipe_Pos_6										21
+#define M24_Motor_Recipe_Pos_7										22
+#define M24_Motor_Recipe_Pos_8										23
+#define M24_Motor_Recipe_Pos_9										24
+#define M24_Motor_Recipe_Pos_10										25
+
+//(Axis 25) SPARE
+#define M_M25_Motor_BTN_Info		u.user:$00AB68
+
+#define BTN_M25_Jog_Forward											0
+#define BTN_M25_Jog_Backward										1
+#define BTN_M25_Servo_ON											2
+#define BTN_M25_Homing												3
+#define BTN_M25_Motor_STOP											4
+#define BTN_M25_Alarm_Reset											5
+#define BTN_M25_Recipe_Pos_Run										6
+#define BTN_M25_Jog_INC_Run											7
+#define BTN_M25_Jog_ABS_Run											8
+
+#define M_M25_Motor_Recipe_Info		u.user:$00AB68
+
+#define M25_Motor_Recipe_Pos_1										16
+#define M25_Motor_Recipe_Pos_2										17
+#define M25_Motor_Recipe_Pos_3										18
+#define M25_Motor_Recipe_Pos_4										19
+#define M25_Motor_Recipe_Pos_5										20
+#define M25_Motor_Recipe_Pos_6										21
+#define M25_Motor_Recipe_Pos_7										22
+#define M25_Motor_Recipe_Pos_8										23
+#define M25_Motor_Recipe_Pos_9										24
+#define M25_Motor_Recipe_Pos_10										25
+
+//(Axis 26) SPARE
+#define M_M26_Motor_BTN_Info		u.user:$00AB84
+
+#define BTN_M26_Jog_Forward											0
+#define BTN_M26_Jog_Backward										1
+#define BTN_M26_Servo_ON											2
+#define BTN_M26_Homing												3
+#define BTN_M26_Motor_STOP											4
+#define BTN_M26_Alarm_Reset											5
+#define BTN_M26_Recipe_Pos_Run										6
+#define BTN_M26_Jog_INC_Run											7
+#define BTN_M26_Jog_ABS_Run											8
+
+#define M_M26_Motor_Recipe_Info		u.user:$00AB84
+
+#define M26_Motor_Recipe_Pos_1										16
+#define M26_Motor_Recipe_Pos_2										17
+#define M26_Motor_Recipe_Pos_3										18
+#define M26_Motor_Recipe_Pos_4										19
+#define M26_Motor_Recipe_Pos_5										20
+#define M26_Motor_Recipe_Pos_6										21
+#define M26_Motor_Recipe_Pos_7										22
+#define M26_Motor_Recipe_Pos_8										23
+#define M26_Motor_Recipe_Pos_9										24
+#define M26_Motor_Recipe_Pos_10										25
+
+//(Axis 27) SPARE
+#define M_M27_Motor_BTN_Info		u.user:$00ABA0
+
+#define BTN_M27_Jog_Forward											0
+#define BTN_M27_Jog_Backward										1
+#define BTN_M27_Servo_ON											2
+#define BTN_M27_Homing												3
+#define BTN_M27_Motor_STOP											4
+#define BTN_M27_Alarm_Reset											5
+#define BTN_M27_Recipe_Pos_Run										6
+#define BTN_M27_Jog_INC_Run											7
+#define BTN_M27_Jog_ABS_Run											8
+
+#define M_M27_Motor_Recipe_Info		u.user:$00ABA0
+
+#define M27_Motor_Recipe_Pos_1										16
+#define M27_Motor_Recipe_Pos_2										17
+#define M27_Motor_Recipe_Pos_3										18
+#define M27_Motor_Recipe_Pos_4										19
+#define M27_Motor_Recipe_Pos_5										20
+#define M27_Motor_Recipe_Pos_6										21
+#define M27_Motor_Recipe_Pos_7										22
+#define M27_Motor_Recipe_Pos_8										23
+#define M27_Motor_Recipe_Pos_9										24
+#define M27_Motor_Recipe_Pos_10										25
+
+//(Axis 28) SPARE
+#define M_M28_Motor_BTN_Info		u.user:$00ABBC
+
+#define BTN_M28_Jog_Forward											0
+#define BTN_M28_Jog_Backward										1
+#define BTN_M28_Servo_ON											2
+#define BTN_M28_Homing												3
+#define BTN_M28_Motor_STOP											4
+#define BTN_M28_Alarm_Reset											5
+#define BTN_M28_Recipe_Pos_Run										6
+#define BTN_M28_Jog_INC_Run											7
+#define BTN_M28_Jog_ABS_Run											8
+
+#define M_M28_Motor_Recipe_Info		u.user:$00ABBC
+
+#define M28_Motor_Recipe_Pos_1										16
+#define M28_Motor_Recipe_Pos_2										17
+#define M28_Motor_Recipe_Pos_3										18
+#define M28_Motor_Recipe_Pos_4										19
+#define M28_Motor_Recipe_Pos_5										20
+#define M28_Motor_Recipe_Pos_6										21
+#define M28_Motor_Recipe_Pos_7										22
+#define M28_Motor_Recipe_Pos_8										23
+#define M28_Motor_Recipe_Pos_9										24
+#define M28_Motor_Recipe_Pos_10										25
+
+//(Axis 29) SPARE
+#define M_M29_Motor_BTN_Info		u.user:$00ABD8
+	
+#define BTN_M29_Jog_Forward											0
+#define BTN_M29_Jog_Backward										1
+#define BTN_M29_Servo_ON											2
+#define BTN_M29_Homing												3
+#define BTN_M29_Motor_STOP											4
+#define BTN_M29_Alarm_Reset											5
+#define BTN_M29_Recipe_Pos_Run										6
+#define BTN_M29_Jog_INC_Run											7
+#define BTN_M29_Jog_ABS_Run											8
+
+#define M_M29_Motor_Recipe_Info		u.user:$00ABD8
+
+#define M29_Motor_Recipe_Pos_1										16
+#define M29_Motor_Recipe_Pos_2										17
+#define M29_Motor_Recipe_Pos_3										18
+#define M29_Motor_Recipe_Pos_4										19
+#define M29_Motor_Recipe_Pos_5										20
+#define M29_Motor_Recipe_Pos_6										21
+#define M29_Motor_Recipe_Pos_7										22
+#define M29_Motor_Recipe_Pos_8										23
+#define M29_Motor_Recipe_Pos_9										24
+#define M29_Motor_Recipe_Pos_10										25
+
+//(Axis 30) SPARE
+#define M_M30_Motor_BTN_Info		u.user:$00ABF4
+
+#define BTN_M30_Jog_Forward											0
+#define BTN_M30_Jog_Backward										1
+#define BTN_M30_Servo_ON											2
+#define BTN_M30_Homing												3
+#define BTN_M30_Motor_STOP											4
+#define BTN_M30_Alarm_Reset											5
+#define BTN_M30_Recipe_Pos_Run										6
+#define BTN_M30_Jog_INC_Run											7
+#define BTN_M30_Jog_ABS_Run											8
+
+#define M_M30_Motor_Recipe_Info		u.user:$00ABF4
+
+#define M30_Motor_Recipe_Pos_1										16
+#define M30_Motor_Recipe_Pos_2										17
+#define M30_Motor_Recipe_Pos_3										18
+#define M30_Motor_Recipe_Pos_4										19
+#define M30_Motor_Recipe_Pos_5										20
+#define M30_Motor_Recipe_Pos_6										21
+#define M30_Motor_Recipe_Pos_7										22
+#define M30_Motor_Recipe_Pos_8										23
+#define M30_Motor_Recipe_Pos_9										24
+#define M30_Motor_Recipe_Pos_10										25
+
+//(Axis 31) SPARE
+#define M_M31_Motor_BTN_Info		u.user:$00AC10
+
+#define BTN_M31_Jog_Forward											0
+#define BTN_M31_Jog_Backward										1
+#define BTN_M31_Servo_ON											2
+#define BTN_M31_Homing												3
+#define BTN_M31_Motor_STOP											4
+#define BTN_M31_Alarm_Reset											5
+#define BTN_M31_Recipe_Pos_Run										6
+#define BTN_M31_Jog_INC_Run											7
+#define BTN_M31_Jog_ABS_Run											8
+
+#define M_M31_Motor_Recipe_Info		u.user:$00AC10
+
+#define M31_Motor_Recipe_Pos_1										16
+#define M31_Motor_Recipe_Pos_2										17
+#define M31_Motor_Recipe_Pos_3										18
+#define M31_Motor_Recipe_Pos_4										19
+#define M31_Motor_Recipe_Pos_5										20
+#define M31_Motor_Recipe_Pos_6										21
+#define M31_Motor_Recipe_Pos_7										22
+#define M31_Motor_Recipe_Pos_8										23
+#define M31_Motor_Recipe_Pos_9										24
+#define M31_Motor_Recipe_Pos_10										25
+
+//(Axis 32) SPARE
+#define M_M32_Motor_BTN_Info		u.user:$00AC2C
+
+#define BTN_M32_Jog_Forward											0
+#define BTN_M32_Jog_Backward										1
+#define BTN_M32_Servo_ON											2
+#define BTN_M32_Homing												3
+#define BTN_M32_Motor_STOP											4
+#define BTN_M32_Alarm_Reset											5
+#define BTN_M32_Recipe_Pos_Run										6
+#define BTN_M32_Jog_INC_Run											7
+#define BTN_M32_Jog_ABS_Run											8
+
+#define M_M32_Motor_Recipe_Info		u.user:$00AC2C
+
+#define M32_Motor_Recipe_Pos_1										16
+#define M32_Motor_Recipe_Pos_2										17
+#define M32_Motor_Recipe_Pos_3										18
+#define M32_Motor_Recipe_Pos_4										19
+#define M32_Motor_Recipe_Pos_5										20
+#define M32_Motor_Recipe_Pos_6										21
+#define M32_Motor_Recipe_Pos_7										22
+#define M32_Motor_Recipe_Pos_8										23
+#define M32_Motor_Recipe_Pos_9										24
+#define M32_Motor_Recipe_Pos_10										25
+
+//(Axis 33) EPC SENSOR
+#define M_M33_Motor_BTN_Info		u.user:$00AC48
+
+#define BTN_M33_Jog_Forward											0
+#define BTN_M33_Jog_Backward										1
+#define BTN_M33_Servo_ON											2
+#define BTN_M33_Homing												3
+#define BTN_M33_Motor_STOP											4
+#define BTN_M33_Alarm_Reset											5
+#define BTN_M33_Recipe_Pos_Run										6
+#define BTN_M33_Jog_INC_Run											7
+#define BTN_M33_Jog_ABS_Run											8
+
+#define M_M33_Motor_Recipe_Info		u.user:$00AC48
+
+#define M33_Motor_Recipe_Pos_1										16
+#define M33_Motor_Recipe_Pos_2										17
+#define M33_Motor_Recipe_Pos_3										18
+#define M33_Motor_Recipe_Pos_4										19
+#define M33_Motor_Recipe_Pos_5										20
+#define M33_Motor_Recipe_Pos_6										21
+#define M33_Motor_Recipe_Pos_7										22
+#define M33_Motor_Recipe_Pos_8										23
+#define M33_Motor_Recipe_Pos_9										24
+#define M33_Motor_Recipe_Pos_10										25
+
+//(Axis 34) STACK VISION
+#define M_M34_Motor_BTN_Info		u.user:$00AC64
+	
+#define BTN_M34_Jog_Forward											0
+#define BTN_M34_Jog_Backward										1
+#define BTN_M34_Servo_ON											2
+#define BTN_M34_Homing												3
+#define BTN_M34_Motor_STOP											4
+#define BTN_M34_Alarm_Reset											5
+#define BTN_M34_Recipe_Pos_Run										6
+#define BTN_M34_Jog_INC_Run											7
+#define BTN_M34_Jog_ABS_Run											8
+
+#define M_M34_Motor_Recipe_Info		u.user:$00AC64
+
+#define M34_Motor_Recipe_Pos_1										16
+#define M34_Motor_Recipe_Pos_2										17
+#define M34_Motor_Recipe_Pos_3										18
+#define M34_Motor_Recipe_Pos_4										19
+#define M34_Motor_Recipe_Pos_5										20
+#define M34_Motor_Recipe_Pos_6										21
+#define M34_Motor_Recipe_Pos_7										22
+#define M34_Motor_Recipe_Pos_8										23
+#define M34_Motor_Recipe_Pos_9										24
+#define M34_Motor_Recipe_Pos_10										25
+
+//(Axis 35) 1ST SHEET PAPER X
+#define M_M35_Motor_BTN_Info		u.user:$00AC80
+
+#define BTN_M35_Jog_Forward											0
+#define BTN_M35_Jog_Backward										1
+#define BTN_M35_Servo_ON											2
+#define BTN_M35_Homing												3
+#define BTN_M35_Motor_STOP											4
+#define BTN_M35_Alarm_Reset											5
+#define BTN_M35_Recipe_Pos_Run										6
+#define BTN_M35_Jog_INC_Run											7
+#define BTN_M35_Jog_ABS_Run											8
+
+#define M_M35_Motor_Recipe_Info		u.user:$00AC80
+
+#define M35_Motor_Recipe_Pos_1										16
+#define M35_Motor_Recipe_Pos_2										17
+#define M35_Motor_Recipe_Pos_3										18
+#define M35_Motor_Recipe_Pos_4										19
+#define M35_Motor_Recipe_Pos_5										20
+#define M35_Motor_Recipe_Pos_6										21
+#define M35_Motor_Recipe_Pos_7										22
+#define M35_Motor_Recipe_Pos_8										23
+#define M35_Motor_Recipe_Pos_9										24
+#define M35_Motor_Recipe_Pos_10										25
+
+//(Axis 36) CATHODE ALIGN X
+#define M_M36_Motor_BTN_Info		u.user:$00AC9C
+
+#define BTN_M36_Jog_Forward											0
+#define BTN_M36_Jog_Backward										1
+#define BTN_M36_Servo_ON											2
+#define BTN_M36_Homing												3
+#define BTN_M36_Motor_STOP											4
+#define BTN_M36_Alarm_Reset											5
+#define BTN_M36_Recipe_Pos_Run										6
+#define BTN_M36_Jog_INC_Run											7
+#define BTN_M36_Jog_ABS_Run											8
+
+#define M_M36_Motor_Recipe_Info		u.user:$00AC9C
+
+#define M36_Motor_Recipe_Pos_1										16
+#define M36_Motor_Recipe_Pos_2										17
+#define M36_Motor_Recipe_Pos_3										18
+#define M36_Motor_Recipe_Pos_4										19
+#define M36_Motor_Recipe_Pos_5										20
+#define M36_Motor_Recipe_Pos_6										21
+#define M36_Motor_Recipe_Pos_7										22
+#define M36_Motor_Recipe_Pos_8										23
+#define M36_Motor_Recipe_Pos_9										24
+#define M36_Motor_Recipe_Pos_10										25
+
+//(Axis 37) CATHODE ALIGN Y
+#define M_M37_Motor_BTN_Info		u.user:$00ACB8
+
+#define BTN_M37_Jog_Forward											0
+#define BTN_M37_Jog_Backward										1
+#define BTN_M37_Servo_ON											2
+#define BTN_M37_Homing												3
+#define BTN_M37_Motor_STOP											4
+#define BTN_M37_Alarm_Reset											5
+#define BTN_M37_Recipe_Pos_Run										6
+#define BTN_M37_Jog_INC_Run											7
+#define BTN_M37_Jog_ABS_Run											8
+
+#define M_M37_Motor_Recipe_Info		u.user:$00ACB8
+
+#define M37_Motor_Recipe_Pos_1										16
+#define M37_Motor_Recipe_Pos_2										17
+#define M37_Motor_Recipe_Pos_3										18
+#define M37_Motor_Recipe_Pos_4										19
+#define M37_Motor_Recipe_Pos_5										20
+#define M37_Motor_Recipe_Pos_6										21
+#define M37_Motor_Recipe_Pos_7										22
+#define M37_Motor_Recipe_Pos_8										23
+#define M37_Motor_Recipe_Pos_9										24
+#define M37_Motor_Recipe_Pos_10										25
+
+//(Axis 38) CATHODE ALIGN T
+#define M_M38_Motor_BTN_Info		u.user:$00ACD4
+
+#define BTN_M38_Jog_Forward											0
+#define BTN_M38_Jog_Backward										1
+#define BTN_M38_Servo_ON											2
+#define BTN_M38_Homing												3
+#define BTN_M38_Motor_STOP											4
+#define BTN_M38_Alarm_Reset											5
+#define BTN_M38_Recipe_Pos_Run										6
+#define BTN_M38_Jog_INC_Run											7
+#define BTN_M38_Jog_ABS_Run											8
+
+#define M_M38_Motor_Recipe_Info		u.user:$00ACD4
+
+#define M38_Motor_Recipe_Pos_1										16
+#define M38_Motor_Recipe_Pos_2										17
+#define M38_Motor_Recipe_Pos_3										18
+#define M38_Motor_Recipe_Pos_4										19
+#define M38_Motor_Recipe_Pos_5										20
+#define M38_Motor_Recipe_Pos_6										21
+#define M38_Motor_Recipe_Pos_7										22
+#define M38_Motor_Recipe_Pos_8										23
+#define M38_Motor_Recipe_Pos_9										24
+#define M38_Motor_Recipe_Pos_10										25
+
+//(Axis 39) ANODE ALIGN X
+#define M_M39_Motor_BTN_Info		u.user:$00ACF0
+
+#define BTN_M39_Jog_Forward											0
+#define BTN_M39_Jog_Backward										1
+#define BTN_M39_Servo_ON											2
+#define BTN_M39_Homing												3
+#define BTN_M39_Motor_STOP											4
+#define BTN_M39_Alarm_Reset											5
+#define BTN_M39_Recipe_Pos_Run										6
+#define BTN_M39_Jog_INC_Run											7
+#define BTN_M39_Jog_ABS_Run											8
+
+#define M_M39_Motor_Recipe_Info		u.user:$00ACF0
+
+#define M39_Motor_Recipe_Pos_1										16
+#define M39_Motor_Recipe_Pos_2										17
+#define M39_Motor_Recipe_Pos_3										18
+#define M39_Motor_Recipe_Pos_4										19
+#define M39_Motor_Recipe_Pos_5										20
+#define M39_Motor_Recipe_Pos_6										21
+#define M39_Motor_Recipe_Pos_7										22
+#define M39_Motor_Recipe_Pos_8										23
+#define M39_Motor_Recipe_Pos_9										24
+#define M39_Motor_Recipe_Pos_10										25
+
+//(Axis 40) ANODE ALIGN Y
+#define M_M40_Motor_BTN_Info		u.user:$00AD0C
+	
+#define BTN_M40_Jog_Forward											0
+#define BTN_M40_Jog_Backward										1
+#define BTN_M40_Servo_ON											2
+#define BTN_M40_Homing												3
+#define BTN_M40_Motor_STOP											4
+#define BTN_M40_Alarm_Reset											5
+#define BTN_M40_Recipe_Pos_Run										6
+#define BTN_M40_Jog_INC_Run											7
+#define BTN_M40_Jog_ABS_Run											8
+
+#define M_M40_Motor_Recipe_Info		u.user:$00AD0C
+
+#define M40_Motor_Recipe_Pos_1										16
+#define M40_Motor_Recipe_Pos_2										17
+#define M40_Motor_Recipe_Pos_3										18
+#define M40_Motor_Recipe_Pos_4										19
+#define M40_Motor_Recipe_Pos_5										20
+#define M40_Motor_Recipe_Pos_6										21
+#define M40_Motor_Recipe_Pos_7										22
+#define M40_Motor_Recipe_Pos_8										23
+#define M40_Motor_Recipe_Pos_9										24
+#define M40_Motor_Recipe_Pos_10										25
+
+//(Axis 41) ANODE ALIGN T
+#define M_M41_Motor_BTN_Info		u.user:$00AD28
+
+#define BTN_M41_Jog_Forward											0
+#define BTN_M41_Jog_Backward										1
+#define BTN_M41_Servo_ON											2
+#define BTN_M41_Homing												3
+#define BTN_M41_Motor_STOP											4
+#define BTN_M41_Alarm_Reset											5
+#define BTN_M41_Recipe_Pos_Run										6
+#define BTN_M41_Jog_INC_Run											7
+#define BTN_M41_Jog_ABS_Run											8
+
+#define M_M41_Motor_Recipe_Info		u.user:$00AD28
+
+#define M41_Motor_Recipe_Pos_1										16
+#define M41_Motor_Recipe_Pos_2										17
+#define M41_Motor_Recipe_Pos_3										18
+#define M41_Motor_Recipe_Pos_4										19
+#define M41_Motor_Recipe_Pos_5										20
+#define M41_Motor_Recipe_Pos_6										21
+#define M41_Motor_Recipe_Pos_7										22
+#define M41_Motor_Recipe_Pos_8										23
+#define M41_Motor_Recipe_Pos_9										24
+#define M41_Motor_Recipe_Pos_10										25
+
+//(Axis 42) NG CATHODE PNP T
+#define M_M42_Motor_BTN_Info		u.user:$00AD44
+		
+#define BTN_M42_Jog_Forward											0
+#define BTN_M42_Jog_Backward										1
+#define BTN_M42_Servo_ON											2
+#define BTN_M42_Homing												3
+#define BTN_M42_Motor_STOP											4
+#define BTN_M42_Alarm_Reset											5
+#define BTN_M42_Recipe_Pos_Run										6
+#define BTN_M42_Jog_INC_Run											7
+#define BTN_M42_Jog_ABS_Run											8
+
+#define M_M42_Motor_Recipe_Info		u.user:$00AD44
+
+#define M42_Motor_Recipe_Pos_1										16
+#define M42_Motor_Recipe_Pos_2										17
+#define M42_Motor_Recipe_Pos_3										18
+#define M42_Motor_Recipe_Pos_4										19
+#define M42_Motor_Recipe_Pos_5										20
+#define M42_Motor_Recipe_Pos_6										21
+#define M42_Motor_Recipe_Pos_7										22
+#define M42_Motor_Recipe_Pos_8										23
+#define M42_Motor_Recipe_Pos_9										24
+#define M42_Motor_Recipe_Pos_10										25
+
+//(Axis 43) NG ANODE PNP T
+#define M_M43_Motor_BTN_Info		u.user:$00AD60
+	
+#define BTN_M43_Jog_Forward											0
+#define BTN_M43_Jog_Backward										1
+#define BTN_M43_Servo_ON											2
+#define BTN_M43_Homing												3
+#define BTN_M43_Motor_STOP											4
+#define BTN_M43_Alarm_Reset											5
+#define BTN_M43_Recipe_Pos_Run										6
+#define BTN_M43_Jog_INC_Run											7
+#define BTN_M43_Jog_ABS_Run											8
+
+#define M_M43_Motor_Recipe_Info		u.user:$00AD60
+
+#define M43_Motor_Recipe_Pos_1										16
+#define M43_Motor_Recipe_Pos_2										17
+#define M43_Motor_Recipe_Pos_3										18
+#define M43_Motor_Recipe_Pos_4										19
+#define M43_Motor_Recipe_Pos_5										20
+#define M43_Motor_Recipe_Pos_6										21
+#define M43_Motor_Recipe_Pos_7										22
+#define M43_Motor_Recipe_Pos_8										23
+#define M43_Motor_Recipe_Pos_9										24
+#define M43_Motor_Recipe_Pos_10										25
+
+//(Axis 44) NG CATHODE PNP Z
+#define M_M44_Motor_BTN_Info		u.user:$00AD7C
+
+#define BTN_M44_Jog_Forward											0
+#define BTN_M44_Jog_Backward										1
+#define BTN_M44_Servo_ON											2
+#define BTN_M44_Homing												3
+#define BTN_M44_Motor_STOP											4
+#define BTN_M44_Alarm_Reset											5
+#define BTN_M44_Recipe_Pos_Run										6
+#define BTN_M44_Jog_INC_Run											7
+#define BTN_M44_Jog_ABS_Run											8
+
+#define M_M44_Motor_Recipe_Info		u.user:$00AD7C
+
+#define M44_Motor_Recipe_Pos_1										16
+#define M44_Motor_Recipe_Pos_2										17
+#define M44_Motor_Recipe_Pos_3										18
+#define M44_Motor_Recipe_Pos_4										19
+#define M44_Motor_Recipe_Pos_5										20
+#define M44_Motor_Recipe_Pos_6										21
+#define M44_Motor_Recipe_Pos_7										22
+#define M44_Motor_Recipe_Pos_8										23
+#define M44_Motor_Recipe_Pos_9										24
+#define M44_Motor_Recipe_Pos_10										25
+
+//(Axis 45) NG ANODE PNP Z
+#define M_M45_Motor_BTN_Info		u.user:$00AD98
+
+#define BTN_M45_Jog_Forward											0
+#define BTN_M45_Jog_Backward										1
+#define BTN_M45_Servo_ON											2
+#define BTN_M45_Homing												3
+#define BTN_M45_Motor_STOP											4
+#define BTN_M45_Alarm_Reset											5
+#define BTN_M45_Recipe_Pos_Run										6
+#define BTN_M45_Jog_INC_Run											7
+#define BTN_M45_Jog_ABS_Run											8
+
+#define M_M45_Motor_Recipe_Info		u.user:$00AD98
+
+#define M45_Motor_Recipe_Pos_1										16
+#define M45_Motor_Recipe_Pos_2										17
+#define M45_Motor_Recipe_Pos_3										18
+#define M45_Motor_Recipe_Pos_4										19
+#define M45_Motor_Recipe_Pos_5										20
+#define M45_Motor_Recipe_Pos_6										21
+#define M45_Motor_Recipe_Pos_7										22
+#define M45_Motor_Recipe_Pos_8										23
+#define M45_Motor_Recipe_Pos_9										24
+#define M45_Motor_Recipe_Pos_10										25
+
+//(Axis 46) 1ST UNLOADER X
+#define M_M46_Motor_BTN_Info		u.user:$00ADB4
+
+#define BTN_M46_Jog_Forward											0
+#define BTN_M46_Jog_Backward										1
+#define BTN_M46_Servo_ON											2
+#define BTN_M46_Homing												3
+#define BTN_M46_Motor_STOP											4
+#define BTN_M46_Alarm_Reset											5
+#define BTN_M46_Recipe_Pos_Run										6
+#define BTN_M46_Jog_INC_Run											7
+#define BTN_M46_Jog_ABS_Run											8
+
+#define M_M46_Motor_Recipe_Info		u.user:$00ADB4
+
+#define M46_Motor_Recipe_Pos_1										16
+#define M46_Motor_Recipe_Pos_2										17
+#define M46_Motor_Recipe_Pos_3										18
+#define M46_Motor_Recipe_Pos_4										19
+#define M46_Motor_Recipe_Pos_5										20
+#define M46_Motor_Recipe_Pos_6										21
+#define M46_Motor_Recipe_Pos_7										22
+#define M46_Motor_Recipe_Pos_8										23
+#define M46_Motor_Recipe_Pos_9										24
+#define M46_Motor_Recipe_Pos_10										25
+
+//(Axis 47) 1ST UNLOADER Z
+#define M_M47_Motor_BTN_Info		u.user:$00ADD0
+
+#define BTN_M47_Jog_Forward											0
+#define BTN_M47_Jog_Backward										1
+#define BTN_M47_Servo_ON											2
+#define BTN_M47_Homing												3
+#define BTN_M47_Motor_STOP											4
+#define BTN_M47_Alarm_Reset											5
+#define BTN_M47_Recipe_Pos_Run										6
+#define BTN_M47_Jog_INC_Run											7
+#define BTN_M47_Jog_ABS_Run											8
+
+#define M_M47_Motor_Recipe_Info		u.user:$00ADD0
+
+#define M47_Motor_Recipe_Pos_1										16
+#define M47_Motor_Recipe_Pos_2										17
+#define M47_Motor_Recipe_Pos_3										18
+#define M47_Motor_Recipe_Pos_4										19
+#define M47_Motor_Recipe_Pos_5										20
+#define M47_Motor_Recipe_Pos_6										21
+#define M47_Motor_Recipe_Pos_7										22
+#define M47_Motor_Recipe_Pos_8										23
+#define M47_Motor_Recipe_Pos_9										24
+#define M47_Motor_Recipe_Pos_10										25
+
+//(Axis 48) 1ST UNLOADER T
+#define M_M48_Motor_BTN_Info		u.user:$00ADEC
+
+
+#define BTN_M48_Jog_Forward											0
+#define BTN_M48_Jog_Backward										1
+#define BTN_M48_Servo_ON											2
+#define BTN_M48_Homing												3
+#define BTN_M48_Motor_STOP											4
+#define BTN_M48_Alarm_Reset											5
+#define BTN_M48_Recipe_Pos_Run										6
+#define BTN_M48_Jog_INC_Run											7
+#define BTN_M48_Jog_ABS_Run											8
+
+#define M_M48_Motor_Recipe_Info		u.user:$00ADEC
+
+#define M48_Motor_Recipe_Pos_1										16
+#define M48_Motor_Recipe_Pos_2										17
+#define M48_Motor_Recipe_Pos_3										18
+#define M48_Motor_Recipe_Pos_4										19
+#define M48_Motor_Recipe_Pos_5										20
+#define M48_Motor_Recipe_Pos_6										21
+#define M48_Motor_Recipe_Pos_7										22
+#define M48_Motor_Recipe_Pos_8										23
+#define M48_Motor_Recipe_Pos_9										24
+#define M48_Motor_Recipe_Pos_10										25
+
+//(Axis 49) SPARE
+#define M_M49_Motor_BTN_Info		u.user:$00AE08
+
+#define BTN_M49_Jog_Forward											0
+#define BTN_M49_Jog_Backward										1
+#define BTN_M49_Servo_ON											2
+#define BTN_M49_Homing												3
+#define BTN_M49_Motor_STOP											4
+#define BTN_M49_Alarm_Reset											5
+#define BTN_M49_Recipe_Pos_Run										6
+#define BTN_M49_Jog_INC_Run											7
+#define BTN_M49_Jog_ABS_Run											8
+
+#define M_M49_Motor_Recipe_Info		u.user:$00AE08
+
+#define M49_Motor_Recipe_Pos_1										16
+#define M49_Motor_Recipe_Pos_2										17
+#define M49_Motor_Recipe_Pos_3										18
+#define M49_Motor_Recipe_Pos_4										19
+#define M49_Motor_Recipe_Pos_5										20
+#define M49_Motor_Recipe_Pos_6										21
+#define M49_Motor_Recipe_Pos_7										22
+#define M49_Motor_Recipe_Pos_8										23
+#define M49_Motor_Recipe_Pos_9										24
+#define M49_Motor_Recipe_Pos_10										25
+
+//(Axis 50) SPARE
+#define M_M50_Motor_BTN_Info		u.user:$00AE24
+
+#define BTN_M50_Jog_Forward											0
+#define BTN_M50_Jog_Backward										1
+#define BTN_M50_Servo_ON											2
+#define BTN_M50_Homing												3
+#define BTN_M50_Motor_STOP											4
+#define BTN_M50_Alarm_Reset											5
+#define BTN_M50_Recipe_Pos_Run										6
+#define BTN_M50_Jog_INC_Run											7
+#define BTN_M50_Jog_ABS_Run											8
+
+#define M_M50_Motor_Recipe_Info		u.user:$00AE24
+
+#define M50_Motor_Recipe_Pos_1										16
+#define M50_Motor_Recipe_Pos_2										17
+#define M50_Motor_Recipe_Pos_3										18
+#define M50_Motor_Recipe_Pos_4										19
+#define M50_Motor_Recipe_Pos_5										20
+#define M50_Motor_Recipe_Pos_6										21
+#define M50_Motor_Recipe_Pos_7										22
+#define M50_Motor_Recipe_Pos_8										23
+#define M50_Motor_Recipe_Pos_9										24
+#define M50_Motor_Recipe_Pos_10										25
+
+
+
+/*
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+						모터 정보 info_Write
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+*/
+
+#define M_M1_Motor_Status_Info		u.user:$013EC8
+
+#define Status_M1_FLS												0
+#define Status_M1_NLS												1
+#define Status_M1_ERR												2
+#define	Status_M1_Ready												3
+#define Status_M1_Home												4
+#define Status_M1_ORIGIN											5
+#define Status_M1_Servo_ON											6
+#define Status_M1_Homecomplete										7
+#define Status_M1_HOME_REQUEST										8
+#define Status_M1_HOME_INTERLOCK									9
+#define Status_M1_Motor_Busy										10
+
+#define M_M2_Motor_Status_Info		u.user:$013EE0
+
+#define Status_M2_FLS												0
+#define Status_M2_NLS												1
+#define Status_M2_ERR												2
+#define	Status_M2_Ready												3
+#define Status_M2_Home												4
+#define Status_M2_ORIGIN											5
+#define Status_M2_Servo_ON											6
+#define Status_M2_Homecomplete										7
+#define Status_M2_HOME_REQUEST										8
+#define Status_M2_HOME_INTERLOCK									9
+#define Status_M2_Motor_Busy										10
+
+#define M_M3_Motor_Status_Info		u.user:$013EF8
+
+#define Status_M3_FLS												0
+#define Status_M3_NLS												1
+#define Status_M3_ERR												2
+#define	Status_M3_Ready												3
+#define Status_M3_Home												4
+#define Status_M3_ORIGIN											5
+#define Status_M3_Servo_ON											6
+#define Status_M3_Homecomplete										7
+#define Status_M3_HOME_REQUEST										8
+#define Status_M3_HOME_INTERLOCK									9
+#define Status_M3_Motor_Busy										10
+
+#define M_M4_Motor_Status_Info		u.user:$013F10
+
+#define Status_M4_FLS												0
+#define Status_M4_NLS												1
+#define Status_M4_ERR												2
+#define	Status_M4_Ready												3
+#define Status_M4_Home												4
+#define Status_M4_ORIGIN											5
+#define Status_M4_Servo_ON											6
+#define Status_M4_Homecomplete										7
+#define Status_M4_HOME_REQUEST										8
+#define Status_M4_HOME_INTERLOCK									9
+#define Status_M4_Motor_Busy										10
+
+#define M_M5_Motor_Status_Info		u.user:$013F28
+
+
+#define Status_M5_FLS												0
+#define Status_M5_NLS												1
+#define Status_M5_ERR												2
+#define	Status_M5_Ready												3
+#define Status_M5_Home												4
+#define Status_M5_ORIGIN											5
+#define Status_M5_Servo_ON											6
+#define Status_M5_Homecomplete										7
+#define Status_M5_HOME_REQUEST										8
+#define Status_M5_HOME_INTERLOCK									9
+#define Status_M5_Motor_Busy										10
+
+#define M_M6_Motor_Status_Info		u.user:$013F40
+
+#define Status_M6_FLS												0
+#define Status_M6_NLS												1
+#define Status_M6_ERR												2
+#define	Status_M6_Ready												3
+#define Status_M6_Home												4
+#define Status_M6_ORIGIN											5
+#define Status_M6_Servo_ON											6
+#define Status_M6_Homecomplete										7
+#define Status_M6_HOME_REQUEST										8
+#define Status_M6_HOME_INTERLOCK									9
+#define Status_M6_Motor_Busy										10
+
+#define M_M7_Motor_Status_Info		u.user:$013F58
+
+#define Status_M7_FLS												0
+#define Status_M7_NLS												1
+#define Status_M7_ERR												2
+#define	Status_M7_Ready												3
+#define Status_M7_Home												4
+#define Status_M7_ORIGIN											5
+#define Status_M7_Servo_ON											6
+#define Status_M7_Homecomplete										7
+#define Status_M7_HOME_REQUEST										8
+#define Status_M7_HOME_INTERLOCK									9
+#define Status_M7_Motor_Busy										10
+
+#define M_M8_Motor_Status_Info		u.user:$013F70
+
+#define Status_M8_FLS												0
+#define Status_M8_NLS												1
+#define Status_M8_ERR												2
+#define	Status_M8_Ready												3
+#define Status_M8_Home												4
+#define Status_M8_ORIGIN											5
+#define Status_M8_Servo_ON											6
+#define Status_M8_Homecomplete										7
+#define Status_M8_HOME_REQUEST										8
+#define Status_M8_HOME_INTERLOCK									9
+#define Status_M8_Motor_Busy										10
+
+#define M_M9_Motor_Status_Info		u.user:$013F88
+
+#define Status_M9_FLS												0
+#define Status_M9_NLS												1
+#define Status_M9_ERR												2
+#define	Status_M9_Ready												3
+#define Status_M9_Home												4
+#define Status_M9_ORIGIN											5
+#define Status_M9_Servo_ON											6
+#define Status_M9_Homecomplete										7
+#define Status_M9_HOME_REQUEST										8
+#define Status_M9_HOME_INTERLOCK									9
+#define Status_M9_Motor_Busy										10
+
+#define M_M10_Motor_Status_Info		u.user:$013FA0
+
+#define Status_M10_FLS												0
+#define Status_M10_NLS												1
+#define Status_M10_ERR												2
+#define	Status_M10_Ready											3
+#define Status_M10_Home												4
+#define Status_M10_ORIGIN											5
+#define Status_M10_Servo_ON											6
+#define Status_M10_Homecomplete										7
+#define Status_M10_HOME_REQUEST										8
+#define Status_M10_HOME_INTERLOCK									9
+#define Status_M10_Motor_Busy										10
+
+#define M_M11_Motor_Status_Info		u.user:$013FB8
+
+#define Status_M11_FLS												0
+#define Status_M11_NLS												1
+#define Status_M11_ERR												2
+#define	Status_M11_Ready											3
+#define Status_M11_Home												4
+#define Status_M11_ORIGIN											5
+#define Status_M11_Servo_ON											6
+#define Status_M11_Homecomplete										7
+#define Status_M11_HOME_REQUEST										8
+#define Status_M11_HOME_INTERLOCK									9
+#define Status_M11_Motor_Busy										10
+
+#define M_M12_Motor_Status_Info		u.user:$013FD0
+
+#define Status_M12_FLS												0
+#define Status_M12_NLS												1
+#define Status_M12_ERR												2
+#define	Status_M12_Ready											3
+#define Status_M12_Home												4
+#define Status_M12_ORIGIN											5
+#define Status_M12_Servo_ON											6
+#define Status_M12_Homecomplete										7
+#define Status_M12_HOME_REQUEST										8
+#define Status_M12_HOME_INTERLOCK									9
+#define Status_M12_Motor_Busy										10
+
+#define M_M13_Motor_Status_Info		u.user:$013FE8
+
+#define Status_M13_FLS												0
+#define Status_M13_NLS												1
+#define Status_M13_ERR												2
+#define	Status_M13_Ready											3
+#define Status_M13_Home												4
+#define Status_M13_ORIGIN											5
+#define Status_M13_Servo_ON											6
+#define Status_M13_Homecomplete										7
+#define Status_M13_HOME_REQUEST										8
+#define Status_M13_HOME_INTERLOCK									9
+#define Status_M13_Motor_Busy										10
+
+#define M_M14_Motor_Status_Info		u.user:$014000
+
+#define Status_M14_FLS												0
+#define Status_M14_NLS												1
+#define Status_M14_ERR												2
+#define	Status_M14_Ready											3
+#define Status_M14_Home												4
+#define Status_M14_ORIGIN											5
+#define Status_M14_Servo_ON											6
+#define Status_M14_Homecomplete										7
+#define Status_M14_HOME_REQUEST										8
+#define Status_M14_HOME_INTERLOCK									9
+#define Status_M14_Motor_Busy										10
+
+#define M_M15_Motor_Status_Info		u.user:$014018
+
+#define Status_M15_FLS												0
+#define Status_M15_NLS												1
+#define Status_M15_ERR												2
+#define	Status_M15_Ready											3
+#define Status_M15_Home												4
+#define Status_M15_ORIGIN											5
+#define Status_M15_Servo_ON											6
+#define Status_M15_Homecomplete										7
+#define Status_M15_HOME_REQUEST										8
+#define Status_M15_HOME_INTERLOCK									9
+#define Status_M15_Motor_Busy										10
+
+#define M_M16_Motor_Status_Info		u.user:$014030
+
+#define Status_M16_FLS												0
+#define Status_M16_NLS												1
+#define Status_M16_ERR												2
+#define	Status_M16_Ready											3
+#define Status_M16_Home												4
+#define Status_M16_ORIGIN											5
+#define Status_M16_Servo_ON											6
+#define Status_M16_Homecomplete										7
+#define Status_M16_HOME_REQUEST										8
+#define Status_M16_HOME_INTERLOCK									9
+#define Status_M16_Motor_Busy										10
+
+#define M_M17_Motor_Status_Info		u.user:$014048
+
+#define Status_M17_FLS												0
+#define Status_M17_NLS												1
+#define Status_M17_ERR												2
+#define	Status_M17_Ready											3
+#define Status_M17_Home												4
+#define Status_M17_ORIGIN											5
+#define Status_M17_Servo_ON											6
+#define Status_M17_Homecomplete										7
+#define Status_M17_HOME_REQUEST										8
+#define Status_M17_HOME_INTERLOCK									9
+#define Status_M17_Motor_Busy										10
+
+#define M_M18_Motor_Status_Info		u.user:$014060
+
+
+#define Status_M18_FLS												0
+#define Status_M18_NLS												1
+#define Status_M18_ERR												2
+#define	Status_M18_Ready											3
+#define Status_M18_Home												4
+#define Status_M18_ORIGIN											5
+#define Status_M18_Servo_ON											6
+#define Status_M18_Homecomplete										7
+#define Status_M18_HOME_REQUEST										8
+#define Status_M18_HOME_INTERLOCK									9
+#define Status_M18_Motor_Busy										10
+
+#define M_M19_Motor_Status_Info		u.user:$014078
+
+#define Status_M19_FLS												0
+#define Status_M19_NLS												1
+#define Status_M19_ERR												2
+#define	Status_M19_Ready											3
+#define Status_M19_Home												4
+#define Status_M19_ORIGIN											5
+#define Status_M19_Servo_ON											6
+#define Status_M19_Homecomplete										7
+#define Status_M19_HOME_REQUEST										8
+#define Status_M19_HOME_INTERLOCK									9
+#define Status_M19_Motor_Busy										10
+
+#define M_M20_Motor_Status_Info		u.user:$014090
+
+#define Status_M20_FLS												0
+#define Status_M20_NLS												1
+#define Status_M20_ERR												2
+#define	Status_M20_Ready											3
+#define Status_M20_Home												4
+#define Status_M20_ORIGIN											5
+#define Status_M20_Servo_ON											6
+#define Status_M20_Homecomplete										7
+#define Status_M20_HOME_REQUEST										8
+#define Status_M20_HOME_INTERLOCK									9
+#define Status_M20_Motor_Busy										10
+
+#define M_M21_Motor_Status_Info		u.user:$0140A8
+
+#define Status_M21_FLS												0
+#define Status_M21_NLS												1
+#define Status_M21_ERR												2
+#define	Status_M21_Ready											3
+#define Status_M21_Home												4
+#define Status_M21_ORIGIN											5
+#define Status_M21_Servo_ON											6
+#define Status_M21_Homecomplete										7
+#define Status_M21_HOME_REQUEST										8
+#define Status_M21_HOME_INTERLOCK									9
+#define Status_M21_Motor_Busy										10
+
+#define M_M22_Motor_Status_Info		u.user:$0140C0
+
+#define Status_M22_FLS												0
+#define Status_M22_NLS												1
+#define Status_M22_ERR												2
+#define	Status_M22_Ready											3
+#define Status_M22_Home												4
+#define Status_M22_ORIGIN											5
+#define Status_M22_Servo_ON											6
+#define Status_M22_Homecomplete										7
+#define Status_M22_HOME_REQUEST										8
+#define Status_M22_HOME_INTERLOCK									9
+#define Status_M22_Motor_Busy										10
+
+#define M_M23_Motor_Status_Info		u.user:$0140D8
+
+#define Status_M23_FLS												0
+#define Status_M23_NLS												1
+#define Status_M23_ERR												2
+#define	Status_M23_Ready											3
+#define Status_M23_Home												4
+#define Status_M23_ORIGIN											5
+#define Status_M23_Servo_ON											6
+#define Status_M23_Homecomplete										7
+#define Status_M23_HOME_REQUEST										8
+#define Status_M23_HOME_INTERLOCK									9
+#define Status_M23_Motor_Busy										10
+
+#define M_M24_Motor_Status_Info		u.user:$0140F0
+
+#define Status_M24_FLS												0
+#define Status_M24_NLS												1
+#define Status_M24_ERR												2
+#define	Status_M24_Ready											3
+#define Status_M24_Home												4
+#define Status_M24_ORIGIN											5
+#define Status_M24_Servo_ON											6
+#define Status_M24_Homecomplete										7
+#define Status_M24_HOME_REQUEST										8
+#define Status_M24_HOME_INTERLOCK									9
+#define Status_M24_Motor_Busy										10
+
+#define M_M25_Motor_Status_Info		u.user:$014108
+
+#define Status_M25_FLS												0
+#define Status_M25_NLS												1
+#define Status_M25_ERR												2
+#define	Status_M25_Ready											3
+#define Status_M25_Home												4
+#define Status_M25_ORIGIN											5
+#define Status_M25_Servo_ON											6
+#define Status_M25_Homecomplete										7
+#define Status_M25_HOME_REQUEST										8
+#define Status_M25_HOME_INTERLOCK									9
+#define Status_M25_Motor_Busy										10
+
+#define M_M26_Motor_Status_Info		u.user:$014120
+
+#define Status_M26_FLS												0
+#define Status_M26_NLS												1
+#define Status_M26_ERR												2
+#define	Status_M26_Ready											3
+#define Status_M26_Home												4
+#define Status_M26_ORIGIN											5
+#define Status_M26_Servo_ON											6
+#define Status_M26_Homecomplete										7
+#define Status_M26_HOME_REQUEST										8
+#define Status_M26_HOME_INTERLOCK									9
+#define Status_M26_Motor_Busy										10
+
+#define M_M27_Motor_Status_Info		u.user:$014138
+
+#define Status_M27_FLS												0
+#define Status_M27_NLS												1
+#define Status_M27_ERR												2
+#define	Status_M27_Ready											3
+#define Status_M27_Home												4
+#define Status_M27_ORIGIN											5
+#define Status_M27_Servo_ON											6
+#define Status_M27_Homecomplete										7
+#define Status_M27_HOME_REQUEST										8
+#define Status_M27_HOME_INTERLOCK									9
+#define Status_M27_Motor_Busy										10
+
+#define M_M28_Motor_Status_Info		u.user:$014150
+
+#define Status_M28_FLS												0
+#define Status_M28_NLS												1
+#define Status_M28_ERR												2
+#define	Status_M28_Ready											3
+#define Status_M28_Home												4
+#define Status_M28_ORIGIN											5
+#define Status_M28_Servo_ON											6
+#define Status_M28_Homecomplete										7
+#define Status_M28_HOME_REQUEST										8
+#define Status_M28_HOME_INTERLOCK									9
+#define Status_M28_Motor_Busy										10
+
+#define M_M29_Motor_Status_Info		u.user:$014168
+
+#define Status_M29_FLS												0
+#define Status_M29_NLS												1
+#define Status_M29_ERR												2
+#define	Status_M29_Ready											3
+#define Status_M29_Home												4
+#define Status_M29_ORIGIN											5
+#define Status_M29_Servo_ON											6
+#define Status_M29_Homecomplete										7
+#define Status_M29_HOME_REQUEST										8
+#define Status_M29_HOME_INTERLOCK									9
+#define Status_M29_Motor_Busy										10
+
+#define M_M30_Motor_Status_Info		u.user:$014180
+
+#define Status_M30_FLS												0
+#define Status_M30_NLS												1
+#define Status_M30_ERR												2
+#define	Status_M30_Ready											3
+#define Status_M30_Home												4
+#define Status_M30_ORIGIN											5
+#define Status_M30_Servo_ON											6
+#define Status_M30_Homecomplete										7
+#define Status_M30_HOME_REQUEST										8
+#define Status_M30_HOME_INTERLOCK									9
+#define Status_M30_Motor_Busy										10
+
+#define M_M31_Motor_Status_Info		u.user:$014198
+
+#define Status_M31_FLS												0
+#define Status_M31_NLS												1
+#define Status_M31_ERR												2
+#define	Status_M31_Ready											3
+#define Status_M31_Home												4
+#define Status_M31_ORIGIN											5
+#define Status_M31_Servo_ON											6
+#define Status_M31_Homecomplete										7
+#define Status_M31_HOME_REQUEST										8
+#define Status_M31_HOME_INTERLOCK									9
+#define Status_M31_Motor_Busy										10
+
+#define M_M32_Motor_Status_Info		u.user:$0141B0
+
+#define Status_M32_FLS												0
+#define Status_M32_NLS												1
+#define Status_M32_ERR												2
+#define	Status_M32_Ready											3
+#define Status_M32_Home												4
+#define Status_M32_ORIGIN											5
+#define Status_M32_Servo_ON											6
+#define Status_M32_Homecomplete										7
+#define Status_M32_HOME_REQUEST										8
+#define Status_M32_HOME_INTERLOCK									9
+#define Status_M32_Motor_Busy										10
+
+#define M_M33_Motor_Status_Info		u.user:$0141C8
+
+#define Status_M33_FLS												0
+#define Status_M33_NLS												1
+#define Status_M33_ERR												2
+#define	Status_M33_Ready											3
+#define Status_M33_Home												4
+#define Status_M33_ORIGIN											5
+#define Status_M33_Servo_ON											6
+#define Status_M33_Homecomplete										7
+#define Status_M33_HOME_REQUEST										8
+#define Status_M33_HOME_INTERLOCK									9
+#define Status_M33_Motor_Busy										10
+
+#define M_M34_Motor_Status_Info		u.user:$0141E0
+
+#define Status_M34_FLS												0
+#define Status_M34_NLS												1
+#define Status_M34_ERR												2
+#define	Status_M34_Ready											3
+#define Status_M34_Home												4
+#define Status_M34_ORIGIN											5
+#define Status_M34_Servo_ON											6
+#define Status_M34_Homecomplete										7
+#define Status_M34_HOME_REQUEST										8
+#define Status_M34_HOME_INTERLOCK									9
+#define Status_M34_Motor_Busy										10
+
+#define M_M35_Motor_Status_Info		u.user:$0141F8
+
+#define Status_M35_FLS												0
+#define Status_M35_NLS												1
+#define Status_M35_ERR												2
+#define	Status_M35_Ready											3
+#define Status_M35_Home												4
+#define Status_M35_ORIGIN											5
+#define Status_M35_Servo_ON											6
+#define Status_M35_Homecomplete										7
+#define Status_M35_HOME_REQUEST										8
+#define Status_M35_HOME_INTERLOCK									9
+#define Status_M35_Motor_Busy										10
+
+#define M_M36_Motor_Status_Info		u.user:$014210
+
+#define Status_M36_FLS												0
+#define Status_M36_NLS												1
+#define Status_M36_ERR												2
+#define	Status_M36_Ready											3
+#define Status_M36_Home												4
+#define Status_M36_ORIGIN											5
+#define Status_M36_Servo_ON											6
+#define Status_M36_Homecomplete										7
+#define Status_M36_HOME_REQUEST										8
+#define Status_M36_HOME_INTERLOCK									9
+#define Status_M36_Motor_Busy										10
+
+#define M_M37_Motor_Status_Info		u.user:$014228
+
+#define Status_M37_FLS												0
+#define Status_M37_NLS												1
+#define Status_M37_ERR												2
+#define	Status_M37_Ready											3
+#define Status_M37_Home												4
+#define Status_M37_ORIGIN											5
+#define Status_M37_Servo_ON											6
+#define Status_M37_Homecomplete										7
+#define Status_M37_HOME_REQUEST										8
+#define Status_M37_HOME_INTERLOCK									9
+#define Status_M37_Motor_Busy										10
+
+#define M_M38_Motor_Status_Info		u.user:$014240
+
+#define Status_M38_FLS												0
+#define Status_M38_NLS												1
+#define Status_M38_ERR												2
+#define	Status_M38_Ready											3
+#define Status_M38_Home												4
+#define Status_M38_ORIGIN											5
+#define Status_M38_Servo_ON											6
+#define Status_M38_Homecomplete										7
+#define Status_M38_HOME_REQUEST										8
+#define Status_M38_HOME_INTERLOCK									9
+#define Status_M38_Motor_Busy										10
+
+#define M_M39_Motor_Status_Info		u.user:$014258
+
+#define Status_M39_FLS												0
+#define Status_M39_NLS												1
+#define Status_M39_ERR												2
+#define	Status_M39_Ready											3
+#define Status_M39_Home												4
+#define Status_M39_ORIGIN											5
+#define Status_M39_Servo_ON											6
+#define Status_M39_Homecomplete										7
+#define Status_M39_HOME_REQUEST										8
+#define Status_M39_HOME_INTERLOCK									9
+#define Status_M39_Motor_Busy										10
+
+#define M_M40_Motor_Status_Info		u.user:$014270
+
+#define Status_M40_FLS												0
+#define Status_M40_NLS												1
+#define Status_M40_ERR												2
+#define	Status_M40_Ready											3
+#define Status_M40_Home												4
+#define Status_M40_ORIGIN											5
+#define Status_M40_Servo_ON											6
+#define Status_M40_Homecomplete										7
+#define Status_M40_HOME_REQUEST										8
+#define Status_M40_HOME_INTERLOCK									9
+#define Status_M40_Motor_Busy										10
+
+#define M_M41_Motor_Status_Info		u.user:$014288
+
+#define Status_M41_FLS												0
+#define Status_M41_NLS												1
+#define Status_M41_ERR												2
+#define	Status_M41_Ready											3
+#define Status_M41_Home												4
+#define Status_M41_ORIGIN											5
+#define Status_M41_Servo_ON											6
+#define Status_M41_Homecomplete										7
+#define Status_M41_HOME_REQUEST										8
+#define Status_M41_HOME_INTERLOCK									9
+#define Status_M41_Motor_Busy										10
+
+#define M_M42_Motor_Status_Info		u.user:$0142A0
+
+#define Status_M42_FLS												0
+#define Status_M42_NLS												1
+#define Status_M42_ERR												2
+#define	Status_M42_Ready											3
+#define Status_M42_Home												4
+#define Status_M42_ORIGIN											5
+#define Status_M42_Servo_ON											6
+#define Status_M42_Homecomplete										7
+#define Status_M42_HOME_REQUEST										8
+#define Status_M42_HOME_INTERLOCK									9
+#define Status_M42_Motor_Busy										10
+
+#define M_M43_Motor_Status_Info		u.user:$0142B8
+
+#define Status_M43_FLS												0
+#define Status_M43_NLS												1
+#define Status_M43_ERR												2
+#define	Status_M43_Ready											3
+#define Status_M43_Home												4
+#define Status_M43_ORIGIN											5
+#define Status_M43_Servo_ON											6
+#define Status_M43_Homecomplete										7
+#define Status_M43_HOME_REQUEST										8
+#define Status_M43_HOME_INTERLOCK									9
+#define Status_M43_Motor_Busy										10
+
+#define M_M44_Motor_Status_Info		u.user:$0142D0
+
+#define Status_M44_FLS												0
+#define Status_M44_NLS												1
+#define Status_M44_ERR												2
+#define	Status_M44_Ready											3
+#define Status_M44_Home												4
+#define Status_M44_ORIGIN											5
+#define Status_M44_Servo_ON											6
+#define Status_M44_Homecomplete										7
+#define Status_M44_HOME_REQUEST										8
+#define Status_M44_HOME_INTERLOCK									9
+#define Status_M44_Motor_Busy										10
+
+#define M_M45_Motor_Status_Info		u.user:$0142E8
+
+#define Status_M45_FLS												0
+#define Status_M45_NLS												1
+#define Status_M45_ERR												2
+#define	Status_M45_Ready											3
+#define Status_M45_Home												4
+#define Status_M45_ORIGIN											5
+#define Status_M45_Servo_ON											6
+#define Status_M45_Homecomplete										7
+#define Status_M45_HOME_REQUEST										8
+#define Status_M45_HOME_INTERLOCK									9
+#define Status_M45_Motor_Busy										10
+
+#define M_M46_Motor_Status_Info		u.user:$014300
+
+#define Status_M46_FLS												0
+#define Status_M46_NLS												1
+#define Status_M46_ERR												2
+#define	Status_M46_Ready											3
+#define Status_M46_Home												4
+#define Status_M46_ORIGIN											5
+#define Status_M46_Servo_ON											6
+#define Status_M46_Homecomplete										7
+#define Status_M46_HOME_REQUEST										8
+#define Status_M46_HOME_INTERLOCK									9
+#define Status_M46_Motor_Busy										10
+
+#define M_M47_Motor_Status_Info		u.user:$014318
+
+#define Status_M47_FLS												0
+#define Status_M47_NLS												1
+#define Status_M47_ERR												2
+#define	Status_M47_Ready											3
+#define Status_M47_Home												4
+#define Status_M47_ORIGIN											5
+#define Status_M47_Servo_ON											6
+#define Status_M47_Homecomplete										7
+#define Status_M47_HOME_REQUEST										8
+#define Status_M47_HOME_INTERLOCK									9
+#define Status_M47_Motor_Busy										10
+
+#define M_M48_Motor_Status_Info		u.user:$014330
+
+#define Status_M48_FLS												0
+#define Status_M48_NLS												1
+#define Status_M48_ERR												2
+#define	Status_M48_Ready											3
+#define Status_M48_Home												4
+#define Status_M48_ORIGIN											5
+#define Status_M48_Servo_ON											6
+#define Status_M48_Homecomplete										7
+#define Status_M48_HOME_REQUEST										8
+#define Status_M48_HOME_INTERLOCK									9
+#define Status_M48_Motor_Busy										10
+
+#define M_M49_Motor_Status_Info		u.user:$014348
+
+#define Status_M49_FLS												0
+#define Status_M49_NLS												1
+#define Status_M49_ERR												2
+#define	Status_M49_Ready											3
+#define Status_M49_Home												4
+#define Status_M49_ORIGIN											5
+#define Status_M49_Servo_ON											6
+#define Status_M49_Homecomplete										7
+#define Status_M49_HOME_REQUEST										8
+#define Status_M49_HOME_INTERLOCK									9
+#define Status_M49_Motor_Busy										10
+
+#define M_M50_Motor_Status_Info		u.user:$014360
+
+#define Status_M50_FLS												0
+#define Status_M50_NLS												1
+#define Status_M50_ERR												2
+#define	Status_M50_Ready											3
+#define Status_M50_Home												4
+#define Status_M50_ORIGIN											5
+#define Status_M50_Servo_ON											6
+#define Status_M50_Homecomplete										7
+#define Status_M50_HOME_REQUEST										8
+#define Status_M50_HOME_INTERLOCK									9
+#define Status_M50_Motor_Busy										10
+
+
+//Motor 조그 전후진
+//jog.c에 조그 전진,후진 버튼에 대한 정보를 전달하기 위해 버튼정보를 주소를 따로 전달 (PLC 7 (I/O 수신) -> JOG.C로 전달 -> JOG.C 확인) 
+// 버튼에 대한 실제 값(커멘드)는 plc07에서 대입하여 준다.(LEFT, RIGHT I/O 정보로 동작하게 하기 위함) -> 버튼에 대한 READ 값이 아닌 I/O 값으로 동작
+P_BTN_Jog_FWD_M(1)	-> u.user:$00A8C8.00.1
+P_BTN_Jog_BWD_M(1)	-> u.user:$00A8C8.01.1
+
+P_BTN_Jog_FWD_M(2)	-> u.user:$00A8E4.00.1
+P_BTN_Jog_BWD_M(2)	-> u.user:$00A8E4.01.1
+
+P_BTN_Jog_FWD_M(3)	-> u.user:$00A900.00.1
+P_BTN_Jog_BWD_M(3)	-> u.user:$00A900.01.1
+
+P_BTN_Jog_FWD_M(4)	-> u.user:$00A91C.00.1
+P_BTN_Jog_BWD_M(4)	-> u.user:$00A91C.01.1
+
+P_BTN_Jog_FWD_M(5)	-> u.user:$00A938.00.1
+P_BTN_Jog_BWD_M(5)	-> u.user:$00A938.01.1
+
+P_BTN_Jog_FWD_M(6)	-> u.user:$00A954.00.1
+P_BTN_Jog_BWD_M(6)	-> u.user:$00A954.01.1
+
+P_BTN_Jog_FWD_M(7)	-> u.user:$00A970.00.1
+P_BTN_Jog_BWD_M(7)	-> u.user:$00A970.01.1
+
+P_BTN_Jog_FWD_M(8)	-> u.user:$00A98C.00.1
+P_BTN_Jog_BWD_M(8)	-> u.user:$00A98C.01.1
+
+P_BTN_Jog_FWD_M(9)	-> u.user:$00A9A8.00.1
+P_BTN_Jog_BWD_M(9)	-> u.user:$00A9A8.01.1
+
+P_BTN_Jog_FWD_M(10)	-> u.user:$00A9C4.00.1
+P_BTN_Jog_BWD_M(10)	-> u.user:$00A9C4.01.1
+
+P_BTN_Jog_FWD_M(11)	-> u.user:$00A9E0.00.1
+P_BTN_Jog_BWD_M(11)	-> u.user:$00A9E0.01.1
+
+P_BTN_Jog_FWD_M(12)	-> u.user:$00A9FC.00.1
+P_BTN_Jog_BWD_M(12)	-> u.user:$00A9FC.01.1
+
+P_BTN_Jog_FWD_M(13)	-> u.user:$00AA18.00.1
+P_BTN_Jog_BWD_M(13)	-> u.user:$00AA18.01.1
+
+P_BTN_Jog_FWD_M(14)	-> u.user:$00AA34.00.1
+P_BTN_Jog_BWD_M(14)	-> u.user:$00AA34.01.1
+
+P_BTN_Jog_FWD_M(15)	-> u.user:$00AA50.00.1
+P_BTN_Jog_BWD_M(15)	-> u.user:$00AA50.01.1
+
+P_BTN_Jog_FWD_M(16)	-> u.user:$00AA6C.00.1
+P_BTN_Jog_BWD_M(16)	-> u.user:$00AA6C.01.1
+
+P_BTN_Jog_FWD_M(17)	-> u.user:$00AA88.00.1
+P_BTN_Jog_BWD_M(17)	-> u.user:$00AA88.01.1
+
+P_BTN_Jog_FWD_M(18)	-> u.user:$00AAA4.00.1
+P_BTN_Jog_BWD_M(18)	-> u.user:$00AAA4.01.1
+
+P_BTN_Jog_FWD_M(19)	-> u.user:$00AAC0.00.1
+P_BTN_Jog_BWD_M(19)	-> u.user:$00AAC0.01.1
+
+P_BTN_Jog_FWD_M(20)	-> u.user:$00AADC.00.1
+P_BTN_Jog_BWD_M(20)	-> u.user:$00AADC.01.1
+
+P_BTN_Jog_FWD_M(21)	-> u.user:$00AAF8.00.1
+P_BTN_Jog_BWD_M(21)	-> u.user:$00AAF8.01.1
+
+P_BTN_Jog_FWD_M(22)	-> u.user:$00AB14.00.1
+P_BTN_Jog_BWD_M(22)	-> u.user:$00AB14.01.1
+
+P_BTN_Jog_FWD_M(23)	-> u.user:$00AB30.00.1
+P_BTN_Jog_BWD_M(23)	-> u.user:$00AB30.01.1
+
+P_BTN_Jog_FWD_M(24)	-> u.user:$00AB4C.00.1
+P_BTN_Jog_BWD_M(24)	-> u.user:$00AB4C.01.1
+
+P_BTN_Jog_FWD_M(25)	-> u.user:$00AB68.00.1
+P_BTN_Jog_BWD_M(25)	-> u.user:$00AB68.01.1
+
+P_BTN_Jog_FWD_M(26)	-> u.user:$00AB84.00.1
+P_BTN_Jog_BWD_M(26)	-> u.user:$00AB84.01.1
+
+P_BTN_Jog_FWD_M(27)	-> u.user:$00ABA0.00.1
+P_BTN_Jog_BWD_M(27)	-> u.user:$00ABA0.01.1
+
+P_BTN_Jog_FWD_M(28)	-> u.user:$00ABBC.00.1
+P_BTN_Jog_BWD_M(28)	-> u.user:$00ABBC.01.1
+
+P_BTN_Jog_FWD_M(29)	-> u.user:$00ABD8.00.1
+P_BTN_Jog_BWD_M(29)	-> u.user:$00ABD8.01.1
+
+P_BTN_Jog_FWD_M(30)	-> u.user:$00ABF4.00.1
+P_BTN_Jog_BWD_M(30)	-> u.user:$00ABF4.01.1
+
+P_BTN_Jog_FWD_M(31)	-> u.user:$00AC10.00.1
+P_BTN_Jog_BWD_M(31)	-> u.user:$00AC10.01.1
+
+P_BTN_Jog_FWD_M(32)	-> u.user:$00AC2C.00.1
+P_BTN_Jog_BWD_M(32)	-> u.user:$00AC2C.01.1
+
+P_BTN_Jog_FWD_M(33)	-> u.user:$00AC48.00.1
+P_BTN_Jog_BWD_M(33)	-> u.user:$00AC48.01.1
+
+P_BTN_Jog_FWD_M(34)	-> u.user:$00AC64.00.1
+P_BTN_Jog_BWD_M(34)	-> u.user:$00AC64.01.1
+
+P_BTN_Jog_FWD_M(35)	-> u.user:$00AC80.00.1
+P_BTN_Jog_BWD_M(35)	-> u.user:$00AC80.01.1
+
+P_BTN_Jog_FWD_M(36)	-> u.user:$00AC9C.00.1
+P_BTN_Jog_BWD_M(36)	-> u.user:$00AC9C.01.1
+
+P_BTN_Jog_FWD_M(37)	-> u.user:$00ACB8.00.1
+P_BTN_Jog_BWD_M(37)	-> u.user:$00ACB8.01.1
+
+P_BTN_Jog_FWD_M(38)	-> u.user:$00ACD4.00.1
+P_BTN_Jog_BWD_M(38)	-> u.user:$00ACD4.01.1
+
+P_BTN_Jog_FWD_M(39)	-> u.user:$00ACF0.00.1
+P_BTN_Jog_BWD_M(39)	-> u.user:$00ACF0.01.1
+
+P_BTN_Jog_FWD_M(40)	-> u.user:$00AD0C.00.1
+P_BTN_Jog_BWD_M(40)	-> u.user:$00AD0C.01.1
+
+P_BTN_Jog_FWD_M(41)	-> u.user:$00AD28.00.1
+P_BTN_Jog_BWD_M(41)	-> u.user:$00AD28.01.1
+
+P_BTN_Jog_FWD_M(42)	-> u.user:$00AD44.00.1
+P_BTN_Jog_BWD_M(42)	-> u.user:$00AD44.01.1
+
+P_BTN_Jog_FWD_M(43)	-> u.user:$00AD60.00.1
+P_BTN_Jog_BWD_M(43)	-> u.user:$00AD60.01.1
+
+P_BTN_Jog_FWD_M(44)	-> u.user:$00AD7C.00.1
+P_BTN_Jog_BWD_M(44)	-> u.user:$00AD7C.01.1
+
+P_BTN_Jog_FWD_M(45)	-> u.user:$00AD98.00.1
+P_BTN_Jog_BWD_M(45)	-> u.user:$00AD98.01.1
+
+P_BTN_Jog_FWD_M(46)	-> u.user:$00ADB4.00.1
+P_BTN_Jog_BWD_M(46)	-> u.user:$00ADB4.01.1
+
+P_BTN_Jog_FWD_M(47)	-> u.user:$00ADD0.00.1
+P_BTN_Jog_BWD_M(47)	-> u.user:$00ADD0.01.1
+
+P_BTN_Jog_FWD_M(48)	-> u.user:$00ADEC.00.1
+P_BTN_Jog_BWD_M(48)	-> u.user:$00ADEC.01.1
+
+P_BTN_Jog_FWD_M(49)	-> u.user:$00AE08.00.1
+P_BTN_Jog_BWD_M(49)	-> u.user:$00AE08.01.1
+
+//P_BTN_Jog_FWD_M(50)	-> u.user:$00AE24.00.1
+//P_BTN_Jog_BWD_M(50)	-> u.user:$00AE24.01.1

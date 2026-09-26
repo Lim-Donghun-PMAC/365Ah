@@ -1,0 +1,247 @@
+open subprog Modifier(void)
+
+sub: Condition(Mode,CurPos,&CA_Data,&AN_Data,&rtn)
+// 인자값 : Mode, 현재위치, 결과값
+
+CA_Data = 0;
+AN_Data = 0;
+rtn = 0;
+
+switch( Mode )									// 모드에 따른 행위
+{
+	case N_JellyRoll_Enable:
+		switch( CurPos )
+		{
+			default:	break;
+
+			case N_Bit_Index_1:				
+			// 1. 양극 1차 PnP 간섭 조건 
+				if( F_Cathode_1st_T_Axis <  P_PnP_Init_Pos )												// 양극 1차 PnP가 벨트쪽에 위치해 있다면
+				{
+					#ifdef F_Virtual_Axis_Test
+						if( F_Cathode_2nd_T_Axis < P_Test_Motor_Ready_Pos(N_2nd_PnP_CA_T) - 0.5 )			// 양극 2차 PnP가 벨트 얼라인 사이 위치라면	Enable_Avoid_1_1
+						{
+							CA_Data = N_2nd_Near_Belt;														// 2차 Belt 쪽 위치 Data 삽입
+						}
+					#else
+						if( F_Cathode_2nd_T_Axis < P_Axis_Ready_Pos(N_2nd_PnP_CA_T) - 0.5 )					// 양극 2차 PnP가 벨트 얼라인 사이 위치라면	Enable_Avoid_1_1
+						{
+							CA_Data = N_2nd_Near_Belt;														// 2차 Belt 쪽 위치 Data 삽입
+						}
+					#endif
+				}
+				else if( F_Cathode_1st_T_Axis  <= 90 && F_Cathode_1st_T_Axis > 50 )							// 양극 1차 PnP가 얼라인쪽에 위치해 있다면
+				{
+					if( F_Cathode_NG_T_Axis >= P_NG_PnP_Warning_Pos )										// NG PnP 얼라인 쪽에 위치해 있다면	Enable_Avoid_1_2
+					{
+						CA_Data = 	N_1st_Near_Align;														// 1차 Align 쪽 위치 Data 삽입
+					}
+				}
+				
+			// 1-1. 음극 1차 PnP 간섭 조건 
+				if( F_Anode_1st_T_Axis <  P_PnP_Init_Pos )													// 음극 1차 PnP가 벨트쪽에 위치해 있다면
+				{
+					#ifdef F_Virtual_Axis_Test
+						if( F_Anode_2nd_T_Axis < P_Test_Motor_Ready_Pos(N_2nd_PnP_AN_T) - 0.5 )				// 음극 2차 PnP가 벨트 얼라인 사이 위치라면 Enable_Avoid_1_1
+						{
+							AN_Data = N_2nd_Near_Belt;														// 2차 Belt 쪽 위치 Data 삽입
+						}
+					#else
+						if( F_Anode_2nd_T_Axis < P_Axis_Ready_Pos(N_2nd_PnP_AN_T) - 0.5 )					// 음극 2차 PnP가 벨트 얼라인 사이 위치라면 Enable_Avoid_1_1
+						{
+							AN_Data = N_2nd_Near_Belt;														// 2차 Belt 쪽 위치 Data 삽입
+						}
+					#endif
+				}
+				else if( F_Anode_1st_T_Axis <= 90 && F_Anode_1st_T_Axis > 50 )								// 음극 1차 PnP가 얼라인쪽에 위치해 있다면
+				{
+					if( F_Anode_NG_T_Axis >= P_NG_PnP_Warning_Pos )											// NG PnP 얼라인 쪽에 위치해 있다면 Enable_Avoid_1_2
+					{
+						AN_Data = 	N_1st_Near_Align;														// 1차 Align 쪽 위치 Data 삽입
+					}
+				}
+			break;
+
+			case N_Bit_Index_2:			// NG PNP Home 
+			// 1. 양극 NG PnP 간섭 확인
+				if( F_Cathode_NG_T_Axis >= P_NG_PnP_Warning_Pos )											//  NG PnP 얼라인 근접 위치라면
+				{
+					if( F_Cathode_2nd_T_Axis <= P_PnP_Align_Pos )											// 2차 pnp 위치가 얼라인 쪽이라면	Enable_Avoid_1_3
+					{
+						CA_Data = N_NG_Near_Align;															// NG Align 쪽 위치 Data 삽입
+					}
+				}
+			// 1-1. 음극 NG PnP 간섭 확인
+				if( F_Anode_NG_T_Axis >= P_NG_PnP_Warning_Pos )												//  NG PnP 얼라인 근접 위치라면
+				{
+					if( F_Anode_2nd_T_Axis <= P_PnP_Align_Pos )												// 2차 pnp 위치가 얼라인 쪽이라면 Enable_Avoid_1_3
+					{
+						AN_Data = N_NG_Near_Align;															// NG Align 쪽 위치 Data 삽입
+					}
+				}
+			break;
+
+			case N_Bit_Index_3:			// 양극 2차 PNP 언로더 위치 조건
+			// 1. 양극 2차 PnP 간섭 확인
+				if( F_Cathode_2nd_T_Axis >= P_PnP_Stack_Pos )												// Stack 위치에 있으면 언로더 회피 시작		Enable_Avoid_1_4
+				{
+					CA_Data = N_2nd_Near_Unloader;															// 2차 Stack 쪽 위치 Data 삽입 ( 언로더 회피 필요 )
+				}
+			break;
+		}
+		
+	break;
+
+	case N_JellyRoll_Disable:
+		switch( CurPos )
+		{
+			default:	break;
+
+			case N_Bit_Index_2:				
+			// 1. 양극 1차 PnP 간섭 조건 
+				if( F_Cathode_1st_T_Axis <  P_PnP_Init_Pos )												// 양극 1차 PnP가 벨트쪽에 위치해 있다면
+				{
+					#ifdef F_Virtual_Axis_Test
+						if( F_Cathode_2nd_T_Axis < P_Test_Motor_Ready_Pos(N_2nd_PnP_CA_T) - 0.5 )			// 양극 2차 PnP가 벨트 얼라인 사이 위치라면	Enable_Avoid_1_1
+						{
+							CA_Data = N_2nd_Near_Belt;														// 2차 Belt 쪽 위치 Data 삽입
+						}
+					#else
+						if( F_Cathode_2nd_T_Axis < P_Axis_Ready_Pos(N_2nd_PnP_CA_T) - 0.5 )					// 양극 2차 PnP가 벨트 얼라인 사이 위치라면	Enable_Avoid_1_1
+						{
+							CA_Data = N_2nd_Near_Belt;														// 2차 Belt 쪽 위치 Data 삽입
+						}
+					#endif
+				}
+				else if( F_Cathode_1st_T_Axis  <= 90 && F_Cathode_1st_T_Axis > 50 )							// 양극 1차 PnP가 얼라인쪽에 위치해 있다면
+				{
+					if( F_Cathode_NG_T_Axis >= P_NG_PnP_Warning_Pos )										// NG PnP 얼라인 쪽에 위치해 있다면	Enable_Avoid_1_2
+					{
+						CA_Data = 	N_1st_Near_Align;														// 1차 Align 쪽 위치 Data 삽입
+					}
+				}
+				
+			// 1-1. 음극 1차 PnP 간섭 조건 
+				if( F_Anode_1st_T_Axis <  P_PnP_Init_Pos )													// 음극 1차 PnP가 벨트쪽에 위치해 있다면
+				{
+					#ifdef F_Virtual_Axis_Test
+						if( F_Anode_2nd_T_Axis < P_Test_Motor_Ready_Pos(N_2nd_PnP_AN_T) - 0.5 )				// 음극 2차 PnP가 벨트 얼라인 사이 위치라면	Enable_Avoid_1_1
+						{
+							AN_Data = N_2nd_Near_Belt;														// 2차 Belt 쪽 위치 Data 삽입
+						}
+					#else
+						if( F_Anode_2nd_T_Axis < P_Axis_Ready_Pos(N_2nd_PnP_AN_T) - 0.5 )					// 음극 2차 PnP가 벨트 얼라인 사이 위치라면	Enable_Avoid_1_1
+						{
+							AN_Data = N_2nd_Near_Belt;														// 2차 Belt 쪽 위치 Data 삽입
+						}
+					#endif
+				}
+				else if( F_Anode_1st_T_Axis <= 90 && F_Anode_1st_T_Axis > 50 )								// 음극 1차 PnP가 얼라인쪽에 위치해 있다면
+				{
+					if( F_Anode_NG_T_Axis >= P_NG_PnP_Warning_Pos )											// NG PnP 얼라인 쪽에 위치해 있다면	Enable_Avoid_1_2
+					{
+						AN_Data = 	N_1st_Near_Align;														// 1차 Align 쪽 위치 Data 삽입
+					}
+				}
+			break;
+
+			case N_Bit_Index_3:			// NG PNP Home 
+			// 1. 양극 NG PnP 간섭 확인
+				if( F_Cathode_NG_T_Axis >= P_NG_PnP_Warning_Pos )											//  NG PnP 얼라인 근접 위치라면
+				{
+					if( F_Cathode_2nd_T_Axis <= P_PnP_Align_Pos )											// 2차 pnp 위치가 얼라인 쪽이라면	Enable_Avoid_1_3
+					{
+						CA_Data = N_NG_Near_Align;															// NG Align 쪽 위치 Data 삽입
+					}
+				}
+			// 1-1. 음극 NG PnP 간섭 확인
+				if( F_Anode_NG_T_Axis >= P_NG_PnP_Warning_Pos )												//  NG PnP 얼라인 근접 위치라면
+				{
+					if( F_Anode_2nd_T_Axis <= P_PnP_Align_Pos )												// 2차 pnp 위치가 얼라인 쪽이라면 Enable_Avoid_1_3
+					{
+						AN_Data = N_NG_Near_Align;															// NG Align 쪽 위치 Data 삽입
+					}
+				}
+			break;
+
+			case N_Bit_Index_4:			// 양극 2차 PNP 언로더 위치 조건
+			// 1. 양극 2차 PnP 간섭 확인
+				if( F_Cathode_2nd_T_Axis >= P_PnP_Stack_Pos )												// Stack 위치에 있으면 언로더 회피 시작		Enable_Avoid_1_4
+				{
+					CA_Data = N_2nd_Near_Unloader;															// 2차 Stack 위치 Data 삽입 ( 언로더 회피 )
+				}
+			break;
+		}
+		
+	break;
+
+	case N_New_Non_Homing_CHK:
+		switch( CurPos )
+		{
+			default:	break;
+
+			case N_Bit_Index_2:		// 1차 45도 회피 컨디션
+			// 1. 양극 1차 PnP 간섭 확인
+				if( F_Cathode_1st_T_Axis <  P_PnP_Init_Pos )												// 양극 1차 PnP가 벨트 쪽 위치라면
+				{
+					#ifdef F_Virtual_Axis_Test
+						if( F_Cathode_2nd_T_Axis < P_Test_Motor_Ready_Pos(N_2nd_PnP_CA_T) -0.5 )			// 양극 2차 PnP가 벨트 얼라인 사이 위치라면	New_Avoid_1
+						{
+							CA_Data = N_2nd_Near_Belt_Non_Hck;												// 2차 Belt쪽 Not Home Check Data 삽입
+						}
+					#else
+						if( F_Cathode_2nd_T_Axis < P_Axis_Ready_Pos(N_2nd_PnP_CA_T) -0.5 )					// 양극 2차 PnP가 벨트 얼라인 사이 위치라면	New_Avoid_1
+						{
+							CA_Data = N_2nd_Near_Belt_Non_Hck;												// 2차 Belt쪽 Not Home Check Data 삽입
+						}
+					#endif
+				}
+			// 1-1. 음극 1차 PnP 간섭 확인
+				if( F_Anode_1st_T_Axis <  P_PnP_Init_Pos )													// 음극 1차 PnP가 45도 초과라면
+				{
+					#ifdef F_Virtual_Axis_Test
+						if( F_Anode_2nd_T_Axis < P_Test_Motor_Ready_Pos(N_2nd_PnP_AN_T) -0.5 )				// 음극 2차 PnP가 얼라인 테이블 위치를 넘어갔다면	New_Avoid_1
+						{
+							AN_Data = N_2nd_Near_Belt_Non_Hck;												// 2차 Belt쪽 Not Home Check Data 삽입
+						}
+					#else
+						if( F_Anode_2nd_T_Axis < P_Axis_Ready_Pos(N_2nd_PnP_AN_T) -0.5 )					// 음극 2차 PnP가 얼라인 테이블 위치를 넘어갔다면	New_Avoid_1
+						{
+							AN_Data = N_2nd_Near_Belt_Non_Hck;												// 2차 Belt쪽 Not Home Check Data 삽입
+						}
+					#endif
+				}
+			break;
+
+			case N_Bit_Index_3:		// 2차 45도 회피 컨디션
+			// 1. 양극 2차 PnP 간섭 확인
+				if( F_Cathode_2nd_T_Axis < P_PnP_Align_Pos )											// 양극 2차 PnP 얼라인 위치에 근접해있다면		New_Avoid_2
+				{
+					CA_Data = N_2nd_Near_Unloader_Non_Hck;												// 2차 상승 후 언로더 처리 Data
+				}
+				else if( F_Cathode_2nd_T_Axis >= P_PnP_Stack_Pos )										// 양극 2차 PnP Stack 위치에 있다면			New_Avoid_3
+				{
+					CA_Data = N_2nd_Near_Stack_Non_Hck;													// 2차 언로더 회피 후 2차 45도 Data
+				}
+			// 1-1 음극 2차 PnP 간섭 확인
+				if( F_Anode_2nd_T_Axis < P_PnP_Align_Pos )												// 음극 2차 PnP 얼라인 위치에 근접해있다면	New_Avoid_4
+				{
+					AN_Data = N_2nd_Near_Align_Non_Hck;													// 2차 상승 Data
+				}		
+			break;
+		}
+	break;
+}
+
+// 결과값 정리
+if( CA_Data == 0 && AN_Data == 0 )		// 양극 및 음극 조건 데이터가 없다면, Pass
+	rtn = N_EXCEPT;
+else
+	rtn = N_TRUE;
+
+return;
+
+close
+
+
+

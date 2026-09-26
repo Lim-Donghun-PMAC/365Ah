@@ -1,0 +1,39 @@
+//[ 참조 : 25.07.04 EPC 프로그램 신규 추가 ]
+#define	N_EPC_Y_Sensor_Axis			int((Motor[33].ActPos-Motor[33].HomePos)/Motor[33].PosSf)/1000	// EPC 모터 현재 위치값
+#define N_EPC_Motor_Num				33								// EPC 모터 넘버 지정
+#define N_Max_EPC_Sensor_Value_mm	3000							// EPC 모터 보정 가능 범위 [최대값]
+#define N_MiN_EPC_SENSOR_Value_mm	-3000							// EPC 모터 보정 가능 범위 [최소값]	
+
+global P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag = 0;			// 세파 깔기 OK 판정 확인 플래그  (세파 오버행 관련있음)
+global P_PLC18_EPC_Retry_Mode_Time_Use_Flag = 0;					// EPC 보정모드 텍타임 사용 플레그
+global P_PLC18_Vision_EPC_Correction_Request_Old = 0;				// 비전 보정값 전달 완료 신호 이전값
+global P_PLC18_EPC_Moving_Flag = 0;									// EPC 동작 모듈 실행 플레그
+global P_PLC18_EPC_Moving_Status = 0;								// EPC 모터 구동 확인 상태
+global P_PLC18_EPC_Move_State_Machine = 0;							// EPC 동작 스텟 머신
+global P_PLC18_EPC_Move_Status = 0;									// EPC 동작 스텟 머신 상태
+global P_PLC18_EPC_inspection_Time = 0;								// EPC 보정 
+
+global	P_EPC_Insp_Time = 500;										// EPC 보정모드 확인 시간
+global  P_EPC_Correction_Time = 50;									// EPC 실시간 보정 모드 확인 시간
+
+global	P_TEST_Max_EPC_Sensor_Value_um = 3;							// EPC 모터 보정 가능 범위, 테스트용
+global  P_PLC18_EPC_Moving_Timer = 200;								// EPC Sensor 구동 Standard 시간 이후 초기화 기준: 보상 시간 2초
+					
+global	P_EPC_MNTR_VAR(10);											// EPC 보정값 로그 확인용
+P_EPC_MNTR_VAR(0),10,1 = 0;
+
+global	P_EPC_Axis_Target_Y = 0;									// EPC 보정위치
+
+global  P_Com_After_Sepa_Mode_Status = 0;							// [계속 적층 진행 여부 판단 상태]
+
+global P_PLC18_PLC_to_PMAC_Correction_Value = 100;					// 보정률 % 
+
+global P_PLC_EPC_Status = 0;										// 엑츄에이터 상태
+
+global P_EPC_Retry_Over_Alarm_Flag = 0;								// 정지 타이밍 -> 기구물 한계로 배출 이후 알람 발생 및 정지 하도록 해주는 플레그
+
+global P_ARC_EPC_Vision_Value_Apply_Bit = 0;						// ARC 이후 및 세파 소비 모드 진행 후 배출 시 ARC EPC값 적용 비트.	[ 참조 : 26.05.08 ARC 후 ARC EPC값 적용 인터페이스 추가 ]
+global P_ARC_EPC_Vision_Value_Apply_Flag = 0;						// ARC 이후 및 세파 소비 모드 진행 후 배출 시 ARC EPC값 적용 플래그.
+global P_ARC_EPC_Vision_Value_Apply_State_Machine = 0;				// ARC 이후 및 세파 소비 모드 진행 후 배출 시 ARC EPC값 적용 스텟머신.
+global P_ARC_EPC_Vision_Value_Apply_Timer = 0;						// ARC 이후 및 세파 소비 모드 진행 후 배출 시 ARC EPC값 적용 타이머.
+global P_ARC_EPC_Vision_Value_Apply_Time = 150;						// ARC 이후 및 세파 소비 모드 진행 후 배출 시 ARC EPC값 적용 초기화 시간. [ms]

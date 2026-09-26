@@ -1,0 +1,270 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+// Lamp
+global P_Program_Monitoring_Lamp_Cell_Ready = 0;
+global P_Program_Monitoring_Lamp_Ready_Pos = 0;
+global P_Program_Monitoring_Lamp_Pause_Pos = 0;
+global P_Program_Monitoring_Lamp_Motion_Run = 0;
+global P_Program_Monitoring_Lamp_Cell_Remove = 0;
+global P_Program_Monitoring_Lamp_Cell_Supply = 0;
+global P_Program_Monitoring_Lamp_Sepa_Mode = 0;
+global P_Program_Monitoring_Lamp_Semi_Run = 0;
+global P_Program_Monitoring_Lamp_Stack_Mode = 0;
+global P_Program_Monitoring_Lamp_Anode_Aling_NG = 0;
+global P_Program_Monitoring_Lamp_Anode_Retry_NG = 0;
+global P_Program_Monitoring_Lamp_Cathode_Align_NG = 0;
+global P_Program_Monitoring_Lamp_Cathode_Retry_NG = 0;
+global P_Program_Monitoring_Lamp_Last_Stack_Mode = 0;
+global P_Program_Monitoring_Lamp_Jelly_Roll_OK = 0;	
+global P_Program_Monitoring_Lamp_Jelly_Roll_NG = 0;
+global P_Program_Monitoring_Lamp_Jelly_Roll_Sepa = 0;
+global P_Program_Monitoring_Lamp_Cell_Out_Pos = 0;
+global P_Program_Monitoring_Lamp_Cell_Out_Mode = 0;
+
+// [모션]
+global P_Master_Motion_Program_Flag=0;									// 마스터 모션 허용 플래그	모든 모션프로그램
+global P_Sub_Master_Motion_Program_Flag(F_Type_Coord_EA);				// 서브마스터 모션 허용 플래그 ( 서브마스터번호 )	모든 슬레이브모션프로그램
+P_Sub_Master_Motion_Program_Flag(0),F_Type_Coord_EA = 0;
+global P_Slave_Motion_Program_Flag(F_Type_Coord_EA);					// 슬레이브 모션 허용 플래그 ( 슬레이브번호 )	모든 슬레이브모션프로그램
+P_Slave_Motion_Program_Flag(0),F_Type_Coord_EA = 0;
+global P_Master_Motion_CycleStop_Flag = 0;
+
+
+// [Old Jog]
+global P_OLD_Jog_Speed_Motor(50);
+P_OLD_Jog_Speed_Motor(1),50 = 0;
+
+//==============================================================================================================
+// PLC 8, 9 PackML 정의
+//==============================================================================================================
+global		P_PLC_08_Program_Ver					// 프로그램 버전
+global		P_Old_PMAC_Commands						// 이전 PPMAC 명령어
+global		P_Old_PMAC_Status						// 이전 PPMAC 상태정보
+global		P_Old_PMAC_Current_Mode=0;
+global		P_Mode_Function_State_Machine;
+Global		P_PMAC_Commands	= 0;			// PPMAC에서 보낸 명령어
+// [스캔 텍타임 변수 ]
+//global		P_MNTR_PLC8_Task_Time(2);
+//P_MNTR_PLC8_Task_Time(0),2,1 = 0;
+//global		P_MNTR_PLC8_Task_Max_Time = 0;
+
+// [매트릭스 변수]
+global		P_Command_Start(18);
+			P_Command_Start(0),18,1 = 0;
+global		P_Command_Complete(18)
+			P_Command_Complete(0),18,1 = 0;
+global		P_Command_Reset(18)
+			P_Command_Reset(0),18,1 = 0;  
+global		P_Command_Hold(18)
+			P_Command_Hold(0),18,1 = 0;
+global		P_Command_Unhold(18)
+			P_Command_Unhold(0),18,1 = 0;
+global		P_Command_Suspend(18)
+			P_Command_Suspend(0),18,1 = 0;
+global		P_Command_Unsuspend(18)
+			P_Command_Unsuspend(0),18,1 = 0;
+global		P_Command_Clear(18)
+			P_Command_Clear(0),18,1 = 0;
+global		P_Command_Stop(18)
+			P_Command_Stop(0),18,1 = 0;    
+global		P_Command_Abort(18)
+			P_Command_Abort(0),18,1 = 0;	
+global		P_Command_Status_Complete(18)
+			P_Command_Status_Complete(0),18,1 = 0;
+global		P_Command_Mask_Layer(18)
+			P_Command_Mask_Layer(0),18,1 = 0 ;
+global		P_Command_Process_Type(18)
+			P_Command_Process_Type(0),18,1 = 0;
+
+
+
+// [Mask 변수]
+#define	F_Mask_Layer_Auto					1		// 자동 생산이나 자동 운전이 가능한 상태
+#define	F_Mask_Layer_Manual					2		// 최소한의 단위동작은 가능하나 연동동작은 불가능한 상태
+#define	F_Mask_Layer_Emergency				3		// 안전요소가 체크되지 않은 상태
+#define	F_Mask_Process_Type_Acting			01		// 상태 변환 작업중의 테스크
+#define	F_Mask_Process_Type_Completed		02		// 상태 변환 완료 후 안정화 단계 테스크
+
+// [모드이름,함수이름,실행스텝넘버,함수실행시간,알람코드,함수시작플래그,함수실행플래그,리턴플래그,디버그플래그]
+#define	P_array_CF_Mode_Name				P100	//P_Current_Function(0);
+#define	P_array_CF_Function_Name			P200	//P_Current_Function(1);
+#define	P_array_CF_Function_State_Number	P300	//P_Current_Function(2);
+#define	P_array_CF_Local_Alarm_Code			P400	//P_Current_Function(3);
+#define	P_array_CF_Function_Run_Time		P500	//P_Current_Function(4);
+#define	P_array_CF_Function_Start_Flag		P600	//P_Current_Function(5);
+#define	P_array_CF_Function_Run_Flag		P700	//P_Current_Function(6);
+#define	P_array_CF_Function_Return_Flag		P800	//P_Current_Function(7);
+#define	P_array_CF_Function_Mask			P900	//P_Current_Function(8);
+#define	P_array_CF_Function_Debug_Flag		P1000	//P_Current_Function(9);
+P_array_CF_Mode_Name=0;
+P_array_CF_Function_Name=0;
+P_array_CF_Function_State_Number=0;
+P_array_CF_Local_Alarm_Code=0;
+P_array_CF_Function_Run_Time=0;
+P_array_CF_Function_Start_Flag=0;
+P_array_CF_Function_Run_Flag=0;
+P_array_CF_Function_Return_Flag=0;
+P_array_CF_Function_Mask=0;
+P_array_CF_Function_Debug_Flag=0;
+
+//// 프로그램 모드 변수
+#define	F_Current_Not_Decided			0	//	모드가 정해지지 않음
+#define F_Current_Automatic				1	//	자동 모드 시퀀스
+#define F_Current_Manual				2	//	수동 모드 시퀀스
+
+// 글로벌 모드 변수		
+global	P_PMAC_Current_Mode = F_Current_Manual;						// PMAC 현재 모드	
+global	P_PMAC_Status = F_Status_ABORTED;							// 파워피맥 상태									
+global	P_PMAC_Old_Mode= 0;											// PMAC 이전 모드	
+
+// 타이머 시간 정의   
+#define	N_Timer_Clear					    0		        // - 타이머 초기화
+#define	N_Main_Timer_Value				    500		    // - 명령 후 체크 시간
+#define	N_Sub_Timer_Value				    500		    // - 재시도 시간
+#define	N_Time_Over_Value					120000	// - 라이프 사이클 타임 [2분]
+#define	N_Fast_Delay_Timer_Value		    500		    // - 짧은 딜레이 타임
+#define	N_Standard_Delay_Timer_Value	    1000	        // - 보통 딜레이 타임
+#define	N_Slow_Delay_Time_Value			    2000	        // - 느린 딜레이 타임
+#define	N_Heart_Beat_Time_Value			    1000	        // - 하트 비트 타임
+#define	N_Blank_Time_Value				    500		    // - 블링크 타이머
+
+// [정위치 오차] 
+#define F_Inpos_200um	0.2
+
+#define F_Inpos_2mm		2
+// [ 참조 : 메모리타워 범위 값 수정 ] 
+#define F_Inpos_500um	0.5
+#define F_Inpos_50um	0.05
+
+// [스캔 텍타임 변수]
+global	P_Ready_Tack_Chk_Timer = 0;					
+//global	P_MNTR_PLC9_Task_Time(2);
+//P_MNTR_PLC9_Task_Time(0),2 = 0;
+//global	P_MNTR_PLC9_Task_Max_Time = 0;
+
+// [PACK ML 공통 명령부]
+global 	P_PLC09_Common_Command_Flag = 0;
+global 	P_PLC09_Common_Command_Complete_Bit = 0;
+// [PACK ML 공통 실행부]
+global 	P_PLC09_Common_Execute_Flag = 0;
+global 	P_PLC09_Common_Execute_Complete_Bit = 0;
+// [PACK ML 상태부]
+global 	P_PLC09_Status = 0;
+global	P_PLC09_Libraries_Var = 0;
+
+// [PLC09 - 공통함수 서브프로그램 함수호출]
+global	P_Master_Motion_Program_ON_Flag = 0;									// 모션 프로그램 ON
+global	P_Master_Motion_Program_ON_Complete_Bit = 0;							// 모션 프로그램 ON 완료비트 
+
+global	P_Master_Motion_Program_OFF_Flag = 0;									// 모션 프로그램 OFF	
+global	P_Master_Motion_Program_OFF_Complete_Bit = 0;							// 모션 프로그램 OFF 완료비트 
+																				//
+global	P_Common_Function_Timbase_ON_Flag = 0;									// 타임 베이스 ON
+global	P_Common_Function_Timbase_ON_Complete_Bit = 0;							// 타임 베이스 ON 완료비트 
+																				
+global	P_Common_Function_Timbase_OFF_Flag = 0;									// 타임 베이스 OFF	
+global	P_Common_Function_Timbase_OFF_Complete_Bit = 0;							// 타임 베이스 OFF 완료비트 
+																				
+global	P_Common_Function_Monitoring_Lamp_OFF_Flag = 0;							// 모니터링 램프 OFF
+global	P_Common_Function_Monitoring_Lamp_OFF_Complete_Bit = 0;					// 모니터링 램프 OFF 완료비트
+																				
+global	P_Common_Function_Slave_Motion_Common_Init_Flag = 0;					// Slave Motion Command 초기화
+global	P_Common_Function_Slave_Motion_Common_Init_Complete_Bit = 0;			// Slave Motion Command 초기화 완료비트 
+																				
+global	P_Common_Function_OlD_Jog_Speed_Save_ON_Flag = 0;						// 모터 이전 조그 스피드 저장
+global  P_Common_Function_OlD_Jog_Speed_Save_ON_Complete_Bit = 0;				// 모터 이전 조그 스피드 저장 완료비트 
+  																				
+global 	P_Auto_Resetting_Sum_Ready_Pos_Check_Flag = 0;							// Auto_Resetting - 정위치 확인
+global 	P_Auto_Resetting_Sum_Ready_Pos_Check_Complete_bit = 0;					// Auto_Resetting - 정위치 확인 완료비트 
+																				
+global 	P_Manual_Resetting_Sum_Ready_Pos_Check_Flag = 0;						// Manual_Resetting - 정위치 확인
+global 	P_Manual_Resetting_Sum_Ready_Pos_Check_Complete_bit = 0;				// Manual_Resetting - 정위치 확인 완료비트 
+																				
+global	P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Flag = 0;				// Manual_Pause_Resetting - 1차 P&P 정위치 확인
+global	P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Complete_Bit = 0;		// Manual_Pause_Resetting - 1차 P&P 정위치 확인 완료비트 
+																				
+global	P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Flag = 0;				// Manual_Pause_Resetting - 2차 P&P 정위치 확인
+global	P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Complete_Bit = 0;		// Manual_Pause_Resetting - 2차 P&P 정위치 확인 완료비트 
+
+
+
+// [타겟포지션]
+global P_Motion_Target_Position_Complete = 0 ;		// 타겟포지션값 저장 완료 확인 변수.
+
+// [자동 생산 상태 관리 프로그램]
+global	P_SM_Auto_Run_Layer_Management = 0;			// 오토 런 레이어 관리 스텟 머신
+global	P_Buffer_Mode_Status_Sequence = 0;
+#define	N_Normal_Status_Sequence		1111
+#define	N_Sepa_Consume_Status_Sequence	2222
+#define	N_Dryrun_Status_Sequence		3333
+
+// [레이어 일시중지 스텟 넘버]
+#define	N_Layer_Pause_Number			111
+// [레이어 완료 스텟 머신 넘버]
+#define	N_Layer_Complete_Number			999	
+global	P_SM_Sub_Function_Pause = 0;				// 일시 중지 서브 스텟머신
+
+// [운전 준비 서브 모드 시퀀스]
+Global	P_PLC09_Resetting_Position_Check_State_Machine = 0;	// 오토 리셋팅 서브시퀀스
+Global	P_PLC09_Resetting_Position_Moving_State_Machine = 0;	// 메뉴얼 리셋팅 서브시퀀스
+// [모터 정위치 확인 변수]
+Global	P_Sum_Ready_pos_Motor(42);
+P_Sum_Ready_pos_Motor(0),42 = 0;	 
+
+// [ 정지 단계에서 트랜스터 정위치 시키는 스텟 머신]
+global	P_SM_Resetting_Pause_Position = 0;
+global	P_20per_Vac_Error_Cycle_Stop_Flag = 0;		// 사이클 정지 대기 위치 이동 시 조그 동작 시 모션 후진 시 위치랑 동일 플래그
+
+
+
+// [세파 EPC 보정 기능 추가 ]
+global	P_MNTR_PLC23_ARC_Complete = 1;												// 세파 ARC 후 정상 생산 진행 변수
+global	P_FUNCTION_PLC13_Sepa_Trigger_Enable = 0;
+global	P_PLC_Recipe_PLC2_Revise_Sepa = 5;
+
+// 메뉴얼 -스타팅
+global	P_Auto_Semi_Init_Status = 0;
+global	P_Auto_Semi_Init_Chk_Bit = 0;
+
+global P_Old_PLC_HeartBit_Flag = 0;						//PLC 동기화
+
+global	P_PLC09_Init_Flag = 0;
+global	P_Check_IDLE_CF_Flag = 0;
+global	P_Check_EXECUTE_CF_Flag = 0;
+global	P_Check_COMPLETING_CF_Flag = 0;
+global	P_Check_COMPLETE_CF_Flag = 0;
+global	P_Check_HOLDING_CF_Flag = 0;
+global	P_Check_HOLD_CF_Flag = 0;
+global	P_Check_UNHOLDING_CF_Flag = 0;
+global	P_Check_SUSPENDING_CF_Flag = 0;
+global	P_Check_SUSPENDED_CF_Flag = 0;
+global	P_Check_UNSUSPENDING_CF_Flag = 0;
+global	P_Check_STOPPED_CF_Flag = 0;
+global	P_Check_ABORTED_CF_Flag = 0;
+global	P_Check_CLEARING_CF_Flag = 0;
+
+global 	P_Check_IDLE_CF = 0;
+global 	P_Check_EXECUTE_CF = 0;
+global 	P_Check_COMPLETING_CF = 0;
+global 	P_Check_COMPLETE_CF = 0;
+global 	P_Check_HOLDING_CF = 0;
+global 	P_Check_HOLD_CF = 0;
+global 	P_Check_UNHOLDING_CF = 0;
+global 	P_Check_SUSPENDING_CF = 0;
+global 	P_Check_SUSPENDED_CF = 0;
+global 	P_Check_UNSUSPENDING_CF = 0;
+global 	P_Check_STOPPED_CF = 0;
+global 	P_Check_ABORTED_CF = 0;
+global 	P_Check_CLEARING_CF = 0;
+global	P_Check_STOPPING_CF = 0;
+global	P_Check_STARTING_CF = 0;
+global	P_Check_RESETTING_CF = 0;
+global	P_Check_STARTTING_CF = 0;
+
+
+// 신규추가 - [ 참조 : 사이클정지 미사용 포인트_240221]
+global P_Queue_Clear = 0;

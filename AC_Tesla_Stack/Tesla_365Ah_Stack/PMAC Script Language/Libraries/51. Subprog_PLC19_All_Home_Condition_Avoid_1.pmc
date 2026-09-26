@@ -1,0 +1,687 @@
+open subprog AH_Condition(void)
+
+sub: Condition_Act(CA_Data,AN_Data,&rtn)
+rtn = 0;
+local L_CA_Rtn = 0;
+local L_AN_Rtn = 0;
+/*
+	[0]N_2nd_Near_Belt					= 2차가 벨트쪽에 있다면
+	[1]N_1st_Near_Align					= 1차가 얼라인쪽에 있다면
+	[2]N_NG_Near_Align					= NG가 얼라인 쪽에 있다면
+	[3]N_2nd_Near_Unloader				= 2차가 언로더와 간섭이 있다면
+	
+	[10]N_2nd_Near_Belt_Non_Hck			= 2차가 벨트쪽에 있다면 ( 홈체크 X )
+	[11]N_2nd_Near_Unloader_Non_Hck		= 2차가 언로더와 간섭이 있다면 ( 홈체크 X )
+	[12]N_2nd_Near_Stack_Non_Hck		= 2차가 스텍쪽에 있다면	( 홈체크 X )
+	[13]N_2nd_Near_Align_Non_Hck		= 2차가 얼라인쪽에 있다면 ( 홈체크 X )
+
+	1. Switch(CA_Data)
+	2. Switch(AN_Data)
+*/
+switch( CA_Data )
+{
+	case N_2nd_Near_Belt:	// 2차가 벨트 위치쪽에 있다면
+		switch( P_Cathode_Modify_Act_State_Machine )
+		{
+			case 0:		// 양극 2차 Z축 상승
+				#ifdef F_Virtual_Axis_Test
+					Motor[N_2nd_PnP_CA_Z].minpos = -5000;
+				#endif
+				Motor[N_2nd_PnP_CA_Z].jogspeed = 30;
+				cmd"#%d j-",N_2nd_PnP_CA_Z;														// 2차 PnP Z축 - 이동
+				P_Cathode_Modify_Act_State_Machine += 1;
+			break;
+
+			case 1:		// NG PnP Z축 얼라인 긁히는지 확인 후 처리
+				#ifdef F_Virtual_Axis_Test
+					if( F_Cathode_2nd_Z_Axis ~ Motor[N_2nd_PnP_CA_Z].minpos/1000 )					// 양극 2차 PnP Z - 리밋 확인
+					{
+						if( F_Cathode_NG_Z_Axis >= P_Down_Pos - 3 )									// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+						{
+							motor[N_NG_PnP_CA_Z].JogSpeed = 20;										// 조그 속도 부여
+							cmd"#%d j=27000",N_NG_PnP_CA_Z;											// 긁히지 않는 영역 상승
+						}
+						P_Cathode_Modify_Act_State_Machine += 1;
+					}
+				#else
+					if(Motor[N_2nd_PnP_CA_Z].MinusLimit == N_TRUE )
+					{
+						if( F_Cathode_NG_Z_Axis >= P_Down_Pos - 3 )								// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+						{
+							motor[N_NG_PnP_CA_Z].JogSpeed = 20;									// 조그 속도 부여
+							cmd"#%d j=27000",N_NG_PnP_CA_Z;										// 긁히지 않는 영역 상승
+						}
+						P_Cathode_Modify_Act_State_Machine += 1;
+					}
+				#endif
+			break;
+
+			case 2:		// NG T Home 
+				if( F_Cathode_NG_Z_Axis <= P_Down_Pos - 3 )										// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+				{
+					P_Home_Command(N_NG_PnP_CA_T) = F_Command_Start;							// T축 홈 시작
+					P_Cathode_Modify_Act_State_Machine += 1;
+				}
+			break;
+
+			case 3:		// 2차 PnP 대기위치 이동
+				#ifdef F_Virtual_Axis_Test
+					if( F_Cathode_NG_T_Axis ~ P_Test_Motor_Ready_Pos(N_NG_PnP_CA_T) )
+					{
+						P_Home_Command(N_2nd_PnP_CA_T) = F_Command_Start;						// 2차 PnP T 대기위치 이동
+						P_Cathode_Modify_Act_State_Machine += 1;
+					}
+				#else
+					if( F_Cathode_NG_T_Axis ~ P_Axis_Ready_Pos(N_NG_PnP_CA_T) )
+					{
+						P_Home_Command(N_2nd_PnP_CA_T) = F_Command_Start;						// 2차 PnP T 대기위치 이동
+						P_Cathode_Modify_Act_State_Machine += 1;
+					}
+				#endif
+			break;
+
+			case 4:		// 완료
+				#ifdef F_Virtual_Axis_Test
+					if( F_Cathode_NG_T_Axis ~ P_Test_Motor_Ready_Pos(N_2nd_PnP_CA_T) )
+					{
+						L_CA_Rtn = N_TRUE;
+					}
+				#else
+					if( F_Cathode_NG_T_Axis ~ P_Axis_Ready_Pos(N_2nd_PnP_CA_T) )
+					{
+						L_CA_Rtn = N_TRUE;
+					}
+				#endif
+			break;
+		}
+	break;
+
+	case N_1st_Near_Align:
+		switch( P_Cathode_Modify_Act_State_Machine )
+		{
+			case 0:		// 양극 1차 Z축 상승
+				#ifdef F_Virtual_Axis_Test
+					Motor[N_1st_PnP_CA_Z].minpos = -5000;
+				#endif
+					Motor[N_1st_PnP_CA_Z].jogspeed = 30;
+					cmd"#%d j-",N_1st_PnP_CA_Z;													// 1차 PnP Z축 - 이동
+					P_Cathode_Modify_Act_State_Machine += 1;
+			break;
+
+			case 1:		// NG PnP Z축 얼라인 긁히는지 확인 후 처리
+				#ifdef F_Virtual_Axis_Test
+					if( F_Cathode_1st_Z_Axis ~ Motor[N_1st_PnP_CA_Z].minpos/1000 )				// 양극 1차 PnP Z - 리밋 확인
+					{
+						if( F_Cathode_NG_Z_Axis >= P_Down_Pos - 3 )								// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+						{
+							Motor[N_NG_PnP_CA_Z].JogSpeed = 20;									// 조그 속도 부여
+							cmd"#%d j=27000",N_NG_PnP_CA_Z;										// 긁히지 않는 영역 상승
+						}
+						P_Cathode_Modify_Act_State_Machine += 1;
+					}
+				#else
+					if(Motor[N_1st_PnP_CA_Z].MinusLimit == N_TRUE )
+					{
+						if( F_Cathode_NG_Z_Axis >= P_Down_Pos - 3 )								// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+						{
+							motor[N_NG_PnP_CA_Z].JogSpeed = 20;									// 조그 속도 부여
+							cmd"#%d j=27000",N_NG_PnP_CA_Z;										// 긁히지 않는 영역 상승
+						}
+						P_Cathode_Modify_Act_State_Machine += 1;
+					}
+				#endif
+			break;
+
+			case 2:		// NG T Home 
+				if( F_Cathode_NG_Z_Axis <= P_Down_Pos - 3 )										// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+				{
+					P_Home_Command(N_NG_PnP_CA_T) = F_Command_Start;							// T축 홈 시작
+					P_Cathode_Modify_Act_State_Machine += 1;
+				}
+			break;
+
+			case 3:		// 완료
+				#ifdef F_Virtual_Axis_Test
+					if( F_Cathode_NG_T_Axis ~ P_Test_Motor_Ready_Pos(N_NG_PnP_CA_T) )
+					{
+						L_CA_Rtn = N_TRUE;
+					}
+				#else
+					if( F_Cathode_NG_T_Axis ~ P_Axis_Ready_Pos(N_NG_PnP_CA_T) )
+					{
+						L_CA_Rtn = N_TRUE;
+					}
+				#endif
+			break;
+		}
+	break;
+
+	case N_NG_Near_Align:
+		switch( P_Cathode_Modify_Act_State_Machine )
+		{
+			case 0:		// 양극 2차 Z축 상승
+				#ifdef F_Virtual_Axis_Test
+					Motor[N_2nd_PnP_CA_Z].minpos = -5000;
+				#endif
+					Motor[N_2nd_PnP_CA_Z].jogspeed = 30;
+					cmd"#%d j-",N_2nd_PnP_CA_Z;													// 2차 PnP Z축 - 이동
+					P_Cathode_Modify_Act_State_Machine += 1;
+			break;
+
+			case 1:		// NG PnP Z축 얼라인 긁히는지 확인 후 처리
+				#ifdef F_Virtual_Axis_Test
+					if( F_Cathode_2nd_Z_Axis ~ Motor[N_2nd_PnP_CA_Z].minpos/1000 )				// 양극 2차 PnP Z - 리밋 확인
+					{
+						if( F_Cathode_NG_Z_Axis >= P_Down_Pos - 3 )								// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+						{
+							motor[N_NG_PnP_CA_Z].JogSpeed = 20;									// 조그 속도 부여
+							cmd"#%d j=27000",N_NG_PnP_CA_Z;										// 긁히지 않는 영역 상승
+						}
+						P_Cathode_Modify_Act_State_Machine += 1;
+					}
+				#else
+					if(Motor[N_1st_PnP_CA_Z].MinusLimit == N_TRUE )
+					{
+						if( F_Cathode_NG_Z_Axis >= P_Down_Pos - 3 )								// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+						{
+							motor[N_NG_PnP_CA_Z].JogSpeed = 20;									// 조그 속도 부여
+							cmd"#%d j=27000",N_NG_PnP_CA_Z;										// 긁히지 않는 영역 상승			
+						}
+						P_Cathode_Modify_Act_State_Machine += 1;
+					}
+				#endif
+			break;
+
+			case 2:		// 완료
+				if( F_Cathode_NG_Z_Axis <= P_Down_Pos - 3 )										// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+				{
+					L_CA_Rtn = N_TRUE;
+				}
+			break;
+		}
+	break;
+
+	case N_2nd_Near_Unloader:
+		switch( P_Cathode_Modify_Act_State_Machine )
+		{
+			case 0:		// 언로더 X 마이너스 시작
+				#ifdef F_Virtual_Axis_Test
+					Motor[N_UNLOADER_X].minpos = -5000;
+				#endif
+					Motor[N_UNLOADER_X].jogspeed = 30;
+					cmd"#%d j-",N_UNLOADER_X;													// 2차 PnP Z축 - 이동
+					P_Cathode_Modify_Act_State_Machine += 1;
+			break;
+
+			case 1:		// 언로더 Z 대기위치
+				#ifdef F_Virtual_Axis_Test
+					if( F_Cathode_1st_Unloader_X_Axis ~ Motor[N_UNLOADER_X].minpos/1000 )		// 양극 2차 PnP Z - 리밋 확인
+					{
+						P_Home_Command(N_UNLOADER_Z) = F_Command_Start;							//  언로더 Z 홈 시작
+						P_Cathode_Modify_Act_State_Machine += 1;	
+					}
+				#else
+					if(Motor[N_UNLOADER_X].MinusLimit == N_TRUE )
+					{
+						P_Home_Command(N_UNLOADER_Z) = F_Command_Start;							//  언로더 Z 홈 시작
+						P_Cathode_Modify_Act_State_Machine += 1;
+					}
+				#endif
+			break;
+
+			case 2:		// 완료
+			#ifdef F_Virtual_Axis_Test
+				if( F_Cathode_1st_Unloader_Z_Axis ~ P_Test_Motor_Ready_Pos(N_UNLOADER_Z) )		// 언로더 Z 대기위치 확인
+				{
+					L_CA_Rtn = N_TRUE;
+				}
+			#else
+				if( F_Cathode_1st_Unloader_Z_Axis ~ P_Axis_Ready_Pos(N_UNLOADER_Z) )			// 언로더 Z 대기위치 확인
+				{
+					L_CA_Rtn = N_TRUE;
+				}
+			#endif
+			break;
+		}
+	break;
+
+	case N_2nd_Near_Belt_Non_Hck:
+		switch( P_Cathode_Modify_Act_State_Machine )
+		{
+			case 0:		// 2차 Z축 -
+				#ifdef F_Virtual_Axis_Test
+					Motor[N_2nd_PnP_CA_Z].minpos = -5000;
+				#endif
+					Motor[N_2nd_PnP_CA_Z].jogspeed = 30;
+					cmd"#%d j-",N_2nd_PnP_CA_Z;													// 2차 PnP Z축 - 이동
+					P_Cathode_Modify_Act_State_Machine += 1;
+			break;
+
+			case 1:		// 2차 PnP 얼라인(대기위치) 이동
+				#ifdef F_Virtual_Axis_Test
+					if( F_Cathode_2nd_Z_Axis ~ Motor[N_2nd_PnP_CA_Z].minpos/1000 )				// 양극 2차 PnP Z - 리밋 확인
+					{
+						Motor[N_2nd_PnP_CA_T].JogSpeed = 30;									// 조그 속도 부여
+						cmd"#%d j=%d",N_2nd_PnP_CA_T,P_Test_Motor_Ready_Pos(N_2nd_PnP_CA_T);	// 2차 PnP T 대기위치 이동
+						P_Cathode_Modify_Act_State_Machine += 1;	
+					}
+				#else
+					if(Motor[N_2nd_PnP_CA_Z].MinusLimit == N_TRUE )
+					{
+						Motor[N_2nd_PnP_CA_T].JogSpeed = 30;									// 조그 속도 부여
+						cmd"#%d j=%d",N_2nd_PnP_CA_T,P_Axis_Ready_Pos(N_2nd_PnP_CA_T);			// 2차 PnP T 대기위치 이동
+						P_Cathode_Modify_Act_State_Machine += 1;	
+					}
+				#endif
+			break;
+
+			case 2:		// 완료
+			#ifdef F_Virtual_Axis_Test
+				if( F_Cathode_2nd_T_Axis ~ P_Test_Motor_Ready_Pos(N_2nd_PnP_CA_T) )		// 언로더 T 대기위치 확인
+				{
+					L_CA_Rtn = N_TRUE;
+				}
+			#else
+				if( F_Cathode_2nd_T_Axis ~ P_Axis_Ready_Pos(N_2nd_PnP_CA_T) )			// 언로더 T 대기위치 확인
+				{
+					L_CA_Rtn = N_TRUE;
+				}
+			#endif
+			break;
+		}
+
+	break;
+	case N_2nd_Near_Unloader_Non_Hck:
+		switch( P_Cathode_Modify_Act_State_Machine )
+		{
+
+			case 0:		// 2차 Z-
+				#ifdef F_Virtual_Axis_Test
+					Motor[N_2nd_PnP_CA_Z].minpos = -5000;
+				#endif
+					Motor[N_2nd_PnP_CA_Z].jogspeed = 30;
+					cmd"#%d j-",N_2nd_PnP_CA_Z;												// 2차 PnP Z축 - 이동
+					P_Cathode_Modify_Act_State_Machine += 1;
+			break;
+
+			case 1:		// 언로더 X -
+				#ifdef F_Virtual_Axis_Test
+					if( F_Cathode_2nd_Z_Axis ~ Motor[N_2nd_PnP_CA_Z].minpos/1000 )			// 양극 2차 PnP Z - 리밋 확인
+					{
+						Motor[N_UNLOADER_X].minpos = -5000;
+						Motor[N_UNLOADER_X].jogspeed = 30;
+						cmd"#%d j-",N_UNLOADER_X;											// 언로더 - 이동
+						P_Cathode_Modify_Act_State_Machine += 1;
+					}
+				#else
+					if(Motor[N_2nd_PnP_CA_Z].MinusLimit == N_TRUE )
+					{
+						Motor[N_UNLOADER_X].jogspeed = 30;
+						cmd"#%d j-",N_UNLOADER_X;											// 언로더 - 이동
+						P_Cathode_Modify_Act_State_Machine += 1;
+					}
+				#endif
+			break;
+
+			case 2:		// 언로더 Z 대기위치
+				#ifdef F_Virtual_Axis_Test
+					if( F_Cathode_1st_Unloader_X_Axis ~ Motor[N_UNLOADER_X].minpos/1000 || Motor[N_UNLOADER_X].SoftMinusLimit == N_TRUE )		// 양극 2차 PnP Z - 리밋 확인
+					{
+						P_Home_Command(N_UNLOADER_Z) = F_Command_Start;							//  언로더 Z 홈 시작
+						P_Cathode_Modify_Act_State_Machine += 1;	
+					}
+				#else
+					if(Motor[N_UNLOADER_X].MinusLimit == N_TRUE )
+					{
+						P_Home_Command(N_UNLOADER_Z) = F_Command_Start;							//  언로더 Z 홈 시작
+						P_Cathode_Modify_Act_State_Machine += 1;
+					}
+				#endif
+			break;
+
+			case 3:		// 완료
+			#ifdef F_Virtual_Axis_Test
+				if( F_Cathode_1st_Unloader_Z_Axis ~ P_Test_Motor_Ready_Pos(N_UNLOADER_Z) )		// 언로더 Z 대기위치 확인
+				{
+					L_CA_Rtn = N_TRUE;
+				}
+			#else
+				if( F_Cathode_1st_Unloader_Z_Axis ~ P_Axis_Ready_Pos(N_UNLOADER_Z) )			// 언로더 Z 대기위치 확인
+				{
+					L_CA_Rtn = N_TRUE;
+				}
+			#endif
+			break;
+		}
+	break;
+
+	case N_2nd_Near_Stack_Non_Hck:
+		switch( P_Cathode_Modify_Act_State_Machine )
+		{
+			case 0:		// 언로더 X -
+				#ifdef F_Virtual_Axis_Test
+						Motor[N_UNLOADER_X].minpos = -5000;
+				#endif
+						Motor[N_UNLOADER_X].jogspeed = 30;
+						cmd"#%d j-",N_UNLOADER_X;											// 언로더 - 이동
+						P_Cathode_Modify_Act_State_Machine += 1;
+			break;
+
+			case 1:		// 언로더 Z 대기위치
+				#ifdef F_Virtual_Axis_Test
+					if( F_Cathode_1st_Unloader_X_Axis ~ Motor[N_UNLOADER_X].minpos/1000 || Motor[N_UNLOADER_X].SoftMinusLimit == N_TRUE )		// 양극 2차 PnP Z - 리밋 확인
+					{
+						P_Home_Command(N_UNLOADER_Z) = F_Command_Start;							//  언로더 Z 홈 시작
+						P_Cathode_Modify_Act_State_Machine += 1;	
+					}
+				#else
+					if(Motor[N_UNLOADER_X].MinusLimit == N_TRUE )
+					{
+						P_Home_Command(N_UNLOADER_Z) = F_Command_Start;							//  언로더 Z 홈 시작
+						P_Cathode_Modify_Act_State_Machine += 1;
+					}
+				#endif
+			break;
+
+			case 2:		// 완료
+			#ifdef F_Virtual_Axis_Test
+				if( F_Cathode_1st_Unloader_Z_Axis ~ P_Test_Motor_Ready_Pos(N_UNLOADER_Z) )		// 언로더 Z 대기위치 확인
+				{
+					L_CA_Rtn = N_TRUE;
+				}
+			#else
+				if( F_Cathode_1st_Unloader_Z_Axis ~ P_Axis_Ready_Pos(N_UNLOADER_Z) )			// 언로더 Z 대기위치 확인
+				{
+					L_CA_Rtn = N_TRUE;
+				}
+			#endif
+			break;
+		}
+	break;
+	case N_2nd_Near_Align_Non_Hck:	// 양극은 미적용
+		L_CA_Rtn = N_TRUE;
+	break;
+}
+
+switch( AN_Data )
+{
+	case N_2nd_Near_Belt:	// 2차가 벨트 위치쪽에 있다면
+		switch( P_Anode_Modify_Act_State_Machine )
+		{
+			case 0:		// 음극 2차 Z축 상승
+				#ifdef F_Virtual_Axis_Test
+					Motor[N_2nd_PnP_AN_Z].minpos = -5000;
+				#endif
+				Motor[N_2nd_PnP_AN_Z].jogspeed = 30;
+				cmd"#%d j-",N_2nd_PnP_AN_Z;														// 2차 PnP Z축 - 이동
+				P_Anode_Modify_Act_State_Machine += 1;
+			break;
+
+			case 1:		// NG PnP Z축 얼라인 긁히는지 확인 후 처리
+				#ifdef F_Virtual_Axis_Test
+					if( F_Anode_2nd_Z_Axis ~ Motor[N_2nd_PnP_AN_Z].minpos/1000 )				// 양극 2차 PnP Z - 리밋 확인
+					{
+						if( F_Anode_NG_Z_Axis >= P_Down_Pos - 3 )								// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+						{
+							Motor[N_NG_PnP_AN_Z].JogSpeed = 20;									// 조그 속도 부여
+							cmd"#%d j=27000",N_NG_PnP_AN_Z;											// 긁히지 않는 영역 상승
+						}
+						P_Anode_Modify_Act_State_Machine += 1;
+					}
+				#else
+					if(Motor[N_2nd_PnP_AN_Z].MinusLimit == N_TRUE )
+					{
+						if( F_Anode_NG_Z_Axis >= P_Down_Pos - 3 )								// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+						{
+							Motor[N_NG_PnP_AN_Z].JogSpeed = 20;									// 조그 속도 부여
+							cmd"#%d j=27000",N_NG_PnP_AN_Z;										// 긁히지 않는 영역 상승
+						}
+						P_Anode_Modify_Act_State_Machine += 1;
+					}
+				#endif
+			break;
+
+			case 2:		// NG T Home 
+				if( F_Anode_NG_Z_Axis <= P_Down_Pos - 3 )										// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+				{
+					P_Home_Command(N_NG_PnP_AN_T) = F_Command_Start;							// T축 홈 시작
+					P_Anode_Modify_Act_State_Machine += 1;
+				}
+			break;
+
+			case 3:		// 2차 PnP 대기위치 이동
+				#ifdef F_Virtual_Axis_Test
+					if( F_Anode_NG_T_Axis ~ P_Test_Motor_Ready_Pos(N_NG_PnP_AN_T) )
+					{
+						P_Home_Command(N_2nd_PnP_AN_T) = F_Command_Start;						// 2차 PnP T 대기위치 이동
+						P_Anode_Modify_Act_State_Machine += 1;
+					}
+				#else
+					if( F_Anode_NG_T_Axis ~ P_Axis_Ready_Pos(N_NG_PnP_AN_T) )
+					{
+						P_Home_Command(N_2nd_PnP_AN_T) = F_Command_Start;						// 2차 PnP T 대기위치 이동
+						P_Anode_Modify_Act_State_Machine += 1;
+					}
+				#endif
+			break;
+
+			case 4:		// 완료
+			#ifdef F_Virtual_Axis_Test
+				if( F_Anode_NG_T_Axis ~ P_Test_Motor_Ready_Pos(N_2nd_PnP_AN_T) )
+				{
+					L_AN_Rtn = N_TRUE;
+				}
+			#else
+				if( F_Anode_NG_T_Axis ~ P_Axis_Ready_Pos(N_2nd_PnP_AN_T) )
+				{
+					L_AN_Rtn = N_TRUE;
+				}
+			#endif
+			break;
+		}
+	break;
+
+	case N_1st_Near_Align:
+		switch( P_Anode_Modify_Act_State_Machine )
+		{
+			case 0:		// 음극 1차 Z축 상승
+				#ifdef F_Virtual_Axis_Test
+					Motor[N_1st_PnP_AN_Z].minpos = -5000;
+				#endif
+					Motor[N_1st_PnP_AN_Z].jogspeed = 30;
+					cmd"#%d j-",N_1st_PnP_AN_Z;													// 1차 PnP Z축 - 이동
+					P_Anode_Modify_Act_State_Machine += 1;
+			break;
+
+			case 1:		// NG PnP Z축 얼라인 긁히는지 확인 후 처리
+				#ifdef F_Virtual_Axis_Test
+					if( F_Anode_1st_Z_Axis ~ Motor[N_1st_PnP_AN_Z].minpos/1000 )				// 양극 1차 PnP Z - 리밋 확인
+					{
+						if( F_Anode_NG_Z_Axis >= P_Down_Pos - 3 )								// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+						{
+							Motor[N_NG_PnP_AN_Z].JogSpeed = 20;									// 조그 속도 부여
+							cmd"#%d j=27000",N_NG_PnP_AN_Z;										// 긁히지 않는 영역 상승
+						}
+						P_Anode_Modify_Act_State_Machine += 1;
+					}
+				#else
+					if(Motor[N_1st_PnP_AN_Z].MinusLimit == N_TRUE )
+					{
+						if( F_Anode_NG_Z_Axis >= P_Down_Pos - 3 )								// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+						{
+							motor[N_NG_PnP_AN_Z].JogSpeed = 20;									// 조그 속도 부여
+							cmd"#%d j=27000",N_NG_PnP_AN_Z;										// 긁히지 않는 영역 상승
+						}
+						P_Anode_Modify_Act_State_Machine += 1;
+					}
+				#endif
+			break;
+
+			case 2:		// NG T Home 
+				if( F_Anode_NG_Z_Axis <= P_Down_Pos - 3 )										// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+				{
+					P_Home_Command(N_NG_PnP_AN_T) = F_Command_Start;							// T축 홈 시작
+					P_Anode_Modify_Act_State_Machine += 1;
+				}
+			break;
+
+			case 3:		// 완료
+				#ifdef F_Virtual_Axis_Test
+					if( F_Anode_NG_T_Axis ~ P_Test_Motor_Ready_Pos(N_NG_PnP_AN_T) )
+					{
+						L_AN_Rtn = N_TRUE;
+					}
+				#else
+					if( F_Anode_NG_T_Axis ~ P_Axis_Ready_Pos(N_NG_PnP_AN_T) )
+					{
+						L_AN_Rtn = N_TRUE;
+					}
+				#endif
+			break;
+		}
+	break;
+
+	case N_NG_Near_Align:
+		switch( P_Anode_Modify_Act_State_Machine )
+		{
+			case 0:		// 음극 2차 Z축 상승
+				#ifdef F_Virtual_Axis_Test
+					Motor[N_2nd_PnP_AN_Z].minpos = -5000;
+				#endif
+					Motor[N_2nd_PnP_AN_Z].jogspeed = 30;
+					cmd"#%d j-",N_2nd_PnP_AN_Z;													// 2차 PnP Z축 - 이동
+					P_Anode_Modify_Act_State_Machine += 1;
+			break;
+
+			case 1:		// NG PnP Z축 얼라인 긁히는지 확인 후 처리
+				#ifdef F_Virtual_Axis_Test
+					if( F_Anode_2nd_Z_Axis ~ Motor[N_2nd_PnP_AN_Z].minpos/1000 )				// 음극 2차 PnP Z - 리밋 확인
+					{
+						if( F_Anode_NG_Z_Axis >= P_Down_Pos - 3 )								// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+						{
+							Motor[N_NG_PnP_AN_Z].JogSpeed = 20;									// 조그 속도 부여
+							cmd"#%d j=27000",N_NG_PnP_AN_Z;										// 긁히지 않는 영역 상승
+						}
+						P_Anode_Modify_Act_State_Machine += 1;
+					}
+				#else
+					if(Motor[N_1st_PnP_AN_Z].MinusLimit == N_TRUE )
+					{
+						if( F_Anode_NG_Z_Axis >= P_Down_Pos - 3 )								// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+						{
+							Motor[N_NG_PnP_AN_Z].JogSpeed = 20;									// 조그 속도 부여
+							cmd"#%d j=27000",N_NG_PnP_AN_Z;										// 긁히지 않는 영역 상승
+						}
+						P_Anode_Modify_Act_State_Machine += 1;
+					}
+				#endif
+			break;
+
+			case 2:		// 완료
+				if( F_Anode_NG_Z_Axis <= P_Down_Pos - 3 )										// NG PnP 하강위치라면 얼라인 테이블 긁을수도있으니
+				{
+					L_AN_Rtn = N_TRUE;
+				}
+			break;
+		}
+	break;
+
+	case N_2nd_Near_Unloader:	// 음극은 미적용
+		L_AN_Rtn = N_TRUE;
+	break;
+
+	case N_2nd_Near_Belt_Non_Hck:
+		switch( P_Anode_Modify_Act_State_Machine )
+		{
+			case 0:		// 2차 Z축 -
+				#ifdef F_Virtual_Axis_Test
+					Motor[N_2nd_PnP_AN_Z].minpos = -5000;
+				#endif
+					Motor[N_2nd_PnP_AN_Z].jogspeed = 30;
+					cmd"#%d j-",N_2nd_PnP_AN_Z;													// 2차 PnP Z축 - 이동
+					P_Anode_Modify_Act_State_Machine += 1;
+			break;
+
+			case 1:		// 2차 PnP 얼라인(대기위치) 이동
+				#ifdef F_Virtual_Axis_Test
+					if( F_Anode_2nd_Z_Axis ~ Motor[N_2nd_PnP_AN_Z].minpos/1000 )				// 음극 2차 PnP Z - 리밋 확인
+					{
+						Motor[N_2nd_PnP_AN_T].JogSpeed = 30;									// 조그 속도 부여
+						cmd"#%d j=%d",N_2nd_PnP_AN_T,P_Test_Motor_Ready_Pos(N_2nd_PnP_AN_T);	// 2차 PnP T 대기위치 이동
+						P_Anode_Modify_Act_State_Machine += 1;	
+					}
+				#else
+					if(Motor[N_2nd_PnP_AN_Z].MinusLimit == N_TRUE )
+					{
+						Motor[N_2nd_PnP_AN_T].JogSpeed = 30;									// 조그 속도 부여
+						cmd"#%d j=%d",N_2nd_PnP_AN_T,P_Axis_Ready_Pos(N_2nd_PnP_AN_T);			// 2차 PnP T 대기위치 이동
+						P_Anode_Modify_Act_State_Machine += 1;	
+					}
+				#endif
+			break;
+
+			case 2:		// 완료
+			#ifdef F_Virtual_Axis_Test
+				if( F_Anode_2nd_T_Axis ~ P_Test_Motor_Ready_Pos(N_2nd_PnP_AN_T) )		// 언로더 T 대기위치 확인
+				{
+					L_AN_Rtn = N_TRUE;
+				}
+			#else
+				if( F_Anode_2nd_T_Axis ~ P_Axis_Ready_Pos(N_2nd_PnP_AN_T) )			// 언로더 T 대기위치 확인
+				{
+					L_AN_Rtn = N_TRUE;
+				}
+			#endif
+			break;
+		}
+	break;
+
+	case N_2nd_Near_Unloader_Non_Hck:	// 음극은 미적용
+		L_AN_Rtn = N_TRUE;
+	break;
+	case N_2nd_Near_Stack_Non_Hck:		// 음극은 미적용
+		L_AN_Rtn = N_TRUE;
+	break;
+	case N_2nd_Near_Align_Non_Hck:	
+		switch( P_Anode_Modify_Act_State_Machine )
+		{
+			case 0:		// 2차 Z축 -
+				#ifdef F_Virtual_Axis_Test
+					Motor[N_2nd_PnP_AN_Z].minpos = -5000;
+				#endif
+					Motor[N_2nd_PnP_AN_Z].jogspeed = 30;
+					cmd"#%d j-",N_2nd_PnP_AN_Z;													// 2차 PnP Z축 - 이동
+					P_Anode_Modify_Act_State_Machine += 1;
+			break;
+
+			case 1:		// 완료
+				#ifdef F_Virtual_Axis_Test
+					if( F_Anode_2nd_Z_Axis ~ Motor[N_2nd_PnP_AN_Z].minpos/1000 )				// 음극 2차 PnP Z - 리밋 확인
+					{
+						L_AN_Rtn = N_TRUE;
+					}
+				#else
+					if(Motor[N_2nd_PnP_AN_Z].MinusLimit == N_TRUE )
+					{
+						L_AN_Rtn = N_TRUE;	
+					}
+				#endif
+			break;
+		}
+	break;
+}
+
+// 결과값 
+if( CA_Data == 0 )						// 양극 데이터가 없다면, 음극 데이터만 보면됌
+	rtn = L_AN_Rtn;
+else if( AN_Data == 0 )					// 음극 데이터가 없다면, 양극 데이터만 보면 됌
+	rtn = L_CA_Rtn;
+else									// 양,음극 데이터가 있다면 두개의 리턴을 기다려야함
+	rtn = L_CA_Rtn & L_AN_Rtn;
+
+return;
+
+close
+
+
+

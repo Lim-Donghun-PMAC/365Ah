@@ -1,0 +1,534 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+
+//test
+P_Recipe_M01_POS(3) = -45;
+P_Recipe_M03_POS(2) = 45;
+P_Recipe_M42_POS(2) = 90;
+
+
+open plc 27
+// 00.1) 타이머를 쉽게 사용하기 위한 로컬 모듈 
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[27].ldata.L[0] 시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[27].ldata.L[1] 시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[27].ldata.L[2] 시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[27].ldata.L[3] 타이머 초기화 플래그
+
+
+local	L_Max_Motor_Num = 50;							// Plc[27].ldata.L[4]
+local	L_Motor_BTN_Info_Old(50);						// Plc[27].ldata.L[5] ~ Plc[27].ldata.L[54]
+local	L_Interlock_Popup_On_Flag_Old;					// Plc[27].ldata.L[55]
+												
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+
+// 00.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{		
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+//========================================================================================================================
+
+
+// 모터 번호 1 ~ 50 순환.
+if( P_Motor_Count < L_Max_Motor_Num )
+{
+	P_Motor_Count++;
+}
+else
+{
+	P_Motor_Count = 1;
+}
+
+if ( M_X_Door_Open )
+{	// 도어 인터락 bit On
+	P_Interlcok_Result_M(P_Motor_Count) |= N_Hex_Door_Opened_Interlock_On;
+}
+else
+{	// 도어 인터락 bit Off
+	P_Interlcok_Result_M(P_Motor_Count) &= N_Hex_Door_Opened_Interlock_Off;
+}
+
+if( P_PMAC_Homing_CHK(P_Motor_Count) == F_False )
+{	// 홈 완료 변수 Off시 홈 미완료 인터락 bit On
+	P_Interlcok_Result_M(P_Motor_Count) |= ( N_Hex_Home_Miss_Interlock_On & P_Interlock_Use_Motor_Arr(P_Motor_Count) );
+}
+else
+{
+	P_Interlcok_Result_M(P_Motor_Count) &= N_Hex_Home_Miss_Interlock_Off;
+}
+
+// 설비 오토/도어는 모든 인터락 On판정.
+if( P_Interlcok_Result_M(P_Motor_Count) & N_Hex_Door_Opened_Interlock_On )
+{
+	P_Interlcok_Result_M(P_Motor_Count) |= $FFFFF;
+}
+
+// 홈 미완료는 모든 인터락 On판정.
+if( P_Interlcok_Result_M(P_Motor_Count) & N_Hex_Home_Miss_Interlock_On )
+{	// 홈 인터락 제외 모든 인터락 On
+	P_Interlcok_Result_M(P_Motor_Count) |= $FFFBF;
+}
+
+// 0 ~ 99 카운트 순환.
+if( P_PLC29_Count < 99 )
+{
+	P_PLC29_Count++;
+}
+else
+{
+	P_PLC29_Count = 0;
+}
+// 모터 위치 정보 업데이트
+call Interlcok.Get_Param(&P_Except_Return_Array(N_PLC29_Interlcok_Param_RTN));
+
+
+if( P_Interlock_Info_type_Upper(P_PLC29_Count) != F_False )
+{	// 인터락 상위 조건 존재한다면,
+	Switch(P_Interlock_Info_type_Upper(P_PLC29_Count))
+	{	// 상위 조건이 > 일 경우
+		case high :
+			if( P_Interlock_Info_Target_Pos_Upper(P_PLC29_Count) > P_Interlock_Info_Ref_Pos_Upper(P_PLC29_Count) )
+			{	
+				Switch(P_Interlock_Info_type(P_PLC29_Count))
+				{	
+					case high :	
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) > P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 > 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					case low : 
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) < P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 < 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					case high_and_equal : 
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) >= P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 >= 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					case low_and_equal : 
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) <= P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 <= 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					default :
+					
+					break;
+				}
+			}
+		break;
+		case low : 
+			if( P_Interlock_Info_Target_Pos_Upper(P_PLC29_Count) < P_Interlock_Info_Ref_Pos_Upper(P_PLC29_Count) )
+			{
+				Switch(P_Interlock_Info_type(P_PLC29_Count))
+				{	
+					case high :	
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) > P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 > 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					case low : 
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) < P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 < 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					case high_and_equal : 
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) >= P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 >= 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					case low_and_equal : 
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) <= P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 <= 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					default :
+					
+					break;
+				}
+			}
+		break;
+		case high_and_equal : 
+			if( P_Interlock_Info_Target_Pos_Upper(P_PLC29_Count) >= P_Interlock_Info_Ref_Pos_Upper(P_PLC29_Count) )
+			{
+				Switch(P_Interlock_Info_type(P_PLC29_Count))
+				{	
+					case high :	
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) > P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 > 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					case low : 
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) < P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 < 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					case high_and_equal : 
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) >= P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 >= 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					case low_and_equal : 
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) <= P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 <= 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					default :
+					
+					break;
+				}
+			}
+		break;
+		case low_and_equal : 
+			if( P_Interlock_Info_Target_Pos_Upper(P_PLC29_Count) <= P_Interlock_Info_Ref_Pos_Upper(P_PLC29_Count) )
+			{
+				Switch(P_Interlock_Info_type(P_PLC29_Count))
+				{	
+					case high :	
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) > P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 > 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					case low : 
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) < P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 < 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					case high_and_equal : 
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) >= P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 >= 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					case low_and_equal : 
+						if( P_Interlock_Info_Target_Pos(P_PLC29_Count) <= P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+						{	// 현재 타겟 위치 <= 비교 위치 이면.
+							P_Update_Result_Flag = F_True;
+						}
+					break;
+					default :
+					
+					break;
+				}
+			}
+		break;
+		default :
+		
+		break;
+	}
+}
+else
+{	// 상위 조건이 없다면,
+	Switch(P_Interlock_Info_type(P_PLC29_Count))
+	{	
+		case high :	
+			if( P_Interlock_Info_Target_Pos(P_PLC29_Count) > P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+			{	// 현재 타겟 위치 > 비교 위치 이면.
+				P_Update_Result_Flag = F_True;
+			}
+		break;
+		case low : 
+			if( P_Interlock_Info_Target_Pos(P_PLC29_Count) < P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+			{	// 현재 타겟 위치 < 비교 위치 이면.
+				P_Update_Result_Flag = F_True;
+			}
+		break;
+		case high_and_equal : 
+			if( P_Interlock_Info_Target_Pos(P_PLC29_Count) >= P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+			{	// 현재 타겟 위치 >= 비교 위치 이면.
+				P_Update_Result_Flag = F_True;
+			}
+		break;
+		case low_and_equal : 
+			if( P_Interlock_Info_Target_Pos(P_PLC29_Count) <= P_Interlock_Info_Ref_Pos(P_PLC29_Count) || P_Interlock_Info_Target_Motor_Home_Miss_Status(P_PLC29_Count) )
+			{	// 현재 타겟 위치 <= 비교 위치 이면.
+				P_Update_Result_Flag = F_True;
+			}
+		break;
+		default :
+		
+		break;
+	}
+}
+
+// 결과 업데이트 플래그 On이라면.
+if( P_Update_Result_Flag )
+{
+	P_Update_Result_Flag = F_False;	// 재진입 방지.
+	//P_PLC29_Count 0 ~ 9-> P_Interlcok_Result_M(1)에 인터락 결과 입력.
+	//P_PLC29_Count 10 ~ 19 -> P_Interlcok_Result_M(2)에 인터락 결과 입력.
+	P_Interlcok_Result_M(int(P_PLC29_Count/10) + 1) |= ( P_Interlock_Info_Bit(P_PLC29_Count) & P_Interlock_Use_Motor_Arr(int(P_PLC29_Count/10) + 1) );
+	P_Interlcok_Result_M(int( ( P_PLC29_Count + 100 ) / 10) + 1) |= ( P_Interlock_Info_Bit(P_PLC29_Count) & P_Interlock_Use_Motor_Arr(int( ( P_PLC29_Count + 100 ) / 10) + 1) );
+	P_Interlcok_Result_M(int( ( P_PLC29_Count + 200 ) / 10) + 1) |= ( P_Interlock_Info_Bit(P_PLC29_Count) & P_Interlock_Use_Motor_Arr(int( ( P_PLC29_Count + 200 ) / 10) + 1) );
+	P_Interlcok_Result_M(int( ( P_PLC29_Count + 300 ) / 10) + 1) |= ( P_Interlock_Info_Bit(P_PLC29_Count) & P_Interlock_Use_Motor_Arr(int( ( P_PLC29_Count + 300 ) / 10) + 1) );
+	P_Interlcok_Result_M(int( ( P_PLC29_Count + 400 ) / 10) + 1) |= ( P_Interlock_Info_Bit(P_PLC29_Count) & P_Interlock_Use_Motor_Arr(int( ( P_PLC29_Count + 400 ) / 10) + 1) );
+	// 간섭 모터 정보 업데이트.
+	P_Interlcok_Bump_Result_M(int(P_PLC29_Count/10) + 1) |= P_Interlock_Info_Ref_M(P_PLC29_Count);			
+	P_Interlcok_Bump_Result_M(int( ( P_PLC29_Count + 100 ) / 10) + 1) |= P_Interlock_Info_Ref_M(P_PLC29_Count);
+	P_Interlcok_Bump_Result_M(int( ( P_PLC29_Count + 200 ) / 10) + 1) |= P_Interlock_Info_Ref_M(P_PLC29_Count);
+	P_Interlcok_Bump_Result_M(int( ( P_PLC29_Count + 300 ) / 10) + 1) |= P_Interlock_Info_Ref_M(P_PLC29_Count);
+	P_Interlcok_Bump_Result_M(int( ( P_PLC29_Count + 400 ) / 10) + 1) |= P_Interlock_Info_Ref_M(P_PLC29_Count);
+}
+
+
+// 9, 19, 29, 39 ... 499 배열 10개씩 묶음으로 업데이트.
+if( P_PLC29_Count % 10 == 9 )
+{
+	// 모터 1축에 대한 인터락 상태 업데이트 완료 하면, 결과 초기화.
+	P_Interlock_Status_Motor_Arr(int( P_PLC29_Count/10 ) + 1) = P_Interlcok_Result_M(int(P_PLC29_Count/10) + 1);
+	P_Interlock_Status_Motor_Arr(int( ( P_PLC29_Count + 100 ) / 10) + 1) = P_Interlcok_Result_M(int( ( P_PLC29_Count + 100 ) / 10) + 1);
+	P_Interlock_Status_Motor_Arr(int( ( P_PLC29_Count + 200 ) / 10) + 1) = P_Interlcok_Result_M(int( ( P_PLC29_Count + 200 ) / 10) + 1);
+	P_Interlock_Status_Motor_Arr(int( ( P_PLC29_Count + 300 ) / 10) + 1) = P_Interlcok_Result_M(int( ( P_PLC29_Count + 300 ) / 10) + 1);
+	P_Interlock_Status_Motor_Arr(int( ( P_PLC29_Count + 400 ) / 10) + 1) = P_Interlcok_Result_M(int( ( P_PLC29_Count + 400 ) / 10) + 1);
+	
+	P_Interlcok_Result_M(int(P_PLC29_Count/10) + 1) = 0;
+	P_Interlcok_Result_M(int( ( P_PLC29_Count + 100 ) / 10) + 1) = 0;
+	P_Interlcok_Result_M(int( ( P_PLC29_Count + 200 ) / 10) + 1) = 0;
+	P_Interlcok_Result_M(int( ( P_PLC29_Count + 300 ) / 10) + 1) = 0;
+	P_Interlcok_Result_M(int( ( P_PLC29_Count + 400 ) / 10) + 1) = 0;
+
+	// 모터 1축에 대한 간섭 축 정보 업데이트 완료 하면, 결과 초기화.
+	P_Interlock_Motor_Arr(int( P_PLC29_Count/10 ) + 1) = P_Interlcok_Bump_Result_M(int(P_PLC29_Count/10) + 1);
+	P_Interlock_Motor_Arr(int( ( P_PLC29_Count + 100 ) / 10) + 1) = P_Interlcok_Bump_Result_M(int( ( P_PLC29_Count + 100 ) / 10) + 1);
+	P_Interlock_Motor_Arr(int( ( P_PLC29_Count + 200 ) / 10) + 1) = P_Interlcok_Bump_Result_M(int( ( P_PLC29_Count + 200 ) / 10) + 1);
+	P_Interlock_Motor_Arr(int( ( P_PLC29_Count + 300 ) / 10) + 1) = P_Interlcok_Bump_Result_M(int( ( P_PLC29_Count + 300 ) / 10) + 1);
+	P_Interlock_Motor_Arr(int( ( P_PLC29_Count + 400 ) / 10) + 1) = P_Interlcok_Bump_Result_M(int( ( P_PLC29_Count + 400 ) / 10) + 1);
+
+	P_Interlcok_Bump_Result_M(int(P_PLC29_Count/10) + 1) = 0;
+	P_Interlcok_Bump_Result_M(int( ( P_PLC29_Count + 100 ) / 10) + 1) = 0;
+	P_Interlcok_Bump_Result_M(int( ( P_PLC29_Count + 200 ) / 10) + 1) = 0;
+	P_Interlcok_Bump_Result_M(int( ( P_PLC29_Count + 300 ) / 10) + 1) = 0;
+	P_Interlcok_Bump_Result_M(int( ( P_PLC29_Count + 400 ) / 10) + 1) = 0;
+}
+	
+
+// BTN_Jog_Forward_Pushed 인터락 팝업
+if( ( M_Motor_BTN_Info(P_Motor_Page) & BTN_Jog_Forward_Pushed ) && L_Motor_BTN_Info_Old(P_Motor_Page) == F_False )
+{	// 조그 +버튼 누를 시
+	if( P_Interlock_Status_Motor_Arr(P_Motor_Page) & N_Hex_JogP_Interlcok_On )
+	{	// 조그 +인터락 On이라면. -> 팝업 On
+		P_Interlock_Popup_On_Flag = F_True;
+	}
+}
+// BTN_Jog_Backward_Pushed 인터락 팝업
+if( ( M_Motor_BTN_Info(P_Motor_Page) & BTN_Jog_Backward_Pushed ) && L_Motor_BTN_Info_Old(P_Motor_Page) == F_False )
+{	// 조그 -버튼 누를 시
+	if( P_Interlock_Status_Motor_Arr(P_Motor_Page) & N_Hex_JogM_Interlcok_On )
+	{	// 조그 -인터락 On이라면. -> 팝업 On
+		P_Interlock_Popup_On_Flag = F_True;
+	}
+}
+
+// BTN_Homing_Pushed 인터락 팝업
+if( ( M_Motor_BTN_Info(P_Motor_Page) & BTN_Homing_Pushed ) && L_Motor_BTN_Info_Old(P_Motor_Page) == F_False )
+{	// 홈 버튼 누를 시
+	if( P_Interlock_Status_Motor_Arr(P_Motor_Page) & N_Hex_Home_Interlcok_On )
+	{	// 홈 인터락 On이라면. -> 팝업 On
+		P_Interlock_Popup_On_Flag = F_True;
+	}
+}
+
+// BTN_Recipe_Pos_Run_Pushed 인터락 팝업
+if( ( M_Motor_BTN_Info(P_Motor_Page) & BTN_Recipe_Pos_Run_Pushed ) && L_Motor_BTN_Info_Old(P_Motor_Page) == F_False )
+{	// 레피시 위치 이동 버튼 누를 시
+	if( ( P_Interlock_Status_Motor_Arr(P_Motor_Page) & N_Hex_POS_All_Interlock_On ) >> 7 & M_Motor_RecipePos(P_Motor_Page) )
+	{	// 레시피 위치 인터락 On이라면. -> 팝업 On
+		P_Interlock_Popup_On_Flag = F_True;
+	}
+}
+
+// BTN_Jog_INC_Run_Pushed 인터락 팝업
+if( ( M_Motor_BTN_Info(P_Motor_Page) & BTN_Jog_INC_Run_Pushed ) && L_Motor_BTN_Info_Old(P_Motor_Page) == F_False )
+{	// 상대 위치 이동 버튼 누를 시
+	if( P_Interlock_Status_Motor_Arr(P_Motor_Page) & N_Hex_Inc_P_Interlcok_On || P_Interlock_Status_Motor_Arr(P_Motor_Count) & N_Hex_Inc_M_Interlcok_On )
+	{	// 상대 위치 인터락 On이라면. -> 팝업 On
+		P_Interlock_Popup_On_Flag = F_True;
+	}
+}
+
+// BTN_Jog_ABS_Run_Pushed 인터락 팝업
+if( ( M_Motor_BTN_Info(P_Motor_Page) & BTN_Jog_ABS_Run_Pushed ) && L_Motor_BTN_Info_Old(P_Motor_Page) == F_False )
+{	// 절대 위치 이동 버튼 누를 시
+	if( P_Interlock_Status_Motor_Arr(P_Motor_Page) & N_Hex_Abs_P_Interlcok_On || P_Interlock_Status_Motor_Arr(P_Motor_Page) & N_Hex_Abs_M_Interlcok_On )
+	{	// 절대 위치 인터락 On이라면. -> 팝업 On
+		P_Interlock_Popup_On_Flag = F_True;
+	}
+}
+L_Motor_BTN_Info_Old(P_Motor_Page) = M_Motor_BTN_Info(P_Motor_Page);
+
+// 팝업 On플래그 상승 엣지 라면.
+if( P_Interlock_Popup_On_Flag == F_True && P_Interlock_Popup_On_Flag != L_Interlock_Popup_On_Flag_Old )
+{	// 아스키 코드 1 ~ 7 번째 라인 초기화.
+	M_ASCII_Popup_Buffer_Line1(0),N_Interlock_String_ASCII_Length = 0;
+	M_ASCII_Popup_Buffer_Line2(0),N_Interlock_String_ASCII_Length = 0;
+	M_ASCII_Popup_Buffer_Line3(0),N_Interlock_String_ASCII_Length = 0;
+	M_ASCII_Popup_Buffer_Line4(0),N_Interlock_String_ASCII_Length = 0;
+	M_ASCII_Popup_Buffer_Line5(0),N_Interlock_String_ASCII_Length = 0;
+	M_ASCII_Popup_Buffer_Line6(0),N_Interlock_String_ASCII_Length = 0;
+	M_ASCII_Popup_Buffer_Line7(0),N_Interlock_String_ASCII_Length = 0;
+}
+else if( P_Interlock_Popup_On_Flag == F_False && P_Interlock_Popup_On_Flag != L_Interlock_Popup_On_Flag_Old )
+{	// 팝업 On플래그 하강 엣지 라면. -> PPMAC -> PLC 팝업 On요청 신호 On
+	P_Y_Interlock_Popup_On_Request = F_True;
+}
+L_Interlock_Popup_On_Flag_Old = P_Interlock_Popup_On_Flag;
+
+if( P_Y_Interlock_Popup_On_Request == F_True && P_X_Interlock_Popup_On_Request_Ack == F_True )
+{	// PPMAC -> PLC 팝업 On요청 신호 On && PPMAC -> PLC 팝업 On요청 신호(Ack) On 
+	// -> PMAC -> PLC 팝업 On요청 신호 Off
+	P_Y_Interlock_Popup_On_Request = F_False;
+}
+
+if( P_Interlock_Popup_On_Flag )
+{	// 팝업 On 요청 플래그 on이라면,
+	if( P_Interlock_Motor_Arr(P_Motor_Page) & P_Hex_Bit )
+	{	// 현재 간섭 모터 확인. -> 불러올 아스키 코드 입력된 배열 업데이트.
+		local User_Idx  = N_Interlock_String_First_Useridx + P_Hex_Shift_Count * N_Interlock_String_ASCII_Length;
+		local User_Idx2 = N_Interlock_String_First_Useridx + P_Hex_Shift_Count * N_Interlock_String_ASCII_Length + 1;
+		local User_Idx3 = N_Interlock_String_First_Useridx + P_Hex_Shift_Count * N_Interlock_String_ASCII_Length + 2;
+		local User_Idx4 = N_Interlock_String_First_Useridx + P_Hex_Shift_Count * N_Interlock_String_ASCII_Length + 3;
+		local User_Idx5 = N_Interlock_String_First_Useridx + P_Hex_Shift_Count * N_Interlock_String_ASCII_Length + 4;
+		local User_Idx6 = N_Interlock_String_First_Useridx + P_Hex_Shift_Count * N_Interlock_String_ASCII_Length + 5;
+		local User_Idx7 = N_Interlock_String_First_Useridx + P_Hex_Shift_Count * N_Interlock_String_ASCII_Length + 6;
+		// 첫번쨰 String 출력라인 데이터 입력
+		if( P_Idx_Count == 0 )
+		{
+			M_ASCII_Popup_Buffer_Line1(0) = Sys.Udata[User_Idx];
+			M_ASCII_Popup_Buffer_Line1(1) = Sys.Udata[User_Idx2];
+			M_ASCII_Popup_Buffer_Line1(2) = Sys.Udata[User_Idx3];
+			M_ASCII_Popup_Buffer_Line1(3) = Sys.Udata[User_Idx4];
+			M_ASCII_Popup_Buffer_Line1(4) = Sys.Udata[User_Idx5];
+			M_ASCII_Popup_Buffer_Line1(5) = Sys.Udata[User_Idx6];
+			M_ASCII_Popup_Buffer_Line1(6) = Sys.Udata[User_Idx7];
+
+			P_Idx_Count++;
+		}
+		else if( P_Idx_Count == 1 )
+		{// 두번쨰 String 출력라인 데이터 입력
+			M_ASCII_Popup_Buffer_Line2(0) = Sys.Udata[User_Idx];
+			M_ASCII_Popup_Buffer_Line2(1) = Sys.Udata[User_Idx2];
+			M_ASCII_Popup_Buffer_Line2(2) = Sys.Udata[User_Idx3];
+			M_ASCII_Popup_Buffer_Line2(3) = Sys.Udata[User_Idx4];
+			M_ASCII_Popup_Buffer_Line2(4) = Sys.Udata[User_Idx5];
+			M_ASCII_Popup_Buffer_Line2(5) = Sys.Udata[User_Idx6];
+			M_ASCII_Popup_Buffer_Line2(6) = Sys.Udata[User_Idx7];
+
+			P_Idx_Count++;
+		}
+		else if( P_Idx_Count == 2 )
+		{// 세번쨰 String 출력라인 데이터 입력
+			M_ASCII_Popup_Buffer_Line3(0) = Sys.Udata[User_Idx];
+			M_ASCII_Popup_Buffer_Line3(1) = Sys.Udata[User_Idx2];
+			M_ASCII_Popup_Buffer_Line3(2) = Sys.Udata[User_Idx3];
+			M_ASCII_Popup_Buffer_Line3(3) = Sys.Udata[User_Idx4];
+			M_ASCII_Popup_Buffer_Line3(4) = Sys.Udata[User_Idx5];
+			M_ASCII_Popup_Buffer_Line3(5) = Sys.Udata[User_Idx6];
+			M_ASCII_Popup_Buffer_Line3(6) = Sys.Udata[User_Idx7];
+
+			P_Idx_Count++;
+		}
+		else if( P_Idx_Count == 3 )
+		{// 네번쨰 String 출력라인 데이터 입력
+			M_ASCII_Popup_Buffer_Line4(0) = Sys.Udata[User_Idx];
+			M_ASCII_Popup_Buffer_Line4(1) = Sys.Udata[User_Idx2];
+			M_ASCII_Popup_Buffer_Line4(2) = Sys.Udata[User_Idx3];
+			M_ASCII_Popup_Buffer_Line4(3) = Sys.Udata[User_Idx4];
+			M_ASCII_Popup_Buffer_Line4(4) = Sys.Udata[User_Idx5];
+			M_ASCII_Popup_Buffer_Line4(5) = Sys.Udata[User_Idx6];
+			M_ASCII_Popup_Buffer_Line4(6) = Sys.Udata[User_Idx7];
+
+			P_Idx_Count++;
+		}
+		else if( P_Idx_Count == 4 )
+		{// 다섯번쨰 String 출력라인 데이터 입력
+			M_ASCII_Popup_Buffer_Line5(0) = Sys.Udata[User_Idx];
+			M_ASCII_Popup_Buffer_Line5(1) = Sys.Udata[User_Idx2];
+			M_ASCII_Popup_Buffer_Line5(2) = Sys.Udata[User_Idx3];
+			M_ASCII_Popup_Buffer_Line5(3) = Sys.Udata[User_Idx4];
+			M_ASCII_Popup_Buffer_Line5(4) = Sys.Udata[User_Idx5];
+			M_ASCII_Popup_Buffer_Line5(5) = Sys.Udata[User_Idx6];
+			M_ASCII_Popup_Buffer_Line5(6) = Sys.Udata[User_Idx7];
+
+			P_Idx_Count++;
+		}
+		else if( P_Idx_Count == 5 )
+		{// 여섯번쨰 String 출력라인 데이터 입력
+			M_ASCII_Popup_Buffer_Line6(0) = Sys.Udata[User_Idx];
+			M_ASCII_Popup_Buffer_Line6(1) = Sys.Udata[User_Idx2];
+			M_ASCII_Popup_Buffer_Line6(2) = Sys.Udata[User_Idx3];
+			M_ASCII_Popup_Buffer_Line6(3) = Sys.Udata[User_Idx4];
+			M_ASCII_Popup_Buffer_Line6(4) = Sys.Udata[User_Idx5];
+			M_ASCII_Popup_Buffer_Line6(5) = Sys.Udata[User_Idx6];
+			M_ASCII_Popup_Buffer_Line6(6) = Sys.Udata[User_Idx7];
+
+			P_Idx_Count++;
+		}
+		else if( P_Idx_Count == 6 )
+		{// 일곱번쨰 String 출력라인 데이터 입력
+			M_ASCII_Popup_Buffer_Line7(0) = Sys.Udata[User_Idx];
+			M_ASCII_Popup_Buffer_Line7(1) = Sys.Udata[User_Idx2];
+			M_ASCII_Popup_Buffer_Line7(2) = Sys.Udata[User_Idx3];
+			M_ASCII_Popup_Buffer_Line7(3) = Sys.Udata[User_Idx4];
+			M_ASCII_Popup_Buffer_Line7(4) = Sys.Udata[User_Idx5];
+			M_ASCII_Popup_Buffer_Line7(5) = Sys.Udata[User_Idx6];
+			M_ASCII_Popup_Buffer_Line7(6) = Sys.Udata[User_Idx7];
+
+			P_Idx_Count++;
+		}
+	}
+	if( P_Hex_Bit < $100000000000 )
+	{	// Hex Bit 최대 순번까지 순환전이라면.
+		P_Hex_Bit = P_Hex_Bit << 1;
+		P_Hex_Shift_Count++;
+	}
+	else
+	{	// 최대 순번까지 순환했다면. 초기화.
+		P_Interlock_Popup_On_Flag = F_False;
+		P_Hex_Bit = 1;
+		P_Hex_Shift_Count = 0;
+		P_Idx_Count = 0;
+	}
+}
+////////////////////////////////////////////////////////////////
+close

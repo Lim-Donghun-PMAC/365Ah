@@ -1,0 +1,675 @@
+//======================================================================================================
+// 프로그램 개정이력 [ 모니터링 Script ]
+//======================================================================================================
+// 25.07.02  
+// 옵저버 패턴 - [ 참조 : 25.07.02 옵저버 추가 ]
+// 1. 명령 감시 옵저버
+// 2. 진공 감시 옵저버 
+// 3. 파기 감시 옵저버
+// 자동 생산 상태 관리 프로그램 추가 [ 참조 : 2025.08.26 자동 생산 상태 관리 프로그램 추가] -김성중 선임
+// PNP Z축 레시피 관리 프로그램 추가 [ 참조 : 2025.08.27 PNP Z축 레시피 관리 프로그램 추가 ] -김성중 선임
+
+
+
+open plc 12
+
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[12].ldata.L[0]	시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[12].ldata.L[1]	시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[12].ldata.L[2]	시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[12].ldata.L[3]	타이머 초기화 플래그
+
+// 비트화 변수 삽입 
+ local L_Observe_vacuum_Bit = N_Observe_vacuum_Bit;		// Plc[12].ldata.L[4]	진공 커맨드 Local 변수 대입
+ //local L_PLC12_Vacuum_Unit_Data;						// Plc[12].ldata.L[5]	진공 커맨드 유닛 판별 변수
+ local L_Observe_Blow_Bit = N_Observe_Blow_Bit;			// Plc[12].ldata.L[6]	파기 커맨드 Local 변수 대입
+ //local L_PLC12_Blow_Unit_Data;						// Plc[12].ldata.L[7]	파기 커맨드 유닛 판별 변수
+ // Local 결과 변수
+ local L_PLC12_Cmd_Observer_rtn;						// Plc[12].ldata.L[8]	커맨드 감시 결과 변수
+ //local L_PLC12_Cmd_Status_Chk_Rtn;						// Plc[12].ldata.L[9]	커맨드 상태 체크 결과 변수
+ local L_PLC12_Cmd_Data_Chk_Rtn;						// Plc[12].ldata.L[10]	커맨드 데이터 체크 결과 변수
+ local L_PLC12_Vac_Observer_rtn;						// Plc[12].ldata.L[11]	진공 감시 결과 변수
+ local L_PLC12_Vac_Check_rtn;							// Plc[12].ldata.L[12]	진공 유닛 체크 결과 변수
+ local L_PLC12_Blow_Observer_rtn;						// Plc[12].ldata.L[13]	파기 감시 결과 변수
+ local L_PLC12_Blow_Check_rtn;							// Plc[12].ldata.L[14]	파기 유닛 체크 결과 변수
+ // Local 상태 변수
+ //local L_PLC12_Cmd_Event_Status;						// Plc[12].ldata.L[15]	커맨드 이벤트 발생 상태 변수
+ //local L_PLC12_Cmd_Data_Event_Status;					// Plc[12].ldata.L[16]	커맨드 데이터 이벤트 발생 상태변수
+ //local L_PLC12_Cmd_Update_Status;						// Plc[12].ldata.L[17]	커맨드 업데이트 상태변수
+ //local P_PLC12_vacuum_Event_Status;					// Plc[12].ldata.L[18]	진공 이벤트 발생 상태 변수
+ //local P_PLC12_vacuum_DIO_Observer_Status;			// Plc[12].ldata.L[19]	진공 입출력 감시 상태 변수
+ //local P_PLC12_Blow_Event_status;						// Plc[12].ldata.L[20]	파기 이벤트 발생 상태 변수
+ //local P_PLC12_Blow_DIO_Observer_Status;				// Plc[12].ldata.L[21]	파기 입출력 감시 상태 변수
+ //local L_Stack_Algorithme_Cmd_Event_Status;				// Plc[12].ldata.L[22]	스텍 알고리즘 상태 변수
+ // 동기화 변수
+ //local L_PLC12_Old_PMAC_Status;							// Plc[12].ldata.L[23]	PMAC 상태 업데이트 변수
+ // 변수
+ local L_PMAC_Status;									// Plc[12].ldata.L[24]	외부에서 건드릴수 없는 변수 
+ local L_Observser_MNTR_Arry(5);						// Plc[12].ldata.L[25]	외부에서 건드릴수 없는 변수 
+ local L_Old_PMAC_Status;								// Plc[12].ldata.L[26]
+ local L_Old_Queue;										// Plc[12].ldata.L[27]
+ local L_Old_Step;										// Plc[12].ldata.L[28]
+ local L_Old_Index;										// Plc[12].ldata.L[29]
+ local L_Reentry;										// Plc[12].ldata.L[30]
+
+ local L_PNP_Z_Recipe_Change;							// Plc[12].ldata.L[31]
+ local L_PNP_Z_Cnt_Read;								// Plc[12].ldata.L[32]
+ local L_PNP_Z_Count_Change;							// Plc[12].ldata.L[33]
+ local L_X_SV_Enable_Timer;								// Plc[12].ldata.L[34]	QCP Save 딜레이 Timer
+ local L_X_Trg_SV_Enable_From_PLC;						// Plc[12].ldata.L[35]
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_PLC01_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_PLC01_System_Timer;
+}
+
+// 00.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_PLC01_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{
+	L_X_SV_Enable_Timer = L_X_SV_Enable_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+//========================================================================================================================
+// Stack Algorithme 사용 MNTR
+ if( P_PLC12_Frist == 0 )
+ {	// 처음 시작 탑
+	P_PLC12_Frist = 1;
+	call stack_algorithm.Clear_(&P_Queue_stack_top);
+	call stack_algorithm.Clear_(&P_Step_stack_top);
+	call stack_algorithm.Clear_(&P_Index_stack_top);
+	call stack_algorithm.Clear_(&P_Status_stack_top);
+ }
+
+// 1차 P&P 벨트에서 극판 픽업 할 때 하강 위치에서 + 3mm 상승시 Complete 신호 송신
+// Start, Interlock 신호 해제
+
+if(P_PMAC_Current_Mode == F_Current_Automatic)
+{
+
+	if(P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence)
+	{
+		if(P_PLC11_Anode_Sheet_Pick_Up_Flag == 1)
+		{
+			//if(P_Recipe_1st_MotorNo(18) - P_Sheet_Interface_Complete_Pos <= P_Motor_Current_Pos(N_1st_PnP_AN_Z))
+			//{		
+			//	//M_Y_PLC_Anode_Sheet_Completed = 1;
+			//	P_PLC11_Anode_Sheet_Pick_Up_Flag = 0;
+			//}
+			//
+			//if(M_Y_PLC_Anode_Sheet_Completed == 1 && M_X_PLC_Anode_Sheet_Completed == 1)
+			//{
+			//	//M_Y_PLC_Anode_Sheet_Start = 0;
+			//	//M_Y_PLC_Anode_Sheet_Interlock = 1;
+			//	//M_Y_PLC_Anode_Sheet_Completed = 0;
+			//}
+		}
+	
+		if(P_PLC11_Cathode_Sheet_Pick_Up_Flag == 1)
+		{
+			if(P_Recipe_1st_MotorNo(17) - P_Sheet_Interface_Complete_Pos <= P_Motor_Current_Pos(N_1st_PnP_CA_Z))
+			{		
+				//M_Y_PLC_Cathode_Sheet_Completed = 1;
+				P_PLC11_Cathode_Sheet_Pick_Up_Flag = 0;
+			}
+	
+			//if(M_Y_PLC_Cathode_Sheet_Completed == 1 && M_X_PLC_Cathode_Sheet_Completed == 1)
+			//{
+			//	//M_Y_PLC_Cathode_Sheet_Start = 0;
+			//	//M_Y_PLC_Cathode_Sheet_Interlock = 1;
+			//	//M_Y_PLC_Cathode_Sheet_Completed = 0;
+			//}
+		}
+	
+	}
+
+
+	// 연속 NG
+	// 음극 얼라인 연속 NG
+	if(P_Continuous_Call_Align_OK_Flag(N_Anode_Unit - 1) == 1)
+	{
+		call Continuous_NG.Anode_Align_NG(N_Inspection_OK, P_Anode_Align_Continuous_NG_Check_Range);
+	}
+	else if(P_Continuous_Call_Align_NG_Flag(N_Anode_Unit - 1) == 1 || P_Continuous_Call_Align_TimeOut_Flag(N_Anode_Unit - 1) == 1)
+	{
+		call Continuous_NG.Anode_Align_NG(N_Inspection_NG, P_Anode_Align_Continuous_NG_Check_Range);
+	}
+
+	// 양극 얼라인 연속 NG
+	if(P_Continuous_Call_Align_OK_Flag(N_Cathode_Unit - 1) == 1)
+	{
+		call Continuous_NG.Cathode_Align_NG(N_Inspection_OK, P_Cathode_Align_Continuous_NG_Check_Range);
+	}
+	else if(P_Continuous_Call_Align_NG_Flag(N_Cathode_Unit - 1) == 1 || P_Continuous_Call_Align_TimeOut_Flag(N_Cathode_Unit - 1) == 1)
+	{
+		call Continuous_NG.Cathode_Align_NG(N_Inspection_NG, P_Cathode_Align_Continuous_NG_Check_Range);
+	}
+
+	// 음극 표면검사 연속 NG
+	if(P_Continuous_Call_Surface_OK_Flag(N_Anode_Unit - 1) == 1)
+	{
+		call Continuous_NG.Anode_Surface_NG(N_Inspection_OK, P_Anode_Surface_Continuous_NG_Check_Range);
+	}
+	else if(P_Continuous_Call_Surface_NG_Flag(N_Anode_Unit - 1) == 1 || P_Continuous_Call_Surface_TimeOut_Flag(N_Anode_Unit - 1) == 1)
+	{
+		call Continuous_NG.Anode_Surface_NG(N_Inspection_NG, P_Anode_Surface_Continuous_NG_Check_Range);
+	}
+
+	// 양극 표면검사 연속 NG
+	if(P_Continuous_Call_Surface_OK_Flag(N_Cathode_Unit - 1) == 1)
+	{
+		call Continuous_NG.Cathode_Surface_NG(N_Inspection_OK, P_Cathode_Surface_Continuous_NG_Check_Range);
+	}
+	else if(P_Continuous_Call_Surface_NG_Flag(N_Cathode_Unit - 1) == 1 || P_Continuous_Call_Surface_TimeOut_Flag(N_Cathode_Unit - 1) == 1)
+	{
+		call Continuous_NG.Cathode_Surface_NG(N_Inspection_NG, P_Cathode_Surface_Continuous_NG_Check_Range);
+	}
+
+	// 스택 연속 NG
+	if(P_Continuous_Call_Stack_Flag(N_Inspection_OK - 1) == 1)
+	{
+		call Continuous_NG.Stack_Table_NG(N_Inspection_OK, P_Stack_Continuous_NG_Check_Range);
+	}
+	else if(P_Continuous_Call_Stack_Flag(N_Inspection_NG - 1) == 1 || P_Continuous_Call_Stack_Flag(N_Inspection_TimeOut - 1) == 1)
+	{
+		call Continuous_NG.Stack_Table_NG(N_Inspection_NG, P_Stack_Continuous_NG_Check_Range);
+	}
+}
+
+// 모션, PLC04번에서 내보내는 루프와 비전측 촬상 루프 카운트 비교 Test
+
+if(P_Vision_Anode_Trigger_Count_Reset_Complete_Flag == 1 && P_Vision_Anode_Trigger_Count_Reset_Flag == 1)
+{
+	P_Vision_Anode_Trigger_Count_Reset_Complete_Flag = 0;
+	P_Vision_Anode_Trigger_Count_Reset_Flag = 0;
+	P_Anode_Trigger_IO_Test_Vision_PLC_Loop = 0;
+	P_Anode_Trigger_IO_Test_Motion_Loop = 0;
+}
+
+if(P_Vision_Cathode_Trigger_Count_Reset_Complete_Flag == 1 && P_Vision_Cathode_Trigger_Count_Reset_Flag == 1)
+{
+	P_Vision_Cathode_Trigger_Count_Reset_Complete_Flag = 0;
+	P_Vision_Cathode_Trigger_Count_Reset_Flag = 0;
+	P_Cathode_Trigger_IO_Test_Vision_PLC_Loop = 0;
+	P_Cathode_Trigger_IO_Test_Motion_Loop = 0;
+} 
+
+if(P_Vision_Stack_Trigger_Count_Reset_Complete_Flag == 1 && P_Vision_Stack_Trigger_Count_Reset_Flag == 1)
+{
+	P_Vision_Stack_Trigger_Count_Reset_Complete_Flag = 0;
+	P_Vision_Stack_Trigger_Count_Reset_Flag = 0;
+	P_Stack_Trigger_IO_Test_Vision_PLC_Loop = 0;
+	P_Stack_Trigger_IO_Test_Motion_Loop = 0;
+}
+
+
+//====================================================================================================
+//Execute Management 
+//====================================================================================================	
+//-------------------------------------------------------
+// 1. 메모리 관리 프로그램 
+//-------------------------------------------------------
+if ( P_SM_Status_Main_Memory_Management == 0 )
+{
+	// 초기화
+	P_SM_Cell_Memory_Management = 0;			// 극판 현황 메모리 관리
+	P_SM_Auto_Run_Status_Management = 0;		// 설비 상태 메모리 관리
+	
+	// 프로그램 시작 조건 (항시) 
+	if ( P_PMAC_Current_Mode == F_Current_Automatic || P_PMAC_Current_Mode == F_Current_Manual )
+	{
+		P_SM_Status_Main_Memory_Management++;
+	}	
+}
+// 명령 대기 (시작)
+if ( P_SM_Status_Main_Memory_Management == 1 )
+{
+	P_SM_Status_Main_Memory_Management++;
+}
+if ( P_SM_Status_Main_Memory_Management == 2 )
+{
+	if ( P_SM_Cell_Memory_Management == 0 )
+	{
+		P_SM_Cell_Memory_Management = 1;			// 극판 메모리 관리 실행 
+	}
+	P_SM_Status_Main_Memory_Management++;
+}
+// 자동 생산 상태 관리 프로그램 시작
+if ( P_SM_Status_Main_Memory_Management == 3 )
+{
+	if ( P_SM_Auto_Run_Status_Management == 0 )
+	{
+		P_SM_Auto_Run_Status_Management = 1;		// 여기서 자동 상태 관리 프로그램 실행 
+	}
+	P_SM_Status_Main_Memory_Management++;
+}
+// 리턴 (메모리 관리 프로그램 종료 감시)
+if ( P_SM_Status_Main_Memory_Management == 4 )
+{
+	// 메모리 관리 프로그램 종료
+	if ( P_PMAC_Current_Mode != F_Current_Automatic && P_PMAC_Current_Mode != F_Current_Manual )
+	{
+		P_SM_Status_Main_Memory_Management = 0;
+	}
+	// 조건이 아닐 경우
+	else 
+	{
+		P_SM_Status_Main_Memory_Management = 1;	
+	}
+}
+
+//-------------------------------------------------------
+// 1 모드 관리 프로그램
+//-------------------------------------------------------
+if ( P_SM_Auto_Run_Status_Management == 0 )
+{
+
+}
+// 1.2.1. 어떤 모드 상태 인지
+if ( P_SM_Auto_Run_Status_Management == 1 )
+{
+	//[ 참조 : 25.07.04 버튼 관리 추가 ]
+	if ( P_PMAC_Current_Mode == F_Current_Manual && P_Stack_Judgement_Memory != 1 )		// 메뉴얼 모드 일 때, 젤리롤 없을때만 변경 가능 (시점은 추후 추가)
+	{	
+		if(P_BTN_Sepa_Stack_Mode == 1 && P_BTN_Dryrun_Mode == 1)	// 0) 사용자 세파모드, 드라이런 모드가 동시에 눌린다면,
+		{
+			// 둘다 눌려져있으면 알람발생!
+		}
+		else												// 0.1) 사용자 세파모드, 드라이런 모드가 동시에 눌리지 않았다면,
+		{
+			if ( P_BTN_Sepa_Stack_Mode == 1 )				// 1) 사용자 세파모드 버튼이 눌렸다면,
+			{
+				P_Com_User_Sepa_Consume_Mode_Flag = 1;		// → 사용자 세파모드 Flag ON
+			}
+			else											// 1.1) 사용자 세파모드 버튼이 눌리지 않았다면,
+			{
+				P_Com_User_Sepa_Consume_Mode_Flag = 0;		// → 사용자 세파모드 Flag OFF							
+			}
+		
+			if ( P_BTN_Dryrun_Mode == 1 )					// 2) 드라이런 모드 버튼이 눌렸다면,
+			{
+				P_Com_Dry_Mode_Flag = 1;					// → 드라이런 모드 Flag ON
+			}
+			else											// 2.1) 드라이런 모드 버튼이 눌리지 않았다면,
+			{
+				P_Com_Dry_Mode_Flag = 0;					// → 드라이런 모드 Flag OFF
+			}
+	
+			call Sub_Common_Function.Mode_Flag_Check();		// [ 참조 : 25.07.04 모드 체크 함수 추가 ] - Mode Flag 감시 및 버퍼 모드 결정, 적층 계속 진행 여부 결정
+		}
+		//고객사 요청으로 모션 슬레이브 다운 알람 시 팝업 창
+		if( P_Coord_Motion_Prog_Down_Entering_Bit == 0 )		// 매뉴얼 상태이면서 리셋버튼 눌러야지 초기화
+		{
+			P_Minus_Limit_Detect_Popup_Flag = 0;
+			P_Plus_Limit_Detect_Popup_Flag = 0;
+			P_Fatal_Fe_Limit_Detect_Popup_Flag = 0;
+		}
+	}
+	P_SM_Auto_Run_Status_Management++;
+}
+// 리턴 
+if ( P_SM_Auto_Run_Status_Management == 2 )
+{
+	P_SM_Auto_Run_Status_Management = 1;
+}
+
+
+ // Observer MNTR =====================================================================================================================================================
+ // 1. Command Stop or Abort 옵저버
+	L_PLC12_Cmd_Observer_rtn = 0;
+	//								↓  커맨드 감시 , private 상태 변수 , 결과값 
+	call Pattern_Funtion.Observer(P_Old_PMAC_Commands,&L_PMAC_Status,&L_PLC12_Cmd_Observer_rtn);									// Stop Command or Abort 검사
+	if( L_PLC12_Cmd_Observer_rtn == N_TRUE )
+	{
+		//L_PLC12_Cmd_Event_Status = F_Status_STARTING;																				// Stop Command 없으면 MNTR 시작
+		P_Stack_Algorithme_Cmd_Event_Status = F_Status_STARTING;																	// Stack 알고리즘 상태 시작
+	}
+	else
+	{
+		//L_PLC12_Cmd_Event_Status = F_Status_STOPPING;																				// Stop Command 있으면 MNTR 중지
+		//L_PLC12_Cmd_Data_Event_Status = F_Status_STOPPING;																		// Stop Command 있으면 MNTR 중지
+		P_Stack_Algorithme_Cmd_Event_Status = F_Status_STOPPING;																	// stack 알고리즘 상태 중지
+	}
+
+
+// 2. 진공 옵저버 
+	L_PLC12_Vac_Observer_rtn = 0;
+	//								↓ 흡착 커맨드 , 흡착 데이터 인풋 , 흡착 데이터 아웃풋, 결과값
+	call Pattern_Funtion.Vac_Observer(L_Observe_vacuum_Bit,P_PLC12_Vacuum_Unit_Data,&P_PLC12_Vacuum_Unit_Data,&L_PLC12_Vac_Observer_rtn);	// vacuum 감시
+	if( L_PLC12_Vac_Observer_rtn == N_TRUE )
+	{
+		// 모듈 실행
+		P_PLC12_vacuum_Event_Status = F_Status_STARTING;																					// vacuum MNTR 실행
+	}
+	else
+	{
+		P_PLC12_vacuum_Event_Status = F_Status_STOPPING;																					// vacuum MNTR 중지
+	}
+// 3. 파기 옵저버 
+	L_PLC12_Blow_Observer_rtn = 0;
+	//								↓ 파기 커맨드 , 파기 데이터 인풋 , 파기 데이터 아웃풋, 결과값
+	call Pattern_Funtion.Blow_Observer(L_Observe_Blow_Bit,P_PLC12_Blow_Unit_Data,&P_PLC12_Blow_Unit_Data,&L_PLC12_Blow_Observer_rtn);			// Blow 감시
+	if( L_PLC12_Blow_Observer_rtn == N_TRUE )
+	{
+		// 모듈 실행
+		P_PLC12_Blow_Event_status = F_Status_STARTING;																						// Blow MNTR 실행
+	}
+	else
+	{
+		P_PLC12_Blow_Event_status = F_Status_STOPPING;																						// Blow MNTR 중지
+	}
+
+ //======================================================================================================================================================================
+
+ // Status Event MNTR====================================================================================================================================================
+ if( P_Stack_Algorithme_Cmd_Event_Status == F_Status_STARTING )																				// Status Event MNTR 시작
+ {
+	if( L_Reentry == 1 )
+	{
+		call stack_algorithm.Clear_(&P_Queue_stack_top);
+		call stack_algorithm.Clear_(&P_Step_stack_top);
+		call stack_algorithm.Clear_(&P_Index_stack_top);
+		call stack_algorithm.Clear_(&P_Status_stack_top);
+	}
+	L_Reentry = 0;
+	call Pattern_Funtion.Data_Check_(NN_Status,NN_Queue,&NN_Step,&NN_Index);
+	if( L_PMAC_Status != L_Old_PMAC_Status )																						// 상태가 변할때 
+	{																
+		call stack_algorithm.Push( N_Circulation,MAX_Size,P_Status_stack_top,&P_Status_stack_top,NN_Status,P_Status_arry(P_Status_stack_top),&P_Status_arry(P_Status_stack_top) );
+		L_Old_PMAC_Status = NN_Status;																							
+	}
+
+	if( NN_Queue != L_Old_Queue )
+	{
+		call stack_algorithm.Push( N_Circulation,MAX_Size,P_Queue_stack_top,&P_Queue_stack_top,NN_Queue,P_Queue_arry(P_Queue_stack_top),&P_Queue_arry(P_Queue_stack_top) );
+		L_Old_Queue = NN_Queue;	
+	}
+
+	if( NN_Step != L_Old_Step )
+	{
+		call stack_algorithm.Push( N_Circulation,MAX_Size,P_Step_stack_top,&P_Step_stack_top,NN_Step,P_Step_arry(P_Step_stack_top),&P_Step_arry(P_Step_stack_top) );
+		L_Old_Step = NN_Step;
+	}
+
+	if( NN_Index != L_Old_Index )
+	{
+		call stack_algorithm.Push( N_Circulation,MAX_Size,P_Index_stack_top,&P_Index_stack_top,NN_Index,P_Index_arry(P_Index_stack_top),&P_Index_arry(P_Index_stack_top) );
+		L_Old_Index = NN_Index;
+	}
+ }
+ else if( P_Stack_Algorithme_Cmd_Event_Status == F_Status_STOPPING && L_Reentry == 0 )
+ {
+	call stack_algorithm.Pop( P_Status_stack_top, &P_Status_stack_top,P_Status_arry(P_Status_stack_top),&P_PLC_Observser_MNTR(N_Status)		);
+	call stack_algorithm.Pop( P_Queue_stack_top, &P_Queue_stack_top,P_Queue_arry(P_Queue_stack_top),	&P_PLC_Observser_MNTR(N_Queue_Data)	);
+	call stack_algorithm.Pop( P_Step_stack_top, &P_Step_stack_top,P_Step_arry(P_Step_stack_top),		&P_PLC_Observser_MNTR(N_Step_Data)	);
+	call stack_algorithm.Pop( P_Index_stack_top, &P_Index_stack_top,P_Index_arry(P_Index_stack_top),	&P_PLC_Observser_MNTR(N_Index_Data)	);
+	L_Reentry++;
+ }
+
+ //======================================================================================================================================================================
+
+ // vacuum Event MNTR====================================================================================================================================================
+ if( P_PLC12_vacuum_Event_Status == F_Status_STARTING )																// vacuum Event MNTR 시작
+ {
+	L_PLC12_Vac_Check_rtn = 0;																						// 결과변수 초기화
+	call Pattern_Funtion.vacuum_Check(P_PLC12_Vacuum_Unit_Data,&L_PLC12_Vac_Check_rtn);								// 베큠 체크 함수 호출
+	if( L_PLC12_Vac_Check_rtn == N_TRUE )
+	{
+		P_PLC12_vacuum_DIO_Observer_Status = F_Status_STARTING;														// 진공 DIO MNTR 시작
+	}
+	else
+	{
+		P_PLC12_vacuum_DIO_Observer_Status = F_Status_STOPPING;														// 진공 DIO MNTR 중지
+	}
+ }
+ //======================================================================================================================================================================
+
+ // Blow Event MNTR====================================================================================================================================================
+ if( P_PLC12_Blow_Event_status == F_Status_STARTING )																// vacuum Event MNTR 시작
+ {
+	L_PLC12_Blow_Check_rtn = 0;																						// 결과변수 초기화
+	call Pattern_Funtion.Blow_Check(P_PLC12_Blow_Unit_Data,&L_PLC12_Blow_Check_rtn);								// 파기 체크 함수 호출
+	if( L_PLC12_Blow_Check_rtn == N_TRUE )
+	{
+		P_PLC12_Blow_DIO_Observer_Status = F_Status_STARTING;														// 진공 DIO MNTR 시작
+	}
+	else
+	{
+		P_PLC12_Blow_DIO_Observer_Status = F_Status_STOPPING;														// 진공 DIO MNTR 중지
+	}
+ }
+ //======================================================================================================================================================================
+
+ // Vac Data Event MNTR==================================================================================================================================================
+ if( P_PLC12_vacuum_DIO_Observer_Status == F_Status_STARTING )														// 진공 DIO MNTR 시작
+ {
+	call Pattern_Funtion.Vac_Data_Check(P_PLC12_Vacuum_Unit_Data,&P_PLC12_Vacuum_Unit_Data);							// Data DIO MNTR 함수
+ }
+ //======================================================================================================================================================================
+
+ // Blow Data Event MNTR==================================================================================================================================================
+ if( P_PLC12_Blow_DIO_Observer_Status == F_Status_STARTING )														// 파기 DIO MNTR 시작
+ {
+	call Pattern_Funtion.Blow_Data_Check(P_PLC12_Blow_Unit_Data,&P_PLC12_Blow_Unit_Data);										// Data DIO MNTR 함수
+ }
+ //======================================================================================================================================================================
+
+// 홀드 에러 모니터링
+// HOLD 메모리타워 에러
+if(P_Hold_Err_MNTR(N_Memory_Tower_Err) == 1)
+{
+	P_Hold_Err_MNTR(N_Memory_Tower_Err)++
+	if( P_DataList(N_Elec) == Hex_Cathode_Unit )
+	{
+		if( P_DataList(N_Obj) & Hex_1stPNP )
+		{
+			P_Hold_Memory_Tower_Err_Pos(F_Cathode_1st_PNP) = P_Cathode_1st_Unit_Status
+		}
+		if( P_DataList(N_Obj) & Hex_2ndPNP )
+		{
+			P_Hold_Memory_Tower_Err_Pos(F_Cathode_2nd_PNP) = P_Cathode_2nd_Unit_Status
+		}
+		if( P_DataList(N_Obj) & Hex_NgPNP )
+		{
+			P_Hold_Memory_Tower_Err_Pos(F_Cathode_NG_PNP) = P_Cathode_NG_Unit_Status
+		}
+	}
+	else if( P_DataList(N_Elec) == Hex_Anode_Unit )
+	{
+		if( P_DataList(N_Obj) & Hex_An_1stPNP )
+		{
+			P_Hold_Memory_Tower_Err_Pos(F_Anode_1st_PNP) = P_Anode_1st_Unit_Status
+		}
+		if( P_DataList(N_Obj) & Hex_An_2ndPNP )
+		{
+			P_Hold_Memory_Tower_Err_Pos(F_Anode_2nd_PNP) = P_Anode_2nd_Unit_Status
+		}
+		if( P_DataList(N_Obj) & Hex_An_NgPNP )
+		{
+			P_Hold_Memory_Tower_Err_Pos(F_Anode_NG_PNP) = P_Anode_NG_Unit_Status
+		}	
+	}
+}
+else if(P_Hold_Err_MNTR(N_Hold_Data_Err) == 1)
+{
+	P_Hold_Err_MNTR(N_Hold_Data_Err)++
+	P_Hold_Err_Data_Save(N_Obj) = P_DataList(N_Obj) 	
+	P_Hold_Err_Data_Save(N_Cmd) = P_DataList(N_Cmd) 
+	P_Hold_Err_Data_Save(N_Dst) = P_DataList(N_Dst) 
+	P_Hold_Err_Data_Save(N_Cur) = P_DataList(N_Cur) 
+	P_Hold_Err_Data_Save(N_Elec) = P_DataList(N_Elec)
+	P_Hold_Err_Data_Save(N_Hold_Data) = P_Hold_Get_Data
+
+	P_HOLD_Data_Err_Queue = P_Process_Function_Command 
+	if( P_HOLD_Data_Err_Queue == N_Function_Hold_Existence_Insp_Process )
+	{
+		P_HOLD_Data_Err_State_Machine = P_HOLD_Existence_Insp_Queue_State_Machine		// 에러 발생한 스탭 저장
+		P_HOLD_Err_Set_Data = P_Data_Idx												// 몇번째 set data에서 문제가 생겼는지 파악
+	}
+	else if( P_HOLD_Data_Err_Queue == N_Function_Hold_Process )
+	{
+		P_HOLD_Data_Err_State_Machine = P_HOLD_Hold_Process_State_Machine				// 에러 발생한 스탭 저장
+		P_HOLD_Err_Set_Data = P_Data_Idx												// 몇번째 set data에서 문제가 생겼는지 파악
+	}
+}
+// HOLD Data 에러 or 모션 타임아웃
+else if (P_Hold_Err_MNTR(N_Hold_Action_Err) == 1)
+{
+	P_Hold_Err_MNTR(N_Hold_Action_Err)++
+	P_Hold_Err_Action_Data_Save(N_Obj) = P_DataList(N_Obj) 	
+	P_Hold_Err_Action_Data_Save(N_Cmd) = P_DataList(N_Cmd) 
+	P_Hold_Err_Action_Data_Save(N_Dst) = P_DataList(N_Dst) 
+	P_Hold_Err_Action_Data_Save(N_Cur) = P_DataList(N_Cur) 
+	P_Hold_Err_Action_Data_Save(N_Elec) = P_DataList(N_Elec)
+	P_Hold_Err_Action_Data_Save(N_Hold_Data) = P_Hold_Get_Data
+}
+
+//=========================================================================================================================
+//PNP Z축 레시피 관리 프로그램					//[ 참조 : 2025.08.27 PNP Z축 레시피 관리 프로그램 추가 ]
+//=========================================================================================================================
+// [ UI → PMAC ]
+if ( P_PMAC_Current_Mode == F_Current_Manual )								//메뉴얼일 경우
+{
+	L_PNP_Z_Recipe_Change = 0;
+	call Initialize.PNP_Z_Axis_Recipe_Monitoring(&L_PNP_Z_Recipe_Change);	//Z축 PNP 레시피 변경 모니터링 함수 
+	if( L_PNP_Z_Recipe_Change == 1 )										//Z축 PNP 레시피 변경 없을 경우 True
+	{
+		//Z축 PNP 레시피 변경이 되지 않았기 때문에 패스 
+	}
+	else if ( L_PNP_Z_Recipe_Change == 0 )									//Z축 PNP 레시피 변경되었을 경우 True
+	{
+		call Initialize.PNP_Z_Axis_Recipe_to_Cnt(&L_PNP_Z_Cnt_Read);		//모터 위치 레시피에 따른 모터 카운트 계산 함수 호출	
+		if(L_PNP_Z_Cnt_Read == 1)											//모터 카운트 값 계산 완료 
+		{
+			L_PNP_Z_Cnt_Read = 0;
+		}
+	}
+}
+//=========================================================================================================================
+// [ PMAC → UI ]
+if ( P_PMAC_Current_Mode == F_Current_Manual || P_PMAC_Current_Mode == F_Current_Automatic )	//메뉴얼, 오토 상태일 경우 
+{
+	L_PNP_Z_Count_Change = 0;
+	call Initialize.PNP_Z_Axis_Cnt_to_Recipe(&L_PNP_Z_Count_Change)								//모터 카운트 → 레시피 값 전환 함수 호출
+	if ( L_PNP_Z_Count_Change == 1 )															//리턴값 True
+	{
+		L_PNP_Z_Count_Change = 0;																//리턴값 초기화
+	}
+}
+// 삼각함수 및 제곱근 계산은 C 컴파일로 미리 읽어 부하율 감소 [ 참조 : CPU 최적화 진행 ]
+// cfromscript ( type, Unit, 변수주소 )
+//P_Anode_1st_PNP_Z_Real_Move_Pos		= cfromscript(Crank_Cal_type,N_Clamp_AN_Z1,&P_Motor_Current_Pos(N_Clamp_AN_Z1),0,0,0,0);
+//P_Cathode_1st_PNP_Z_Real_Move_Pos	= cfromscript(Crank_Cal_type,N_Clamp_CA_Z1,&P_Motor_Current_Pos(N_Clamp_CA_Z1),0,0,0,0);
+//P_Anode_2nd_PNP_Z_Real_Move_Pos		= cfromscript(Crank_Cal_type,N_Clamp_AN_Z2,&P_Motor_Current_Pos(N_Clamp_AN_Z2),0,0,0,0);
+//P_Cathode_2nd_PNP_Z_Real_Move_Pos	= CfromScript(Crank_Cal_type,N_Clamp_CA_Z2,&P_Motor_Current_Pos(N_Clamp_CA_Z2),0,0,0,0);
+//====================================================================================================
+
+// 드라이런 후 리셋팅 부 홈 재 접속
+if( P_Stop_CycleStop_Position == N_Equipment_Initial_Ready_Pos )								// 드라이런 후 리셋팅 시 
+{
+	P_Stop_CycleStop_Position = 0;																// 초기화
+	P_PMAC_Homing_CHK(1),48 = 0;																// 모터 홈 상태 초기화.
+	P_Stack_Judgement_Memory = 0;																// HOME RESET 버튼 추가.
+}
+
+// 마지막 공정 시 초기화 부분에서 스텍비전이 카운팅 되는 부분이 생겨 버퍼를 초기화 시켜주는 란
+// 초기화를 하지 않아야 한다면, 스텍비전 부분에서 마지막 공정부분을 봐주면 될듯싶다.
+if( P_PLC12_Continuous_Buffer_Reset_Flag == 1)
+{
+	P_PLC12_Continuous_Buffer_Reset_Flag = 0;					// 초기화
+	P_Anode_Align_NG_Array(0),N_Queue_Max_Size = 0;				// 음극 얼라인 NG 횟수 초기화 
+	P_Cathode_Align_NG_Array(0),N_Queue_Max_Size = 0;			// 양극 얼라인 NG 횟수 초기화 
+	P_Anode_Surface_NG_Array(0),N_Queue_Max_Size = 0;				// 음극 리트라이 NG 횟수 초기화
+	P_Cathode_Surface_NG_Array(0),N_Queue_Max_Size = 0;			// 양극 리트라이 NG 횟수 초기화
+	P_Stack_NG_Array(0),N_Queue_Max_Size = 0;					// 스텍 비전 NG 횟수 초기화
+}
+
+// QCP Save Data [ 참조 : 2025.10.29 미비사항 추가 건 ]
+if( M_X_Trg_SV_Enable_From_PLC == N_TRUE && L_X_Trg_SV_Enable_From_PLC == 0 )		// 버튼이 눌렸을 시
+{
+	L_X_SV_Enable_Timer = 0;														// 타이머 초기화
+	L_X_Trg_SV_Enable_From_PLC = N_TRUE;											// 재진입 방지
+	M_Y_Trg_SV_Receive_Complete_To_PLC = N_TRUE;									// Save Qcp 요청 받음 신호 On
+}
+else if( M_X_Trg_SV_Enable_From_PLC == 0 && L_X_Trg_SV_Enable_From_PLC == N_TRUE )	// 신호가 꺼졌을 시 재진입 방지 변수가 on되었다면
+{
+	L_X_Trg_SV_Enable_From_PLC = 0;													// 재진입 방지 변수 off
+}
+if( M_Y_Trg_SV_Receive_Complete_To_PLC == N_TRUE )
+{
+	if( L_X_SV_Enable_Timer > 100 )
+	{
+		P_SV_Read_Enable_Flag = 0;													// 읽기 허가 플래그 on
+		M_Y_Trg_SV_Receive_Complete_To_PLC = 0;										// 출력신호 off
+	}
+}
+
+// PLC Trans IN , OUT OFF	→ Monitoring prog에서 OFF 시키자. [ 참조 : Trans IN, OUT 시점 추가 ]
+if( M_X_PLC_Trans_IN_Ack == N_TRUE )
+	M_Y_PLC_Trans_IN_Signal = 0;
+//if( M_X_PLC_Trans_OUT_Ack == N_TRUE )		// 트랜스 아웃 신호 필요 없다고 함.
+//	M_Y_PLC_Trans_OUT_Signal = 0;
+
+close
+
+/*	Stack 알고리즘 사용으로 변경함
+ // Status Event MNTR====================================================================================================================================================
+ if( L_PLC12_Cmd_Event_Status == F_Status_STARTING )																				// Status Event MNTR 시작
+ {
+	if( L_PMAC_Status != L_PLC12_Old_PMAC_Status )																						// 상태가 변할때 
+	{
+		L_PLC12_Cmd_Status_Chk_Rtn = 0;																								// 결과 변수 초기화
+		call Pattern_Funtion.Status_Check(L_PMAC_Status,&L_Observser_MNTR_Arry(N_Status),&L_PLC12_Cmd_Status_Chk_Rtn);				// 상태 체크 변수 
+		if( L_PLC12_Cmd_Status_Chk_Rtn == N_TRUE )
+			L_PLC12_Cmd_Data_Event_Status = F_Status_STARTING;																		// Data Event MNTR 시작
+		else
+			L_PLC12_Cmd_Data_Event_Status = F_Status_STOPPING;																		// Data Event MNTR 중지
+
+		L_PLC12_Old_PMAC_Status = L_PMAC_Status;																							// Privit 상태 변수 동기화
+	}
+ }
+ //======================================================================================================================================================================
+
+ // Data Event MNTR======================================================================================================================================================
+ if( L_PLC12_Cmd_Data_Event_Status == F_Status_STARTING )															// Data Event MNTR 시작
+ {
+	L_PLC12_Cmd_Data_Chk_Rtn = 0;
+	call Pattern_Funtion.Data_Check(L_Observser_MNTR_Arry(N_Status),&L_Observser_MNTR_Arry(N_Queue_Data),&L_Observser_MNTR_Arry(N_Step_Data),&L_Observser_MNTR_Arry(N_Index_Data),&L_PLC12_Cmd_Data_Chk_Rtn);	// 데이터 함수 호출 
+	if( L_PLC12_Cmd_Data_Chk_Rtn == N_TRUE )
+	{
+		L_PLC12_Cmd_Update_Status = F_Status_STARTING;																// 업데이트 시작
+	}
+	else
+	{
+		L_PLC12_Cmd_Update_Status = F_Status_STOPPING;																// 업데이트 중지
+	}
+ }
+ //======================================================================================================================================================================
+
+  // Data Update MNTR====================================================================================================================================================
+ if( L_PLC12_Cmd_Update_Status == F_Status_STARTING )																// Data Update 시작
+ {
+	P_PLC12_Observser_MNTR(N_Status) = L_Observser_MNTR_Arry(N_Status);												// Monitoring (P변수) 상태 업데이트
+	P_PLC12_Observser_MNTR(N_Queue_Data) = L_Observser_MNTR_Arry(N_Queue_Data);										// Monitoring (P변수) 큐 업데이트
+	P_PLC12_Observser_MNTR(N_Step_Data) = L_Observser_MNTR_Arry(N_Step_Data);										// Monitoring (P변수) 스텝 업데이트
+	P_PLC12_Observser_MNTR(N_Index_Data) = L_Observser_MNTR_Arry(N_Index_Data);										// Monitoring (P변수) 모듈화 Index 업데이트
+ }
+ //======================================================================================================================================================================
+
+*/

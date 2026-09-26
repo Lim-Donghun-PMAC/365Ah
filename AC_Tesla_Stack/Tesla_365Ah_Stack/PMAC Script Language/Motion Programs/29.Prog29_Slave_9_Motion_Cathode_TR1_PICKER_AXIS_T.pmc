@@ -1,0 +1,47 @@
+// 1차 PNP 피커 T축 좌표계 분리
+
+//&29
+//#19-> 1000pp	// 양극 1차 PNP 피커 T축
+//===============//
+
+
+
+open prog 29				//PickerT PNP좌표계에 묶음으로 인하여 기존 모션 주석처리. [ 참조 : 26.08.14 PickerT 모션 변경 ]	
+	
+	//inc					// 절대좌표모드
+	//LINEAR
+	//
+	//while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(9) == 1 && P_Slave_Motion_Program_Flag(9) == 1 )
+	//{	// 프로그램 허용 플래그
+	//	
+	//	Switch ( P_Slave9_Motion_Command )
+	//	{	
+	//		// 커멘드별 모션
+	//		case 0:
+	//		break;
+	//
+	//		// case 1
+	//		case N_1st_Picker_Turn :			// Picker 진입 시 180도 회전
+	//			P_Cathode_Picker_Turn = P_Master_Motion_Trigger
+	//			P_Slave9_Motion_Command = 0;
+	//			P_First_PNP_Picker_T_Turn_Status == F_Status_EXECUTE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+	//			linear
+	//			//tm(120) ta(90) ts(15)
+	//			//tm(90) ta(65) ts(10)		//170
+	//			tm(90) ta(40) ts(35)		//170
+	//			pp(-180)
+	//			dwell(0)
+	//			P_Cathode_1st_Picker_Motion_Complete == 1;
+	//			P_First_PNP_Picker_T_Turn_Status == F_Status_COMPLETE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+	//			dwell(0)
+	//		break;
+	//
+	//		default :
+	//
+	//		break;
+	//
+	//	}
+	//
+	//}
+
+close

@@ -1,0 +1,43 @@
+// 1차 PNP 피커 T축 좌표계 분리
+
+&22
+#20-> 1000pp	// 음극 1차 PNP 피커 T축
+//===============//
+
+
+
+open prog 22
+	
+	inc					// 절대좌표모드
+	LINEAR
+	
+	while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(2) == 1 && P_Slave_Motion_Program_Flag(2) == 1 )
+	{	// 프로그램 허용 플래그
+		
+		Switch ( P_Slave2_Motion_Command )
+		{	
+			// 커멘드별 모션
+			case 0:
+			break;
+
+			// case 1
+			case N_1st_Picker_Turn :			// Picker 진입 시 180도 회전
+				P_Slave2_Motion_Command == 0
+				linear
+				//tm(120) ta(90) ts(15)
+				tm(90) ta(65) ts(10)		//170
+				pp(-180)
+				dwell(0)
+				P_Anode_1st_Picker_Motion_Complete == 1
+				dwell(0)
+			break;
+
+			default :
+
+			break;
+
+		}
+
+	}
+
+close

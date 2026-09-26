@@ -1,0 +1,598 @@
+//======================================================================================================
+// 프로그램 개정이력 
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+// [ 2025.06.24 추가 ]
+
+open subprog Sub_Common_Function(void)
+
+
+// 모션 프로그램 On
+sub: Master_Motion_Program_On(&rtn)
+	P_Sub_Master_Motion_Program_Flag(0),F_Type_Coord_EA = 1;
+	P_Slave_Motion_Program_Flag(0),F_Type_Coord_EA = 1;			
+	P_Master_Motion_Program_Flag = 1;									// 마스터 플래그
+	P_PLC01_STOP_Queue_Complete_Flag = 0;	
+	rtn = F_TRUE;
+return
+
+// 모션 프로그램 Off
+Sub: Master_Motion_Program_OFF(&Master_Motion_Program_OFF_Rtn)
+	Master_Motion_Program_OFF_Rtn = 0;
+
+	P_Sub_Master_Motion_Program_Flag(0),F_Type_Coord_EA = 0;	//언로더,NG PNP
+	P_Slave_Motion_Program_Flag(0),F_Type_Coord_EA = 0;			// 슬레이브 플래그
+	P_Master_Motion_Program_Flag = 0;
+
+	Master_Motion_Program_OFF_Rtn = F_TRUE;		
+return
+
+// 타임베이스 On
+sub: Timebase_On(&rtn)
+	rtn = 0
+	local L_Index = 1;
+	Coord[1].pDesTimeBase = Coord[1].DesTimeBase.a;
+	while(L_Index < Sys.MaxCoords)
+	{
+		Coord[L_Index].pDesTimeBase = Coord[1].DesTimeBase.a;
+		L_Index++;
+	}
+	rtn = F_TRUE;
+	// 나머지 좌표계 입력
+return
+
+// 타임베이스 off
+Sub: Timbase_OFF(&rtn)
+	local L_Index = 1;
+	while( L_Index < Sys.MaxCoords )
+	{
+		Coord[L_Index].pDesTimeBase = Coord[L_Index].DesTimeBase.a;
+		L_Index++;
+	}
+	rtn = F_TRUE;
+return
+
+sub: Monitoring_Lamp_off(&rtn)
+	P_Program_Monitoring_Lamp_Cell_Ready = 0;
+	P_Program_Monitoring_Lamp_Ready_Pos = 0;
+	P_Program_Monitoring_Lamp_Pause_Pos = 0;
+	P_Program_Monitoring_Lamp_Motion_Run = 0;
+	P_Program_Monitoring_Lamp_Cell_Remove = 0;
+	P_Program_Monitoring_Lamp_Cell_Supply = 0;
+	P_Program_Monitoring_Lamp_Sepa_Mode = 0;
+	P_Program_Monitoring_Lamp_Semi_Run = 0;
+	P_Program_Monitoring_Lamp_Stack_Mode = 0;
+	P_Program_Monitoring_Lamp_Anode_Aling_NG = 0;
+	P_Program_Monitoring_Lamp_Anode_Retry_NG = 0;
+	P_Program_Monitoring_Lamp_Cathode_Align_NG = 0;
+	P_Program_Monitoring_Lamp_Cathode_Retry_NG = 0;
+	P_Program_Monitoring_Lamp_Last_Stack_Mode = 0;
+	P_Program_Monitoring_Lamp_Jelly_Roll_OK = 0;	
+	P_Program_Monitoring_Lamp_Jelly_Roll_NG = 0;
+	P_Program_Monitoring_Lamp_Jelly_Roll_Sepa = 0;
+	P_Program_Monitoring_Lamp_Cell_Out_Pos = 0;
+	P_Program_Monitoring_Lamp_Cell_Out_Mode = 0;
+	rtn = F_TRUE;
+return
+
+// Slave Motion Command 초기화
+Sub: Slave_Motion_Command_Init(&rtn)
+	
+	rtn = 0;
+
+	P_Slave1_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave2_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave3_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave4_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave5_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave6_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave7_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave8_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave9_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave10_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave11_Motion_Command = 0;
+	P_Slave12_Motion_Command = 0;
+	P_Slave13_Motion_Command = 0;
+	P_Slave14_Motion_Command = 0;
+	P_Slave15_Motion_Command = 0;
+
+	rtn = F_TRUE;
+return
+
+Sub:Common_Command(void)
+//------------------------------------------------------------
+// 1) 서브프로세스 프로그램 [명령부]
+//------------------------------------------------------------	
+IF ( P_array_CF_Function_Start_Flag == 0 && P_array_CF_Function_Run_Flag == 0 && P_array_CF_Function_Return_Flag == 0 )
+{	// 프로그램 허용 플래그 ( 스타트,런,리턴 함수 플래그 모두 초기화 되었는지 확인.)
+	// 프로그램이 실행되었음을 표시
+	P_array_CF_Function_Start_Flag = 1;			// 서브 프로그램 진입 플래그IF
+
+	P_array_CF_Function_State_Number = 0;		// 서브 프로그램 스텟머신 활성화
+	P_PLC09_Common_Command_Complete_Bit = 1;
+}
+Return
+
+//[9]. PACK ML - 서브 프로세스 - 실행부 (MANUAL)
+Sub:Common_Excute(void)
+//------------------------------------------------------------
+// 2) 서브프로세스 프로그램 [실행부]
+//-----------------------------------------------------------			
+IF ( P_array_CF_Function_Start_Flag == 1 && P_array_CF_Function_Run_Flag < 2 )
+{
+	IF( P_array_CF_Function_State_Number == 0 )
+	{
+		P_array_CF_Function_Run_Flag = 1;			// 서브프로그램이 시작됨을 알림
+		P_array_CF_Function_State_Number++;		
+	}
+	IF( P_array_CF_Function_State_Number == 1 )
+	{
+		P_array_CF_Function_State_Number++;
+	}
+	IF( P_array_CF_Function_State_Number == 2 )
+	{
+		Switch ( P_PLC09_Status )
+		{
+			Case 0 : // 기본값
+			
+			break;
+			
+			Case 1 : // F_Status_IDLE	
+				P_PLC09_Status = 0;
+				P_Check_IDLE_CF++;		
+			break;
+			
+			Case 2 : // -
+				P_PLC09_Status = 0;
+			break;
+			
+			Case 3 : // F_Status_EXECUTE
+				P_PLC09_Status = 0;
+				P_Check_EXECUTE_CF++;
+			break;
+			
+			Case 4 : // F_Status_COMPLETING
+				P_PLC09_Status = 0;
+				P_Check_COMPLETING_CF++;
+			break;
+
+			Case 5 : // F_Status_COMPLETE
+				P_PLC09_Status = 0;
+				P_Check_COMPLETE_CF++;
+			break;
+			
+			Case 6 : // -
+				P_PLC09_Status = 0;
+			break;	
+			
+			Case 7 : // F_Status_HOLDING
+				P_PLC09_Status = 0;	
+				P_Check_HOLDING_CF++;
+			break;
+			
+			Case 8 : // F_Status_HOLD
+				P_PLC09_Status = 0;	
+				P_Check_HOLD_CF++;
+			break;
+			
+			Case 9 : // -
+				P_PLC09_Status = 0;
+			break;
+			
+			Case 10 : // -
+				P_PLC09_Status = 0;
+			break;
+			
+			Case 11 : // F_Status_SUSPENDED
+				P_PLC09_Status = 0;	
+				P_Check_SUSPENDED_CF++;
+			break;
+			
+			// [ 참조 : 공통 PackML 임시 상태 변경 및 스텟 추가_240221]
+			Case 12 : // -				
+				P_PLC09_Status = 0;
+			break;		
+
+			
+			Case 13 : // -
+				P_PLC09_Status = 0;	
+			break;
+			
+			Case 14 : // F_Status_STOPPED	
+				P_PLC09_Status = 0;	
+				
+				P_Check_STOPPED_CF++;
+				
+				//P_Flag_Stop_Mode_Normal = 0;				// 기존 사용된 코드
+				//P_Flag_Stop_Mode_Sepa_Consume = 0;				
+				//P_Flag_Stop_Mode_Dry_Run = 0;			
+			break;
+			
+			Case 15 :	// -
+				P_PLC09_Status = 0;	
+			break;
+			
+			Case 16 :	// F_Status_ABORTED
+				P_PLC09_Status = 0;	
+				P_Check_ABORTED_CF++;		
+			break;
+			
+			Case 17 :	// F_Status_CLEARING
+				P_PLC09_Status = 0;	
+				P_Check_CLEARING_CF++;
+			break;
+			
+			default : 
+			
+			break;
+		}
+
+		P_array_CF_Function_State_Number++;
+	}
+	IF( P_array_CF_Function_State_Number == 3 )
+	{
+		P_array_CF_Function_State_Number++;
+	}
+	IF( P_array_CF_Function_State_Number == 4 )
+	{
+		P_array_CF_Function_State_Number++;
+	}
+	IF( P_array_CF_Function_State_Number == 5 )
+	{	
+		P_array_CF_Function_Run_Flag = 2;				// 서브프로그램이 완료를 알림
+		P_array_CF_Function_State_Number = 0;
+
+		P_PLC09_Common_Execute_Complete_Bit = 1;
+	}
+}
+Return
+
+sub: PackML_Resetting_SheetID_Check(&rtn)
+	IF ( Sys_Cathode_Align_Sheet_LO_Vision_BYTE == 0 && Sys_Anode_Align_Sheet_LO_Vision_BYTE == 0 )					// 경우의 수 1번 - 음,양극 극판 둘다 삭제될 경우 
+	{									
+		P_Set_Cathode_Align_Zero_Pos = 1;
+		P_Set_Anode_Align_Zero_Pos = 1;
+	}
+	Else IF (  Sys_Cathode_Align_Sheet_LO_Vision_BYTE > 0 && Sys_Anode_Align_Sheet_LO_Vision_BYTE == 0 )			// 경우의 수 2번 - 음극만 시트 삭제 한 후
+	{
+		P_Set_Anode_Align_Zero_Pos = 1;																				// 음극 보정 스텟머신 ON
+	}																										
+																											
+	Else IF (  Sys_Cathode_Align_Sheet_LO_Vision_BYTE == 0 && Sys_Anode_Align_Sheet_LO_Vision_BYTE > 0 )			// 경우의 수 3번- 양극만 시트 삭제한 경우
+	{	
+		P_Set_Cathode_Align_Zero_Pos = 1;																	
+	}
+
+	rtn = N_TRUE;
+
+return;
+
+sub: Virtual_Servo_On(void)
+
+CMD" #0j/ #49..63j/ "		// 커맨드문 실행
+sendallcmds // 모든 커맨드문 버퍼를 비워냄
+while (Ldata.CmdStatus == 1) {} // 모든 커맨드문 버퍼가 비워질 때 까지 대기		
+
+return;
+
+sub: Virtual_Servo_On_Chk(&rtn)
+rtn = 0;
+local L_Virtual_Motor_Num = 49;
+// 케스케이딩 가상축 모터 
+if( Motor[0].AmpEna != 1 )
+{
+	Ldata.Motor = 0;						// 모터 설정 ← 모터 번호.
+	jog/;									// 모터 Servo ON.
+	homez;
+}
+else
+{
+	Ldata.Motor = 0;						// 모터 설정 ← 모터 번호.
+	homez;
+}
+// 가상축 모터 
+while( L_Virtual_Motor_Num <= Max_Motor_EA )
+{
+	if( Motor[L_Virtual_Motor_Num].AmpEna != 1)
+	{
+		P_Servo_ON_MNTR12++
+		Ldata.Motor = L_Virtual_Motor_Num;	// 모터 설정 ← 모터 번호.
+		jog/;								// 모터 Servo ON.
+		homez;
+		L_Virtual_Motor_Num++;
+	}
+	else
+	{
+		P_Servo_ON_MNTR13++
+		Ldata.Motor = L_Virtual_Motor_Num;	// 모터 설정 ← 모터 번호.
+		homez;
+		L_Virtual_Motor_Num++;
+	}
+}	
+	
+rtn = N_TRUE;
+return;
+
+
+sub: Auto_Resetting_Ready_Pos_Check(&rtn)
+
+local L_Motor_Num = 1;
+
+
+// Motor 정위치 
+//if( N_Auto_Resetting_Motor_Home_Chk == 0 )															// Motor Home Chk 확인
+//{
+//	rtn = N_FALSE;																					// 홈 체크 안된 모터 존재
+//}
+//else
+//{	
+//	rtn = N_TRUE;
+//}
+return;
+
+sub:Coord_Prog_Start(&rtn)
+	//(좌표계,Prog)
+	//마스터
+	START N_Coord_Master_Motion				: N_Prog_Master_Motion_Sub_Program;
+	//Sub
+	START N_Coord_Servo_Dancer_Sub			: N_Prog_Servo_Dancer_Sub_Program;
+	START N_Coord_Anode_TR1_Sub				: N_Prog_Anode_TR1_Sub_Program;
+	START N_Coord_Anode_TR1_Picker_Sub		: N_Prog_Anode_TR1_Picker_Sub_Program;
+	START N_Coord_Anode_TR2_Sub				: N_Prog_Anode_TR2_Sub_Program;
+	START N_Coord_Anode_Clamp_Sub			: N_Prog_Anode_Clamp_Sub_Program;
+	START N_Coord_Final_Roll_Sub			: N_Prog_Final_Roll_Sub_Program;
+	START N_Coord_Stack_Table_Sub			: N_Prog_Stack_Table_Sub_Program;
+	START N_Coord_Cathode_Clamp_Sub			: N_Prog_Cathode_Clamp_Sub_Program;
+	START N_Coord_Cathode_TR2_Sub			: N_Prog_Cathode_TR2_Sub_Program;
+	START N_Coord_Cathode_TR1_Picker_Sub	: N_Prog_Cathode_TR1_Picker_Sub_Program;
+	START N_Coord_Cathode_TR1_Sub			: N_Prog_Cathode_TR1_Sub_Program;
+	//Slave
+	START N_Coord_Anode_TR1_Slave			: N_Prog_Anode_TR1_Slave_Program;
+	START N_Coord_Anode_TR1_Picker_Slave	: N_Prog_Anode_TR1_Picker_Slave_Program;
+	START N_Coord_Anode_TR2_Slave			: N_Prog_Anode_TR2_Slave_Program;
+	START N_Coord_Anode_Clamp_Slave			: N_Prog_Anode_Clamp_Slave_Program;
+	START N_Coord_Final_Roll_Slave			: N_Prog_Final_Roll_Slave_Program;
+	START N_Coord_Stack_Table_Slave			: N_Prog_Stack_Table_Slave_Program;
+	START N_Coord_Cathode_Clamp_Slave		: N_Prog_Cathode_Clamp_Slave_Program;
+	START N_Coord_Cathode_TR2_Slave			: N_Prog_Cathode_TR2_Slave_Program;
+	START N_Coord_Cathode_TR1_Picker_Slave	: N_Prog_Cathode_TR1_Picker_Slave_Program;
+	START N_Coord_Cathode_TR1_Slave			: N_Prog_Cathode_TR1_Slave_Program;
+	START N_Coord_Sheet_Paper_TR1_Slave		: N_Prog_Sheet_Paper_TR1_Slave_Program;
+	START N_Coord_Cathode_NG_TR_Slave		: N_Prog_Cathode_NG_TR_Slave_Program;
+	START N_Coord_Anode_NG_TR_Slave			: N_Prog_Anode_NG_TR_Slave_Program;
+	START N_Coord_Unload_TR1_Slave			: N_Prog_Unload_TR1_Slave_Program;
+		
+	rtn = N_TRUE;
+return;
+
+sub:Coord_Progrunning_Check(&rtn)
+		// 마스터
+		local Coord_Progrunning_Check_Num = 1;	
+		// 서브
+		local Coord_Progrunning_Check_Last_Num = 34;
+		
+		while( Coord_Progrunning_Check_Num <= Coord_Progrunning_Check_Last_Num )
+		{
+			if(!(Coord[Coord_Progrunning_Check_Num].ProgRunning))	// ProgRunning 꺼졌는지 확인
+			{
+				rtn = N_FALSE;
+				break;
+			}
+			if( Coord_Progrunning_Check_Num == 1)	// 2번~7번 좌표계 공백
+			{
+				Coord_Progrunning_Check_Num = 8;
+			}
+			else if(Coord_Progrunning_Check_Num == 8) // 9번~10번 좌표계 공백
+			{
+				Coord_Progrunning_Check_Num = 11;
+			}
+			else
+			{
+				Coord_Progrunning_Check_Num++;
+			}
+		}
+		rtn = N_TRUE;
+return;
+
+	//타임베이스 on 체크 
+sub:Timbase_ON_Check(&rtn)
+		// 마스터
+		local Timebase_ON_Check_Num = 1;	
+		// 서브
+		local sub_ON_Check_Num = Sys.MaxCoords;
+		
+		while(sub_ON_Check_Num >= 1 )
+		{
+			if(Coord[sub_ON_Check_Num].pDesTimeBase != Coord[Timebase_ON_Check_Num].pDesTimeBase)	// Time base 비교
+			{
+				rtn = N_FALSE;
+				break;
+			}
+
+			if(sub_ON_Check_Num == 11)	// 9번~10번 좌표계 공백
+			{
+				sub_ON_Check_Num = 8;
+			}
+			else if(sub_ON_Check_Num == 8) // 2번~7번 좌표계 공백
+			{
+				sub_ON_Check_Num = 1;
+			}
+			else
+			{
+				sub_ON_Check_Num --;
+			}
+		}
+
+		rtn = N_TRUE;
+
+return;
+
+sub:Mode_Flag_Check(Void)
+	// 우선 순위에 따른 버퍼모드, 진행여부 결정
+	// 1) 버튼이 전부 안눌려졌고, ARC 세파모드 진행 요청이 없을 때,
+	//[ 참조 : 25.07.04 모드 체크 함수 추가 ]
+	if( P_Com_User_Sepa_Consume_Mode_Flag != N_TRUE && P_Com_ARC_Sepa_Consume_Mode_Flag != N_TRUE && P_Com_EPC_Sepa_Consume_Mode_Flag != 1 && P_Com_Dry_Mode_Flag != N_TRUE  )
+	{
+		P_Buffer_Mode_Status_Sequence = N_Normal_Status_Sequence;	//일반모드
+	}
+	// ( 사용자 세파모드 ON, ARC 세파모드 ON ) 이거나 세파모드 이후 ARC 진행 Flag ON 이라면,
+	else if(P_Com_User_Sepa_Consume_Mode_Flag == N_TRUE && P_Com_ARC_Sepa_Consume_Mode_Flag == N_TRUE)
+	{
+		P_Buffer_Mode_Status_Sequence = N_Sepa_Consume_Status_Sequence;	// 세파모드
+		P_Com_After_Sepa_Mode_Status  = F_Status_STOPPED;				// 계속 적층 진행 여부 [Stopped]
+	}
+	// 사용자 세파모드 ON
+ 	else if( P_Com_User_Sepa_Consume_Mode_Flag == N_TRUE )			
+	{
+		P_Buffer_Mode_Status_Sequence = N_Sepa_Consume_Status_Sequence;	// 세파모드
+		P_Com_After_Sepa_Mode_Status  = F_Status_STOPPED;				// 계속 적층 진행 여부 [Stopped]
+	}
+	// ARC 세파모드 ON
+	else if( P_Com_ARC_Sepa_Consume_Mode_Flag == N_TRUE)
+	{
+		P_Buffer_Mode_Status_Sequence = N_Sepa_Consume_Status_Sequence;	// 세파모드
+		P_Com_After_Sepa_Mode_Status  = F_Status_EXECUTE;				// 계속 적층 진행 여부 [Execute]
+	}
+	// EPC 세파모드 ON
+	else if( P_Com_EPC_Sepa_Consume_Mode_Flag == N_TRUE )
+	{
+		P_Buffer_Mode_Status_Sequence = N_Sepa_Consume_Status_Sequence; // 세파모드
+		P_Com_After_Sepa_Mode_Status  = F_Status_EXECUTE;				// 계속 적층 진행 여부 [Execute]
+	}
+	// 드라이런 모드 ON
+	else if ( P_Com_Dry_Mode_Flag == N_TRUE )							
+	{
+		P_Buffer_Mode_Status_Sequence = N_Dryrun_Status_Sequence;		// 드라이런 모드
+	}
+
+	// 
+	// 260529 클램프 극판 두께만큼 하강 하지 않도록 수정
+	if( P_Clamp_Cell_Down_Use == 1 )
+	{
+		if( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence )										// Normal Run
+		{
+			M_Y_PLC_Sepa_Stacking_Unload = 0;				// Sepa 배출 모드인 경우 PLC에게 출력 신호 줌
+			//P_AN_Clamp_Cell_Down_Pos = P_Recipe_M26_POS(4) - ( P_Anode_Thickness + P_Sepa_Thickness );
+			//P_CA_Clamp_Cell_Down_Pos = P_Recipe_M25_POS(4) - ( P_Cathode_Thickness + P_Sepa_Thickness );
+			P_Cathode_Clamp_Z2_Cell_Down = P_Cathode_Clamp_Z2_Clamp_Pos - ( P_Cathode_Thickness + P_Sepa_Thickness );
+			P_Anode_Clamp_Z2_Cell_Down = P_Anode_Clamp_Z2_Clamp_Pos - ( P_Anode_Thickness + P_Sepa_Thickness );
+			P_Cathode_Clamp_Z1_Cell_Down = P_Cathode_Clamp_Z1_Clamp_Pos - ( P_Cathode_Thickness + P_Sepa_Thickness );
+			P_Anode_Clamp_Z1_Cell_Down = P_Anode_Clamp_Z1_Clamp_Pos - ( P_Anode_Thickness + P_Sepa_Thickness );
+
+			P_Sepa_Mode_Opposite_Resume_Free = 0;										// 세파 모드 일 경우 반대열 자유롭게 Resume 할 수 있게 하는 변수. [ 참조 : 26.07.31 Pause_Resume 수정 ] 
+		}
+		else if( P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence )							// Sepa Run
+		{
+			if ( P_PMAC_Current_Mode == F_Current_Automatic )
+			{
+				M_Y_PLC_Sepa_Stacking_Unload = 1;				// Sepa 배출 모드인 경우 PLC에게 출력 신호 줌
+			}
+			//P_AN_Clamp_Cell_Down_Pos = P_Recipe_M26_POS(4) - P_Sepa_Thickness;
+			//P_CA_Clamp_Cell_Down_Pos = P_Recipe_M25_POS(4) - P_Sepa_Thickness;
+			P_Cathode_Clamp_Z2_Cell_Down = P_Cathode_Clamp_Z2_Clamp_Pos - P_Sepa_Thickness;
+			P_Anode_Clamp_Z2_Cell_Down = P_Anode_Clamp_Z2_Clamp_Pos - P_Sepa_Thickness;
+			P_Cathode_Clamp_Z1_Cell_Down = P_Cathode_Clamp_Z1_Clamp_Pos - P_Sepa_Thickness;
+			P_Anode_Clamp_Z1_Cell_Down = P_Anode_Clamp_Z1_Clamp_Pos - P_Sepa_Thickness;
+
+			P_Sepa_Mode_Opposite_Resume_Free = 1;										// 세파 모드 일 경우 반대열 자유롭게 Resume 할 수 있게 하는 변수. [ 참조 : 26.07.31 Pause_Resume 수정 ] 
+
+			P_Flag_Stack_Work_Host_ID = 0;												// Host ID 생성 플래그 초기화.		[ 참조 : 26.04.24 세파 첫장 Host ID 생성 수정 ]
+			P_Stack_Table_NG_Count = 0
+		}
+		else
+		{
+			M_Y_PLC_Sepa_Stacking_Unload = 0;				// Sepa 배출 모드인 경우 PLC에게 출력 신호 줌
+			P_Cathode_Clamp_Z2_Cell_Down = P_Cathode_Clamp_Z2_Clamp_Pos - P_Sepa_Thickness;
+			P_Anode_Clamp_Z2_Cell_Down = P_Anode_Clamp_Z2_Clamp_Pos - P_Sepa_Thickness;
+			P_Cathode_Clamp_Z1_Cell_Down = P_Cathode_Clamp_Z1_Clamp_Pos - P_Sepa_Thickness;
+			P_Anode_Clamp_Z1_Cell_Down = P_Anode_Clamp_Z1_Clamp_Pos - P_Sepa_Thickness;
+			//P_AN_Clamp_Cell_Down_Pos = P_Recipe_M26_POS(4);
+			//P_CA_Clamp_Cell_Down_Pos = P_Recipe_M25_POS(4);
+
+			P_Sepa_Mode_Opposite_Resume_Free = 0;										// 세파 모드 일 경우 반대열 자유롭게 Resume 할 수 있게 하는 변수. [ 참조 : 26.07.31 Pause_Resume 수정 ] 
+		}
+	}
+	else
+	{
+		if( P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence )							// Sepa Run
+		{
+			if ( P_PMAC_Current_Mode == F_Current_Automatic )
+			{
+				M_Y_PLC_Sepa_Stacking_Unload = 1;				// Sepa 배출 모드인 경우 PLC에게 출력 신호 줌
+			}
+
+			P_Flag_Stack_Work_Host_ID = 0;					// Host ID 생성 플래그 초기화.		[ 참조 : 26.04.24 세파 첫장 Host ID 생성 수정 ]
+			P_Stack_Table_NG_Count = 0
+		}
+		else
+		{
+			M_Y_PLC_Sepa_Stacking_Unload = 0;				// Sepa 배출 모드인 경우 PLC에게 출력 신호 줌
+		}
+
+		if( P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence )			// Sepa Run
+		{
+			P_Sepa_Mode_Opposite_Resume_Free = 1;										// 세파 모드 일 경우 반대열 자유롭게 Resume 할 수 있게 하는 변수. [ 참조 : 26.07.31 Pause_Resume 수정 ] 
+		}
+		else
+		{
+			P_Sepa_Mode_Opposite_Resume_Free = 0;										// 세파 모드 일 경우 반대열 자유롭게 Resume 할 수 있게 하는 변수. [ 참조 : 26.07.31 Pause_Resume 수정 ] 
+		}
+		P_Cathode_Clamp_Z2_Cell_Down = P_Cathode_Clamp_Z2_Clamp_Pos
+		P_Anode_Clamp_Z2_Cell_Down = P_Anode_Clamp_Z2_Clamp_Pos
+		P_Cathode_Clamp_Z1_Cell_Down = P_Cathode_Clamp_Z1_Clamp_Pos
+		P_Anode_Clamp_Z1_Cell_Down = P_Anode_Clamp_Z1_Clamp_Pos
+	}
+
+
+
+
+
+
+	// 모듈 모드 업데이트 항목 
+	// EXECUTE (일반모드, 세파모드, 드라이런모드 동일) 
+	   P_Buffer_Mode_Module_Status_Sequence(N_Execute_Fisrt_Sepa_Mode) = P_Buffer_Mode_Status_Sequence;	
+	// HOLD  			
+		P_Buffer_Mode_Module_Status_Sequence(N_Hold_Semi_Run_Pos_Move) = P_Buffer_Mode_Status_Sequence;	
+	// SUSPEND - 일반 Queue 모드 확립
+	// 배출, ARC, 배출시 1TR공급모듈
+
+	
+
+return;
+
+//타임베이스 off 체크 
+sub:Timbase_OFF_Check(&rtn)
+		// 마스터
+		local Timebase_OFF_Check_Num = 1;
+
+		while(Timebase_OFF_Check_Num <= 34)
+		{
+			if(Coord[Timebase_OFF_Check_Num].pDesTimeBase == Coord[Timebase_OFF_Check_Num].pDesTimeBase)
+			{
+				if(Timebase_OFF_Check_Num == 1) // 2번~7번 좌표계 공백
+				{
+					Timebase_OFF_Check_Num = 8;
+				}
+				else if(Timebase_OFF_Check_Num == 8) // 9번~10번 좌표계 공백
+				{
+					Timebase_OFF_Check_Num = 11;
+				}
+				else
+				{
+					Timebase_OFF_Check_Num ++;
+				}
+			}
+			else
+			{
+				rtn = N_FALSE;
+				break;
+			}
+		}
+		rtn = N_TRUE;	
+
+return;
+close
+
+
+

@@ -1,0 +1,22 @@
+// 260605 1차 언로더 데이터 삭제 추가
+open subprog First_ULD_Data_Clear(&rtn)
+
+	M_ASCII_Uloader_1st_Host_ID_Buffer(0) = 0;
+	M_ASCII_Uloader_1st_Host_ID_Buffer(1) = 0;
+	M_ASCII_Uloader_1st_Host_ID_Buffer(2) = 0;
+	M_ASCII_Uloader_1st_Host_ID_Buffer(3) = 0;
+	M_ASCII_Uloader_1st_Host_ID_Buffer(4) = 0;
+	M_ASCII_Uloader_1st_Host_ID_Buffer(5) = 0;
+	M_ASCII_Uloader_1st_Host_ID_Buffer(6) = 0;
+	M_ASCII_Uloader_1st_Host_ID_Buffer(7) = 0;
+	M_ASCII_Uloader_1st_Host_ID_Buffer(8) = 0;
+	M_ASCII_Uloader_1st_Host_ID_Buffer(9) = 0;
+
+
+	// 1차 언로더 램프 상태 업데이트
+	P_1st_ULD_OK_Lamp = 0							// 젤리롤 OK 램프
+	P_1st_ULD_NG_Lamp = 0							// 젤리롤 NG 램프
+	P_1st_ULD_Sample_QC_Lamp = 0					//qc, sample 램프
+
+
+close

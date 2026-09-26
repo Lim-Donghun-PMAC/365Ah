@@ -1,0 +1,1139 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+open subprog Hold_Process(void)
+
+// 1. 담아놓은 데이터 실행
+sub:data_process(&rtn)
+	rtn = 0;
+	P_Hold_Data_process = 0;
+	// test
+	if(p1 == 0)
+		P_Hold_Data_process_State_Machine = 1;
+	else
+		P_Hold_Data_process_State_Machine = 456;
+	while( P_Hold_Data_process == 0 )
+	{
+		switch( P_Hold_Data_process_State_Machine )
+		{
+			case 1 :
+				P_Except_Return_Array(N_Get_Data_RTN) = 0
+				call HoldCmdList.Get_Data(P_HList_Head_Idx, &P_Hold_Get_Data, &P_Except_Return_Array(N_Get_Data_RTN));		// 값만 빼내고 Next ID를 0으로 둘 경우, 다음을 따라 갈 수 없는 상황이온다. 그렇기 때문에 데이터를 빼되, NextID를 어떻게 Set 햇을경우 			
+				if(P_Except_Return_Array(N_Get_Data_RTN) == N_Err_CurPosParsing)
+				{// 위치 메모리 에러... 다시 돌리던지 해야함!!,
+					P_Hold_Data_process_State_Machine = 456;
+				}
+				else if(P_Except_Return_Array(N_Get_Data_RTN) == N_Empty_Next_Data)
+				{
+					P_Hold_Data_process_State_Machine = 457;
+				}
+				else if ( P_Except_Return_Array(N_Get_Data_RTN) == 1 )
+				{
+					P_Hold_Data_process_State_Machine = 2;
+				}
+
+				
+			break
+			// hold data 유효성 검사 실행
+			case 2 :
+				P_Except_Return_Array(N_Hold_Data_Validation) = 0
+				call Hold_Data_Validation(P_Hold_Get_Data, &P_Except_Return_Array(N_Hold_Data_Validation))
+				if( P_Except_Return_Array(N_Hold_Data_Validation) == N_Hold_Data_Err )
+				{
+					P_Hold_Data_process_State_Machine = 850
+				}
+				else
+				{
+					P_Hold_Data_process_State_Machine = 3;
+				}
+			break;			
+			
+			case 3 :
+				P_Except_Return_Array(N_Hold_Sequence_RTN) = 0
+				call HoldSequence(P_Hold_Get_Data, &P_Except_Return_Array(N_Hold_Sequence_RTN));
+				if( P_Except_Return_Array(N_Hold_Sequence_RTN) == N_Stop_Point )
+				{
+					//P_Hold_Data_process = 1
+					P_Hold_Data_process_State_Machine = N_Stop_Step
+					//rtn = N_Stop_Point;
+				}
+				else if( P_Hold_Motion_Arr(0) < 1 )								// 배열에 담긴 data 개수가 0개라는 의미로 모든 data를 실행함, 함수 실행 완료
+				{
+					P_Hold_Data_Process_Complete = 0 ;
+					P_Hold_Data_process_State_Machine = N_Complete_Step			// set data를 모두 실행하여 완료 스탭으로 이동
+				}
+				else if ( P_Except_Return_Array(N_Hold_Sequence_RTN) == N_Err_NotSelectedElec )
+				{
+					P_Hold_Data_process_State_Machine = 457
+				}
+				else if ( P_Except_Return_Array(N_Hold_Sequence_RTN) == N_Hold_Data_Err )
+				{
+					P_Hold_Data_process_State_Machine = 463
+				}
+				else if ( P_Except_Return_Array(N_Hold_Sequence_RTN) == N_Motion_Err)
+				{
+					P_Hold_Data_process_State_Machine = 468
+				}
+				else
+				{
+					P_Hold_Data_process_State_Machine = 1						// 아직 set data가 남아 있어 get 진행
+				}
+			break
+
+			case N_Stop_Step :
+				P_Hold_Data_process = 1;
+				rtn = N_Stop_Point;
+			break
+			
+			case N_Complete_Step :
+				P_Hold_Data_process = 1;
+				rtn = 1;
+			break
+
+			default :
+				if(P_PMAC_Status == F_Status_STOPPING)
+				{
+					P_HOLD_Err_Save = P_Hold_Data_process_State_Machine
+					P_Hold_Data_process = 1;
+					rtn = N_Stop_Point;
+				}
+			break;
+		}
+	}
+return
+
+//2. NG PNP 제거
+sub:NG_PNP_Remove(&rtn)
+	rtn = 0;
+	local L_List_Ptr = &P_Hold_Motion_Arr(0);
+	call HoldCmdList.Init( L_List_Ptr, &P_HList_Head_Idx )
+
+	P_Hold_NG_PNP_Remove = 0;
+	P_Hold_NG_PNP_Remove_State_Machine = 1
+	while( P_Hold_NG_PNP_Remove == 0 )
+	{
+		switch(P_Hold_NG_PNP_Remove_State_Machine)
+		{
+
+			// NG PNP 이동 시간 결정
+			case 1 :
+				if( P_Slow_NG_Mode_Btn == 0 )
+				{
+					// NG PNP Turn - 300ms
+					P_NG_PNP_Turn_TM = 200
+					P_NG_PNP_Turn_TS = 15
+					P_NG_PNP_Turn_TA = 80
+
+					// NG PNP 상승 - 100ms
+					P_NG_PNP_Up_TM = 55
+					P_NG_PNP_Up_TS = 5
+					P_NG_PNP_Up_TA = 35
+
+					// NG PNP 하강 - 100ms
+					P_NG_PNP_Down_TM = 55
+					P_NG_PNP_Down_TS = 5
+					P_NG_PNP_Down_TA = 35
+
+					// NG PNP 진공 - 100ms
+					P_NG_PNP_Vac_Time = 100
+
+					// NG PNP 블로우 - 100ms
+					P_NG_PNP_Blow_Time = 100
+				}
+				else
+				{
+					// NG PNP Turn - 1500ms
+					P_NG_PNP_Turn_TM = 1000
+					P_NG_PNP_Turn_TS = 100
+					P_NG_PNP_Turn_TA = 400
+					
+					// NG PNP 상승 - 500ms
+					P_NG_PNP_Up_TM = 300
+					P_NG_PNP_Up_TS = 50
+					P_NG_PNP_Up_TA = 150
+
+					// NG PNP 상승 - 500ms
+					P_NG_PNP_Down_TM = 300
+					P_NG_PNP_Down_TS = 50
+					P_NG_PNP_Down_TA = 150
+
+					// NG PNP 진공 - 100ms
+					P_NG_PNP_Vac_Time = 500
+
+					// NG PNP 블로우 - 100ms
+					P_NG_PNP_Blow_Time = 500
+				}
+				P_Hold_NG_PNP_Remove_State_Machine = 2;
+			break;
+
+			// NG PNP 이동 시간 결정 확인
+			case 2 :
+				if( P_Slow_NG_Mode_Btn == 0 )
+				{
+					if (P_NG_PNP_Turn_TM == 200 && P_NG_PNP_Turn_TS == 15 && P_NG_PNP_Turn_TA == 80 && P_NG_PNP_Up_TM == 55 && P_NG_PNP_Up_TS == 5 && P_NG_PNP_Up_TA == 35 && P_NG_PNP_Down_TM == 55 && P_NG_PNP_Down_TS == 5 && P_NG_PNP_Down_TA == 35 && P_NG_PNP_Vac_Time == 100 && P_NG_PNP_Blow_Time == 100)
+						P_Hold_NG_PNP_Remove_State_Machine = 3;
+					else
+						P_Hold_NG_PNP_Remove_State_Machine = 1;
+				}
+				else
+				{
+					if (P_NG_PNP_Turn_TM == 1000 && P_NG_PNP_Turn_TS == 100 && P_NG_PNP_Turn_TA == 400 && P_NG_PNP_Up_TM == 300 && P_NG_PNP_Up_TS == 50 && P_NG_PNP_Up_TA == 150 && P_NG_PNP_Down_TM == 300 && P_NG_PNP_Down_TS == 50 && P_NG_PNP_Down_TA == 150 && P_NG_PNP_Vac_Time == 500 && P_NG_PNP_Blow_Time == 500)
+						P_Hold_NG_PNP_Remove_State_Machine = 3;
+					else
+						P_Hold_NG_PNP_Remove_State_Machine = 1;
+				}
+			break;
+
+			case 3 :		
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)	// 파이널롤러 양극 방향 위치
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 음극 1차 PNP 대기 위치 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+					// 음극 2차 PNP 스택 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_StackUp, &P_Ret_BitWise);
+					// 음극 NG PNP NG 박스 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_NgPNP, Hex_Cmd_Horizontal, Comb_DstComb_NGReadyUp, &P_Ret_BitWise);
+					// 음극 NG PNP NG 박스 하강
+					//call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_NgPNP, Hex_Cmd_Vertical, Comb_DstComb_NGReadyDn, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 음극 NG PNP NG 박스 블로우
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_NgPNP, Hex_Cmd_Blow, Comb_DstComb_NGReadyUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+				}
+				else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )	// 파이널롤러 음극 방향 위치
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 양극 1차 PNP 대기 위치 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+					// 양극 2차 PNP 스택 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_StackUp, &P_Ret_BitWise);
+					// 양극 NG PNP NG 박스 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_NgPNP, Hex_Cmd_Horizontal, Comb_DstComb_NGReadyUp, &P_Ret_BitWise);
+					// 양극 NG PNP NG 박스 하강
+					//call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_NgPNP, Hex_Cmd_Vertical, Comb_DstComb_NGReadyDn, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 양극 NG PNP NG 박스 블로우
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_NgPNP, Hex_Cmd_Blow, Comb_DstComb_NGReadyUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+				}
+				P_Hold_NG_PNP_Remove_State_Machine = 4;
+	
+			break;
+			
+			case 4 :
+				P_Except_Return_Array(N_Data_Process_RTN) = 0;
+				call Hold_Process.data_process(&P_Except_Return_Array(N_Data_Process_RTN));
+				if( P_Except_Return_Array(N_Data_Process_RTN) == N_Stop_Point )
+				{
+					P_Hold_NG_PNP_Remove_State_Machine = N_Stop_Step
+				}
+				else if( P_Except_Return_Array(N_Data_Process_RTN) == 1  )
+				{
+					P_Hold_NG_PNP_Remove_State_Machine = N_Complete_Step
+				}
+			break
+				
+			case N_Stop_Step:
+				rtn = N_Stop_Point
+				P_Hold_NG_PNP_Remove = 1;	//While 풀기
+			break
+					
+			case N_Complete_Step :
+				P_Hold_NG_PNP_Remove = 1;	//While 풀기
+				rtn = 1
+			break;		
+		}
+	
+	}
+return
+
+
+//3. 얼라인 제거
+sub:align_remove(&rtn)
+	rtn = 0;
+	local L_List_Ptr = &P_Hold_Motion_Arr(0);
+	call HoldCmdList.Init( L_List_Ptr, &P_HList_Head_Idx )
+
+	P_Hold_Remove_Align = 0;
+	P_Hold_Align_Remove_State_Machine = 1
+	while( P_Hold_Remove_Align == 0 )
+	{
+		switch(P_Hold_Align_Remove_State_Machine)
+		{
+			// NG PNP 이동 시간 결정
+			case 1 :
+				if( P_Slow_NG_Mode_Btn == 0 )
+				{
+					// NG PNP Turn - 300ms
+					P_NG_PNP_Turn_TM = 200
+					P_NG_PNP_Turn_TS = 15
+					P_NG_PNP_Turn_TA = 80
+
+					// NG PNP 상승 - 100ms
+					P_NG_PNP_Up_TM = 55
+					P_NG_PNP_Up_TS = 5
+					P_NG_PNP_Up_TA = 35
+
+					// NG PNP 하강 - 100ms
+					P_NG_PNP_Down_TM = 55
+					P_NG_PNP_Down_TS = 5
+					P_NG_PNP_Down_TA = 35
+
+					// NG PNP 진공 - 100ms
+					P_NG_PNP_Vac_Time = 100
+
+					// NG PNP 블로우 - 100ms
+					P_NG_PNP_Blow_Time = 100
+				}
+				else
+				{
+					// NG PNP Turn - 1500ms
+					P_NG_PNP_Turn_TM = 1000
+					P_NG_PNP_Turn_TS = 100
+					P_NG_PNP_Turn_TA = 400
+					
+					// NG PNP 상승 - 500ms
+					P_NG_PNP_Up_TM = 300
+					P_NG_PNP_Up_TS = 50
+					P_NG_PNP_Up_TA = 150
+
+					// NG PNP 상승 - 500ms
+					P_NG_PNP_Down_TM = 300
+					P_NG_PNP_Down_TS = 50
+					P_NG_PNP_Down_TA = 150
+
+					// NG PNP 진공 - 100ms
+					P_NG_PNP_Vac_Time = 500
+
+					// NG PNP 블로우 - 100ms
+					P_NG_PNP_Blow_Time = 500
+				}
+				P_Hold_Align_Remove_State_Machine = 2;
+			break;
+
+			// NG PNP 이동 시간 결정 확인
+			case 2 :
+				if( P_Slow_NG_Mode_Btn == 0 )
+				{
+					if (P_NG_PNP_Turn_TM == 200 && P_NG_PNP_Turn_TS == 15 && P_NG_PNP_Turn_TA == 80 && P_NG_PNP_Up_TM == 55 && P_NG_PNP_Up_TS == 5 && P_NG_PNP_Up_TA == 35 && P_NG_PNP_Down_TM == 55 && P_NG_PNP_Down_TS == 5 && P_NG_PNP_Down_TA == 35 && P_NG_PNP_Vac_Time == 100 && P_NG_PNP_Blow_Time == 100)
+						P_Hold_Align_Remove_State_Machine = 3;
+					else
+						P_Hold_Align_Remove_State_Machine = 1;
+				}
+				else
+				{
+					if (P_NG_PNP_Turn_TM == 1000 && P_NG_PNP_Turn_TS == 100 && P_NG_PNP_Turn_TA == 400 && P_NG_PNP_Up_TM == 300 && P_NG_PNP_Up_TS == 50 && P_NG_PNP_Up_TA == 150 && P_NG_PNP_Down_TM == 300 && P_NG_PNP_Down_TS == 50 && P_NG_PNP_Down_TA == 150 && P_NG_PNP_Vac_Time == 500 && P_NG_PNP_Blow_Time == 500)
+						P_Hold_Align_Remove_State_Machine = 3;
+					else
+						P_Hold_Align_Remove_State_Machine = 1;
+				}
+			break;
+
+			case 3 :		
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)	// 파이널 롤러 양극 방향 위치
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 음극 1차 PNP 대기 위치 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+					// 음극 2차 PNP 스택 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_StackUp, &P_Ret_BitWise);
+					// 음극 NG PNP 얼라인 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_NgPNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 음극 NG PNP 얼라인 하강
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_NgPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 음극 NG PNP 얼라인 흡착
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_NgPNP, Hex_Cmd_Vac, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 음극 NG PNP 얼라인 상승
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_NgPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 음극 NG PNP NG 박스 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_NgPNP, Hex_Cmd_Horizontal, Comb_DstComb_NGReadyUp, &P_Ret_BitWise);
+					// 음극 NG PNP NG 박스 하강
+					//call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_NgPNP, Hex_Cmd_Vertical, Comb_DstComb_NGReadyDn, &P_Ret_BitWise);
+					// 음극 NG PNP NG 박스 블로우
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_NgPNP, Hex_Cmd_Blow, Comb_DstComb_NGReadyUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+				}
+				else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )	// 파이널롤러 음극 방향 위치
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 양극 1차 PNP 대기 위치 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+					// 양극 2차 PNP 스택 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_StackUp, &P_Ret_BitWise);
+					// 양극 NG PNP 얼라인 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_NgPNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 양극 NG PNP 얼라인 하강
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_NgPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 양극 NG PNP 얼라인 흡착
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_NgPNP, Hex_Cmd_Vac, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 양극 NG PNP 얼라인 상승
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_NgPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 양극 NG PNP NG 박스 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_NgPNP, Hex_Cmd_Horizontal, Comb_DstComb_NGReadyUp, &P_Ret_BitWise);
+					// 양극 NG PNP NG 박스 하강
+					//call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_NgPNP, Hex_Cmd_Vertical, Comb_DstComb_NGReadyDn, &P_Ret_BitWise);
+					// 양극 NG PNP NG 박스 블로우
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_NgPNP, Hex_Cmd_Blow, Comb_DstComb_NGReadyUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+				}
+				P_Hold_Align_Remove_State_Machine = 4;
+	
+			break;
+			
+			case 4 :
+				P_Except_Return_Array(N_Data_Process_RTN) = 0;
+				call Hold_Process.data_process(&P_Except_Return_Array(N_Data_Process_RTN));
+				if( P_Except_Return_Array(N_Data_Process_RTN) == N_Stop_Point )
+				{
+					P_Hold_Align_Remove_State_Machine = N_Stop_Step
+				}
+				else if( P_Except_Return_Array(N_Data_Process_RTN) == 1  )
+				{
+					P_Hold_Align_Remove_State_Machine = N_Complete_Step
+				}
+			break
+				
+			case N_Stop_Step:
+				rtn = N_Stop_Point
+				P_Hold_Remove_Align = 1;	//While 풀기
+			break
+					
+			case N_Complete_Step :
+				P_Hold_Remove_Align = 1;	//While 풀기
+				rtn = 1
+			break;		
+		}
+	
+	}
+return
+
+//4. 2차 제거
+sub:remove_2nd(&rtn)
+	rtn = 0;
+	local L_List_Ptr = &P_Hold_Motion_Arr(0);
+	call HoldCmdList.Init( L_List_Ptr, &P_HList_Head_Idx )
+
+	P_Hold_Remove_2nd = 0;
+	P_Hold_2nd_Remove_State_Machine = 1
+	
+	while( P_Hold_Remove_2nd == 0 )
+	{
+		switch(P_Hold_2nd_Remove_State_Machine)
+		{
+			case 1 :
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)	// 파이널롤러 양극 방향 위치
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 음극 1차 PNP 대기 위치 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+					// 음극 2차 PNP 얼라인 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 2음극 차 PNP 얼라인 하강
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_2ndPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 음극 2차 PNP 얼라인 블로우
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_2ndPNP, Hex_Cmd_Blow, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 음극 2차 PNP 얼라인 상승
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_2ndPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+				}
+				else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )	//파이널롤러 음극 방향 위치
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 양극 1차 PNP 대기 위치 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+					// 양극 2차 PNP 얼라인 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 양극 2차 PNP 얼라인 하강
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_2ndPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 양극 2차 PNP 얼라인 블로우
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_2ndPNP, Hex_Cmd_Blow, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 양극 2차 PNP 얼라인 상승
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_2ndPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+				}
+				P_Hold_2nd_Remove_State_Machine = 2
+			break;
+			
+			case 2 :
+				P_Except_Return_Array(N_Data_Process_RTN) = 0;
+				call Hold_Process.data_process(&P_Except_Return_Array(N_Data_Process_RTN));
+				if( P_Except_Return_Array(N_Data_Process_RTN) == N_Stop_Point )
+				{
+					P_Hold_2nd_Remove_State_Machine = N_Stop_Step
+				}
+				else if( P_Except_Return_Array(N_Data_Process_RTN) == 1  )
+				{
+					P_Hold_2nd_Remove_State_Machine = N_Complete_Step
+				}
+			break
+					
+			case N_Stop_Step:
+				rtn = N_Stop_Point
+				P_Hold_Remove_2nd = 1;	//While 풀기
+			break
+
+
+			case N_Complete_Step :
+				P_Hold_Remove_2nd = 1;	//While 풀기
+				rtn = 1
+			break;			
+		}
+	}
+return
+
+//5. 1차 공급
+sub:supply_1st(&rtn)
+	rtn = 0;
+	local L_individual_return
+	local L_List_Ptr = &P_Hold_Motion_Arr(0);
+	call HoldCmdList.Init( L_List_Ptr, &P_HList_Head_Idx )
+
+	if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)
+	{
+		call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP, &P_Anode_2nd_Unit_Status, &L_individual_return);
+	}
+	else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+	{
+		call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP, &P_Cathode_2nd_Unit_Status, &L_individual_return);
+	}
+	P_Hold_Supply_1st = 0;
+	P_Hold_Supply_1st_State_Machine = 1
+	
+	while( P_Hold_Supply_1st == 0 )
+	{
+		switch(P_Hold_Supply_1st_State_Machine)
+		{
+			case 1 :
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)	// 파이널롤러 양극 방향 위치
+				{
+					if(Sys_Anode_2nd_Sheet_Data != 0 && Sys_Anode_Align_Sheet_Data == 0 )	// 2차 pnp에 극판이 존재하여 얼라인 공급을 할 필요가 없어 1차 pnp 극판 공급 후 대기위치에서 마무리
+					{
+						// 스탑 포인트
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+						// 음극 1차 PNP 벨트 이동
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+						// 음극 1차 PNP 벨트 하강
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_BeltDn, &P_Ret_BitWise);
+						// 음극 1차 PNP 벨트 흡착
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Vac, Comb_DstComb_BeltDn, &P_Ret_BitWise);
+						// 음극 1차 PNP 벨트 상승
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+						// 음극 1차 PNP 대기위치 이동
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+						// 스탑 포인트
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+						P_Hold_MNTR_Supply_1st = 1
+					}
+					else if(Sys_Anode_2nd_Sheet_Data == 0 && Sys_Anode_Align_Sheet_Data != 0 )	// 2차 pnp 미존재, 얼라인 극판 존재하므로 1차 pnp에 극판 공급 시 2차 pnp도 동시에 하강->흡착->상승 진행
+					{
+						// 스탑 포인트
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+						if ( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+						{
+							// 음극 1차 PNP 벨트 이동, 음극 2차 얼라인 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_12PNP, Hex_Cmd_Horizontal, Comb_DstComb_BeltUp|Comb_DstComb_AlignUp, &P_Ret_BitWise);
+							// 음극 1차 2차 pnp 동시 하강
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_12PNP, Hex_Cmd_Vertical, Comb_DstComb_BeltDn|Comb_DstComb_AlignDn, &P_Ret_BitWise);
+							// 음극 1차 2차 pnp 동시 흡착
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_12PNP, Hex_Cmd_Vac, Comb_DstComb_BeltDn|Comb_DstComb_AlignDn, &P_Ret_BitWise);
+							// 음극 1차 2차 pnp 동시 상승
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_12PNP, Hex_Cmd_Vertical, Comb_DstComb_BeltUp|Comb_DstComb_AlignUp, &P_Ret_BitWise);
+							// 음극 1차 PNP 대기위치 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+							// 스탑 포인트
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+							P_Hold_MNTR_Supply_1st = 2
+						}
+						else if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+						{
+							// 음극 1차 PNP 벨트 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+							// 음극 1차 2차 pnp 동시 하강
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_12PNP, Hex_Cmd_Vertical, Comb_DstComb_BeltDn|Comb_DstComb_AlignDn, &P_Ret_BitWise);
+							// 음극 1차 2차 pnp 동시 흡착
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_12PNP, Hex_Cmd_Vac, Comb_DstComb_BeltDn|Comb_DstComb_AlignDn, &P_Ret_BitWise);
+							// 음극 1차 2차 pnp 동시 상승
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_12PNP, Hex_Cmd_Vertical, Comb_DstComb_BeltUp|Comb_DstComb_AlignUp, &P_Ret_BitWise);
+							// 음극 1차 PNP 대기위치 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+							// 스탑 포인트
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+							P_Hold_MNTR_Supply_1st = 3
+						}
+					}
+					else if(Sys_Anode_2nd_Sheet_Data == 0 && Sys_Anode_Align_Sheet_Data == 0)	// 2차 pnp와 얼라인에 극판 미존재로 1차 pnp 극판 공급 후 얼라인 위치에서 마무리
+					{
+						if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )	// 2차 pnp가 얼라인에 있으므로 1차 pnp 극판 공급 후 1차/2차 pnp 동시 진입
+						{
+							// 스탑 포인트
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+							// 음극 1차 PNP 벨트 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+							// 음극 1차 PNP 벨트 하강
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_BeltDn, &P_Ret_BitWise);
+							// 음극 1차 PNP 벨트 흡착
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Vac, Comb_DstComb_BeltDn, &P_Ret_BitWise);
+							// 음극 1차 PNP 벨트 상승
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+							// 음극 1차 2차 pnp 동시 진입
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_12PNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp|Comb_DstComb_StackUp, &P_Ret_BitWise);
+							// 스탑 포인트
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+							P_Hold_MNTR_Supply_1st = 4
+						}
+						else if ( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )	// 2차 pnp가 이미 Stack 위치에 있으므로 1차 pnp 극판 공급 후 1차 pnp만 얼라인 이동
+						{
+							// 스탑 포인트
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+							// 음극 1차 PNP 벨트 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+							// 음극 1차 PNP 벨트 하강
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_BeltDn, &P_Ret_BitWise);
+							// 음극 1차 PNP 벨트 흡착
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Vac, Comb_DstComb_BeltDn, &P_Ret_BitWise);
+							// 음극 1차 PNP 벨트 상승
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+							// 음극 1차 PNP 얼라인 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+							// 스탑 포인트
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+							P_Hold_MNTR_Supply_1st = 5
+						}
+					}
+				}
+				else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3))	// 파이널롤러 음극 방향 위치
+				{
+					if(Sys_Cathode_2nd_Sheet_Data != 0 && Sys_Cathode_Align_Sheet_Data == 0 )	// 2차 pnp에 극판이 존재하여 얼라인 공급을 할 필요가 없어 1차 pnp 극판 공급 후 대기위치에서 마무리
+					{
+						// 스탑 포인트
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+						// 양극 1차 PNP 벨트 이동
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+						// 양극 1차 PNP 벨트 하강
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_BeltDn, &P_Ret_BitWise);
+						// 양극 1차 PNP 벨트 흡착
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Vac, Comb_DstComb_BeltDn, &P_Ret_BitWise);
+						// 양극 1차 PNP 벨트 상승
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+						// 양극 1차 PNP 대기위치 이동
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+						// 스탑 포인트
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+						P_Hold_MNTR_Supply_1st = 6
+					}
+					else if(Sys_Cathode_2nd_Sheet_Data == 0 && Sys_Cathode_Align_Sheet_Data != 0 )	// 2차 pnp 미존재, 얼라인 극판 존재하므로 1차 pnp에 극판 공급 시 2차 pnp도 동시에 하강->흡착->상승 진행
+					{
+						// 스탑 포인트
+						call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+						if ( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+						{
+							// 음극 1차 PNP 벨트 이동, 음극 2차 얼라인 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_12PNP, Hex_Cmd_Horizontal, Comb_DstComb_BeltUp|Comb_DstComb_AlignUp, &P_Ret_BitWise);
+							// 양극 1차 2차 pnp 동시 하강
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_12PNP, Hex_Cmd_Vertical, Comb_DstComb_BeltDn|Comb_DstComb_AlignDn, &P_Ret_BitWise);
+							// 양극 1차 2차 pnp 동시 흡착
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_12PNP, Hex_Cmd_Vac, Comb_DstComb_BeltDn|Comb_DstComb_AlignDn, &P_Ret_BitWise);
+							// 양극 1차 2차 pnp 동시 상승
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_12PNP, Hex_Cmd_Vertical, Comb_DstComb_BeltUp|Comb_DstComb_AlignUp, &P_Ret_BitWise);
+							// 양극 1차 PNP 대기위치 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+							// 스탑 포인트
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+							P_Hold_MNTR_Supply_1st = 7
+						}
+						else if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+						{
+							// 음극 1차 PNP 벨트 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+							// 양극 1차 2차 pnp 동시 하강
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_12PNP, Hex_Cmd_Vertical, Comb_DstComb_BeltDn|Comb_DstComb_AlignDn, &P_Ret_BitWise);
+							// 양극 1차 2차 pnp 동시 흡착
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_12PNP, Hex_Cmd_Vac, Comb_DstComb_BeltDn|Comb_DstComb_AlignDn, &P_Ret_BitWise);
+							// 양극 1차 2차 pnp 동시 상승
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_12PNP, Hex_Cmd_Vertical, Comb_DstComb_BeltUp|Comb_DstComb_AlignUp, &P_Ret_BitWise);
+							// 양극 1차 PNP 대기위치 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+							// 스탑 포인트
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+							P_Hold_MNTR_Supply_1st = 8
+						}
+					}
+					else if(Sys_Cathode_2nd_Sheet_Data == 0 && Sys_Cathode_Align_Sheet_Data == 0)	// 2차 pnp와 얼라인에 극판 미존재로 1차 pnp 극판 공급 후 얼라인 위치에서 마무리
+					{
+						if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )	// 2차 pnp가 얼라인에 있으므로 1차 pnp 극판 공급 후 1차/2차 pnp 동시 진입
+						{
+							// 스탑 포인트
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+							// 양극 1차 PNP 벨트 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+							// 양극 1차 PNP 벨트 하강
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_BeltDn, &P_Ret_BitWise);
+							// 양극 1차 PNP 벨트 흡착
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Vac, Comb_DstComb_BeltDn, &P_Ret_BitWise);
+							// 양극 1차 PNP 벨트 상승
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+							// 양극 1차 2차 pnp 동시 진입
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_12PNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp|Comb_DstComb_StackUp, &P_Ret_BitWise);
+							// 스탑 포인트
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+							P_Hold_MNTR_Supply_1st = 9
+						}
+						else if ( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )	// 2차 pnp가 이미 Stack 위치에 있으므로 1차 pnp 극판 공급 후 1차 pnp만 얼라인 이동
+						{
+							// 스탑 포인트
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+							// 양극 1차 PNP 벨트 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+							// 양극 1차 PNP 벨트 하강
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_BeltDn, &P_Ret_BitWise);
+							// 양극 1차 PNP 벨트 흡착
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Vac, Comb_DstComb_BeltDn, &P_Ret_BitWise);
+							// 양극 1차 PNP 벨트 상승
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_BeltUp, &P_Ret_BitWise);
+							// 양극 1차 PNP 얼라인 이동
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+							// 스탑 포인트
+							call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+							P_Hold_MNTR_Supply_1st = 10
+						}
+					}
+				}
+				P_Hold_Supply_1st_State_Machine = 2
+			break;
+			
+			case 2 :
+				P_Except_Return_Array(N_Data_Process_RTN) = 0;
+				call Hold_Process.data_process(&P_Except_Return_Array(N_Data_Process_RTN));
+				if( P_Except_Return_Array(N_Data_Process_RTN) == N_Stop_Point )
+				{
+					P_Hold_Supply_1st_State_Machine = N_Stop_Step
+				}
+				else if( P_Except_Return_Array(N_Data_Process_RTN) == 1  )
+				{
+					P_Hold_Supply_1st_State_Machine = 3
+				}
+			break
+
+			case 3 :
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)
+				{
+					if(Sys_Anode_1st_Sheet_Data != 0 )
+					{
+						P_Hold_Supply_1st_State_Machine = N_Complete_Step
+					}
+				}
+				else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+				{
+					if(Sys_Cathode_1st_Sheet_Data != 0 )
+					{
+						P_Hold_Supply_1st_State_Machine = N_Complete_Step
+					}
+				}
+			break
+			
+			case N_Stop_Step:
+				rtn = N_Stop_Point
+				P_Hold_Supply_1st = 1;	//While 풀기
+			break
+					
+			case N_Complete_Step :
+				P_Hold_Supply_1st = 1;	//While 풀기
+				rtn = 1
+			break;			
+		}
+	}
+return
+
+//6. 얼라인 공급
+sub:supply_Align(&rtn)
+	rtn = 0;
+	local L_List_Ptr = &P_Hold_Motion_Arr(0);
+	call HoldCmdList.Init( L_List_Ptr, &P_HList_Head_Idx )
+
+	P_Hold_Supply_Align = 0;
+	P_Hold_Supply_Align_State_Machine = 1
+	
+	while( P_Hold_Supply_Align == 0 )
+	{
+		switch(P_Hold_Supply_Align_State_Machine)
+		{
+			case 1 :
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)	//파이널롤러 양극 방향 위치
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 음극 2차 PNP 스택 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_StackUp, &P_Ret_BitWise);
+					// 음극 1차 PNP 얼라인 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 음극 1차 PNP 얼라인 하강
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 음극 1차 PNP 얼라인 블로우
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Blow, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 음극 1차 PNP 얼라인 상승
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 음극 1차 PNP 대기위치 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+
+				}
+				else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 양극 2차 PNP 스택 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_StackUp, &P_Ret_BitWise);
+					// 양극 1차 PNP 얼라인 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 양극 1차 PNP 얼라인 하강
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 양극 1차 PNP 얼라인 블로우
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Blow, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 양극 1차 PNP 얼라인 상승
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 양극 1차 PNP 대기위치 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+
+				}
+				P_Hold_Supply_Align_State_Machine = 2
+			break;
+			
+			case 2 :
+				P_Except_Return_Array(N_Data_Process_RTN) = 0;
+				call Hold_Process.data_process(&P_Except_Return_Array(N_Data_Process_RTN));
+				if( P_Except_Return_Array(N_Data_Process_RTN) == N_Stop_Point )
+				{
+					P_Hold_Supply_Align_State_Machine = N_Stop_Step
+				}
+				else if( P_Except_Return_Array(N_Data_Process_RTN) == 1  )
+				{
+					P_Hold_Supply_Align_State_Machine = 3
+				}
+			break
+
+			case 3 :
+				//#ifndef F_Debug_Mode
+					P_Surface_Complete_To_Hold = 0
+				//#endif
+
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)
+				{
+					P_Vision_Surface_Command = N_Anode_Unit;
+				}
+				else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+				{
+					P_Vision_Surface_Command = N_Cathode_Unit;
+				}
+				P_Hold_Supply_Align_State_Machine = 4
+			break;
+
+			case 4 :
+				if( P_Surface_Complete_To_Hold == 1 )
+				{
+					P_Hold_Supply_Align_State_Machine = N_Complete_Step
+				}
+			break;
+
+					
+			case N_Stop_Step:
+				rtn = N_Stop_Point
+				P_Hold_Supply_Align = 1;	//While 풀기
+			break
+
+			case N_Complete_Step :
+				P_Hold_Supply_Align = 1;	//While 풀기
+				rtn = 1
+			break;			
+		}
+	}
+return
+
+
+//7. 2차 공급
+sub:supply_2nd(&rtn)
+	rtn = 0;
+	local L_List_Ptr = &P_Hold_Motion_Arr(0);
+	call HoldCmdList.Init( L_List_Ptr, &P_HList_Head_Idx )
+
+	P_Hold_Supply_2nd = 0;
+	P_Hold_Supply_2nd_State_Machine = 1
+	
+	while( P_Hold_Supply_2nd == 0 )
+	{
+		switch(P_Hold_Supply_2nd_State_Machine)
+		{
+			case 1 :
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)	//파이널롤러 양극 방향 위치
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 음극 1차 PNP 대기위치 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+					// 음극 2차 PNP 얼라인 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 음극 2차 PNP 얼라인 하강
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_2ndPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 음극 2차 PNP 얼라인 흡착
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_2ndPNP, Hex_Cmd_Vac, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 음극 2차 PNP 얼라인 상승
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_2ndPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+
+				}
+				else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )	// 파이널롤러 음극 방향 위치
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 양극 1차 PNP 대기위치 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+					// 양극 2차 PNP 얼라인 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 양극 2차 PNP 얼라인 하강
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_2ndPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 양극 2차 PNP 얼라인 흡착
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_2ndPNP, Hex_Cmd_Vac, Comb_DstComb_AlignDn, &P_Ret_BitWise);
+					// 양극 2차 PNP 얼라인 상승
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_2ndPNP, Hex_Cmd_Vertical, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+				}
+				P_Hold_Supply_2nd_State_Machine = 2
+			break;
+			
+			case 2 :
+				P_Except_Return_Array(N_Data_Process_RTN) = 0;
+				call Hold_Process.data_process(&P_Except_Return_Array(N_Data_Process_RTN));
+				if( P_Except_Return_Array(N_Data_Process_RTN) == N_Stop_Point )
+				{
+					P_Hold_Supply_2nd_State_Machine = N_Stop_Step
+				}
+				else if( P_Except_Return_Array(N_Data_Process_RTN) == 1  )
+				{
+					P_Hold_Supply_2nd_State_Machine = N_Complete_Step
+				}
+			break
+				
+			case N_Stop_Step:
+				rtn = N_Stop_Point
+				P_Hold_Supply_2nd = 1;	//While 풀기
+			break
+					
+			case N_Complete_Step :
+				P_Hold_Supply_2nd = 1;	//While 풀기
+				rtn = 1
+			break;			
+		}
+	}
+return
+
+
+//8. 세미런 가능 위치 이동
+sub:Semi_Run_Enable_Pos(&rtn)
+	rtn = 0;
+	local L_List_Ptr = &P_Hold_Motion_Arr(0);
+	call HoldCmdList.Init( L_List_Ptr, &P_HList_Head_Idx )
+
+	P_Hold_Semi_Run_Enable_Pos = 0;
+	P_Hold_Semi_Run_Enable_Pos_State_Machine = 1
+	while( P_Hold_Semi_Run_Enable_Pos == 0 )
+	{
+		switch(P_Hold_Semi_Run_Enable_Pos_State_Machine)
+		{
+			case 1 :		
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 음극 1차 PNP 대기 위치 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+					// 음극 2차 PNP 스택 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+				}
+				else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 양극 1차 PNP 대기 위치 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_1stPNP, Hex_Cmd_Horizontal, Comb_DstComb_1stReadyUP, &P_Ret_BitWise);
+					// 양극 2차 PNP 스택 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_AlignUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+				}
+				P_Hold_Semi_Run_Enable_Pos_State_Machine = 2;
+	
+			break;
+			
+			case 2 :
+				P_Except_Return_Array(N_Data_Process_RTN) = 0;
+				call Hold_Process.data_process(&P_Except_Return_Array(N_Data_Process_RTN));
+				if( P_Except_Return_Array(N_Data_Process_RTN) == N_Stop_Point )
+				{
+					P_Hold_Semi_Run_Enable_Pos_State_Machine = N_Stop_Step
+				}
+				else if( P_Except_Return_Array(N_Data_Process_RTN) == 1  )
+				{
+					P_Hold_Semi_Run_Enable_Pos_State_Machine = N_Complete_Step
+				}
+			break
+				
+			case N_Stop_Step:
+				rtn = N_Stop_Point
+				P_Hold_Semi_Run_Enable_Pos = 1;	//While 풀기
+			break
+					
+			case N_Complete_Step :
+				P_Hold_Semi_Run_Enable_Pos = 1;	//While 풀기
+				rtn = 1
+			break;		
+		}
+	
+	}
+return
+
+
+
+
+//9. 유무 검사 위치 이동
+sub:Existence_Insp(&rtn)
+	rtn = 0;
+	local L_List_Ptr = &P_Hold_Motion_Arr(0);
+	call HoldCmdList.Init( L_List_Ptr, &P_HList_Head_Idx )
+
+	P_Hold_Existence_Insp = 0;
+	P_Hold_Existence_Insp_State_Machine = 1
+	while( P_Hold_Existence_Insp == 0 )
+	{
+		switch(P_Hold_Existence_Insp_State_Machine)
+		{
+			case 1 :		
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 2차 PNP 스택 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_An_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_StackUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+				}
+				else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+				{
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+					// 2차 PNP 스택 이동
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_2ndPNP, Hex_Cmd_Horizontal, Comb_DstComb_StackUp, &P_Ret_BitWise);
+					// 스탑 포인트
+					call HoldCmdList.Set_Data(P_HList_Head_Idx, Hex_Cmd_Stop, Hex_Cmd_Stop, Hex_Cmd_Stop, &P_Ret_BitWise);
+				}
+				P_Hold_Existence_Insp_State_Machine = 2;
+	
+			break;
+			
+			case 2 :
+				P_Except_Return_Array(N_Data_Process_RTN) = 0;
+				call Hold_Process.data_process(&P_Except_Return_Array(N_Data_Process_RTN));
+				if( P_Except_Return_Array(N_Data_Process_RTN) == N_Stop_Point )
+				{
+					P_Hold_Existence_Insp_State_Machine = N_Stop_Step
+				}
+				else if( P_Except_Return_Array(N_Data_Process_RTN) == 1  )
+				{
+					P_Hold_Existence_Insp_State_Machine = 3
+				}
+			break
+
+			case 3 :
+				//#ifndef F_Debug_Mode
+					P_Hold_Align_Sheet_CHK = 0	// 극판유무검사 or 빈테이블 검사 완료 확인 변수 초기화
+				//#endif
+
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)
+				{
+					if( P_Hold_Anode_Exception_Empty_Flag == 1 && Sys_Anode_NG_TR_Sheet_Data != 0 )	//NG PNP가 극판을 가지고 있으면 NG 버리면서 빈테이블 검사를 하기 때문에 완료 처리
+					{
+						P_Hold_Existence_Insp_State_Machine = N_Complete_Step
+					}
+					// 장비가 정지할 때 NG PNP에 극판 데이터가 있는 상태로 정지 후 재시작 하였을 때 극판 데이터가 없으면 작업자가 제거했다고 판단하여 빈테이블 검사 실행
+					else if( P_Hold_Anode_Exception_Empty_Flag == 1 && Sys_Anode_NG_TR_Sheet_Data == 0 )	
+					{
+						P_Vision_EmptyTable_Command = N_Anode_Unit	// 빈테이블 검사 실행
+						P_Hold_Existence_Insp_State_Machine = 4
+					}
+					else
+					{
+						P_Vision_Existence_Command = N_Anode_Unit					// 극판 유무 검사 실행
+						P_Hold_Existence_Insp_State_Machine = 4;
+					}
+				}
+				else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+				{
+					if( P_Hold_Cathode_Exception_Empty_Flag == 1 && Sys_Cathode_NG_TR_Sheet_Data != 0 )	//NG PNP가 극판을 가지고 있으면 NG 버리면서 빈테이블 검사를 하기 때문에 완료 처리
+					{
+						P_Hold_Existence_Insp_State_Machine = N_Complete_Step
+					}
+					// 장비가 정지할 때 NG PNP에 극판 데이터가 있는 상태로 정지 후 재시작 하였을 때 극판 데이터가 없으면 작업자가 제거했다고 판단하여 빈테이블 검사 실행
+					else if( P_Hold_Cathode_Exception_Empty_Flag == 1 && Sys_Cathode_NG_TR_Sheet_Data == 0 )
+					{
+						P_Vision_EmptyTable_Command = N_Cathode_Unit	// 빈테이블 검사 실행
+						P_Hold_Existence_Insp_State_Machine = 4;				// 극판 유무 검사 실행
+					}
+					else
+					{
+						P_Vision_Existence_Command = N_Cathode_Unit
+						P_Hold_Existence_Insp_State_Machine = 4
+					}
+				}
+			break
+
+			case 4 : 
+				if( P_Hold_Align_Sheet_CHK == 1 )	// 극판유무검사 or 빈테이블 검사 완료 확인
+				{
+					P_Hold_Existence_Insp_State_Machine = N_Complete_Step
+				}
+			break
+				
+			case N_Stop_Step:
+				rtn = N_Stop_Point
+				P_Hold_Existence_Insp = 1;	//While 풀기
+			break
+					
+			case N_Complete_Step :
+				P_Hold_Existence_Insp = 1;	//While 풀기
+				rtn = 1
+			break;		
+		}
+	
+	}
+return
+
+
+
+close

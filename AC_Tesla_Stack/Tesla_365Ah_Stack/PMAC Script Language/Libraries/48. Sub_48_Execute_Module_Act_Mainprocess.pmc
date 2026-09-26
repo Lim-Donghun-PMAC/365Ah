@@ -1,0 +1,305 @@
+// 동작 커맨드 발생 감지 및 동작 실행
+open subprog Subprog_Mainprocess_EXECUTE_Act_Module(void)
+
+// 1) 커맨드 감시 
+	sub:Management(&rtn)
+
+	// 0. 로컬변수 선언 (완료 감시 변수 초기화)
+	//=============================================================================================================================================
+	// 1. 배출 모듈 
+	//=============================================================================================================================================
+	// 1.1) 공용
+	local L_Subprog_Act_EXECUTE_Motor_Pos_Check					// 	[EXECUTE - 세파 첫장 가능 위치 확인 ]
+	local L_Subprog_Act_EXECUTE_FR_1st_Move						//	[EXECUTE - 파이널 롤러 1차 이동 && Sheet Paper 전진 ]
+	local L_Subprog_Act_EXECUTE_FR_2nd_Move						//	[EXECUTE - 파이널 롤러 2차 이동 ]
+	local L_Subprog_Act_EXECUTE_FR_Down							//	[EXECUTE - 파이널 롤러 하강 ]
+	local L_Subprog_Act_EXECUTE_Anode_Clamp_On					//	[EXECUTE - 음극 클램프 ON ]
+	local L_Subprog_Act_EXECUTE_Vision_Check					//	[EXECUTE - Vision 촬상 ]
+	local L_Subprog_Act_EXECUTE_FR_Up							//	[EXECUTE - 파이널 롤러 상승 ]
+	local L_Subprog_Act_EXECUTE_Host_ID							//	[EXECUTE - 호스트 생성 ]
+	local L_Subprog_Act_EXECUTE_EPC_Judge						//	[EXECUTE - EPC 보정 판단 ]
+//=========================================================//
+// 1) [세파첫장 모듈 - 세파 첫장 가능 위치 확인 ]
+//=========================================================// 
+	if( P_Module_Act_Execute_Command_Array(N_Act_Motor_Pos_Check) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_Motor_Pos_Check) != F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_Motor_Pos_Check) = F_ACT_STATUS_ENABLE;					// 변수 업데이트.
+			P_Module_Act_Execute_State_Machine_Array(N_Act_Motor_Pos_Check) = N_Ready_Step;							// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Act_EXECUTE_Motor_Pos_Check = 0;																	// 반환값 초기화.
+		call Subprog_Subprocess_Execute_Act_Module.Motor_Pos_Check(&L_Subprog_Act_EXECUTE_Motor_Pos_Check);			// 실행 함수 호출.
+		IF ( L_Subprog_Act_EXECUTE_Motor_Pos_Check == N_COMPLETE )													// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Execute_Command_Array(N_Act_Motor_Pos_Check) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_EXECUTE_Motor_Pos_Check == N_FALSE )												// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Execute_Command_Array(N_Act_Motor_Pos_Check) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_Motor_Pos_Check) == F_ACT_STATUS_ENABLE )					// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_Motor_Pos_Check) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 2) [세파첫장 모듈 - 파이널 롤러 1차 이동 && Sheet Paper 전진 ]
+//=========================================================// 
+	if( P_Module_Act_Execute_Command_Array(N_Act_FR_1st_Move) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_1st_Move) != F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_1st_Move) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_Execute_State_Machine_Array(N_Act_FR_1st_Move) = N_Ready_Step;								// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Act_EXECUTE_FR_1st_Move = 0;																		// 반환값 초기화.
+		call Subprog_Subprocess_Execute_Act_Module.FR_1st_Move(&L_Subprog_Act_EXECUTE_FR_1st_Move);					// 실행 함수 호출.
+		IF ( L_Subprog_Act_EXECUTE_FR_1st_Move == N_COMPLETE )														// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Execute_Command_Array(N_Act_FR_1st_Move) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_EXECUTE_FR_1st_Move == N_FALSE )													// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Execute_Command_Array(N_Act_FR_1st_Move) = F_ACT_STATUS_ALARM;								// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_1st_Move) == F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_1st_Move) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 3) [세파첫장 모듈 - 파이널 롤러 2차 이동 ]
+//=========================================================// 
+	if( P_Module_Act_Execute_Command_Array(N_Act_FR_2nd_Move) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_2nd_Move) != F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_2nd_Move) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_Execute_State_Machine_Array(N_Act_FR_2nd_Move) = N_Ready_Step;								// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Act_EXECUTE_FR_2nd_Move = 0;																		// 반환값 초기화.
+		call Subprog_Subprocess_Execute_Act_Module.FR_2nd_Move(&L_Subprog_Act_EXECUTE_FR_2nd_Move);					// 실행 함수 호출.
+		IF ( L_Subprog_Act_EXECUTE_FR_2nd_Move == N_COMPLETE )														// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Execute_Command_Array(N_Act_FR_2nd_Move) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_EXECUTE_FR_2nd_Move == N_FALSE )													// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Execute_Command_Array(N_Act_FR_2nd_Move) = F_ACT_STATUS_ALARM;								// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_2nd_Move) == F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_2nd_Move) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 4) [세파첫장 모듈 - 파이널 롤러 하강 ]
+//=========================================================// 
+	if( P_Module_Act_Execute_Command_Array(N_Act_FR_Down) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_Down) != F_ACT_STATUS_ENABLE )							// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_Down) = F_ACT_STATUS_ENABLE;							// 변수 업데이트.
+			P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Down) = N_Ready_Step;									// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Act_EXECUTE_FR_Down = 0;																			// 반환값 초기화.
+		call Subprog_Subprocess_Execute_Act_Module.FR_Down(&L_Subprog_Act_EXECUTE_FR_Down);							// 실행 함수 호출.
+		IF ( L_Subprog_Act_EXECUTE_FR_Down == N_COMPLETE )															// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Execute_Command_Array(N_Act_FR_Down) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_EXECUTE_FR_Down == N_FALSE )														// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Execute_Command_Array(N_Act_FR_Down) = F_ACT_STATUS_ALARM;									// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_Down) == F_ACT_STATUS_ENABLE )							// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_Down) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+		}
+	}
+
+//=========================================================//
+// 5) [세파첫장 모듈 - 양극 클램프 ON ]
+//=========================================================// 
+	if( P_Module_Act_Execute_Command_Array(N_Act_Clamp_On) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_Clamp_On) != F_ACT_STATUS_ENABLE )							// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_Clamp_On) = F_ACT_STATUS_ENABLE;							// 변수 업데이트.
+			P_Module_Act_Execute_State_Machine_Array(N_Act_Clamp_On) = N_Ready_Step;								// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Act_EXECUTE_Anode_Clamp_On = 0;																	// 반환값 초기화.
+		call Subprog_Subprocess_Execute_Act_Module.Anode_Clamp_On(&L_Subprog_Act_EXECUTE_Anode_Clamp_On);			// 실행 함수 호출.
+		IF ( L_Subprog_Act_EXECUTE_Anode_Clamp_On == N_COMPLETE )													// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Execute_Command_Array(N_Act_Clamp_On) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_EXECUTE_Anode_Clamp_On == N_FALSE )													// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Execute_Command_Array(N_Act_Clamp_On) = F_ACT_STATUS_ALARM;								// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_Clamp_On) == F_ACT_STATUS_ENABLE )							// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_Clamp_On) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+		}
+	}
+//=========================================================//
+// 6) [세파첫장 모듈 - Vision 촬상 ]
+//=========================================================// 
+	if( P_Module_Act_Execute_Command_Array(N_Act_Vision_Check) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_Vision_Check) != F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_Vision_Check) = F_ACT_STATUS_ENABLE;						// 변수 업데이트.
+			P_Module_Act_Execute_State_Machine_Array(N_Act_Vision_Check) = N_Ready_Step;							// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Act_EXECUTE_Vision_Check = 0;																		// 반환값 초기화.
+		call Subprog_Subprocess_Execute_Act_Module.Vision_Check(&L_Subprog_Act_EXECUTE_Vision_Check);				// 실행 함수 호출.
+		IF ( L_Subprog_Act_EXECUTE_Vision_Check == N_COMPLETE )														// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Execute_Command_Array(N_Act_Vision_Check) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_EXECUTE_Vision_Check == N_FALSE )													// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Execute_Command_Array(N_Act_Vision_Check) = F_ACT_STATUS_ALARM;							// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_Vision_Check) == F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_Vision_Check) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+		}
+	}
+//=========================================================//
+// 7) [세파첫장 모듈 - 파이널 롤러 상승 ]
+//=========================================================// 
+	if( P_Module_Act_Execute_Command_Array(N_Act_FR_Up) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_Up) != F_ACT_STATUS_ENABLE )							// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_Up) = F_ACT_STATUS_ENABLE;								// 변수 업데이트.
+			P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Up) = N_Ready_Step;									// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Act_EXECUTE_FR_Up = 0;																			// 반환값 초기화.
+		call Subprog_Subprocess_Execute_Act_Module.FR_Up(&L_Subprog_Act_EXECUTE_FR_Up);								// 실행 함수 호출.
+		IF ( L_Subprog_Act_EXECUTE_FR_Up == N_COMPLETE )															// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Execute_Command_Array(N_Act_FR_Up) = F_ACT_STATUS_DISABLE;									// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_EXECUTE_FR_Up == N_FALSE )															// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Execute_Command_Array(N_Act_FR_Up) = F_ACT_STATUS_ALARM;									// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_Up) == F_ACT_STATUS_ENABLE )							// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_FR_Up) = F_ACT_STATUS_INITIAL;								// 엣지 변수 초기화
+		}
+	}
+//=========================================================//
+// 8) [세파첫장 모듈 - 호스트 생성 ]
+//=========================================================// 
+	if( P_Module_Act_Execute_Command_Array(N_Act_Host_ID) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_Host_ID) != F_ACT_STATUS_ENABLE )							// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_Host_ID) = F_ACT_STATUS_ENABLE;							// 변수 업데이트.
+			P_Module_Act_Execute_State_Machine_Array(N_Act_Host_ID) = N_Ready_Step;									// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Act_EXECUTE_Host_ID = 0;																			// 반환값 초기화.
+		call Subprog_Subprocess_Execute_Act_Module.Host_ID(&L_Subprog_Act_EXECUTE_Host_ID);							// 실행 함수 호출.
+		IF ( L_Subprog_Act_EXECUTE_Host_ID == N_COMPLETE )															// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Execute_Command_Array(N_Act_Host_ID) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_EXECUTE_Host_ID == N_FALSE )														// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Execute_Command_Array(N_Act_Host_ID) = F_ACT_STATUS_ALARM;									// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_Host_ID) == F_ACT_STATUS_ENABLE )							// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_Host_ID) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+		}
+	}
+//=========================================================//
+// 9) [세파첫장 모듈 - EPC 보정 판단 ]
+//=========================================================// 
+	if( P_Module_Act_Execute_Command_Array(N_Act_EPC_Judge) == F_ACT_STATUS_ENABLE )
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_EPC_Judge) != F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable이 아닐 경우.												
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_EPC_Judge) = F_ACT_STATUS_ENABLE;							// 변수 업데이트.
+			P_Module_Act_Execute_State_Machine_Array(N_Act_EPC_Judge) = N_Ready_Step;								// 스텝 머신 실행.
+		}	
+
+		L_Subprog_Act_EXECUTE_EPC_Judge = 0;																		// 반환값 초기화.
+		call Subprog_Subprocess_Execute_Act_Module.EPC_Judge(&L_Subprog_Act_EXECUTE_EPC_Judge);						// 실행 함수 호출.
+		IF ( L_Subprog_Act_EXECUTE_EPC_Judge == N_COMPLETE )														// 실행 함수 호출 완료 되었을 경우.
+		{
+			P_Module_Act_Execute_Command_Array(N_Act_EPC_Judge) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화.
+		}
+		ELSE IF ( L_Subprog_Act_EXECUTE_EPC_Judge == N_FALSE )														// 실행 함수 호출 실패 되었을 경우.
+		{
+			//P_Suspend_Anode_1TR_Cell_Supply_State_Machine = N_Error_Step; 										// 스탑포인트 에러 처리 할 것 
+			P_Module_Act_Execute_Command_Array(N_Act_EPC_Judge) = F_ACT_STATUS_ALARM;								// 동작 에러.
+		}
+	}
+	else
+	{
+		if( P_OLD_Module_Act_Execute_Command_Array(N_Act_EPC_Judge) == F_ACT_STATUS_ENABLE )						// 이전 Command가 Enable 일 경우.
+		{
+			P_OLD_Module_Act_Execute_Command_Array(N_Act_EPC_Judge) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+		}
+	}
+
+//===========================================================================================		
+// 리턴값 
+//===========================================================================================	
+	rtn = N_TRUE;
+//===========================================================================================
+	return
+close
+
+
+

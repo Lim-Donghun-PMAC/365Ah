@@ -1,0 +1,170 @@
+
+
+&28
+#3-> 1000tt		// 양극 2차 PNP T축
+#21-> 1000z		// 양극 2차 PNP Z축
+//===============//
+
+
+
+open prog 28
+	
+	ABS					// 절대좌표모드
+	LINEAR
+	
+	while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(8) == 1 && P_Slave_Motion_Program_Flag(8) == 1 )
+	{	// 프로그램 허용 플래그
+	
+		Switch ( P_Slave8_Motion_Command )
+		{	
+			// 커멘드별 모션
+			case 0:
+			break;
+
+			// case 1
+			case N_2nd_PNP_Align_To_Stack_Motion :			// Stack 진입
+				P_Slave8_Motion_Command == 0;
+				P_C_2nd_PNP_FWD_Abort_Calc_Bit == 1;		// Abort Calc 진행 Bit.		[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+				P_C_2nd_PNP_FWD_Restore_Bit == 1;			// Abort 완료 후 원복 Bit.	[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+				dwell(0)
+				linear
+				tm(P_PNP_90_Deg_TM) ta(P_PNP_90_Deg_TA) ts(P_PNP_90_Deg_TS)		// 230ms
+				tt(90) z( 24 )			
+				//tt(P_Cathode_2st_T_Align_To_Stack) z(P_Cathode_2st_Z_Ready_Up)		// [ 참조 : 25.09.01 추후 레시피로 받을때 상수->레시피변수로변경 ]
+				P_Cathode_2nd_Motion_Complete == 1
+				M_Y_Vision_Cathode_Save_Sheet_Data == 1;	// 양극 극판 데이터 해당 젤리롤에 저장 ( 기존 리트라이 신호 )
+				P_C_2nd_PNP_FWD_Abort_Calc_Bit == 0;		// Abort Calc 진행 Bit.		[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+				dwell(0)
+			break;
+
+			// case 2
+			case N_2nd_PNP_Stack_To_Align_Motion :			// Align 진입
+				P_Slave8_Motion_Command == 0;
+				P_C_2nd_PNP_BWD_Abort_Calc_Bit == 1;		// Abort Calc 진행 Bit.		[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+				P_C_2nd_PNP_BWD_Restore_Bit == 1;			// Abort 완료 후 원복 Bit.	[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+				dwell(0)
+				linear
+				tm(P_PNP_90_Deg_TM) ta(P_PNP_90_Deg_TA) ts(P_PNP_90_Deg_TS)		// 230ms
+				tt(0) z( 24 )
+				//tt(P_Cathode_2st_T_Stack_To_Align) z(P_Cathode_2st_Z_Ready_Up)		// [ 참조 : 25.09.01 추후 레시피로 받을때 상수->레시피변수로변경 ]
+				P_Cathode_2nd_Motion_Complete == 1
+				P_C_2nd_PNP_BWD_Abort_Calc_Bit == 0;		// Abort Calc 진행 Bit.		[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+				dwell(0)
+			break;
+
+			// case 3
+			case N_2nd_PNP_Stack_Down_Motion :		// stack 하강
+				P_Slave8_Motion_Command == 0;
+				linear
+				//ta(33.5)ts(10)tm(45)td(21.5)				// 90ms
+				//ta(38)ts(10)tm(41)td(24)				// 90ms 수정250415 잘 못 만들었어서 부하율 비슷하게 나옴
+				//ta(46)ts(10)tm(48)td(28)				// 100ms
+				ta(35)ts(5)tm(0)
+				z(P_2nd_PNP_Stack_Down_Pos)												// 실제 유닛 진공 테스트용 위치	
+				//Z(P_Recipe_C_2st_Z_Stack_Down)			// Crank Z축 Count 수식 값 적용 완료(추후 변수로 변경 필요)
+				P_Cathode_2nd_Motion_Complete == 1
+				dwell(0)
+				//P_Cathode_Count++;
+			break;
+
+			// case 4
+			case N_2nd_PNP_Stack_Up_Motion :		// stack 상승
+				P_Slave8_Motion_Command == 0;
+				linear
+				//ta(37.5)ts(10)tm(45)td(17.5)					// 90ms
+				//ta(32.5)ts(10)tm(41.25)td(15)					// 80ms
+				ta(30) ts(5) tm(0)
+				z(P_2nd_PNP_Stack_Up_Pos)	
+				//Z(P_Cathode_2st_Z_Stack_Up)			// Crank Z축 Count 수식 값 적용 완료(추후 변수로 변경 필요)	
+				P_Cathode_2nd_Motion_Complete == 1
+				M_Y_Vision_Cathode_Save_Sheet_Data == 0;	// 극판 데이터 저장 I/O 해제 ( 기존 리트라이 신호 )
+				dwell(0)
+			break;
+
+			// case 5
+			case N_2nd_PNP_Align_Down_Motion :		// Align 하강
+				P_Slave8_Motion_Command == 0;
+				linear
+				//ta(35)ts(10)tm(45)td(20)
+				//ta(33.5)ts(10)tm(45)td(21.5)			// 90ms
+				//ta(38)ts(10)tm(41)td(24)				// 90ms 수정250415 잘 못 만들었어서 부하율 비슷하게 나옴
+				//ta(46)ts(10)tm(48)td(28)				// 100ms
+				ta(35)ts(5)tm(0)
+				z(59.7)												// 실제 유닛 진공 테스트용 위치	
+				//Z(P_Recipe_C_2st_Z_Align_Down)			// Crank Z축 Count 수식 값 적용 완료(추후 변수로 변경 필요)	
+				P_Cathode_2nd_Motion_Complete == 1
+				dwell(0)
+			break;
+
+			// case 6
+			case N_2nd_PNP_Align_Up_Motion :		// Align 상승
+				P_Slave8_Motion_Command == 0;
+				linear
+				//ta(37.5)ts(10)tm(45)td(17.5)			// 90ms
+				//ta(32.5)ts(10)tm(41.25)td(15)			// 80ms
+				ta(30) ts(5) tm(0)
+				z(42.023)	
+				//Z(P_Recipe_C_2st_Z_Align_Up)			// Crank Z축 Count 수식 값 적용 완료(추후 변수로 변경 필요)				
+				P_Cathode_2nd_Motion_Complete == 1
+				P_Align_Zero_Move_Start_Flag(N_Cathode_Unit) == 1;
+				dwell(0)
+			break;
+
+			// 얼라인 흡착
+			// case 10
+			case N_2nd_PNP_Align_Vac :
+				P_Slave8_Motion_Command == 0;
+				P_Tact_Time_Check(N_Cathode_2nd_PNP) == 1;		// Tact Time 측정 시작 및 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+				dwell(0);
+				P_PLC12_Vacuum_MNTR(N_2nd_Cathode) == 1;		// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+				P_PLC12_Blow_MNTR(N_Align_Cathode) == 1;		// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+				P_Cathode_2nd_TR_Align_Pick_Up_Flag == 1
+				dwell(50)
+				P_Cathode_2nd_Motion_Complete == 1
+				dwell(0)
+			break
+
+			// 스택 블로우
+			// case 11
+			case N_2nd_PNP_Stack_Blow :
+				P_Slave8_Motion_Command == 0;
+				P_Cathode_2nd_TR_Stack_Down_Flag == 1
+				P_Vision_Stack_Command == N_Cathode_Unit;		// Stack Vision Command [ 참조 : 25.07.16 Stack Vision Command 추가 ]
+				P_PLC12_Blow_MNTR(N_2nd_Cathode) == 1;			// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+				dwell(50)
+				P_Cathode_2nd_Motion_Complete == 1
+				P_Stack_Trigger_IO_Test_Motion_Loop++;		// 모션, PLC 실제 Vision측 루프 카운트 측정 변수
+				P_Cathode_Count++;
+				dwell(0)
+			break
+
+			// 얼라인 블로우
+			// case 12
+			case N_2nd_PNP_Align_Blow : 
+				P_Slave8_Motion_Command == 0;
+				P_Cathode_2nd_TR_Align_Down_Flag == 1
+				P_PLC12_Blow_MNTR(N_2nd_Cathode) == 1;			// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+				P_PLC12_Vacuum_MNTR(N_Align_Cathode) == 1;		// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+				dwell(50)
+				P_Cathode_2nd_Motion_Complete == 1
+				dwell(0)
+			break
+
+			// [ 참조 : 2025.07.25 Sepa Blow 모션 추가 ]
+			// case 13 // 세파모드 블로우
+			case N_2nd_PNP_Sepa_Blow :
+				P_Slave8_Motion_Command == 0;
+				P_Cathode_2nd_Motion_Complete == 1
+				P_Cathode_Count++;
+				dwell(0)
+			break;
+
+			default :
+
+			break;
+
+		}
+		
+	}
+
+close

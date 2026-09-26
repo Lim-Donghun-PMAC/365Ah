@@ -1,0 +1,157 @@
+// [ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+//===============================================================================================================//
+// 연속 적으로 움직이는 유닛 Tact Time 선언 //
+#define N_Stack					1		// 
+#define N_Discharge				2		// 
+#define N_1st_Unloader			3		// 
+#define N_Sepa_ARC				4		// 세파 ARC		[ARC 모듈 시작 → ARC 모듈 끝]
+#define N_Final_Roller			5		// 파이널 롤러	[(양	 → 음) 모션 시작 → 모션 끝 / (음 → 양) 모션 시작 → 모션 끝]
+#define N_Cathode_1st_PNP		6		// 양극 1차 P&P	[벨트 흡착 → 다음 벨트 흡착]
+#define N_Cathode_Align			7		// 양극 얼라인	[Align 구동 시작 → Align 구동 끝]
+#define N_Cathode_2nd_PNP		8		// 양극 2차 P&P	[얼라인 흡착 → 다음 얼라인 흡착]
+#define N_Cathode_Clamp			9		// 양극 클램프	[클램프 ON → 클램프 OFF]
+#define N_Anode_1st_PNP			10		// 음극 1차 P&P	[벨트 흡착 → 다음 벨트 흡착]
+#define N_Anode_Align			11		// 음극 얼라인	[Align 구동 시작 → Align 구동 끝]
+#define N_Anode_2nd_PNP			12		// 음극 2차 P&P	[얼라인 흡착 → 다음 얼라인 흡착]
+#define N_Anode_Clamp			13		// 음극 클램프	[클램프 ON → 클램프 OFF]
+#define N_Space_0				14		// 스페이스_0	[]
+#define N_Space_1				15		// 스페이스_1	[]
+#define N_Space_2				16		// 스페이스_2	[]
+#define N_Space_3				17		// 스페이스_3	[]
+#define N_Space_4	 			18		// 스페이스_4	[]
+#define N_Space_5	 			19		// 스페이스_5	[]
+#define N_Space_6				20		// 스페이스_6	[]
+// Sol Tact Time 선언 //
+#define N_Cathode_1st_Vac		21		// 양극 1차 P&P	[흡착 ON → 입력 센서 ON]
+#define N_Cathode_Align_Vac		22		// 양극 얼라인	[흡착 ON → 입력 센서 ON]
+#define N_Cathode_2nd_Vac		23		// 양극 2차 P&P	[흡착 ON → 입력 센서 ON]
+#define N_Anode_1st_Vac			24		// 음극 1차 P&P	[흡착 ON → 입력 센서 ON]
+#define N_Anode_Align_Vac		25		// 음극 얼라인	[흡착 ON → 입력 센서 ON]
+#define N_Anode_2nd_Vac			26		// 음극 2차 P&P	[흡착 ON → 입력 센서 ON]
+#define N_Final_Roller_Clamp	27		// 파이널 롤러 클램프,언클램프	[출력 ON → 입력 ON]
+#define N_Stack_Table			28		// 스텍 테이블 하강, 상승			[출력 ON → 입력 ON]
+#define N_Sepa_Cutting			29		// 세파 커팅 하강, 상승			[출력 ON → 입력 ON]
+#define N_ARC_Upper_Plate		30		// Sepa ARC 상부 플레이트		[출력 ON → 입력 ON]
+#define N_ARC_Upper_Tilting		31		// Sepa ARC 상부 틸팅			[출력 ON → 입력 ON]
+#define N_ARC_Upper_Cutter		32		// Sepa ARC 상부 커터			[출력 ON → 입력 ON]
+#define N_ARC_Upper_Clamp		33		// Sepa ARC 상부 클램프			[출력 ON → 입력 ON]
+#define N_ARC_Lower_Plate		34		// Sepa ARC 하부 플레이트		[출력 ON → 입력 ON]
+#define N_ARC_Lower_Tilting		35		// Sepa ARC 하부 틸팅			[출력 ON → 입력 ON]
+#define N_ARC_Lower_Cutter		36		// Sepa ARC 하부 커터			[출력 ON → 입력 ON]
+#define N_ARC_Lower_Clamp		37		// Sepa ARC 하부 클램프			[출력 ON → 입력 ON]
+#define N_Vac_Space_1			36		// 스페이스_1	[]
+#define N_Vac_Space_2			37		// 스페이스_2	[]
+#define N_Vac_Space_3			38		// 스페이스_3	[]
+#define N_Vac_Space_4			39		// 스페이스_4	[]
+//===============================================================================================================//
+// Tact Time 유닛 선언 마지막.
+#define N_Tact_Time_Value_End	40
+// Tact Time 저장 수 선언. (변경 X)
+#define N_Tact_Time_Num			10
+//===============================================================================================================//
+// Tact Time 변수 선언.
+global P_Tact_Time_Timer(N_Tact_Time_Value_End);		// 유닛 Tact_Time 측정 변수.
+global P_Tack_Time_Save_Time(N_Tact_Time_Value_End);	// 유닛 Tact_Time 저장 변수.
+P_Tact_Time_Timer(0),N_Tact_Time_Value_End = 0;			// 초기화.
+P_Tack_Time_Save_Time(0),N_Tact_Time_Value_End = 0;			// 초기화.
+//===============================================================================================================//
+// 유닛에 따른 Tact Time 변수 선언.
+// 배열 O //
+global P_Tact_Time_Stack_Array(N_Tact_Time_Num);					// 
+global P_Tact_Time_Discharge_Array(N_Tact_Time_Num);				// 
+global P_Tact_Time_1st_Unloader_Array(N_Tact_Time_Num);				// 
+global P_Tact_Time_Sepa_ARC_Array(N_Tact_Time_Num);					// 
+global P_Tact_Time_Final_Roll_Array(N_Tact_Time_Num);				// 파이널 롤러	[(양	→ 음) 모션 시작 → 모션 끝 / (음 → 양) 모션 시작 → 모션 끝]
+global P_Tact_Time_Cathode_1st_PNP_Array(N_Tact_Time_Num);			// 양극 1차 P&P	[벨트 흡착 → 다음 벨트 흡착]
+global P_Tact_Time_Cathode_Align_Array(N_Tact_Time_Num);			// 양극 얼라인	[Align 구동 시작 → Align 구동 끝]
+global P_Tact_Time_Cathode_2nd_PNP_Array(N_Tact_Time_Num);			// 양극 2차 P&P	[얼라인 흡착 → 다음 얼라인 흡착]
+global P_Tact_Time_Cathode_Clamp_Array(N_Tact_Time_Num);			// 양극 클램프	[클램프 ON → 클램프 OFF]
+global P_Tact_Time_Anode_1st_PNP_Array(N_Tact_Time_Num);			// 음극 1차 P&P	[벨트 흡착 → 다음 벨트 흡착]
+global P_Tact_Time_Anode_Align_Array(N_Tact_Time_Num);				// 음극 얼라인	[Align 구동 시작 → Align 구동 끝]
+global P_Tact_Time_Anode_2nd_PNP_Array(N_Tact_Time_Num);			// 음극 2차 P&P	[얼라인 흡착 → 다음 얼라인 흡착]
+global P_Tact_Time_Anode_Clamp_Array(N_Tact_Time_Num);				// 음극 클램프	[클램프 ON → 클램프 OFF]
+global P_Tact_Time_Cathode_1st_PNP_Vac_Array(N_Tact_Time_Num);		// 양극 1차 P&P	[흡착 ON → 입력 센서 ON]
+global P_Tact_Time_Cathode_Align_PNP_Vac_Array(N_Tact_Time_Num);	// 양극 얼라인	[흡착 ON → 입력 센서 ON]
+global P_Tact_Time_Cathode_2nd_PNP_Vac_Array(N_Tact_Time_Num);		// 양극 2차 P&P	[흡착 ON → 입력 센서 ON]
+global P_Tact_Time_Anode_1st_PNP_Vac_Array(N_Tact_Time_Num);		// 음극 1차 P&P	[흡착 ON → 입력 센서 ON]
+global P_Tact_Time_Anode_Align_PNP_Vac_Array(N_Tact_Time_Num);		// 음극 얼라인	[흡착 ON → 입력 센서 ON]
+global P_Tact_Time_Anode_2nd_PNP_Vac_Array(N_Tact_Time_Num);		// 음극 2차 P&P	[흡착 ON → 입력 센서 ON]
+// 배열 X //
+global P_Tact_Time_Final_Roller_Clamp = 0;							// 파이널 롤러 클램프.
+global P_Tact_Time_Final_Roller_Unclamp = 0;						// 파이널 롤러 언클램프.
+global P_Tact_Time_Stack_Table_Down = 0;							// 스텍 테이블 하강.
+global P_Tact_Time_Stack_Table_Up = 0;								// 스텍 테이블 상승.
+global P_Tact_Time_Sepa_Cutting_Down = 0;							// 세파 커팅 하강.
+global P_Tact_Time_Sepa_Cutting_Up = 0;								// 세파 커팅 상승.
+global P_Tact_Time_ARC_Upper_Plate_Up = 0;							// 상부 ARC 플레이트 상승.
+global P_Tact_Time_ARC_Upper_Plate_Down = 0;						// 상부 ARC 플레이트 하강.
+global P_Tact_Time_ARC_Upper_Tilting_On = 0;						// 상부 ARC 틸팅 On.
+global P_Tact_Time_ARC_Upper_Tilting_Off = 0;						// 상부 ARC 틸팅 Off.
+global P_Tact_Time_ARC_Upper_Cutter_Fwd = 0;						// 상부 ARC 커터 전진.
+global P_Tact_Time_ARC_Upper_Cutter_Bwd = 0;						// 상부 ARC 커터 후진.
+global P_Tact_Time_ARC_Upper_Clamp_On = 0;							// 상부 ARC 클램프 On.
+global P_Tact_Time_ARC_Upper_Clamp_Off = 0;							// 상부 ARC 클램프 Off.
+global P_Tact_Time_ARC_Lower_Plate_Up = 0;							// 하부 ARC 플레이트 상승.
+global P_Tact_Time_ARC_Lower_Plate_Down = 0;						// 하부 ARC 플레이트 하강.
+global P_Tact_Time_ARC_Lower_Tilting_On = 0;						// 하부 ARC 틸팅 On.
+global P_Tact_Time_ARC_Lower_Tilting_Off = 0;						// 하부 ARC 틸팅 Off.
+global P_Tact_Time_ARC_Lower_Cutter_Fwd = 0;						// 하부 ARC 커터 전진.
+global P_Tact_Time_ARC_Lower_Cutter_Bwd = 0;						// 하부 ARC 커터 후진.
+global P_Tact_Time_ARC_Lower_Clamp_On = 0;							// 하부 ARC 클램프 On.
+global P_Tact_Time_ARC_Lower_Clamp_Off = 0;							// 하부 ARC 클램프 Off.
+
+global P_Tact_Time_Save_Final_Roller_Clamp_Time = 0;				// 파이널 롤러 클램프.
+global P_Tact_Time_Save_Final_Roller_Unclamp_Time = 0;				// 파이널 롤러 언클램프.
+global P_Tact_Time_Save_Stack_Table_Down_Time = 0;					// 스텍 테이블 하강.
+global P_Tact_Time_Save_Stack_Table_Up_Time = 0;					// 스텍 테이블 상승.
+global P_Tact_Time_Save_Sepa_Cutting_Down_Time = 0;					// 세파 커팅 하강.
+global P_Tact_Time_Save_Sepa_Cutting_Up_Time = 0;					// 세파 커팅 상승.
+global P_Tact_Time_Save_ARC_Upper_Plate_Up_Time = 0;				// 상부 ARC 플레이트 상승.
+global P_Tact_Time_Save_ARC_Upper_Plate_Down_Time = 0;				// 상부 ARC 플레이트 하강.
+global P_Tact_Time_Save_ARC_Upper_Tilting_On_Time = 0;				// 상부 ARC 틸팅 On.
+global P_Tact_Time_Save_ARC_Upper_Tilting_Off_Time = 0;				// 상부 ARC 틸팅 Off.
+global P_Tact_Time_Save_ARC_Upper_Cutter_Fwd_Time = 0;				// 상부 ARC 커터 전진.
+global P_Tact_Time_Save_ARC_Upper_Cutter_Bwd_Time = 0;				// 상부 ARC 커터 후진.
+global P_Tact_Time_Save_ARC_Upper_Clamp_On_Time = 0;				// 상부 ARC 클램프 On.
+global P_Tact_Time_Save_ARC_Upper_Clamp_Off_Time = 0;				// 상부 ARC 클램프 Off.
+global P_Tact_Time_Save_ARC_Lower_Plate_Up_Time = 0;				// 하부 ARC 플레이트 상승.
+global P_Tact_Time_Save_ARC_Lower_Plate_Down_Time = 0;				// 하부 ARC 플레이트 하강.
+global P_Tact_Time_Save_ARC_Lower_Tilting_On_Time = 0;				// 하부 ARC 틸팅 On.
+global P_Tact_Time_Save_ARC_Lower_Tilting_Off_Time = 0;				// 하부 ARC 틸팅 Off.
+global P_Tact_Time_Save_ARC_Lower_Cutter_Fwd_Time = 0;				// 하부 ARC 커터 전진.
+global P_Tact_Time_Save_ARC_Lower_Cutter_Bwd_Time = 0;				// 하부 ARC 커터 후진.
+global P_Tact_Time_Save_ARC_Lower_Clamp_On_Time = 0;				// 하부 ARC 클램프 On.
+global P_Tact_Time_Save_ARC_Lower_Clamp_Off_Time = 0;				// 하부 ARC 클램프 Off.
+
+// 초기화.
+P_Tact_Time_Stack_Array(0),N_Tact_Time_Num = 0;						// 초기화.
+P_Tact_Time_Discharge_Array(0),N_Tact_Time_Num = 0;					// 초기화.
+P_Tact_Time_1st_Unloader_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+P_Tact_Time_Sepa_ARC_Array(0),N_Tact_Time_Num = 0;					// 초기화.
+P_Tact_Time_Final_Roll_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+P_Tact_Time_Cathode_1st_PNP_Array(0),N_Tact_Time_Num = 0;			// 초기화.
+P_Tact_Time_Cathode_Align_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+P_Tact_Time_Cathode_2nd_PNP_Array(0),N_Tact_Time_Num = 0;			// 초기화.
+P_Tact_Time_Cathode_Clamp_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+P_Tact_Time_Anode_1st_PNP_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+P_Tact_Time_Anode_Align_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+P_Tact_Time_Anode_2nd_PNP_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+P_Tact_Time_Anode_Clamp_Array(0),N_Tact_Time_Num = 0;				// 초기화.
+P_Tact_Time_Cathode_1st_PNP_Vac_Array(0),N_Tact_Time_Num = 0;		// 초기화.
+P_Tact_Time_Cathode_Align_PNP_Vac_Array(0),N_Tact_Time_Num = 0;		// 초기화.
+P_Tact_Time_Cathode_2nd_PNP_Vac_Array(0),N_Tact_Time_Num = 0;		// 초기화.
+P_Tact_Time_Anode_1st_PNP_Vac_Array(0),N_Tact_Time_Num = 0;			// 초기화.
+P_Tact_Time_Anode_Align_PNP_Vac_Array(0),N_Tact_Time_Num = 0;		// 초기화.
+P_Tact_Time_Anode_2nd_PNP_Vac_Array(0),N_Tact_Time_Num = 0;			// 초기화.
+//===============================================================================================================//
+// Tact Time 측정 변수.
+global P_Tact_Time_Check(N_Tact_Time_Value_End);					// Tact Time 측정 시작.
+global P_Old_Tact_Time_Check(N_Tact_Time_Value_End);				// Tact TIme 측정 재진입 방지.
+global P_Tact_Time_Head_Address(N_Tact_Time_Value_End);				// Tact Time 측정 유닛 주소.
+global P_Tact_Time_Array_Init = 0;									// Tact Time 배열 초기화. [처음 Build 했을 경우]
+
+// 초기화.
+P_Tact_Time_Check(0),N_Tact_Time_Value_End = 0;						// 초기화.
+P_Old_Tact_Time_Check(0),N_Tact_Time_Value_End = 0;					// 초기화.
+P_Tact_Time_Head_Address(0),N_Tact_Time_Value_End = 0;				// 초기화.
+//===============================================================================================================//

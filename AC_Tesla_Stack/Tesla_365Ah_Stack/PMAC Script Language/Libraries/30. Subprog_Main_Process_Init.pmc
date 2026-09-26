@@ -1,0 +1,173 @@
+open subprog Sub_Main_Process_Init(void)
+
+	sub: Module(&Module_RTN)
+		Module_RTN = 0;
+
+		// 1. Queue
+		P_Queue_Process_Status = F_Status_IDLE;			// Queue 상태 초기화.
+		P_Queue_Process_Command = 0;					// Queue 처리 Command.
+		P_Queue_Dequeue_Command = 0;                    // Queue Dequeue Command.
+		P_Stop_CycleStop_Position = N_Layer_Pause_Number// Cycle Stop Position 업데이트.
+		P_Master_Motion_Program_Flag = 0;				// 마스터 플래그 초기화.
+
+		// 2. Home
+		//P_PMAC_Homing_CHK(1),50 = 0;					// 모터 홈 상태 초기화.
+		//P_Stack_Judgement_Memory = 0;					// HOME RESET 버튼 추가. 		
+		
+		// 3. EXECUTE
+		P_Master_Motion_Trigger = 0;					// 적층 - 마스터 트리거 초기화.
+		P_Mode_Command = 0;								// 적층 - 모드 커멘드 초기화.	
+		//P_Stack_Table_NG_Flag = 0;						// 적층 - 스텍 NG Flag 초기화. (있을 경우 Stack Table NG로 중간 배출 진행)
+
+
+		// 4. Module
+		//---------------------------------------------------------------------------------
+		// 4.1 - EXECUTE - [세파 첫장 모듈]
+		//---------------------------------------------------------------------------------
+		P_Act_Execute_Complete_Bit(0),N_Act_Execute_Define_Limit,1 = 0;	
+		P_Module_Act_Execute_Command_Array(0),N_Act_Execute_Define_Limit,1 = 0;
+		P_OLD_Module_Act_Execute_Command_Array(0),N_Act_Execute_Define_Limit,1 = 0;
+		P_Module_Act_Execute_State_Machine_Array(0),N_Act_Execute_Define_Limit,1 = 0;
+
+		P_Execute_First_Sepa_Mode_Cmd = 0;			
+		P_Execute_First_Sepa_Mode_Status = 0;		
+		P_Execute_First_Sepa_Mode_Module_Status = 0;	
+		P_Execute_First_Sepa_Mode_State_Machine = 0;	
+		P_Execute_First_Sepa_Mode_Seq_Index = 0;		
+		P_Execute_First_Sepa_Mode_Self_Index = 0;	
+		P_Module_Act_Execute_State_Machine_Array(0),N_Act_Execute_Define_Limit = 0;	// 세파 첫장 - 모듈 스텟 머신 초기화.
+		//---------------------------------------------------------------------------------
+		// 4.2 - HOLD 
+		//---------------------------------------------------------------------------------
+		P_Act_Hold_Complete_Bit(0),N_Act_Hold_Define_Limit,1 = 0;	
+		P_Module_Act_Hold_Command_Array(0),N_Act_Hold_Define_Limit,1 = 0;
+		P_OLD_Module_Act_Hold_Command_Array(0),N_Act_Hold_Define_Limit,1 = 0;
+		P_Module_Act_Hold_State_Machine_Array(0),N_Act_Hold_Define_Limit,1 = 0;
+
+		// [유무검사]
+		P_Hold_Exist_Insp_Cmd = 0;				
+		P_Hold_Exist_Insp_Status = 0;			
+		P_Hold_Exist_Insp_Module_Status = 0;		
+		P_Hold_Exist_Insp_State_Machine = 0;		
+		P_Hold_Exist_Insp_Seq_Index = 0;			
+		P_Hold_Exist_Insp_Self_Index = 0;		
+
+		//[NG PNP 제거]
+		P_Hold_Remove_NG_PNP_Cmd = 0;					
+		P_Hold_Remove_NG_PNP_Status = 0;					
+		P_Hold_Remove_NG_PNP_Module_Status = 0;			
+		P_Hold_Remove_NG_PNP_State_Machine = 0;			
+		P_Hold_Remove_NG_PNP_Seq_Index = 0;				
+		P_Hold_Remove_NG_PNP_Self_Index = 0;				
+		P_PLC01_Hold_Remove_NG_PNP_Sub_Flag = 0;				
+		P_PLC01_Hold_Remove_NG_PNP_Sub_State_Machine = 0;	
+		P_PLC01_Hold_Remove_NG_PNP_Sub_Status = 0;			
+
+		//[얼라인제거]
+		P_Hold_Remove_Align_Cmd = 0;				
+		P_Hold_Remove_Align_Status = 0;			
+		P_Hold_Remove_Align_Module_Status = 0;	
+		P_Hold_Remove_Align_State_Machine = 0;	
+		P_Hold_Remove_Align_Seq_Index = 0;		
+		P_Hold_Remove_Align_Self_Index = 0;		
+		P_PLC01_Hold_Remove_Align_Sub_Flag = 0;			
+		P_PLC01_Hold_Remove_Align_Sub_State_Machine = 0;	
+		P_PLC01_Hold_Remove_Align_Sub_Status = 0;		
+
+		//[2PNP 제거]
+		P_Hold_Remove_2TR_Cmd = 0;				
+		P_Hold_Remove_2TR_Status = 0;			
+		P_Hold_Remove_2TR_Module_Status = 0;		
+		P_Hold_Remove_2TR_State_Machine = 0;		
+		P_Hold_Remove_2TR_Seq_Index = 0;			
+		P_Hold_Remove_2TR_Self_Index = 0;		
+		
+		//[1TR 공급]
+		P_Hold_Supply_1TR_Cmd = 0;			
+		P_Hold_Supply_1TR_Status = 0;		
+		P_Hold_Supply_1TR_Module_Status = 0;	
+		P_Hold_Supply_1TR_State_Machine = 0;	
+		P_Hold_Supply_1TR_Seq_Index = 0;		
+		P_Hold_Supply_1TR_Self_Index = 0;	
+		P_Hold_Supply_1TR_Debug_Edge = 0;
+		P_PLC01_Hold_Supply_1TR_Memory_RTN = 0;					// HOLD 메모리타워 리턴값
+		P_PLC01_Hold_Supply_1TR_Judge_Flag = 0;					// HOLD 1TR 공급 판단 플래그 
+		P_PLC01_Hold_Supply_1TR_Judge_State_Machine = 0;		// HOLD 1TR 공급 판단 스텟머신
+		P_PLC01_Hold_Supply_1TR_Judge_Status = 0;				// HOLD 1TR 공급 판단 상태
+
+		//[얼라인공급]
+		P_Hold_Supply_Align_Cmd = 0;				
+		P_Hold_Supply_Align_Status = 0;			
+		P_Hold_Supply_Align_Module_Status = 0;	
+		P_Hold_Supply_Align_State_Machine = 0;	
+		P_Hold_Supply_Align_Seq_Index = 0;		
+		P_Hold_Supply_Align_Self_Index = 0;		
+
+		//[2TR공급]
+		P_Hold_Supply_2TR_Cmd = 0;				
+		P_Hold_Supply_2TR_Status = 0;			
+		P_Hold_Supply_2TR_Module_Status = 0;		
+		P_Hold_Supply_2TR_State_Machine = 0;		
+		P_Hold_Supply_2TR_Seq_Index = 0;			
+		P_Hold_Supply_2TR_Self_Index = 0;		
+
+		//[세미런위치이동]
+		P_Hold_Semi_Run_Pos_Move_Cmd = 0;				
+		P_Hold_Semi_Run_Pos_Move_Status = 0;				
+		P_Hold_Semi_Run_Pos_Move_Module_Status = 0;		
+		P_Hold_Semi_Run_Pos_Move_State_Machine = 0;		
+		P_Hold_Semi_Run_Pos_Move_Seq_Index = 0;			
+		P_Hold_Semi_Run_Pos_Move_Self_Index = 0;			
+
+		//---------------------------------------------------------------------------------
+		// 4.3 - SUSPEND 
+		//---------------------------------------------------------------------------------
+		// 공통 //
+		P_Module_Act_Command_Array(0),N_Act_Define_Limit,1 = 0;
+		P_Module_Act_State_Machine_Array(0),N_Act_Define_Limit,1 = 0;
+		P_OLD_Module_Act_Command_Array(0),N_Act_Define_Limit,1 = 0;
+		P_Act_Complete_Bit(0),N_Act_Define_Limit,1 = 0;	
+		
+		// 배출 //
+		P_Suspend_Discharge_Cmd = 0;						// 배출 모듈 - 커맨드 초기화.
+		P_Suspend_Discharge_Status = 0;						// 배출 모듈 - 시퀀스 모듈 실행 상태 초기화.
+		P_Suspend_Discharge_Module_Status = 0;				// 배출 모듈 - 모듈 실행 상태 초기화.
+		P_Suspend_Discharge_State_Machine = 0;				// 배출 모듈 - 스텟 머신 초기화.
+		P_Suspend_Discharge_Seq_Index = 0;					// 배출 모듈 - 인덱스 초기화.
+		P_Suspend_Discharge_Self_Index = 0;					// 배출 모듈 - Precondition 인덱스 초기화.
+		
+		// ARC //
+		P_Suspend_ARC_Cmd = 0;								// ARC 모듈 - 커맨드 초기화.
+		P_Suspend_ARC_Status = 0;							// ARC 모듈 - 시퀀스 모듈 실행 상태 초기화.
+		P_Suspend_ARC_Module_Status = 0;					// ARC 모듈 - 모듈 실행 상태 초기화.
+		P_Suspend_ARC_State_Machine = 0;					// ARC 모듈 - 스텟 머신 초기화.
+		P_Suspend_ARC_Seq_Index = 0;						// ARC 모듈 - 인덱스 초기화.
+		P_Suspend_ARC_Self_Index = 0;						// ARC 모듈 - Precondition 인덱스 초기화.
+
+		// 음극 1차 PNP 극판 공급 모듈 //
+		P_Suspend_Anode_1TR_Cell_Supply_Cmd = 0;			// 음극 1차 PNP 극판 공급 모듈 - 커맨드 초기화.					[ 참조 : 26.01.12 음극 1차 PNP 극판 공급 모듈 수정 ]
+		P_Suspend_Anode_1TR_Cell_Supply_Status = 0;			// 음극 1차 PNP 극판 공급 모듈 - 시퀀스 모듈 실행 상태 초기화.
+		P_Suspend_Anode_1TR_Cell_Supply_Module_Status = 0;	// 음극 1차 PNP 극판 공급 모듈 - 모듈 실행 상태 초기화.
+		P_Suspend_Anode_1TR_Cell_Supply_State_Machine = 0;	// 음극 1차 PNP 극판 공급 모듈 - 스텟 머신 초기화.
+		P_Suspend_Anode_1TR_Cell_Supply_Seq_Index = 0;		// 음극 1차 PNP 극판 공급 모듈 - 인덱스 초기화.
+		P_Suspend_Anode_1TR_Cell_Supply_Self_Index = 0;		// 음극 1차 PNP 극판 공급 모듈 - Precondition 인덱스 초기화.
+
+		P_Stopping_CycleStop_Status = 0
+		P_Stopping_CycleStop_State_Machine = 0
+		P_Stopping_CycleStop_Module_Status = 0
+		P_Stopping_CycleStop_Seq_Index = 0
+		P_Stopping_CycleStop_Precondition_Seq_Index = 0
+		
+		P_Align_Take_Off_State_Machine = 0
+		P_Align_Take_Off_Seq_Index = 0
+		P_Align_Take_Off_Seq_PreCondition_Index = 0
+		P_Align_Take_Off_Status_Prod_Sequence(N_PLC13_Align_Take_Off) = 0
+		P_Align_Take_Off_Status = 0
+
+		Module_RTN = 1;	
+	return
+
+close
+
+
+

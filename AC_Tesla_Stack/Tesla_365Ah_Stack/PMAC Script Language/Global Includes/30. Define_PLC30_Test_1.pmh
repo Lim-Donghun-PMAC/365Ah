@@ -1,0 +1,148 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+global P_Cathode_Way_Ok_State_Command = 0;			
+global P_Anode_Way_Ok_State_Command = 0;
+
+global P_Vac_Status(5);
+P_Vac_Status(0),5 = 0;
+global P_Vac_Status_ = 0;
+global P_Stop_On = 0;
+global P_TEST_Master_Trigger_Time = 0;
+#define F_All 0
+#define F_Anode_1st_pnp 1
+#define F_Anode_2nd_pnp 2
+#define F_Cathode_1st_pnp 3
+#define F_Cathode_2nd_pnp 4
+global M_X_BTN_Machine_READY = 0;
+global M_X_BTN_Machine_START = 0;
+global M_X_BTN_Machine_STOP = 0;
+global P_Sepa_First_Sheet_Motion_On = 0;
+global P_Sepa_First_Sheet_Motion_StateMachine = 0;
+global P_Sepa_First_Sheet_Motion_Status = 0;
+
+global P_POS_Data_M(101);
+P_POS_Data_M(0),101 = 0;
+
+global P_VEL_Data_M(101);
+P_VEL_Data_M(0),101 = 0;
+
+global P_Status_Data_M(101);
+P_Status_Data_M(0),101,1 = 0;
+
+global P_Vision_Status(10);
+P_Vision_Status(0),10 = 0;
+
+global M_X_BTN_Machine_RESET = 0;
+
+#define N_Vis_Anode_Align 1
+#define N_Vis_Anode_Front 2
+#define N_Vis_Anode_Stack 3
+#define N_Vis_Cathode_Align 4
+#define N_Vis_Cathode_Front 5
+#define N_Vis_Cathode_Stack 6
+#define N_Vis_Anode_Align_Sheet 7
+#define N_Vis_Cathode_Align_Sheet 8
+
+global P_Vision_Status_ = 0;
+global P_Vision_Result_ = 0;
+
+global P_Modbus_Connect_Flag = 1;
+
+// 테스트 용 코드
+//Write
+//p8000 ~ p8060모드버스 용 영역
+//p8000 : P_PMAC_Status
+//p8001 : P_Current_Mode
+//p8002 : P_Master_Motion_Trigger
+//p8010 ~ p8060 : P_POS_Data_M(0) ~ P_POS_Data_M(50)
+
+//Read
+//p8100 ~ p8160모드버스 용 영역
+//p8100 : P_PMAC_Status
+//p8101 : P_Current_Mode
+//p8102 : P_Master_Motion_Trigger
+//p8110 ~ p8160 : P_POS_Data_M(0) ~ P_POS_Data_M(50)
+
+global P_Modbus_Delay_Timer = 0;
+global P_Modbus_Connect_Status = 0;
+global P_Modbus_Reconnect_MNTR = 0;
+
+//=======================================================================================================//
+// Ecat_Reconnecting Program //	[ 참조 : 25.09.12 Ecat Reconnecting Program 추가 ]
+//=======================================================================================================//
+#define Slave_Max_Index		16							// 이더캣 모터 수.
+#define Slave_Buffer_Index	17							// 이더캣 버퍼 수. (Slave_Max_Index+1)
+global P_Ecat_Reconn_Bit = 0;							// 이더캣 활성화 비트. (추후 버튼으로 변수 변경)
+global P_Old_Ecat_Reconn_Bit = 0;						// 이더캣 활성화 Edge.
+global P_Ecat_Reconn_Cmd_Flag = 0;						// 이더캣 활성화 커맨드.				
+global P_Ecat_Reconn_State_Machine = 0;					// 이더캣 활성화 스텟머신.
+global P_EtherCat_Active_Status = 0;					// 이더캣 활성화 상태.
+global P_Ecat_Active_Timer = 0;							// 이더캣 타이머.
+global P_Ecat_Disable_Delay_Time = 0;					// 이더캣 비활성화 시 딜레이 시간.
+global P_Delay_Time = 2;								// 이더캣 비활성화 시 딜레이 시간 업데이트.
+global P_Ecat_Reset_Delay_Time = 15;					// 이더캣 reset 후 딜레이 시간.
+global P_Ecat_Active_Delay_Time = 15;					// 이더캣 활성화 대기 시간.
+global P_Ecat_Reconn_Active_Complete_Bit = 0;			// 이더캣 활성화 완료 비트.
+global P_Ecat_Reconn_Active_Fail_Bit = 0;				// 이더캣 활성화 실패 비트.
+global P_Ecat_Reconn_Slave_Error_Bit = 0;				// 이더캣 Slave 활성화 애러 비트.
+global P_Ecat_Reconn_Time_Out_Timer = 0;				// 이더캣 활성화 타임 아웃 타이머.
+global P_Ecat_Reconn_Time_Out_Delay_Time = 180;			// 이더캣 활성화 타임 아웃 시간.
+global P_Ecat_Reconn_Time_Out_Bit = 0;					// 이더캣 활성화 타임 아웃 비트.
+global P_Ecat_ReTry_Cnt = 0;							// 이더캣 활성화 재시도 Cnt.
+global P_Ecat_ReTry_Limit = 5;							// 이더캣 활성화 재시도 수.
+global P_Ecat_Reconn_State_Machine_Buffer = 0;			// 이더캣 활성화 스텟머신 버퍼.
+global P_Ecat_Reconn_Bit_MNT = 0;						// 이더캣 활성화 비트 모니터 변수.
+global P_Ecat_Reconn_Record_Cnt = 0;					// 이더캣 Slave 기록 Cnt.
+global P_Ecat_Reconn_Error_Buffer(Slave_Buffer_Index);	// 이더캣 Slave 비활성화 Error 버퍼.
+P_Ecat_Reconn_Error_Buffer(0),Slave_Buffer_Index = 0;	// 초기화.
+global P_Ecat_Reconn_Error_Slave_Index = 0;				// 이더캣 Slave 비활성화 인덱스 저장.
+
+
+global P_PLC30_PVT_FWD_Calculation_Bit = 0;
+global P_PLC30_PVT_BWD_Calculation_Bit = 0;
+global P_PLC30_PVT_StartPos = 300;
+global P_PLC30_PVT_Total_Pos = 0;
+global P_PLC30_PVT_Total_Target_Pos = 0; 
+global P_PLC30_PVT_MNTR = 0;
+
+global P_PLC30_PVT_1st_Vel = -1800;
+global P_PLC30_PVT_1st_Inclination = 0.5;
+global P_PLC30_PVT_1st_Time	= 70;
+global P_PLC30_PVT_1st_Pos = 0;
+global P_PLC30_PVT_1st_Cumulative_Pos = 0;
+//global P_PLC30_PVT_1st_Target_Pos = 237;
+
+global P_PLC30_PVT_2nd_Vel = -2000;
+global P_PLC30_PVT_2nd_Inclination = 1;
+global P_PLC30_PVT_2nd_Time	= 90;
+global P_PLC30_PVT_2nd_Pos = 0;
+global P_PLC30_PVT_2nd_Cumulative_Pos = 0;
+//global P_PLC30_PVT_2nd_Target_Pos = 57;
+
+global P_PLC30_PVT_3rd_Vel = 0;
+global P_PLC30_PVT_3rd_Inclination = 0.475;
+global P_PLC30_PVT_3rd_Time	= 60;
+global P_PLC30_PVT_3rd_Pos = 0;
+global P_PLC30_PVT_3rd_Cumulative_Pos = 0;
+//global P_PLC30_PVT_3rd_Target_Pos = 0;
+
+global P_PLC30_PVT_4th_Vel = 0;
+global P_PLC30_PVT_4th_Inclination = 0;
+global P_PLC30_PVT_4th_Time	= 0;
+global P_PLC30_PVT_4th_Pos = 0;
+global P_PLC30_PVT_4th_Cumulative_Pos = 0;
+//global P_PLC30_PVT_4th_Target_Pos = 0;
+
+
+global P_PLC30_MD_Recipe = 300;
+
+#define Sepa_Data_EA		250
+global P_Set = 0;
+global P_Get_Data = 0;
+global P_PLC30_Sepa_Cal_Data(Sepa_Data_EA)
+P_PLC30_Sepa_Cal_Data(0),Sepa_Data_EA = 0;
+

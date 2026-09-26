@@ -1,0 +1,73 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 케스케이딩 - [ 참조 : 25.10.13 시스템 셋업 추가 ]
+#ifdef F_Real_Axis_Test
+// 0D 보정 Cascading
+// 실축보다 축 번호가 낮아야 하므로 0번 모터로 설정
+// 서보댄서 모터 번호 16
+EncTable[0].type = 1;											// 단일 레지스터의 읽기 
+EncTable[0].pEnc = Gate3[4].Chan[3].ServoCapt.a;//Sys.Idata[N_SERVO_DANCER].a//EncTable[16].a;								// 소스 데이터 주소 
+//EncTable[0].pEnc = Gate3[4].Chan[1].ServoCapt.a	// 소스 데이터 주소
+EncTable[0].index1 = 0;											// 좌측 시프트 없음 
+EncTable[0].index2 = 0;											// 우측으로 16비트 시프트 
+EncTable[0].ScaleFactor = 1/256;	///1024//16384				// 결과 단위는 LSB 
+
+// 2. 아우터 모터 설정
+Motor[0].ServoCtrl = 1;											// 모터 기동 
+Motor[0].PhaseCtrl = 0;											// PMAC 에 의한 전류(commutation) 없음 
+Motor[0].pEnc = EncTable[0].a;									// ECT 항목 0의 결과를 사용 
+Motor[0].pEnc2 = EncTable[0].a;									// ECT 항목 0의 결과를 사용 
+Motor[0].pLimits = 0;											// 하드웨어 위치 리미트 없음 
+Motor[0].pAmpFault = 0;											// 앰프 폴트 입력 없음
+Motor[0].Servo.Kp = 1.2; 
+Motor[0].Servo.Kvfb = 0; 
+Motor[0].Servo.Kvff = 0;
+Motor[0].Servo.Kaff = 0;
+Motor[0].Servo.Ki	= 0;
+Motor[0].FatalFeLimit = 0;
+Motor[0].WarnFeLimit = 0;
+//Motor[0].Servo.BreakPosErr = 10				//test후 추가예정 불감대 영역 KP영역을 구동 기준으로 잡아서, 모터 구동하지 않을때, 게인값을 잡아줘서 진동이 우는걸 방지해줌. PIDCtrl일때는 사용안함
+//Motor[0].Servo.Kbreak=0.5
+
+Motor[0].MaxSpeed = 0;
+Motor[0].InvAmax = 0
+Motor[0].InvDmax = 0
+Motor[0].InvJmax = 0
+// 언와인더 모터번호  23 , 24
+CompTable[0].Source[0] = 0;										// 소스 모터 0 데이터를 사용
+CompTable[0].Ctrl = 3;											// 소스 모터의 서보 명령을 사용 
+CompTable[0].Nx[0]=0;											// 1 차원에 데이터 존 없음
+CompTable[0].Nx[1]=0;											// 2 차원에 데이터 존 없음 
+CompTable[0].Nx[2]=0;											// 3 차원에 데이터 존 없음
+CompTable[0].Data[0]=0;											// 단일 데이터 포인트의 초기화 
+CompTable[0].OutCtrl = 1;										// 결과의 적분 없음 
+CompTable[0].Target[0] = Motor[N_UNWINDER_LOWER].CompDesPos.a;	// #23 명령된 위치
+//CompTable[0].Target[0] = Motor[3].CompDac.a					// #3 토크 보정 테이블
+CompTable[0].Sf[0]= -0.006;										// 단일 스케일 계수(활성일 때)
+
+
+ Sys.CompEnable = 0;//1 //-> 보정테이블 유효 갯수
+
+ #endif
+// MasterFollowing 변수 시작.
+// 드라이빙 외경
+//반지름 20mm
+//지금 : 40mm
+//둘레 : 40*3.14  = 125.6
+global P_Driving_Circumference = 125.6;
+global P_PLC06_Spool_Circumference = 0;												// 세파 외경 
+// Master Following 
+ // 언와인더 모터번호 23 , 24
+ // 드라이빙 롤러 모터 번호 15
+ Motor[N_UNWINDER_UPPER].pMasterEnc = EncTable[N_DRIVING_ROLL].a;		// 출력 실축 마스터 엔코더 
+ Motor[N_UNWINDER_UPPER].MasterCtrl = 0;								// 추종 시작 ( 0 안함 : 1 사용 )
+ Motor[N_UNWINDER_UPPER].SlewMasterPosSf = 0;
+ Motor[N_UNWINDER_UPPER].MasterPosSf = P_Driving_Circumference / P_PLC06_Spool_Circumference ;
+ Motor[N_UNWINDER_UPPER].SlewMasterPosSf = 1
+
+
+//global P_PLC06_Spool_Circumference = 0;												// 세파 외경 
+global P_Upper_Spool_Circumference = 0;
+global P_Lower_Spool_Circumference = 0; 

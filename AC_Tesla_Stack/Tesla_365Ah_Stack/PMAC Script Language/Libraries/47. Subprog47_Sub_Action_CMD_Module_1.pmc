@@ -1,0 +1,188 @@
+//==========================================================================================================================================================================================================================================
+// 프로그램 개정이력
+//==========================================================================================================================================================================================================================================
+// 25.06.25 이상준 S 
+// 내용 - 각 멤버별 동작 (동작없음, +리밋 이동, -리밋이동, 서보온, DIO동작, 개별홈동작, 케스케이드 동작) 함수 추가
+// 25.06.30 이상준 S 
+// 내용 - [ 참조 : 25.07.01 가상축 TEST 끝난 후 삭제 예정 ]
+// [ 참조 : 2025.07.23 홈 프로그램 추가 ] 
+/*
+open subprog Sub_Action_CMD_Module(void)
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 01. 각 멤버별 동작 함수 중 Plus_Type
+//--------------------------------------------------------------------------------------------------------------------------------------
+	Sub:AH_Plus_Type_CMD( Member, &rtn )	// Index : 멤버번호.
+		// 1. Init.
+		// 모터번호지정. ( 상위함수에서 공용모터정보 배열변수를 업데이트하고 진입, Index로 멤버의 번호를 가져옴. )
+		local L_Motor_Num = P_AH_Action_Target(Member);		
+		// 2. 동작.
+		if( L_Motor_Num > 0 )
+		{
+			cmd"#%dj+",L_Motor_Num;
+		}		
+		// 3. 결과. 
+		rtn = N_AH_TRUE;
+	return
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 02. 각 멤버별 동작 함수 중 Minus_Type
+//--------------------------------------------------------------------------------------------------------------------------------------
+	Sub:AH_Minus_Type_CMD( Member, &rtn )	// Index : 멤버번호.
+		// 1. Init.
+		// 모터번호지정. ( 상위함수에서 공용모터정보 배열변수를 업데이트하고 진입, Index로 멤버의 번호를 가져옴. )
+		local L_Motor_Num = P_AH_Action_Target(Member);
+			
+		Motor[L_Motor_Num].Minpos = -5000
+		// 2. 동작.
+		if( L_Motor_Num > 0 )
+		{
+			cmd"#%dj-",L_Motor_Num;
+		}
+		if( P_PMAC_Homing_CHK(L_Motor_Num) == 1 )
+			 P_PMAC_Homing_CHK(L_Motor_Num) = 0;
+		// 3. 결과. 
+		rtn = N_AH_TRUE;
+	return
+//--------------------------------------------------------------------------------------------------------------------------------------
+// 03. 각 멤버별 동작 함수 중 Servo_ON_Type
+//--------------------------------------------------------------------------------------------------------------------------------------
+	Sub:AH_Servo_ON_Type_CMD( Member, &rtn )	// Index : 멤버번호.
+		// 1. Init.
+		// 모터번호지정. ( 상위함수에서 공용모터정보 배열변수를 업데이트하고 진입, Index로 멤버의 번호를 가져옴. )
+		local L_Motor_Num = P_AH_Action_Target(Member);		
+		// 2. 동작.
+		if( L_Motor_Num > 0 )
+		{
+			cmd"#%dj/",L_Motor_Num;
+		}		
+		rtn = N_AH_TRUE;
+	return
+//--------------------------------------------------------------------------------------------------------------------------------------
+//	04. 각 모터별 선행동작 함수 중 IO On_Off 동작  [ 참조 : 25.06.25 IO는 어떻게 동작을 할지 구성이 안나와서 일단 주석처리 ] 
+//--------------------------------------------------------------------------------------------------------------------------------------
+	sub:AH_IO_Type_CMD( Member, &rtn )
+		// 선행동작함수 중 하나인 IO oN 동작 함수
+		//switch(P_AH_Action_Target(Member))
+		//{//멤버가 해당하는 IO를 찾아 IO출력 실행 
+		//	example)
+		//	case N_Anode_Vac://51일때
+		//		M_Y_Anode_Vac_1 = 1;
+		//		M_Y_Anode_Vac_2 = 1;  
+		//		rtn = N_AH_TRUE;
+		//	break;
+		//	case 52:											
+		//		rtn = N_AH_TRUE;
+		//	break;
+		//
+		//	default:						
+		//		rtn = N_AH_TRUE;
+		//	break;
+		//}
+		rtn = N_AH_TRUE;		// 임시 리턴 변수 추후 삭제예정 
+	return
+
+//--------------------------------------------------------------------------------------------------------------------------------------
+//	05. 각 모터별 홈 명령을 실행하는 함수 
+//--------------------------------------------------------------------------------------------------------------------------------------
+	Sub:AH_Home_Type_CMD( Member, &rtn )	// Index : 멤버번호.
+		Local L_AH_CMD_Num = P_AH_Action_Target(Member);								// [ 참조 : 25.07.01 가상축 TEST 끝난 후 삭제 예정 ] 
+		P_Resetting_Home_Check_Arry(L_AH_CMD_Num) = 0;											// 홈 체크 변수 초기화
+		P_Home_Command(L_AH_CMD_Num) = F_Command_Start;									// 홈명령 출력.
+		if( L_AH_CMD_Num > 0)															// [ 참조 : 25.07.01 가상축 TEST 끝난 후 삭제 예정 ] 
+		{																				// [ 참조 : 25.07.01 가상축 TEST 끝난 후 삭제 예정 ] 
+			Ldata.motor= L_AH_CMD_Num;	// 모터 모달명령주소 지정.						// [ 참조 : 25.07.01 가상축 TEST 끝난 후 삭제 예정 ] 
+			call Timer.msec(5);		// 5ms delay.										// [ 참조 : 25.07.01 가상축 TEST 끝난 후 삭제 예정 ] 
+			//P_Home_Command() = 1;
+			//cmd"#%dj/",L_AH_CMD_Num;													// [ 참조 : 25.07.01 가상축 TEST 끝난 후 삭제 예정 ] 
+			//cmd"#%dhmz",L_AH_CMD_Num;													// [ 참조 : 25.07.01 가상축 TEST 끝난 후 삭제 예정 ] 
+		}																				// [ 참조 : 25.07.01 가상축 TEST 끝난 후 삭제 예정 ]			
+		rtn = N_AH_TRUE;
+	return
+
+//--------------------------------------------------------------------------------------------------------------------------------------
+//	06. 각 모터별 홈 명령정지 실행하는 함수 
+//--------------------------------------------------------------------------------------------------------------------------------------
+	Sub:AH_Home_Type_Stop( Member, &rtn )	// Index : 멤버번호.
+		P_Home_Command(P_AH_Action_Target(Member)) = F_Command_Stop;			// 홈 동작 정지명령 	
+		rtn = N_AH_TRUE;
+	return
+//--------------------------------------------------------------------------------------------------------------------------------------
+//  07. 텐션 실행하는 함수  All Home Management Action - 언와인더 Cascade Cmd 함수
+//--------------------------------------------------------------------------------------------------------------------------------------
+	sub:AH_Cascade_Type_CMD(Member, &rtn)
+		// Cascade On Cmd 송출
+		P_System_Cascading_ON_Cmd = F_Command_Start;			
+		rtn = N_AH_TRUE;				// 함수 동작 완료 보고
+	return
+//--------------------------------------------------------------------------------------------------------------------------------------
+//  08. 텐션 언와인더 Cascade Stop 함수  All Home Management Action - 언와인더 Cascade Cmd 함수
+//--------------------------------------------------------------------------------------------------------------------------------------
+// All Home Stop Action -언와인더 Cascade Stop 함수
+	sub:AH_Cascade_Stop_Type_Cmd(Member, &rtn)
+		local L_Cur_Spool = P_Selected_Spool_Number;	// 현재 스풀번호 지정		
+		// Cascade Set 함수 진행중인지 확인
+		if( P_System_Cascading_ON_Status == F_Status_STARTING || P_System_Cascading_ON_Status == F_Status_EXECUTE )
+		{
+			P_System_Cascading_ON_Status = F_Status_Nonseatus;		// Cascade Set 함수 상태 초기화하여 함수 호출 방지.
+			// Jog구동중인 Servo 정지
+			if( Motor[L_Cur_Spool].DesVelZero != 1 )				// Spool Servo
+				cmd"#%dj/",L_Cur_Spool
+		}
+		// Cascade Off Cmd 송출 ( Cascade Off 함수가 동작중이 아닐 때만 Cmd 송출 )
+		if( P_System_Cascading_OFF_State_Machine != F_Status_STARTING && P_System_Cascading_OFF_State_Machine != F_Status_EXECUTE )
+			P_System_Cascading_OFF_Cmd = F_Command_Start;
+		rtn = N_AH_TRUE;				// 함수 동작 완료 보고
+	return
+
+
+	sub: AH_Jog_Type_Cmd(Member, &rtn)
+	rtn = 0;
+		local L_Motor_Num = P_AH_Action_Target(Member);
+		P_Jog_Cmd_Motor = L_Motor_Num;
+
+		if( L_Motor_Num == N_2nd_PnP_CA_T )
+		{
+			
+			Motor[L_Motor_Num].JogSpeed = P_UI_Jog_Vel_M(3);	// 양극 2차 pnp T축 조그 스피드
+			Motor[L_Motor_Num].ProgJogPos = P_2nd_PnP_Init_Pos * 1000;
+			Ldata.Motor = L_Motor_Num;
+			jog=*; 
+			rtn = N_AH_TRUE;				// 함수 동작 완료 보고
+		}
+		else if( L_Motor_Num == N_2nd_PnP_AN_T )
+		{
+			
+			Motor[L_Motor_Num].JogSpeed = P_UI_Jog_Vel_M(4);	// 음극 2차 pnp T축 조그 스피드
+			Motor[L_Motor_Num].ProgJogPos = P_2nd_PnP_Init_Pos * 1000;
+			Ldata.Motor = L_Motor_Num;
+			jog=*; 
+			rtn = N_AH_TRUE;				// 함수 동작 완료 보고
+		}
+		else if( L_Motor_Num == N_2nd_PnP_CA_Z )
+		{		
+			P_Old_Cathode_2nd_Z_Pos = F_Cathode_2nd_Z_Axis;
+			Motor[L_Motor_Num].JogSpeed = P_UI_Jog_Vel_M(21);	// 양극 2차 pnp T축 조그 스피드
+			CMD"#%dj:%f",P_Jog_Cmd_Motor,P_2nd_PnP_Z_Avoid_Pos;
+			
+			rtn = N_AH_TRUE;				// 함수 동작 완료 보고
+		}
+		else if( L_Motor_Num == N_2nd_PnP_AN_Z )
+		{
+			P_Old_Anode_2nd_Z_Pos = F_Anode_2nd_Z_Axis;
+			Motor[L_Motor_Num].JogSpeed = P_UI_Jog_Vel_M(22);	// 음극 2차 pnp T축 조그 스피드
+			CMD"#%dj:%f",P_Jog_Cmd_Motor,P_2nd_PnP_Z_Avoid_Pos;
+			
+			rtn = N_AH_TRUE;				// 함수 동작 완료 보고
+		}
+
+	return;
+
+	sub: AH_Jog_Stop_Type_Cmd(Member, &rtn)
+		rtn = 0;
+		local L_Motor_Num = P_AH_Action_Target(Member);
+		Ldata.Motor = L_Motor_Num;
+		jog/; 
+		rtn = N_AH_TRUE;				// 함수 동작 완료 보고
+	return;
+
+close
+*/

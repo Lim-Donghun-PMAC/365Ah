@@ -1,0 +1,52 @@
+//======================================================================================================
+// 음극 얼라인 스테이지 무브 모션
+//======================================================================================================
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.28 김성중 선임 
+// Cal, Cleaning 위치 이동, Align 탈착 모드 프로그래밍 진행 - [ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ] 
+&3
+#39->1000X		// Anode Align Stage X	1000Cts = 1mm
+#40->1000Y		// Anode Align Stage Y	1000Cts = 1mm
+#41->1000TT		// Anode Align Stage T	1000Cts = 1도
+
+
+
+
+Open PROG 3
+	
+ 	LINEAR 
+	ABS	// 절대 위치로 이동
+	
+	If ( P_Anode_Align_Table_Move == F_Align_Move_Mode )	// 얼라인 무브 동작 
+	{
+		P_Tact_Time_Check(N_Anode_Align) == 1;				// Tact Time 측정 시작	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		dwell(0)
+		TA( P_Anode_Align_Stage_TA ) TS( P_Anode_Align_Stage_TS ) TM( P_Anode_Align_Stage_TM )	
+		X( P_Anode_Align_Stage_X_mm ) Y( P_Anode_Align_Stage_Y_mm ) TT( P_Anode_Align_Stage_T_mm )
+		//M_Y_Vision_Anode_Aling_Move_Complete == 1
+		P_Tact_Time_Check(N_Anode_Align) == 0;				// Tact Time 측정 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		dwell(0)
+	}
+	Else If ( P_Anode_Align_Table_Move == F_Start_Position_Move_Mode )		// 대기 위치 무브 동작
+	{	
+		P_Tact_Time_Check(N_Anode_Align) == 1;				// Tact Time 측정 시작	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		dwell(0)
+		TA( P_Anode_Align_Stage_TA ) TS( P_Anode_Align_Stage_TS ) TM( P_Anode_Align_Stage_TM )	
+		X( 0 ) Y( 0 ) TT( 0 )
+		//M_Y_Vision_Anode_Aling_Move_Complete == 0
+		P_Tact_Time_Check(N_Anode_Align) == 0;				// Tact Time 측정 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		dwell(0)
+	}
+	Else if ( P_Anode_Align_Table_Move == F_Align_AutoCal_Move_Mode )		//음극 얼라인 오토 캘 
+	{
+		if( P_CMD_Align_Complete == 0)										//음극 얼라인 무브 완료 신호 초기화 
+		{
+			TA( 100 ) TS( 50 ) TM( 1000 )	
+			X(P_Align_AutoCal_X_POS) Y(P_Align_AutoCal_Y_POS) TT(P_Align_AutoCal_T_POS)	//음극 얼라인 테이블 X,Y,T축 보정값 입력
+			P_CMD_Align_Complete == 1										//음극 얼라인 무브 완료 신호 ON
+			dwell(0)
+		}
+	}
+close

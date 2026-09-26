@@ -1,0 +1,9 @@
+
+// Unwinder_Feedrate 
+// 마스터 축 Feedrate 연결 후 속도
+&36
+#23 -> 1000x
+#24 -> 1000y
+open prog 36
+
+close

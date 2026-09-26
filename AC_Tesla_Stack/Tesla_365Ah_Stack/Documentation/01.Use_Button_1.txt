@@ -1,0 +1,45 @@
+// 사용, 미사용 버튼 정의
+//버튼명									//변수																//PMAC주소				//D영역
+---------------------------------------------------------------------------------------------------------
+중간배출 무시								 || M_Function_BTN_2.Stack_Vision_NG_Enable							|| u.user:$00A2B0.05.1 || D040824
+스텍 서보 카메라 Lock						 || M_Function_BTN_2.Stack_Servo_Camera_Lock						|| u.user:$00A2B0.06.1 || D040824
+Grip Delay Measure Mode					 || M_Function_BTN_2.Grip_Delay_Measur_Mode							|| u.user:$00A2B0.08.1 || D040824
+2차 언로드 배출 모드						 || M_Function_BTN_2.Unloader_2nd_Cell_Out_Mode						|| u.user:$00A2B0.09.1 || D040824
+Sepa ARC Touch Use						 || M_Function_BTN_2.Sepa_ARC_Touch_Use								|| u.user:$00A2B0.10.1 || D040824
+세파 ARC 회전수 및 F/R이동 횟수 교체 사용	 || M_Function_BTN_2.Sepa_ARC_Rev_Change_Select						|| u.user:$00A2B0.12.1 || D040824
+양극 Align Vision 연속 불량 사용			 || M_Option_Function_BTN.Cathode_Align_Continuous_NG_Stop_Select	|| u.user:$00A2B4.00.1 || D040826
+음극 Align Vision 연속 불량 사용			 || M_Option_Function_BTN.Anode_Align_Continuous_NG_Stop_Select		|| u.user:$00A2B4.01.1 || D040826
+양극 Surface Vision 연속 불량 사용		 || M_Option_Function_BTN.Cathode_Surface_Continuous_NG_Stop_Select || u.user:$00A2B4.03.1 || D040826
+음극 Surface Vision 연속 불량 사용		 || M_Option_Function_BTN.Anode_Surface_Continuous_NG_Stop_Select	|| u.user:$00A2B4.04.1 || D040826					
+Dry Run 모드 사용						 || M_Option_Function_BTN.BTN_Dryrun_Mode							|| u.user:$00A2B4.05.1 || D040826 
+지능화 모드 사용						     || M_Option_Function_BTN.Intelligentization_Enable					|| u.user:$00A2B4.06.1 || D040826 
+음극 표면 검사 비전 사용					 || M_Option_Function_BTN.AnodeSurface_Enable						|| u.user:$00A2B4.07.1 || D040826 
+양극 표면 검사 비전 사용					 || M_Option_Function_BTN.CathodeSurface_Enable						|| u.user:$00A2B4.08.1 || D040826
+세파 보정 모드 사용						 || M_Option_Function_BTN.Sepa_Correction_Enable					|| u.user:$00A2B4.09.1 || D040826
+세파 실시간 보정 모드 사용				 || M_Option_Function_BTN.Sepa_Real_time_Correction_Enable			|| u.user:$00A2B4.10.1 || D040826
+Separartor Cutting 전류 확인 모드 사용	 || M_Option_Function_BTN.Separartor Cutting_Enable					|| u.user:$00A2B4.11.1 || D040826
+상부 200파이 사용	[0-> 200파이,1-> 90파이]	 || M_Func_BTN.Unwinder_Upper_200PI_Select							|| u.user:$00AE4C.00.1 || D042310
+하부 200파이 사용	[0-> 200파이,1-> 90파이]	 ||	M_Func_BTN.Unwinder_Lower_200PI_Select							|| u.user:$00AE4C.01.1 || D042310
+양극 클램프 동시 시작 사용				 || M_Func_BTN.Cathode_Clamp_Both_Action							|| u.user:$00AE4C.02.1 || D042310
+음극 클램프 동시 시작 사용				 || M_Func_BTN.Anode_Clamp_Both_Action								|| u.user:$00AE4C.03.1 || D042310
+케스케이딩 사용							 || M_Func_BTN.Sepa_Cascade											|| u.user:$00AE4C.04.1 || D042310
+AlignTable 탈착모드 실행 버튼 (양극)		 ||	M_Func_BTN.Cathode_Align_Take_OFF								|| u.user:$00AE4C.05.1 || D042310
+AlignTable 탈착모드 실행 버튼 (음극)		 || M_Func_BTN.Anode_Align_Take_OFF									|| u.user:$00AE4C.06.1 || D042310
+Sepa Run 모드 사용						 || M_Func_BTN.Sepa_Run_Mode										|| u.user:$00AE4C.08.1 || D042310
+MES APC 사용								 || M_Func_BTN.MES_APC_USE											|| u.user:$00AE4C.10.1 || D042310
+강제 Sepa ARC 버튼						 || M_Func_BTN.Manual_ARC_Button									|| u.user:$00AE4C.13.1 || D042310
+DIO 강제 출력 버튼						 ||	M_Func_BTN.Forcibly_DIO_Output_Mode								|| u.user:$00AE4C.14.1 || D042310
+
+==============================================================================================================================================
+참고
+M_CYL_BTN
+M_CYL_BTN_1
+M_Vacuum_BTN
+M_Vacuum_BTN_1
+M_ARC_BTN
+M_Func_BTN
+M_Function_BTN_1
+M_Function_BTN_2
+M_Option_Function_BTN
+M_Unit_Move_Function_BTN
+===============================================================================================================================================		

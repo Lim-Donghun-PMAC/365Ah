@@ -1,0 +1,1953 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.09 김성중 선임
+// MSA 모듈화 프로그래밍 진행 - [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+// 25.07.28 김성중 선임 
+// Cal, Cleaning 위치 이동, Align 탈착 모드 프로그래밍 진행 - [ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ] 
+
+open subprog Sub_Manual_Prod_Sequnce(void)
+
+ 
+sub: Set_MSA(Mode,&rtn)
+
+P_Module_Manual_MSA_Act_Command_Array(0),N_MSA_Align_Index_EA = 0;			// MSA 도중 Stop 시 배열 초기화가 안되어 Ready 구문이 안타는 상황 발생하여 초기화 해줌
+P_VISION_MSA_Align_Module_Complete_Bit(0),N_MSA_Align_Index_EA = 0;			// MSA 모듈 Complete 배열
+P_Module_MSA_Act_State_Machine_Array(0),N_MSA_Align_Index_EA = 0;			// MSA 모듈 스텝 머신 배열
+
+switch(Mode)
+{
+	case N_MSA_Anode_Align:
+	
+		P_Buffer_Seqdata_MSA_Array(0)  = Mode;
+		P_Buffer_Seqdata_MSA_Array(1)  = N_SEQ_Normal_MSA_No_1;				// 카운트 초기화 및 모터 서보 체크
+		P_Buffer_Seqdata_MSA_Array(2)  = N_SEQ_Normal_MSA_No_2;				// Motor 위치 체크
+		P_Buffer_Seqdata_MSA_Array(3)  = N_SEQ_Normal_MSA_No_3;				// 1차 PNP Belt 위치 이동
+		P_Buffer_Seqdata_MSA_Array(4)  = N_SEQ_Normal_MSA_No_4;				// 1차 PNP Belt 하강, 2차 PNP 얼라인 하강
+		P_Buffer_Seqdata_MSA_Array(5)  = N_SEQ_Normal_MSA_No_5;				// 1차 PNP 벨트 베큠 ON, 2차 PNP 베큠 ON 
+		P_Buffer_Seqdata_MSA_Array(6)  = N_SEQ_Normal_MSA_No_6;				// 1차 PNP 벨트 상승, 2차 PNP 얼라인 상승
+		P_Buffer_Seqdata_MSA_Array(7)  = N_SEQ_Normal_MSA_No_7;				// 파이널롤러 위치 이동
+		P_Buffer_Seqdata_MSA_Array(8)  = N_SEQ_Normal_MSA_No_8;				// 2차 스텍 이동
+		P_Buffer_Seqdata_MSA_Array(9)  = N_SEQ_Normal_MSA_No_9;				// 1차 얼라인 이동
+		P_Buffer_Seqdata_MSA_Array(10) = N_SEQ_Normal_MSA_No_10;			// 1차 얼라인 하강
+		P_Buffer_Seqdata_MSA_Array(11) = N_SEQ_Normal_MSA_No_11;			// 1차 블로우 
+		P_Buffer_Seqdata_MSA_Array(12) = N_SEQ_Normal_MSA_No_12;			// Align Vision Trigger ON
+		P_Buffer_Seqdata_MSA_Array(13) = N_SEQ_Normal_MSA_No_13;			// 1차 얼라인 베큠 ON
+		P_Buffer_Seqdata_MSA_Array(14) = N_SEQ_Normal_MSA_No_14;			// 1차 얼라인 상승
+		P_Buffer_Seqdata_MSA_Array(15) = N_SEQ_Normal_MSA_No_15;			// 1차 벨트 이동
+		P_Buffer_Seqdata_MSA_Array(16) = N_SEQ_Normal_MSA_No_16;			// 카운트 증가 및 종료 확인
+		P_Buffer_Seqdata_MSA_Array(17) = N_SEQ_Normal_MSA_No_17;			// 1차 얼라인 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(18) = N_SEQ_Normal_MSA_No_18;			// 1차 얼라인 하강(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(19) = N_SEQ_Normal_MSA_No_19;			// 1차 얼라인 파기(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(20) = N_SEQ_Normal_MSA_No_20;			// 1차 얼라인 상승(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(21) = N_SEQ_Normal_MSA_No_21;			// 1차 대기 위치 이동(MSA 완료)
+		#ifdef F_MSA_Discharge_Use											//↓ MSA배출 모드 사용 시
+		P_Buffer_Seqdata_MSA_Array(22) = N_SEQ_Normal_MSA_No_22;			// NG PNP 얼라인 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(23) = N_SEQ_Normal_MSA_No_23;			// NG PNP 얼라인 하강(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(24) = N_SEQ_Normal_MSA_No_24;			// NG PNP 얼라인 흡착(MSA 완료) 
+		P_Buffer_Seqdata_MSA_Array(25) = N_SEQ_Normal_MSA_No_25;			// NG PNP 얼라인 상승(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(26) = N_SEQ_Normal_MSA_No_26;			// NG PNP NGBox 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(27) = N_SEQ_Normal_MSA_No_27;			// NG PNP NGBox 파기(MSA 완료) 
+		P_Buffer_Seqdata_MSA_Array(28) = N_SEQ_Normal_MSA_No_28;			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(29) = N_SEQ_Normal_MSA_No_29;			// 파이널롤러 대기 위치 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(30) =	N_COMPLETE;						
+		#else 																//↓ MSA배출 모드 미사용 시 
+		P_Buffer_Seqdata_MSA_Array(22) = N_SEQ_Normal_MSA_No_22;			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(23) = N_SEQ_Normal_MSA_No_23;			// 파이널롤러 대기 위치 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(24) = N_COMPLETE;						
+		#endif
+
+		rtn = N_TRUE;
+	break;
+
+	case N_MSA_Cathode_Align:
+		P_Buffer_Seqdata_MSA_Array(0)  = Mode;
+		P_Buffer_Seqdata_MSA_Array(1)  = N_SEQ_Normal_MSA_No_1;				// 카운트 초기화 및 모터 서보 체크
+		P_Buffer_Seqdata_MSA_Array(2)  = N_SEQ_Normal_MSA_No_2;				// Motor 위치 체크
+		P_Buffer_Seqdata_MSA_Array(3)  = N_SEQ_Normal_MSA_No_3;				// 1차 PNP Belt 위치 이동
+		P_Buffer_Seqdata_MSA_Array(4)  = N_SEQ_Normal_MSA_No_4;				// 1차 PNP Belt 하강, 2차 PNP 얼라인 하강
+		P_Buffer_Seqdata_MSA_Array(5)  = N_SEQ_Normal_MSA_No_5;				// 1차 PNP 벨트 베큠 ON, 2차 PNP 베큠 ON 
+		P_Buffer_Seqdata_MSA_Array(6)  = N_SEQ_Normal_MSA_No_6;				// 1차 PNP 벨트 상승, 2차 PNP 얼라인 상승
+		P_Buffer_Seqdata_MSA_Array(7)  = N_SEQ_Normal_MSA_No_7;				// 파이널롤러 위치 이동
+		P_Buffer_Seqdata_MSA_Array(8)  = N_SEQ_Normal_MSA_No_8;				// 2차 스텍 이동
+		P_Buffer_Seqdata_MSA_Array(9)  = N_SEQ_Normal_MSA_No_9;				// 1차 얼라인 이동
+		P_Buffer_Seqdata_MSA_Array(10) = N_SEQ_Normal_MSA_No_10;			// 1차 얼라인 하강
+		P_Buffer_Seqdata_MSA_Array(11) = N_SEQ_Normal_MSA_No_11;			// 1차 블로우 
+		P_Buffer_Seqdata_MSA_Array(12) = N_SEQ_Normal_MSA_No_12;			// Align Vision Trigger ON
+		P_Buffer_Seqdata_MSA_Array(13) = N_SEQ_Normal_MSA_No_13;			// 1차 얼라인 베큠 ON
+		P_Buffer_Seqdata_MSA_Array(14) = N_SEQ_Normal_MSA_No_14;			// 1차 얼라인 상승
+		P_Buffer_Seqdata_MSA_Array(15) = N_SEQ_Normal_MSA_No_15;			// 1차 벨트 이동
+		P_Buffer_Seqdata_MSA_Array(16) = N_SEQ_Normal_MSA_No_16;			// 카운트 증가 및 종료 확인
+		P_Buffer_Seqdata_MSA_Array(17) = N_SEQ_Normal_MSA_No_17;			// 1차 얼라인 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(18) = N_SEQ_Normal_MSA_No_18;			// 1차 얼라인 하강(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(19) = N_SEQ_Normal_MSA_No_19;			// 1차 얼라인 파기(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(20) = N_SEQ_Normal_MSA_No_20;			// 1차 얼라인 상승(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(21) = N_SEQ_Normal_MSA_No_21;			// 1차 대기 위치 이동(MSA 완료)
+		#ifdef F_MSA_Discharge_Use											//↓ MSA배출 모드 사용 시
+		P_Buffer_Seqdata_MSA_Array(22) = N_SEQ_Normal_MSA_No_22;			// NG PNP 얼라인 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(23) = N_SEQ_Normal_MSA_No_23;			// NG PNP 얼라인 하강(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(24) = N_SEQ_Normal_MSA_No_24;			// NG PNP 얼라인 흡착(MSA 완료) 
+		P_Buffer_Seqdata_MSA_Array(25) = N_SEQ_Normal_MSA_No_25;			// NG PNP 얼라인 상승(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(26) = N_SEQ_Normal_MSA_No_26;			// NG PNP NGBox 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(27) = N_SEQ_Normal_MSA_No_27;			// NG PNP NGBox 파기(MSA 완료) 
+		P_Buffer_Seqdata_MSA_Array(28) = N_SEQ_Normal_MSA_No_28;			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(29) = N_SEQ_Normal_MSA_No_29;			// 파이널롤러 대기 위치 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(30) =	N_COMPLETE;						
+		#else 																//↓ MSA배출 모드 미사용 시 
+		P_Buffer_Seqdata_MSA_Array(22) = N_SEQ_Normal_MSA_No_22;			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(23) = N_SEQ_Normal_MSA_No_23;			// 파이널롤러 대기 위치 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(24) =N_COMPLETE;							
+		#endif
+
+		rtn = N_TRUE;
+	break;
+
+	case N_MSA_Anode_Stack:
+		P_Buffer_Seqdata_MSA_Array(0) = Mode;
+		P_Buffer_Seqdata_MSA_Array(1) =	N_SEQ_Normal_MSA_No_1;				// 카운트 초기화 및 모터 서보 체크 
+		P_Buffer_Seqdata_MSA_Array(2) =	N_SEQ_Normal_MSA_No_2;				// Motor 위치 체크
+		P_Buffer_Seqdata_MSA_Array(3) = N_SEQ_Normal_MSA_No_3;				// 2차 PNP 얼라인 하강 
+		P_Buffer_Seqdata_MSA_Array(4) =	N_SEQ_Normal_MSA_No_4;				// 2차 PNP 얼라인 흡착
+		P_Buffer_Seqdata_MSA_Array(5) =	N_SEQ_Normal_MSA_No_5;				// 2차 PNP 얼라인 상승
+		P_Buffer_Seqdata_MSA_Array(6) =	N_SEQ_Normal_MSA_No_6;				// 2차 Stack Table 위치 이동
+		P_Buffer_Seqdata_MSA_Array(7) =	N_SEQ_Normal_MSA_No_7;				// 2차 Stack Down 
+		P_Buffer_Seqdata_MSA_Array(8) =	N_SEQ_Normal_MSA_No_8;				// Stack Vision Trigger ON
+		P_Buffer_Seqdata_MSA_Array(9) =	N_SEQ_Normal_MSA_No_9;				// 2차 Stack UP
+		P_Buffer_Seqdata_MSA_Array(10) = N_SEQ_Normal_MSA_No_10;			// 2차 Align 위치 이동
+		P_Buffer_Seqdata_MSA_Array(11) = N_SEQ_Normal_MSA_No_11;			// 카운트 증가 및 종료 확인
+		#ifdef F_MSA_Discharge_Use											//↓ MSA배출 모드 사용 시
+		P_Buffer_Seqdata_MSA_Array(12) = N_SEQ_Normal_MSA_No_12;			// 2차 PNP 얼라인 하강(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(13) = N_SEQ_Normal_MSA_No_13;			// 2차 PNP 얼라인 파기(MSA 완료) 
+		P_Buffer_Seqdata_MSA_Array(14) = N_SEQ_Normal_MSA_No_14;			// 2차 PNP 얼라인 상승(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(15) = N_SEQ_Normal_MSA_No_15;			// 2차 PNP 스텍 위치 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(16) = N_SEQ_Normal_MSA_No_16;			// NG PNP 얼라인 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(17) = N_SEQ_Normal_MSA_No_17;			// NG PNP 얼라인 하강(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(18) = N_SEQ_Normal_MSA_No_18;			// NG PNP 얼라인 흡착(MSA 완료) 
+		P_Buffer_Seqdata_MSA_Array(19) = N_SEQ_Normal_MSA_No_19;			// NG PNP 얼라인 상승(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(20) = N_SEQ_Normal_MSA_No_20;			// NG PNP NGBox 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(21) = N_SEQ_Normal_MSA_No_21;			// NG PNP NGBox 파기(MSA 완료) 
+		P_Buffer_Seqdata_MSA_Array(22) = N_SEQ_Normal_MSA_No_22;			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(23) = N_COMPLETE;						
+		#else																//↓ MSA배출 모드 미사용 시 
+		P_Buffer_Seqdata_MSA_Array(12) =	N_COMPLETE;						// COMPLETE
+		#endif
+		rtn = N_TRUE;
+	break;
+
+	case N_MSA_Cathode_Stack:
+		P_Buffer_Seqdata_MSA_Array(0) = Mode;
+		P_Buffer_Seqdata_MSA_Array(1) =	N_SEQ_Normal_MSA_No_1;				// 카운트 초기화 및 모터 서보 체크 
+		P_Buffer_Seqdata_MSA_Array(2) =	N_SEQ_Normal_MSA_No_2;				// Motor 위치 체크
+		P_Buffer_Seqdata_MSA_Array(3) = N_SEQ_Normal_MSA_No_3;				// 2차 PNP 얼라인 하강 
+		P_Buffer_Seqdata_MSA_Array(4) =	N_SEQ_Normal_MSA_No_4;				// 2차 PNP 얼라인 흡착
+		P_Buffer_Seqdata_MSA_Array(5) =	N_SEQ_Normal_MSA_No_5;				// 2차 PNP 얼라인 상승
+		P_Buffer_Seqdata_MSA_Array(6) =	N_SEQ_Normal_MSA_No_6;				// 2차 Stack Table 위치 이동
+		P_Buffer_Seqdata_MSA_Array(7) =	N_SEQ_Normal_MSA_No_7;				// 2차 Stack Down 
+		P_Buffer_Seqdata_MSA_Array(8) =	N_SEQ_Normal_MSA_No_8;				// Stack Vision Trigger ON
+		P_Buffer_Seqdata_MSA_Array(9) =	N_SEQ_Normal_MSA_No_9;				// 2차 Stack UP
+		P_Buffer_Seqdata_MSA_Array(10) = N_SEQ_Normal_MSA_No_10;			// 2차 Align 위치 이동
+		P_Buffer_Seqdata_MSA_Array(11) = N_SEQ_Normal_MSA_No_11;			// 카운트 증가 및 종료 확인
+		#ifdef F_MSA_Discharge_Use											//↓ MSA배출 모드 사용 시
+		P_Buffer_Seqdata_MSA_Array(12) = N_SEQ_Normal_MSA_No_12;			// 2차 PNP 얼라인 하강(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(13) = N_SEQ_Normal_MSA_No_13;			// 2차 PNP 얼라인 파기(MSA 완료) 
+		P_Buffer_Seqdata_MSA_Array(14) = N_SEQ_Normal_MSA_No_14;			// 2차 PNP 얼라인 상승(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(15) = N_SEQ_Normal_MSA_No_15;			// 2차 PNP 스텍 위치 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(16) = N_SEQ_Normal_MSA_No_16;			// NG PNP 얼라인 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(17) = N_SEQ_Normal_MSA_No_17;			// NG PNP 얼라인 하강(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(18) = N_SEQ_Normal_MSA_No_18;			// NG PNP 얼라인 흡착(MSA 완료) 
+		P_Buffer_Seqdata_MSA_Array(19) = N_SEQ_Normal_MSA_No_19;			// NG PNP 얼라인 상승(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(20) = N_SEQ_Normal_MSA_No_20;			// NG PNP NGBox 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(21) = N_SEQ_Normal_MSA_No_21;			// NG PNP NGBox 파기(MSA 완료) 
+		P_Buffer_Seqdata_MSA_Array(22) = N_SEQ_Normal_MSA_No_22;			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+		P_Buffer_Seqdata_MSA_Array(23) = N_COMPLETE;
+		#else 																//↓ MSA배출 모드 미사용 시 
+		P_Buffer_Seqdata_MSA_Array(12) =	N_COMPLETE;						// COMPLETE
+		#endif
+		rtn = N_TRUE;
+	break;
+
+	default:
+		rtn = N_FALSE;
+	break;
+}
+
+return;
+
+sub: Management_MSA(Mode,Index,&data,&rtn)
+
+	rtn = 0;
+	if ( P_Buffer_Seqdata_MSA_Array(0) == Mode )						// 1) 실행 전 모드 체크
+	{																	
+		if ( P_Buffer_Seqdata_MSA_Array(Index) == N_COMPLETE )			// 1.1) 인덱스 배열값이 완료 일 경우
+		{																 
+			data = N_COMPLETE;											// 1.1.1) 데이터 완료값 반환
+			rtn = N_EXCEPT;												// 1.1.2) 예외값 반환
+		}																
+		else if ( P_Buffer_Seqdata_MSA_Array(Index) != 0 )				// 1.1.3) 완료도 아니고 0값도 아닐 경우
+		{																 
+			data = P_Buffer_Seqdata_MSA_Array(Index);					// 1.1.4) 인덱스 배열값 반환
+			rtn = N_TRUE;												// 1.1.5) True 반환
+		}																
+		else															
+		{																
+			data = 0;													// 1.1.6) 인덱스 배열값 0값 반환
+			rtn = N_FALSE;												// 1.1.7) False  반환
+		}															
+	}
+return;
+
+sub: Precondition_MSA(Mode,Index,&rtn)									// MSA 이전상태 확인 
+rtn = 0;
+switch( Mode )
+{
+	case N_MSA_Anode_Align:
+		switch( Index )
+		{
+			case N_SEQ_Normal_MSA_No_1:									
+				rtn = N_TRUE;
+			break;
+			
+			case N_SEQ_Normal_MSA_No_2:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_SET) )			
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_SET) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_3:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Motor_Pos_Check) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Motor_Pos_Check) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_4:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Init_to_Belt_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Init_to_Belt_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_5:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Down_Move) & P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Down_Move) = 0;
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+			
+			case N_SEQ_Normal_MSA_No_6:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Vacume_ON) & P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Vacume_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Vacume_ON) = 0;
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Vacume_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_7:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Up_Move) & P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Up_Move) = 0;
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_8:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_FinalRoll_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_FinalRoll_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_9:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Stack_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Stack_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_10:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+			case N_SEQ_Normal_MSA_No_11:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+			
+			case N_SEQ_Normal_MSA_No_12:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Blow_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Blow_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_13:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Vision_Trg_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Vision_Trg_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_14:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Vacume_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Vacume_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+			
+			case N_SEQ_Normal_MSA_No_15:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_16:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Blet_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Blet_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_17:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_MSA_Move_Cnt) == 1)					// 저 변수가 1 되면 컴플리트
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_MSA_Move_Cnt) = 0;
+					rtn = N_TRUE;
+				}
+				else if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_MSA_Move_Cnt) == 2)	
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_MSA_Move_Cnt) = 0;
+					P_VISION_MSA_Align_Count_Chk_Flag = 1;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_18:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_19:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_20:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Blow_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Blow_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_21:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_22:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_to_Init_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			#ifdef F_MSA_Discharge_Use
+			//↓ MSA배출 모드 사용 시
+			case N_SEQ_Normal_MSA_No_23:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_24:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_25:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_26:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_27:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_28:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_29:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_2nd_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_2nd_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_30:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_FinalRoll_Init_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_FinalRoll_Init_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_31:
+		
+				rtn = N_TRUE;
+			break;
+			#else 
+			case N_SEQ_Normal_MSA_No_23:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_2nd_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_2nd_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_24:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_FinalRoll_Init_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_FinalRoll_Init_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_25:
+		
+				rtn = N_TRUE;
+			break;
+			#endif 
+		}
+	break;
+
+	case N_MSA_Cathode_Align:
+		switch( Index )
+		{
+			case N_SEQ_Normal_MSA_No_1:		
+				rtn = N_TRUE;
+			break;
+			
+			case N_SEQ_Normal_MSA_No_2:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_SET) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_SET) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_3:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Motor_Pos_Check) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Motor_Pos_Check) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_4:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Init_to_Belt_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Init_to_Belt_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_5:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Down_Move) & P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Down_Move) = 0;
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+			
+			case N_SEQ_Normal_MSA_No_6:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Vacume_ON) & P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Vacume_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Vacume_ON) = 0;
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Vacume_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_7:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Up_Move) & P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Up_Move) = 0;
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_8:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_FinalRoll_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_FinalRoll_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_9:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Stack_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Stack_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_10:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+			case N_SEQ_Normal_MSA_No_11:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+			
+			case N_SEQ_Normal_MSA_No_12:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Blow_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Blow_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_13:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Vision_Trg_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Vision_Trg_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_14:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Vacume_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Vacume_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+			
+			case N_SEQ_Normal_MSA_No_15:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_16:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Blet_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Blet_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_17:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_MSA_Move_Cnt) == 1)					// 저 변수가 1 되면 컴플리트
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_MSA_Move_Cnt) = 0;
+					rtn = N_TRUE;
+				}
+				else if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_MSA_Move_Cnt) == 2)	
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_MSA_Move_Cnt) = 0;
+					P_VISION_MSA_Align_Count_Chk_Flag = 1;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_18:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_19:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_20:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Blow_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Blow_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_21:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_22:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_to_Init_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			#ifdef F_MSA_Discharge_Use
+			//↓ MSA배출 모드 사용 시
+			case N_SEQ_Normal_MSA_No_23:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_24:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_25:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_26:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_27:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_28:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_29:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_2nd_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_2nd_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_30:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_FinalRoll_Init_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_FinalRoll_Init_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_31:
+		
+				rtn = N_TRUE;
+			break;
+			#else 
+			case N_SEQ_Normal_MSA_No_23:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_2nd_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_2nd_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_24:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_FinalRoll_Init_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_FinalRoll_Init_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_25:
+		
+				rtn = N_TRUE;
+			break;
+			#endif 
+		}
+	break;
+
+
+
+
+	// Stack MSA 
+	case N_MSA_Anode_Stack:
+		switch( Index )
+		{
+			case N_SEQ_Normal_MSA_No_1:		
+				rtn = N_TRUE;
+			break;
+			
+			case N_SEQ_Normal_MSA_No_2:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Set) )
+				{	
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Set) = 0 ;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_3:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Motor_Pos_Check) )
+				{	
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Motor_Pos_Check) = 0 ;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_4:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_5:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_PNP_Vacume_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_PNP_Vacume_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_6:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_7:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Move) )
+				{	
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Move) = 0 ;
+					rtn = N_TRUE;
+				}
+			break;
+			
+			case N_SEQ_Normal_MSA_No_8:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Down_Move) )
+				{	
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Down_Move) = 0 ;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_9:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Vision_Trg_ON) )
+				{	
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Vision_Trg_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_10:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_11:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_12:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_MSA_Move_Cnt) == 1)
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_MSA_Move_Cnt) = 0;
+					rtn = N_TRUE;
+				}
+				else if ( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_MSA_Move_Cnt) == 2 )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_MSA_Move_Cnt) = 0;
+					P_VISION_MSA_Stack_Count_Chk_Flag = 1;
+					rtn = N_TRUE;
+				}
+			break;
+
+			#ifdef F_MSA_Discharge_Use
+			//↓ MSA배출 모드 사용 시
+			case N_SEQ_Normal_MSA_No_13:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+			
+			case N_SEQ_Normal_MSA_No_14:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_15:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+
+			case N_SEQ_Normal_MSA_No_16:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Stack_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Stack_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_17:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+			
+			case N_SEQ_Normal_MSA_No_18:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_19:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_20:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_21:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+
+			case N_SEQ_Normal_MSA_No_22:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_23:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_24:
+		
+				rtn = N_TRUE;
+			break;
+			#else
+			case N_SEQ_Normal_MSA_No_13:
+		
+				rtn = N_TRUE;
+			break;
+			#endif 
+		}
+	break;
+
+	case N_MSA_Cathode_Stack:
+		switch( Index )
+		{
+			case N_SEQ_Normal_MSA_No_1:		
+				rtn = N_TRUE;
+			break;
+			
+			case N_SEQ_Normal_MSA_No_2:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Set) )
+				{	
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Set) = 0 ;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_3:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Motor_Pos_Check) )
+				{	
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Motor_Pos_Check) = 0 ;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_4:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_5:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_PNP_Vacume_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_PNP_Vacume_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_6:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_7:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Move) )
+				{	
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Move) = 0 ;
+					rtn = N_TRUE;
+				}
+			break;
+			
+			case N_SEQ_Normal_MSA_No_8:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Down_Move) )
+				{	
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Down_Move) = 0 ;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_9:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Vision_Trg_ON) )
+				{	
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Vision_Trg_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_10:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_11:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_12:		
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_MSA_Move_Cnt) == 1)
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_MSA_Move_Cnt) = 0;
+					rtn = N_TRUE;
+				}
+				else if ( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_MSA_Move_Cnt) == 2 )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_MSA_Move_Cnt) = 0;
+					P_VISION_MSA_Stack_Count_Chk_Flag = 1;
+					rtn = N_TRUE;
+				}
+			break;
+
+			#ifdef F_MSA_Discharge_Use
+			//↓ MSA배출 모드 사용 시
+			case N_SEQ_Normal_MSA_No_13:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+			
+			case N_SEQ_Normal_MSA_No_14:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_15:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+
+			case N_SEQ_Normal_MSA_No_16:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Stack_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Stack_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_17:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+			
+			case N_SEQ_Normal_MSA_No_18:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_19:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_20:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_21:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+
+			case N_SEQ_Normal_MSA_No_22:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_23:
+				if( P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Move) )
+				{
+					P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Move) = 0;
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_MSA_No_24:
+		
+				rtn = N_TRUE;
+			break;
+			#else
+			case N_SEQ_Normal_MSA_No_13:
+		
+				rtn = N_TRUE;
+			break;
+			#endif 
+		}
+	break;
+}
+return;
+
+sub: Execute_MSA(Mode,data,&rtn)
+
+rtn = 0;
+
+switch( Mode )
+{
+	case N_MSA_Anode_Align:
+		switch(data)
+		{
+			case N_SEQ_Normal_MSA_No_1:		// 카운트 초기화 및 모터 서보 체크
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_SET) = F_ACT_STATUS_ENABLE;										
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_2:		// 모터 위치 확인
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Motor_Pos_Check) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_3:		// 얼라인 1차 Belt 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Init_to_Belt_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_4:		// 1차 벨트 하강 2차 얼라인 하강
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Down_Move) = F_ACT_STATUS_ENABLE;
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_5:		// 1,2차 흡착
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Vacume_ON) = F_ACT_STATUS_ENABLE;
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Vacume_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_6:		// 1,2차 상승
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Up_Move) = F_ACT_STATUS_ENABLE;
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_7:		// 파이널롤러 양음극 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_FinalRoll_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_8:		// 2차 스텍 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Stack_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_9:		// 1차 얼라인 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_10:		// 1차 얼라인 하강
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_11:		// 1차 블로우 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Blow_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_12:	// 비전 트리거 on
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Vision_Trg_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_13:	// 1차 흡착
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Vacume_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_14:	// 1차 얼라인 상승
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_15:	// 1차 벨트 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Blet_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_16:	// 카운트 증가 및 확인 ( 종료 및 재귀 ) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_MSA_Move_Cnt) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_17:	// 1차 얼라인 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_18:	// 1차 얼라인 하강(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_19:	// 1차 얼라인 파기(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_20:	// 1차 얼라인 상승(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_21:	// 1차 대기 위치 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+			#ifdef F_MSA_Discharge_Use
+			//↓ MSA배출 모드 사용 시
+			case N_SEQ_Normal_MSA_No_22:	// NG PNP 얼라인 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_23:	// NG PNP 얼라인 하강(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+
+			case N_SEQ_Normal_MSA_No_24:	// NG PNP 얼라인 흡착(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+
+			case N_SEQ_Normal_MSA_No_25:	// NG PNP 얼라인 상승(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+
+			case N_SEQ_Normal_MSA_No_26:	// NG PNP NGBox 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+
+			case N_SEQ_Normal_MSA_No_27:	// NG PNP NGBox 파기(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+
+			case N_SEQ_Normal_MSA_No_28:	// 2차 PNP 얼라인 테이블 이동(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_2nd_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+		
+			case N_SEQ_Normal_MSA_No_29:	//파이널롤러 대기 위치 이동(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+			#else
+			case N_SEQ_Normal_MSA_No_22:	// 2차 PNP 얼라인 테이블 이동(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_2nd_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+		
+			case N_SEQ_Normal_MSA_No_23:	//파이널롤러 대기 위치 이동(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+			#endif
+		}
+	break;
+
+	case N_MSA_Cathode_Align:
+		switch(data)
+		{
+			case N_SEQ_Normal_MSA_No_1:		// 카운트 초기화 및 모터 서보 체크
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_SET) = F_ACT_STATUS_ENABLE;										
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_2:		// 모터 위치 확인
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Motor_Pos_Check) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_3:		// 얼라인 1차 Belt 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Init_to_Belt_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_4:		// 1차 벨트 하강 2차 얼라인 하강
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Down_Move) = F_ACT_STATUS_ENABLE;
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_5:		// 1,2차 흡착
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Vacume_ON) = F_ACT_STATUS_ENABLE;
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Vacume_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_6:		// 1,2차 상승
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Up_Move) = F_ACT_STATUS_ENABLE;
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_7:		// 파이널롤러 양음극 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_FinalRoll_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_8:		// 2차 스텍 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Stack_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_9:		// 1차 얼라인 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_10:		// 1차 얼라인 하강
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_11:		// 1차 블로우 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Blow_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_12:	// 비전 트리거 on
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Vision_Trg_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_13:	// 1차 흡착
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Vacume_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_14:	// 1차 얼라인 상승
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_15:	// 1차 벨트 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Blet_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_16:	// 카운트 증가 및 확인 ( 종료 및 재귀 ) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_MSA_Move_Cnt) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_17:	// 1차 얼라인 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_18:	// 1차 얼라인 하강(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_19:	// 1차 얼라인 파기(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_20:	// 1차 얼라인 상승(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_21:	// 1차 대기 위치 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+			#ifdef F_MSA_Discharge_Use
+			//↓ MSA배출 모드 사용 시
+			case N_SEQ_Normal_MSA_No_22:	// NG PNP 얼라인 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_23:	// NG PNP 얼라인 하강(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+
+			case N_SEQ_Normal_MSA_No_24:	// NG PNP 얼라인 흡착(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+
+			case N_SEQ_Normal_MSA_No_25:	// NG PNP 얼라인 상승(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+
+			case N_SEQ_Normal_MSA_No_26:	// NG PNP NGBox 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+
+			case N_SEQ_Normal_MSA_No_27:	// NG PNP NGBox 파기(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+
+			case N_SEQ_Normal_MSA_No_28:	// 2차 PNP 얼라인 테이블 이동(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_2nd_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+		
+			case N_SEQ_Normal_MSA_No_29:	//파이널롤러 대기 위치 이동(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+			#else
+			case N_SEQ_Normal_MSA_No_22:	// 2차 PNP 얼라인 테이블 이동(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_2nd_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+		
+			case N_SEQ_Normal_MSA_No_23:	//파이널롤러 대기 위치 이동(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;	
+			#endif
+		}
+	break;
+
+	case N_MSA_Anode_Stack:
+		switch(data)
+		{
+			case N_SEQ_Normal_MSA_No_1:		// 카운트 초기화 및 모터 서보 체크
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Set) = F_ACT_STATUS_ENABLE;										
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_2:		// 모터 위치 확인
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Motor_Pos_Check) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_3:		// 모터 위치 확인
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_4:		// 모터 위치 확인
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_5:		// 모터 위치 확인
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_6:		// 2차 Stack Table 위치 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_7:		// 2차 Stack Down 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_8:		// Stack Vision Trigger ON
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Vision_Trg_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_9:		// 2차 Stack UP
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_10:		// 2차 스텍 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_11:		// 카운트 증가 및 종료 확인
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_MSA_Move_Cnt) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+			#ifdef F_MSA_Discharge_Use
+			//↓ MSA배출 모드 사용 시
+			case N_SEQ_Normal_MSA_No_12:		// 2차 PNP 얼라인 하강(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_13:	// 2차 PNP 얼라인 파기(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_14:	// 2차 PNP 얼라인 상승(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+
+			break;
+
+			case N_SEQ_Normal_MSA_No_15:	// 2차 PNP 스텍 위치 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_16:	// NG PNP 얼라인 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_17:	// NG PNP 얼라인 하강(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_18:	// NG PNP 얼라인 흡착(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_19:	// NG PNP 얼라인 상승(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_20:	// NG PNP NGBox 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_21:	// NG PNP NGBox 파기(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_22:	// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+			#endif
+		}
+	break;
+
+	case N_MSA_Cathode_Stack:
+		switch(data)
+		{
+					case N_SEQ_Normal_MSA_No_1:		// 카운트 초기화 및 모터 서보 체크
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Set) = F_ACT_STATUS_ENABLE;										
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_2:		// 모터 위치 확인
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Motor_Pos_Check) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_3:		// 모터 위치 확인
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_4:		// 모터 위치 확인
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_5:		// 모터 위치 확인
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_6:		// 2차 Stack Table 위치 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_7:		// 2차 Stack Down 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_8:		// Stack Vision Trigger ON
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Vision_Trg_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_9:		// 2차 Stack UP
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_10:		// 2차 스텍 이동
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_11:		// 카운트 증가 및 종료 확인
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_MSA_Move_Cnt) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+			#ifdef F_MSA_Discharge_Use
+			//↓ MSA배출 모드 사용 시
+			case N_SEQ_Normal_MSA_No_12:		// 2차 PNP 얼라인 하강(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_13:	// 2차 PNP 얼라인 파기(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_14:	// 2차 PNP 얼라인 상승(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+
+			break;
+
+			case N_SEQ_Normal_MSA_No_15:	// 2차 PNP 스텍 위치 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_16:	// NG PNP 얼라인 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_17:	// NG PNP 얼라인 하강(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_18:	// NG PNP 얼라인 흡착(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_19:	// NG PNP 얼라인 상승(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_20:	// NG PNP NGBox 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_21:	// NG PNP NGBox 파기(MSA 완료) 
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_MSA_No_22:	// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+				P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+			#endif
+		}
+	break;
+}
+return;
+
+//========================================================//
+// 1. 얼라인 탈착 모드 SET
+//========================================================//
+sub: Set_Align_Take_off(Mode,&rtn)
+	 
+	P_Module_Manual_Align_Take_Off_Act_Command_Array(0),N_Align_Take_Off_Index_EA = 0;			//얼라인 탈착 모드 도중 Stop 시 배열 초기화가 안되어 Ready 구문이 안타는 상황 발생하여 초기화 해줌
+	P_Align_Take_Off_Module_Complete_Bit(0),N_Align_Take_Off_Index_EA = 0;						//얼라인 탈착 모드 모듈 Complete 비트
+	P_Module_Align_Take_Off_Act_State_Machine_Array(0),N_Align_Take_Off_Index_EA = 0;			//얼라인 탈착 모드 모듈 스텝 머신
+
+	switch(Mode)
+	{
+		Case N_Align_AN_Take_Off : 
+
+			P_Buffer_Seqdata_Align_Take_Off_Array(0)  = Mode;							
+			P_Buffer_Seqdata_Align_Take_Off_Array(1)  = N_SEQ_Normal_Align_Take_Off_No_1;		//1) 대기위치 확인, 음극 2차 PNP 이동 속도 설정 및 레시피 위치 받아옴 
+			P_Buffer_Seqdata_Align_Take_Off_Array(2)  = N_SEQ_Normal_Align_Take_Off_No_2;		//2) 파이널롤러 양극 방향 이동 및 확인 	
+			P_Buffer_Seqdata_Align_Take_Off_Array(3)  = N_SEQ_Normal_Align_Take_Off_No_3;		//3) 음극 2차 PNP T축 스텍 위치 이동 및 확인 && 음극 얼라인 테이블 모터 킬 및 잡 체인지 해제     
+			
+			P_Buffer_Seqdata_Align_Take_Off_Array(4) = N_COMPLETE;					
+			
+			rtn = N_TRUE;		
+		break; 
+
+
+		Case N_Align_CA_Take_Off :
+			
+			P_Buffer_Seqdata_Align_Take_Off_Array(0)  = Mode;							
+			P_Buffer_Seqdata_Align_Take_Off_Array(1)  = N_SEQ_Normal_Align_Take_Off_No_1;		//1) 대기위치 확인, 음극 2차 PNP 이동 속도 설정 및 레시피 위치 받아옴 
+			P_Buffer_Seqdata_Align_Take_Off_Array(2)  = N_SEQ_Normal_Align_Take_Off_No_2;		//2) 파이널롤러 양극 방향 이동 및 확인 	
+			P_Buffer_Seqdata_Align_Take_Off_Array(3)  = N_SEQ_Normal_Align_Take_Off_No_3;		//3) 양극 2차 PNP T축 스텍 위치 이동 및 확인 && 양극 얼라인 테이블 모터 킬 및 잡 체인지 해제  
+			
+			P_Buffer_Seqdata_Align_Take_Off_Array(4) = N_COMPLETE;					
+	
+			rtn = N_TRUE;		
+
+		break;
+
+
+		default:
+			rtn = N_FALSE;
+		break;
+	}
+return;
+
+sub: Management_Align_Take_Off(Mode,Index,&data,&rtn)
+
+	rtn = 0;
+	if ( P_Buffer_Seqdata_Align_Take_Off_Array(0) == Mode )							//  실행 전 모드 체크
+	{																	
+		if ( P_Buffer_Seqdata_Align_Take_Off_Array(Index) == N_COMPLETE )			// 인덱스 배열값이 완료 일 경우
+		{																 
+			data = N_COMPLETE;														// 데이터 완료값 반환
+			rtn = N_EXCEPT;															// 예외값 반환
+		}																
+		else if ( P_Buffer_Seqdata_Align_Take_Off_Array(Index) != 0 )				// 완료도 아니고 0값도 아닐 경우
+		{																 
+			data = P_Buffer_Seqdata_Align_Take_Off_Array(Index);					// 인덱스 배열값 반환
+			rtn = N_TRUE;															// True 반환
+		}																
+		else															
+		{																
+			data = 0;																// 인덱스 배열값 0값 반환
+			rtn = N_FALSE;															// False  반환
+		}															
+	}
+return;
+
+sub: Precondition_Align_Take_Off(Mode,Index,&rtn)									// 얼라인 테이블 탈착 모드 이전 상태 확인 
+rtn = 0;
+switch( Mode )
+{
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 2. 양/음극 얼라인 탈착 모드 인덱스 반환
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------	
+	Case N_Align_AN_Take_Off:
+		switch( Index )
+		{
+			case N_SEQ_Normal_Align_Take_Off_No_1:									
+				rtn = N_TRUE;
+			break;
+			
+			case N_SEQ_Normal_Align_Take_Off_No_2:
+				if( P_Align_Take_Off_Module_Complete_Bit(N_Align_Take_Off_Ready_Pos_Check) && P_Align_Take_Off_Module_Complete_Bit(N_Align_Take_Off_Ready_Pos_Set))			
+				{
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_Align_Take_Off_No_3:
+				if( P_Align_Take_Off_Module_Complete_Bit(N_Align_Take_Off_FR_Move) )
+				{
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_Align_Take_Off_No_4:
+				if( P_Align_Take_Off_Module_Complete_Bit(N_Align_Take_Off_2nd_PNP_Stack_Move) )
+				{
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_Align_Take_Off_No_5:
+		
+				rtn = N_TRUE;
+			break;
+		
+		}
+	break;
+
+	Case N_Align_CA_Take_Off:
+				switch( Index )
+		{
+			case N_SEQ_Normal_Align_Take_Off_No_1:									
+				rtn = N_TRUE;
+			break;
+			
+			case N_SEQ_Normal_Align_Take_Off_No_2:
+				if( P_Align_Take_Off_Module_Complete_Bit(N_Align_Take_Off_Ready_Pos_Check) && P_Align_Take_Off_Module_Complete_Bit(N_Align_Take_Off_Ready_Pos_Set))			
+				{
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_Align_Take_Off_No_3:
+				if( P_Align_Take_Off_Module_Complete_Bit(N_Align_Take_Off_FR_Move) )
+				{
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_Align_Take_Off_No_4:
+				if( P_Align_Take_Off_Module_Complete_Bit(N_Align_Take_Off_2nd_PNP_Stack_Move) )
+				{
+					rtn = N_TRUE;
+				}
+			break;
+
+			case N_SEQ_Normal_Align_Take_Off_No_5:
+		
+				rtn = N_TRUE;
+			break;
+		}
+	break;
+}
+return;
+
+
+
+sub:Execute_Align_Take_Off(Mode,data,&rtn)
+rtn = 0;
+switch( Mode )
+{
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+// 3. 양/음극 얼라인 탈착 모드 커멘드 배열 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------	
+	case N_Align_AN_Take_Off:
+		switch(data)
+		{
+			case N_SEQ_Normal_Align_Take_Off_No_1:		//대기위치 확인 & 음극 2차 PNP 이동 속도 설정 및 레시피 위치 받아옴 
+				P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Check) = F_ACT_STATUS_ENABLE;		
+				P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Set) = F_ACT_STATUS_ENABLE;								
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_Align_Take_Off_No_2:		// 파이널롤러 회피 방향 이동 및 확인 
+				P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_FR_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_Align_Take_Off_No_3:		// 음극 2차 PNP T축 스텍 위치 이동 및 확인 && 음극 얼라인 테이블 모터 킬 및 잡체인지 해제
+				P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+		}
+	break;
+
+	case N_Align_CA_Take_Off:
+		switch(data)
+		{
+			case N_SEQ_Normal_Align_Take_Off_No_1:		//대기위치 확인 & 음극 2차 PNP 이동 속도 설정 및 레시피 위치 받아옴 
+				P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Check) = F_ACT_STATUS_ENABLE;		
+				P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Set) = F_ACT_STATUS_ENABLE;								
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_Align_Take_Off_No_2:		// 파이널롤러 회피 방향 이동 및 확인 
+				P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_FR_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+
+			case N_SEQ_Normal_Align_Take_Off_No_3:		// 양극 2차 PNP T축 스텍 위치 이동 및 확인 && 양극 얼라인 테이블 모터 킬 및 잡체인지 해제
+				P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) = F_ACT_STATUS_ENABLE;
+				rtn = N_TRUE;
+			break;
+		}
+	break;
+}
+return;
+close
+
+
+

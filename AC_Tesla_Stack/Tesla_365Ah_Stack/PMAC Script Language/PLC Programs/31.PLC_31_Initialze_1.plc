@@ -1,0 +1,228 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+
+P_System_Setting_Flag = 1;
+
+open plc 31
+
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+local L_Time_Cycle_Up_Count_Start_Time;					// plc[31].Ldata.L[0] 시간 체크 시작 시간
+local L_Time_Cycle_Up_Count_End_Time;					// plc[31].Ldata.L[1] 시간 체크 종료 시간
+local L_Time_Cycle_Up_Count_Delta_Time;					// plc[31].Ldata.L[2] 시작과 종료 시간 사이의 시간
+local L_Flag_Cycle_Up_Count_Init_Flag;					// plc[31].Ldata.L[3] 타이머 초기화 플래그
+
+local L_Index;											// plc[31].Ldata.L[4]
+local L_Ecat_Wait_Timer;								// plc[31].Ldata.L[5]
+local L_Slave_Index;									// plc[31].Ldata.L[6] 슬레이브 인덱스
+local L_Slave_Max_Index;								// plc[31].Ldata.L[7] 슬레이브 최대 인덱스
+L_Slave_Max_Index = 4;
+
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	// 시간 체크
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+// 시간 업데이트
+if(L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{	
+	
+	L_Ecat_Wait_Timer = L_Ecat_Wait_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+//========================================================================================================================
+
+
+// System, Motor, Coord Setting
+
+if(P_System_Setting_Flag == 1)
+{
+	P_System_Setting_Flag = 0;
+	// Kill C Program
+	system "killall -9 mc.out"; //프로세스 강제 종료
+
+	system "killall -e Manual.out"; //이름이 정확히 일치할 때만 종료
+
+	// Motor & Coord Setup
+	Sys.MaxCoords = 60;
+	Sys.MaxMotors = 70;
+	Sys.CamEnable = 5;
+
+	// 좌표계 초기값 설정
+	Coord[0].SyncOps = 8192;
+	Coord[1].TimeBaseSlew = 0.0005;
+	L_Index = 1;
+
+	while(L_Index < Sys.MaxCoords)
+	{
+		Coord[L_Index].TimeBaseSlew = Coord[1].TimeBaseSlew;
+		Coord[L_Index].SyncOps = Coord[0].SyncOps;
+		Coord[L_Index].pDesTimeBase = Coord[L_Index].DesTimeBase.a;
+		Coord[L_Index].DesTimeBase = Sys.ServoPeriod;
+		Coord[L_Index].FeedTime = 1000;
+		L_Index++;
+	}
+
+	// pvt 사용 좌표계는 SegMoveTime 설정
+
+	// Analog I/O 설정을 왜 여기서 하는가 ?
+
+	// Background C App Execute
+	system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/mc.out -u";
+
+	system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/mc.out -a";
+
+	system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/Manual.out";
+	//Sys_Auto_Read = 1;		// mc_protocol 자동 읽기 
+	// M_Y_to_MC_Protocol_Connected = 1; 
+	// [ 참조 : 2025.09.12 Log 추가 ]
+	//system "date -s '%d-%d-%d %d:%d:%d'", P_Log_Data_Y,P_Log_Data_M,P_Log_Data_D,P_Log_Data_H,P_Log_Data_m,P_Log_Data_s;		// PLC 현재 시간 동기화 
+
+
+	enable plc 7;
+	enable plc0,1,2,3,4,5,6,8,9,10,12,14,15,17,19,21,22,23,24,25,30;
+	enable bgcplc 0;	// P_Motor_Current_Pos 업데이트 CPLC  
+	enable rticplc;		// [ 참조 : 2025.09.12 Log 추가 ]
+	//disable plc 31;
+	#ifdef  F_Virtual_Axis_Test
+	M_AI_Upper_Sepa_Sensing = N_Reel_MAX;
+	M_AI_Lower_Sepa_Sensing = N_Reel_MAX;
+	#endif
+	//P_Ecat_Setting_Flag = 1;
+}
+
+if(P_Ecat_Setting_Flag == 1)
+{
+	P_Ecat_Setting_Flag = 0;
+	P_Ecat_Activation_State_Machine = 1;
+}	
+
+switch(P_Ecat_Activation_State_Machine)
+{
+	case 0 :
+
+	break;
+
+	case 1 :
+		P_PLC31_Ecat_Retry_Cnt = 0;
+		P_Ecat_Activation_State_Machine++;
+	break;
+
+	case 2 :
+		ECAT[0].Enable = 0;
+		L_Ecat_Wait_Timer = 0;
+
+		P_Ecat_Activation_State_Machine++;
+	break;
+
+	case 3 :	// Ecat Reset
+		if(L_Ecat_Wait_Timer > 1000)
+		{
+			Ldata.CmdStatus = 1;
+			cmd "ecat reset";
+			sendallcmds
+			while(Ldata.CmdStatus > 0) {}
+
+			L_Ecat_Wait_Timer = 0;
+			P_Ecat_Activation_State_Machine++;
+		}
+	break;
+
+	case 4 :	// Ecat 활성화
+		if(L_Ecat_Wait_Timer > 3000)
+		{
+			if(ECAT[0].MasterReady == 1)
+			{
+				ECAT[0].Enable = 1;
+				L_Ecat_Wait_Timer = 0;
+				P_Ecat_Activation_State_Machine++;
+			}
+			else
+			{
+				if(P_PLC31_Ecat_Retry_Cnt < 5)
+				{
+					P_PLC31_Ecat_Retry_Cnt++;
+					P_Ecat_Activation_State_Machine = 3;
+				}
+				else
+				{
+					P_Ecat_Connect_Result = 2;			// Ecat 활성화 리트라이 횟수 초과
+					P_Ecat_Activation_State_Machine = 0;
+				}
+
+				
+			}
+		}
+	break;
+
+	case 5 :	// Ecat 활성화 확인 
+		//if(L_Ecat_Wait_Timer > 5000)
+		//{
+			if(ECAT[0].Enable == 1 && ECAT[0].MasterState == 8)
+			{
+				P_Ecat_Activation_State_Machine++;
+			}
+		//}
+	break;
+
+	case 6 :	// Slave 활성화 확인
+		L_Slave_Index = 0;
+		P_Ecat_Slave_Error = 0;
+		while(L_Slave_Index < L_Slave_Max_Index)
+		{
+			if(ECAT[0].Slave[L_Slave_Index].State != 8)
+			{
+				P_Ecat_Slave_Error = L_Slave_Index;
+				break;
+			}
+			L_Slave_Index++;
+		}
+
+		if(P_Ecat_Slave_Error != 0)
+		{
+			P_Ecat_Connect_Result = 3;
+		}
+		else
+		{
+			P_Ecat_Connect_Result = 1;
+			P_Ecat_Activation_State_Machine = 0;
+		}
+	break;
+}
+
+if(P_Ecat_Connect_Result == 1)
+{
+	cmd "#*k";		// 전체 모터 킬
+
+	// PLC 활성화 
+	//enable plc 0,1,2,3,4,5,6,8,9,10;
+	//enable plc 11,12,13,14,15,16,17,18,19,20;
+	//enable plc 21,22,23,24,25,26,27,28,29,30;
+
+	disable plc 31;
+}
+
+disable plc 31;
+close
+
+enable plc31

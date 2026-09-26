@@ -1,0 +1,49 @@
+
+
+&26
+#11-> 1000z		// 스택테이블 z축
+//===============//
+
+
+
+open prog 26
+	
+	ABS					// 절대좌표모드
+	LINEAR
+	
+	while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(6) == 1 && P_Slave_Motion_Program_Flag(6) == 1 )
+	{	// 프로그램 허용 플래그
+	
+		Switch ( P_Slave6_Motion_Command )
+		{	
+			// 커멘드별 모션
+			case 0:
+			break
+
+			// case 1
+			case N_Stack_Table_Ready_Pos_Moton :	// [1] 대기위치
+				P_Slave6_Motion_Command == 0;
+				P_Main_Z_Init_Pos_Status == F_Status_EXECUTE;
+				ta(65)ts(10)tm(140)					// 220ms
+				z(P_Stack_Table_Z_For_Init)
+				dwell(0)
+				P_Main_Z_Init_Pos_Status == F_Status_COMPLETE;
+				dwell(0)
+			break;
+
+			// case 2
+			case N_Stack_Table_Sheet_Thickness_Dn :		// sub-z축
+				P_Slave6_Motion_Command == 0;
+				tm(10) ta(5) ts(3)						// 20ms
+				z(P_Stack_Table_Z_For_Init - (((P_Anode_Thickness + P_Sepa_Thickness ) * P_Anode_Count) + ((P_Cathode_Thickness + P_Sepa_Thickness ) * P_Cathode_Count)))
+			break;
+
+			default :
+
+			break;
+
+		}
+		
+	}
+
+close

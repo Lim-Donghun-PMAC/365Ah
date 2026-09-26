@@ -1,0 +1,48 @@
+// [ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+
+global P_Final_Roll_Cathode_Pos_Status = 0;				// 파이널 롤러 양극 이동 상태.
+global P_Sheet_Paper_FWD_Pos_Status = 0;				// Sheet Paper 전진 이동 상태.
+global P_Final_Roll_Vision_Pos_Status = 0;				// 파이널 롤러 비전 위치 이동 상태.
+global P_Cathode_Clamp_ON_Status = 0;					// 양극 클램프 ON 이동 상태.
+
+global P_Execute_1st_Sepa_Cmd = 0;						// 세파 첫장 명령.
+global P_Execute_1st_Sepa_Init_Rtn = 0;					// 세파 첫장 모듈 초기화 반환값.
+global P_Execute_1st_Sepa_State_Machine = 0;			// 세파 첫장 모듈 스텟머신.
+global P_Execute_1st_Sepa_Index = 0;					// 세파 첫장 모듈 인덱스.
+//====================//
+// 세파 첫장 모듈 변수 //
+//====================//
+//--------------------//
+// 모듈 인덱스
+//--------------------//
+#define N_Act_Motor_Pos_Check		1					// 1. 세파 첫장 가능 위치 확인.
+#define N_Act_FR_1st_Move			2					// 2. 파이널 롤러 1차 이동 && Sheet Paper 전진.
+#define N_Act_FR_2nd_Move			3					// 3. 파이널 롤러 2차 이동.
+#define N_Act_FR_Down				4					// 4. 파이널 롤러 하강.
+#define N_Act_Cathode_Clamp_On		5					// 5. 양극 클램프 ON.
+#define N_Act_Vision_Check			6					// 6. Vision 촬상.
+#define N_Act_FR_Up					7					// 7. 파이널 롤러 상승.
+
+#define N_Execute_Module_End_Index	10					// 10. 모듈 인덱스 끝 설정.
+//--------------------//
+// 모듈 진행 관련 변수
+//--------------------//
+global P_Execute_1st_Sepa_Status = 0;					// 세파 첫장 모듈 상태.
+global P_Execute_1st_Sepa_Func_State_Machine(N_Execute_Module_End_Index)	// 세파 첫장 모듈 스텟머신.
+P_Execute_1st_Sepa_Func_State_Machine(0),N_Execute_Module_End_Index = 0;	// 초기화.
+global P_Execute_1st_Sepa_Func_RTN(N_Execute_Module_End_Index)				// 세퍼 첫장 모듈 함수 반환값.
+P_Execute_1st_Sepa_Func_RTN(0),N_Execute_Module_End_Index = 0;				// 초기화.
+//--------------------//
+// 모듈 진행 타이머 변수	[ 참조 : 25.07.10 세파 첫장 타임아웃 정지 추가. ]
+//--------------------//
+global P_Execute_1st_Sepa_Old_Time(N_Execute_Module_End_Index);				// Command 실행과 함께 시간 저장.
+P_Execute_1st_Sepa_Old_Time(0),N_Execute_Module_End_Index = 0;				// 초기화.
+global P_Execute_1st_Sepa_Time_Out(N_Execute_Module_End_Index);				// 제한 시간.
+P_Execute_1st_Sepa_Time_Out(0),N_Execute_Module_End_Index = 0;				// 초기화.
+P_Execute_1st_Sepa_Time_Out(N_Act_Motor_Pos_Check) = 10;					// 제한 시간 설정(s) [세파 첫장 가능 위치 확인.]
+P_Execute_1st_Sepa_Time_Out(N_Act_FR_1st_Move) = 10;						// 제한 시간 설정(s) [파이널 롤러 1차 이동 && Sheet Paper 전진.]
+P_Execute_1st_Sepa_Time_Out(N_Act_FR_2nd_Move) = 10;						// 제한 시간 설정(s) [파이널 롤러 2차 이동.]
+P_Execute_1st_Sepa_Time_Out(N_Act_FR_Down) = 10;							// 제한 시간 설정(s) [파이널 롤러 하강.]
+P_Execute_1st_Sepa_Time_Out(N_Act_Cathode_Clamp_On) = 10;					// 제한 시간 설정(s) [양극 클램프 ON.]
+P_Execute_1st_Sepa_Time_Out(N_Act_Vision_Check) = 10;						// 제한 시간 설정(s) [Vision 촬상.]
+P_Execute_1st_Sepa_Time_Out(N_Act_FR_Up) = 10;								// 제한 시간 설정(s) [파이널 롤러 상승.]

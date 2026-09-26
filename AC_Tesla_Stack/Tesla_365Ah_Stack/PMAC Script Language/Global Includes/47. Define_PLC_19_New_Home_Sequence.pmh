@@ -1,0 +1,163 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 26.02.03
+// 모듈화 홈프로그램 리뉴얼 
+// 코드 제어 구조 일원화, 모듈화 홈 작업 진행 - [ 참조 : 26.02.03 홈 모듈화 프로그램 리뉴얼 ]
+
+
+
+
+//=======================================================================================
+// 액팅 동작 리스트 변수 정의
+//=======================================================================================
+//---------------------------------------------------------------------------------------
+// 0) ALL Home
+//---------------------------------------------------------------------------------------
+#define N_All_Home_STEP_END						30
+//--------------------------------------------------------------------------------------------------------------------------
+// 0.1) 시퀀스 Main 변수
+//--------------------------------------------------------------------------------------------------------------------------
+// 0.1.1) All_Home_S/T변수
+Global P_PLC19_All_Home_Cmd = 0;						// All Home 모듈 CMD 발생부
+Global P_PLC19_All_Home_Status = 0;						// All Home 모듈 메인 상태 
+Global P_PLC19_All_Home_Module_Status = 0;				// All Home 모듈 진행 상태.
+Global P_PLC19_All_Home_State_Machine = 0;				// All Home 모듈 메인 시퀀스 단계
+Global P_PLC19_All_Home_Seq_Index = 0;					// All Home 모듈 메인 인덱스
+Global P_PLC19_All_Home_Self_Index = 0;					// All Home 모듈 Pre 인덱스 
+Global P_PLC19_All_Home_Debug_Edge = 0;
+global P_PLC19_All_Home_Set_Mode_Return= 0 ;			// ALL Home 모듈 모드 Set Part 리턴인자					
+// 0.1.2) All_Home_ 순차 시퀀스 배열값					  
+Global P_Buffer_Seqdata_All_Home_Array(N_All_Home_STEP_END);		// All Home 모듈 시퀀스 배열.
+P_Buffer_Seqdata_All_Home_Array(0),N_All_Home_STEP_END = 0;			// All Home 모듈 초기화.
+// 0.1.3) ALL_Home Tact Time							
+Global P_PLC19_All_Home_Timer = 0;									// All Home 모듈 타이머.
+Global P_PLC19_All_Home_Tact_Time_Array(20);						// All Home 모듈 Tact Time.
+P_PLC19_All_Home_Tact_Time_Array(0),20 = 0;							// All Home 모듈초기화.
+Global P_PLC19_All_Home_Tact_Time = 0;								// All Home 모듈 총 Tact Time.
+// 0.1.4) 모듈 Error 발생 시 확인 변수. Execute 모듈 진행 중 Error 발생했을 경우 모듈 종료. 
+global P_All_Home_Module_Error = 0;			// 액팅 모듈 중 Time Out, Error 발생 시  모듈 정지.
+
+//---------------------------------------------------------------------------------------
+// sub_54) 액팅 모듈 배열 + 디파인 
+//---------------------------------------------------------------------------------------
+#define N_Act_All_Home_Define_Limit					40
+// 1) 액팅 모듈 완료 비트 배열
+global P_Act_All_Home_Complete_Bit(N_Act_All_Home_Define_Limit)
+P_Act_All_Home_Complete_Bit(0),N_Act_All_Home_Define_Limit,1 = 0;	
+
+// 2) 모듈 커맨드 감시 배열
+global P_Module_Act_All_Home_Command_Array(N_Act_All_Home_Define_Limit);
+P_Module_Act_All_Home_Command_Array(0),N_Act_All_Home_Define_Limit,1 = 0;
+
+// 3) 엣지 감지 변수 _ 모듈 커맨드 감시 배열 
+global P_OLD_Module_Act_All_Home_Command_Array(N_Act_All_Home_Define_Limit);
+P_OLD_Module_Act_All_Home_Command_Array(0),N_Act_All_Home_Define_Limit,1 = 0;
+
+// 4) 동작 시퀀스 스테이트 머신 배열
+global P_Module_Act_All_Home_State_Machine_Array(N_Act_All_Home_Define_Limit);
+P_Module_Act_All_Home_State_Machine_Array(0),N_Act_All_Home_Define_Limit,1 = 0;
+
+// 5) 액팅 모듈 타임 아웃 시간 저장 배열
+global P_Act_All_Home_Old_Time(N_Act_All_Home_Define_Limit);
+P_Act_All_Home_Old_Time(0),N_Act_All_Home_Define_Limit,1 = 0;
+
+// 6) 액팅 모듈 타임 아웃 시간 설정 배열
+global P_Act_ALL_Home_Time_Out_Time = 30;
+global P_Act_ALL_Home_Time_Out(N_Act_All_Home_Define_Limit);
+P_Act_ALL_Home_Time_Out(0),N_Act_All_Home_Define_Limit,1 = 0;
+
+
+
+//--------------------------------------------------------------------------------------------------------------------------
+// 0.2) ALL Home - N_JellyRoll_Enable
+//--------------------------------------------------------------------------------------------------------------------------
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_1		1			// All_Home_JR_Enable_Mode 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_2		2			// All_Home_JR_Enable_Mode 일반 모드 || 1번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_3		3			// All_Home_JR_Enable_Mode 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_4		4			// All_Home_JR_Enable_Mode 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_5		5			// All_Home_JR_Enable_Mode 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_6		6			// All_Home_JR_Enable_Mode 일반 모드 || 5번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_7		7			// All_Home_JR_Enable_Mode 일반 모드 || 6번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_8		8			// All_Home_JR_Enable_Mode 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_9		9			// All_Home_JR_Enable_Mode 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_10		10			// All_Home_JR_Enable_Mode 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_11		11			// All_Home_JR_Enable_Mode 일반 모드 || 10번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_12		12			// All_Home_JR_Enable_Mode 일반 모드 || 11번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_13		13			// All_Home_JR_Enable_Mode 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_14		14			// All_Home_JR_Enable_Mode 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_15		15			// All_Home_JR_Enable_Mode 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_16		16			// All_Home_JR_Enable_Mode 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_17		17			// All_Home_JR_Enable_Mode 일반 모드 || 16번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_18		18			// All_Home_JR_Enable_Mode 일반 모드 || 17번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_19		19			// All_Home_JR_Enable_Mode 일반 모드 || 18번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_20		20			// All_Home_JR_Enable_Mode 일반 모드 || 19번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_21		21			// All_Home_JR_Enable_Mode 일반 모드 || 20번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_22		22			// All_Home_JR_Enable_Mode 일반 모드 || 21번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_23		23			// All_Home_JR_Enable_Mode 일반 모드 || 22번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_24		24			// All_Home_JR_Enable_Mode 일반 모드 || 23번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Enable_Mode_No_25		25			// All_Home_JR_Enable_Mode 일반 모드 || 24번째 시퀀스  
+//--------------------------------------------------------------------------------------------------------------------------
+// 0.2.1) ALL Home - N_JellyRoll_Disable
+//--------------------------------------------------------------------------------------------------------------------------
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_1		1			// All_Home_JR_Disable_Mode 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_2		2			// All_Home_JR_Disable_Mode 일반 모드 || 1번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_3		3			// All_Home_JR_Disable_Mode 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_4		4			// All_Home_JR_Disable_Mode 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_5		5			// All_Home_JR_Disable_Mode 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_6		6			// All_Home_JR_Disable_Mode 일반 모드 || 5번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_7		7			// All_Home_JR_Disable_Mode 일반 모드 || 6번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_8		8			// All_Home_JR_Disable_Mode 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_9		9			// All_Home_JR_Disable_Mode 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_10		10			// All_Home_JR_Disable_Mode 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_11		11			// All_Home_JR_Disable_Mode 일반 모드 || 10번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_12		12			// All_Home_JR_Disable_Mode 일반 모드 || 11번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_13		13			// All_Home_JR_Disable_Mode 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_14		14			// All_Home_JR_Disable_Mode 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_15		15			// All_Home_JR_Disable_Mode 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_16		16			// All_Home_JR_Disable_Mode 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_17		17			// All_Home_JR_Disable_Mode 일반 모드 || 16번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_18		18			// All_Home_JR_Disable_Mode 일반 모드 || 17번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_19		19			// All_Home_JR_Disable_Mode 일반 모드 || 18번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_20		20			// All_Home_JR_Disable_Mode 일반 모드 || 19번째 시퀀스
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_21		21			// All_Home_JR_Disable_Mode 일반 모드 || 20번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_22		22			// All_Home_JR_Disable_Mode 일반 모드 || 21번째 시퀀스 
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_23		23			// All_Home_JR_Disable_Mode 일반 모드 || 22번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_24		24			// All_Home_JR_Disable_Mode 일반 모드 || 23번째 시퀀스  
+#define N_SEQ_All_Home_JellyRoll_Disable_Mode_No_25		25			// All_Home_JR_Disable_Mode 일반 모드 || 24번째 시퀀스  
+//--------------------------------------------------------------------------------------------------------------------------
+// 0.2.3) ALL Home - N_New_Non_Homing_CHK
+//--------------------------------------------------------------------------------------------------------------------------
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_1			1			// All_Home_New_Non_Homing_CHK 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_2			2			// All_Home_New_Non_Homing_CHK 일반 모드 || 1번째 시퀀스
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_3			3			// All_Home_New_Non_Homing_CHK 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_4			4			// All_Home_New_Non_Homing_CHK 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_5			5			// All_Home_New_Non_Homing_CHK 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_6			6			// All_Home_New_Non_Homing_CHK 일반 모드 || 5번째 시퀀스
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_7			7			// All_Home_New_Non_Homing_CHK 일반 모드 || 6번째 시퀀스
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_8			8			// All_Home_New_Non_Homing_CHK 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_9			9			// All_Home_New_Non_Homing_CHK 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_10		10			// All_Home_New_Non_Homing_CHK 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_11		11			// All_Home_New_Non_Homing_CHK 일반 모드 || 10번째 시퀀스
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_12		12			// All_Home_New_Non_Homing_CHK 일반 모드 || 11번째 시퀀스
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_13		13			// All_Home_New_Non_Homing_CHK 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_14		14			// All_Home_New_Non_Homing_CHK 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_15		15			// All_Home_New_Non_Homing_CHK 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_16		16			// All_Home_New_Non_Homing_CHK 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_17		17			// All_Home_New_Non_Homing_CHK 일반 모드 || 16번째 시퀀스  
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_18		18			// All_Home_New_Non_Homing_CHK 일반 모드 || 17번째 시퀀스  
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_19		19			// All_Home_New_Non_Homing_CHK 일반 모드 || 18번째 시퀀스
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_20		20			// All_Home_New_Non_Homing_CHK 일반 모드 || 19번째 시퀀스
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_21		21			// All_Home_New_Non_Homing_CHK 일반 모드 || 20번째 시퀀스 
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_22		22			// All_Home_New_Non_Homing_CHK 일반 모드 || 21번째 시퀀스 
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_23		23			// All_Home_New_Non_Homing_CHK 일반 모드 || 22번째 시퀀스  
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_24		24			// All_Home_New_Non_Homing_CHK 일반 모드 || 23번째 시퀀스  
+#define N_SEQ_All_Home_Non_Homing_CHK_Mode_No_25		25			// All_Home_New_Non_Homing_CHK 일반 모드 || 24번째 시퀀스  
+
+
+
+
+//#define N_Cathode_1st_Phase_Bit					u.user:$013EC8.11
+//#define N_Anode_1st_Phase_Bit					u.user:$013EE4.11
+//#define N_Cathode_2nd_Phase_Bit					u.user:$013F00.11
+//#define N_Anode_2nd_Phase_Bit					u.user:$013F1C.11

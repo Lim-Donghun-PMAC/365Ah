@@ -1,0 +1,268 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+
+open subprog Subprog_Mainprocess_Cycle_Stop_Act_Module(void)
+
+sub:Management(&rtn)
+
+// 로컬변수 선언 (완료 감시 변수 초기화)
+//=============================================================================================================================================
+// 1. 사이클 스탑
+//=============================================================================================================================================
+Local L_Subprog_Cycle_Stop_1st_Action;	//1) 첫번째 시퀀스 Motion Prog OFF , Time Base Off, Motion_Command_Init	 						
+Local L_Subprog_Cycle_Stop_2nd_Action;	//2) 두번째 시퀀스 New Speed 설정								
+Local L_Subprog_Cycle_Stop_3rd_Action;	//3) 얼라인 MSA 1차 PNP 대기 위치 -> 벨트 이동 Ready Step 							
+Local L_Subprog_Cycle_Stop_4th_Action;	//4) 네번째 시퀀스, 양,음극 ng pnp 대기위치		
+Local L_Subprog_Cycle_Stop_5th_Action;	//5) 다섯번째 시퀀스, 양,음극 2차 pnp 대기위치							
+Local L_Subprog_Cycle_Stop_6th_Action;	//6) 여섯번째 시퀀스, 스피드 원복							
+Local L_Subprog_Cycle_Stop_7th_Action;	//7) 일곱번째 시퀀스, 스피드 원복		
+Local L_Subprog_Cycle_Stop_8th_Action;	//8) 속도 원복 							
+//=============================================================================================================================================
+// Cycle Stop Module Start--------------------------------------------------------------------------------------------------------------------------------
+//===================================================================================
+//1) 첫번째 시퀀스 Motion Prog OFF , Time Base Off, Motion_Command_Init
+//===================================================================================
+if( P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_1st_Action) == F_ACT_STATUS_ENABLE )		
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_1st_Action) != F_ACT_STATUS_ENABLE )																						
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_1st_Action) = F_ACT_STATUS_ENABLE;			// 변수 업데이트
+		P_Module_Cycle_Stop_Act_State_Machine_Array(N_CycleStop_1st_Action) = N_Ready_Step;			 			// 스텝 머신 실행
+	}
+	L_Subprog_Cycle_Stop_1st_Action = 0;
+	call Sub_Common_Function_Cycle_Stop.CycleStop_1st_Action(P_Buffer_Mode_Status_Sequence,&L_Subprog_Cycle_Stop_1st_Action);	//시퀀스 시작					
+	if( L_Subprog_Cycle_Stop_1st_Action == N_COMPLETE )																
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_1st_Action) = F_ACT_STATUS_DISABLE;			// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_Cycle_Stop_1st_Action == N_FALSE )									//Align MSA 시퀀스 미완료 시 
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_1st_Action) = F_ACT_STATUS_ALARM;			// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_1st_Action) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_1st_Action) = F_ACT_STATUS_INITIAL;		// 엣지 변수 초기화
+	}
+}
+
+//===================================================================================
+//2) 두번째 시퀀스 New Speed 설정	
+//===================================================================================
+if( P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_2nd_Action) == F_ACT_STATUS_ENABLE )					// 상태 활성화
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_2nd_Action) != F_ACT_STATUS_ENABLE )																						
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_2nd_Action) = F_ACT_STATUS_ENABLE;			// 변수 업데이트
+		P_Module_Cycle_Stop_Act_State_Machine_Array(N_CycleStop_2nd_Action) = N_Ready_Step;			 			// 스텝 머신 실행
+	}
+	L_Subprog_Cycle_Stop_2nd_Action = 0;
+	call Sub_Common_Function_Cycle_Stop.CycleStop_2nd_Action(P_Buffer_Mode_Status_Sequence,&L_Subprog_Cycle_Stop_2nd_Action);	//시퀀스 시작					
+	if( L_Subprog_Cycle_Stop_2nd_Action == N_COMPLETE )																//시퀀스 완료
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_2nd_Action) = F_ACT_STATUS_DISABLE;			// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_Cycle_Stop_2nd_Action == N_FALSE )												//시퀀스 미완료 시 
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_2nd_Action) = F_ACT_STATUS_ALARM;				// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_2nd_Action) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_2nd_Action) = F_ACT_STATUS_INITIAL;		// 엣지 변수 초기화
+	}
+}
+
+//===================================================================================
+//3) 얼라인 MSA 1차 PNP 대기 위치 -> 벨트 이동 Ready Step 
+//===================================================================================
+if( P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_3rd_Action) == F_ACT_STATUS_ENABLE )					// 상태 활성화
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_3rd_Action) != F_ACT_STATUS_ENABLE )																						
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_3rd_Action) = F_ACT_STATUS_ENABLE;			// 변수 업데이트
+		P_Module_Cycle_Stop_Act_State_Machine_Array(N_CycleStop_3rd_Action) = N_Ready_Step;			 			// 스텝 머신 실행
+	}
+	L_Subprog_Cycle_Stop_3rd_Action = 0;
+	call Sub_Common_Function_Cycle_Stop.CycleStop_3rd_Action(P_Buffer_Mode_Status_Sequence,&L_Subprog_Cycle_Stop_3rd_Action);	// 시퀀스 시작					
+	if( L_Subprog_Cycle_Stop_3rd_Action == N_COMPLETE )																// 시퀀스 완료
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_3rd_Action) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_Cycle_Stop_3rd_Action == N_FALSE )															//시퀀스 미완료 시 
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_3rd_Action) = F_ACT_STATUS_ALARM;							// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_3rd_Action) == F_ACT_STATUS_ENABLE )										
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_3rd_Action) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+	}
+}
+
+
+//===================================================================================
+//4) 네번째 시퀀스, 양,음극 ng pnp 대기위치
+//===================================================================================
+if( P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_4th_Action) == F_ACT_STATUS_ENABLE )						//상태 활성화
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_4th_Action) != F_ACT_STATUS_ENABLE )																							
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_4th_Action) = F_ACT_STATUS_ENABLE;				// 변수 업데이트
+		P_Module_Cycle_Stop_Act_State_Machine_Array(N_CycleStop_4th_Action) = N_Ready_Step;			 			// 스텝 머신 실행
+	}
+	L_Subprog_Cycle_Stop_4th_Action = 0;
+	call Sub_Common_Function_Cycle_Stop.CycleStop_4th_Action(P_Buffer_Mode_Status_Sequence,&L_Subprog_Cycle_Stop_4th_Action);	// 시퀀스 시작					
+	if( L_Subprog_Cycle_Stop_4th_Action == N_COMPLETE )																// 시퀀스 완료
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_4th_Action) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_Cycle_Stop_4th_Action == N_FALSE )															// 시퀀스 미완료 시 
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_4th_Action) = F_ACT_STATUS_ALARM;							// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_4th_Action) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_4th_Action) = F_ACT_STATUS_INITIAL;			// 엣지 변수 초기화
+	}
+}
+
+
+//===================================================================================
+//5) 다섯번째 시퀀스, 양,음극 2차 pnp 대기위치
+//===================================================================================
+if( P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_5th_Action) == F_ACT_STATUS_ENABLE )					// 상태 활성화
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_5th_Action) != F_ACT_STATUS_ENABLE )																						
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_5th_Action) = F_ACT_STATUS_ENABLE;			// 변수 업데이트
+		P_Module_Cycle_Stop_Act_State_Machine_Array(N_CycleStop_5th_Action) = N_Ready_Step;			 			// 스텝 머신 실행
+	}
+	L_Subprog_Cycle_Stop_5th_Action = 0;
+	call Sub_Common_Function_Cycle_Stop.CycleStop_5th_Action(P_Buffer_Mode_Status_Sequence,&L_Subprog_Cycle_Stop_5th_Action);	//시퀀스 시작					
+	if( L_Subprog_Cycle_Stop_5th_Action == N_COMPLETE )																// 시퀀스 완료
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_5th_Action) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_Cycle_Stop_5th_Action == N_FALSE )															// 시퀀스 미완료 시 
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_5th_Action) = F_ACT_STATUS_ALARM;							// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_5th_Action) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_5th_Action) = F_ACT_STATUS_INITIAL;		// 엣지 변수 초기화
+	}
+}
+
+//===================================================================================
+//6) 여섯번째 시퀀스, 스피드 원복
+//===================================================================================
+if( P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_6th_Action) == F_ACT_STATUS_ENABLE )					// Set 상태 활성화
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_6th_Action) != F_ACT_STATUS_ENABLE )																						
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_6th_Action) = F_ACT_STATUS_ENABLE;			// 변수 업데이트
+		P_Module_Cycle_Stop_Act_State_Machine_Array(N_CycleStop_6th_Action) = N_Ready_Step;			 			// 스텝 머신 실행
+	}
+	L_Subprog_Cycle_Stop_6th_Action = 0;
+	call Sub_Common_Function_Cycle_Stop.CycleStop_6th_Action(P_Buffer_Mode_Status_Sequence,&L_Subprog_Cycle_Stop_6th_Action);	//시퀀스 시작					
+	if( L_Subprog_Cycle_Stop_6th_Action == N_COMPLETE )																// 시퀀스 완료
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_6th_Action) = F_ACT_STATUS_DISABLE;			// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_Cycle_Stop_6th_Action == N_FALSE )									//시퀀스 미완료 시 
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_6th_Action) = F_ACT_STATUS_ALARM;			// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_6th_Action) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_6th_Action) = F_ACT_STATUS_INITIAL;		// 엣지 변수 초기화
+	}
+}
+
+//===================================================================================
+//7) 일곱번째 시퀀스, 스피드 원복
+//===================================================================================
+if( P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_7th_Action) == F_ACT_STATUS_ENABLE )					// 상태 활성화
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_7th_Action) != F_ACT_STATUS_ENABLE )																						
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_7th_Action) = F_ACT_STATUS_ENABLE;			// 변수 업데이트
+		P_Module_Cycle_Stop_Act_State_Machine_Array(N_CycleStop_7th_Action) = N_Ready_Step;			 			// 스텝 머신 실행
+	}
+	L_Subprog_Cycle_Stop_7th_Action = 0;
+	call Sub_Common_Function_Cycle_Stop.CycleStop_7th_Action(P_Buffer_Mode_Status_Sequence,&L_Subprog_Cycle_Stop_7th_Action);	// 시퀀스 시작					
+	if( L_Subprog_Cycle_Stop_7th_Action == N_COMPLETE )																// 시퀀스 완료
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_7th_Action) = F_ACT_STATUS_DISABLE;			// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_Cycle_Stop_7th_Action == N_FALSE )									//시퀀스 미완료 시 
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_7th_Action) = F_ACT_STATUS_ALARM;			// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_7th_Action) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_7th_Action) = F_ACT_STATUS_INITIAL;		// 엣지 변수 초기화
+	}
+}
+
+
+//===================================================================================
+//8) 속도 원복 
+//===================================================================================
+if( P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_8th_Action) == F_ACT_STATUS_ENABLE )					//상태 활성화
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_8th_Action) != F_ACT_STATUS_ENABLE )																						
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_8th_Action) = F_ACT_STATUS_ENABLE;			// 변수 업데이트
+		P_Module_Cycle_Stop_Act_State_Machine_Array(N_CycleStop_8th_Action) = N_Ready_Step;			 			// 스텝 머신 실행
+	}
+	L_Subprog_Cycle_Stop_8th_Action = 0;
+	call Sub_Common_Function_Cycle_Stop.CycleStop_8th_Action(P_Buffer_Mode_Status_Sequence,&L_Subprog_Cycle_Stop_8th_Action);	// 시퀀스 시작					
+	if( L_Subprog_Cycle_Stop_8th_Action == N_COMPLETE )																// 시퀀스 완료
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_8th_Action) = F_ACT_STATUS_DISABLE;			// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_Cycle_Stop_8th_Action == N_FALSE )									//시퀀스 미완료 시 
+	{
+		P_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_8th_Action) = F_ACT_STATUS_ALARM;			// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_8th_Action) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Cycle_Stop_Act_Command_Array(N_CycleStop_8th_Action) = F_ACT_STATUS_INITIAL;		// 엣지 변수 초기화
+	}
+}
+return;
+
+Close
+

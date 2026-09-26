@@ -1,0 +1,103 @@
+open subprog MSA_SubProg(void)
+
+
+
+sub:Motor_Servo_ON(&rtn)
+		rtn = 0;
+		P_Servo_ON_MNTR9++		
+		if( motor[N_1st_PnP_AN_T].AmpEna == 0 )						// 음극 1차 PNP T축 모터 활성화 체크
+		{
+			cmd"#2j/";
+		}
+		if( motor[N_1st_PnP_AN_Z].AmpEna == 0 )						// 음극 1차 PNP Z축 모터 활성화 체크
+		{
+			cmd"#18j/";
+		}
+		if( motor[N_2nd_PnP_AN_T].AmpEna == 0 )						// 음극 2차 PNP T축 모터 활성화 체크
+		{
+			cmd"#4j/";
+		}
+		if( motor[N_2nd_PnP_AN_Z].AmpEna == 0 )						// 음극 2차 PNP Z축 모터 활성화 체크
+		{
+			cmd"#22j/";
+		}
+		if( motor[N_FINAL_ROLL_X].AmpEna == 0 )						// 파이널롤러 x축 모터 활성화 체크 
+		{												
+			cmd"#12j/";
+		}
+		if( motor[N_FINAL_ROLL_Z].AmpEna == 0 )						// 파이널롤러 z축	 모터 활성화 체크
+		{
+			cmd"#13j/";
+		}
+		if( motor[N_NG_PnP_AN_T].AmpEna == 0 )						// 음극 NG PNP T축 모터 활성화 체크 
+		{
+			cmd"#43j/";
+		}
+		if( motor[N_NG_PnP_AN_Z].AmpEna == 0 )						// 음극 NG PNP z축 모터 활성화 체크
+		{
+			cmd"#45j/";
+		}
+		if( motor[N_1st_Picker_AN_T].AmpEna == 0 )					// 음극 1차 PNP 피커 T축 모터 활성화 체크
+		{
+			cmd"#20j/";
+		}
+		if( motor[N_1st_PnP_CA_T].AmpEna == 0 )						// 양극 1차 PNP T축 모터 활성화 체크
+		{
+			cmd"#1j/";
+		}
+		if( motor[N_1st_PnP_CA_Z].AmpEna == 0 )						// 양극 1차 PNP Z축 모터 활성화 체크
+		{
+			cmd"#17j/";
+		}												
+		if( motor[N_2nd_PnP_CA_T].AmpEna == 0 )						// 양극 2차 PNP T축 모터 활성화 체크
+		{
+			cmd"#3j/";
+		}												
+		if( motor[N_2nd_PnP_CA_Z].AmpEna == 0 )						// 양극 2차 PNP Z축 모터 활성화 체크
+		{
+			cmd"#21j/";
+		}												
+		if( motor[N_FINAL_ROLL_X].AmpEna == 0 )						// 파이널롤러 x축 모터 활성화 체크 	
+		{
+			cmd"#12j/";									
+		}
+		if( motor[N_FINAL_ROLL_Z].AmpEna == 0 )						// 파이널롤러 z축	 모터 활성화 체크
+		{
+			cmd"#13j/";									 
+		}
+		if( motor[N_NG_PnP_CA_T].AmpEna == 0 )						// 양극 NG PNP T축 모터 활성화 체크 
+		{												
+			cmd"#42j/";
+		}
+		if( motor[N_NG_PnP_CA_Z].AmpEna == 0 )						// 양극 NG PNP z축 모터 활성화 체크
+		{												
+			cmd"#44j/";
+		}
+		if( motor[N_1st_Picker_CA_T].AmpEna == 0 )					// 양극 1차 PNP 피커 T축
+		{
+			cmd"#19j/";
+		}
+
+		rtn = 1
+
+return
+
+
+sub:Motor_Pos_CHK(unit, Destination, &rtn)
+	rtn = 0
+
+	if( Motor[unit].DesVelZero == 1 )
+	{
+		if ( P_Motor_Current_Pos(unit) > Destination - 0.5 && P_Motor_Current_Pos(unit) < Destination + 0.5 )	// 양극 2차 PNP 얼라인 하강 위치 확인
+		{			
+			rtn = 1
+		}
+	}
+	else
+	{
+		rtn = 3
+	}
+return
+
+
+close

@@ -1,0 +1,150 @@
+
+
+&33
+#43-> 1000tt	// 음극 NG PNP t축
+#45-> 1000z		// 음극 NG PNP z축
+//===============//
+
+
+
+open prog 33
+	
+	ABS					// 절대좌표모드
+	LINEAR
+	
+	while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(13) == 1 && P_Slave_Motion_Program_Flag(13) == 1 )
+	{	// 프로그램 허용 플래그
+	
+		Switch ( P_Slave13_Motion_Command )
+		{	
+			case 0 :
+			break;
+
+			// 커멘드별 모션
+			// case 1
+			case N_NG_PNP_Align_To_NG_Motion :	// NG 박스 이동
+				P_Slave13_Motion_Command == 0;
+				P_NG_PNP_NG_Bos_Status == F_Status_EXECUTE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				ta(P_NG_PNP_Turn_TA)ts(P_NG_PNP_Turn_TS)tm(P_NG_PNP_Turn_TM)								// 300ms
+				tt(P_Anode_NG_T_Align_To_NG) z(P_Anode_NG_Z_Align_Up)
+				P_Anode_NG_PNP_Motion_Complete == 1
+				P_NG_PNP_NG_Bos_Status == F_Status_COMPLETE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				dwell(0)
+			break;
+
+
+			// case 2
+			case N_NG_PNP_NG_To_Align_Motion :		// Align 이동
+				P_Slave13_Motion_Command == 0;
+				P_NG_PNP_Align_Status == F_Status_EXECUTE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				P_Anode_NG_PNP_Tact_Time_Start = 1				// 260529 ng pnp Tact time 추가
+				// [ 참조 : 26.05.06 1,2차,NG PNP 및 얼라인 흡착 해제 타이밍 수정 ]
+				if ( (Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE & Hex_Cell_Existence) == 0 )
+				{
+					M_Y_Anode_NG_PNP_Ejector_Vac_On == 0		// 흡착
+					M_Y_Anode_NG_PNP_Ejector_Vac_Off == 0		// 블로우
+				}
+				dwell(0)
+				ta(P_NG_PNP_Turn_TA)ts(P_NG_PNP_Turn_TS)tm(P_NG_PNP_Turn_TM)								// 300ms
+				tt(P_Anode_NG_T_NG_To_Align) z(P_Anode_NG_Z_Align_Up)
+				P_Anode_NG_PNP_Motion_Complete == 1
+				P_NG_PNP_Align_Status == F_Status_COMPLETE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				dwell(0)
+			break;
+
+			// case 3
+			case N_NG_PNP_NG_UP_Motion :		// NG박스 상승
+				P_Slave13_Motion_Command == 0;
+				ta(P_NG_PNP_Up_TA)ts(P_NG_PNP_Up_TS)tm(P_NG_PNP_Up_TM)								// 100ms
+				z(P_Anode_NG_Z_NG_Up)
+				P_Anode_NG_PNP_Motion_Complete == 1
+				dwell(0)
+			break;
+
+			// case 4
+			case N_NG_PNP_NG_Down_Motion :		// NG박스 하강
+				P_Slave13_Motion_Command == 0;
+				ta(P_NG_PNP_Down_TA)ts(P_NG_PNP_Down_TS)tm(P_NG_PNP_Down_TM)								// 100ms
+				z(P_Anode_NG_Z_NG_Down)
+				P_Anode_NG_PNP_Motion_Complete == 1
+				dwell(0)
+			break;
+
+			// case 5
+			case N_NG_PNP_Align_UP_Motion :		// Align 상승
+				P_Slave13_Motion_Command == 0;
+				P_NG_PNP_Align_Up_Status == F_Status_EXECUTE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				ta(P_NG_PNP_Up_TA)ts(P_NG_PNP_Up_TS)tm(P_NG_PNP_Up_TM)								// 100ms
+				z(P_Anode_NG_Z_Align_Up)
+				P_Anode_NG_PNP_Motion_Complete == 1
+				P_NG_PNP_Align_Up_Status == F_Status_COMPLETE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				P_Set_Anode_Align_Zero_Pos == 1
+				dwell(0)
+			break;
+
+			// case 6
+			case N_NG_PNP_Align_Down_Motion :		// Align 하강
+				P_Slave13_Motion_Command == 0;
+				P_NG_PNP_Align_Down_Status == F_Status_EXECUTE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				ta(P_NG_PNP_Down_TA)ts(P_NG_PNP_Down_TS)tm(P_NG_PNP_Down_TM)								// 100ms
+				z(P_Anode_NG_Z_Align_Down)
+				P_Anode_NG_PNP_Motion_Complete == 1
+				P_NG_PNP_Align_Down_Status == F_Status_COMPLETE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				dwell(0)
+			break;
+
+			// case 7
+			case N_NG_PNP_Align_Vac :		// 흡착
+				P_Slave13_Motion_Command == 0;
+				P_NG_PNP_Vac_On_Status == F_Status_EXECUTE;			// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				P_Anode_NG_TR_Align_Pick_Up_Flag == 1
+				// 얼라인 테이블 흡착
+				M_Y_Anode_NG_PNP_Ejector_Vac_On == 1
+				M_Y_Anode_NG_PNP_Ejector_Vac_Off == 0 
+				// 얼라인 테이블 블로우
+				M_Y_Anode_AT_Vac_Ejector_Vac_On == 0 
+				M_Y_Anode_AT_Vac_Ejector_Vac_Off == 1
+				// 진공 IO ON 추가 자리
+				P_PLC12_Vacuum_MNTR(N_NG_Anode) == 1;				// BackGround PLC12 MNTR Start  [ 참조 : 2025.07.02 옵저버 추가 ]
+				P_PLC12_Blow_MNTR(N_Align_Anode) == 1;				// BackGround PLC12 MNTR Start  [ 참조 : 2025.07.02 옵저버 추가 ]
+				dwell(50)
+				// [ 참조 : 26.05.06 1,2차,NG PNP 및 얼라인 흡착 해제 타이밍 수정 ]
+				M_Y_Anode_AT_Vac_Ejector_Vac_On == 0;				// 음극 얼라인 흡착 ON
+				M_Y_Anode_AT_Vac_Ejector_Vac_Off == 0;				// 음극 얼라인 흡착 OFF
+				dwell(P_NG_PNP_Vac_Time)
+				
+				P_Anode_NG_PNP_Motion_Complete == 1
+				P_NG_PNP_Vac_On_Status == F_Status_COMPLETE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				dwell(0)
+			break;
+
+			// case 8
+			case N_NG_PNP_NG_Blow :		// 블로우
+				P_Slave13_Motion_Command == 0;
+				P_NG_PNP_Blow_On_Status == F_Status_EXECUTE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				P_Anode_NG_TR_NG_Place_Down_Flag == 1
+
+				M_Y_Anode_NG_PNP_Ejector_Vac_On == 0
+				M_Y_Anode_NG_PNP_Ejector_Vac_Off == 1 
+
+				P_PV_Anode_NG_TR_NG_Count++;						// PLC 보고용 얼라인 NG 카운트 증가.	[ 참조 : 26.09.14 MES PV 수정 ]
+				P_Vision_EmptyTable_Command == N_Anode_Unit
+				P_PLC12_Blow_MNTR(N_NG_Anode) == 1;					// BackGround PLC12 MNTR Start  [ 참조 : 2025.07.02 옵저버 추가 ]
+				dwell(P_NG_PNP_Blow_Time)
+				P_Anode_NG_PNP_Motion_Complete == 1
+				P_NG_PNP_Blow_On_Status == F_Status_COMPLETE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+
+				P_Anode_NG_PNP_Tact_Time_End == 1					// 260529 ng pnp Tact time 추가
+				dwell(0)
+				// DIO 추가
+			break;
+
+			default :
+
+			break;
+
+		}
+		
+	}
+
+close

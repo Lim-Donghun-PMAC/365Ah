@@ -1,0 +1,80 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+// 글로벌 상태 정의 및 변수.
+
+// 정의
+	//------------------------------------------------------------------------------------
+	// 01. 글로벌 상태 정의
+	//------------------------------------------------------------------------------------
+	#define	F_Status_Length			18		// 상태 목록 개수
+	#define	F_Status_Nonseatus		0		// 프로그램이 실행중이 아님
+	#define	F_Status_IDLE			1      // 유휴 상태
+	#define	F_Status_STARTING		2      // 자동 생산 준비
+	#define	F_Status_EXECUTE		3      // 자동 생산 중
+	#define	F_Status_COMPLETING		4      // 자동 생산 종료중
+	#define	F_Status_COMPLETE		5      // 자동 생산 완료
+	#define	F_Status_RESETTING		6      // 상태 이상 리셋
+	#define	F_Status_HOLDING		7      // 내부적인 일시 정지 준비
+	#define	F_Status_HOLD			8      // 내부적인 일시정지 완료
+	#define	F_Status_UNHOLDING		9      // 내부적인 일시 정지 해제 준비
+	#define	F_Status_SUSPENDING		10      // 외부적인 일시 정지 준비
+	#define	F_Status_SUSPENDED		11      // 외부적인 일시 정지 완료
+	#define	F_Status_UNSUSPENDING	12      // 외부적인 일시 정지 해제 준비
+	#define	F_Status_STOPPING		13      // 정지 준비
+	#define	F_Status_STOPPED		14      // 정지 완료
+	#define	F_Status_ABORTING		15      // 긴급 정지 준비
+	#define	F_Status_ABORTED		16      // 긴급 정지 완료
+	#define	F_Status_CLEARING		17      // 긴급 정지 복구
+
+	
+	//------------------------------------------------------------------------------------
+	// 02. // [프로그램 모드 변수] [ Command_And_Status.pmh ]
+	//------------------------------------------------------------------------------------
+	#define	F_Current_Not_Decided			0	//	모드가 정해지지 않음
+	#define F_Current_Automatic				1	//	자동 모드 시퀀스
+	#define F_Current_Manual				2	//	수동 모드 시퀀스
+	#define	F_Current_Maintenance			3	//	정비 모드 시퀀스
+	#define F_Current_Semi_Automatic		4	//	드라이런 모드 시퀀스
+	#define F_Current_Idle					5	//	대기 모드 시퀀스
+	#define	F_Current_Mode_Length			6	//	모드 목록 개수
+
+	// [프로그램 명령어 변수] [ Command_And_Status.pmh ]
+	#define	F_Command_NonCommand				0		// 명령 대기 상태
+	#define F_Command_Start         			1		// 시작
+	#define F_Command_Hold          			2		// 내부 상태에 의한 일시정지
+	#define F_Command_Unhold        			3		// 내부 상태에 의한 일시정지 해제
+	#define F_Command_Suspend       			4		// 외부 상태에 의한 일시정지
+	#define F_Command_Unsuspend     			5		// 외부 상태에 의한 일시정지 해제
+	#define F_Command_Complete      			6		// 완료
+	#define F_Command_Stop          			7		// 정지
+	#define F_Command_Reset         			8		// 리셋(운전준비)
+	#define F_Command_Abort						9		// EMO 등 긴급 정지
+	#define F_Command_Clear         			10		// EMO 등 긴급 정지 처리에 대한 초기화
+	#define	F_Command_Length					11		// 명령 목록 개수
+
+
+	// 03. 변수
+	//------------------------------------------------------------------------------------
+	// 01. 글로벌 상태 변수
+	//------------------------------------------------------------------------------------
+	//			변수명					해당변수					변수설명									사용되는 프로그램	
+	//global	P_PLC01_Status = 0;								// 외부로 알리는 상태								PLC01
+	
+	//global	P_Unit_Status(50);								// 유닛별 상태(번호)								PLC14, Sub_Manual	
+	//P_Unit_Status(0),50 = 0;
+
+
+	//global	P_Jog_Status(50);								// 모터별 조그구동 상태							Sub_Jog
+	//P_Jog_Status(0),31 = 0;
+	
+	global	P_Home_Status(50);								// 홈 상태 변수(모터별)							PLC11
+	P_Home_Status(0),49 = 0;
+	
+	#define P_Status_PMAC_Alarm_Reset P5387					// 알람 리셋을 하위 프로그램에게 상태를 전달				Sub_Jog
+	P_Status_PMAC_Alarm_Reset=0;
+	
+
+

@@ -1,0 +1,185 @@
+//========================================================================================================================
+// 프로그램 개정이력
+//========================================================================================================================
+// 25.06.17 이상준 S 
+// 내용 - 전체 홈 매니지먼트 주요 기능 프로그램화 완료 (위치 -> Sub_All_Home_Module.Management)
+// 25.06.20 이상준 S 
+// 내용 - 전체 홈 ACTION 함수 기능화 완료 
+// 내용 - SKIP 가능여부 판단 모듈 추가완료  
+// 내용 - 전체 홈 Management 감시모듈 추가완료
+// 내용 - 타이머 추가 
+// 25.06.24 이상준 S 
+// 내용 - 전체 홈 정지 Management 주요 기능 프로그램화 완료 (위치 -> Sub_All_Home_Module.Stop_Management)
+// 25.06.25 이상준 S 
+// 내용 - 전체 홈 정지 감시모듈 추가 (예외처리기능) - 전체 홈 정지 Management 프로그램이 정지를 했음에도 계속 활성화하는 것을 방지하기 위함. 
+// 25.06.27 이상준 S 
+// 내용 - 전체 홈 정지 Management 감시모듈 각 함수별 리턴값 처리 및 비트연산 오류 수정 완료
+// 25.06.30 이상준 S 
+// 내용 - [ 참조 : 25.06.30 TTS에 맞는 변수 매칭 작업 ] 
+// 25.07.23 
+// 내용 - [ 참조 : 2025.07.23 홈 프로그램 추가 ] 
+
+//open plc 13
+/*
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 변수 선언
+//========================================================================================================================
+#define	L_System_Timer							Sys.Time		
+#define	N_Time_Scale							1000	
+#define	N_Range_Update_Interval_1				0.1
+local	L_Time_Cycle_Up_Count_Start_Time;		// PLC[13].ldata.L[0]	시간 체크 시작 시간
+local	L_Time_Cycle_Up_Count_End_Time;			// PLC[13].ldata.L[1]	시간 체크 종료 시간
+local	L_Time_Cycle_Up_Count_Delta_Time;		// PLC[13].ldata.L[2]	시작과 종료 시간 사이의 시간
+local	L_Flag_Cycle_Up_Count_Init_Flag;		// PLC[13].ldata.L[3]	타이머 초기화 플래그	
+local	L_Program_Run_Timer;					// PLC[13].ldata.L[4]	프로그램 런 시퀀스 타이머
+
+//========================================================================================================================
+// 01. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 01.1) 시간 간격 초기화
+	if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+	{	// 시간 간격 초기화
+		L_Flag_Cycle_Up_Count_Init_Flag = 1;
+		L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+		L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	}
+// 01.2) 시간 체크
+	if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+	{	
+		L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+		L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+		if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+		{
+			L_Flag_Cycle_Up_Count_Init_Flag = 0;
+		}
+	}
+// 01.3) 시간 업데이트
+	if(L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval_1)
+	{			
+		L_Program_Run_Timer = L_Program_Run_Timer + L_Time_Cycle_Up_Count_Delta_Time;						 
+		// 전체 홈 Management Action Step 감시 타이머 
+		P_AH_Act_Timer(0) = P_AH_Act_Timer(0) + L_Time_Cycle_Up_Count_Delta_Time;
+		P_AH_Act_Timer(1) = P_AH_Act_Timer(1) + L_Time_Cycle_Up_Count_Delta_Time;						//  1번 타임아웃 감시 타이머    
+		P_AH_Act_Timer(2) = P_AH_Act_Timer(2) + L_Time_Cycle_Up_Count_Delta_Time;						//  2번 타임아웃 감시 타이머    
+		P_AH_Act_Timer(3) = P_AH_Act_Timer(3) + L_Time_Cycle_Up_Count_Delta_Time;						//  3번 타임아웃 감시 타이머   
+		P_AH_Act_Timer(4) = P_AH_Act_Timer(4) + L_Time_Cycle_Up_Count_Delta_Time;						//  4번 타임아웃 감시 타이머   
+		P_AH_Act_Timer(5) = P_AH_Act_Timer(5) + L_Time_Cycle_Up_Count_Delta_Time;						//  5번 타임아웃 감시 타이머   
+		P_AH_Act_Timer(6) = P_AH_Act_Timer(6) + L_Time_Cycle_Up_Count_Delta_Time;						//  6번 타임아웃 감시 타이머   
+		P_AH_Act_Timer(7) = P_AH_Act_Timer(7) + L_Time_Cycle_Up_Count_Delta_Time;						//  7번 타임아웃 감시 타이머   
+		P_AH_Act_Timer(8) = P_AH_Act_Timer(8) + L_Time_Cycle_Up_Count_Delta_Time;						//  8번 타임아웃 감시 타이머   
+		P_AH_Act_Timer(9) = P_AH_Act_Timer(9) + L_Time_Cycle_Up_Count_Delta_Time;						//  9번 타임아웃 감시 타이머   
+		P_AH_Act_Timer(10) = P_AH_Act_Timer(10) + L_Time_Cycle_Up_Count_Delta_Time;						//  10번 타임아웃 감시 타이머   
+		P_AH_Act_Timer(11) = P_AH_Act_Timer(11) + L_Time_Cycle_Up_Count_Delta_Time;						//  11번 타임아웃 감시 타이머   
+		P_AH_Act_Timer(12) = P_AH_Act_Timer(12) + L_Time_Cycle_Up_Count_Delta_Time;						//  12번 타임아웃 감시 타이머   
+		P_AH_Act_Timer(13) = P_AH_Act_Timer(13) + L_Time_Cycle_Up_Count_Delta_Time;						//  13번 타임아웃 감시 타이머   
+		P_AH_Act_Timer(14) = P_AH_Act_Timer(14) + L_Time_Cycle_Up_Count_Delta_Time;						//  14번 타임아웃 감시 타이머   
+		P_AH_Act_Timer(15) = P_AH_Act_Timer(15) + L_Time_Cycle_Up_Count_Delta_Time;						//  15번 타임아웃 감시 타이머   
+		L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+		L_Time_Cycle_Up_Count_Delta_Time = 0;
+	}
+
+//========================================================================================================================
+// 02) 명령부 
+//========================================================================================================================
+	if( P_Resetting_All_Home_Command == F_Command_Start )									// 1) 홈 명령  	
+	{ // 홈 명령 처리부
+		// ↓ 2차 pnp 위치를 보고 그룹 변경 필요 함수 호출
+		P_Select_Fun_RTN = 0; 
+		call Sub_All_Home_Action_Module.Group_Select_Func(&P_Select_Fun_RTN);
+		if( P_Select_Fun_RTN == N_TRUE )
+		{
+			P_AH_Home_Management_RTN = 0;										// 1.1) 함수 호출전 리턴값 초기화 
+			P_AH_Group_Cur_Num = 1;												// 1.2) 인덱스 최초 그룹1번 시작
+			P_AH_Management_State_Machine = N_AH_Initialize_Step;				// 1.3) 스텟머신 값 부여			
+			P_AH_Home_Status= F_Status_STARTING;								// 1.4) 상태 : 시작.			
+			P_Resetting_All_Home_Command = F_Command_NonCommand;							// 1.5) 커멘드 초기화.(재진입 방지)		
+		}
+	}
+	else if( P_Resetting_All_Home_Command == F_Command_Stop )								// 2) 홈 명령 정지 							
+	{// 전체 홈 명령에 정지 신호가 발생하면 
+		P_AH_Home_Stop_Management_RTN = 0;										// 2.1) 함수 호출전 리턴값 초기화  
+		P_AH_Stop_Management_State_Machine = N_AH_Current_CHK_Step;				// 2.2) 전체 홈 정지 스텟머신 값 부여			
+		P_AH_Home_Status = F_Status_STOPPING;									// 2.3) 상태 : 정지준비 
+		P_Resetting_All_Home_Command = F_Command_NonCommand;								// 2.4) 명령 초기화 ( 재진입 방지 )
+	}
+//========================================================================================================================
+// 03) 실행부
+//========================================================================================================================
+	if( P_AH_Home_Status == F_Status_STARTING )
+	{// 홈 관리 호출 프로그램이 계속 반복이 될 수있게 하고 리턴값이 완료가 되면 멈춰준다
+		Call Sub_All_Home_Module.Management(&P_AH_Home_Management_RTN)
+		if(P_AH_Home_Management_RTN== N_AH_TRUE )
+		{// 전체홈관리 매니지먼트 반환값이 정상이면 동작완료표시.			
+			P_AH_Home_Status = F_Status_COMPLETE;
+		}
+	}
+	else if( P_AH_Home_Status == F_Status_STOPPING )
+	{	// 상태 : 정지준비
+		// 정지 함수 호출 
+		Call Sub_All_Home_Module.Stop_Management(&P_AH_Home_Stop_Management_RTN)
+		if(P_AH_Home_Stop_Management_RTN == N_AH_TRUE)
+		{// 전체홈정지 매니지먼트 반환값이 정상이면 정지완료표시
+			P_AH_Home_Status = F_Status_STOPPED;							// 전체 홈 정지완료.	
+		}
+	}
+//========================================================================================================================
+// 04) 전체 홈 Management 감시모듈  
+//========================================================================================================================
+if( P_AH_Home_Status == F_Status_STARTING )
+{
+	switch( P_AH_Management_State_Machine )
+	{
+		case N_AH_Action_Step : // 액션 커멘드 스텝
+			P_AH_Act_Timer(0),N_Max_Member_EA,1 = 0; // 타이머 초기화					
+		break;
+		
+		case N_AH_Action_CHK_Step : // 액션 체크 스텝
+			P_Monitor_Member = 0;																						
+			P_Total_AH_Act_Time_CHK_Bit = 0;
+
+			while( P_Monitor_Member < N_Max_Member_EA )
+			{
+				call Sub_All_Home_Action_Module.Act_Time_CHK( P_Monitor_Member, P_AH_Act_Time(P_Monitor_Member), &P_AH_Act_Time_CHK_Bit(P_Monitor_Member) )
+				P_Total_AH_Act_Time_CHK_Bit = P_Total_AH_Act_Time_CHK_Bit | P_AH_Act_Time_CHK_Bit(P_Monitor_Member)
+				P_Monitor_Member++;
+			}
+			if( P_Total_AH_Act_Time_CHK_Bit & N_AH_FALSE == N_AH_FALSE ) // FALSE가 검출되면
+			{// 
+				// 알람 처리 및 전체홈 정지.
+				P_AH_Home_Status = F_Status_STOPPING;							// 전체 홈 상태 : 정지준비 
+			}
+		break;			
+	}
+}
+//========================================================================================================================
+// 05) 전체 홈 정지 Management 감시모듈  
+//========================================================================================================================
+if( P_AH_Home_Status == F_Status_STOPPING )
+{
+	if(P_AH_Stop_Management_CHK_Timer_lnit_Flag == 1)
+	{// 
+		P_AH_Act_Timer(0),N_Max_Member_EA,1 = 0; // 타이머 초기화	 
+		P_AH_Stop_Management_CHK_Timer_lnit_Flag = 0;			
+	}
+	switch( P_AH_Stop_Management_State_Machine )
+	{		
+		case N_AH_Action_Stop_CHK_Step : // 동작정지 체크 단계
+			P_Stop_Member = 0;
+			P_Total_AH_Act_Stop_Time_CHK_Bit = 0;
+
+			while( P_Stop_Member < N_Max_Member_EA )
+			{
+				call Sub_All_Home_Action_Module.Act_Stop_Time_CHK( P_Stop_Member, P_AH_Act_Stop_Time(P_Stop_Member), &P_AH_Act_Time_CHK_Bit(P_Stop_Member) )
+				P_Total_AH_Act_Stop_Time_CHK_Bit = P_Total_AH_Act_Stop_Time_CHK_Bit | P_AH_Act_Time_CHK_Bit(P_Stop_Member)			// 어떤 멤버가 타임아웃이 발생했는지 알기 위해 비트연산 진행  
+				P_Stop_Member++;
+			}
+			if( P_Total_AH_Act_Stop_Time_CHK_Bit & N_AH_FALSE == N_AH_FALSE )	// FALSE 검출되면 
+			{       
+				// 알람 처리 및 전체홈 정지.
+				P_AH_Home_Status = F_Status_Nonseatus;							// 전체 홈 정지 Management 모듈 종료 				 
+			}
+		break;		
+		default: break;  	
+	}
+}
+close

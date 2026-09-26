@@ -1,0 +1,1681 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.11.17 
+// 데이터 시프트 미비사항 보완 - [ 참조 : 25.11.17 데이터 시프트 미비사항 보완 ]
+// (데이터 시프트 동작별 상태 추가, 데이터 파싱 I/O 매칭) 
+
+open plc 28
+P_MNTR_PLC28_Task_Time(0) = Sys.Time;
+#define L_System_Timer		Sys.Time						// 시스템 타이머
+
+local L_Time_Cycle_Up_Count_Start_Time;						// Plc[28].Ldata.L[0] 시작 체크 시작 시간
+local L_Time_Cycle_Up_Count_End_Time;						// Plc[28].Ldata.L[1] 시작 체크 종료 시간
+local L_Time_Cycle_Up_Count_Delta_Time;						// Plc[28].Ldata.L[2] 시작과 종료 시간 사이의 시간
+local L_Flag_Cycle_Up_Count_Init_Flag;						// Plc[28].Ldata.L[3] 타이머 초기화 플래그
+
+local L_Anode_Belt_Down_Timer;								// Plc[28].Ldata.L[4] 음극 데이터 플로우 타이머
+local L_Anode_1st_Belt_Pick_Timer;							// Plc[28].Ldata.L[5] 음극 데이터 플로우 타이머
+local L_Anode_1st_Align_Down_Timer;							// Plc[28].Ldata.L[6] 음극 데이터 플로우 타이머
+local L_Anode_2nd_Align_Pick_Timer;							// Plc[28].Ldata.L[7] 음극 데이터 플로우 타이머
+local L_Anode_2nd_Stack_Down_Timer;							// Plc[28].Ldata.L[8] 음극 데이터 플로우 타이머
+local L_Anode_NG_Pick_Timer;								// Plc[28].Ldata.L[9] 음극 데이터 플로우 타이머
+local L_Anode_NG_Place_Timer;								// Plc[28].Ldata.L[10] 음극 데이터 플로우 타이머
+local L_Anode_2nd_Align_Down_Timer;							// PLC[28].Ldata.L[11] 음극 데이터 플로우 타이머
+local L_Anode_1st_Align_Pick_Timer;							// PLC[28].Ldata.L[12] 음극 데이터 플로우 타이머
+
+local L_Cathode_Belt_Down_Timer;							// Plc[28].Ldata.L[13] 양극 데이터 플로우 타이머
+local L_Cathode_1st_Belt_Pick_Timer;						// Plc[28].Ldata.L[14] 양극 데이터 플로우 타이머
+local L_Cathode_1st_Align_Down_Timer;						// Plc[28].Ldata.L[15] 양극 데이터 플로우 타이머
+local L_Cathode_2nd_Align_Pick_Timer;						// Plc[28].Ldata.L[16] 양극 데이터 플로우 타이머
+local L_Cathode_2nd_Stack_Down_Timer;						// Plc[28].Ldata.L[17] 양극 데이터 플로우 타이머
+local L_Cathode_NG_Pick_Timer;								// Plc[28].Ldata.L[18] 양극 데이터 플로우 타이머
+local L_Cathode_NG_Place_Timer;								// Plc[28].Ldata.L[19] 양극 데이터 플로우 타이머
+local L_Cathode_2nd_Align_Down_Timer;						// Plc[28].Ldata.L[20] 양극 데이터 플로우 타이머
+local L_Cathode_1st_Align_Pick_Timer;						// Plc[28].Ldata.L[21] 양극 데이터 플로우 타이머
+
+local L_Anode_PMAC_to_VISION_Align_Passing_Reset_Timer;		// Plc[28].Ldata.L[22] 비전 데이터 수집 I/O Off 타이머
+local L_Cathode_PMAC_to_VISION_Align_Passing_Reset_Timer;	// Plc[28].Ldata.L[23] 비전 데이터 수집 I/O Off 타이머
+
+local L_Anode_Func_Return(8);								// Plc[28].Ldata.L[24 + 8] 함수 콜 리턴 -> 24 ~ 31
+local L_Cathode_Func_Return(8);								// Plc[28].Ldata.L[32 + 8] 함수 콜 리턴 -> 32 ~ 39
+
+local L_Anode_NG_Code_Delay_Timer;							// Plc[28].Ldata.L[40] 음극 NG 처리 타이머
+local L_Cathode_NG_Code_Delay_Timer;						// Plc[28].Ldata.L[41] 양극 NG 처리 타이머
+
+local L_Sheet_Info_Update;									// Plc[28].Ldata.L[42] 시트 데이터 확인 타이머
+
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if(L_Flag_Cycle_Up_Count_Init_Flag == 0)
+{	// 시간 간격 초기화
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 00.2) 시간 체크
+if(L_Flag_Cycle_Up_Count_Init_Flag == 1)
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale
+	if(L_Time_Cycle_Up_Count_Delta_Time < 0)
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if(L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{
+	
+	L_Anode_Belt_Down_Timer = L_Anode_Belt_Down_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Anode_1st_Belt_Pick_Timer = L_Anode_1st_Belt_Pick_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Anode_1st_Align_Down_Timer = L_Anode_1st_Align_Down_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Anode_2nd_Align_Pick_Timer = L_Anode_2nd_Align_Pick_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Anode_2nd_Stack_Down_Timer = L_Anode_2nd_Stack_Down_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Anode_NG_Pick_Timer = L_Anode_NG_Pick_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Anode_NG_Place_Timer = L_Anode_NG_Place_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Anode_2nd_Align_Down_Timer = L_Anode_2nd_Align_Down_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Anode_1st_Align_Pick_Timer = L_Anode_1st_Align_Pick_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Cathode_Belt_Down_Timer = L_Cathode_Belt_Down_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Cathode_1st_Belt_Pick_Timer = L_Cathode_1st_Belt_Pick_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Cathode_1st_Align_Down_Timer = L_Cathode_1st_Align_Down_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Cathode_2nd_Align_Pick_Timer = L_Cathode_2nd_Align_Pick_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Cathode_2nd_Stack_Down_Timer = L_Cathode_2nd_Stack_Down_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Cathode_NG_Pick_Timer = L_Cathode_NG_Pick_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Cathode_NG_Place_Timer = L_Cathode_NG_Place_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Cathode_2nd_Align_Down_Timer = L_Cathode_2nd_Align_Down_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Cathode_1st_Align_Pick_Timer = L_Cathode_1st_Align_Pick_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Anode_PMAC_to_VISION_Align_Passing_Reset_Timer = L_Anode_PMAC_to_VISION_Align_Passing_Reset_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Cathode_PMAC_to_VISION_Align_Passing_Reset_Timer = L_Cathode_PMAC_to_VISION_Align_Passing_Reset_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Anode_NG_Code_Delay_Timer = L_Anode_NG_Code_Delay_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Cathode_NG_Code_Delay_Timer = L_Cathode_NG_Code_Delay_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Sheet_Info_Update = L_Sheet_Info_Update + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+//========================================================================================================================
+// Anode
+//========================================================================================================================
+// [1] 음극 1차 P&P 벨트 하강시
+// PLC Belt -> PMAC Belt
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Anode_1st_TR_Belt_Down_Flag == 1)
+{
+	P_Anode_1st_TR_Belt_Down_Flag = 0;				 // 플래그 초기화
+	Sys_Anode_Belt_Sheet_Data = 0;					 // Belt Data 초기화
+	L_Anode_Belt_Down_Timer = 0;					 // 타이머 초기화
+	P_Anode_1st_TR_Belt_Down_State_Machine = 1;      // 스텟 머신 증가
+	P_Anode_1st_TR_Belt_Down_Status = F_Status_STARTING;
+}
+
+switch(P_Anode_1st_TR_Belt_Down_State_Machine)
+{
+	case 0 :
+		P_Anode_1st_TR_Belt_Down_Status = F_Status_IDLE;  // 스텟 머신 상태 IDLE 
+	break;
+
+	case 1 :
+		P_Anode_1st_TR_Belt_Down_Status = F_Status_EXECUTE;
+
+		if(L_Anode_Belt_Down_Timer > 50)
+		{
+			P_Old_Anode_Belt_ASCII = M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_1st_TR + 4) << 8 | M_ASCII_Anode_Sheet_Buffer(N_Sheet_Data_1st_TR + 5);
+			Sys_Anode_Belt_Sheet_LO_Vision_BYTE |= Hex_Cell_Existence;
+
+			//if(M_X_PLC_Anode_NG)
+			//{
+			//	Sys_Anode_Belt_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;
+			//}
+			P_Anode_1st_TR_Belt_Down_Status = F_Status_EXECUTE;
+			P_Anode_1st_TR_Belt_Down_State_Machine = N_Complete_Step;
+		}
+	break;
+
+	Case N_Complete_Step :
+		P_Anode_1st_TR_Belt_Down_Status = F_Status_COMPLETE;
+	break;
+
+	default: break;
+}
+//------------------------------------------------------------------------------------------------------------------------
+// [2] 음극 1차 P&P 벨트 픽업시
+// PMAC Belt -> 1차 P&P
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Anode_1st_TR_Belt_Pick_Up_Flag == 1)
+{
+	P_Anode_1st_TR_Belt_Pick_Up_Flag = 0;
+	L_Anode_1st_Belt_Pick_Timer = 0;
+
+	P_Anode_1st_TR_Belt_Pick_Up_State_Machine = 1;
+	P_Anode_1st_TR_Belt_Pick_Up_Status = F_Status_STARTING;
+}
+
+switch(P_Anode_1st_TR_Belt_Pick_Up_State_Machine)
+{
+	case 0 :
+		P_Anode_1st_TR_Belt_Pick_Up_Status = F_Status_IDLE;  // 스텟 머신 상태 IDLE 
+	break;
+
+	case 1:
+		P_Anode_1st_TR_Belt_Pick_Up_Status = F_Status_EXECUTE;
+		
+		if(L_Anode_1st_Belt_Pick_Timer < P_Check_Vac_Time)
+		{
+			P_Anode_Belt_ASCII = Sys.Udata[10004] << 8 | Sys.Udata[10005];			// PLC 벨트 현재 데이터 
+
+			if( (Sys_Anode_Belt_Sheet_LO_Vision_BYTE != 0 && P_Old_Anode_Belt_ASCII != P_Anode_Belt_ASCII) || P_Temp_Run_Mode == 1)	// 데이터 갱신이 됬는지 확인
+			{
+				// [참조 : 260427 시트아이디 비트 연산 주석 처리]
+				//Sys_Anode_Belt_Sheet_LO_ASCII_BYTE = Sys.Cdata[40019] << 8 | Sys.Cdata[40020];
+				
+				P_Anode_1st_TR_Belt_Pick_Up_State_Machine++;
+			}
+		}
+		else // 타임 아웃
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 80
+			P_Sheet_Err(0)++
+			P_Anode_1st_TR_Belt_Pick_Up_State_Machine = N_Error_Step;
+
+		}
+	break;
+
+	case 2:
+		P_Anode_1st_TR_Belt_Pick_Up_Status = F_Status_EXECUTE;
+
+		L_Anode_Func_Return(0) = 0;
+
+		call Sheet_Data_Flow.Anode_Move_Sheet_Data(0, N_Sheet_Data_1st_TR, &L_Anode_Func_Return(0));
+
+		if(L_Anode_Func_Return(0))
+		{
+			L_Anode_Func_Return(0) = 0;
+
+			Sys_Anode_1st_Sheet_Data = Sys_Anode_Belt_Sheet_Data;
+			Sys_Anode_Belt_Sheet_Data = 0;
+
+			P_Anode_1st_TR_Belt_Pick_Up_State_Machine = N_Complete_Step;
+		}
+	break;
+
+	Case N_Error_Step : 
+		P_Anode_1st_TR_Belt_Pick_Up_Status = F_Status_STOPPED;
+
+	break;
+
+	Case N_Complete_Step : 
+		P_Anode_1st_TR_Belt_Pick_Up_Status = F_Status_COMPLETE;
+	break;
+
+	default : break;
+}
+//------------------------------------------------------------------------------------------------------------------------
+// [3] 음극 1차 P&P 얼라인 테이블 하강 후 파기시
+// 1차 P&P -> Align table
+// PLC -> Udata, Vision -> P 변수 지정
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Anode_1st_TR_Align_Down_Flag == 1)
+{
+	P_Anode_1st_TR_Align_Down_Flag = 0;	
+
+	L_Anode_1st_Align_Down_Timer = 0;
+	P_Anode_1st_TR_Align_Down_State_Machine = 1;
+	P_Anode_1st_TR_Align_Down_Status = F_Status_STARTING;
+}
+
+switch(P_Anode_1st_TR_Align_Down_State_Machine)
+{
+	case 0 :
+		P_Anode_1st_TR_Align_Down_Status = F_Status_IDLE;  // 스텟 머신 상태 IDLE 
+	break;
+
+	case 1 :
+		P_Anode_1st_TR_Align_Down_Status = F_Status_EXECUTE;
+
+		if(L_Anode_1st_Align_Down_Timer < P_Check_Vac_Time)
+		{
+			if(Sys_Anode_1st_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
+			{
+				P_Anode_1st_TR_Align_Down_State_Machine++;
+			}
+		}
+		else
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 81
+			P_Sheet_Err(1)++
+			P_Anode_1st_TR_Align_Down_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2 :
+		P_Anode_1st_TR_Align_Down_Status = F_Status_EXECUTE;
+
+		L_Anode_Func_Return(1)= 0;
+
+		call Sheet_Data_Flow.Anode_Move_Sheet_Data(N_Sheet_Data_1st_TR, N_Sheet_Data_Align_Table, &L_Anode_Func_Return(1));
+
+		if(L_Anode_Func_Return(1))
+		{
+			L_Anode_Func_Return(1) = 0;
+
+			Sys_Anode_Align_Sheet_Data = Sys_Anode_1st_Sheet_Data;
+			Sys_Anode_1st_Sheet_Data = 0;
+
+			M_Y_Vision_Anode_Data_Transfer_Trigger = 1;
+			L_Anode_PMAC_to_VISION_Align_Passing_Reset_Timer = 0;
+			P_Anode_1st_TR_Align_Down_State_Machine = N_Complete_Step;
+
+		}
+	break;
+
+	Case N_Error_Step : 
+		P_Anode_1st_TR_Align_Down_Status = F_Status_STOPPED;
+	break;
+
+	Case N_Complete_Step : 
+		P_Anode_1st_TR_Align_Down_Status = F_Status_COMPLETE;
+	break;
+
+	default : break;
+}
+//------------------------------------------------------------------------------------------------------------------------
+// [4] 음극 2차 P&P 얼라인 테이블픽업 시
+// Align Table -> 2차 P&P
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Anode_2nd_TR_Align_Pick_Up_Flag == 1)
+{
+	P_Anode_2nd_TR_Align_Pick_Up_Flag = 0;
+
+	L_Anode_2nd_Align_Pick_Timer = 0;
+	P_Anode_2nd_TR_Align_Pick_Up_State_Machine = 1;
+	P_Anode_2nd_TR_Align_Pick_Up_Status = F_Status_STARTING;
+}
+
+switch(P_Anode_2nd_TR_Align_Pick_Up_State_Machine)
+{
+	case 0 :
+		P_Anode_2nd_TR_Align_Pick_Up_Status = F_Status_IDLE;  // 스텟 머신 상태 IDLE 
+	break;
+
+	case 1 :
+		P_Anode_2nd_TR_Align_Pick_Up_Status = F_Status_EXECUTE;			
+		
+		if(L_Anode_2nd_Align_Pick_Timer < P_Check_Vac_Time)
+		{
+			if(Sys_Anode_Align_Sheet_Data != 0)
+			{	
+				P_Anode_2nd_TR_Align_Pick_Up_State_Machine++;
+			}
+		}
+		else
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 83
+			P_Sheet_Err(2)++
+			P_Anode_2nd_TR_Align_Pick_Up_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2 :
+		P_Anode_2nd_TR_Align_Pick_Up_Status = F_Status_EXECUTE;
+
+		L_Anode_Func_Return(2) = 0;
+		call Sheet_Data_Flow.Anode_Move_Sheet_Data(N_Sheet_Data_Align_Table, N_Sheet_Data_2nd_TR, &L_Anode_Func_Return(2));
+
+		if(L_Anode_Func_Return(2))
+		{
+			L_Anode_Func_Return(2) = 0;
+
+			Sys_Anode_2nd_Sheet_Data = Sys_Anode_Align_Sheet_Data;
+			Sys_Anode_Align_Sheet_Data = 0;
+
+			P_Anode_2nd_TR_Align_Pick_Up_State_Machine = N_Complete_Step;
+		}
+	break;
+
+	Case N_Error_Step : 
+		P_Anode_2nd_TR_Align_Pick_Up_Status = F_Status_STOPPED;
+	break;
+
+	Case N_Complete_Step : 
+		P_Anode_2nd_TR_Align_Pick_Up_Status = F_Status_COMPLETE;
+	break;
+
+	default : break;
+
+}
+//------------------------------------------------------------------------------------------------------------------------
+// [5]. 음극 2차 P&P 스택 테이블 파기시
+// 2차 P&P -> Stack Table
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Anode_2nd_TR_Stack_Down_Flag == 1)
+{
+	P_Anode_2nd_TR_Stack_Down_Flag = 0;
+
+	L_Anode_2nd_Stack_Down_Timer = 0;
+	P_Anode_2nd_TR_Stack_Down_State_Machine = 1;
+	P_Anode_2nd_TR_Stack_Down_Status = F_Status_STARTING;
+}
+
+switch(P_Anode_2nd_TR_Stack_Down_State_Machine)
+{
+	case 0 :
+		P_Anode_2nd_TR_Stack_Down_Status = F_Status_IDLE;  // 스텟 머신 상태 IDLE 
+	break;
+
+	case 1 :
+		P_Anode_2nd_TR_Stack_Down_Status = F_Status_EXECUTE;
+
+		if(L_Anode_2nd_Stack_Down_Timer < P_Check_Vac_Time)
+		{
+			if(Sys_Anode_2nd_Sheet_Data != 0)
+			{
+				P_Anode_2nd_TR_Stack_Down_State_Machine++;
+			}
+		}
+		else
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 84
+			P_Sheet_Err(3)++
+			P_Anode_2nd_TR_Stack_Down_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2 :
+		P_Anode_2nd_TR_Stack_Down_Status = F_Status_EXECUTE;
+
+		L_Anode_Func_Return(3) = 0;
+
+		call Sheet_Data_Flow.Anode_Move_Sheet_Data(N_Sheet_Data_2nd_TR, N_Sheet_Data_Stack_Table, &L_Anode_Func_Return(3));
+
+		if(L_Anode_Func_Return(3))
+		{
+			L_Anode_Func_Return(3) = 0;
+			Sys_Stack_Sheet_Data = Sys_Anode_2nd_Sheet_Data;
+
+			Sys_Anode_2nd_Sheet_Data = 0;
+
+			P_Anode_2nd_TR_Stack_Down_State_Machine = N_Complete_Step;
+		}
+	break;
+
+	Case N_Error_Step : 
+		P_Anode_2nd_TR_Stack_Down_Status = F_Status_STOPPED;
+	break;
+
+	Case N_Complete_Step : 
+		P_Anode_2nd_TR_Stack_Down_Status = F_Status_COMPLETE;
+	break;
+
+	default :	break;
+
+}
+
+//------------------------------------------------------------------------------------------------------------------------
+// [6]. 음극 - NG 처리 (예외처리 Part) 
+// Align Table -> Ng P&P
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Anode_NG_TR_Align_Pick_Up_Flag == 1)
+{
+	P_Anode_NG_TR_Align_Pick_Up_Flag = 0;
+
+	L_Anode_NG_Pick_Timer = 0;
+	P_Anode_NG_TR_Align_Pick_Up_State_Machine = 1;
+	P_Anode_NG_TR_Align_Pick_Up_Status = F_Status_STARTING;
+}
+
+switch(P_Anode_NG_TR_Align_Pick_Up_State_Machine)
+{
+	case 0 :
+		P_Anode_NG_TR_Align_Pick_Up_Status = F_Status_IDLE;  // 스텟 머신 상태 IDLE 
+	break;
+
+	case 1 :
+		P_Anode_NG_TR_Align_Pick_Up_Status = F_Status_EXECUTE;
+		if(L_Anode_NG_Pick_Timer < P_Check_Vac_Time)
+		{
+			if(Sys_Anode_Align_Sheet_Data != 0)
+			{
+				P_Anode_NG_TR_Align_Pick_Up_State_Machine++;
+			}
+		}
+		else
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 85
+			P_Sheet_Err(4)++
+			P_Anode_NG_TR_Align_Pick_Up_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2 :
+		P_Anode_NG_TR_Align_Pick_Up_Status = F_Status_EXECUTE;
+		L_Anode_Func_Return(4) = 0;
+
+		call Sheet_Data_Flow.Anode_Move_Sheet_Data(N_Sheet_Data_Align_Table, N_Sheet_Data_NG_TR, &L_Anode_Func_Return(4))
+
+		if(L_Anode_Func_Return(4))
+		{
+			L_Anode_Func_Return(4) = 0;
+
+			Sys_Anode_NG_TR_Sheet_Data = Sys_Anode_Align_Sheet_Data;
+			Sys_Anode_Align_Sheet_Data = 0;
+
+			P_Anode_NG_TR_Align_Pick_Up_State_Machine = N_Complete_Step;
+		}
+	break;
+	
+	Case N_Error_Step : 
+		P_Anode_NG_TR_Align_Pick_Up_Status = F_Status_STOPPED;
+	break;
+
+	Case N_Complete_Step : 
+		P_Anode_NG_TR_Align_Pick_Up_Status = F_Status_COMPLETE;
+	break;
+
+	default :	break;
+}
+//------------------------------------------------------------------------------------------------------------------------
+// 7. NG P&P가 Ng place에 파기시
+// NG P&P -> NG Place
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Anode_NG_TR_NG_Place_Down_Flag == 1)
+{
+	P_Anode_NG_TR_NG_Place_Down_Flag = 0;
+
+	L_Anode_NG_Place_Timer = 0;
+	P_Anode_NG_TR_NG_Place_Down_State_Machine = 1;
+	P_Anode_NG_TR_NG_Place_Down_Status = F_Status_STARTING;
+}
+
+switch(P_Anode_NG_TR_NG_Place_Down_State_Machine)
+{
+	case 0 :
+		P_Anode_NG_TR_NG_Place_Down_Status = F_Status_IDLE;  // 스텟 머신 상태 IDLE 
+	break;
+
+	case 1 :
+		P_Anode_NG_TR_NG_Place_Down_Status = F_Status_EXECUTE;
+		if(L_Anode_NG_Place_Timer < P_Check_Vac_Time)
+		{
+			if(Sys_Anode_NG_TR_Sheet_Data != 0)
+			{
+				P_Anode_NG_TR_NG_Place_Down_State_Machine++;
+			}
+		}
+		else
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 86
+			P_Sheet_Err(5)++
+			P_Anode_NG_TR_NG_Place_Down_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2 :
+		P_Anode_NG_TR_NG_Place_Down_Status = F_Status_EXECUTE;
+		L_Anode_Func_Return(5) = 0;
+
+		call Sheet_Data_Flow.Anode_Move_Sheet_Data(N_Sheet_Data_NG_TR, N_Sheet_Data_NG_Place, &L_Anode_Func_Return(5))
+
+		if(L_Anode_Func_Return(5))
+		{
+			L_Anode_Func_Return(5) = 0;
+			Sys_Anode_NG_Place_Sheet_Data = Sys_Anode_NG_TR_Sheet_Data;
+			Sys_Anode_NG_TR_Sheet_Data = 0;
+			P_Send_Anode_NG_Code_Flag = 1;
+			P_Anode_NG_TR_NG_Place_Down_State_Machine = N_Complete_Step;
+		}
+	break;
+	
+	Case N_Error_Step : 
+		P_Anode_NG_TR_NG_Place_Down_Status = F_Status_STOPPED;
+	break;
+
+	Case N_Complete_Step : 
+		P_Anode_NG_TR_NG_Place_Down_Status = F_Status_COMPLETE;
+	break;
+
+	default :	break;
+}
+//------------------------------------------------------------------------------------------------------------------------
+// [8]. 음극 2차 P&P 얼라인테이블 파기시
+// 2차 P&P -> Align Table
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Anode_2nd_TR_Align_Down_Flag == 1)
+{
+	P_Anode_2nd_TR_Align_Down_Flag = 0;
+	
+	L_Anode_2nd_Align_Down_Timer = 0;
+	P_Anode_2nd_TR_Align_Down_State_Machine = 1;
+	P_Anode_2nd_TR_Align_Down_Status = F_Status_STARTING;
+}
+
+switch(P_Anode_2nd_TR_Align_Down_State_Machine)
+{
+	case 0 :
+		P_Anode_2nd_TR_Align_Down_Status = F_Status_IDLE;  // 스텟 머신 상태 IDLE 
+	break;
+
+	case 1:
+		P_Anode_2nd_TR_Align_Down_Status = F_Status_EXECUTE;
+		if(L_Anode_2nd_Align_Down_Timer < P_Check_Vac_Time)
+		{
+			if(Sys_Anode_2nd_Sheet_Data != 0)
+			{
+				P_Anode_2nd_TR_Align_Down_State_Machine++;
+			}
+		}
+		else
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 94
+			P_Sheet_Err(6)++
+			P_Anode_2nd_TR_Align_Down_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2:
+		P_Anode_2nd_TR_Align_Down_Status = F_Status_EXECUTE;
+		L_Anode_Func_Return(6) = 0;
+		call Sheet_Data_Flow.Anode_Move_Sheet_Data(N_Sheet_Data_2nd_TR, N_Sheet_Data_Align_Table, &L_Anode_Func_Return(6));
+
+		if(L_Anode_Func_Return(6))
+		{
+			L_Anode_Func_Return(6) = 0;
+			Sys_Anode_Align_Sheet_Data = Sys_Anode_2nd_Sheet_Data;
+			Sys_Anode_2nd_Sheet_Data = 0;
+//			P_Send_Anode_NG_Code_Flag = 1;
+			P_Anode_2nd_TR_Align_Down_State_Machine = N_Complete_Step;
+		}
+	break;
+	
+	Case N_Error_Step : 
+		P_Anode_2nd_TR_Align_Down_Status = F_Status_STOPPED;
+	break;
+
+	Case N_Complete_Step : 
+		P_Anode_2nd_TR_Align_Down_Status = F_Status_COMPLETE;
+	break;
+
+	default : break;
+}
+//------------------------------------------------------------------------------------------------------------------------
+// [9]. 음극 1차 P&P 얼라인테이블 픽업시
+// Align Table -> 1차 P&P
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Anode_1st_TR_Align_Pick_Up_Flag == 1)
+{
+	P_Anode_1st_TR_Align_Pick_Up_Flag = 0;
+	
+	L_Anode_1st_Align_Pick_Timer = 0;
+	P_Anode_1st_TR_Align_Pick_Up_State_Machine = 1;
+	P_Anode_1st_TR_Align_Pick_Up_Status = F_Status_STARTING;
+}
+
+switch(P_Anode_1st_TR_Align_Pick_Up_State_Machine)
+{
+	case 0 :
+		P_Anode_1st_TR_Align_Pick_Up_Status = F_Status_IDLE;  // 스텟 머신 상태 IDLE 
+	break;
+
+	case 1:
+		P_Anode_1st_TR_Align_Pick_Up_Status = F_Status_EXECUTE;
+		if(L_Anode_1st_Align_Pick_Timer < P_Check_Vac_Time)
+		{
+			if(Sys_Anode_Align_Sheet_Data != 0)
+			{
+				P_Anode_1st_TR_Align_Pick_Up_State_Machine++;
+			}
+		}
+		else
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 37
+			P_Sheet_Err(7)++
+			P_Anode_1st_TR_Align_Pick_Up_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2:
+		P_Anode_1st_TR_Align_Pick_Up_Status = F_Status_EXECUTE;
+		L_Anode_Func_Return(7) = 0;
+		call Sheet_Data_Flow.Anode_Move_Sheet_Data(N_Sheet_Data_Align_Table, N_Sheet_Data_1st_TR,&L_Anode_Func_Return(7));
+
+		if(L_Anode_Func_Return(7))
+		{
+			L_Anode_Func_Return(7) = 0;
+			Sys_Anode_1st_Sheet_Data = Sys_Anode_Align_Sheet_Data;
+			Sys_Anode_Align_Sheet_Data = 0;
+			
+			P_Anode_1st_TR_Align_Pick_Up_State_Machine = N_Complete_Step;
+		}
+	break;
+	
+	Case N_Error_Step : 
+		P_Anode_1st_TR_Align_Pick_Up_Status = F_Status_STOPPED;
+	break;
+
+	Case N_Complete_Step : 
+		P_Anode_1st_TR_Align_Pick_Up_Status = F_Status_COMPLETE;
+	break;
+
+	default :	break;
+}
+
+//========================================================================================================================
+// Cathode
+//========================================================================================================================
+// [1]. 양극 1차 P&P 벨트 하강시
+// PLC Belt -> PMAC Belt
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Cathode_1st_TR_Belt_Down_Flag == 1)
+{
+	P_Cathode_1st_TR_Belt_Down_Flag = 0;		// 플래그 초기화
+	Sys_Cathode_Belt_Sheet_Data = 0;			// Belt Data 초기화
+	L_Cathode_Belt_Down_Timer = 0;				// 타이머 초기화
+	P_Cathode_1st_TR_Belt_Down_State_Machine = 1;
+	P_Cathode_1st_TR_Belt_Down_Status = F_Status_STARTING;
+
+}
+
+switch(P_Cathode_1st_TR_Belt_Down_State_Machine)
+{
+	case 0 :
+		P_Cathode_1st_TR_Belt_Down_Status = F_Status_IDLE;
+	break;
+
+	case 1 :
+			P_Cathode_1st_TR_Belt_Down_Status = F_Status_EXECUTE;
+		
+		if(L_Cathode_Belt_Down_Timer > 50 || P_Temp_Run_Mode == 1)
+		{
+			P_Old_Cathode_Belt_ASCII = M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_1st_TR + 4) << 8 | M_ASCII_Cathode_Sheet_Buffer(N_Sheet_Data_1st_TR + 5);
+			Sys_Cathode_Belt_Sheet_LO_Vision_BYTE |= Hex_Cell_Existence;
+//			if(M_X_PLC_Cathode_NG)
+//			{
+//				Sys_Cathode_Belt_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;
+//			}
+			P_Cathode_1st_TR_Belt_Down_State_Machine = N_Complete_Step;
+		}
+	break;
+
+	Case N_Complete_Step : 
+		P_Cathode_1st_TR_Belt_Down_Status = F_Status_COMPLETE;
+	break;
+
+	Default : break;
+}
+//------------------------------------------------------------------------------------------------------------------------
+// [2].양극 1차 P&P 벨트 픽업시
+// PMAC Belt -> 1차 P&P
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Cathode_1st_TR_Belt_Pick_Up_Flag == 1)
+{
+	P_Cathode_1st_TR_Belt_Pick_Up_Flag = 0;
+	L_Cathode_1st_Belt_Pick_Timer = 0;
+
+	P_Cathode_1st_TR_Belt_Pick_Up_State_Machine = 1;
+	P_Cathode_1st_TR_Belt_Pick_Up_Status = F_Status_STARTING;
+}
+
+switch(P_Cathode_1st_TR_Belt_Pick_Up_State_Machine)
+{
+	case 0 :
+		P_Cathode_1st_TR_Belt_Pick_Up_Status = F_Status_IDLE;
+	break;
+
+	case 1:
+		P_Cathode_1st_TR_Belt_Pick_Up_Status = F_Status_EXECUTE;
+		if(L_Cathode_1st_Belt_Pick_Timer < P_Check_Vac_Time)
+		{
+			P_Cathode_Belt_ASCII = Sys.Udata[10012] << 8 | Sys.Udata[10013];			// 현재 데이터 
+
+			if( (Sys_Cathode_Belt_Sheet_LO_Vision_BYTE != 0 && P_Old_Cathode_Belt_ASCII != P_Cathode_Belt_ASCII) || P_Temp_Run_Mode == 1)
+			{	
+				// [참조 : 260427 시트아이디 비트 연산 주석 처리]
+				//Sys_Cathode_Belt_Sheet_LO_ASCII_BYTE = Sys.Cdata[40051] << 8 | Sys.Cdata[40052];
+
+				P_Cathode_1st_TR_Belt_Pick_Up_State_Machine++;
+			}
+		}
+		else
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 87
+			P_Sheet_Err(8)++
+			P_Cathode_1st_TR_Belt_Pick_Up_State_Machine = N_Error_Step;
+
+		}
+	break;
+
+	case 2:
+		P_Cathode_1st_TR_Belt_Pick_Up_Status = F_Status_EXECUTE;
+
+		L_Cathode_Func_Return(0) = 0;
+
+		call Sheet_Data_Flow.Cathode_Move_Sheet_Data(0, N_Sheet_Data_1st_TR, &L_Cathode_Func_Return(0));
+
+		if(L_Cathode_Func_Return(0))
+		{
+			L_Cathode_Func_Return(0) = 0;
+
+			Sys_Cathode_1st_Sheet_Data = Sys_Cathode_Belt_Sheet_Data;
+			Sys_Cathode_Belt_Sheet_Data = 0;
+
+			P_Cathode_1st_TR_Belt_Pick_Up_State_Machine = N_Complete_Step;
+		}
+	break;
+
+	Case N_Error_Step : 
+		P_Cathode_1st_TR_Belt_Pick_Up_Status = F_Status_STOPPED;
+	break;
+
+	Case N_Complete_Step : 
+		P_Cathode_1st_TR_Belt_Pick_Up_Status = F_Status_COMPLETE;
+	break;
+	
+	default: break;
+}
+//------------------------------------------------------------------------------------------------------------------------
+// [3].양극 1차 P&P 얼라인 테이블 하강 후 파기시
+// 1차 P&P -> Align table
+// PLC -> Udata, Vision -> P 변수 지정
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Cathode_1st_TR_Align_Down_Flag == 1)
+{
+	P_Cathode_1st_TR_Align_Down_Flag = 0;	
+
+	L_Cathode_1st_Align_Down_Timer = 0;
+	P_Cathode_1st_TR_Align_Down_State_Machine = 1;
+	P_Cathode_1st_TR_Align_Down_Status = F_Status_STARTING;
+
+}
+
+switch(P_Cathode_1st_TR_Align_Down_State_Machine)
+{
+	case 0 :
+		P_Cathode_1st_TR_Align_Down_Status = F_Status_IDLE;
+	break;
+
+	case 1 :
+		P_Cathode_1st_TR_Align_Down_Status = F_Status_EXECUTE;
+		if(L_Cathode_1st_Align_Down_Timer < P_Check_Vac_Time)
+		{
+			if(Sys_Cathode_1st_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
+			{
+				P_Cathode_1st_TR_Align_Down_State_Machine++;
+
+			}
+		}
+		else
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 88
+			P_Sheet_Err(9)++
+			P_Cathode_1st_TR_Align_Down_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2 :
+		P_Cathode_1st_TR_Align_Down_Status = F_Status_EXECUTE;
+		L_Cathode_Func_Return(1)= 0;
+
+		call Sheet_Data_Flow.Cathode_Move_Sheet_Data(N_Sheet_Data_1st_TR, N_Sheet_Data_Align_Table, &L_Cathode_Func_Return(1));
+
+		if(L_Cathode_Func_Return(1))
+		{
+			L_Cathode_Func_Return(1) = 0;
+
+			Sys_Cathode_Align_Sheet_Data = Sys_Cathode_1st_Sheet_Data;
+			Sys_Cathode_1st_Sheet_Data = 0;
+
+			M_Y_Vision_Cathode_Data_Transfer_Trigger = 1;
+			L_Cathode_PMAC_to_VISION_Align_Passing_Reset_Timer = 0;
+			P_Cathode_1st_TR_Align_Down_State_Machine = 0;
+		}
+	break;
+
+	Case N_Error_Step : 
+		P_Cathode_1st_TR_Align_Down_Status = F_Status_STOPPED;
+	break;
+
+	Case N_Complete_Step : 
+		P_Cathode_1st_TR_Align_Down_Status = F_Status_COMPLETE;
+	break;
+	
+	default: break;
+}
+//------------------------------------------------------------------------------------------------------------------------
+// [4]. 양극 2차 P&P 얼라인 테이블픽업 시
+// Align Table -> 2차 P&P
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Cathode_2nd_TR_Align_Pick_Up_Flag == 1)
+{
+	P_Cathode_2nd_TR_Align_Pick_Up_Flag = 0;
+
+	L_Cathode_2nd_Align_Pick_Timer = 0;
+	P_Cathode_2nd_TR_Align_Pick_Up_State_Machine = 1;
+	P_Cathode_2nd_TR_Align_Pick_Up_Status = F_Status_STARTING;
+}
+
+switch(P_Cathode_2nd_TR_Align_Pick_Up_State_Machine)
+{
+	case 0 :
+		P_Cathode_1st_TR_Align_Down_Status = F_Status_IDLE;
+	break;
+
+	case 1 :
+		P_Cathode_2nd_TR_Align_Pick_Up_Status = F_Status_EXECUTE;
+		if(L_Cathode_2nd_Align_Pick_Timer < P_Check_Vac_Time)
+		{
+			if(Sys_Cathode_Align_Sheet_Data != 0)
+			{
+				P_Cathode_2nd_TR_Align_Pick_Up_State_Machine++;
+			}
+		}
+		else
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 89
+			P_Sheet_Err(10)++
+			P_Cathode_2nd_TR_Align_Pick_Up_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2 :
+		P_Cathode_2nd_TR_Align_Pick_Up_Status = F_Status_EXECUTE;
+
+		L_Cathode_Func_Return(2) = 0;
+		call Sheet_Data_Flow.Cathode_Move_Sheet_Data(N_Sheet_Data_Align_Table, N_Sheet_Data_2nd_TR, &L_Cathode_Func_Return(2));
+
+		if(L_Cathode_Func_Return(2))
+		{
+			L_Cathode_Func_Return(2) = 0;
+
+			Sys_Cathode_2nd_Sheet_Data = Sys_Cathode_Align_Sheet_Data;
+			Sys_Cathode_Align_Sheet_Data = 0;
+
+			P_Cathode_2nd_TR_Align_Pick_Up_State_Machine = N_Complete_Step;
+		}
+	break;
+
+	Case N_Error_Step : 
+		P_Cathode_2nd_TR_Align_Pick_Up_Status = F_Status_STOPPED;
+	break;
+
+	Case N_Complete_Step : 
+		P_Cathode_2nd_TR_Align_Pick_Up_Status = F_Status_COMPLETE;
+
+	break;
+	
+	default: break;
+
+}
+//------------------------------------------------------------------------------------------------------------------------
+// [5].양극 2차 P&P 스택 테이블 파기시
+// 2차 P&P -> Stack Table
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Cathode_2nd_TR_Stack_Down_Flag == 1)
+{
+	P_Cathode_2nd_TR_Stack_Down_Flag = 0;
+
+	L_Cathode_2nd_Stack_Down_Timer = 0;
+	P_Cathode_2nd_TR_Stack_Down_Status = F_Status_STARTING;
+	
+	P_Cathode_2nd_TR_Stack_Down_State_Machine = 1;
+}
+
+switch(P_Cathode_2nd_TR_Stack_Down_State_Machine)
+{
+	case 0 :
+		P_Cathode_2nd_TR_Stack_Down_Status = F_Status_IDLE;
+	break;
+
+	case 1 :
+		P_Cathode_2nd_TR_Stack_Down_Status = F_Status_STARTING;
+		if(L_Cathode_2nd_Stack_Down_Timer < P_Check_Vac_Time)
+		{
+			P_Cathode_2nd_TR_Stack_Down_Status = F_Status_EXECUTE;
+			if(Sys_Cathode_2nd_Sheet_Data != 0)
+			{
+				P_Cathode_2nd_TR_Stack_Down_State_Machine++;
+			}
+		}
+		else
+		{
+			P_Cathode_2nd_TR_Stack_Down_Status = F_Status_EXECUTE;
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 90
+			P_Sheet_Err(11)++
+			P_Cathode_2nd_TR_Stack_Down_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2 :
+		P_Cathode_2nd_TR_Stack_Down_Status = F_Status_EXECUTE;
+		L_Cathode_Func_Return(3) = 0;
+
+		call Sheet_Data_Flow.Cathode_Move_Sheet_Data(N_Sheet_Data_2nd_TR, N_Sheet_Data_Stack_Table, &L_Cathode_Func_Return(3));
+
+		if(L_Cathode_Func_Return(3))
+		{
+			L_Cathode_Func_Return(3) = 0;
+			Sys_Stack_Sheet_Data = Sys_Cathode_2nd_Sheet_Data;
+
+			Sys_Cathode_2nd_Sheet_Data = 0;
+
+			P_Cathode_2nd_TR_Stack_Down_State_Machine = N_Complete_Step;
+
+		}
+	break;
+
+	Case N_Error_Step : 
+		P_Cathode_2nd_TR_Stack_Down_Status = F_Status_STOPPED;
+
+	break;
+
+	Case N_Complete_Step : 
+		P_Cathode_2nd_TR_Stack_Down_Status = F_Status_COMPLETE;
+
+	break;
+	
+	default: break;
+}
+//------------------------------------------------------------------------------------------------------------------------
+// 예외처리
+// [6]. 양극 - NG 처리 (예외처리 Part) 
+// Align Table -> Ng P&P
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Cathode_NG_TR_Align_Pick_Up_Flag == 1)
+{
+	P_Cathode_NG_TR_Align_Pick_Up_Flag = 0;
+
+	L_Cathode_NG_Pick_Timer = 0;
+	P_Cathode_NG_TR_Align_Pick_Up_State_Machine = 1;
+	P_Cathode_NG_TR_Align_Pick_Up_Status = F_Status_STARTING;
+}
+
+switch(P_Cathode_NG_TR_Align_Pick_Up_State_Machine)
+{
+	case 0 :
+		P_Cathode_NG_TR_Align_Pick_Up_Status = F_Status_IDLE;
+	break;
+
+	case 1 :
+		P_Cathode_NG_TR_Align_Pick_Up_Status = F_Status_EXECUTE;
+		if(L_Cathode_NG_Pick_Timer < P_Check_Vac_Time)
+		{
+			if(Sys_Cathode_Align_Sheet_Data != 0)
+			{
+				P_Cathode_NG_TR_Align_Pick_Up_State_Machine++;
+			}
+		}
+		else
+		{
+			P_Cathode_NG_TR_Align_Pick_Up_Status = F_Status_EXECUTE;
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 91
+			P_Sheet_Err(12)++
+			P_Cathode_NG_TR_Align_Pick_Up_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2 :
+		P_Cathode_NG_TR_Align_Pick_Up_Status = F_Status_EXECUTE;
+		L_Cathode_Func_Return(4) = 0;
+
+		call Sheet_Data_Flow.Cathode_Move_Sheet_Data(N_Sheet_Data_Align_Table, N_Sheet_Data_NG_TR, &L_Cathode_Func_Return(4))
+
+		if(L_Cathode_Func_Return(4))
+		{
+			L_Cathode_Func_Return(4) = 0;
+
+			Sys_Cathode_NG_TR_Sheet_Data = Sys_Cathode_Align_Sheet_Data;
+			Sys_Cathode_Align_Sheet_Data = 0;
+
+			P_Cathode_NG_TR_Align_Pick_Up_State_Machine = N_Complete_Step;
+		}
+	break;
+
+	Case N_Error_Step : 
+		P_Cathode_NG_TR_Align_Pick_Up_Status = F_Status_STOPPED;
+
+	break;
+
+	Case N_Complete_Step : 
+		P_Cathode_NG_TR_Align_Pick_Up_Status = F_Status_COMPLETE;
+
+	break;
+	
+	default: break;
+}
+//------------------------------------------------------------------------------------------------------------------------
+// [7]. 양극 NG P&P가 Ng place에 파기시
+// NG P&P -> NG Place
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Cathode_NG_TR_NG_Place_Down_Flag == 1)
+{
+	P_Cathode_NG_TR_NG_Place_Down_Flag = 0;
+
+	L_Cathode_NG_Place_Timer = 0;
+	P_Cathode_NG_TR_NG_Place_Down_State_Machine = 1;
+	P_Cathode_NG_TR_NG_Place_Down_Status = F_Status_STARTING;
+}
+
+switch(P_Cathode_NG_TR_NG_Place_Down_State_Machine)
+{
+	case 0 :
+		P_Cathode_NG_TR_NG_Place_Down_Status = F_Status_IDLE;
+	break;
+
+	case 1 :
+		P_Cathode_NG_TR_NG_Place_Down_Status = F_Status_EXECUTE;
+		if(L_Cathode_NG_Place_Timer < P_Check_Vac_Time)
+		{
+			if(Sys_Cathode_NG_TR_Sheet_Data != 0)
+			{
+				P_Cathode_NG_TR_NG_Place_Down_State_Machine++;
+			}
+		}
+		else
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 92
+			P_Sheet_Err(13)++
+			P_Cathode_NG_TR_NG_Place_Down_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2 :
+		P_Cathode_NG_TR_NG_Place_Down_Status = F_Status_EXECUTE;
+		L_Cathode_Func_Return(5) = 0;
+
+		call Sheet_Data_Flow.Cathode_Move_Sheet_Data(N_Sheet_Data_NG_TR, N_Sheet_Data_NG_Place, &L_Cathode_Func_Return(5))
+
+		if(L_Cathode_Func_Return(5))
+		{
+			L_Cathode_Func_Return(5) = 0;
+			Sys_Cathode_NG_Place_Sheet_Data = Sys_Cathode_NG_TR_Sheet_Data;
+			Sys_Cathode_NG_TR_Sheet_Data = 0;
+			P_Send_Cathode_NG_Code_Flag = 1;
+			P_Cathode_NG_TR_NG_Place_Down_State_Machine = N_Complete_Step;
+		}
+	break;
+
+	Case N_Error_Step : 
+		P_Cathode_NG_TR_NG_Place_Down_Status = F_Status_STOPPED;
+
+	break;
+
+	Case N_Complete_Step : 
+		P_Cathode_NG_TR_NG_Place_Down_Status = F_Status_COMPLETE;
+
+	break;
+	
+	default: break;
+}
+//------------------------------------------------------------------------------------------------------------------------
+// [8]. 양극 2차 P&P 얼라인테이블 파기시
+// 2차 P&P -> Align Table
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Cathode_2nd_TR_Align_Down_Flag == 1)
+{
+	P_Cathode_2nd_TR_Align_Down_Flag = 0;
+	
+	L_Anode_2nd_Align_Down_Timer = 0;
+	P_Cathode_2nd_TR_Align_Down_State_Machine = 1;
+	P_Cathode_2nd_TR_Align_Down_Status = F_Status_STARTING;
+}
+
+switch(P_Cathode_2nd_TR_Align_Down_State_Machine)
+{
+	case 0:
+		P_Cathode_2nd_TR_Align_Down_Status = F_Status_IDLE;
+	break;
+
+	case 1:
+		P_Cathode_2nd_TR_Align_Down_Status = F_Status_EXECUTE;
+		if(L_Anode_2nd_Align_Down_Timer < P_Check_Vac_Time)
+		{
+			if(Sys_Cathode_2nd_Sheet_Data != 0)
+			{
+				P_Cathode_2nd_TR_Align_Down_State_Machine++;
+			}
+		}
+		else
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 93
+			P_Sheet_Err(14)++
+			P_Cathode_2nd_TR_Align_Down_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2:
+		P_Cathode_2nd_TR_Align_Down_Status = F_Status_EXECUTE;
+		L_Cathode_Func_Return(6) = 0;
+		call Sheet_Data_Flow.Cathode_Move_Sheet_Data(N_Sheet_Data_2nd_TR, N_Sheet_Data_Align_Table, &L_Cathode_Func_Return(6));
+
+		if(L_Cathode_Func_Return(6))
+		{
+			L_Cathode_Func_Return(6) = 0;
+			Sys_Cathode_Align_Sheet_Data = Sys_Cathode_2nd_Sheet_Data;
+			Sys_Cathode_2nd_Sheet_Data = 0;
+			//P_Send_Cathode_NG_Code_Flag = 1;
+			P_Cathode_2nd_TR_Align_Down_State_Machine = N_Complete_Step;
+		}
+	break;
+
+	Case N_Error_Step : 
+		P_Cathode_2nd_TR_Align_Down_Status = F_Status_STOPPED;
+	break;
+
+	Case N_Complete_Step : 
+		P_Cathode_2nd_TR_Align_Down_Status = F_Status_COMPLETE;
+	break;
+	
+	default: break;
+}
+
+//------------------------------------------------------------------------------------------------------------------------
+// [9]. 양극 1차 P&P 얼라인테이블 픽업시
+// Align Table -> 1차 P&P
+//------------------------------------------------------------------------------------------------------------------------
+if(P_Cathode_1st_TR_Align_Pick_Up_Flag == 1)
+{
+	P_Cathode_1st_TR_Align_Pick_Up_Flag = 0;
+	
+	L_Cathode_1st_Align_Pick_Timer = 0;
+	P_Cathode_1st_TR_Align_Pick_Up_State_Machine = 1;
+	P_Cathode_1st_TR_Align_Pick_Up_Status = F_Status_STARTING;
+}
+
+switch(P_Cathode_1st_TR_Align_Pick_Up_State_Machine)
+{
+	case 0:
+		P_Cathode_1st_TR_Align_Pick_Up_Status = F_Status_IDLE;
+	break;
+
+	case 1:
+		P_Cathode_1st_TR_Align_Pick_Up_Status = F_Status_EXECUTE;
+		if(L_Cathode_1st_Align_Pick_Timer < P_Check_Vac_Time)
+		{
+			if(Sys_Cathode_Align_Sheet_Data != 0)
+			{
+				P_Cathode_1st_TR_Align_Pick_Up_State_Machine++;
+			}
+		}
+		else
+		{
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 38
+			P_Sheet_Err(15)++
+			P_Cathode_1st_TR_Align_Pick_Up_State_Machine = N_Error_Step;
+		}
+	break;
+
+	case 2:
+		P_Cathode_1st_TR_Align_Pick_Up_Status = F_Status_EXECUTE;
+		L_Cathode_Func_Return(7) = 0;
+		call Sheet_Data_Flow.Cathode_Move_Sheet_Data(N_Sheet_Data_Align_Table, N_Sheet_Data_1st_TR,&L_Cathode_Func_Return(7));
+
+		if(L_Cathode_Func_Return(7))
+		{
+			L_Cathode_Func_Return(7) = 0;
+			Sys_Cathode_1st_Sheet_Data = Sys_Cathode_Align_Sheet_Data;
+			Sys_Cathode_Align_Sheet_Data = 0;
+			
+			P_Cathode_1st_TR_Align_Pick_Up_State_Machine = N_Complete_Step;
+		}
+	break;
+
+	Case N_Error_Step : 
+		P_Cathode_1st_TR_Align_Pick_Up_Status = F_Status_STOPPED;
+	break;
+
+	Case N_Complete_Step : 
+		P_Cathode_1st_TR_Align_Pick_Up_Status = F_Status_COMPLETE;
+	break;
+	
+	default: break;
+}
+//===============================================================================================================================================
+
+//===============================================================================================================================================
+// MES 보고 영역
+//===============================================================================================================================================
+// 1. 젤리롤 수량 완료 후 재 가동 시, 얼라인에 있는 죽은 극판 제거를 위해 Starting시 Align에 극판이 있다면, Maint NG비트 살려줘야함.
+// 2. Retry NG 시 Surf NG에 대한 비트 살릴때 1차에 Maint NG도 함께 살림
+// 3. Belt NG 시 Maint NG 비트 살림
+// 4. 강제로 Sheet Data를 On 할 경우, Maint NG비트를 살림
+
+// 음극 데이터 MES 보고
+// [ 참조: 26.01.26 Vision 판정 MES 보고 수정 ]
+if(P_Send_Anode_NG_Code_Flag == 1)
+{
+	if(Sys_Anode_NG_Place_Sheet_LO_Vision_BYTE & Hex_Maint_NG)
+	{	
+		P_Anode_NG_Code = N_Maint_NG_Code;
+		P_Send_Anode_NG_Code_To_PLC = P_Receive_Anode_NG_Code_From_PLC;
+		P_Anode_Vision_NG_To_PLC_Flag = 1;
+	}
+	else
+	{
+		if(Sys_Anode_NG_Place_Sheet_LO_Vision_BYTE & Hex_Vision_Timeout)
+		{
+			P_Anode_NG_Code = N_TimeOut_NG_Code;
+		}
+		else
+		{
+			P_Anode_NG_Code = P_Anode_Vision_To_NG_Code;
+		}
+		P_Anode_Vision_NG_To_PLC_Flag = 1;
+	}
+	P_Send_Anode_NG_Code_Flag = 0;
+	L_Anode_NG_Code_Delay_Timer = 0;
+}
+
+// 양극 데이터 MES 보고
+// [ 참조: 26.01.26 Vision 판정 MES 보고 수정 ]
+if(P_Send_Cathode_NG_Code_Flag == 1)
+{
+	if(Sys_Cathode_NG_Place_Sheet_LO_Vision_BYTE & Hex_Maint_NG)
+	{
+		P_Cathode_NG_Code = N_Maint_NG_Code;
+		P_Send_Cathode_NG_Code_To_PLC = P_Receive_Cathode_NG_Code_From_PLC;
+		P_Cathode_Vision_NG_To_PLC_Flag = 1;
+	}
+	else
+	{
+		if(Sys_Cathode_NG_Place_Sheet_LO_Vision_BYTE & Hex_Vision_Timeout)
+		{
+			P_Cathode_NG_Code = N_TimeOut_NG_Code;
+		}
+		else
+		{
+			P_Cathode_NG_Code = P_Cathode_Vision_To_NG_Code;
+		}
+		P_Cathode_Vision_NG_To_PLC_Flag = 1;
+	}
+	P_Send_Cathode_NG_Code_Flag = 0;
+	L_Cathode_NG_Code_Delay_Timer = 0;
+}
+
+// 음극 시트 NG To PLC 플래그
+// [ 참조: 26.01.26 Vision 판정 MES 보고 수정 ]
+if(P_Anode_Vision_NG_To_PLC_Flag == 1)
+{
+	// 300ms 후에
+	if(L_Anode_NG_Code_Delay_Timer >= N_NG_Data_Shift_Delay_Time)
+	{
+		M_Y_PLC_Anode_Sheet_NG = 1;
+		L_Anode_NG_Code_Delay_Timer = 0;
+		P_Anode_Vision_NG_To_PLC_Flag = 0;
+	}
+}
+
+// 양극 시트 NG To PLC 플래그
+// [ 참조: 26.01.26 Vision 판정 MES 보고 수정 ]
+if(P_Cathode_Vision_NG_To_PLC_Flag == 1)
+{
+	if(L_Cathode_NG_Code_Delay_Timer >= N_NG_Data_Shift_Delay_Time)
+	{
+		M_Y_PLC_Cathode_Sheet_NG = 1;
+		L_Cathode_NG_Code_Delay_Timer = 0;
+		P_Cathode_Vision_NG_To_PLC_Flag = 0;
+	}
+}
+
+
+// 음극 얼라인, 표면검사 NG I/O 초기화 
+//if(M_Y_PLC_Anode_Align_NG == 1 || M_Y_PLC_Anode_Surf_NG == 1)
+//{
+//	if(L_Anode_NG_Code_Delay_Timer > 400)
+//	{
+//		M_Y_PLC_Anode_Align_NG = 0;
+//		M_Y_PLC_Anode_Surf_NG = 0;
+
+//		P_Anode_NG_Code = 0;
+//		P_Receive_Anode_NG_Code_From_PLC = 0;
+//		P_Send_Anode_NG_Code_To_PLC = 0;
+//	}
+//}
+
+// 음극 데이터 전달 I/O 리셋
+if(M_Y_Vision_Anode_Data_Transfer_Trigger == 1)
+{
+	if(L_Anode_PMAC_to_VISION_Align_Passing_Reset_Timer > 400)
+	{
+		M_Y_Vision_Anode_Data_Transfer_Trigger = 0;
+	}
+}
+
+// 양극 얼라인, 표면검사 NG I/O 초기화 
+//if(M_Y_PLC_Cathode_Align_NG == 1 || M_Y_PLC_Cathode_Surf_NG == 1)
+//{
+//	if(L_Cathode_NG_Code_Delay_Timer > 400)
+//	{
+//		M_Y_PLC_Cathode_Align_NG = 0;
+//		M_Y_PLC_Cathode_Surf_NG = 0;
+
+//		P_Cathode_NG_Code = 0;
+//		P_Receive_Cathode_NG_Code_From_PLC = 0;
+//		P_Send_Cathode_NG_Code_To_PLC = 0;
+//	}
+//}
+
+// 양극 데이터 전달 I/O 리셋
+if(M_Y_Vision_Cathode_Data_Transfer_Trigger == 1)
+{
+	if(L_Cathode_PMAC_to_VISION_Align_Passing_Reset_Timer > 400)
+	{
+		M_Y_Vision_Cathode_Data_Transfer_Trigger = 0;
+	}
+}
+
+
+// 극판 데이터 버튼 관련 모듈
+// I/O Reset
+if( P_Anode_Data_Delete_Vision_To_PMAC_Get_Flag == 1 )	
+{
+	P_Anode_Data_Delete_Vision_To_PMAC_Get_Flag = 0;		//초기화
+	P_Anode_Align_Data_Delete_Set_Flag = 0;		//초기화
+	P_Anode_2nd_PNP_Data_Delete_Set_Flag = 0;		//초기화
+}
+if( P_Cathode_Data_Delete_Vision_To_PMAC_Get_Flag == 1 )	
+{
+	P_Cathode_Data_Delete_Vision_To_PMAC_Get_Flag = 0;		//초기화
+	P_Cathode_Align_Data_Delete_Set_Flag = 0;		//초기화
+	P_Cathode_2nd_PNP_Data_Delete_Set_Flag = 0;		//초기화
+}
+
+// 극판 데이터 제거 버튼 
+if(P_PMAC_Current_Mode == F_Current_Manual)
+{
+	// 음극 1차 P&P
+	if(P_BTN_Anode_1st_TR_Buffer_Clear == 1 && P_Old_BTN_Anode_1st_TR_Buffer_Clear == 0)
+	{
+		if(Sys_Anode_1st_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
+		{
+			if(M_X_Anode_1st_PNP_Vac_Sensor != 1)
+			{
+				Sys_Anode_1st_Sheet_Data = 0;
+				
+				// 참조 260604 1차 피커 홈 버그로 인한 극판 뒤집힘 수정
+				P_An_Picker_T_Turn_Cnt = 0
+				P_An_Picker_T_Home_Type = 0
+			}
+		}
+		else
+		{
+			if(M_X_Anode_1st_PNP_Vac_Sensor == 1)
+			{
+				Sys_Anode_1st_Sheet_LO_Vision_BYTE = Hex_Cell_Existence
+			}
+		}
+	}
+
+	// 음극 2차 P&P
+	if(P_BTN_Anode_2nd_TR_Buffer_Clear == 1 && P_Old_BTN_Anode_2nd_TR_Buffer_Clear == 0)
+	{
+		if(Sys_Anode_2nd_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
+		{
+			if(M_X_Anode_2nd_PNP_Vac_Sensor != 1)
+			{
+				Sys_Anode_2nd_Sheet_Data = 0;
+				P_Anode_2nd_PNP_Data_Delete_Set_Flag = 1;
+			}
+		}
+		else
+		{
+			if(M_X_Anode_2nd_PNP_Vac_Sensor == 1)
+			{
+				Sys_Anode_2nd_Sheet_LO_Vision_BYTE = Hex_Cell_Existence
+			}
+		}
+	}
+
+	// 음극 얼라인 테이블
+	if(P_BTN_Anode_Align_Buffer_Clear == 1 && P_Old_BTN_Anode_Align_Buffer_Clear == 0)
+	{
+		if(Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
+		{
+			if(M_X_Anode_AT_Vac_Sensor != 1)
+			{
+				Sys_Anode_Align_Sheet_Data = 0;
+				P_Anode_Align_Data_Delete_Set_Flag = 1;
+			}
+		}
+		else
+		{
+			if(M_X_Anode_AT_Vac_Sensor == 1)
+			{
+				Sys_Anode_Align_Sheet_LO_Vision_BYTE = Hex_Cell_Existence
+			}
+		}
+	}
+
+	// 음극 NG P&P
+	if(P_BTN_Anode_NG_TR_Buffer_Clear == 1 && P_Old_BTN_Anode_NG_TR_Buffer_Clear == 0)
+	{
+		if(Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
+		{
+			if(M_X_Anode_NG_PNP_Vac_Sensor != 1)
+			{
+				Sys_Anode_NG_TR_Sheet_Data = 0;
+			}
+		}
+		else
+		{
+			if(M_X_Anode_NG_PNP_Vac_Sensor == 1)
+			{
+				Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE = Hex_Cell_Existence
+			}
+		}
+	}
+
+	// 양극 1차 P&P
+	if(P_BTN_Cathode_1st_TR_Buffer_Clear == 1 && P_Old_BTN_Cathode_1st_TR_Buffer_Clear == 0)
+	{
+		if(Sys_Cathode_1st_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
+		{
+			if(M_X_Cathode_1st_PNP_Vac_Sensor != 1)
+			{
+				Sys_Cathode_1st_Sheet_Data = 0;
+				
+				// 참조 260604 피커 홈 타임 초기화 부분 추가
+				P_Ca_Picker_T_Turn_Cnt = 0
+				P_Ca_Picker_T_Home_Type = 0
+			}
+		}
+		else
+		{
+			if(M_X_Cathode_1st_PNP_Vac_Sensor == 1)
+			{
+				Sys_Cathode_1st_Sheet_LO_Vision_BYTE = Hex_Cell_Existence
+			}
+		}
+	}
+
+	// 양극 2차 P&P
+	if(P_BTN_Cathode_2nd_TR_Buffer_Clear == 1 && P_Old_BTN_Cathode_2nd_TR_Buffer_Clear == 0)
+	{
+		if(Sys_Cathode_2nd_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
+		{
+			if(M_X_Cathode_2nd_PNP_Vac_Sensor != 1)
+			{
+				Sys_Cathode_2nd_Sheet_Data = 0;
+				P_Cathode_2nd_PNP_Data_Delete_Set_Flag = 1;
+			}
+		}
+		else
+		{
+			if(M_X_Cathode_2nd_PNP_Vac_Sensor == 1)
+			{
+				Sys_Cathode_2nd_Sheet_LO_Vision_BYTE = Hex_Cell_Existence
+			}
+		}
+	}
+
+	// 양극 얼라인 테이블
+	if(P_BTN_Cathode_Align_Buffer_Clear == 1 && P_Old_BTN_Cathode_Align_Buffer_Clear == 0)
+	{
+		if(Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
+		{
+			if(M_X_Cathode_AT_Vac_Sensor != 1)
+			{
+				Sys_Cathode_Align_Sheet_Data = 0;
+				P_Cathode_Align_Data_Delete_Set_Flag = 1;
+			}
+		}
+		else
+		{
+			if(M_X_Cathode_AT_Vac_Sensor == 1)
+			{
+				Sys_Cathode_Align_Sheet_LO_Vision_BYTE = Hex_Cell_Existence
+			}
+		}
+	}
+
+	// 양극 NG P&P
+	if(P_BTN_Cathode_NG_TR_Buffer_Clear == 1 && P_Old_BTN_Cathode_NG_TR_Buffer_Clear == 0)
+	{
+		if(Sys_Cathode_NG_TR_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
+		{
+			if(M_X_Cathode_NG_PNP_Vac_Sensor != 1)
+			{
+				Sys_Cathode_NG_TR_Sheet_Data = 0;
+			}
+		}
+		else
+		{
+			if(M_X_Cathode_NG_PNP_Vac_Sensor == 1)
+			{
+				Sys_Cathode_NG_TR_Sheet_LO_Vision_BYTE = Hex_Cell_Existence
+			}
+		}
+	}
+}
+
+P_Old_BTN_Anode_1st_TR_Buffer_Clear = P_BTN_Anode_1st_TR_Buffer_Clear;
+P_Old_BTN_Anode_2nd_TR_Buffer_Clear = P_BTN_Anode_2nd_TR_Buffer_Clear;
+P_Old_BTN_Anode_Align_Buffer_Clear = P_BTN_Anode_Align_Buffer_Clear;
+P_Old_BTN_Anode_NG_TR_Buffer_Clear = P_BTN_Anode_NG_TR_Buffer_Clear;
+P_Old_BTN_Cathode_1st_TR_Buffer_Clear = P_BTN_Cathode_1st_TR_Buffer_Clear;
+P_Old_BTN_Cathode_2nd_TR_Buffer_Clear = P_BTN_Cathode_2nd_TR_Buffer_Clear;
+P_Old_BTN_Cathode_Align_Buffer_Clear = P_BTN_Cathode_Align_Buffer_Clear;
+P_Old_BTN_Cathode_NG_TR_Buffer_Clear = P_BTN_Cathode_NG_TR_Buffer_Clear;
+
+//극판 메모리 관리 실행 [ 참조 : 2025.08.26 자동 생산 상태 관리 프로그램 추가]
+// 극판 현황 관리 => Sys_Anode_1st_Sheet_LO_Vision_BYTE 데이터 중 Hex_Cell_Existence하는지 여부에 따라 UI를 켜주고 꺼줌.  
+IF ( P_SM_Cell_Memory_Management == 0 )
+{
+
+}
+// 음극부 극판 메모리 UI 영역
+IF ( P_SM_Cell_Memory_Management == 1 )
+{
+	if(L_Sheet_Info_Update > 100)
+	{
+		L_Sheet_Info_Update = 0;
+	
+		call Sheet_Data_Flow.Anode_Cell_Exist(N_Sheet_Data_1st_TR);
+		call Sheet_Data_Flow.Anode_Cell_Exist(N_Sheet_Data_2nd_TR);
+		call Sheet_Data_Flow.Anode_Cell_Exist(N_Sheet_Data_Align_Table);
+		call Sheet_Data_Flow.Anode_Cell_Exist(N_Sheet_Data_NG_TR);
+	
+
+		call Sheet_Data_Flow.Cathode_Cell_Exist(N_Sheet_Data_1st_TR);
+		call Sheet_Data_Flow.Cathode_Cell_Exist(N_Sheet_Data_2nd_TR);
+		call Sheet_Data_Flow.Cathode_Cell_Exist(N_Sheet_Data_Align_Table);
+		call Sheet_Data_Flow.Cathode_Cell_Exist(N_Sheet_Data_NG_TR);
+	
+	}
+}
+
+// Status Clear 버튼 누르면 Sheet에 Maint NG
+if( P_Status_Clear_Sheet_Maint_Check == 1 )
+{
+	P_Status_Clear_Sheet_Maint_Check = 0;
+
+	if( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )				// 음극 얼라인 Sheet 존재하면	
+	{
+		Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;					// 음극 얼라인 Sheet Maint NG
+	}
+
+	if( Sys_Anode_2nd_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )				// 음극 2차 PNP Sheet 존재하면	
+	{
+		Sys_Anode_2nd_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;		 				// 음극 2차 PNP Sheet Maint NG
+	}
+
+	// [참조 : 260108 1차 PNP 극판 데이터에 NG 심었을 경우 얼라인 공급 후 NG  PNP가 제거하는데 이때 비전 판정이 OK였으면 OK난 극판을 버려 인덱스 불량 발생하여 수정]
+//	if( Sys_Anode_1st_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )				// 음극 1차 PNP Sheet 존재하면	
+//	{
+//		Sys_Anode_1st_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;		 				// 음극 1차 PNP Sheet Maint NG
+//	}
+
+
+	if( Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )				// 음극 NG PNP Sheet 존재하면
+	{
+		Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;					// 음극 NG PNP Sheet Maint NG
+	}
+
+	if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )			// 양극 얼라인 Sheet 존재하면	
+	{
+		Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;					// 양극 얼라인 Sheet Maint NG
+	}
+
+	if( Sys_Cathode_2nd_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )				// 양극 2차 PNP Sheet 존재하면	
+	{
+		Sys_Cathode_2nd_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;					// 양극 2차 PNP Sheet Maint NG
+	}
+
+	// [참조 : 260108 1차 PNP 극판 데이터에 NG 심었을 경우 얼라인 공급 후 NG  PNP가 제거하는데 이때 비전 판정이 OK였으면 OK난 극판을 버려 인덱스 불량 발생하여 수정]
+//	if( Sys_Cathode_1st_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )				// 양극 1차 PNP Sheet 존재하면	
+//	{
+//		Sys_Cathode_1st_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;		   			// 양극 1차 PNP Sheet Maint NG
+//	}
+
+
+	if( Sys_Cathode_NG_TR_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )			// 양극 NG PNP Sheet 존재하면
+	{
+		Sys_Cathode_NG_TR_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;					// 양극 NG PNP Sheet Maint NG
+	}
+}
+
+
+P_MNTR_PLC28_Task_Time(1) = (Sys.Time - P_MNTR_PLC28_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC28_Task_Time(1) > P_MNTR_PLC28_Task_Max_Time )
+{
+	P_MNTR_PLC28_Task_Max_Time = P_MNTR_PLC28_Task_Time(1);
+}
+
+// 테스트용 프로그램
+if( P_Sheet_Clear == 1 )
+{
+	P_Sheet_Clear = 0
+
+	Sys_Cathode_1st_Sheet_Data = 0
+	Sys_Cathode_Align_Sheet_Data = 0
+	Sys_Cathode_2nd_Sheet_Data = 0
+	Sys_Cathode_NG_TR_Sheet_Data = 0
+
+	Sys_Anode_1st_Sheet_Data = 0
+	Sys_Anode_Align_Sheet_Data = 0
+	Sys_Anode_2nd_Sheet_Data = 0
+	Sys_Anode_NG_TR_Sheet_Data = 0
+}
+
+close

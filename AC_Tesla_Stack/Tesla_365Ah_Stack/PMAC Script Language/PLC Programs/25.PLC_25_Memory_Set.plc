@@ -1,0 +1,92 @@
+#define N_Local_Max		28
+
+// NAND MEMORY Prog
+// Servo Gain Save&Load Program
+open plc 25
+	//local L_Servo_Max_No = 28;
+	local L_Servo_No;
+	local L_Error_Bit;
+
+	// 1. 게인값 저장하기. ( Save )
+	if( P_Servo_Gain_Save_Command == F_Command_Start )	// Tuning완료 후 User가 Save Flag 활성화. 
+	{
+		P_Servo_Gain_Save_Command = F_Command_NonCommand;
+		P_Mem_Save_Error_Bit = 0;		// MNTR 변수 초기화
+
+		L_Servo_No = 0;
+		// 1.1) 서보에 저장된 게인값을 P변수에 저장.
+		while( L_Servo_No < N_Local_Max ) 
+		{
+			L_Servo_No++;	// 0번모터는 없으니 ++ 하여 시작
+			
+			if( L_Servo_No == 9 || L_Servo_No == 10 || L_Servo_No == 14  )	// 9번,10번,14번 모터는 없으므로 continue
+				continue;
+
+			if( L_Servo_No <= 4 )
+			{
+				if( P_ABS_Phasing_Data(L_Servo_No) == 0 )			// phasing Data 0이라면
+				{
+					L_Error_Bit = 1;
+					break;
+				}
+				if( P_ABS_Home_Offset_Data(L_Servo_No) == 0 )		// phasing Data 0이라면
+				{
+					L_Error_Bit = 2;
+					break;
+				}
+			}
+			P_Servo_Gain_Kp(L_Servo_No) = Motor[L_Servo_No].Servo.Kp				
+			P_Servo_Gain_Kvfb(L_Servo_No) = Motor[L_Servo_No].Servo.Kvfb			
+			P_Servo_Gain_Kvff(L_Servo_No) = Motor[L_Servo_No].Servo.Kvff			
+			P_Servo_Gain_Ki(L_Servo_No) = Motor[L_Servo_No].Servo.Ki				
+			P_Servo_Gain_SwZvInt(L_Servo_No) = Motor[L_Servo_No].Servo.SwZvInt		
+			P_Servo_Gain_Kaff(L_Servo_No) = Motor[L_Servo_No].Servo.Kaff			
+			
+		}
+		// 1.2) P변수에 저장된 게인값을 PMAC내부 메모리에 저장.
+		if( L_Error_Bit != 0 )
+		{
+			P_Mem_Save_Error_Bit = L_Error_Bit;	// MNTR 변수
+		}
+		else
+		{
+			system "killall -e save_c.out"													// kill.
+			call Timer.sec(1);
+			P_Servo_Gain_Save_Flag = 1;		// Bg.C Prog Flag 
+			system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/save_c.out"	// C프로그램 실행.
+		}
+	}
+
+
+	// 2. 저장된 게인값 호출하기 ( Load )
+	// 2.1) PMAC내부 메모리에 저장되어있는 게인값을 P변수에 호출.
+	if( P_Servo_Gain_Load_Command == F_Command_Start )	// Initialize PLC or User
+	{
+		P_Servo_Gain_Load_Command = F_Command_NonCommand;
+		P_Servo_Gain_Load_Flag = 1;
+		system "killall -e save_c.out"													// kill.
+		call Timer.sec(1);
+		system "/var/ftp/usrflash/Project/C\ Language/Background\ Programs/save_c.out"	// C프로그램 실행.
+	}
+	// 2.2) P변수에 호출된 게인값을 모터 게인구조체에 입력.
+	if( P_Servo_Gain_Load_Flag == 3 )		// bg.c --> plc script
+	{
+		L_Servo_No = 0;
+		while( L_Servo_No < N_Local_Max ) 
+		{
+			L_Servo_No++;
+
+			if( L_Servo_No == 9 || L_Servo_No == 10 || L_Servo_No == 14 || P_Servo_Gain_Kp(L_Servo_No) == 0 )	// 9번,10번,14번 모터는 없으므로 continue → P_Serovo_Gain 값이 0이라면, 초기셋팅이므로 추가
+				continue;
+
+			Motor[L_Servo_No].Servo.Kp = P_Servo_Gain_Kp(L_Servo_No)		 		
+			Motor[L_Servo_No].Servo.Kvfb = P_Servo_Gain_Kvfb(L_Servo_No)	 		
+			Motor[L_Servo_No].Servo.Kvff = P_Servo_Gain_Kvff(L_Servo_No)	 		
+			Motor[L_Servo_No].Servo.Ki = P_Servo_Gain_Ki(L_Servo_No)		 		
+			Motor[L_Servo_No].Servo.SwZvInt	= P_Servo_Gain_SwZvInt(L_Servo_No) 		
+			Motor[L_Servo_No].Servo.Kaff = P_Servo_Gain_Kaff(L_Servo_No)	 		
+		}
+		P_Servo_Gain_Load_Flag = 5;
+	}
+
+close

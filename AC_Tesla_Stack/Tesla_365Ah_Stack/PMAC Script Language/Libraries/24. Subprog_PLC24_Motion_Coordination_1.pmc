@@ -1,0 +1,664 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.04 김형진 책임
+// Motion Coordination - [ 참조 : 25.06.04 모션 조정 신규 추가 ]  
+// [ 참조 : 25.07.02 ARC 요구 플래그 조건 수정 ] ->Spool Motor 넘버 교체 
+
+open subprog System_Module(void)
+
+sub: Master_Following_Sequence_Module(void)
+local L_Spool_Num = P_Selected_Spool_Number;
+	// 마스터 팔로잉 ON, OFF 모듈
+if( P_System_Master_Following_ON_Status == F_Status_STARTING )									// 스타팅 상태라면
+{
+	P_System_Master_Following_ON_Status = F_Status_EXECUTE;										// 생산 상태로 변경
+	P_System_Master_Follwing_ON_State_Machine = 1;												// 스텟머신 시작.
+}
+
+if( P_Driving_Motor_Use_Flag == 1 )																// 드라이빙 모터를 사용 하게 된다면
+{
+	if( P_System_Master_Following_ON_Status == F_Status_EXECUTE )
+	{
+		switch( P_System_Master_Follwing_ON_State_Machine )
+		{
+			case 0:	//idle
+			break;
+	
+			case 1:
+				if( P_Motor_Current_Pos(N_DRIVING_ROLL) ~ 0 || P_Module_Act_State_Machine_Array(N_Act_ARC_Post_Act) == 1 )	// 드라이빙 모터가 홈이 잡혀있어야 모듈 가능하게 걸어두자 or ARC 중 넘어왔다면
+				{
+					if( P_Selected_Spool_Number == N_UNWINDER_UPPER )							// 상부 모터인지
+					{
+						Motor[L_Spool_Num].pMasterEnc = EncTable[N_DRIVING_ROLL].a;							// 드라이빙 엔코더 대입
+						Motor[L_Spool_Num].SlewMasterPosSf = 0.1								// 마스터 스케일펙터 슬루 변수
+						Motor[L_Spool_Num].MasterPosSf = 1 / P_PLC06_Spool_Circumference;				// 거리값 / Spool 외경
+						Motor[L_Spool_Num].MasterCtrl = 1;										// 추종 시작 
+						P_System_Master_Follwing_ON_State_Machine++;
+					}
+					else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+					{
+						Motor[L_Spool_Num].pMasterEnc = EncTable[N_DRIVING_ROLL].a;							// 드라이빙 엔코더 대입
+						Motor[L_Spool_Num].SlewMasterPosSf = 0.1									// 마스터 스케일펙터 슬루 변수
+						Motor[L_Spool_Num].MasterPosSf = 1 / P_PLC06_Spool_Circumference;				// 거리값 / Spool 외경
+						Motor[L_Spool_Num].MasterCtrl = 1;										// 추종 시작 
+						P_System_Master_Follwing_ON_State_Machine++;
+					}
+				}
+			break;
+
+			case 2:
+				if( P_Selected_Spool_Number == N_UNWINDER_UPPER )							// 상부 모터인지
+				{
+					if( Motor[L_Spool_Num].MasterCtrl == 1 )
+					{
+						P_System_Master_Following_ON_Status = F_Status_Nonseatus;				// 상태 초기화
+						P_System_Master_Follwing_ON_State_Machine = 0;							// 스텟머신 초기화
+						P_System_Master_Following_ON_Complete_Flag = 1;								// 컴플리트 신호 On
+					}
+				}
+				else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+				{
+					if( Motor[L_Spool_Num].MasterCtrl == 1 )
+					{
+						P_System_Master_Following_ON_Status = F_Status_Nonseatus;				// 상태 초기화
+						P_System_Master_Follwing_ON_State_Machine = 0;							// 스텟머신 초기화
+						P_System_Master_Following_ON_Complete_Flag = 1;							// 컴플리트 신호 On
+					}
+				}
+			break;
+		}
+	}
+}
+else				// 드라이빙 모터를 사용 안하고, 가상축 CamTable Motor 의한 마스터 팔로잉을 해야 한다면
+{
+	if( P_System_Master_Following_ON_Status == F_Status_EXECUTE )
+	{
+		switch( P_System_Master_Follwing_ON_State_Machine )
+		{
+			case 0:	//idle
+			break;
+	
+			case 1:
+				if( P_Motor_Current_Pos(N_DRIVING_ROLL) ~ 0 || P_Module_Act_State_Machine_Array(N_Act_ARC_Post_Act) == 1 )	// 드라이빙 모터가 홈이 잡혀있어야 모듈 가능하게 걸어두자 or ARC 중 넘어왔다면
+				{
+					if( P_Selected_Spool_Number == N_UNWINDER_UPPER )							// 상부 모터인지
+					{
+						Motor[L_Spool_Num].pMasterEnc = EncTable[N_DRIVING_ROLL].a;							// 드라이빙 엔코더 대입
+						Motor[L_Spool_Num].SlewMasterPosSf = 0.1								// 마스터 스케일펙터 슬루 변수
+						Motor[L_Spool_Num].MasterPosSf = 1 / P_PLC06_Spool_Circumference;				// 거리값 / Spool 외경
+						Motor[L_Spool_Num].MasterCtrl = 1;										// 추종 시작 
+						P_System_Master_Follwing_ON_State_Machine++;
+					}
+					else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+					{
+						Motor[L_Spool_Num].pMasterEnc = EncTable[N_DRIVING_ROLL].a;							// 드라이빙 엔코더 대입
+						Motor[L_Spool_Num].SlewMasterPosSf = 0.1								// 마스터 스케일펙터 슬루 변수
+						Motor[L_Spool_Num].MasterPosSf = 1 / P_PLC06_Spool_Circumference;				// 거리값 / Spool 외경
+						Motor[L_Spool_Num].MasterCtrl = 1;										// 추종 시작 
+						P_System_Master_Follwing_ON_State_Machine++;
+					}
+				}
+			break;
+
+			case 2:
+				if( P_Selected_Spool_Number == N_UNWINDER_UPPER )							// 상부 모터인지
+				{
+					if( Motor[L_Spool_Num].MasterCtrl == 1 )
+					{
+						P_System_Master_Following_ON_Status = F_Status_Nonseatus;				// 상태 초기화
+						P_System_Master_Follwing_ON_State_Machine = 0;							// 스텟머신 초기화
+						P_System_Master_Following_ON_Complete_Flag = 1;							// 컴플리트 신호 On
+					}
+				}
+				else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+				{
+					if( Motor[L_Spool_Num].MasterCtrl == 1 )
+					{
+						P_System_Master_Following_ON_Status = F_Status_Nonseatus;				// 상태 초기화
+						P_System_Master_Follwing_ON_State_Machine = 0;							// 스텟머신 초기화
+						P_System_Master_Following_ON_Complete_Flag = 1;							// 컴플리트 신호 On
+					}
+				}
+			break;
+		}
+	}
+}
+
+return;
+
+sub: Master_Following_Sequence_Off_Module(void)
+local L_Spool_Num = P_Selected_Spool_Number;
+if( P_System_Master_Following_OFF_Status == F_Status_STARTING )									// 스타팅 상태라면
+{
+	P_System_Master_Following_OFF_Status = F_Status_EXECUTE;									// 생산 상태로 변경
+	P_System_Master_Follwing_OFF_State_Machine = 1;												// 스텟머신 시작.
+}
+
+if( P_Driving_Motor_Use_Flag == 1 )																// 드라이빙 모터를 사용 하게 된다면
+{
+	if( P_System_Master_Following_OFF_Status == F_Status_EXECUTE )
+	{
+		switch( P_System_Master_Follwing_OFF_State_Machine )
+		{
+			case 0:	//idle
+			break;
+	
+			case 1:		// 모터 확인
+				if( P_Selected_Spool_Number == N_UNWINDER_UPPER )							// 상부 모터인지
+				{
+					Motor[L_Spool_Num].MasterCtrl = 0;	
+					P_System_Master_Follwing_OFF_State_Machine++;
+				}
+				else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )						// 하부 모터인지
+				{
+					Motor[L_Spool_Num].MasterCtrl = 0;	
+					P_System_Master_Follwing_OFF_State_Machine++;
+				}
+			break;
+	
+
+			case 2:
+				if( P_Selected_Spool_Number == N_UNWINDER_UPPER )							// 상부 모터인지
+				{
+					if( Motor[L_Spool_Num].MasterCtrl == 0 )
+					{
+						P_System_Master_Following_OFF_Status = F_Status_Nonseatus;				// 상태 초기화
+						P_System_Master_Follwing_OFF_State_Machine = 0;							// 스텟머신 초기화
+						P_System_Master_Following_OFF_Complete_Flag = 1;						// 컴플리트 신호 On
+					}
+				}
+				else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )						// 하부 모터인지
+				{
+					if( Motor[L_Spool_Num].MasterCtrl == 0 )
+					{
+						P_System_Master_Following_OFF_Status = F_Status_Nonseatus;				// 상태 초기화
+						P_System_Master_Follwing_OFF_State_Machine = 0;							// 스텟머신 초기화
+						P_System_Master_Following_OFF_Complete_Flag = 1;						// 컴플리트 신호 On
+					}
+				}
+			break;
+		}
+	}
+}
+else				// 드라이빙 모터를 사용 안하고, 가상축 CamTable Motor 의한 마스터 팔로잉을 해야 한다면
+{
+	if( P_System_Master_Following_OFF_Status == F_Status_EXECUTE )
+	{
+		switch( P_System_Master_Follwing_OFF_State_Machine )
+		{
+			case 0:	//idle
+			break;
+	
+			case 1:		// 모터 확인
+				if( P_Selected_Spool_Number == N_UNWINDER_UPPER )							// 상부 모터인지
+				{
+					Motor[L_Spool_Num].MasterCtrl = 0;	
+					P_System_Master_Follwing_OFF_State_Machine++;
+				}
+				else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )						// 하부 모터인지
+				{
+					Motor[L_Spool_Num].MasterCtrl = 0;	
+					P_System_Master_Follwing_OFF_State_Machine++;
+				}
+			break;
+	
+
+			case 2:
+				if( P_Selected_Spool_Number == N_UNWINDER_UPPER )							// 상부 모터인지
+				{
+					if( Motor[L_Spool_Num].MasterCtrl == 0 )
+					{
+						P_System_Master_Following_OFF_Status = F_Status_Nonseatus;				// 상태 초기화
+						P_System_Master_Follwing_OFF_State_Machine = 0;							// 스텟머신 초기화
+						P_System_Master_Following_OFF_Complete_Flag = 1;						// 컴플리트 신호 On
+					}
+				}
+				else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )						// 하부 모터인지
+				{
+					if( Motor[L_Spool_Num].MasterCtrl == 0 )
+					{
+						P_System_Master_Following_OFF_Status = F_Status_Nonseatus;				// 상태 초기화
+						P_System_Master_Follwing_OFF_State_Machine = 0;							// 스텟머신 초기화
+						P_System_Master_Following_OFF_Complete_Flag = 1;						// 컴플리트 신호 On
+					}
+				}
+			break;
+		}
+	}
+}
+
+return;
+
+sub: Sepa_Line_Speed_CamTable_On(void)
+
+if( P_System_CamTable_ON_Status == F_Status_STARTING )
+{
+	P_System_CamTable_ON_Status = F_Status_EXECUTE;
+	P_System_CamTable_ON_State_Machine = 1;
+}
+
+if( P_Driving_Motor_Use_Flag == 1 )													// 드라이빙 모터를 사용 하게 된다면
+{
+	if( P_System_CamTable_ON_Status == F_Status_EXECUTE )
+	{
+		switch( P_System_CamTable_ON_State_Machine )
+		{
+			case 0:	//idle
+			break;
+	
+			case 1:	// 소스 모터 타겟 모터 Servo On
+				CMD"#%d j/",N_DRIVING_ROLL;
+				CMD"#%d j/",N_SUB_FEEDING_ROLL;
+				CMD"#%d j/",61;
+				P_System_CamTable_ON_State_Machine++;
+			break;
+	
+			case 2:
+				CamTable[0].enable = 1;												// 드라이빙 모터 캠테이블 on
+				CamTable[1].enable = 1;												// 피딩롤 모터 캠테이블 on
+				P_System_CamTable_ON_State_Machine++;
+			break;
+
+			case 3:
+				if( CamTable[0].enable == 1 && CamTable[1].enable == 1 )
+				{
+					P_System_CamTable_ON_Status = F_Status_Nonseatus;				// 상태 초기화
+					P_System_CamTable_ON_State_Machine = 0;							// 스텟머신 초기화
+					P_System_CamTable_ON_Complete_Flag = 1;							// 컴플리트 
+				}
+			break;
+		}
+	}
+}
+else				// 드라이빙 모터를 사용 안하고, 가상축 CamTable Motor 의한 마스터 팔로잉을 해야 한다면
+{
+	if( P_System_CamTable_ON_Status == F_Status_EXECUTE )
+	{
+		switch( P_System_CamTable_ON_State_Machine )
+		{
+			case 0:	//idle
+			break;
+	
+			case 1:	// 소스 모터 타겟 모터 Servo On
+				CMD"#%d j/",60;
+				CMD"#%d j/",61;
+				P_System_CamTable_ON_State_Machine++;
+			break;
+	
+			case 2:
+				CamTable[3].enable = 1;												// 가상축 모터 캠테이블 on
+				P_System_CamTable_ON_State_Machine++;
+			break;
+
+			case 3:
+				if( CamTable[3].enable == 1 )
+				{
+					P_System_CamTable_ON_Status = F_Status_Nonseatus;				// 상태 초기화
+					P_System_CamTable_ON_State_Machine = 0;							// 스텟머신 초기화
+					P_System_CamTable_ON_Complete_Flag = 1;							// 컴플리트 
+				}
+			break;
+		}
+	}
+}
+return;
+
+sub: Sepa_Line_Speed_CamTable_Off(void)
+
+if( P_System_CamTable_OFF_Status == F_Status_STARTING )
+{
+	P_System_CamTable_OFF_Status = F_Status_EXECUTE;
+	P_System_CamTable_OFF_State_Machine = 1;
+}
+
+if( P_Driving_Motor_Use_Flag == 1 )													// 드라이빙 모터를 사용 하게 된다면
+{
+	if( P_System_CamTable_OFF_Status == F_Status_EXECUTE )
+	{
+		switch( P_System_CamTable_OFF_State_Machine )
+		{
+			case 0:	//idle
+			break;
+	
+			case 1:	// 캠테이블 off
+				CamTable[0].enable = 0;												// 드라이빙 모터 캠테이블 off
+				CamTable[1].enable = 0;												// 피딩롤 모터 캠테이블 off
+				P_System_CamTable_OFF_State_Machine++;
+			break;
+	
+			case 2:	// 소스모터 kill
+				if( CamTable[0].enable == 0 && CamTable[1].enable == 0 )
+				{
+					kill 60;
+					P_System_CamTable_OFF_Status = F_Status_Nonseatus;				// 상태 초기화
+					P_System_CamTable_OFF_State_Machine = 0;						// 스텟머신 초기화
+					P_System_CamTable_OFF_Complete_Flag = 1;						// 컴플리트 
+				}
+				
+			break;
+
+		}
+	}
+}
+else				// 드라이빙 모터를 사용 안하고, 가상축 CamTable Motor 의한 마스터 팔로잉을 해야 한다면
+{
+	if( P_System_CamTable_OFF_Status == F_Status_EXECUTE )
+	{
+		switch( P_System_CamTable_OFF_State_Machine )
+		{
+			case 0:	//idle
+			break;
+	
+			case 1:	// 캠테이블 off
+				CamTable[3].enable = 0;												//  가상축 모터 캠테이블 off		
+				P_System_CamTable_OFF_State_Machine++;
+			break;
+	
+			case 2:	// 소스모터 kill 가상축 모터 kill
+				if( CamTable[3].enable == 0 )
+				{
+					kill 60,61;
+					P_System_CamTable_OFF_Status = F_Status_Nonseatus;				// 상태 초기화
+					P_System_CamTable_OFF_State_Machine = 0;						// 스텟머신 초기화
+					P_System_CamTable_OFF_Complete_Flag = 1;						// 컴플리트 
+				}	
+			break;
+		}
+	}
+}
+return;
+
+
+sub: Servo_Dancer_Cascading_Set(void)
+
+if( P_System_Cascading_ON_Status == F_Status_STARTING )
+{
+	P_System_Cascading_ON_Status = F_Status_EXECUTE;
+	P_System_Cascading_ON_State_Machine = 1;	
+}
+
+if( P_System_Cascading_ON_Status == F_Status_EXECUTE )
+{
+	switch( P_System_Cascading_ON_State_Machine )
+	{
+		case 0:	// IDLE
+		break;
+
+		case 1:	//토크모드 변경
+			CMD"#%dout %d",N_SERVO_DANCER,0;															// 토크모드 변경
+			sendallcmds // 모든 커맨드문 버퍼를 비워냄
+			while (Ldata.CmdStatus == 1) {} // 모든 커맨드문 버퍼가 비워질 때 까지 대기
+			P_System_Cascading_ON_State_Machine++;
+		break;
+
+		case 2:	// 케스케이딩 해제
+			if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+			{
+				cmd"#%d kill",0;
+				cmd"#%d kill",N_UNWINDER_UPPER;
+			}
+			else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+			{
+				cmd"#%d kill",0;
+				cmd"#%d kill",N_UNWINDER_LOWER;
+			}
+			Sys.CompEnable = 0;															// 케스케이딩 해제
+			P_System_Cascading_ON_State_Machine++;
+		break;
+
+		case 3:	// Spool 활성화
+			if( Sys.CompEnable == 0 )
+			{
+				if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+					cmd"#%d j/",N_UNWINDER_UPPER;
+				else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+					cmd"#%d j/",N_UNWINDER_LOWER;
+
+				P_System_Cascading_ON_State_Machine++;
+			}
+		break;
+
+		case 4:	// 초기 위치 탐색
+			#ifdef F_Virtual_Axis_Test
+				P_System_Cascading_ON_State_Machine = 8;
+			#else
+			if( P_Motor_Current_Pos(N_SERVO_DANCER) > 0 )											// 스텍방향 기준 아래로 쳐져있다면
+			{
+				if( P_Selected_Spool_Number == N_UNWINDER_UPPER )							
+				{
+					motor[N_UNWINDER_UPPER].jogspeed = 5;												// 조그 속도 지정
+					cmd"#%d j+",N_UNWINDER_UPPER;														// +방향은 Spool기준 역회전 ( 당김 )
+				}
+				else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+				{
+					motor[N_UNWINDER_LOWER].jogspeed = 5;												// 조그 속도 지정
+					cmd"#%d j+",N_UNWINDER_LOWER;														// +방향은 Spool기준 역회전 ( 당김 )
+				}
+				P_System_Cascading_ON_State_Machine++;
+				P_Servo_Dancer_Cascading_Set_Timer = 0;									// 타이머 초기화
+			}
+			#endif
+		break;
+
+		case 5:	// 댄서 0위치 근접 ( 댄서의 토크는 0 )
+			if( P_Servo_Dancer_Cascading_Set_Timer > 10 )								// 10ms 이후 
+			{ 
+				if( P_Motor_Current_Pos(N_SERVO_DANCER) <= 0 )										// 스텍방향 기준 0근접 
+				{
+					if( P_Selected_Spool_Number == N_UNWINDER_UPPER )						
+						cmd"#%d j/",N_UNWINDER_UPPER;														// 정지
+					else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+						cmd"#%d j/",N_UNWINDER_LOWER;														// 정지
+
+					P_System_Cascading_ON_State_Machine++;
+				}
+			}
+		break;
+
+		case 6:	// 댄서 베이스 토크 삽입
+			CMD"#%dout %d",N_SERVO_DANCER,P_OutValue;										//	P_OutValue = 기본 토크값
+			sendallcmds																		// 모든 커맨드문 버퍼를 비워냄
+			while (Ldata.CmdStatus == 1) {}													// 모든 커맨드문 버퍼가 비워질 때 까지 대기
+			P_System_Cascading_ON_State_Machine++;
+			P_Servo_Dancer_Cascading_Set_Timer = 0;
+		break;
+
+		case 7:	// 토크 증가 후 텐션 변화 생김 -> Spool로 텐션 잡아주는 란.
+			if( P_Servo_Dancer_Cascading_Set_Timer > 100 )									// 100ms
+			{
+				if( P_Motor_Current_Pos(N_SERVO_DANCER) < 0.5 &&  P_Motor_Current_Pos(N_SERVO_DANCER) > - 0.5 )		// 오차범위 0.5 
+				{
+					if( P_Selected_Spool_Number == N_UNWINDER_UPPER )							
+						cmd"#%d j/",N_UNWINDER_UPPER;										// 정지
+					else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+						cmd"#%d j/",N_UNWINDER_LOWER;										// 정지
+
+					P_System_Cascading_ON_State_Machine++;
+				}
+				else																		// 오차범위에서 벗어나면
+				{
+					if( P_Motor_Current_Pos(N_SERVO_DANCER) < 0.5 )										// 댄서의 위치가 위로 쏠림 ( 언와인더 당김이 쌤 )
+					{
+						if( P_Selected_Spool_Number == N_UNWINDER_UPPER )													
+							cmd"#%d j-",N_UNWINDER_UPPER;									// -방향이 풀어주는방향
+						else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+							cmd"#%d j-",N_UNWINDER_LOWER;									// -방향이 풀어주는 방향
+					}
+					else if( P_Motor_Current_Pos(N_SERVO_DANCER) > 0.5 )								// 댄서의 위치가 아래로 쏠림 ( 스텍쪽 당김이 쌤 )
+					{
+						if ( P_Selected_Spool_Number == N_UNWINDER_UPPER )													
+							cmd"#%d j+",N_UNWINDER_UPPER;									// +방향이 감는방향
+						else if ( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+							cmd"#%d j+",N_UNWINDER_LOWER;									// +방향이 감는방향
+					}
+				}
+			}
+		break;
+
+		case 8:	// 텐션이 잡혔으므로 Homez 
+			if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+			{	
+				P_Home_Command(N_UNWINDER_UPPER) = F_Command_Start;	
+				//cmd"#%d homez",N_UNWINDER_UPPER;
+			}
+			else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+			{	
+				P_Home_Command(N_UNWINDER_LOWER) = F_Command_Start;	
+				//cmd"#%d homez",N_UNWINDER_LOWER;
+			}
+			P_System_Cascading_ON_State_Machine++;
+		break;
+
+		case 9:	// Cascading On												
+			cmd"#%d j/",0;
+			cmd"#%d homez",0;
+			Sys.CompEnable = 1;															// cascading on
+			P_System_Cascading_ON_State_Machine++;
+		break;
+
+		case 10:	// 완료
+			if( Sys.CompEnable )
+			{
+				P_System_Cascading_ON_Status = F_Status_Nonseatus;						// 상태 초기화
+				P_System_Cascading_ON_State_Machine = 0;								// 스텟머신 초기화
+				P_System_Cascading_ON_Complete_Flag = 1;								// 서보댄서 준비 완료
+			}
+			else
+				Sys.CompEnable = 1;	
+		break;
+	}
+}
+return;
+
+
+sub: Servo_Dancer_Cascading_Off(void)
+
+if( P_System_Cascading_OFF_Status == F_Status_STARTING )
+{
+	P_System_Cascading_OFF_Status = F_Status_EXECUTE;
+	P_System_Cascading_OFF_State_Machine = 1;
+}
+
+if( P_System_Cascading_OFF_Status == F_Status_EXECUTE )
+{
+	switch( P_System_Cascading_OFF_State_Machine )
+	{
+		case 0:
+		break;
+
+		case 1:	// 케스케이딩 확인
+			if( Sys.CompEnable )														// cascading 확인
+			{
+				P_System_Cascading_OFF_State_Machine++;
+			}
+			else
+			{
+				P_System_Cascading_OFF_Status = F_Status_Nonseatus;						// 상태 초기화
+				P_System_Cascading_OFF_State_Machine = 0;								// 스텟머신 초기화
+				P_System_Cascading_OFF_Complete_Flag = 1;								// 케스케이딩 종료 완료
+			}
+		break;
+
+		case 2:	// 댄서 모터 출력 저하		( Stop 되어도 어느정도 밀어주는 힘은 있어야 하므로 )
+			Motor[N_SERVO_DANCER].ServoOut = P_OutValue / 2;										// 베이스 토크 절반
+			P_System_Cascading_OFF_State_Machine++;
+			P_Servo_Dancer_Cascading_Off_Timer = 0;										// 타이머 초기화
+		break;
+		
+		case 3:	// 케스케이딩 해제 및 잔류 토크보정 값 초기화
+			if( P_Servo_Dancer_Cascading_Off_Timer > 50 )								// 50ms 
+			{
+				Sys.CompEnable = 0;														// 케스케이딩 종료
+				motor[N_SERVO_DANCER].CompDac = 0;										// 잔류 토크보정 값 초기화
+				cmd"#%d j/",N_SERVO_DANCER;												// Close Loop 변환
+				P_System_Cascading_OFF_State_Machine++;
+			}
+		break;
+
+		case 4:	// 완료
+			P_System_Cascading_OFF_Status = F_Status_Nonseatus;							// 상태 초기화
+			P_System_Cascading_OFF_State_Machine = 0;									// 스텟머신 초기화
+			P_System_Cascading_OFF_Complete_Flag = 1;									// 케스케이딩 종료 완료
+		break;
+	}
+}
+
+return;
+
+sub: Frist_Dancer_Home_Ready_Pos(void) // ( 댄서 모터 위치가 어디있는지 모르므로, 홈잡다가 기재가 찢길수 있으므로 기재를 풀어주고 잡는다 )
+
+local L_Spool_Num = P_Selected_Spool_Number;
+if( P_System_Spool_Home_Ready_Pos_Status == F_Status_STARTING )
+{
+	P_System_Spool_Home_Ready_Pos_Status = F_Status_EXECUTE;
+	P_System_Spool_Home_Ready_Pos_State_Machine = 1;
+}
+
+if( P_System_Spool_Home_Ready_Pos_Status == F_Status_EXECUTE )
+{
+	switch( P_System_Spool_Home_Ready_Pos_State_Machine )
+	{
+		case 0:
+		break;
+		
+		case 1:	// 200mm 풀어주고 홈 Cmd 
+				// 20deg 145mm
+			local L_Spool_Ready_Pos = 200;
+			if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+			{
+				P_Home_Spool_Unwinding = ((L_Spool_Ready_Pos * 360) / P_PLC06_Spool_Circumference) * 1000;		// 댄서 모터 홈 잡기 전 세파 200mm 풀기
+				Motor[L_Spool_Num].JogSpeed = P_Home_Spool_Unwinding / 1000;
+			}
+			else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+			{
+				P_Home_Spool_Unwinding = ((L_Spool_Ready_Pos * 360) / P_PLC06_Spool_Circumference) * 1000;		// 댄서 모터 홈 잡기 전 세파 200mm 풀기
+				Motor[L_Spool_Num].JogSpeed = P_Home_Spool_Unwinding / 1000;
+			}
+
+			P_System_Spool_Home_Ready_Pos_State_Machine++;
+			P_Dancer_Frist_Home_Ready_Pos_Timer = 0;
+		break;
+
+		case 2:	// 조그 커맨드
+			if( P_Dancer_Frist_Home_Ready_Pos_Timer > 100 )
+			{
+				if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+				{
+					cmd"#%d j:-%f",N_UNWINDER_UPPER,P_Home_Spool_Unwinding;
+				}
+				else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+				{
+					cmd"#%d j:-%f",N_UNWINDER_LOWER,P_Home_Spool_Unwinding;
+				}
+				P_System_Spool_Home_Ready_Pos_State_Machine++;
+			}
+		break;
+
+		case 3:	// 모터 정지 대기
+			if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+			{
+				if( motor[L_Spool_Num].DesVelZero )
+					P_System_Spool_Home_Ready_Pos_State_Machine++;
+			}
+			else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+			{
+				if( motor[L_Spool_Num].DesVelZero )
+					P_System_Spool_Home_Ready_Pos_State_Machine++;
+			}
+			
+		break;
+
+		case 4:	// 완료
+			P_System_Spool_Home_Ready_Pos_Status = F_Status_Nonseatus;								// 상태 초기화
+			P_System_Spool_Home_Ready_Pos_State_Machine = 0;										// 스텟머신 초기화
+			P_System_Spool_Home_Ready_Pos_Complete_Flag = 1;										// 컴플리트 
+		break;
+	}
+}
+return;
+
+close
+
+
+

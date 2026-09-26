@@ -1,0 +1,175 @@
+
+
+&34
+#46-> 1000x		// 1차 언로더 x축
+#47-> 1000z		// 1차 언로더 z축
+#48-> 1000tt	// 1차 언로더 t축
+//===============//
+
+
+
+open prog 34
+	
+	ABS					// 절대좌표모드
+	LINEAR
+	
+	while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(14) == 1 && P_Slave_Motion_Program_Flag(14) == 1 )
+	{	// 프로그램 허용 플래그
+	
+		Switch ( P_Slave14_Motion_Command )
+		{	
+			// 커멘드별 모션
+			case 0:
+			break;
+
+			// case 1
+			case N_1st_UND_Stack_UP_Motion :				// [1] 언로더 스택위치 ( 상승 )
+				P_Slave14_Motion_Command == 0;
+				P_First_Unloader_Stack_Up_Status == F_Status_EXECUTE;
+				tm(280)ta(220)ts(50)		// 550ms
+				//tm(255)ta(210)ts(35)		// 500ms
+				x(P_1st_ULD_X_Stack)		// 100mm ( 105.4 mm 이동 )		   리드 20mm   rps 5.27 * 1000 / 200 * 60 = 1581rpm
+				z(P_1st_ULD_Z_Stack + (((P_Anode_Thickness + P_Sepa_Thickness ) * P_Anode_Count) + ((P_Cathode_Thickness + P_Sepa_Thickness ) * P_Cathode_Count)))		// -9.79mm ( 78.79 mm 이동 )   리드 10mm	  rps 7.87 * 1000 / 200 * 60 = 2361 rpm
+				//DIO 언클램프 
+				M_Y_1st_Unloader_Grip_Sol == 0;								
+				M_Y_1st_Unloader_UnGrip_Sol	== 1;							
+				dwell(0);
+				P_First_Unloader_Stack_Up_Status == F_Status_COMPLETE;
+				dwell(0);
+			break;
+
+			// case 2
+			case N_1st_UND_Stack_FWD_Motion:				// [2] 언로더 진입				
+				P_Slave14_Motion_Command == 0;
+				P_First_Unloader_Stack_FWD_Status == F_Status_EXECUTE;
+				tm(400)ta(150)ts(50)								// 500ms	// 1271mm/s
+				x(P_1st_ULD_X_FWD)						// 487.8mm ( 387.8mm 이동 )      리드 20mm  rps 19.5 * 1000 / 500 * 60 = 2340 rpm
+				dwell(0);												
+				P_First_Unloader_Stack_FWD_Status == F_Status_COMPLETE;
+				dwell(0);
+			break;
+			
+			// case 3
+			case N_1st_UND_Cell_Grip_UP_Motion:				// [3] 언로더 그립 전 셀 부착 위치
+				P_Slave14_Motion_Command == 0;
+				P_First_Unloader_Grip_Cell_Status == F_Status_EXECUTE;
+				tm(0)ta(70)ts(30)								// 100ms 
+				z(P_1st_ULD_Z_Cutting_For_Cell + (((P_Anode_Thickness + P_Sepa_Thickness ) * P_Anode_Count) + ((P_Cathode_Thickness + P_Sepa_Thickness ) * P_Cathode_Count)))	// -12.79mm ( 3mm 이동 )			리드 10mm	rps 0.3 * 1000 / 50 * 60 = 360rpm
+				dwell(0);
+				P_First_Unloader_Grip_Cell_Status == F_Status_COMPLETE;
+				dwell(0);
+			break;
+
+			// case 4
+			case N_1st_UND_BWD_UP_Motion:					// [4] 언로더 그립 후 후진을 위한 위치
+				P_Slave14_Motion_Command == 0;
+				P_First_Unloader_Stack_BWD_Wait_Status == F_Status_EXECUTE;
+				tm(0)ta(45)ts(5)								// 100ms 
+				z(P_1st_ULD_Z_Discharge_For_Cell + (((P_Anode_Thickness + P_Sepa_Thickness ) * P_Anode_Count) + ((P_Cathode_Thickness + P_Sepa_Thickness ) * P_Cathode_Count)))	// -20.79mm ( 8mm 이동 )			리드 10mm	rps 0.8 * 1000 / 30 * 60 = 480rpm
+				dwell(0);
+				P_First_Unloader_Stack_BWD_Wait_Status == F_Status_COMPLETE;
+				dwell(0);
+			break;
+
+			// case 5
+			case N_1st_UND_BWD_Motion:						// [5] 언로더 후진
+				P_Slave14_Motion_Command == 0;
+				P_First_Unloader_Stack_BWD_Status == F_Status_EXECUTE;
+				tm(600)ta(180)ts(70)							//650ms 
+				x(P_1st_ULD_X_Init_Pos)				// -6.55mm  ( 494.35mm 이동 )	리드 20mm	rps  24.71 * 1000 / 650 * 60 = 2280rpm
+				dwell(0);
+				P_First_Unloader_Stack_BWD_Status == F_Status_COMPLETE;
+				dwell(0);
+			break;
+
+			// case 6
+			case N_1st_UND_BWD_Down_Motion:				// [6] 언로더 하강
+				P_Slave14_Motion_Command == 0;
+				P_First_Unloader_Stack_Down_Status == F_Status_EXECUTE;
+				tm(305)ta(210)ts(35)							//1000ms 
+				z(P_1st_ULD_Z_Target_Down)				// 69mm		( 89.79mm 이동 )		리드 10mm	rps 8.97 * 1000 / 1000 * 60 = 538.2
+				dwell(0);
+				P_First_Unloader_Stack_Down_Status == F_Status_COMPLETE;
+				dwell(0);
+			break;
+			
+
+//========================================================================================================================================================================
+			//F_Def_Stack_A
+			
+			// case 7
+			case N_1st_UND_Handover_Motion:					// [7] 언로더 2차 인계위치
+				P_Slave14_Motion_Command == 0;
+				P_First_Unloader_Handover_Status == F_Status_EXECUTE;
+				//tm(400)ta(85)ts(10)								//500ms + 300 
+				//260612 1차 언로더 2차 언로더 인계 위치 이동 시간 2배
+				tm(800)ta(170)ts(20)								//990ms
+				tt(P_1st_ULD_T_90_Angle) x( P_1st_ULD_X_Init_Pos )
+				dwell(0);
+				P_First_Unloader_Handover_Status == F_Status_COMPLETE;
+				dwell(0);
+			break;
+
+			// case 8
+			case N_1st_UND_Avoid_Motion:					// [8] 언로더 회피위치
+				P_Slave14_Motion_Command == 0;
+				P_First_Unloader_Avoid_Status == F_Status_EXECUTE;
+				tm(400)ta(100)ts(30)								//300ms  
+				tt(P_1st_ULD_T_Avoid_Angle)
+				// DIO 그립
+				//M_Y_2nd_Unloader_Discharge_Complete == 1;		// 2차 언로더 후진 요청 DIO
+				M_Y_1st_Unloader_Grip_Sol == 1;
+				M_Y_1st_Unloader_UnGrip_Sol == 0;
+				dwell(0);
+				P_First_Unloader_Avoid_Status == F_Status_COMPLETE;
+				dwell(0);
+			break;
+
+			// case 9
+			case N_1st_UND_Turn_Motion:						// [9] 언로더 대기위치로 회전
+				P_Slave14_Motion_Command == 0;
+				P_First_Unloader_Turn_Status == F_Status_EXECUTE;
+				tm(200)ta(80)ts(15)								//300ms  
+				tt(P_1st_ULD_T_Wait) 
+				dwell(0);
+				P_First_Unloader_Turn_Status == F_Status_COMPLETE;
+				dwell(0);
+			break;
+
+			//endif
+
+			/*#ifdef F_Def_Stack_B
+			case 7:					// 언로더 3차 인계위치
+				P_Slave14_Motion_Command == 0;
+				tm(100)ta(15)ts(5)								//120ms 
+				tt(P_1st_ULD_T_90_Angle)
+			break;
+
+			case 8:					// 언로더 회피위치
+				P_Slave14_Motion_Command == 0;
+				tm(100)ta(15)ts(5)								//120ms  // PLC협의필요 3차언로더 상승 속도 알아야함
+				tt(P_1st_ULD_T_Wait)
+				// DIO 그립
+				M_Y_3rd_Unloader_Discharge_Complete == 1		// 3차 언로더 후진 요청
+				M_Y_1st_Unloader_Grip == 1;
+				M_Y_1st_Unloader_UnGrip == 0;
+				dwell(0);
+			break;
+
+			case 9:					// 언로더 대기위치로 회전
+				P_Slave14_Motion_Command == 0;
+				tm(200)ta(80)ts(15)								//300ms  
+				tt(P_1st_ULD_T_Wait)
+			break;
+
+			#endif
+			*/
+			default :
+
+			break;
+
+		}
+		
+	}
+
+close

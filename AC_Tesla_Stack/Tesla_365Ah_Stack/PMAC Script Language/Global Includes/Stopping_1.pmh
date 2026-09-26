@@ -1,0 +1,39 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+
+#define Total_DesVelZero_Bit	Motor[1].DesVelZero&Motor[2].DesVelZero & Motor[3].DesVelZero & Motor[4].DesVelZero & Motor[5].DesVelZero & Motor[6].DesVelZero & Motor[7].DesVelZero & Motor[8].DesVelZero&\
+								Motor[9].DesVelZero&Motor[10].DesVelZero & Motor[11].DesVelZero & Motor[12].DesVelZero & Motor[13].DesVelZero & Motor[17].DesVelZero & Motor[18].DesVelZero & Motor[19].DesVelZero&\
+								Motor[20].DesVelZero&Motor[21].DesVelZero & Motor[22].DesVelZero & Motor[38].DesVelZero&Motor[39].DesVelZero&Motor[40].DesVelZero&Motor[41].DesVelZero
+
+#define All_Home_Stop_Bit		Motor[43].DesVelZero&Motor[44].DesVelZero&Motor[45].DesVelZero&Motor[46].DesVelZero&Motor[47].DesVelZero&Motor[48].DesVelZero&Total_DesVelZero_Bit
+global P_Status_Stop_Ready_Pos_Move = 0;	//사이클 정지 큐 상태
+global P_Cycle_Stop_Stauts = 0;				//사이클 스탑 상태
+global P_Cycle_Stop_Status_Machine = 0;		//사이클 스탑 스텟머신
+global P_Cycle_Stop_Flag = 0;				//사이클 스탑 스텟머신 실행 플래그
+
+global P_Speed_Origin_rtn = 0;				// 스피드 값 원복 함수 반환값
+global P_Speed_rtn = 0;						// 기존 스피드 저장 및 스피드 재부여 반환값
+global P_NG_PNP_Z_Move_rtn					// NG PNP Z축 이동명령 함수 반환값
+global P_NG_PNP_Z_Move_Check_rtn = 0;		// NG PNP Z축 이동확인 함수 반환값
+global P_NG_PNP_T_Move_rtn = 0;				// NG PNP X축 이동명령 함수 반환값
+global P_NG_PNP_T_Move_Check_rtn = 0;		// NG PNP X축 이동확인 함수 반환값
+global P_2nd_Z_Move_rtn = 0;				// 2차 PNP Z축 이동명령 함수 반환값
+global P_2nd_Z_Move_Check_rtn = 0;			// 2차 PNP Z축 이동확인 함수 반환값
+global P_2nd_T_Move_rtn = 0;				// 2차 PNP X축 이동명령 함수 반환값
+global P_2nd_T_Move_Check_rtn = 0;			// 2차 PNP X축 이동확인 함수 반환값
+
+//250718
+global P_Stack_Judgement_Memory = 0;	// 젤리롤 유무 판단 변수 (일반모드 - 젤리롤 o, 세파모드 적층 진행중 확인 ) → Status clear 해줄때도 추가해주기
+
+#define N_STOP_Initial_Ready	22
+#define N_STOP_CylcleStop_Ready 22
+#define N_QUEUE_STOP_Interval	500
+
+global P_Stop_Cycle_Stop_Move_Status = 0;	// 사이클 정지 큐 상태
+global P_STOP_Initial_Process_Status = 0;	// N_Function_Stop_Initial_Process Queue 상태
+global P_Stopping_CycleStop_Init_Flag = 0;  // 사이클 스탑 모듈 상태 초기화 
+

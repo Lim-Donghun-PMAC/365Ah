@@ -1,0 +1,111 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.08.12 김성중 선임 
+// 1,2차 PNP 클랭크 Z축 수식 프로그램(Recipe to Count, Count to Recipe) 추가 - 김성중 선임
+// PNP Z축 레시피 관리 프로그램 추가 [ 참조 : 2025.08.27 PNP Z축 레시피 관리 프로그램 추가 ] -김성중 선임
+
+#define N_Crank_Radius		30				// 크랭크 반지름
+#define N_Crank_Rod			70				// 크랭크 길이
+#define PI					3.141592		// 원주율
+
+
+//=====================================================================================================================
+//음극 1차 PNP Z축 Crank 수식 변수 
+//=====================================================================================================================
+global P_AN_1st_Z_Zero_Angle = 90;			//음극 1차 PNP Z축 Crank 현재 각도 25도
+global P_AN_1st_Z_Zero_Length = 63.245;		//음극 1차 PNP Z축 실제 대기 위치 길이 
+
+global P_Anode_1st_PNP_Z_Crank_Zero_Pos = 0;			//음극 1차 PNP Z축 Crank 대기 위치 
+global P_Anode_1st_PNP_Z_Crank_real_Move_Pos = 0;		//음극 1차 PNP Z축 Crank 이동 거리
+
+global P_Anode_1st_PNP_Z_Crank_radian;					//음극 1차 PNP Z축 라디안 값 저장
+global P_Anode_1st_PNP_Z_Acos_denominator;				//음극 1차 PNP Acos 수식 분모값 저장 
+global P_Anode_1st_PNP_Z_Acos_numerator; 				//음극 1차 PNP Acos 수식 분자값 저장 
+global P_Anode_1st_PNP_Z_Crank_Angle;					//음극 1차 PNP Z축 Deg
+
+global P_Anode_1st_PNP_Z_Real_Move_Pos = 0;				//Count에 따른 음극 1차 PNP Z축이 이동한 거리
+
+global P_Anode_1st_Fwd_Bwd_Rise = 0						// 음극 1차 PNP 전후진 시 Z축 상승 위치
+
+//=====================================================================================================================
+//양극 1차 PNP Z축 Crank 수식 변수 
+//=====================================================================================================================
+global P_CA_1st_Z_Zero_Angle = 90;		//양극 1차 PNP Z축 Crank 현재 각도 25도
+global P_CA_1st_Z_Zero_Length = 63.245;		//양극 1차 PNP Z축 실제 대기 위치 길이 
+
+global P_Cathode_1st_PNP_Z_Crank_Zero_Pos = 0;			//양극 1차 PNP Z축 Crank 대기 위치 
+global P_Cathode_1st_PNP_Z_Crank_real_Move_Pos = 0;		//양극 1차 PNP Z축 Crank 이동 거리
+
+global P_Cathode_1st_PNP_Z_Crank_radian;				//양극 1차 PNP Z축 라디안 값 저장
+global P_Cathode_1st_PNP_Z_Acos_denominator;			//양극 1차 PNP Acos 수식 분모값 저장 
+global P_Cathode_1st_PNP_Z_Acos_numerator; 				//양극 1차 PNP Acos 수식 분자값 저장 
+global P_Cathode_1st_PNP_Z_Crank_Angle;					//양극 1차 PNP Z축 Deg
+
+global P_Cathode_1st_PNP_Z_Real_Move_Pos = 0;			//Count에 따른 양극 1차 PNP Z축이 이동한 거리
+
+global P_Cathode_1st_Fwd_Bwd_Rise = 0					// 양극 1차 PNP 전후진 시 Z축 상승 위치
+
+//=====================================================================================================================
+//음극 2차 PNP Z축 Crank 수식 변수 
+//=====================================================================================================================
+global P_AN_2nd_Z_Zero_Angle = 90;			//음극 2차 PNP Z축 Crank 현재 각도 25도
+global P_AN_2nd_Z_Zero_Length = 63.245;		//음극 2차 PNP Z축 실제 대기 위치 길이 
+
+global P_Anode_2nd_PNP_Z_Crank_Zero_Pos = 0;			//음극 2차 PNP Z축 Crank 대기 위치 
+global P_Anode_2nd_PNP_Z_Crank_real_Move_Pos = 0;		//음극 2차 PNP Z축 Crank 이동 거리
+
+global P_Anode_2nd_PNP_Z_Crank_radian;					//음극 2차 PNP Z축 라디안 값 저장
+global P_Anode_2nd_PNP_Z_Acos_denominator;				//음극 2차 PNP Acos 수식 분모값 저장 
+global P_Anode_2nd_PNP_Z_Acos_numerator; 				//음극 2차 PNP Acos 수식 분자값 저장 
+global P_Anode_2nd_PNP_Z_Crank_Angle;					//음극 2차 PNP Z축 Deg
+
+global P_Anode_2nd_PNP_Z_Real_Move_Pos = 0;				//Count에 따른 음극 2차 PNP Z축이 이동한 거리
+
+global P_Anode_2nd_Fwd_Bwd_Rise = 0						// 음극 2차 PNP 전후진 시 Z축 상승 위치
+
+//=====================================================================================================================
+//양극 2차 PNP Z축 Crank 수식 변수 
+//=====================================================================================================================
+global P_CA_2nd_Z_Zero_Angle = 90;		//양극 2차 PNP Z축 Crank 현재 각도 25도
+global P_CA_2nd_Z_Zero_Length = 63.245;		//양극 2차 PNP Z축 실제 대기 위치 길이 
+
+global P_Cathode_2nd_PNP_Z_Crank_Zero_Pos = 0;			//양극 2차 PNP Z축 Crank 대기 위치 
+global P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos = 0;		//양극 2차 PNP Z축 Crank 이동 거리
+
+global P_Cathode_2nd_PNP_Z_Crank_radian;				//양극 2차 PNP Z축 라디안 값 저장
+global P_Cathode_2nd_PNP_Z_Acos_denominator;			//양극 2차 PNP Acos 수식 분모값 저장 
+global P_Cathode_2nd_PNP_Z_Acos_numerator;				//양극 2차 PNP Acos 수식 분자값 저장 
+global P_Cathode_2nd_PNP_Z_Crank_Angle;					//양극 2차 PNP Z축 Deg
+
+global P_Cathode_2nd_PNP_Z_Real_Move_Pos = 0;			//Count에 따른 양극 2차 PNP Z축이 이동한 거리
+
+global P_Cathode_2nd_Fwd_Bwd_Rise = 0					// 양극 2차 PNP 전후진 시 Z축 상승 위치
+//=====================================================================================================================
+//레시피 이전 값 저장 변수
+//=====================================================================================================================
+//음극 1차 PNP 
+global P_Old_Recipe_Anode_1st_PNP_Z_Ready_Up = 0;				//음극 1차 PNP Z축 대기 상승 레시피 저장
+global P_Old_Recipe_Anode_1st_PNP_Z_Belt_Up = 0;				//음극 1차 PNP Z축 벨트 상승 레시피 저장	
+global P_Old_Recipe_Anode_1st_PNP_Z_Belt_Down = 0;				//음극 1차 PNP Z축 벨트 하강 레시피 저장			
+global P_Old_Recipe_Anode_1st_PNP_Z_Align_Up = 0;				//음극 1차 PNP Z축 얼라인 상승 레시피 저장	
+global P_Old_Recipe_Anode_1st_PNP_Z_Align_Down = 0;				//음극 1차 PNP Z축 얼라인 하강 레시피 저장	
+ //양극 1차 PNP 
+global P_Old_Recipe_Cathode_1st_PNP_Z_Ready_Up = 0;				//양극 1차 PNP Z축 대기 상승 레시피 저장 
+global P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Up = 0;				//양극 1차 PNP Z축 벨트 상승 레시피 저장		
+global P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Down = 0;			//양극 1차 PNP Z축 벨트 하강 레시피 저장			
+global P_Old_Recipe_Cathode_1st_PNP_Z_Align_Up = 0;				//양극 1차 PNP Z축 얼라인 상승 레시피 저장		
+global P_Old_Recipe_Cathode_1st_PNP_Z_Align_Down = 0;			//양극 1차 PNP Z축 얼라인 하강 레시피 저장	
+ //음극 2차 PNP
+global P_Old_Recipe_Anode_2nd_PNP_Z_Align_Up = 0;				//음극 2차 PNP Z축 얼라인 상승 레시피 저장		
+global P_Old_Recipe_Anode_2nd_PNP_Z_Align_Down = 0;				//음극 2차 PNP Z축 얼라인 하강 레시피 저장			
+global P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Up = 0;				//음극 2차 PNP Z축 스텍 상승 레시피 저장		
+global P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Down = 0;				//음극 2차 PNP Z축 스텍 하강 레시피 저장
+global P_Old_Recipe_Anode_2nd_PNP_Z_Ready_Up = 0;				//음극 2차 PNP Z축 대기 상승 레시피 저장
+ //양극 2차 PNP
+global P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Up = 0;				//양극 2차 PNP Z축 얼라인 상승 레시피 저장			
+global P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Down = 0;			//양극 2차 PNP Z축 얼라인 하강 레시피 저장			
+global P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Up = 0;				//양극 2차 PNP Z축 스텍 상승 레시피 저장			
+global P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Down = 0;			//양극 2차 PNP Z축 스텍 하강 레시피 저장	
+global P_Old_Recipe_Cathode_2nd_PNP_Z_Ready_Up = 0;				//양극 2차 PNP Z축 대기 상승 레시피 저장
+//=====================================================================================================================

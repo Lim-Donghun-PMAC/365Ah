@@ -1,0 +1,274 @@
+//==========================================================================================================================================================================================================================================
+// 프로그램 개정이력
+//==========================================================================================================================================================================================================================================
+// 25.06.25 이상준 S 
+// 내용 - 각 동작 타입 내 타겟 멤버별 동작완료 체크 함수 추가  
+// 25.07.01 
+// 내용 - [ 참조 : 25.07.01 소프트리밋 체크표시 TEST 위해 임시 조건 걸어둠 삭제예정 ]
+// 내용 - [ 참조 : 25.07.01 홈잉완료 체크표시 TEST 위해 임시 조건 걸어둠 삭제예정 ]
+// [ 참조 : 2025.07.23 홈 프로그램 추가 ] 
+
+/*
+open subprog Sub_Action_CHK_Module(void)
+
+//--------------------------------------------------------------------------------------------------------------------------------------
+//	01.각 멤버별 +회피동작 확인 함수  
+//--------------------------------------------------------------------------------------------------------------------------------------
+	sub:AH_Plus_Type_CHK(Member, &rtn)
+		// 동작 함수 중 하나인 Minus 이동 완료 함수 
+		// 모터번호지정 ( 상위함수에서 공용모터정보 배열변수를 업데이트하고 진입, Index로 멤버의 번호를 가져옴 ) 
+		local L_Motor_Num = 0;
+		L_Motor_Num = P_AH_Action_Target(Member);	
+		if( L_Motor_Num == 0 )
+		{// 대상정보가 0일 경우 
+			rtn = N_AH_TRUE;
+		}
+		else
+		{// 대상정보가 0이 아닐 경우 
+			if( Motor[L_Motor_Num].DesVelZero == 1 )
+			{ // 모터가 정지한 경우.
+				//if(Motor[L_Motor_Num].PlusLimit == 1)				
+				if(Motor[L_Motor_Num].SoftLimit == 1)			// [ 참조 : 25.07.01 소프트리밋 체크표시 TEST 위해 임시 조건 걸어둠 삭제예정 ]
+				{	// 동작 완료 
+					rtn = N_AH_TRUE;
+				}
+				else if( Motor[L_Motor_Num].SoftPlusLimit == 1 )
+				{
+					rtn = N_AH_TRUE;
+				}
+				else
+				{	// 동작 미완료시
+					rtn = N_AH_FALSE;	// FALSE값 반환.
+				}
+			}
+			else
+			{ // 동작중인 경우.
+				rtn = N_AH_Wait_Result;	// 대기값 반환.
+			}
+		}	
+	return
+//--------------------------------------------------------------------------------------------------------------------------------------
+//	02.각 멤버별 -회피동작 확인 함수  
+//--------------------------------------------------------------------------------------------------------------------------------------
+	sub:AH_Minus_Type_CHK(Member, &rtn)
+		// 동작 함수 중 하나인 Minus 이동 완료 함수 
+		// 모터번호지정 ( 상위함수에서 공용모터정보 배열변수를 업데이트하고 진입, Index로 멤버의 번호를 가져옴 ) 
+		local L_Motor_Num = 0;
+		L_Motor_Num = P_AH_Action_Target(Member);	
+		if( L_Motor_Num == 0 )
+		{
+			rtn = N_AH_TRUE;
+		}
+		else
+		{
+			if( Motor[L_Motor_Num].DesVelZero == 1  )
+			{ // 모터가 정지한 경우.
+				//if(Motor[L_Motor_Num].MinusLimit == 1)		
+				if(Motor[L_Motor_Num].SoftLimit == 1)			// [ 참조 : 25.07.01 소프트리밋 체크표시 TEST 위해 임시 조건 걸어둠 삭제예정 ]		
+				{	// 동작 완료 
+					rtn = N_AH_TRUE;
+					Motor[L_Motor_Num].MinPos = 0;
+				}
+				else if( Motor[L_Motor_Num].SoftMinusLimit == 1 )
+				{
+					rtn = N_AH_TRUE;
+					Motor[L_Motor_Num].MinPos = 0;
+				}
+				else
+				{	// 동작 미완료시
+					rtn = N_AH_FALSE;	// FALSE값 반환.
+				}
+			}
+			else
+			{ // 동작중인 경우.
+				rtn = N_AH_Wait_Result;	// 대기값 반환.
+			}
+		}
+	return
+//--------------------------------------------------------------------------------------------------------------------------------------
+//	03.각 멤버별 동작 함수 중 서보 온 확인 함수 
+//--------------------------------------------------------------------------------------------------------------------------------------
+	Sub:AH_Servo_ON_Type_CHK( Member, &rtn )	// Index : 멤버번호. 
+		local L_Motor_Num = P_AH_Action_Target(Member);	
+		if( L_Motor_Num == 0 )
+		{
+			rtn = N_AH_TRUE;
+		}
+		else
+		{
+			if( Motor[L_Motor_Num].AmpEna == 1  )
+			{ // 가상 축 및 모터 서보 온 체크 	
+					rtn = N_AH_TRUE;
+			}
+			else
+			{// Servo Off 일 경우 
+				rtn = N_AH_FALSE;	// FALSE값 반환.
+			}
+		}
+	return
+//--------------------------------------------------------------------------------------------------------------------------------------
+//	04.각 멤버별 동작 함수 중 IO 출력 확인 함수 
+//--------------------------------------------------------------------------------------------------------------------------------------	
+	sub:AH_IO_Type_CHK( Member, &rtn )
+		//// 선행동작함수 중 하나인 IO Off 동작 체크 함수
+		//switch(P_AH_Action_Target(Member))
+		//{			
+		//	case 0:
+		//		rtn = N_AH_TRUE;
+		//	break;
+		//	default: break; 
+		//}
+		rtn = N_AH_TRUE;
+	return
+
+
+//--------------------------------------------------------------------------------------------------------------------------------------
+//	05.각 맴버의 타입에 따라 홈 동작 완료 체크 
+//--------------------------------------------------------------------------------------------------------------------------------------
+	sub:AH_Home_Type_CHK( Member, &rtn)
+		local L_Motor_Num = P_AH_Action_Target(Member);
+		if( L_Motor_Num == 0 )
+		{
+			rtn = N_AH_TRUE;
+		}
+		else
+		{
+			if( Motor[L_Motor_Num].DesVelZero == 1 )
+			{
+				//if( P_PMAC_Homing_CHK(L_Motor_Num) == 1 && P_Axis_Ready_Pos(L_Motor_Num)+0.5 > P_Act_Motor_POS(L_Motor_Num) &&  P_Axis_Ready_Pos(L_Motor_Num)-0.5 < P_Act_Motor_POS(L_Motor_Num) )			// 축별 홈체크 완료표시 변수.
+				if( P_Resetting_Home_Check_Arry(L_Motor_Num) == 1 )
+				{
+					rtn = N_AH_TRUE;
+				}
+				else
+				{
+					rtn = N_AH_FALSE;
+				}
+			}				
+			else
+			{
+				rtn = N_AH_Wait_Result;
+			}
+		}
+	return
+//--------------------------------------------------------------------------------------------------------------------------------------
+//	06. 동작 정지 체크 확인하는 함수 
+//--------------------------------------------------------------------------------------------------------------------------------------
+	Sub:AH_Action_Stop_Type_CHK( Member, &rtn )	// Index : 멤버번호. 
+		local L_Motor_Num = P_AH_Action_Target(Member);	
+		if( L_Motor_Num == 0 )
+		{
+			rtn = N_AH_TRUE;
+		}
+		else
+		{
+			if( Motor[L_Motor_Num].DesVelZero == 1  )
+			{ // 정지 
+					rtn = N_AH_TRUE;
+			}
+			else
+			{// Servo Off 일 경우 
+				rtn = N_AH_FALSE;	// FALSE값 반환.
+			}
+		}
+	return
+//--------------------------------------------------------------------------------------------------------------------------------------
+//	07. Cascade Chk 함수  
+//--------------------------------------------------------------------------------------------------------------------------------------
+// All Home Management Action -언와인더 Cascade Chk 함수
+	sub:AH_Cascade_Type_CHK(Member, &rtn)
+		rtn=N_AH_Wait_Result;								// 리턴값 초기화
+		local L_Cur_Spool = P_Selected_Spool_Number;	// 현재 스풀번호 지정
+		local L_Dancer_No = 20;							// Dancer Motor 번호
+		local L_Chk(5); 								// 체크변수 선언 및 초기화
+		L_Chk(0),5 = 0;
+		
+		// Servo_Dancer_Cascading_Set 함수 프로그램 변수 확인 - TTS Sub24
+		if( P_System_Cascading_ON_Complete_Flag == 1 && P_System_Cascading_ON_State_Machine == 0 )
+			L_Chk(0) = 1;
+		// Spool Servo Status
+		if( Motor[L_Cur_Spool].AmpEna == 1 )
+			L_Chk(1) = 1;
+		// Dancer Servo OpenLoop 확인
+		if( Motor[L_Dancer_No].AmpEna == 1 && Motor[L_Dancer_No].ClosedLoop != 1 )
+			L_Chk(2) = 1;
+		// Dancer Torque 출력값 확인
+		if( Motor[L_Dancer_No].ServoOut ~ Motor[L_Dancer_No].MaxDac / P_OutValue )
+			L_Chk(3) = 1;
+		// Cascade On 상태 확인
+		if( Sys.CompEnable )
+			L_Chk(4) = 1;	
+		// All Check
+		if( L_Chk(0) & L_Chk(1) & L_Chk(2) & L_Chk(3) & L_Chk(4) )
+			rtn = N_AH_TRUE;				// 함수 동작 완료 보고
+			
+	return
+//--------------------------------------------------------------------------------------------------------------------------------------
+//	08. 언와인더 Cascade Stop Chk 함수 
+//--------------------------------------------------------------------------------------------------------------------------------------
+// All Home Stop Action -언와인더 Cascade Stop Chk 함수
+	sub:AH_Cascade_Stop_Type_CHK(Member, &rtn)
+		rtn=N_AH_Wait_Result;										// 리턴값 초기화
+		local L_Chk(5); 									// 체크변수 선언 및 초기화
+		L_Chk(0),5 = 0;	
+		// Servo_Dancer_Cascading_Off 함수 프로그램 변수 확인 - TTS Sub24
+		if( P_System_Cascading_OFF_Complete_Flag == 1 && P_System_Cascading_OFF_State_Machine == 0 )
+			L_Chk(0) = 1;
+		// Cascade Off 상태 확인
+		if( Sys.CompEnable == 0 )	
+			L_Chk(1) = 1;
+		// All Check
+		if( L_Chk(0) & L_Chk(1) )
+			rtn = N_AH_TRUE;				// 함수 동작 완료 보고
+	return
+
+//--------------------------------------------------------------------------------------------------------------------------------------
+//	09. 조그 절대위치 chk 함수 
+//--------------------------------------------------------------------------------------------------------------------------------------
+// All Home Stop Action -언와인더 Cascade Stop Chk 함수
+	sub:AH_Jog_Type_Cmd_CHK(Member, &rtn)
+		rtn = 0;
+		local L_Motor_Num = P_AH_Action_Target(Member);
+		if( L_Motor_Num == N_2nd_PnP_CA_T )
+		{
+			if( F_Cathode_2nd_T_Axis <= P_2nd_PnP_Init_Pos + 0.5 && F_Cathode_2nd_T_Axis >= P_2nd_PnP_Init_Pos - 0.5 )
+			{
+				rtn = N_AH_TRUE;				// 함수 동작 완료 보고
+			}
+		}
+		else if( L_Motor_Num == N_2nd_PnP_AN_T )
+		{
+			if( F_Anode_2nd_T_Axis <= P_2nd_PnP_Init_Pos + 0.5 && F_Anode_2nd_T_Axis >= P_2nd_PnP_Init_Pos - 0.5 )
+			{
+				rtn = N_AH_TRUE;				// 함수 동작 완료 보고
+			}
+		}
+		// 2차 pnp Z축 조그 이동  
+		else if( L_Motor_Num == N_2nd_PnP_CA_Z )
+		{
+			if( F_Cathode_2nd_Z_Axis  <= (P_Old_Cathode_2nd_Z_Pos + (P_2nd_PnP_Z_Avoid_Pos/1000)) + 0.5 && F_Cathode_2nd_Z_Axis  >= (P_Old_Cathode_2nd_Z_Pos + (P_2nd_PnP_Z_Avoid_Pos/1000)) - 0.5 )
+			{
+				rtn = N_AH_TRUE;				// 함수 동작 완료 보고
+			}
+		}
+		else if( L_Motor_Num == N_2nd_PnP_AN_Z )
+		{
+			if( F_Anode_2nd_Z_Axis  <= (P_Old_Anode_2nd_Z_Pos + (P_2nd_PnP_Z_Avoid_Pos/1000)) + 0.5 && F_Anode_2nd_Z_Axis  >= (P_Old_Anode_2nd_Z_Pos + (P_2nd_PnP_Z_Avoid_Pos/1000)) - 0.5 )
+			{
+				rtn = N_AH_TRUE;				// 함수 동작 완료 보고
+			}
+		}
+	return;
+//--------------------------------------------------------------------------------------------------------------------------------------
+//	10. 조그 절대위치 종료 chk 함수 
+//--------------------------------------------------------------------------------------------------------------------------------------
+// All Home Stop Action -언와인더 Cascade Stop Chk 함수
+	sub:AH_Jog_Stop_Type_CHK(Member, &rtn)
+		rtn = 0;
+		local L_Motor_Num = P_AH_Action_Target(Member);
+		if ( Motor[L_Motor_Num].DesVelZero == 1 )
+			rtn = N_AH_TRUE;
+	return;
+
+close 
+*/

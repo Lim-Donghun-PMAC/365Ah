@@ -1,0 +1,1055 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+// [ 참조 : 2025.09.30 모터 번호 Define 추가 ] → 모터 번호 상수에서 Define으로 변경 ( 이유 : 모터 번호가 바뀌게 된다면, Define 변경으로 전부 변경 되게 하기 위함 )
+// [ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가]
+open subprog Sub_Unit_Memory_Status(void)
+
+sub: Initialize(&rtn)
+
+if( P_Memory_Tower_Test == 0 )
+{
+	// Final Roll
+		// N_FINAL_ROLL_X = 12
+		//P_Recipe_1st_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(1);			// 음극위치 or 세파 첫장 ( 대기위치 )
+		//P_Recipe_2nd_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(2);			// 양극위치
+		//P_Recipe_3rd_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(3);			// 배출위치 
+
+		P_Recipe_1st_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(2);			// 음극위치 or 세파 첫장 ( 대기위치 )
+		P_Recipe_2nd_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(3);			// 양극위치
+		P_Recipe_3rd_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(1);			// 배출위치 
+		P_Recipe_4th_MotorNo(N_FINAL_ROLL_X) = N_NOT_EXIST_VALUE;			
+		P_Recipe_5th_MotorNo(N_FINAL_ROLL_X) = N_NOT_EXIST_VALUE;
+		P_Recipe_6th_MotorNo(N_FINAL_ROLL_X) = N_NOT_EXIST_VALUE;
+		// N_FINAL_ROLL_Z = 13
+		P_Recipe_1st_MotorNo(N_FINAL_ROLL_Z) = P_Recipe_M13_POS(1);			// 대기/커팅 위치
+		P_Recipe_2nd_MotorNo(N_FINAL_ROLL_Z) = P_Recipe_M13_POS(2);			// 적층 위치
+		P_Recipe_3rd_MotorNo(N_FINAL_ROLL_Z) = P_Recipe_M13_POS(3);			
+		P_Recipe_4th_MotorNo(N_FINAL_ROLL_Z) = N_NOT_EXIST_VALUE;	
+		P_Recipe_5th_MotorNo(N_FINAL_ROLL_Z) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_FINAL_ROLL_Z) = N_NOT_EXIST_VALUE;	
+	// Main Z
+		// N_MAIN_Z = 9
+		P_Recipe_1st_MotorNo(N_MAIN_Z) = P_Recipe_M11_POS(1);			// 대기 위치		
+		P_Recipe_2nd_MotorNo(N_MAIN_Z) = p999;		//변수로 할지?;			// 배출 위치	( 서브 z축느낌임 적층마다 값이 달라짐 )		
+		P_Recipe_3rd_MotorNo(N_MAIN_Z) = N_NOT_EXIST_VALUE;		
+		P_Recipe_4th_MotorNo(N_MAIN_Z) = N_NOT_EXIST_VALUE;		
+		P_Recipe_5th_MotorNo(N_MAIN_Z) = N_NOT_EXIST_VALUE;
+		P_Recipe_6th_MotorNo(N_MAIN_Z) = N_NOT_EXIST_VALUE;		
+	// Anode Clamp
+		// N_Clamp_AN_Y1 = 6
+		P_Recipe_1st_MotorNo(N_Clamp_AN_Y1) = P_Recipe_M06_POS(1);			// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_AN_Y1) = P_Recipe_M06_POS(2);			// CLP ON ;	
+		P_Recipe_3rd_MotorNo(N_Clamp_AN_Y1) = N_NOT_EXIST_VALUE;
+		P_Recipe_4th_MotorNo(N_Clamp_AN_Y1) = N_NOT_EXIST_VALUE;	
+		P_Recipe_5th_MotorNo(N_Clamp_AN_Y1) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_AN_Y1) = N_NOT_EXIST_VALUE;	
+		// N_Clamp_AN_Y2 = 8
+		P_Recipe_1st_MotorNo(N_Clamp_AN_Y2) = P_Recipe_M08_POS(1);			// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_AN_Y2) = P_Recipe_M08_POS(2);			// CLP ON 
+		P_Recipe_3rd_MotorNo(N_Clamp_AN_Y2) = N_NOT_EXIST_VALUE;
+		P_Recipe_4th_MotorNo(N_Clamp_AN_Y2) = N_NOT_EXIST_VALUE;	
+		P_Recipe_5th_MotorNo(N_Clamp_AN_Y2) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_AN_Y2) = N_NOT_EXIST_VALUE;
+		// N_Clamp_AN_Z1 = 9
+		P_Recipe_1st_MotorNo(N_Clamp_AN_Z1) = P_Recipe_M28_POS(1);			// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_AN_Z1) = P_Recipe_M28_POS(2);			// CLP ON ;	
+		P_Recipe_3rd_MotorNo(N_Clamp_AN_Z1) = P_Recipe_M28_POS(3);
+		P_Recipe_4th_MotorNo(N_Clamp_AN_Z1) = P_Anode_Clamp_Z1_Cell_Down;			// 극판 두께만큼 하강 위치 ( Pmac 내부처리 )			
+		P_Recipe_5th_MotorNo(N_Clamp_AN_Z1) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_AN_Z1) = N_NOT_EXIST_VALUE;
+		// N_Clamp_AN_Z2 = 26
+		P_Recipe_1st_MotorNo(N_Clamp_AN_Z2) = P_Recipe_M26_POS(1);			// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_AN_Z2) = P_Recipe_M26_POS(2);			// CLP ON ;	
+		P_Recipe_3rd_MotorNo(N_Clamp_AN_Z2) = P_Recipe_M26_POS(3);			
+		P_Recipe_4th_MotorNo(N_Clamp_AN_Z2) = P_Anode_Clamp_Z2_Cell_Down;			// 극판 두께만큼 하강 위치 ( Pmac 내부처리 )		
+		P_Recipe_5th_MotorNo(N_Clamp_AN_Z2) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_AN_Z2) = N_NOT_EXIST_VALUE;
+	// Cathode Clamp
+		// N_Clamp_CA_Y1 = 5
+		P_Recipe_1st_MotorNo(N_Clamp_CA_Y1) = P_Recipe_M05_POS(1);			// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_CA_Y1) = P_Recipe_M05_POS(2);			// CLP ON ;	
+		P_Recipe_3rd_MotorNo(N_Clamp_CA_Y1) = N_NOT_EXIST_VALUE;
+		P_Recipe_4th_MotorNo(N_Clamp_CA_Y1) = N_NOT_EXIST_VALUE;	
+		P_Recipe_5th_MotorNo(N_Clamp_CA_Y1) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_CA_Y1) = N_NOT_EXIST_VALUE;	
+		// N_Clamp_CA_Y2 = 7
+		P_Recipe_1st_MotorNo(N_Clamp_CA_Y2) = P_Recipe_M07_POS(1);			// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_CA_Y2) = P_Recipe_M07_POS(2);			// CLP ON 
+		P_Recipe_3rd_MotorNo(N_Clamp_CA_Y2) = N_NOT_EXIST_VALUE;			
+		P_Recipe_4th_MotorNo(N_Clamp_CA_Y2) = N_NOT_EXIST_VALUE;	
+		P_Recipe_5th_MotorNo(N_Clamp_CA_Y2) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_CA_Y2) = N_NOT_EXIST_VALUE;
+		// N_Clamp_CA_Z1 = 9
+		P_Recipe_1st_MotorNo(N_Clamp_CA_Z1) = P_Recipe_M27_POS(1);			// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_CA_Z1) = P_Recipe_M27_POS(2);			// CLP ON ;
+		P_Recipe_3rd_MotorNo(N_Clamp_CA_Z1) = P_Recipe_M27_POS(3);			
+		P_Recipe_4th_MotorNo(N_Clamp_CA_Z1) = P_Cathode_Clamp_Z1_Cell_Down;		// 극판 두께만큼 하강 위치 ( Pmac 내부처리 )		
+		P_Recipe_5th_MotorNo(N_Clamp_CA_Z1) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_CA_Z1) = N_NOT_EXIST_VALUE;
+		// N_Clamp_CA_Z2 = 25
+		P_Recipe_1st_MotorNo(N_Clamp_CA_Z2) = P_Recipe_M25_POS(1);			// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_CA_Z2) = P_Recipe_M25_POS(2);			// CLP ON ;
+		P_Recipe_3rd_MotorNo(N_Clamp_CA_Z2) = P_Recipe_M25_POS(3);			
+		P_Recipe_4th_MotorNo(N_Clamp_CA_Z2) = P_Cathode_Clamp_Z2_Cell_Down;		// 극판 두께만큼 하강 위치 ( Pmac 내부처리 )	
+		P_Recipe_5th_MotorNo(N_Clamp_CA_Z2) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_CA_Z2) = N_NOT_EXIST_VALUE;
+	// Cathode 1st PNP
+		// N_1st_PnP_CA_T = 1
+		P_Recipe_1st_MotorNo(N_1st_PnP_CA_T) = P_Recipe_M01_POS(1);			// 대기위치
+		P_Recipe_2nd_MotorNo(N_1st_PnP_CA_T) = P_Recipe_M01_POS(2);			// 벨트위치
+		P_Recipe_3rd_MotorNo(N_1st_PnP_CA_T) = P_Recipe_M01_POS(3);			// 얼라인위치
+		P_Recipe_4th_MotorNo(N_1st_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_5th_MotorNo(N_1st_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_6th_MotorNo(N_1st_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		// N_1st_PnP_CA_Z = 17
+		P_Recipe_1st_MotorNo(N_1st_PnP_CA_Z) = P_Cathode_1st_Z_Ready_Up;	//0;			//24// 대기상승
+		P_Recipe_2nd_MotorNo(N_1st_PnP_CA_Z) = P_Cathode_1st_Z_Belt_Down;	//59.7;		// 대기하강
+		P_Recipe_3rd_MotorNo(N_1st_PnP_CA_Z) = P_Cathode_1st_Z_Belt_Up;		//42.023;		// 벨트상승
+		P_Recipe_4th_MotorNo(N_1st_PnP_CA_Z) = P_Cathode_1st_Z_Belt_Down;	//59.7;		// 벨트하강
+		P_Recipe_5th_MotorNo(N_1st_PnP_CA_Z) = P_Cathode_1st_Z_Align_Up;	//42.023;		// 얼라인 상승
+		P_Recipe_6th_MotorNo(N_1st_PnP_CA_Z) = P_Cathode_1st_Z_Align_Down;	//59.7;		// 얼라인 하강
+	
+	// Anode 1st PNP
+		// N_1st_PnP_AN_T = 2
+		P_Recipe_1st_MotorNo(N_1st_PnP_AN_T) = P_Recipe_M02_POS(1);			// 대기위치
+		P_Recipe_2nd_MotorNo(N_1st_PnP_AN_T) = P_Recipe_M02_POS(2);			// 벨트위치
+		P_Recipe_3rd_MotorNo(N_1st_PnP_AN_T) = P_Recipe_M02_POS(3);			// 얼라인위치
+		P_Recipe_4th_MotorNo(N_1st_PnP_AN_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_5th_MotorNo(N_1st_PnP_AN_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_6th_MotorNo(N_1st_PnP_AN_T) = N_NOT_EXIST_VALUE;			 
+		// N_1st_PnP_AN_Z = 18
+		P_Recipe_1st_MotorNo(N_1st_PnP_AN_Z) = P_Anode_1st_Z_Ready_Up;		//0;	0;		// 대기상승
+		P_Recipe_2nd_MotorNo(N_1st_PnP_AN_Z) = P_Anode_1st_Z_Belt_Down;		//59.7;		// 대기하강
+		P_Recipe_3rd_MotorNo(N_1st_PnP_AN_Z) = P_Anode_1st_Z_Belt_Up;		//42.023;		// 벨트상승
+		P_Recipe_4th_MotorNo(N_1st_PnP_AN_Z) = P_Anode_1st_Z_Belt_Down;		//59.7;		// 벨트하강
+		P_Recipe_5th_MotorNo(N_1st_PnP_AN_Z) = P_Anode_1st_Z_Align_Up;		//42.023;		// 얼라인 상승
+		P_Recipe_6th_MotorNo(N_1st_PnP_AN_Z) = P_Anode_1st_Z_Align_Down;	//59.7;		// 얼라인 하강
+		
+	// Cathode 2nd PNP
+		// N_2nd_PnP_CA_T = 3
+		P_Recipe_1st_MotorNo(N_2nd_PnP_CA_T) = P_Recipe_M03_POS(1);			// 얼라인위치(대기위치)
+		P_Recipe_2nd_MotorNo(N_2nd_PnP_CA_T) = P_Recipe_M03_POS(2);			// 스택위치
+		P_Recipe_3rd_MotorNo(N_2nd_PnP_CA_T) = N_NOT_EXIST_VALUE;			// 
+		P_Recipe_4th_MotorNo(N_2nd_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_5th_MotorNo(N_2nd_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_6th_MotorNo(N_2nd_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		// N_2nd_PnP_CA_Z = 21
+		P_Recipe_1st_MotorNo(N_2nd_PnP_CA_Z) = P_Cathode_2nd_Z_Align_Up;	//0;			// 얼라인상승
+		P_Recipe_2nd_MotorNo(N_2nd_PnP_CA_Z) = P_Cathode_2nd_Z_Align_Down;	//59.7;			// 얼라인하강
+		P_Recipe_3rd_MotorNo(N_2nd_PnP_CA_Z) = P_Cathode_2nd_Z_Stack_Up;	//42.023;		// 스택상승
+		P_Recipe_4th_MotorNo(N_2nd_PnP_CA_Z) = P_Cathode_2nd_Z_Stack_Down;	//59.7;			// 스택하강
+		P_Recipe_5th_MotorNo(N_2nd_PnP_CA_Z) = P_Cathode_2nd_Z_Ready_Up;	// 대기상승
+		P_Recipe_6th_MotorNo(N_2nd_PnP_CA_Z) = N_NOT_EXIST_VALUE;			// 대기하강
+	
+	// Anode 2nd PNP
+		// N_2nd_PnP_AN_T = 4
+		P_Recipe_1st_MotorNo(N_2nd_PnP_AN_T) = P_Recipe_M04_POS(1);			// 얼라인위치(대기위치)
+		P_Recipe_2nd_MotorNo(N_2nd_PnP_AN_T) = P_Recipe_M04_POS(2);			// 스택위치
+		P_Recipe_3rd_MotorNo(N_2nd_PnP_AN_T) = N_NOT_EXIST_VALUE;			// 
+		P_Recipe_4th_MotorNo(N_2nd_PnP_AN_T) = N_NOT_EXIST_VALUE; 
+		P_Recipe_5th_MotorNo(N_2nd_PnP_AN_T) = N_NOT_EXIST_VALUE; 
+		P_Recipe_6th_MotorNo(N_2nd_PnP_AN_T) = N_NOT_EXIST_VALUE; 
+		// N_2nd_PnP_AN_Z = 22
+		P_Recipe_1st_MotorNo(N_2nd_PnP_AN_Z) = P_Anode_2nd_Z_Align_Up;		//0;			// 얼라인상승(대기위치)
+		P_Recipe_2nd_MotorNo(N_2nd_PnP_AN_Z) = P_Anode_2nd_Z_Align_Down;	//59.7;			// 얼라인하강
+		P_Recipe_3rd_MotorNo(N_2nd_PnP_AN_Z) = P_Anode_2nd_Z_Stack_Up;		//42.023;		// 스택상승
+		P_Recipe_4th_MotorNo(N_2nd_PnP_AN_Z) = P_Anode_2nd_Z_Stack_Down;	//59.7;			// 스택하강
+		P_Recipe_5th_MotorNo(N_2nd_PnP_AN_Z) = P_Anode_2nd_Z_Ready_Up;		// 대기상승
+		P_Recipe_6th_MotorNo(N_2nd_PnP_AN_Z) = N_NOT_EXIST_VALUE;			// 대기하강
+	
+	// Sheet Paper
+		// N_SHEET_PAPER_X = 35
+		P_Recipe_1st_MotorNo(N_SHEET_PAPER_X) = P_Recipe_M35_POS(1);		// 대기 세파흡착
+		P_Recipe_2nd_MotorNo(N_SHEET_PAPER_X) = P_Recipe_M35_POS(2);		// 1차 전진
+		P_Recipe_3rd_MotorNo(N_SHEET_PAPER_X) = P_Recipe_M35_POS(3);		// 2차 전진
+		P_Recipe_4th_MotorNo(N_SHEET_PAPER_X) = N_NOT_EXIST_VALUE;			
+		P_Recipe_5th_MotorNo(N_SHEET_PAPER_X) = N_NOT_EXIST_VALUE;			
+		P_Recipe_6th_MotorNo(N_SHEET_PAPER_X) = N_NOT_EXIST_VALUE;			
+	
+	// Cathode NG PNP
+		// N_NG_PnP_CA_T = 42
+		P_Recipe_1st_MotorNo(N_NG_PnP_CA_T) = P_Recipe_M42_POS(1);			// NG박스위치(대기위치)
+		P_Recipe_2nd_MotorNo(N_NG_PnP_CA_T) = P_Recipe_M42_POS(2);			// 얼라인위치
+		P_Recipe_3rd_MotorNo(N_NG_PnP_CA_T) = N_NOT_EXIST_VALUE;		
+		P_Recipe_4th_MotorNo(N_NG_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_5th_MotorNo(N_NG_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_6th_MotorNo(N_NG_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		// N_NG_PnP_CA_Z = 44
+		P_Recipe_1st_MotorNo(N_NG_PnP_CA_Z) = P_Recipe_M44_POS(1);			// NG박스상승(대기상승)
+		P_Recipe_2nd_MotorNo(N_NG_PnP_CA_Z) = P_Recipe_M44_POS(2);			// NG박스하강(대기하강)
+		P_Recipe_4th_MotorNo(N_NG_PnP_CA_Z) = P_Recipe_M44_POS(3);			// 얼라인상승
+		P_Recipe_3rd_MotorNo(N_NG_PnP_CA_Z) = P_Recipe_M44_POS(4);			// 얼라인하강
+		P_Recipe_5th_MotorNo(N_NG_PnP_CA_Z) = N_NOT_EXIST_VALUE;			
+		P_Recipe_6th_MotorNo(N_NG_PnP_CA_Z) = N_NOT_EXIST_VALUE;			
+			
+		// Anode NG PNP
+		// N_NG_PnP_AN_T = 43
+		P_Recipe_1st_MotorNo(N_NG_PnP_AN_T) =P_Recipe_M43_POS(1);			// NG박스위치(대기위치)
+		P_Recipe_2nd_MotorNo(N_NG_PnP_AN_T) =P_Recipe_M43_POS(2);			// 얼라인위치
+		P_Recipe_3rd_MotorNo(N_NG_PnP_AN_T) =N_NOT_EXIST_VALUE;			
+		P_Recipe_4th_MotorNo(N_NG_PnP_AN_T) =N_NOT_EXIST_VALUE;				 
+		P_Recipe_5th_MotorNo(N_NG_PnP_AN_T) =N_NOT_EXIST_VALUE;				 
+		P_Recipe_6th_MotorNo(N_NG_PnP_AN_T) =N_NOT_EXIST_VALUE;				 
+		// N_NG_PnP_AN_Z = 45
+		P_Recipe_1st_MotorNo(N_NG_PnP_AN_Z) =P_Recipe_M45_POS(1);		// NG박스상승(대기상승)
+		P_Recipe_2nd_MotorNo(N_NG_PnP_AN_Z) =P_Recipe_M45_POS(2);		// NG박스하강(대기하강)
+		P_Recipe_4th_MotorNo(N_NG_PnP_AN_Z) =P_Recipe_M45_POS(3);		// 얼라인상승
+		P_Recipe_3rd_MotorNo(N_NG_PnP_AN_Z) =P_Recipe_M45_POS(4);		// 얼라인하강
+		P_Recipe_5th_MotorNo(N_NG_PnP_AN_Z) =N_NOT_EXIST_VALUE;				
+		P_Recipe_6th_MotorNo(N_NG_PnP_AN_Z) =N_NOT_EXIST_VALUE;				
+	
+		// 1st_Unloader
+		// N_UNLOADER_X = 46
+		P_Recipe_1st_MotorNo(N_UNLOADER_X) = P_Recipe_M46_POS(1);		// 대기위치
+		P_Recipe_2nd_MotorNo(N_UNLOADER_X) = P_Recipe_M46_POS(2);		// 배출 중 위치
+		P_Recipe_3rd_MotorNo(N_UNLOADER_X) = P_Recipe_M46_POS(3);		// 스택 진입전 위치
+		P_Recipe_4th_MotorNo(N_UNLOADER_X) = P_Recipe_M46_POS(4);		// 셀 배출위치
+		P_Recipe_5th_MotorNo(N_UNLOADER_X) = N_NOT_EXIST_VALUE;		 
+		P_Recipe_6th_MotorNo(N_UNLOADER_X) = N_NOT_EXIST_VALUE;			 
+		// N_UNLOADER_Z = 47
+		P_Recipe_1st_MotorNo(N_UNLOADER_Z) = P_Recipe_M47_POS(1);		// 대기 위치
+		P_Recipe_2nd_MotorNo(N_UNLOADER_Z) = P_Recipe_M47_POS(2);		// 스택 진입 
+		P_Recipe_4th_MotorNo(N_UNLOADER_Z) = N_NOT_EXIST_VALUE;
+		P_Recipe_3rd_MotorNo(N_UNLOADER_Z) = P_Recipe_M47_POS(3);		// 셀 그립 후 
+		P_Recipe_5th_MotorNo(N_UNLOADER_Z) = P_Recipe_M47_POS(4);		// 셀 그립위치;				
+		P_Recipe_6th_MotorNo(N_UNLOADER_Z) = N_NOT_EXIST_VALUE;				
+		// N_UNLOADER_T = 48
+		P_Recipe_1st_MotorNo(N_UNLOADER_T) = P_Recipe_M48_POS(1);		// 대기위치 
+		P_Recipe_2nd_MotorNo(N_UNLOADER_T) = P_Recipe_M48_POS(2);		// 배출위치
+		P_Recipe_3rd_MotorNo(N_UNLOADER_T) = P_Recipe_M48_POS(3);		// 회피위치 									// 2025.04.22 회피위치 추가.
+		P_Recipe_4th_MotorNo(N_UNLOADER_T) = N_NOT_EXIST_VALUE;				 
+		P_Recipe_5th_MotorNo(N_UNLOADER_T) = N_NOT_EXIST_VALUE;			
+		P_Recipe_6th_MotorNo(N_UNLOADER_T) = N_NOT_EXIST_VALUE;			
+	}
+	else
+	{
+		// Final Roll
+		// X
+		P_Recipe_1st_MotorNo(N_FINAL_ROLL_X) = P_Final_Roll_X_Anode_Move;					// 음극위치 or 세파 첫장 ( 대기위치 )
+		P_Recipe_2nd_MotorNo(N_FINAL_ROLL_X) = P_Final_Roll_X_Cathode_Move;					// 양극위치
+		P_Recipe_3rd_MotorNo(N_FINAL_ROLL_X) = P_Final_Roll_X_Discharge;					// 배출위치 
+		P_Recipe_4th_MotorNo(N_FINAL_ROLL_X) = N_NOT_EXIST_VALUE;			
+		P_Recipe_5th_MotorNo(N_FINAL_ROLL_X) = N_NOT_EXIST_VALUE;
+		P_Recipe_6th_MotorNo(N_FINAL_ROLL_X) = N_NOT_EXIST_VALUE;
+		// Z
+		P_Recipe_1st_MotorNo(N_FINAL_ROLL_Z) = 58;	// 적층위치
+		P_Recipe_2nd_MotorNo(N_FINAL_ROLL_Z) = 58;	// 대기위치
+		P_Recipe_3rd_MotorNo(N_FINAL_ROLL_Z) = 58;	// 배출위치
+		P_Recipe_4th_MotorNo(N_FINAL_ROLL_Z) = 60.5;	// 컷팅위치
+		P_Recipe_5th_MotorNo(N_FINAL_ROLL_Z) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_FINAL_ROLL_Z) = N_NOT_EXIST_VALUE;	
+
+		// #9 Main Z test
+		P_Recipe_1st_MotorNo(N_MAIN_Z) = 0;			// 대기 위치		
+		P_Recipe_2nd_MotorNo(N_MAIN_Z) = p999;		//변수로 할지?;					// 배출 위치	( 서브 z축느낌임 적층마다 값이 달라짐 )		
+		P_Recipe_3rd_MotorNo(N_MAIN_Z) = N_NOT_EXIST_VALUE;		
+		P_Recipe_4th_MotorNo(N_MAIN_Z) = N_NOT_EXIST_VALUE;		
+		P_Recipe_5th_MotorNo(N_MAIN_Z) = N_NOT_EXIST_VALUE;
+		P_Recipe_6th_MotorNo(N_MAIN_Z) = N_NOT_EXIST_VALUE;		
+
+		// #4,#5,#6 Anode clamp test
+		// Y1
+		P_Recipe_1st_MotorNo(N_Clamp_AN_Y1) = 0;					// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_AN_Y1) = 43//38;				// CLP ON ;	
+		P_Recipe_3rd_MotorNo(N_Clamp_AN_Y1) = N_NOT_EXIST_VALUE;
+		P_Recipe_4th_MotorNo(N_Clamp_AN_Y1) = N_NOT_EXIST_VALUE;	
+		P_Recipe_5th_MotorNo(N_Clamp_AN_Y1) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_AN_Y1) = N_NOT_EXIST_VALUE;	
+		// Y2
+		P_Recipe_1st_MotorNo(N_Clamp_AN_Y2) = 0;					// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_AN_Y2) = 43//38;				// CLP ON 
+		P_Recipe_3rd_MotorNo(N_Clamp_AN_Y2) = N_NOT_EXIST_VALUE;
+		P_Recipe_4th_MotorNo(N_Clamp_AN_Y2) = N_NOT_EXIST_VALUE;	
+		P_Recipe_5th_MotorNo(N_Clamp_AN_Y2) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_AN_Y2) = N_NOT_EXIST_VALUE;
+		// Z
+		P_Recipe_1st_MotorNo(N_Clamp_AN_Z1) = 0.5//0;				// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_AN_Z1) = 1.6//-2;				// CLP ON ;	
+		P_Recipe_3rd_MotorNo(N_Clamp_AN_Z1) = N_NOT_EXIST_VALUE;		
+		P_Recipe_4th_MotorNo(N_Clamp_AN_Z1) = P_Anode_Clamp_Z1_Cell_Down;		// PMAC 내부 처리 위치 메모리		
+		P_Recipe_5th_MotorNo(N_Clamp_AN_Z1) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_AN_Z1) = N_NOT_EXIST_VALUE;
+
+		P_Recipe_1st_MotorNo(N_Clamp_AN_Z2) = 0.5//0;				// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_AN_Z2) = 1.6//-2;				// CLP ON ;	
+		P_Recipe_3rd_MotorNo(N_Clamp_AN_Z2) = N_NOT_EXIST_VALUE;	
+		P_Recipe_4th_MotorNo(N_Clamp_AN_Z2) = P_Anode_Clamp_Z2_Cell_Down;			// PMAC 내부 처리 위치 메모리	
+		P_Recipe_5th_MotorNo(N_Clamp_AN_Z2) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_AN_Z2) = N_NOT_EXIST_VALUE;
+
+		// #10,#11,#12 Cathode Clamp
+		// Y1
+		P_Recipe_1st_MotorNo(N_Clamp_CA_Y1) = 0;					// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_CA_Y1) = 43//38;				// CLP ON ;	
+		P_Recipe_3rd_MotorNo(N_Clamp_CA_Y1) = N_NOT_EXIST_VALUE;
+		P_Recipe_4th_MotorNo(N_Clamp_CA_Y1) = N_NOT_EXIST_VALUE;	
+		P_Recipe_5th_MotorNo(N_Clamp_CA_Y1) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_CA_Y1) = N_NOT_EXIST_VALUE;	
+		// Y2
+		P_Recipe_1st_MotorNo(N_Clamp_CA_Y2) = 0;					// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_CA_Y2) = 43//38;				// CLP ON 
+		P_Recipe_3rd_MotorNo(N_Clamp_CA_Y2) = N_NOT_EXIST_VALUE;
+		P_Recipe_4th_MotorNo(N_Clamp_CA_Y2) = N_NOT_EXIST_VALUE;	
+		P_Recipe_5th_MotorNo(N_Clamp_CA_Y2) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_CA_Y2) = N_NOT_EXIST_VALUE;
+		// Z
+		P_Recipe_1st_MotorNo(N_Clamp_CA_Z1) = 0.5//0;				// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_CA_Z1) = 1.6//-2;				// CLP ON ;
+		P_Recipe_3rd_MotorNo(N_Clamp_CA_Z1) = N_NOT_EXIST_VALUE;		
+		P_Recipe_4th_MotorNo(N_Clamp_CA_Z1) = P_Cathode_Clamp_Z1_Cell_Down;			// PMAC 내부 처리 위치 메모리
+		P_Recipe_5th_MotorNo(N_Clamp_CA_Z1) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_CA_Z1) = N_NOT_EXIST_VALUE;
+
+		P_Recipe_1st_MotorNo(N_Clamp_CA_Z2) = 0.5//0;				// CLP OFF & 대기위치
+		P_Recipe_2nd_MotorNo(N_Clamp_CA_Z2) = 1.6//-2;				// CLP ON ;
+		P_Recipe_3rd_MotorNo(N_Clamp_CA_Z2) = N_NOT_EXIST_VALUE;
+		P_Recipe_4th_MotorNo(N_Clamp_CA_Z2) = P_Cathode_Clamp_Z2_Cell_Down;			// PMAC 내부 처리 위치 메모리
+		P_Recipe_5th_MotorNo(N_Clamp_CA_Z2) = N_NOT_EXIST_VALUE;	
+		P_Recipe_6th_MotorNo(N_Clamp_CA_Z2) = N_NOT_EXIST_VALUE;
+
+		// #15,#16 Cathode 1st PNP
+		// T
+		P_Recipe_1st_MotorNo(N_1st_PnP_CA_T) = 45;					// 대기위치
+		P_Recipe_2nd_MotorNo(N_1st_PnP_CA_T) = 0;					// 벨트위치
+		P_Recipe_3rd_MotorNo(N_1st_PnP_CA_T) = 90;					// 얼라인위치
+		P_Recipe_4th_MotorNo(N_1st_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_5th_MotorNo(N_1st_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_6th_MotorNo(N_1st_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		// Z
+		P_Recipe_1st_MotorNo(N_1st_PnP_CA_Z) = P_Cathode_1st_Z_Ready_Up;	//0;			//24// 대기상승
+		P_Recipe_2nd_MotorNo(N_1st_PnP_CA_Z) = P_Cathode_1st_Z_Belt_Down;	//59.7;		// 대기하강
+		P_Recipe_3rd_MotorNo(N_1st_PnP_CA_Z) = P_Cathode_1st_Z_Belt_Up;		//42.023;		// 벨트상승
+		P_Recipe_4th_MotorNo(N_1st_PnP_CA_Z) = P_Cathode_1st_Z_Belt_Down;	//59.7;		// 벨트하강
+		P_Recipe_5th_MotorNo(N_1st_PnP_CA_Z) = P_Cathode_1st_Z_Align_Up;	//42.023;		// 얼라인 상승
+		P_Recipe_6th_MotorNo(N_1st_PnP_CA_Z) = P_Cathode_1st_Z_Align_Down;	//59.7;		// 얼라인 하강
+
+		// #1,#2 Anode 1st PNP
+		// T
+		P_Recipe_1st_MotorNo(N_1st_PnP_AN_T) = 45;					// 대기위치
+		P_Recipe_2nd_MotorNo(N_1st_PnP_AN_T) = 0;					// 벨트위치
+		P_Recipe_3rd_MotorNo(N_1st_PnP_AN_T) = 90;					// 얼라인위치
+		P_Recipe_4th_MotorNo(N_1st_PnP_AN_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_5th_MotorNo(N_1st_PnP_AN_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_6th_MotorNo(N_1st_PnP_AN_T) = N_NOT_EXIST_VALUE;			 
+		// Z
+		P_Recipe_1st_MotorNo(N_1st_PnP_AN_Z) = P_Anode_1st_Z_Ready_Up;		//0;	0;		// 대기상승
+		P_Recipe_2nd_MotorNo(N_1st_PnP_AN_Z) = P_Anode_1st_Z_Belt_Down;		//59.7;		// 대기하강
+		P_Recipe_3rd_MotorNo(N_1st_PnP_AN_Z) = P_Anode_1st_Z_Belt_Up;		//42.023;		// 벨트상승
+		P_Recipe_4th_MotorNo(N_1st_PnP_AN_Z) = P_Anode_1st_Z_Belt_Down;		//59.7;		// 벨트하강
+		P_Recipe_5th_MotorNo(N_1st_PnP_AN_Z) = P_Anode_1st_Z_Align_Up;		//42.023;		// 얼라인 상승
+		P_Recipe_6th_MotorNo(N_1st_PnP_AN_Z) = P_Anode_1st_Z_Align_Down;	//59.7;		// 얼라인 하강
+		
+		// #13,#14 Cathode 2nd PNP
+		// T
+		P_Recipe_1st_MotorNo(N_2nd_PnP_CA_T) = 0;					// 얼라인위치(대기위치)
+		P_Recipe_2nd_MotorNo(N_2nd_PnP_CA_T) = 90;					// 스택위치
+		P_Recipe_3rd_MotorNo(N_2nd_PnP_CA_T) = N_NOT_EXIST_VALUE;			
+		P_Recipe_4th_MotorNo(N_2nd_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_5th_MotorNo(N_2nd_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_6th_MotorNo(N_2nd_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		// Z
+		P_Recipe_1st_MotorNo(N_2nd_PnP_CA_Z) = P_Cathode_2nd_Z_Align_Up;	//0;			// 얼라인상승
+		P_Recipe_2nd_MotorNo(N_2nd_PnP_CA_Z) = P_Cathode_2nd_Z_Align_Down;	//59.7;			// 얼라인하강
+		P_Recipe_3rd_MotorNo(N_2nd_PnP_CA_Z) = P_Cathode_2nd_Z_Stack_Up;	//42.023;		// 스택상승
+		P_Recipe_4th_MotorNo(N_2nd_PnP_CA_Z) = P_Cathode_2nd_Z_Stack_Down;	//59.7;			// 스택하강
+		P_Recipe_5th_MotorNo(N_2nd_PnP_CA_Z) = P_Cathode_2nd_Z_Ready_Up;	// 대기상승
+		P_Recipe_6th_MotorNo(N_2nd_PnP_CA_Z) = N_NOT_EXIST_VALUE;			// 대기하강
+
+		// #3,#25 Anode 2nd PNP
+		// T
+		P_Recipe_1st_MotorNo(N_2nd_PnP_AN_T) = 0;			// 얼라인위치(대기위치)
+		P_Recipe_2nd_MotorNo(N_2nd_PnP_AN_T) = 90;			// 스택위치
+		P_Recipe_3rd_MotorNo(N_2nd_PnP_AN_T) = N_NOT_EXIST_VALUE;			// 
+		P_Recipe_4th_MotorNo(N_2nd_PnP_AN_T) = N_NOT_EXIST_VALUE; 
+		P_Recipe_5th_MotorNo(N_2nd_PnP_AN_T) = N_NOT_EXIST_VALUE; 
+		P_Recipe_6th_MotorNo(N_2nd_PnP_AN_T) = N_NOT_EXIST_VALUE; 
+		// Z
+		P_Recipe_1st_MotorNo(N_2nd_PnP_AN_Z) = P_Anode_2nd_Z_Align_Up;		//0;			// 얼라인상승(대기위치)
+		P_Recipe_2nd_MotorNo(N_2nd_PnP_AN_Z) = P_Anode_2nd_Z_Align_Down;	//59.7;		// 얼라인하강
+		P_Recipe_3rd_MotorNo(N_2nd_PnP_AN_Z) = P_Anode_2nd_Z_Stack_Up;		//42.023;		// 스택상승
+		P_Recipe_4th_MotorNo(N_2nd_PnP_AN_Z) = P_Anode_2nd_Z_Stack_Down;	//59.7;		// 스택하강
+		P_Recipe_5th_MotorNo(N_2nd_PnP_AN_Z) = P_Anode_2nd_Z_Ready_Up;		// 대기상승
+		P_Recipe_6th_MotorNo(N_2nd_PnP_AN_Z) = N_NOT_EXIST_VALUE;			// 대기하강
+
+		// #24 Sheet Paper
+		// X
+		P_Recipe_1st_MotorNo(N_SHEET_PAPER_X) = P_Recipe_M35_POS(1);			// 대기 세파흡착
+		P_Recipe_2nd_MotorNo(N_SHEET_PAPER_X) = P_Recipe_M35_POS(2);			// 1차 전진
+		P_Recipe_3rd_MotorNo(N_SHEET_PAPER_X) = P_Recipe_M35_POS(3);			// 2차 전진
+		P_Recipe_4th_MotorNo(N_SHEET_PAPER_X) = N_NOT_EXIST_VALUE;			
+		P_Recipe_5th_MotorNo(N_SHEET_PAPER_X) = N_NOT_EXIST_VALUE;			
+		P_Recipe_6th_MotorNo(N_SHEET_PAPER_X) = N_NOT_EXIST_VALUE;			
+
+		// #19,20 Cathode NG PNP
+		// T
+		P_Recipe_1st_MotorNo(N_NG_PnP_CA_T) = 0;					// NG박스위치(대기위치)
+		P_Recipe_2nd_MotorNo(N_NG_PnP_CA_T) = 90;					// 얼라인위치
+		P_Recipe_3rd_MotorNo(N_NG_PnP_CA_T) = N_NOT_EXIST_VALUE;		
+		P_Recipe_4th_MotorNo(N_NG_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_5th_MotorNo(N_NG_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		P_Recipe_6th_MotorNo(N_NG_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
+		// Z
+		P_Recipe_1st_MotorNo(N_NG_PnP_CA_Z) = 0;					// NG박스상승(대기상승)
+		P_Recipe_2nd_MotorNo(N_NG_PnP_CA_Z) = 25;					// NG박스하강(대기하강)
+		P_Recipe_4th_MotorNo(N_NG_PnP_CA_Z) = 0;					// 얼라인상승
+		P_Recipe_3rd_MotorNo(N_NG_PnP_CA_Z) = 25;					// 얼라인하강
+		P_Recipe_5th_MotorNo(N_NG_PnP_CA_Z) = N_NOT_EXIST_VALUE;			
+		P_Recipe_6th_MotorNo(N_NG_PnP_CA_Z) = N_NOT_EXIST_VALUE;			
+			
+		// #17,#18 Anode NG PNP
+		// T
+		P_Recipe_1st_MotorNo(N_NG_PnP_AN_T) =0;		// NG박스위치(대기위치)
+		P_Recipe_2nd_MotorNo(N_NG_PnP_AN_T) =90;		// 얼라인위치
+		P_Recipe_3rd_MotorNo(N_NG_PnP_AN_T) =N_NOT_EXIST_VALUE;			
+		P_Recipe_4th_MotorNo(N_NG_PnP_AN_T) =N_NOT_EXIST_VALUE;				 
+		P_Recipe_5th_MotorNo(N_NG_PnP_AN_T) =N_NOT_EXIST_VALUE;				 
+		P_Recipe_6th_MotorNo(N_NG_PnP_AN_T) =N_NOT_EXIST_VALUE;				 
+		// Z
+		P_Recipe_1st_MotorNo(N_NG_PnP_AN_Z) =0;		// NG박스상승(대기상승)
+		P_Recipe_2nd_MotorNo(N_NG_PnP_AN_Z) =25;		// NG박스하강(대기하강)
+		P_Recipe_4th_MotorNo(N_NG_PnP_AN_Z) =0;		// 얼라인상승
+		P_Recipe_3rd_MotorNo(N_NG_PnP_AN_Z) =25;		// 얼라인하강
+		P_Recipe_5th_MotorNo(N_NG_PnP_AN_Z) =N_NOT_EXIST_VALUE;				
+		P_Recipe_6th_MotorNo(N_NG_PnP_AN_Z) =N_NOT_EXIST_VALUE;				
+
+		// #21,#22,#23 1st_Unloader
+		// x
+		P_Recipe_1st_MotorNo(N_UNLOADER_X) = -5.4//P_Recipe_M46_POS(1);		// 대기위치
+		P_Recipe_2nd_MotorNo(N_UNLOADER_X) = P_Recipe_M46_POS(2);			// 배출 중 위치
+		P_Recipe_3rd_MotorNo(N_UNLOADER_X) = P_Recipe_M46_POS(3);			// 스택 진입전 위치
+		P_Recipe_4th_MotorNo(N_UNLOADER_X) = P_Recipe_M46_POS(4);			// 셀 배출위치
+		P_Recipe_5th_MotorNo(N_UNLOADER_X) = N_NOT_EXIST_VALUE;		 
+		P_Recipe_6th_MotorNo(N_UNLOADER_X) = N_NOT_EXIST_VALUE;			 
+		// Z
+		P_Recipe_1st_MotorNo(N_UNLOADER_Z) = -9.79;							// 스택 진입
+		P_Recipe_2nd_MotorNo(N_UNLOADER_Z) = 69;//P_Recipe_M47_POS(2);		// 대기위치
+		P_Recipe_4th_MotorNo(N_UNLOADER_Z) = P_Recipe_M47_POS(3);			// 셀 그립 후 
+		P_Recipe_3rd_MotorNo(N_UNLOADER_Z) = P_Recipe_M47_POS(4);			// 셀 그립위치
+		P_Recipe_5th_MotorNo(N_UNLOADER_Z) = N_NOT_EXIST_VALUE;				
+		P_Recipe_6th_MotorNo(N_UNLOADER_Z) = N_NOT_EXIST_VALUE;				
+		// T
+		P_Recipe_1st_MotorNo(N_UNLOADER_T) = -2.817//P_Recipe_M48_POS(1);	// 대기위치 
+		P_Recipe_2nd_MotorNo(N_UNLOADER_T) = P_Recipe_M48_POS(2);			// 배출위치
+		P_Recipe_3rd_MotorNo(N_UNLOADER_T) = P_Recipe_M48_POS(3);			// 회피위치 									// 2025.04.22 회피위치 추가.
+		P_Recipe_4th_MotorNo(N_UNLOADER_T) = N_NOT_EXIST_VALUE;				 
+		P_Recipe_5th_MotorNo(N_UNLOADER_T) = N_NOT_EXIST_VALUE;			
+		P_Recipe_6th_MotorNo(N_UNLOADER_T) = N_NOT_EXIST_VALUE;			
+	}
+	rtn = F_TRUE;
+
+return;
+
+
+sub:individual_mode(Unit,&Unit_Status_rtn,&rtn)
+	//[ 참조 : 26.02.27 위치 메모리 개편 ]
+	local L_Memory_Result = 0;				// 결과
+	
+	P_X_Axis_Num = 0;					// X축 모터 번호
+	P_Y_Axis_Num = 0;					// Y축 모터 번호
+	P_Z_Axis_Num = 0;					// Z축 모터 번호
+	P_ZZ_Axis_Num = 0;					// Clamp Z2 모터 번호
+
+	Switch(Unit)
+	{
+		case F_Anode_1st_PNP :	// [2] T [18] Z
+			P_X_Axis_Num = N_1st_PnP_AN_T;			// 음극 1차 PNP T축 모터 번호		
+			P_Z_Axis_Num = N_1st_PnP_AN_Z;			// 음극 1차 PNP Z축 모터 번호
+			L_Memory_Result = N_TRUE;
+		break;
+		
+		case F_Anode_2nd_PNP :	// [4] T [22] Z
+			P_X_Axis_Num = N_2nd_PnP_AN_T;			
+			P_Z_Axis_Num = N_2nd_PnP_AN_Z;
+			L_Memory_Result = N_TRUE;
+		break;		
+		
+		case F_Anode_Clamp :	// [6] Y1 [8] Y2 [10] Z [26] Z2
+			P_X_Axis_Num = N_Clamp_AN_Y1;			// 변수는 X축이지만, Y1 값을 가지고 있음 ( Y1,Y2로변수 나누기 싫어서 남는거 사용 )
+			P_Y_Axis_Num = N_Clamp_AN_Y2;			// 음극 클램프 Y2
+			P_Z_Axis_Num = N_Clamp_AN_Z1;			// 음극 클램프 Z1
+			P_ZZ_Axis_Num = N_Clamp_AN_Z2;			// 음극 클램프 Z2
+			L_Memory_Result = N_TRUE;
+		break;		
+		
+		case F_Final_Roll :		// [12] X [13] Z
+			P_X_Axis_Num = N_FINAL_ROLL_X;			
+			P_Z_Axis_Num = N_FINAL_ROLL_Z;
+			L_Memory_Result = N_TRUE;
+		break;
+		
+		case F_Stack_Table :	// [11] Z			
+			P_Z_Axis_Num = N_MAIN_Z;					// 메인 Z축
+			L_Memory_Result = N_TRUE;
+		break;			
+		
+		case F_Cathode_Clamp :	// [5] Y1 [7] Y2 [9] Z
+			P_X_Axis_Num = N_Clamp_CA_Y1;			// 변수는 X축이지만, Y1 값을 가지고 있음 ( Y1,Y2로변수 나누기 싫어서 남는거 사용 )
+			P_Y_Axis_Num = N_Clamp_CA_Y2;			// 양극 클램프 Y2
+			P_Z_Axis_Num = N_Clamp_CA_Z1;			// 양극 클램프 Z
+			P_ZZ_Axis_Num = N_Clamp_CA_Z2;			// 양극 클램프 Z2
+			L_Memory_Result = N_TRUE;
+		break;		
+				
+		case F_Cathode_2nd_PNP :	// [3] T [21] Z
+			P_X_Axis_Num = N_2nd_PnP_CA_T;			
+			P_Z_Axis_Num = N_2nd_PnP_CA_Z;
+			L_Memory_Result = N_TRUE;
+		break;		
+		
+		case F_Cathode_1st_PNP :	// [1] T [17] Z
+			P_X_Axis_Num = N_1st_PnP_CA_T;			
+			P_Z_Axis_Num = N_1st_PnP_CA_Z;
+			L_Memory_Result = N_TRUE;
+		break;
+		
+		case F_Anode_NG_PNP :		// [43] T [45] Z 
+			P_X_Axis_Num = N_NG_PnP_AN_T;			
+			P_Z_Axis_Num = N_NG_PnP_AN_Z;
+			L_Memory_Result = N_TRUE;
+		break;
+		
+		case F_Cathode_NG_PNP :		// [42] T [44] Z
+			P_X_Axis_Num = N_NG_PnP_CA_T;			
+			P_Z_Axis_Num = N_NG_PnP_CA_Z;
+			L_Memory_Result = N_TRUE;
+		break;
+		
+		case F_1st_Unloader :		// [46] X [47] Z [48] T
+			P_X_Axis_Num = N_UNLOADER_X;								 
+			P_Z_Axis_Num = N_UNLOADER_Z;								 
+			P_Y_Axis_Num = N_UNLOADER_T;							 
+			L_Memory_Result = N_TRUE;
+		break;
+		
+		case F_Sheet_Paper :		// [35] X
+			P_X_Axis_Num = N_SHEET_PAPER_X;								 						 
+			L_Memory_Result = N_TRUE;
+		break;
+		
+		default :
+			L_Memory_Result = N_FALSE;
+		break;
+	}
+	// 레시피 초기화
+	local L_Unit_Memory_Initial_return = 0;
+	call Sub_Unit_Memory_Status.Initialize(&L_Unit_Memory_Initial_return)
+
+	if( L_Memory_Result == N_TRUE && L_Unit_Memory_Initial_return == F_TRUE )
+	{
+		P_Memory_Tower_X_Err_Flag = 0									// Error Check Flag 
+		P_Memory_Tower_Y_Err_Flag = 0									// Error Check Flag 
+		P_Memory_Tower_Z_Err_Flag = 0									// Error Check Flag 
+		P_Memory_Tower_ZZ_Err_Flag = 0									// Error Check Flag
+
+		P_Pos_Memory_Bit_Save = 0;										// 초기화
+		if( P_PMAC_Status == F_Status_HOLD )
+		{
+			// X축 위치 Get
+			if( P_X_Axis_Num != 0 )											// X축 0이라면, x축 필요없는부분
+			{
+				if( P_Motor_Current_Pos(P_X_Axis_Num) > P_Recipe_1st_MotorNo(P_X_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_X_Axis_Num) < P_Recipe_1st_MotorNo(P_X_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+					P_Pos_Memory_Bit_Save |= P_bit1;						// 대기위치 비트
+				
+				else if( P_Motor_Current_Pos(P_X_Axis_Num) > P_Recipe_2nd_MotorNo(P_X_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_X_Axis_Num) < P_Recipe_2nd_MotorNo(P_X_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+					P_Pos_Memory_Bit_Save |= P_bit2;						// 타겟2위치 비트
+				
+				else if( P_Motor_Current_Pos(P_X_Axis_Num) > P_Recipe_3rd_MotorNo(P_X_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_X_Axis_Num) < P_Recipe_3rd_MotorNo(P_X_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+					P_Pos_Memory_Bit_Save |= P_bit3;						// 타겟3 위치 비트
+				
+				else if( P_Motor_Current_Pos(P_X_Axis_Num) > P_Recipe_4th_MotorNo(P_X_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_X_Axis_Num) < P_Recipe_4th_MotorNo(P_X_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+					P_Pos_Memory_Bit_Save |= P_bit4;						// 타겟4 위치 비트
+				
+				else if( P_Motor_Current_Pos(P_X_Axis_Num) > P_Recipe_5th_MotorNo(P_X_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_X_Axis_Num) < P_Recipe_5th_MotorNo(P_X_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+					P_Pos_Memory_Bit_Save |= P_bit5;						// 타겟5 위치 비트
+			
+				else if( P_Motor_Current_Pos(P_X_Axis_Num) > P_Recipe_6th_MotorNo(P_X_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_X_Axis_Num) < P_Recipe_6th_MotorNo(P_X_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+					P_Pos_Memory_Bit_Save |= P_bit6;						// 타겟6 위치 비트
+
+				else
+					P_Memory_Tower_X_Err_Flag = 1;									// Error
+			}
+			// Z축 위치 Get 
+			if( P_Z_Axis_Num != 0 )													// Z축 모터 넘버가 0이라면 Z축이 없는 모터이므로 판단 필요 X
+			{
+				if( P_Motor_Current_Pos(P_Z_Axis_Num) > P_Recipe_1st_MotorNo(P_Z_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_Z_Axis_Num) < P_Recipe_1st_MotorNo(P_Z_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+					P_Pos_Memory_Bit_Save |= P_bit9;						// 상승 비트 on
+				
+				else if( P_Motor_Current_Pos(P_Z_Axis_Num) > P_Recipe_2nd_MotorNo(P_Z_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_Z_Axis_Num) < P_Recipe_2nd_MotorNo(P_Z_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+					P_Pos_Memory_Bit_Save |= P_bit10;						// 하강 비트 on
+				
+				else if( P_Motor_Current_Pos(P_Z_Axis_Num) > P_Recipe_3rd_MotorNo(P_Z_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_Z_Axis_Num) < P_Recipe_3rd_MotorNo(P_Z_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+						P_Pos_Memory_Bit_Save |= P_bit9;
+				
+				else if( P_Motor_Current_Pos(P_Z_Axis_Num) > P_Recipe_4th_MotorNo(P_Z_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_Z_Axis_Num) < P_Recipe_4th_MotorNo(P_Z_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+				{
+					if( P_Z_Axis_Num == N_Clamp_CA_Z1 || P_Z_Axis_Num == N_Clamp_AN_Z1 )	// Clamp Z축 두께 하강 위치 추가
+						P_Pos_Memory_Bit_Save |= P_bit12;									// 두꼐 하강 
+					else
+						P_Pos_Memory_Bit_Save |= P_bit10;
+				}
+				else if( P_Motor_Current_Pos(P_Z_Axis_Num) > P_Recipe_5th_MotorNo(P_Z_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_Z_Axis_Num) < P_Recipe_5th_MotorNo(P_Z_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+				{
+						P_Pos_Memory_Bit_Save |= P_bit9;					// 상승 비트 on
+				}
+				else if( P_Motor_Current_Pos(P_Z_Axis_Num) > P_Recipe_6th_MotorNo(P_Z_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_Z_Axis_Num) < P_Recipe_6th_MotorNo(P_Z_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+					P_Pos_Memory_Bit_Save |= P_bit10;
+				
+				else 
+					P_Memory_Tower_Z_Err_Flag = 1;									// error
+				
+			}
+			// Y축 위치 Get
+			if( P_Y_Axis_Num != 0 )											// Y축 모터 넘버가 0이라면 Y축이 없는 모터이므로 판단 필요 X
+			{
+				if( P_Motor_Current_Pos(P_Y_Axis_Num) > P_Recipe_1st_MotorNo(P_Y_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_Y_Axis_Num) < P_Recipe_1st_MotorNo(P_Y_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+					P_Pos_Memory_Bit_Save |= P_bit17;
+				
+				else if( P_Motor_Current_Pos(P_Y_Axis_Num) > P_Recipe_2nd_MotorNo(P_Y_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_Y_Axis_Num) < P_Recipe_2nd_MotorNo(P_Y_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+					P_Pos_Memory_Bit_Save |= P_bit18;
+				
+				else if( P_Motor_Current_Pos(P_Y_Axis_Num) > P_Recipe_3rd_MotorNo(P_Y_Axis_Num) - P_HOLD_Memory_Tower_Offset && P_Motor_Current_Pos(P_Y_Axis_Num) < P_Recipe_3rd_MotorNo(P_Y_Axis_Num) + P_HOLD_Memory_Tower_Offset )
+					P_Pos_Memory_Bit_Save |= P_bit19;
+
+				// 사용 미정
+				//else if( P_Motor_Current_Pos(P_Y_Axis_Num) ~ P_Recipe_4th_MotorNo(P_Y_Axis_Num) )	// 타겟4 위치
+				//	P_Pos_Memory_Bit_Save |= P_bit20;
+				//
+				//else if( P_Motor_Current_Pos(P_Y_Axis_Num) ~ P_Recipe_5th_MotorNo(P_Y_Axis_Num) )	// 타겟5 위치
+				//	P_Pos_Memory_Bit_Save |= P_bit21;
+				//
+				//else if( P_Motor_Current_Pos(P_Y_Axis_Num) ~ P_Recipe_6th_MotorNo(P_Y_Axis_Num) )	// 타겟6 위치
+				//	P_Pos_Memory_Bit_Save |= P_bit22;
+				
+				else 
+					P_Memory_Tower_Y_Err_Flag = 1;									// Error
+			}
+			if( P_ZZ_Axis_Num != 0 )		// Clamp Z2 추가 
+			{
+				if( P_Motor_Current_Pos(P_ZZ_Axis_Num) ~ P_Recipe_1st_MotorNo(P_ZZ_Axis_Num) )
+					P_Pos_Memory_Bit_Save |= P_bit13;						// Clamp OFF ( 상승 )
+				else if( P_Motor_Current_Pos(P_ZZ_Axis_Num) ~ P_Recipe_2nd_MotorNo(P_ZZ_Axis_Num) )
+					P_Pos_Memory_Bit_Save |= P_bit14;						// Clamp ON ( 하강 )
+				else if( P_Motor_Current_Pos(P_ZZ_Axis_Num) ~ P_Recipe_4th_MotorNo(P_ZZ_Axis_Num) )
+					P_Pos_Memory_Bit_Save |= P_bit16;						// 두께 하강 위치 
+				else 
+					P_Memory_Tower_ZZ_Err_Flag = 1;							// error
+				
+			}
+		}
+		else
+		{
+			// X축 위치 Get
+			if( P_X_Axis_Num != 0 )											// X축 0이라면, x축 필요없는부분
+			{
+				if( P_Motor_Current_Pos(P_X_Axis_Num) ~ P_Recipe_1st_MotorNo(P_X_Axis_Num) )			// 타겟 1위치
+					P_Pos_Memory_Bit_Save |= P_bit1;						// 대기위치 비트
+				
+				else if( P_Motor_Current_Pos(P_X_Axis_Num) ~ P_Recipe_2nd_MotorNo(P_X_Axis_Num) )	// 타겟 2위치
+					P_Pos_Memory_Bit_Save |= P_bit2;						// 타겟2위치 비트
+				
+				else if( P_Motor_Current_Pos(P_X_Axis_Num) ~ P_Recipe_3rd_MotorNo(P_X_Axis_Num) )	// 타겟 3위치
+					P_Pos_Memory_Bit_Save |= P_bit3;						// 타겟3 위치 비트
+				
+				else if( P_Motor_Current_Pos(P_X_Axis_Num) ~ P_Recipe_4th_MotorNo(P_X_Axis_Num) )	// 타겟 4위치
+					P_Pos_Memory_Bit_Save |= P_bit4;						// 타겟4 위치 비트
+				
+				else if( P_Motor_Current_Pos(P_X_Axis_Num) ~ P_Recipe_5th_MotorNo(P_X_Axis_Num) )	// 타겟 5위치
+					P_Pos_Memory_Bit_Save |= P_bit5;						// 타겟5 위치 비트
+			
+				else if( P_Motor_Current_Pos(P_X_Axis_Num) ~ P_Recipe_6th_MotorNo(P_X_Axis_Num) )	// 타겟 6위치
+					P_Pos_Memory_Bit_Save |= P_bit6;						// 타겟6 위치 비트
+
+				else
+					P_Memory_Tower_X_Err_Flag = 1;									// Error
+			}
+			// Z축 위치 Get 
+			if( P_Z_Axis_Num != 0 )													// Z축 모터 넘버가 0이라면 Z축이 없는 모터이므로 판단 필요 X
+			{
+				if( P_Motor_Current_Pos(P_Z_Axis_Num) ~ P_Recipe_1st_MotorNo(P_Z_Axis_Num) )			// 타겟 1위치 ( 상승 )
+					P_Pos_Memory_Bit_Save |= P_bit9;						// 상승 비트 on
+				
+				else if( P_Motor_Current_Pos(P_Z_Axis_Num) ~ P_Recipe_2nd_MotorNo(P_Z_Axis_Num) )	// 타겟 1위치 ( 하강 )
+					P_Pos_Memory_Bit_Save |= P_bit10;						// 하강 비트 on
+				
+				else if( P_Motor_Current_Pos(P_Z_Axis_Num) ~ P_Recipe_3rd_MotorNo(P_Z_Axis_Num) )	// 타겟 2위치 ( 상승 )
+					P_Pos_Memory_Bit_Save |= P_bit9;
+
+				else if( P_Motor_Current_Pos(P_Z_Axis_Num) ~ P_Recipe_4th_MotorNo(P_Z_Axis_Num) )	// 타겟 2위치 ( 하강 )
+				{
+					if( P_Z_Axis_Num == N_Clamp_CA_Z1 || P_Z_Axis_Num == N_Clamp_AN_Z1 )	// Clamp Z축 두께 하강 위치 추가
+						P_Pos_Memory_Bit_Save |= P_bit12;									// 두꼐 하강 
+					else
+						P_Pos_Memory_Bit_Save |= P_bit10;
+				}
+				else if( P_Motor_Current_Pos(P_Z_Axis_Num) ~ P_Recipe_5th_MotorNo(P_Z_Axis_Num) )	// 타겟 2위치 ( 상승 )
+				{
+						P_Pos_Memory_Bit_Save |= P_bit9;					// 상승 비트 on
+				}
+				else if( P_Motor_Current_Pos(P_Z_Axis_Num) ~ P_Recipe_6th_MotorNo(P_Z_Axis_Num) )	// 타겟 2위치 ( 하강 )
+					P_Pos_Memory_Bit_Save |= P_bit10;
+				
+				else 
+					P_Memory_Tower_Z_Err_Flag = 1;									// error
+				
+			}
+			// Y축 위치 Get
+			if( P_Y_Axis_Num != 0 )											// Y축 모터 넘버가 0이라면 Y축이 없는 모터이므로 판단 필요 X
+			{
+				if( P_Motor_Current_Pos(P_Y_Axis_Num) ~ P_Recipe_1st_MotorNo(P_Y_Axis_Num) )			// 타겟1 위치
+					P_Pos_Memory_Bit_Save |= P_bit17;
+				
+				else if( P_Motor_Current_Pos(P_Y_Axis_Num) ~ P_Recipe_2nd_MotorNo(P_Y_Axis_Num) )	// 타겟2 위치
+					P_Pos_Memory_Bit_Save |= P_bit18;
+				
+				else if( P_Motor_Current_Pos(P_Y_Axis_Num) ~ P_Recipe_3rd_MotorNo(P_Y_Axis_Num) )	// 타겟3 위치
+					P_Pos_Memory_Bit_Save |= P_bit19;
+
+				// 사용 미정
+				//else if( P_Motor_Current_Pos(P_Y_Axis_Num) ~ P_Recipe_4th_MotorNo(P_Y_Axis_Num) )	// 타겟4 위치
+				//	P_Pos_Memory_Bit_Save |= P_bit20;
+				//
+				//else if( P_Motor_Current_Pos(P_Y_Axis_Num) ~ P_Recipe_5th_MotorNo(P_Y_Axis_Num) )	// 타겟5 위치
+				//	P_Pos_Memory_Bit_Save |= P_bit21;
+				//
+				//else if( P_Motor_Current_Pos(P_Y_Axis_Num) ~ P_Recipe_6th_MotorNo(P_Y_Axis_Num) )	// 타겟6 위치
+				//	P_Pos_Memory_Bit_Save |= P_bit22;
+				
+				else 
+					P_Memory_Tower_Y_Err_Flag = 1;									// Error
+			}
+			if( P_ZZ_Axis_Num != 0 )		// Clamp Z2 추가 
+			{
+				if( P_Motor_Current_Pos(P_ZZ_Axis_Num) ~ P_Recipe_1st_MotorNo(P_ZZ_Axis_Num) )
+					P_Pos_Memory_Bit_Save |= P_bit13;						// Clamp OFF ( 상승 )
+				else if( P_Motor_Current_Pos(P_ZZ_Axis_Num) ~ P_Recipe_2nd_MotorNo(P_ZZ_Axis_Num) )
+					P_Pos_Memory_Bit_Save |= P_bit14;						// Clamp ON ( 하강 )
+				else if( P_Motor_Current_Pos(P_ZZ_Axis_Num) ~ P_Recipe_4th_MotorNo(P_ZZ_Axis_Num) )
+					P_Pos_Memory_Bit_Save |= P_bit16;						// 두께 하강 위치 
+				else 
+					P_Memory_Tower_ZZ_Err_Flag = 1;							// error
+				
+			}
+		}
+
+		if( P_Memory_Tower_X_Err_Flag == 1 )
+		{
+			if( P_PMAC_Current_Mode == F_Current_Automatic )
+			{
+				P_Error_X_Axis_Packml(5) = P_Error_X_Axis_Packml(4);	
+				P_Error_X_Axis_Packml(4) = P_Error_X_Axis_Packml(3);	
+				P_Error_X_Axis_Packml(3) = P_Error_X_Axis_Packml(2);	
+				P_Error_X_Axis_Packml(2) = P_Error_X_Axis_Packml(1);	
+				P_Error_X_Axis_Packml(1) = P_Error_X_Axis_Packml(0);	
+				P_Error_X_Axis_Packml(0) = P_PMAC_Status;
+
+				P_Error_X_Axis_Dequeue(5) = P_Error_X_Axis_Dequeue(4);	
+				P_Error_X_Axis_Dequeue(4) = P_Error_X_Axis_Dequeue(3);	
+				P_Error_X_Axis_Dequeue(3) = P_Error_X_Axis_Dequeue(2);	
+				P_Error_X_Axis_Dequeue(2) = P_Error_X_Axis_Dequeue(1);	
+				P_Error_X_Axis_Dequeue(1) = P_Error_X_Axis_Dequeue(0);	
+				P_Error_X_Axis_Dequeue(0) = P_Queue_Dequeue_Command;
+
+				P_Error_X_Axis_Num(5) = P_Error_X_Axis_Num(4);	
+				P_Error_X_Axis_Num(4) = P_Error_X_Axis_Num(3);	
+				P_Error_X_Axis_Num(3) = P_Error_X_Axis_Num(2);	
+				P_Error_X_Axis_Num(2) = P_Error_X_Axis_Num(1);	
+				P_Error_X_Axis_Num(1) = P_Error_X_Axis_Num(0);	
+				P_Error_X_Axis_Num(0) = P_X_Axis_Num;
+
+				P_Memory_Tower_Err_Pos_X_Save(5) = P_Memory_Tower_Err_Pos_X_Save(4);	
+				P_Memory_Tower_Err_Pos_X_Save(4) = P_Memory_Tower_Err_Pos_X_Save(3);	
+				P_Memory_Tower_Err_Pos_X_Save(3) = P_Memory_Tower_Err_Pos_X_Save(2);	
+				P_Memory_Tower_Err_Pos_X_Save(2) = P_Memory_Tower_Err_Pos_X_Save(1);	
+				P_Memory_Tower_Err_Pos_X_Save(1) = P_Memory_Tower_Err_Pos_X_Save(0);	
+				P_Memory_Tower_Err_Pos_X_Save(0) = P_Motor_Current_Pos(P_X_Axis_Num);
+			}
+			P_Pos_Memory_Bit_Save = F_Individual_Error;					// Bit Error 
+		}
+		if( P_Memory_Tower_Y_Err_Flag == 1 ) 
+		{
+			if( P_PMAC_Current_Mode == F_Current_Automatic )
+			{
+				P_Error_Y_Axis_Packml(5) = P_Error_Y_Axis_Packml(4);	
+				P_Error_Y_Axis_Packml(4) = P_Error_Y_Axis_Packml(3);	
+				P_Error_Y_Axis_Packml(3) = P_Error_Y_Axis_Packml(2);	
+				P_Error_Y_Axis_Packml(2) = P_Error_Y_Axis_Packml(1);	
+				P_Error_Y_Axis_Packml(1) = P_Error_Y_Axis_Packml(0);	
+				P_Error_Y_Axis_Packml(0) = P_PMAC_Status;
+
+				P_Error_Y_Axis_Dequeue(5) = P_Error_Y_Axis_Dequeue(4);	
+				P_Error_Y_Axis_Dequeue(4) = P_Error_Y_Axis_Dequeue(3);	
+				P_Error_Y_Axis_Dequeue(3) = P_Error_Y_Axis_Dequeue(2);	
+				P_Error_Y_Axis_Dequeue(2) = P_Error_Y_Axis_Dequeue(1);	
+				P_Error_Y_Axis_Dequeue(1) = P_Error_Y_Axis_Dequeue(0);	
+				P_Error_Y_Axis_Dequeue(0) = P_Queue_Dequeue_Command;
+
+				P_Error_Y_Axis_Num(5) = P_Error_Y_Axis_Num(4);	
+				P_Error_Y_Axis_Num(4) = P_Error_Y_Axis_Num(3);	
+				P_Error_Y_Axis_Num(3) = P_Error_Y_Axis_Num(2);	
+				P_Error_Y_Axis_Num(2) = P_Error_Y_Axis_Num(1);	
+				P_Error_Y_Axis_Num(1) = P_Error_Y_Axis_Num(0);	
+				P_Error_Y_Axis_Num(0) = P_Y_Axis_Num;
+
+				P_Memory_Tower_Err_Pos_Y_Save(5) = P_Memory_Tower_Err_Pos_Y_Save(4);	
+				P_Memory_Tower_Err_Pos_Y_Save(4) = P_Memory_Tower_Err_Pos_Y_Save(3);	
+				P_Memory_Tower_Err_Pos_Y_Save(3) = P_Memory_Tower_Err_Pos_Y_Save(2);	
+				P_Memory_Tower_Err_Pos_Y_Save(2) = P_Memory_Tower_Err_Pos_Y_Save(1);	
+				P_Memory_Tower_Err_Pos_Y_Save(1) = P_Memory_Tower_Err_Pos_Y_Save(0);	
+				P_Memory_Tower_Err_Pos_Y_Save(0) = P_Motor_Current_Pos(P_Y_Axis_Num);
+			}
+			P_Pos_Memory_Bit_Save = F_Individual_Error;					// Bit Error 
+		}
+		if( P_Memory_Tower_Z_Err_Flag == 1 )
+		{
+			if( P_PMAC_Current_Mode == F_Current_Automatic )
+			{
+				P_Error_Z_Axis_Packml(5) = P_Error_Z_Axis_Packml(4);	
+				P_Error_Z_Axis_Packml(4) = P_Error_Z_Axis_Packml(3);	
+				P_Error_Z_Axis_Packml(3) = P_Error_Z_Axis_Packml(2);	
+				P_Error_Z_Axis_Packml(2) = P_Error_Z_Axis_Packml(1);	
+				P_Error_Z_Axis_Packml(1) = P_Error_Z_Axis_Packml(0);	
+				P_Error_Z_Axis_Packml(0) = P_PMAC_Status;
+
+				P_Error_Z_Axis_Dequeue(5) = P_Error_Z_Axis_Dequeue(4);	
+				P_Error_Z_Axis_Dequeue(4) = P_Error_Z_Axis_Dequeue(3);	
+				P_Error_Z_Axis_Dequeue(3) = P_Error_Z_Axis_Dequeue(2);	
+				P_Error_Z_Axis_Dequeue(2) = P_Error_Z_Axis_Dequeue(1);	
+				P_Error_Z_Axis_Dequeue(1) = P_Error_Z_Axis_Dequeue(0);	
+				P_Error_Z_Axis_Dequeue(0) = P_Queue_Dequeue_Command;
+
+				P_Error_Z_Axis_Num(5) = P_Error_Z_Axis_Num(4);	
+				P_Error_Z_Axis_Num(4) = P_Error_Z_Axis_Num(3);	
+				P_Error_Z_Axis_Num(3) = P_Error_Z_Axis_Num(2);	
+				P_Error_Z_Axis_Num(2) = P_Error_Z_Axis_Num(1);	
+				P_Error_Z_Axis_Num(1) = P_Error_Z_Axis_Num(0);	
+				P_Error_Z_Axis_Num(0) = P_Z_Axis_Num;
+
+				P_Memory_Tower_Err_Pos_Z_Save(5) = P_Memory_Tower_Err_Pos_Z_Save(4);	
+				P_Memory_Tower_Err_Pos_Z_Save(4) = P_Memory_Tower_Err_Pos_Z_Save(3);	
+				P_Memory_Tower_Err_Pos_Z_Save(3) = P_Memory_Tower_Err_Pos_Z_Save(2);	
+				P_Memory_Tower_Err_Pos_Z_Save(2) = P_Memory_Tower_Err_Pos_Z_Save(1);	
+				P_Memory_Tower_Err_Pos_Z_Save(1) = P_Memory_Tower_Err_Pos_Z_Save(0);	
+				P_Memory_Tower_Err_Pos_Z_Save(0) = P_Motor_Current_Pos(P_Z_Axis_Num);
+			}
+			P_Pos_Memory_Bit_Save = F_Individual_Error;					// Bit Error 
+		}				
+		if( P_Memory_Tower_ZZ_Err_Flag == 1 )
+		{
+			if( P_PMAC_Current_Mode == F_Current_Automatic )
+			{
+				P_Error_ZZ_Axis_Packml(5) = P_Error_ZZ_Axis_Packml(4);	
+				P_Error_ZZ_Axis_Packml(4) = P_Error_ZZ_Axis_Packml(3);	
+				P_Error_ZZ_Axis_Packml(3) = P_Error_ZZ_Axis_Packml(2);	
+				P_Error_ZZ_Axis_Packml(2) = P_Error_ZZ_Axis_Packml(1);	
+				P_Error_ZZ_Axis_Packml(1) = P_Error_ZZ_Axis_Packml(0);	
+				P_Error_ZZ_Axis_Packml(0) = P_PMAC_Status;
+
+				P_Error_ZZ_Axis_Dequeue(5) = P_Error_ZZ_Axis_Dequeue(4);	
+				P_Error_ZZ_Axis_Dequeue(4) = P_Error_ZZ_Axis_Dequeue(3);	
+				P_Error_ZZ_Axis_Dequeue(3) = P_Error_ZZ_Axis_Dequeue(2);	
+				P_Error_ZZ_Axis_Dequeue(2) = P_Error_ZZ_Axis_Dequeue(1);	
+				P_Error_ZZ_Axis_Dequeue(1) = P_Error_ZZ_Axis_Dequeue(0);	
+				P_Error_ZZ_Axis_Dequeue(0) = P_Queue_Dequeue_Command;
+
+				P_Error_ZZ_Axis_Num(5) = P_Error_ZZ_Axis_Num(4);	
+				P_Error_ZZ_Axis_Num(4) = P_Error_ZZ_Axis_Num(3);	
+				P_Error_ZZ_Axis_Num(3) = P_Error_ZZ_Axis_Num(2);	
+				P_Error_ZZ_Axis_Num(2) = P_Error_ZZ_Axis_Num(1);	
+				P_Error_ZZ_Axis_Num(1) = P_Error_ZZ_Axis_Num(0);	
+				P_Error_ZZ_Axis_Num(0) = P_ZZ_Axis_Num;
+
+				P_Memory_Tower_Err_Pos_ZZ_Save(5) = P_Memory_Tower_Err_Pos_ZZ_Save(4);	
+				P_Memory_Tower_Err_Pos_ZZ_Save(4) = P_Memory_Tower_Err_Pos_ZZ_Save(3);	
+				P_Memory_Tower_Err_Pos_ZZ_Save(3) = P_Memory_Tower_Err_Pos_ZZ_Save(2);	
+				P_Memory_Tower_Err_Pos_ZZ_Save(2) = P_Memory_Tower_Err_Pos_ZZ_Save(1);	
+				P_Memory_Tower_Err_Pos_ZZ_Save(1) = P_Memory_Tower_Err_Pos_ZZ_Save(0);	
+				P_Memory_Tower_Err_Pos_ZZ_Save(0) = P_Motor_Current_Pos(P_ZZ_Axis_Num);
+			}
+			P_Pos_Memory_Bit_Save = F_Individual_Error;					// Bit Error 
+		}
+	// 결과값 리턴
+	Unit_Status_rtn = P_Pos_Memory_Bit_Save;
+	rtn = F_TRUE;
+	}
+return;
+
+sub:integrated_mode(&Status,&rtn)
+
+		 P_Total_Unit_Bit = 0;
+		 P_Total_Unit_Pos = 0 ;
+		 local L_Error_Bit_Flag = 0;
+
+//기존 PickerT 위치 확인 구문.
+//if(( (P_Axis_Ready_Pos(19) + 0.5) > (P_Motor_Current_Pos(N_1st_Picker_CA_T)) && (P_Axis_Ready_Pos(19) -0.5) < (P_Motor_Current_Pos(N_1st_Picker_CA_T))) && ((P_Axis_Ready_Pos(20) + 0.5) > (P_Motor_Current_Pos(N_1st_Picker_AN_T)) && (P_Axis_Ready_Pos(20) - 0.5) < (P_Motor_Current_Pos(N_1st_Picker_AN_T))))	// Picker T축 위치 확인.
+//{
+//	P_PNP_Picker_T_Pos = 1
+//}
+//else
+//{
+//	P_PNP_Picker_T_Pos = 0
+//}
+
+//PickerT의 위치가 대기 위치 or 얼라인 위치 2가지로 가질 수 있어서 위치 확인 조건 수정. //[ 참조 : 26.08.14 PickerT 모션 변경 ]
+if (((P_Axis_Ready_Pos(19) + 0.5) > P_Motor_Current_Pos(N_1st_Picker_CA_T) && (P_Axis_Ready_Pos(19) -0.5) < P_Motor_Current_Pos(N_1st_Picker_CA_T)) || (P_Motor_Current_Pos(N_1st_Picker_CA_T) > (P_Cathode_1TR_Picker_T_Align_POS - 0.5) && P_Motor_Current_Pos(N_1st_Picker_CA_T) < (P_Cathode_1TR_Picker_T_Align_POS + 0.5)))
+{//양극 PickerT 대기 위치 or 얼라인 진입 위치 확인
+	if(((P_Axis_Ready_Pos(20) + 0.5) > P_Motor_Current_Pos(N_1st_Picker_AN_T) && (P_Axis_Ready_Pos(20) -0.5) < P_Motor_Current_Pos(N_1st_Picker_AN_T)) || (P_Motor_Current_Pos(N_1st_Picker_AN_T) > (P_Anode_1TR_Picker_T_Align_POS - 0.5) && P_Motor_Current_Pos(N_1st_Picker_AN_T) < (P_Anode_1TR_Picker_T_Align_POS + 0.5)))
+	{//음극 PickerT 대기 위치 or 얼라인 진입 위치 확인
+		P_PNP_Picker_T_Pos = 1
+	}
+	else
+	{
+		P_PNP_Picker_T_Pos = 0
+	}
+}
+else
+{
+	P_PNP_Picker_T_Pos = 0
+}
+
+
+if(((P_Axis_Ready_Pos(42) + 0.5) > (P_Motor_Current_Pos(N_NG_PnP_CA_T)) && (P_Axis_Ready_Pos(42) - 0.5) < (P_Motor_Current_Pos(N_NG_PnP_CA_T))) && ((P_Axis_Ready_Pos(44) + 0.5) > (P_Motor_Current_Pos(N_NG_PnP_CA_Z)) && (P_Axis_Ready_Pos(44) - 0.5) < (P_Motor_Current_Pos(N_NG_PnP_CA_Z))) && ((P_Axis_Ready_Pos(43) + 0.5) > (P_Motor_Current_Pos(N_NG_PnP_AN_T)) && (P_Axis_Ready_Pos(43) - 0.5) < (P_Motor_Current_Pos(N_NG_PnP_AN_T))) && ((P_Axis_Ready_Pos(45) + 0.5) > abs(P_Motor_Current_Pos(N_NG_PnP_AN_Z)) && (P_Axis_Ready_Pos(45) - 0.5) < abs(P_Motor_Current_Pos(N_NG_PnP_AN_Z)))) // NG PNP 대기 위치 확인. [ 참조 : IDLE상태 위치 확인 NG PNP 추가 ]
+{
+	P_NG_PNP_Pos = 1
+}
+else
+{
+	P_NG_PNP_Pos = 0
+}
+
+
+
+
+
+
+
+
+
+// 각각의 모터 개별위치 비트를 받고, 그 위치비트에 따른 통합 위치 메모리 변수에 비트 넣어주자
+// 타임테이블 및 사이클 스탑 지점을 참고하여 통합 위치메모리는 하강 모션일때가 없으므로.... 상승부분만 체크해주면 될것같다.
+// 하강 모션이 추가된다면 추가하자.
+// [참조 : 파이널롤러 레시피 변경에 따른 메모리 타워 수정]
+//================================================== 통합 위치 조합 란 =============================================================================================
+	// 비트 삽입 완료 후 통합 위치 메모리 서칭
+	//[ 참조 : 26.02.27 위치 메모리 개편 ]
+	if( P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos && P_1st_Unloader_Unit_Status == F_Unloader_Discharge_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_On_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	{
+		P_Total_Unit_Pos = F_Equipment_JR_Discharge_Pos;
+	}	
+	else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos && P_1st_Unloader_Unit_Status == F_1st_Unloader_Init_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_On_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	{
+
+		if ( P_PMAC_Status == F_Status_IDLE || P_PMAC_Status == F_Status_RESETTING  )	// IDLE 상태 일 경우.		[ 참조 : 25.08.04 PackML 버튼 프로그램 수정 ]
+		{
+			if ( P_PNP_Picker_T_Pos && P_NG_PNP_Pos )					// Picker T축 위치, NG PNP T축,Z축 확인 [+-1]	[ 참조 : IDLE상태 위치 확인 NG PNP 추가 ]
+				P_Total_Unit_Pos = F_Equipment_IDLE_Cathode_Side_Pos;	// N_Equipment_Stack_Completed_Pos 16진수 값이 Cathode_Side_Pos와 같아서 함께 사용.
+			else														// 아닐 경우.
+				P_Total_Unit_Pos = F_Error_Status;						// Error_Status;
+		}
+		else
+			P_Total_Unit_Pos = F_Equipment_Stack_Completed_Pos;
+	}	
+	else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos && P_1st_Unloader_Unit_Status == F_Unloader_to_2nd_Grip_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_On_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	{
+		P_Total_Unit_Pos = F_Equipment_JR_Discharge_WaitPos;
+	}	
+	else if( P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos && P_1st_Unloader_Unit_Status == F_1st_Unloader_Init_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_On_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	{
+		if ( P_PMAC_Status == F_Status_IDLE || P_PMAC_Status == F_Status_RESETTING  )	// IDLE 상태 일 경우.		[ 참조 : 25.08.04 PackML 버튼 프로그램 수정 ]
+		{
+			if ( P_PNP_Picker_T_Pos && P_NG_PNP_Pos )						// Picker T축 위치, NG PNP T축,Z축 확인 [+-1]	[ 참조 : IDLE상태 위치 확인 NG PNP 추가 ]
+				P_Total_Unit_Pos = F_Equipment_Discharge_Stop_Pos;
+			else															// 아닐 경우.
+				P_Total_Unit_Pos = F_Error_Status;							// Error_Status;
+		}
+		else
+			P_Total_Unit_Pos = F_Equipment_Discharge_Stop_Pos;
+	}		
+	else if( P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos && P_1st_Unloader_Unit_Status == F_1st_Unloader_Init_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	{
+		if ( P_PMAC_Status == F_Status_IDLE || P_PMAC_Status == F_Status_RESETTING  )	// IDLE 상태 일 경우.		[ 참조 : 25.08.04 PackML 버튼 프로그램 수정 ]
+		{
+			if ( P_PNP_Picker_T_Pos && P_NG_PNP_Pos )						// Picker T축 위치, NG PNP T축,Z축 확인 [+-1]	[ 참조 : IDLE상태 위치 확인 NG PNP 추가 ]
+				P_Total_Unit_Pos = F_Equipment_IDLE_Initial_Ready_Pos;
+			else
+				P_Total_Unit_Pos = F_Error_Status;
+		}
+		else
+			P_Total_Unit_Pos = F_Equipment_IDLE_Initial_Ready_Pos;
+	}		
+	else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos && P_1st_Unloader_Unit_Status == F_1st_Unloader_Init_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Anode_CLP_Unit_Status == F_Clamp_On_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	{
+		if ( P_PMAC_Status == F_Status_IDLE || P_PMAC_Status == F_Status_RESETTING  )	// IDLE 상태 일 경우.		[ 참조 : 25.08.04 PackML 버튼 프로그램 수정 ]
+		{
+			if ( P_PNP_Picker_T_Pos && P_NG_PNP_Pos )						// Picker T축 위치, NG PNP T축,Z축 확인 [+-1]	[ 참조 : IDLE상태 위치 확인 NG PNP 추가 ]
+				P_Total_Unit_Pos = F_Equipment_IDLE_Anode_Side_Pos;
+			else
+				P_Total_Unit_Pos = F_Error_Status;
+		}
+		else
+			P_Total_Unit_Pos = F_Equipment_IDLE_Anode_Side_Pos;
+	}		
+	else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos && P_1st_Unloader_Unit_Status == F_1st_Unloader_Init_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Anode_CLP_Unit_Status == F_Clamp_On_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	{
+		if ( P_PMAC_Status == F_Status_IDLE || P_PMAC_Status == F_Status_RESETTING  )	// IDLE 상태 일 경우.		[ 참조 : 25.08.04 PackML 버튼 프로그램 수정 ]
+		{
+			if ( P_PNP_Picker_T_Pos && P_NG_PNP_Pos )						// Picker T축 위치, NG PNP T축,Z축 확인 [+-1]	[ 참조 : IDLE상태 위치 확인 NG PNP 추가 ]
+				P_Total_Unit_Pos = F_Equipment_IDLE_First_Sepa_On_Pos;
+			else
+				P_Total_Unit_Pos = F_Error_Status;
+		}
+		else
+			P_Total_Unit_Pos = F_Equipment_IDLE_First_Sepa_On_Pos;
+	}	
+	else if( P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+	{
+		P_Total_Unit_Pos = F_Equipment_Initial_Ready_Pos;
+	}
+	else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Anode_CLP_Unit_Status == F_Clamp_On_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+	{
+		P_Total_Unit_Pos = F_Equipment_Anode_Side_Pos;
+	}
+	else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_On_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+	{
+		P_Total_Unit_Pos = F_Equipment_Cathode_Side_Pos;
+	}
+	else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_On_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )
+	{
+		P_Total_Unit_Pos = F_Equipment_Anode_Run_Pos;
+	}		
+	else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Anode_CLP_Unit_Status == F_Clamp_On_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )
+	{
+		P_Total_Unit_Pos = F_Equipment_Cathode_Run_Pos;
+	}		
+	else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_On_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	{
+		P_Total_Unit_Pos = F_Equipment_Anode_NG_Pos;
+	}	
+	else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Anode_CLP_Unit_Status == F_Clamp_On_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	{
+		P_Total_Unit_Pos = F_Equipment_Cathode_NG_Pos;
+	}	
+	else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	{
+		P_Total_Unit_Pos = F_Equipment_Frist_Sepa_Runing_Stop_Pos;
+	}
+	else if( P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_On_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	{
+		P_Total_Unit_Pos = F_Equipment_Isenable_Discharge_Pos;	
+	}		
+	else
+	{
+		P_Total_Unit_Pos = 444
+	}
+	
+	Status = P_Total_Unit_Pos;
+	rtn = F_TRUE;
+
+return;
+
+close
+
+
+

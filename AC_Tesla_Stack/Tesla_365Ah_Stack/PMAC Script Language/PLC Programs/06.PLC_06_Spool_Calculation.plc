@@ -1,0 +1,485 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.18  [ 2025.06.18 외경프로그램 추가 ]	
+// ARC 필요 외경 판단 및 Spool 외경 프로그램   
+// 25.10.13 임동훈 선임 [ 참조 : 25.10.13 UI 선택에 따른 언와인더 Number 설정 ]
+// UI 상부, 하부 언와인더 선택에 따른 Number 수정 추가.
+
+open plc 6
+P_MNTR_PLC6_Task_Time(0) = Sys.Time;
+#define	L_System_Timer				Sys.Time				// 시스템 타이머
+
+Local	L_Time_Cycle_Up_Count_Start_Time;					// Plc[6].ldata.L[0]  시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;						// Plc[6].ldata.L[1]  시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;					// Plc[6].ldata.L[2]  시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;					// Plc[6].ldata.L[3]  타이머 초기화 플래그
+
+// 외경 Local 변수
+//local	L_PLC06_Upper_Sepa_AI_Timer;						// Plc[6].ldata.L[4]  상단 Sepa 순환평균 타이머
+//local	L_PLC06_Upper_Sepa_AI_Data;							// Plc[6].ldata.L[5]  상단 순환평균 데이터
+//local	L_PLC06_Upper_Sepa_AI_Cnt;							// Plc[6].ldata.L[6]  상단 순환평균 카운트
+//local	L_PLC06_Upper_AVRG_Sensor_Data;						// Plc[6].ldata.L[7] 상단 AI 평균 데이터
+//local	L_PLC06_Lower_Sepa_AI_Timer;						// Plc[6].ldata.L[8]  하단 Sepa 순환평균 타이머
+//local	L_PLC06_Lower_Sepa_AI_Data;							// Plc[6].ldata.L[9]  하단 순환평균 데이터
+//local	L_PLC06_Lower_Sepa_AI_Cnt;							// Plc[6].ldata.L[10]  하단 순환평균 카운트
+//local	L_PLC06_Lower_AVRG_Sensor_Data;						// Plc[6].ldata.L[11] 하단 AI 평균 데이터
+//// 세파 두께 Local 변수 
+//local	L_PLC06_Sepa_Upper_Thickness_Timer;					// Plc[6].ldata.L[12]  상단 Sepa 두께 순환평균 타이머
+//local	L_PLC06_Sepa_Upper_Thickness_Data;					// Plc[6].ldata.L[13]  상단 두께 순환평균 데이터
+//local	L_PLC06_Sepa_Upper_Thickness_Cnt;					// Plc[6].ldata.L[14]  상단 두께 순환평균 카운트
+//local	L_PLC06_Sepa_Lower_Thickness_Timer;					// Plc[6].ldata.L[15]  하단 Sepa 두께 순환평균 타이머
+//local	L_PLC06_Sepa_Lower_Thickness_Data;					// Plc[6].ldata.L[16]  하단 두께 순환평균 데이터
+//local	L_PLC06_Sepa_Lower_Thickness_Cnt;					// Plc[6].ldata.L[17]  하단 두께 순환평균 카운트
+
+local	L_Selected_Spool_Number;							// Plc[6].ldata.L[18] 스풀 업데이트 변수
+local	L_Sepa_Thickness_Reentry;							// Plc[6].ldata.L[19]	재진입 방지 변수
+
+local	L_Clamp_2nd_Vector_Y;								// Plc[6].ldata.L[20] 이전값 변수
+local	L_Clamp_2nd_Vector_Z;								// Plc[6].ldata.L[21] 이전값 변수
+//local	L_Set_Interval_Time = 5;							// Plc[6].ldata.L[22] 갱신 시간 5ms
+//local	L_Sepa_Thickness_Chk_Timer;							// Plc[6].ldata.L[23] 세파 두께 체크 타이머
+//test 변수
+local	L_Anode_Count;
+local	L_Cathode_Count;
+local	L_Cnt;
+local	L_Save;
+local 	L_Old_Save;
+//========================================================================================================================
+// 01. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 01.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+
+// 01.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 01.3) 시간 업데이트
+if (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{		
+	
+	P_PLC06_Upper_Sepa_AI_Timer = P_PLC06_Upper_Sepa_AI_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC06_Lower_Sepa_AI_Timer = P_PLC06_Lower_Sepa_AI_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC06_Sepa_Upper_Thickness_Timer = P_PLC06_Sepa_Upper_Thickness_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC06_Sepa_Lower_Thickness_Timer = P_PLC06_Sepa_Lower_Thickness_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Sepa_Thickness_Chk_Timer = P_Sepa_Thickness_Chk_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Sepa_Required_Update_Timer = P_Sepa_Required_Update_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// UI 선택에 따른 언와인더 Number 설정	[ 참조 : 25.10.13 UI 선택에 따른 언와인더 Number 설정 ]
+if ( P_Suspend_ARC_Module_Status != F_Status_EXECUTE )		// ARC 모듈 진행 상태가 아닐 경우.	[ 참조 : 25.10.17 언와인더 Number 설정 조건 추가 ]
+{
+	// [PLC → PMAC] Unwinder IO에 따른 Unwinder Number 업데이트.
+	if ( M_X_Sepa_Upper_Unwinder_Status == 1 && M_X_Sepa_Lower_Unwinder_Status == 0 )					// 상부 선택일 경우.
+	{
+		P_Selected_Spool_Number = N_UNWINDER_UPPER;			// 상부 설정.
+	}
+	else if ( M_X_Sepa_Upper_Unwinder_Status == 0 && M_X_Sepa_Lower_Unwinder_Status == 1 )				// 하부 선택일 경우.
+	{
+		P_Selected_Spool_Number = N_UNWINDER_LOWER;			// 하부 설정.
+	}
+	else {}
+	// [PMAC → PLC] Unwinder Number에 따른 Unwinder IO 업데이트.
+	if ( P_Selected_Spool_Number == N_UNWINDER_UPPER )		// 상부 선택일 경우.
+	{
+		M_Y_Sepa_Upper_Unwinder_Status = 1;					// 상부 언와인더 상태 IO ON.
+		M_Y_Sepa_Lower_Unwinder_Status = 0;					// 상부 언와인더 상태 IO ON.
+	}
+	else if ( P_Selected_Spool_Number == N_UNWINDER_LOWER )	// 하부 선택일 경우.
+	{
+		M_Y_Sepa_Upper_Unwinder_Status = 0;					// 하부 언와인더 상태 IO ON.
+		M_Y_Sepa_Lower_Unwinder_Status = 1;					// 하부 언와인더 상태 IO ON.
+	}
+
+	if(P_PLC06_Frist_Flag == 1 )
+	{
+		P_PLC06_Frist_Flag = 0;
+		switch( P_Selected_Spool_Number )
+		{
+			case N_UNWINDER_UPPER: M_Y_Upper_Unwinder_Lock_Sol = 1; M_Y_Upper_Unwinder_UnLock_Sol = 0;	break;
+			case N_UNWINDER_LOWER: M_Y_Lower_Unwinder_Lock_Sol = 1; M_Y_Lower_Unwinder_UnLock_Sol = 0;	break;
+		}
+	}
+}
+//==================================================================================================================================
+
+// test =============================================================================================================================================
+// [ 2025.07.11 ARC TEST 추가 ]
+#ifdef F_Virtual_Axis_Test
+	if( P_PLC06_Reel_Upper_Change_Flag == 1 )
+	{
+		P_PLC06_Reel_Upper_Change_Flag = 0;
+		M_AI_Upper_Sepa_Sensing = N_Reel_MAX;
+	}
+	else if( P_PLC06_Reel_Lower_Change_Flag == 1 )
+	{
+		P_PLC06_Reel_Lower_Change_Flag = 0;
+		M_AI_Lower_Sepa_Sensing = N_Reel_MAX;
+	}
+	if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+	{
+		if( P_Anode_Count != L_Anode_Count )
+		{
+			//M_AI_Upper_Sepa_Sensing -= P_Sepa_AI;
+			L_Cnt++
+		}
+		if( P_Cathode_Count != L_Cathode_Count )
+		{
+			//M_AI_Upper_Sepa_Sensing -= P_Sepa_AI;
+			L_Cnt++
+		}
+	}
+	else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+	{
+		if( P_Anode_Count != L_Anode_Count )
+		{
+			//M_AI_Lower_Sepa_Sensing -= P_Sepa_AI;
+			L_Cnt++
+		}
+		if( P_Cathode_Count != L_Cathode_Count )
+		{
+			//M_AI_Lower_Sepa_Sensing -= P_Sepa_AI;
+			L_Cnt++
+		}
+	}
+	L_Anode_Count = P_Anode_Count;
+	L_Cathode_Count = P_Cathode_Count;
+
+	// 현재 외경
+
+if( P_PLC06_Spool_Circumference - P_Sepa_Length * L_Cnt < 0 )
+{
+	L_Save = P_PLC06_Spool_Circumference - P_Sepa_Length * L_Cnt;
+	L_Old_Save = L_Old_Save + L_Save;
+	if( L_Old_Save * -1 >= P_PLC06_Spool_Circumference )
+	{
+		if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+		{
+			M_AI_Upper_Sepa_Sensing -= P_Sepa_AI;
+		}
+		else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+		{
+			M_AI_Lower_Sepa_Sensing -= P_Sepa_AI;
+		}
+		L_Old_Save = 0;
+	}
+	if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+	{
+		M_AI_Upper_Sepa_Sensing -= P_Sepa_AI;
+	}
+	else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+	{
+		M_AI_Lower_Sepa_Sensing -= P_Sepa_AI;
+	}
+	L_Cnt = 0;
+}
+
+
+#endif
+// 외경감지 센서 Get 부분============================================================================================================================
+// 5ms 마다 외경감지 센서 업데이트
+//1. 상단 언와인더 ========================================================================
+if( P_PLC06_Upper_Sepa_AI_Timer >= P_Set_Interval_Time )			// 5ms 마다 업데이트
+{
+	P_PLC06_Upper_AVRG_Sensor_Data = P_PLC06_Upper_Sepa_AI_Data / P_PLC06_Upper_Sepa_AI_Cnt;
+	//P_PLC06_Curr_Upper_Distance_mm = ((P_Sepa_To_Sensor_Max_Distance_mm - P_Sepa_To_Sensor_Min_Distance_mm) / (P_Sensor_Max_Analog_Data - P_Sensor_Min_Analog_Data) ) * L_PLC06_Upper_AVRG_Sensor_Data + P_Upper_Sepa_Cal_Inclination;// P_Sepa_Cal_Inclination;//170.0606;
+	P_PLC06_Curr_Upper_Distance_mm = ((P_Upper_Sepa_To_Sensor_Max_Dis - P_Upper_Sepa_To_Sensor_Min_Dis) / (P_Upper_Sensor_Max_AD - P_Upper_Sensor_Min_AD) ) * P_PLC06_Upper_AVRG_Sensor_Data + P_Upper_Sepa_Cal_Inclination;// P_Sepa_Cal_Inclination;//170.0606;
+	P_PLC06_Upper_Sepa_AI_Timer = 0;			// 초기화
+	P_PLC06_Upper_Sepa_AI_Data = 0;				// 초기화
+	P_PLC06_Upper_Sepa_AI_Cnt = 0;				// 초기화
+}
+else	// 아날로그 데이터 순환평균 시작		
+{
+	P_PLC06_Upper_Sepa_AI_Data =  P_PLC06_Upper_Sepa_AI_Data + M_AI_Sepa_Upper_Sensing;
+	P_PLC06_Upper_Sepa_AI_Cnt++;
+}
+
+//2. 하단 언와인더 ========================================================================
+if( P_PLC06_Lower_Sepa_AI_Timer >= P_Set_Interval_Time )			// 5ms 마다 업데이트
+{
+	P_PLC06_Lower_AVRG_Sensor_Data = P_PLC06_Lower_Sepa_AI_Data / P_PLC06_Lower_Sepa_AI_Cnt;
+	//P_PLC06_Curr_Lower_Distance_mm = ((P_Sepa_To_Sensor_Max_Distance_mm - P_Sepa_To_Sensor_Min_Distance_mm) / (P_Sensor_Max_Analog_Data - P_Sensor_Min_Analog_Data) ) * L_PLC06_Lower_AVRG_Sensor_Data + P_Lower_Sepa_Cal_Inclination;//P_Sepa_Cal_Inclination;//170.0606;
+	P_PLC06_Curr_Lower_Distance_mm = ((P_Lower_Sepa_To_Sensor_Max_Dis - P_Lower_Sepa_To_Sensor_Min_Dis) / (P_Lower_Sensor_Max_AD - P_Lower_Sensor_Min_AD) ) * P_PLC06_Lower_AVRG_Sensor_Data + P_Lower_Sepa_Cal_Inclination;//P_Sepa_Cal_Inclination;//170.0606;
+	P_PLC06_Lower_Sepa_AI_Timer = 0;			// 초기화
+	P_PLC06_Lower_Sepa_AI_Data = 0;				// 초기화
+	P_PLC06_Lower_Sepa_AI_Cnt = 0;				// 초기화
+}
+else	// 아날로그 데이터 순환평균 시작
+{
+	P_PLC06_Lower_Sepa_AI_Data =  P_PLC06_Lower_Sepa_AI_Data + M_AI_Sepa_Lower_Sensing;
+	P_PLC06_Lower_Sepa_AI_Cnt++;
+}
+
+// ==================================================================================================================================================
+
+// 세파 외경값 구하는 수식란===========================================================================================================================
+//if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+//P_PLC06_Curr_Spool_Radius = P_Sensor_To_Unwinder_Core_Disatance_mm - P_PLC06_Curr_Upper_Distance_mm;	// 반지름 구하기 P_Sensor_To_Unwinder_Core_Disatance_mm = 270
+//else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+//P_PLC06_Curr_Spool_Radius = P_Sensor_To_Unwinder_Core_Disatance_mm - P_PLC06_Curr_Lower_Distance_mm;	// 반지름 구하기 P_Sensor_To_Unwinder_Core_Disatance_mm = 270
+//P_PLC06_Spool_Circumference = 2 * P_PI * P_PLC06_Curr_Spool_Radius;											// 세파 외경 구하기
+
+// 상부와 하부의 센싱 거리가 다름 나눠서 계산 
+P_Upper_Curr_Spool_Radius = P_Upper_Sensor_To_Unwinder_Core_Dis - P_PLC06_Curr_Upper_Distance_mm;
+P_Lower_Curr_Spool_Radius = P_Lower_Sensor_To_Unwinder_Core_Dis - P_PLC06_Curr_Lower_Distance_mm;
+
+P_Upper_Spool_Circumference = 2 * P_PI * P_Upper_Curr_Spool_Radius;
+P_Lower_Spool_Circumference = 2 * P_PI * P_Lower_Curr_Spool_Radius;
+
+// ===================================================================================================================================================
+
+// 세파 두께 체크 =====================================================================================================================================
+if( P_Sepa_Thickness_Chk_Timer >= P_Set_Interval_Time )			// 5ms 마다 업데이트
+{
+	//P_PLC06_Sepa_Min_Distance_mm = ((P_Sepa_To_Sensor_Max_Distance_mm - P_Sepa_To_Sensor_Min_Distance_mm) / (P_Sensor_Max_Analog_Data - P_Sensor_Min_Analog_Data) ) * P_Sensor_Min_Analog_Data + P_Sepa_Cal_Inclination;//170.0606;
+	P_Upper_Sepa_Min_Distance_mm = ((P_Upper_Sepa_To_Sensor_Max_Dis - P_Upper_Sepa_To_Sensor_Min_Dis) / (P_Upper_Sensor_Max_AD - P_Upper_Sensor_Min_AD) ) * P_Upper_Sensor_Min_AD + P_Upper_Sepa_Cal_Inclination;//170.0606;
+	P_Lower_Sepa_Min_Distance_mm = ((P_Lower_Sepa_To_Sensor_Max_Dis - P_Lower_Sepa_To_Sensor_Min_Dis) / (P_Lower_Sensor_Max_AD - P_Lower_Sensor_Min_AD) ) * P_Lower_Sensor_Min_AD + P_Lower_Sepa_Cal_Inclination;//170.0606;
+
+	P_PLC06_Upper_Curr_Unwinder_Thickness_mm = P_Upper_Sepa_Min_Distance_mm - P_PLC06_Curr_Upper_Distance_mm;
+	P_PLC06_Lower_Curr_Unwinder_Thickness_mm = P_Lower_Sepa_Min_Distance_mm - P_PLC06_Curr_Lower_Distance_mm;
+	P_Sepa_Thickness_Chk_Timer = 0;				// 타이머 초기화
+}
+// ===================================================================================================================================================
+
+// 세파 두께 계산 ========================================================================================================================================
+// 10ms 마다 세파 두께 평균 데이터
+
+if( P_PLC06_Sepa_Upper_Thickness_Timer >= P_Set_Interval_Time )		// 5ms 마다 업데이트
+{
+	P_AVRG_Upper_Sepa_Thickness_mm = P_PLC06_Sepa_Upper_Thickness_Data / P_PLC06_Sepa_Upper_Thickness_Cnt;
+	P_PLC06_Sepa_Upper_Thickness_Data = 0;			// 초기화
+	P_PLC06_Sepa_Upper_Thickness_Cnt = 0;			// 초기화
+	P_PLC06_Sepa_Upper_Thickness_Timer = 0;			// 초기화
+}
+else	// 아날로그 데이터 순환평균 시작
+{
+	P_PLC06_Sepa_Upper_Thickness_Data =  P_PLC06_Sepa_Upper_Thickness_Data + P_PLC06_Upper_Curr_Unwinder_Thickness_mm;
+	P_PLC06_Sepa_Upper_Thickness_Cnt++;
+}
+
+if( P_PLC06_Sepa_Lower_Thickness_Timer >= P_Set_Interval_Time )		// 5ms 마다 업데이트
+{
+	P_AVRG_Lower_Sepa_Thickness_mm = P_PLC06_Sepa_Lower_Thickness_Data / P_PLC06_Sepa_Lower_Thickness_Cnt;
+	P_PLC06_Sepa_Lower_Thickness_Data = 0;			// 초기화
+	P_PLC06_Sepa_Lower_Thickness_Cnt = 0;			// 초기화
+	P_PLC06_Sepa_Lower_Thickness_Timer = 0;			// 초기화
+}
+else	// 아날로그 데이터 순환평균 시작
+{
+	P_PLC06_Sepa_Lower_Thickness_Data =  P_PLC06_Sepa_Lower_Thickness_Data + P_PLC06_Lower_Curr_Unwinder_Thickness_mm;
+	P_PLC06_Sepa_Lower_Thickness_Cnt++;
+}
+
+// [ 참조 : 25.07.02 ARC 요구 플래그 조건 수정 ]
+
+// Auto Reel Change 필요 여부 판단. ========================================================================================================================================================
+if( P_PMAC_Status == F_Status_SUSPENDED || ( P_Anode_Count == 0 &&  P_Cathode_Count == 0 ) )	// 서스펜드 or 적층중이 아니라면			// [ 2025.06.20 조건 수정 ]
+{
+	call ARC_Motion_State_Function.Inspec_Sens(P_Selected_Spool_Number,P_AVRG_Upper_Sepa_Thickness_mm,P_AVRG_Lower_Sepa_Thickness_mm);
+}
+// Auto Reel Change 필요 여부 판단. ==========================================================================================================================================================
+
+if( P_Selected_Spool_Number != L_Selected_Spool_Number )																				// 스풀 번호가 변경되었다면
+{
+	L_Selected_Spool_Number = P_Selected_Spool_Number;																					// 스풀 번호 업데이트
+}
+
+// [ 참조 : 2026.02.03 Sepa Jog Code ADD ] 
+// Execute 상태에선 Queue Prog 즉 PLC1번이 여유가 있으므로 여기서 갱신 함
+// P_Cur_Arc_Rad = P_JR_MD_Width / P_Lower_Sepa_Cur_Radius		// r * θ = 원 Arc 길이이고 넘겨서 radian 구하기.
+// P_Cur_Arc_Rad = P_JR_MD_Width / P_Temp_Radius				// r * θ = 원 Arc 길이이고 넘겨서 radian 구하기.
+// P_Cur_Arc_Deg = P_Cur_Arc_Rad * 180 / P_PI					// radian을 Degree로 변환.
+// P_Spool_Velocity = P_Cur_Arc_Deg / P_Master_Tact_Sec (deg/s)	// degree/s로 속도 구하기.
+// 거리값은 Jog 풀기명령은 jog1:(P_Cur_Arc_Deg  * -1) 또는 jog1-로 할 예정.
+
+if(P_PMAC_Current_Mode == F_Current_Automatic && P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence)
+{
+	// Pause 시 세파 풀리는거 수정?
+	if( P_Current_Mode == F_Half_Anode_Run_Mode || P_Current_Mode == F_Half_Cathode_Run_Mode || P_Driving_Start == 1 )
+	{  
+		if( P_Current_Mode == F_Half_Cathode_Run_Mode && P_Cathode_Cur_Mode == F_Sepa_Last_Run )
+		{
+			P_Spool_Length = P_Sepa_Length + (abs(P_Final_Roll_X_Discharge) - abs(P_Final_Roll_X_Anode_Move));
+			Sys.Idata[21186] = P_Spool_Length //[참조 : 260617 Sepa feeding양 Spool MES 전달 ]
+		}
+		else
+		{
+
+			if( P_Current_Mode == F_Half_Cathode_Run_Mode || P_Driving_Start == 1 )
+			{
+				P_Spool_Length = P_Sepa_Length + P_AN_DR_Offset;
+				Sys.Idata[21186] = P_Spool_Length //[참조 : 260617 Sepa feeding양 Spool MES 전달 ]
+			}
+			else if( P_Current_Mode == F_Half_Anode_Run_Mode )
+			{
+				P_Spool_Length = P_Sepa_Length + P_CA_DR_Offset;
+				Sys.Idata[21186] = P_Spool_Length //[참조 : 260617 Sepa feeding양 Spool MES 전달 ]
+			}
+		}
+
+		if( P_First_Sepa_Driving_Use == 0 )						// 드라이빙 사용 안한다면
+		{
+			if( P_Master_Motion_Trigger == P_Anode_Run_DR )
+			{
+				P_Sepa_DR_Start_Flag = 1;
+			}
+			else if( P_Master_Motion_Trigger == P_Cathode_Run_DR )
+			{
+				P_Sepa_DR_Start_Flag = 1;
+			}
+		}
+
+		if ( P_Sepa_DR_Start_Flag == 1 )		// 드라이빙 무빙 시점 시작.
+		{
+			P_Sepa_DR_Start_Flag = 0;			// 플래그 초기화 
+			//sys.cdtimer[5] = (P_cdTime_Tact_Sec*1000) / (P_Recipe_Speed_Value/100);		// 하강 타이머 set
+			sys.cdtimer[5] = (P_cdTime_Tact_Sec*1000) / ((Coord[1].DesTimeBase*400)/100);							// 하강 타이머 set
+			p1200++;
+		}
+
+		if ( Coord[1].ProgActive == 1 && Coord[1].ProgRunning == 0 )
+		{
+			sys.cdtimer[5] = 0;
+		}
+
+		if( sys.cdtimer[5] != 0 )				// 하강 타이머에 값이 있다면
+		{
+			
+			if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+				P_Cur_Arc_Rad = P_Spool_Length / P_Upper_Curr_Spool_Radius;			// r * θ = 원 Arc 길이이고 넘겨서 radian 구하기.
+			else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+				P_Cur_Arc_Rad = P_Spool_Length / P_Lower_Curr_Spool_Radius;			// r * θ = 원 Arc 길이이고 넘겨서 radian 구하기.
+
+			P_Cur_Arc_Deg = P_Cur_Arc_Rad * 180 / P_PI;							// radian을 Degree로 변환.
+			P_Spool_Velocity = P_Cur_Arc_Deg / P_Master_Tact_Sec;				// (deg/s)	degree/s로 속도 구하기.
+			
+			if( P_Running_CDTimer == 1)
+			{
+				Motor[L_Selected_Spool_Number].JogTa = P_Unwinder_Jog_Ta;			//	mm/s -> mu/ms이지만 1000곱해지게되면 mm/s 볼수있음
+				Motor[L_Selected_Spool_Number].JogTs = P_Unwinder_Jog_Ts;			//	mm/s
+			}
+			//[ 참조 : 26.02.25 케스케이딩 감도 변경 구문추가, 세파 수식 단순화(미사용 코드 삭제) ]
+			//CompTable[0].Sf[0]=-0.0012;	//케스케이딩 감도 최소화(주행시)
+			CompTable[0].Sf[0]=P_Cascade_Sf_Driving_Value;	//케스케이딩 감도 최소화(주행시)
+			Motor[L_Selected_Spool_Number].JogSpeed = P_Spool_Velocity;
+			Ldata.motor = L_Selected_Spool_Number;
+			jog-;
+			P_Running_CDTimer = 1;
+			p1201++;
+		}
+		else if(sys.cdtimer[5] == 0 && P_Running_CDTimer == 1)
+		{// 엣지보고 조그 슬러시.
+			CompTable[0].Sf[0]=P_Cascade_Sf_None_Driving_Value;	//케스케이딩 감도 최대화
+			Motor[L_Selected_Spool_Number].JogTa = P_Unwinder_Jog_Ta;
+			Motor[L_Selected_Spool_Number].JogTs = P_Unwinder_Jog_Ts;
+			Ldata.motor = L_Selected_Spool_Number;
+			jog/;
+			P_Running_CDTimer = 0;
+			p1202++;
+		}
+	}
+	else 
+	{    //현재 스텍 중이 아닌 상태에서 모드가 변환되면
+		if( P_Current_Mode == 0 && P_System_Cascading_ON_State_Machine == 0 )		// 260422
+		{  // 케스케이딩 응답성 높임-> 발생하는 오차는 케스케이딩으로 보상 --> 세파 첫장 깔 시 Kp 변경 방지 추가 2024.05.14
+			CompTable[0].Sf[0]=P_Cascade_Sf_None_Driving_Value;	//케스케이딩 감도 최대화
+			sys.cdtimer[5] = 0;
+			Motor[L_Selected_Spool_Number].JogTa = P_Unwinder_Jog_Ta;
+			Motor[L_Selected_Spool_Number].JogTs = P_Unwinder_Jog_Ts;
+			Ldata.motor = L_Selected_Spool_Number;
+			jog/;
+		}
+	}
+}
+
+
+
+//// Sepa 두께 Min Value 계산 
+//// 2025.12.19 기종에 따른 Sepa 최소 두께 구하기 Prog
+//// 장비마다 ARC 최소 두께 값이 상이하여 계산
+
+if( P_Sepa_Min_Value_Cal_Cmd == N_TRUE )		// 터미널창에 커맨드 입력
+{
+	P_Sepa_Min_Value_Cal_Cmd = N_FALSE;			// 커맨드 초기화
+	P_Alpa = P_Recipe_M12_POS(2) - P_Recipe_M12_POS(1);		// (-131.5) - (-195.5)	// 배출때 끌고가는 양
+
+	if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+		P_Sharft_to_Sepa_Core_mm = P_Upper_Sensor_To_Unwinder_Core_Dis - P_Upper_Sepa_To_Sensor_Min_Dis;
+	else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+		P_Sharft_to_Sepa_Core_mm = P_Lower_Sensor_To_Unwinder_Core_Dis - P_Lower_Sepa_To_Sensor_Min_Dis;
+
+	P_Total_Sepa_Need_Length = P_Sepa_Length * ( P_Anode_Recipe_Count + P_Cathode_Recipe_Count + 1 ) + P_Alpa;				// 1개의 젤리롤에 대한 Sepa 총 길이 계산 ( Alpa 값은 배출 시 당겨지는 양 대략 )
+
+	P_Sepa_Turn_Num = 1;						// 세파 감긴 횟수 초기화
+	P_Sepa_Cal_Circum = 0;						// 몇번째 감긴지에 따른 외경값 초기화
+	P_Accumulate_Value = 0;						// 누적 량 초기화
+	P_Sepa_Accumulate_Cmd = N_TRUE;				// 누적량 계산 시작
+}
+
+if( P_Sepa_Accumulate_Cmd == N_TRUE )			// 커맨드 on 
+{
+	P_Sepa_Cal_Circum = 2 * P_PI * ( P_Sharft_to_Sepa_Core_mm + P_Sepa_Thickness * P_Sepa_Turn_Num )	// (코어 + (세파 x 감긴횟수)) = (반지름)   * 2 * 3.14 = 외경 = 세파 길이
+
+	if( P_Total_Sepa_Need_Length >= P_Accumulate_Value )												// 1개의 젤리롤 총 Sepa길이가 누적 계산 보다 작다면
+	{
+		P_Accumulate_Value = P_Accumulate_Value + P_Sepa_Cal_Circum;									// 감긴횟수에 따른 외경값 추가
+		P_Sepa_Turn_Num++;																				// 턴수 횟수 증가
+	}
+	else																								// 1개의 젤리롤 총 Sepa길이가 누적 계산보다 작다면
+	{
+		P_Sepa_Accumulate_Cmd = N_FALSE;	//break;													// 반복 중지
+		P_Sepa_Min_Thickness_Cmd = N_TRUE;																// 최소값 계산 시작
+	}																					
+}
+
+if( P_Sepa_Min_Thickness_Cmd == N_TRUE )																// on
+{	
+	P_Sepa_Min_Thickness_Cmd = N_FALSE;																	// 초기화
+	P_Sepa_Min_Need_Thickness = P_Sepa_Thickness * P_Sepa_Turn_Num;										// 최소 필요 두께 !!! 
+	// AI값으로 측정되는 부분이라 오차가 있을 수 있으므로 여유있게 0.05mm 더해도 좋다. ( 너무 더하면 세파가 그만큼 많이 버려지게 된다 )
+}
+
+// 세파 소요량 계산
+if(P_Sepa_Required_Update_Timer > P_Set_Interval_Time)
+{
+	if(P_Selected_Spool_Number == N_UNWINDER_UPPER)
+	{
+		P_Sepa_Current_Thickness = P_AVRG_Upper_Sepa_Thickness_mm + P_Upper_Sensor_To_Unwinder_Core_Dis - P_Upper_Sepa_To_Sensor_Min_Dis;		// 상단 현재 세파 두께
+	}
+	else if(P_Selected_Spool_Number == N_UNWINDER_LOWER)
+	{
+		P_Sepa_Current_Thickness = P_AVRG_Lower_Sepa_Thickness_mm + P_Lower_Sensor_To_Unwinder_Core_Dis - P_Lower_Sepa_To_Sensor_Min_Dis;		// 하단 현재 세파 두께
+	}
+	
+	P_Sepa_Initial_Tickness = P_Sepa_Initial_Tickness + P_Lower_Sensor_To_Unwinder_Core_Dis - P_Lower_Sepa_To_Sensor_Min_Dis;
+
+	P_Sepa_Required_Amount = 3.141592 * (pow(P_Sepa_Initial_Tickness, 2.0) - pow(P_Sepa_Current_Thickness, 2.0)) / P_Sepa_Thickness;	// 현재 세파 소모량 ( 사용된 세파의 길이 mm )
+	P_Sepa_Required_Update_Timer = 0;
+}
+
+
+P_MNTR_PLC6_Task_Time(1) = (Sys.Time - P_MNTR_PLC6_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC6_Task_Time(1) > P_MNTR_PLC6_Task_Max_Time )
+{
+	P_MNTR_PLC6_Task_Max_Time = P_MNTR_PLC6_Task_Time(1);
+}
+
+close

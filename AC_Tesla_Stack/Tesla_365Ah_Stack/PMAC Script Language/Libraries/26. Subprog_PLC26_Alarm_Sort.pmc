@@ -1,0 +1,219 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.29 
+// 알람 프로그램 표준화 작업 - [ 참조 : 25.07.29 알람 프로그램 표준화 작업 진행 ]
+
+
+open subprog Alarm(void)
+
+	sub: Insert_Alarm(Alarm_Num, Alarm_Type)
+		
+		if(P_Alarm_duplicate_Check_Arr(Alarm_Num) == 0)
+		{
+			P_Alarm_duplicate_Check_Arr(Alarm_Num) = 1;
+			P_Alarm_Arr(0)++;
+
+			P_Alarm_Arr(P_Alarm_Arr(0)) = Alarm_Num;
+
+			if(P_Compare_Priority > Alarm_Type)
+			{
+				P_Compare_Priority = Alarm_Type;
+			}
+		}
+
+	return;
+
+	// [참조 : 26.04.21 드라이브 알람 수정 ]	
+	sub: Drive_Alarm_Reset(void)
+		// 드라이브 알람 발생시 리셋 
+		if( M_X_SERVO_DRIVE_ALARM_5 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_5 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_5 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_6 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_6 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_6 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_7 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_7 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_7 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_8 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_8 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_8 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_11 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_11 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_11 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_12 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_12 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_12 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_13 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_13 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_13 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_15 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_15 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_15 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_16 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_16 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_16 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_17 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_17 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_17 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_18 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_18 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_18 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_19 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_19 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_19 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_20 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_20 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_20 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_21 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_21 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_21 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_22 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_22 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_22 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_23 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_23 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_23 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_24 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_24 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_24 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_25 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_25 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_25 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_26 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_26 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_26 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_27 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_27 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_27 = 0;
+		}
+
+		if( M_X_SERVO_DRIVE_ALARM_28 != 1 )
+		{ 
+			M_Y_Servo_Driver_Reset_Motor_28 = 1;
+		}	
+		else
+		{
+			M_Y_Servo_Driver_Reset_Motor_28 = 0;
+		}
+	return;
+close

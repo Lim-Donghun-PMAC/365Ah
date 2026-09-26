@@ -1,0 +1,210 @@
+
+#define N_Modify			10							// Modify Define 
+
+#define N_Link_Enable		1							// Node Link Enable
+#define N_Link_Disable		0							// Node Link Disable
+
+#define N_AH_Arr_Max		10
+
+
+
+// 전체 홈 변수 선언
+global P_AH_Home_Status	=	0;							// 1. 전체 홈 상태
+global P_Resetting_All_Home_Command = 0;				// 2. 홈 명령 
+global P_PnP_Init_Pos = 45;								// 3. PnP 대기위치 
+global P_NG_PnP_Warning_Pos = 80;						// 4. NG PnP 위험 위치	( 실제 장비에서 값이 변할 수 있으므로 변수로 선언 )
+global P_PnP_Stack_Pos = 80;							// 5. 2차 PnP Stack 위치 ( 실제 장비에서 값이 변할 수 있으므로 변수로 선언 )
+global P_PnP_Align_Pos = 10;							// 6. 얼라인 위치		( 실제 장비에서 값이 변할 수 있으므로 변수로 선언 )
+global P_Down_Pos = 30;									// 7. 하강 위치			( 실제 장비에서 값이 변할 수 있으므로 변수로 선언 )
+global P_Resetting_All_Home_Bit_Index = 0;				// 8. 현재 비트 위치 ( 배열로 치면 Index )
+global P_Resetting_All_Home_Sequence_Block = 0;			// 9. 시퀀스 블록갯수 ( 배열로 치면 Max Index Num )
+global P_All_Home_Mode_Element = 0;						// 10. 전체 홈 모드 요소 변수
+global P_Seq_Unit_Element = 0;							// 11. 전체 홈 유닛 요소 변수
+global P_Seq_Action_Element = 0;						// 12. 전체 홈 동작 요소 변수
+global P_Homing_Alarm_Time = 10;						// 13. Home Time Out 시간 ( 10 초 )
+global P_Motor_Act_Number_Arry(N_AH_Arr_Max)			// 14. 홈 시퀀스 유닛 검출 Arry
+P_Motor_Act_Number_Arry(0),N_AH_Arr_Max = 0;			// ↑ 한 시퀀스내에 최대 유닛 10개로 선정 ( 유닛을 더 늘려야 하면 Max Index 증가 필요 )
+global P_AH_Unit_Member_EA = 0;							// 15. 전체 홈 시퀀스 유닛 갯수 저장 변수
+global P_Resetting_Home_Check_Arry(50);					// 16. P_PMAC_Homing_CHK 변수와 다르게 대기 위치로 이동하기 위하여 Home Cmd 사용했을때 확인 하는 변수
+P_Resetting_Home_Check_Arry(0),50 = 0;
+global P_Cathode_Modify_Act_Data = 0;					// 17. 양극 간섭 여부 파악 후 회피 행위 데이터 변수
+global P_Anode_Modify_Act_Data = 0;						// 18. 음극 간섭 여부 파악 후 회피 행위 데이터 변수
+global P_Cathode_Modify_Act_State_Machine = 0;			// 19. 양극 간섭 회피 스테이트 머신
+global P_Anode_Modify_Act_State_Machine = 0;			// 20. 음극 간섭 회피 스테이트 머신
+global P_All_Home_Stop_Cmd = 0;							// 21. All Home 진행 중 Stop Cmd 날라오면 BG C에서 개별 P_Home_Command(x) 진행을 막기위하여 커맨드 변수 추가.
+global P_AH_Pre_Debug_MNTR(N_AH_Arr_Max)				// 22. Verify 구간에서 액팅 확인 모니터링 변수 ( 디버깅용 )
+P_AH_Pre_Debug_MNTR(0),N_AH_Arr_Max = 0;	
+							
+global P_Resetting_All_Home_Node_Link = 0;				// 23. 홈 자식(가지) 파악 노드
+global P_Resetting_All_Home_Sequence_Node_Link = 0; 	// 24. 홈 시퀀스 설정 노드	
+global P_Resetting_All_Home_Modifier_Node_Link = 0; 	// 25. 간섭 여부 판단 노드
+global P_Resetting_All_Home_Condition_Act_Node_Link = 0;// 26. 간섭 여부 회피 노드
+global P_Resetting_All_Home_Action_Node_Link = 0;		// 27. 홈 시퀀스 행동 노드
+global P_Resetting_All_Home_Verify_Node_Link = 0;		// 28. 홈 시퀀스 완료 확인 노드
+global P_Resetting_All_Home_Stop_Node_Link = 0;			// 29. 홈 시퀀스 정지 노드		
+
+
+// 가상축 테스트를 위한 변수 선언
+
+global P_Test_HomeComplete(50);
+P_Test_HomeComplete(0),50 = 0;
+
+
+global P_Test_Motor_Ready_Pos(50); 
+P_Test_Motor_Ready_Pos(0),50 = 0;
+
+P_Test_Motor_Ready_Pos(N_1st_PnP_CA_T) = 45;
+P_Test_Motor_Ready_Pos(N_1st_PnP_AN_T)= 45;
+P_Test_Motor_Ready_Pos(N_Clamp_CA_Z1) = 0.5;
+P_Test_Motor_Ready_Pos(N_Clamp_AN_Z1) = 0.5;
+P_Test_Motor_Ready_Pos(N_FINAL_ROLL_X) = -197;
+P_Test_Motor_Ready_Pos(N_FINAL_ROLL_Z) = 58;
+P_Test_Motor_Ready_Pos(N_1st_PnP_AN_Z) = 24;
+P_Test_Motor_Ready_Pos(N_2nd_PnP_AN_Z) = 24;
+P_Test_Motor_Ready_Pos(N_2nd_PnP_CA_Z) = 24;
+P_Test_Motor_Ready_Pos(N_Clamp_CA_Z2) = 0.5;
+P_Test_Motor_Ready_Pos(N_Clamp_AN_Z2) = 0.5;
+P_Test_Motor_Ready_Pos(N_1st_PnP_CA_Z) = 24;
+P_Test_Motor_Ready_Pos(N_UNLOADER_X) = -5.4;
+P_Test_Motor_Ready_Pos(N_UNLOADER_Z) = 69;
+P_Test_Motor_Ready_Pos(N_UNLOADER_T) = -2.817;
+
+
+
+// 시퀀스 액션 디파인
+#define F_Home_Act					$1			// Home Cmd
+#define F_Minus_Act					$2			// Minus jog
+#define F_DIO_Act					$4			// Dio Chk
+#define F_Jog_Act					$8			// Jog mm
+
+// 시퀀스 블록 디파인
+#define N_4EA_Block					$F			// 1111
+#define N_6EA_Block					$3F			// 111111
+#define N_7EA_Block					$7F			// 1111111
+#define N_8EA_Block					$FF			// 11111111
+#define N_10EA_Block				$3FF		// 1111111111
+#define N_11EA_Block				$7FF		// 11111111111
+
+// 링크 종류 디파인
+#define N_Non_Homing_CHK			1			// 사용 x
+#define N_JellyRoll_Enable			2			// 적층 중
+#define N_JellyRoll_Disable			3			// 적층 중 은 아니지만 홈체크변수가 살아있을때
+#define N_New_Non_Homing_CHK		4			// 홈체크 변수가 없을때
+
+
+// 모터 유닛 디파인
+#define F_Cathode_1st_T						$1						//1
+#define F_Anode_1st_T						$2						//2
+#define F_Cathode_2nd_T						$4						//3
+#define F_Anode_2nd_T						$8						//4
+#define F_Cathode_Clamp_Y1					$10						//5
+#define F_Anode_Clamp_Y1					$20						//6
+#define F_Cathode_Clamp_Y2					$40						//7
+#define F_Anode_Clamp_Y2					$80						//8
+//#define F_Cathode_Clamp_Z1				$100					//9		// [ 참조 : 클램프 Z1 모터 번호 변경 2025.10.16 ]
+//#define F_Anode_Clamp_Z1					$200					//10	// [ 참조 : 클램프 Z1 모터 번호 변경 2025.10.16 ]
+#define F_Main_Z							$400					//11
+#define F_Final_Roll_X						$800					//12
+#define F_Final_Roll_Z						$1000					//13
+#define F_SUB_FEEDING_ROLL					$2000					//14
+#define F_DRIVING_ROLL						$4000					//15
+#define F_SERVO_DANCER						$8000					//16
+#define F_Cathode_1st_Z						$10000					//17
+#define F_Anode_1st_Z						$20000					//18
+#define F_1ST_PnP_CATHODE_PICKER_T			$40000					//19
+#define F_1ST_PnP_ANODE_PICKER_T			$80000					//20                                                                                                                                                                                                                                            
+#define F_Cathode_2nd_Z						$100000					//21			
+#define F_Anode_2nd_Z						$200000					//22			
+#define F_UNWINDER_UPPER					$400000					//23
+#define F_UNWINDER_LOWER					$800000					//24
+#define F_Cathode_Clamp_Z2					$1000000				//25
+#define F_Anode_Clamp_Z2					$2000000				//26	
+#define F_Cathode_Clamp_Z1					$4000000				//27	// [ 참조 : 클램프 Z1 모터 번호 변경 2025.10.16 ]
+#define F_Anode_Clamp_Z1					$8000000				//28 	// [ 참조 : 클램프 Z1 모터 번호 변경 2025.10.16 ]
+#define F_EPC_SENSOR						$100000000				//33
+#define F_STACK_VISION						$200000000				//34
+#define F_SHEET_PAPER_X						$400000000				//35
+#define F_Cathode_Align_X					$800000000				//36
+#define F_Cathode_Align_Y					$1000000000				//37
+#define F_Cathode_Align_T					$2000000000				//38
+#define F_Anode_Align_X						$4000000000				//39
+#define F_Anode_Align_Y						$8000000000				//40
+#define F_Anode_Align_T						$10000000000			//41
+#define F_Cathode_NG_T						$20000000000			//42
+#define F_Anode_NG_T						$40000000000			//43
+#define F_Cathode_NG_Z						$80000000000			//44
+#define F_Anode_NG_Z						$100000000000			//45
+#define F_Unloader_X						$200000000000			//46
+#define F_Unloader_Z						$400000000000			//47
+#define F_Unloader_T						$800000000000			//48
+
+// 현재 비트 인덱스 디파인
+#define N_Bit_Index_1					1
+#define N_Bit_Index_2					2
+#define N_Bit_Index_3					3
+#define N_Bit_Index_4					4
+#define N_Bit_Index_5					5
+#define N_Bit_Index_6					6
+#define N_Bit_Index_7					7
+#define N_Bit_Index_8					8
+
+
+// Home DIO Define 란 
+// 1. 원하는 DIO가 있다면 비트 번지를 DIO 선정.
+// 2. 그에 맞는 Switch문에 필터링할 10진수 Define 설정 
+
+// 1.
+#define F_Anode_1st_Vac					$1
+#define F_Anode_1st_Blow				$2
+#define F_Anode_2nd_Vac					$4
+#define F_Anode_2nd_Blow				$8
+#define F_Cathode_1st_Vac				$10
+#define F_Cathode_1st_Blow				$20
+#define F_Cathode_2nd_Vac				$40
+#define F_Cathode_2nd_Blow				$80
+//2.
+#define N_Anode_1st_Vacuume				1
+#define N_Anode_1st_Blow				2
+#define N_Anode_2nd_Vaccume				3
+#define N_Anode_2nd_Blow				4
+#define N_Cathode_1st_Vacuume			5
+#define N_Cathode_1st_Blow				6
+#define N_Cathode_2nd_Vaccume			7
+#define N_Cathode_2nd_Blow				8
+
+
+
+// 모터 While문사용하여 홈체크 유무를 확인 하였는데.... 매크로 함수를 사용하여 최적화 시행 [ 참조 : CPU 최적화 진행 ]
+#define PnP_Home_Complete			P_PMAC_Homing_CHK(N_1st_PnP_CA_T)&P_PMAC_Homing_CHK(N_1st_PnP_AN_T)&P_PMAC_Homing_CHK(N_2nd_PnP_CA_T)&P_PMAC_Homing_CHK(N_2nd_PnP_AN_T)\
+									&P_PMAC_Homing_CHK(N_1st_PnP_CA_Z)&P_PMAC_Homing_CHK(N_1st_PnP_AN_Z)&P_PMAC_Homing_CHK(N_1st_Picker_CA_T)&P_PMAC_Homing_CHK(N_1st_Picker_AN_T)\
+									&P_PMAC_Homing_CHK(N_2nd_PnP_CA_Z)&P_PMAC_Homing_CHK(N_2nd_PnP_AN_Z)	
+
+
+#define Stak_Home_Complete			P_PMAC_Homing_CHK(N_Clamp_CA_Y1)&P_PMAC_Homing_CHK(N_Clamp_AN_Y1)&P_PMAC_Homing_CHK(N_Clamp_CA_Y2)&P_PMAC_Homing_CHK(N_Clamp_AN_Y2)\
+									&P_PMAC_Homing_CHK(N_MAIN_Z)&P_PMAC_Homing_CHK(N_FINAL_ROLL_X)&P_PMAC_Homing_CHK(N_FINAL_ROLL_Z)\
+									&P_PMAC_Homing_CHK(N_Clamp_CA_Z2)&P_PMAC_Homing_CHK(N_Clamp_AN_Z2)&P_PMAC_Homing_CHK(N_Clamp_CA_Z1)&P_PMAC_Homing_CHK(N_Clamp_AN_Z1)
+
+
+#define Align_Home_Complete			P_PMAC_Homing_CHK(N_Align_CA_X)&P_PMAC_Homing_CHK(N_Align_CA_Y)&P_PMAC_Homing_CHK(N_Align_CA_T)&P_PMAC_Homing_CHK(N_Align_AN_X)&P_PMAC_Homing_CHK(N_Align_AN_Y)&P_PMAC_Homing_CHK(N_Align_AN_T)
+
+#define Ecat_Other_Home_Complete	P_PMAC_Homing_CHK(N_EPC_SENSOR)&P_PMAC_Homing_CHK(N_STACK_VISION)&P_PMAC_Homing_CHK(N_SHEET_PAPER_X)&P_PMAC_Homing_CHK(N_NG_PnP_CA_T)&P_PMAC_Homing_CHK(N_NG_PnP_AN_T)&P_PMAC_Homing_CHK(N_NG_PnP_CA_Z)\
+									&P_PMAC_Homing_CHK(N_NG_PnP_AN_Z)&P_PMAC_Homing_CHK(N_UNLOADER_X)&P_PMAC_Homing_CHK(N_UNLOADER_Z)&P_PMAC_Homing_CHK(N_UNLOADER_T)
+
+
+
+#define ECAT_All_Chk_Complete		Align_Home_Complete & Ecat_Other_Home_Complete
+
+#define Local_All_Chk_Complete		PnP_Home_Complete & Stak_Home_Complete
+
+
+
+// DATA Define
+#define N_2nd_Near_Belt					1		// 2차가 벨트쪽에 있다면
+#define N_1st_Near_Align				2		// 1차가 얼라인쪽에 있다면
+#define N_NG_Near_Align					3		// NG가 얼라인 쪽에 있다면
+#define N_2nd_Near_Unloader				4		// 2차가 언로더와 간섭이 있다면
+												// 
+#define N_2nd_Near_Belt_Non_Hck			10		// 2차가 벨트쪽에 있다면 ( 홈체크 X )
+#define N_2nd_Near_Unloader_Non_Hck		11		// 2차가 언로더와 간섭이 있다면 ( 홈체크 X )
+#define N_2nd_Near_Stack_Non_Hck		12		// 2차가 스텍쪽에 있다면	( 홈체크 X )
+#define N_2nd_Near_Align_Non_Hck		13		// 2차가 얼라인쪽에 있다면 ( 홈체크 X )

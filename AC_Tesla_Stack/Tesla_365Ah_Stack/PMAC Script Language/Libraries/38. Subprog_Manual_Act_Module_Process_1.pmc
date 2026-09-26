@@ -1,0 +1,1851 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.09 김성중 선임
+// MSA 모듈화 프로그래밍 진행 - [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+// 25.07.28 김성중 선임 
+// Cal, Cleaning 위치 이동, Align 탈착 모드 프로그래밍 진행 - [ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ]  
+
+open subprog Subprog_Mainprocess_VISION_Manual_Act_Module(void)
+
+sub: Management(&rtn)
+
+// 로컬변수 선언 (완료 감시 변수 초기화)
+//=============================================================================================================================================
+// 1. 얼라인 MSA 
+//=============================================================================================================================================
+	local L_Subprog_VISION_MSA_Align_Module_Set;										// Type : [ Interface ]			동작 : 초기화 작업
+	local L_Subprog_VISION_MSA_Align_Module_Pos_Check;									// Type : [ Interface ]			동작 : 모터 위치 확인
+	local L_Subprog_VISION_MSA_Align_Module_1st_Init_to_Belt_Move;						// Type : [ Motor ]				동작 : 1차 벨트 이동  
+	local L_Subprog_VISION_MSA_Align_Module_1st_Belt_Down_Move;							// Type : [ Motor ]				동작 : 1차 벨트하강 
+	local L_Subprog_VISION_MSA_Align_Module_2nd_Align_Down_Move;						// Type : [ Motor ]				동작 : 2차 얼라인 하강 
+	local L_Subprog_VISION_MSA_Align_Module_1st_Belt_Vacume_Enable;						// Type : [ Cylinder ]			동작 : 1차 벨트 흡착 
+	local L_Subprog_VISION_MSA_Align_Module_2nd_Vacume_Enable;							// Type : [ Cylinder ]			동작 : 2차 흡착	
+	local L_Subprog_VISION_MSA_Align_Module_1st_Belt_Up_Move;							// Type : [ Motor ]				동작 : 1차 벨트 상승 이동
+	local L_Subprog_VISION_MSA_Align_Module_2nd_Align_Up_Move;							// Type : [ Motor ]				동작 : 2차 얼라인 상승 이동
+	local L_Subprog_VISION_MSA_Align_Module_FinalRoll_Move;								// Type : [ Motor ]				동작 : 파이널롤러 양음극 이동
+	local L_Subprog_VISION_MSA_Align_Module_2nd_Stack_Move;								// Type : [ Motor ]				동작 : 2차 PNP 스텍 이동
+	local L_Subprog_VISION_MSA_Align_Module_1st_Align_Move;								// Type : [ Motor ]				동작 : 1차 PNP 얼라인 이동
+	local L_Subprog_VISION_MSA_Align_Module_1st_Align_Down_Move;						// Type : [ Motor ]				동작 : 1차 PNP 얼라인 하강
+	local L_Subprog_VISION_MSA_Align_Module_1st_Blow_Enable;							// Type : [ Cylinder ]			동작 : 1차 PNP 얼라인 파기
+	local L_Subprog_VISION_MSA_Align_Module_VISION_Trigger_ON;							// Type : [ DIO ]				동작 : 비전 촬상 트리거 ON
+	local L_Subprog_VISION_MSA_Align_Module_1st_Align_Vacume_Enable;					// Type : [ Cylinder ]			동작 : 1차 PNP 얼라인 흡착
+	local L_Subprog_VISION_MSA_Align_Module_1st_Align_Up_Move;							// Type : [ Motor ]				동작 : 1차 PNP 얼라인 상승
+	local L_Subprog_VISION_MSA_Align_Module_1st_Belt_Move;								// Type : [ Motor ]				동작 : 1차 PNP 벨트 이동
+	local L_Subprog_VISION_MSA_Align_Module_Count_Increase;								// Type : [ Interface ]			동작 : 동작 카운트 증가
+	//배출 
+	Local L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Move;					// Type : [ Motor ]				동작 : 1차 PNP 얼라인 이동(MSA 완료)
+	Local L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Down_Move;				// Type : [ Motor ]				동작 : 1차 PNP 얼라인 하강(MSA 완료)
+	Local L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Blow_Enable;			// Type : [ Cylinder ]			동작 : 1차 PNP 얼라인 파기(MSA 완료)
+	local L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Up_Move;				// Type : [ Motor ]				동작 : 1차 PNP 얼라인 상승(MSA 완료)
+	local L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_to_Init_Move;			// Type : [ Motor ]				동작 : 1차 PNP 대기 이동(MSA 완료)
+	Local L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Move;				// Type : [ Motor ]				동작 : NG PNP 얼라인 이동(MSA 완료)
+	Local L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Down_Move;			// Type : [ Motor ]				동작 : NG PNP 얼라인 하강(MSA 완료)
+	Local L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Vacume_Enable;		// Type : [ Cylinder ]			동작 : NG PNP 얼라인 흡착(MSA 완료)
+	Local L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Up_Move;				// Type : [ Motor ]				동작 : NG PNP 얼라인 상승(MSA 완료)
+	Local L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_NGBox_Move;				// Type : [ Motor ]				동작 : NG PNP NGBox 이동(MSA 완료)
+	Local L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_NGBox_Blow_Enable;			// Type : [ Cylinder ]			동작 : NG PNP NGBox 파기(MSA 완료)
+	local L_Subprog_VISION_MSA_Align_Module_Discharge_2nd_Align_Move;					// Type : [ Motor ]				동작 : 2차 PNP 얼라인 이동(MSA 완료)
+	local L_Subprog_VISION_MSA_Align_Module_Discharge_FR_Init_Move;						// Type : [ Motor ]				동작 : 파이널롤러 대기 위치 이동(MSA 이동)
+
+	
+//=============================================================================================================================================
+// 2. 스텍 MSA 
+//=============================================================================================================================================
+	local L_Subprog_VISION_MSA_Stack_Module_Set;										// Type : [ Interface ]			동작 : 초기화 작업
+	local L_Subprog_VISION_MSA_Stack_Module_Pos_Check;									// Type : [ Interface ]			동작 : 모터 위치 확인
+	local L_Subprog_VISION_MSA_Stack_Module_2nd_Align_Down_Move							// Type : [ Motor ]				동작 : 2차 PNP 얼라인 하강 
+	local L_Subprog_VISION_MSA_Stack_Module_2nd_Vacume_Enable;							// Type : [ Cylinder ]			동작 : 2차 흡착	
+	local L_Subprog_VISION_MSA_Stack_Module_2nd_Align_Up_Move;							// Type : [ Motor ]				동작 : 2차 얼라인 상승 이동
+	local L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Move;								// Type : [ Motor ]				동작 : 2차 PNP 스텍 이동
+	local L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Down_Move;						// Type : [ Motor ]				동작 : 2차 PNP 스텍 하강 이동
+	local L_Subprog_VISION_MSA_Stack_Module_VISION_Trigger_ON;							// Type : [ DIO]				동작 : 비전 촬상 트리거 ON
+	local L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Up_Move;							// Type : [ Motor ]				동작 : 2차 PNP 스텍 하강 이동
+	local L_Subprog_VISION_MSA_Stack_Module_2nd_Align_Move;								// Type : [ Motor ]				동작 : 2차 PNP 얼라인 이동
+	local L_Subprog_VISION_MSA_Stack_Module_Count_Increase;								// Type : [ Interface ]			동작 : 동작 카운트 증가
+	Local L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Down_Move;				// Type : [ Motor ]				동작 : 2차 PNP 얼라인 하강(MSA 완료)
+	Local L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Blow_Enable;			// Type : [ Cylinder ]			동작 : 2차 PNP 얼라인 파기(MSA 완료)
+	local L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Up_Move;				// Type : [ Motor ]				동작 : 2차 얼라인 상승 이동(MSA 완료)
+	local L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Stack_Move;					// Type : [ Motor ]				동작 : 2차 PNP 스텍 이동(MSA 완료)
+	Local L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Move;				// Type : [ Motor ]				동작 : NG PNP 얼라인 이동(MSA 완료)
+	Local L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Down_Move;			// Type : [ Motor ]				동작 : NG PNP 얼라인 하강(MSA 완료)
+	Local L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Vacume_Enable;		// Type : [ Cylinder ]			동작 : NG PNP 얼라인 흡착(MSA 완료)
+	Local L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Up_Move;				// Type : [ Motor ]				동작 : NG PNP 얼라인 상승(MSA 완료)
+	Local L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_NGBox_Move;				// Type : [ Motor ]				동작 : NG PNP NGBox 이동(MSA 완료)
+	Local L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_NGBox_Blow_Enable;			// Type : [ Cylinder ]			동작 : NG PNP NGBox 파기(MSA 완료)
+	local L_Subpog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Move;					// Type : [ Motor ]				동작 : 2차 PNP 얼라인 이동(MSA 완료)
+
+//=============================================================================================================================================
+// 4. 얼라인 탈착 모드
+//=============================================================================================================================================
+	Local L_Subprog_VISION_Align_Take_Off_Ready_Pos_Check;									// Type : [ Interface ]				동작 : 모터 위치 확인
+	Local L_Subprog_VISION_Align_Take_Off_Ready_Pos_Set;									// Type : [ Interface ]				동작 : 초기화 작업
+	Local L_Subprog_VISION_Align_Take_Off_FR_Move;											// Type : [ Motor ]					동작 : 파이널롤러 회피 이동 
+	Local L_Subprog_VISION_Align_Take_Off_2nd_PNP_Stack_Move;								// Type : [ Motor ]					동작 : 2차 PNP 스텍 이동
+//=============================================================================================================================================
+
+
+// Align MSA Module Start--------------------------------------------------------------------------------------------------------------------------------
+
+//===============================================
+// 1) Align MSA SET					
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_SET) == F_ACT_STATUS_ENABLE )					//Align MSA Set 상태 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_SET) != F_ACT_STATUS_ENABLE )																						
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_SET) = F_ACT_STATUS_ENABLE;			// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_SET) = N_Ready_Step;			 			// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Set = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Set(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Set);	//Align MSA 시퀀스 시작					
+	if( L_Subprog_VISION_MSA_Align_Module_Set == N_COMPLETE )																//Align MSA 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_SET) = F_ACT_STATUS_DISABLE;			// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Set == N_FALSE )									//Align MSA 시퀀스 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_SET) = F_ACT_STATUS_ALARM;			// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_SET) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_SET) = F_ACT_STATUS_INITIAL;		// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 2) Align MSA 모터 위치 확인
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Motor_Pos_Check) == F_ACT_STATUS_ENABLE )				//Align MSA 모터 체크 상태 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Motor_Pos_Check) != F_ACT_STATUS_ENABLE )																				
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Motor_Pos_Check) = F_ACT_STATUS_ENABLE;		// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Motor_Pos_Check) = N_Ready_Step;			 		// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Pos_Check = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Motor_Pos_Chk(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Pos_Check);		//Align MSA 모터 체크 시퀀스 시작			
+	if( L_Subprog_VISION_MSA_Align_Module_Pos_Check == N_COMPLETE )																		//Align MSA 모터 체크 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Motor_Pos_Check) = F_ACT_STATUS_DISABLE;			// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Pos_Check == N_FALSE )									    //Align MSA 모터 체크 시퀀스 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Motor_Pos_Check) = F_ACT_STATUS_ALARM;		    // 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Motor_Pos_Check) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Motor_Pos_Check) = F_ACT_STATUS_INITIAL;	// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 3) Align MSA 1차 벨트 이동
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Init_to_Belt_Move) == F_ACT_STATUS_ENABLE )				//Align MSA 1차 벨트 이동 상태 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Init_to_Belt_Move) != F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Init_to_Belt_Move) = F_ACT_STATUS_ENABLE;			// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Init_to_Belt_Move) = N_Ready_Step;			 			// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_1st_Init_to_Belt_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_1st_Init_to_Belt_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_1st_Init_to_Belt_Move);		//Align MSA 1차 벨트 이동 시퀀스 시작			
+	if( L_Subprog_VISION_MSA_Align_Module_1st_Init_to_Belt_Move == N_COMPLETE )														//Align MSA 1차 벨트 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Init_to_Belt_Move) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_1st_Init_to_Belt_Move == N_FALSE )													//Align MSA 1차 벨트 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Init_to_Belt_Move) = F_ACT_STATUS_ALARM;								// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Init_to_Belt_Move) == F_ACT_STATUS_ENABLE )						
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Init_to_Belt_Move) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화	
+	}
+}
+
+//===============================================
+// 4-1) Align MSA 1차 벨트 하강 
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Down_Move) == F_ACT_STATUS_ENABLE )									//Align MSA 1차 벨트 하강 상태 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Down_Move) != F_ACT_STATUS_ENABLE )														
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Down_Move) = F_ACT_STATUS_ENABLE;							// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Down_Move) = N_Ready_Step;			 							// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_1st_Belt_Down_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_1st_PNP_Belt_Down_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_1st_Belt_Down_Move);	//Align MSA 1차 벨트 하강 시퀀스 시작 
+	if( L_Subprog_VISION_MSA_Align_Module_1st_Belt_Down_Move == N_COMPLETE )														//Align MSA 1차 벨트 하강 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Down_Move) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_1st_Belt_Down_Move == N_FALSE )
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Down_Move) = F_ACT_STATUS_ALARM;									// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Down_Move) == F_ACT_STATUS_ENABLE )									
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Down_Move) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 4-2) Align MSA 2차 얼라인 하강 
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Down_Move) == F_ACT_STATUS_ENABLE )									//Align MSA 2차 얼라인 하강 상태 활성화 
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Down_Move) != F_ACT_STATUS_ENABLE )													
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Down_Move) = F_ACT_STATUS_ENABLE;							// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Down_Move) = N_Ready_Step;			 							// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_2nd_Align_Down_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_2nd_PNP_Align_Down_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_2nd_Align_Down_Move);	//Align MSA 2차 얼라인 하강 시퀀스 시작 	
+	if( L_Subprog_VISION_MSA_Align_Module_2nd_Align_Down_Move == N_COMPLETE )														//Align MSA 2차 얼라인 하강 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Down_Move) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_2nd_Align_Down_Move == N_FALSE )
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Down_Move) = F_ACT_STATUS_ALARM;								// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Down_Move) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Down_Move) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 5-1) Align MSA 1차 흡착
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Vacume_ON) == F_ACT_STATUS_ENABLE )									//Align MSA 1차 흡착 상태 활성화 
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Vacume_ON) != F_ACT_STATUS_ENABLE )												
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Vacume_ON) = F_ACT_STATUS_ENABLE;							// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Vacume_ON) = N_Ready_Step;			 							// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_1st_Belt_Vacume_Enable = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_1st_Belt_Vacume_ON(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_1st_Belt_Vacume_Enable); //Align MSA 1차 흡착 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Align_Module_1st_Belt_Vacume_Enable == N_COMPLETE )													//Align MSA 1차 흡착 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Vacume_ON) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_1st_Belt_Vacume_Enable == N_FALSE )
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Vacume_ON) = F_ACT_STATUS_ALARM;									// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Vacume_ON) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Vacume_ON) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 5-2) Align MSA 2차 흡착
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Vacume_ON) == F_ACT_STATUS_ENABLE )										//Align MSA 2차 흡착 상태 활성화 
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Vacume_ON) != F_ACT_STATUS_ENABLE )													
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Vacume_ON) = F_ACT_STATUS_ENABLE;									// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Vacume_ON) = N_Ready_Step;			 									// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_2nd_Vacume_Enable = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_2nd_PNP_Vacume_ON(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_2nd_Vacume_Enable);//Align MSA 2차 흡착 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Align_Module_2nd_Vacume_Enable == N_COMPLETE )
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Vacume_ON) = F_ACT_STATUS_DISABLE;									// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_2nd_Vacume_Enable == N_FALSE )
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Vacume_ON) = F_ACT_STATUS_ALARM;										// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Vacume_ON) == F_ACT_STATUS_ENABLE )								
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Vacume_ON) = F_ACT_STATUS_INITIAL;								// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 6-1) Align MSA 1차 벨트 상승
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Up_Move) == F_ACT_STATUS_ENABLE )									//Align MSA 1차 벨트 상승 상태 활성화 
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Up_Move) != F_ACT_STATUS_ENABLE )													
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Up_Move) = F_ACT_STATUS_ENABLE;								// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Up_Move) = N_Ready_Step;			 								// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_1st_Belt_Up_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_1st_PNP_Belt_Up_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_1st_Belt_Up_Move);	//Align MSA 1차 벨트 상승 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Align_Module_1st_Belt_Up_Move == N_COMPLETE )
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Up_Move) = F_ACT_STATUS_DISABLE;									// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_1st_Belt_Up_Move == N_FALSE )
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Up_Move) = F_ACT_STATUS_ALARM;									// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Up_Move) == F_ACT_STATUS_ENABLE )									
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Belt_Up_Move) = F_ACT_STATUS_INITIAL;								// 엣지 변수 초기화
+	}
+}
+
+
+//===============================================
+// 6-2) Align MSA 2차 얼라인 상승
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Up_Move) == F_ACT_STATUS_ENABLE )									//Align MSA 2차 얼라인 상승 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Up_Move) != F_ACT_STATUS_ENABLE )																			
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Up_Move) = F_ACT_STATUS_ENABLE;								// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Up_Move) = N_Ready_Step;			 								// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_2nd_Align_Up_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_2nd_PNP_Align_Up_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_2nd_Align_Up_Move);	//Align MSA 2차 얼라인 상승 모터 체크 시퀀스 시작				
+	if( L_Subprog_VISION_MSA_Align_Module_2nd_Align_Up_Move == N_COMPLETE )															//Align MSA 2차 얼라인 상승 모터 체크 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Up_Move) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_2nd_Align_Up_Move == N_FALSE )														//Align MSA 2차 얼라인 상승 모터 체크 시퀀스 미완료 시 
+	{	
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Up_Move) = F_ACT_STATUS_ALARM;									// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Up_Move) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Align_Up_Move) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 7) Final Roll 양음극 방향 이동
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_FinalRoll_Move) == F_ACT_STATUS_ENABLE )										//Align MSA Final Roll 양음극 방향 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_FinalRoll_Move) != F_ACT_STATUS_ENABLE )																	
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_FinalRoll_Move) = F_ACT_STATUS_ENABLE;								// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_FinalRoll_Move) = N_Ready_Step;			 								// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_FinalRoll_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_FinalRoll_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_FinalRoll_Move);	//Align MSA Final Roll 양음극 방향 이동 시퀀스 시작					
+	if( L_Subprog_VISION_MSA_Align_Module_FinalRoll_Move == N_COMPLETE )															//Align MSA Final Roll 양음극 방향 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_FinalRoll_Move) = F_ACT_STATUS_DISABLE;									// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_FinalRoll_Move == N_FALSE )															//Align MSA Final Roll 양음극 방향 이동 시퀀스 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_FinalRoll_Move) = F_ACT_STATUS_ALARM;										// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_FinalRoll_Move) == F_ACT_STATUS_ENABLE )								
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_FinalRoll_Move) = F_ACT_STATUS_INITIAL;								// 엣지 변수 초기화
+	}
+}
+
+
+//===============================================
+// 8) Align MSA 2차 스텍 이동
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Stack_Move) == F_ACT_STATUS_ENABLE )										//Align MSA 2차 스텍 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Stack_Move) != F_ACT_STATUS_ENABLE )																						
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Stack_Move) = F_ACT_STATUS_ENABLE;								// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Stack_Move) = N_Ready_Step;			 								// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_2nd_Stack_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_2nd_PNP_Stack_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_2nd_Stack_Move);		//Align MSA 2차 스텍 이동 시퀀스 시작				
+	if( L_Subprog_VISION_MSA_Align_Module_2nd_Stack_Move == N_COMPLETE )															//Align MSA 2차 스텍 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Stack_Move) = F_ACT_STATUS_DISABLE;									// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_2nd_Stack_Move == N_FALSE )															//Align MSA 2차 스텍 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Stack_Move) = F_ACT_STATUS_ALARM;										// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Stack_Move) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_2nd_Stack_Move) = F_ACT_STATUS_INITIAL;								// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 9) Align MSA 1차 얼라인 이동
+//===============================================	
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Move) == F_ACT_STATUS_ENABLE )										//Align MSA 1차 얼라인 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Move) != F_ACT_STATUS_ENABLE )																	
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Move) = F_ACT_STATUS_ENABLE;								// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Move) = N_Ready_Step;			 								// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_1st_Align_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_1st_PNP_Align_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_1st_Align_Move);	//Align MSA 1차 얼라인 이동 시퀀스 시작				
+	if( L_Subprog_VISION_MSA_Align_Module_1st_Align_Move == N_COMPLETE )																		//Align MSA 1차 얼라인 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Move) = F_ACT_STATUS_DISABLE;									// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_1st_Align_Move == N_FALSE )															//Align MSA 1차 얼라인 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Move) = F_ACT_STATUS_ALARM;										// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Move) == F_ACT_STATUS_ENABLE )				
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Move) = F_ACT_STATUS_INITIAL;								// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 10) Align MSA 1차 얼라인 하강
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Down_Move) == F_ACT_STATUS_ENABLE )									//Align MSA 1차 얼라인 하강 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Down_Move) != F_ACT_STATUS_ENABLE )																						
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Down_Move) = F_ACT_STATUS_ENABLE;							// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Down_Move) = N_Ready_Step;			 							// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_1st_Align_Down_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_1st_PNP_Align_Down_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_1st_Align_Down_Move);	//Align MSA 1차 얼라인 하강 시퀀스 시작				
+	if( L_Subprog_VISION_MSA_Align_Module_1st_Align_Down_Move == N_COMPLETE )														//Align MSA 1차 얼라인 하강 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Down_Move) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_1st_Align_Down_Move == N_FALSE )														//Align MSA 1차 얼라인 하강 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Down_Move) = F_ACT_STATUS_ALARM;								// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Down_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Down_Move) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 11) Align MSA 1차 얼라인 블로우
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Blow_ON) == F_ACT_STATUS_ENABLE )									//Align MSA 1차 얼라인 블로우 활성화
+{		
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Blow_ON) != F_ACT_STATUS_ENABLE )																		
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Blow_ON) = F_ACT_STATUS_ENABLE;								// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Blow_ON) = N_Ready_Step;			 								// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_1st_Blow_Enable = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_1st_PNP_Align_Blow_ON(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_1st_Blow_Enable);		//Align MSA 1차 얼라인 블로우 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Align_Module_1st_Blow_Enable == N_COMPLETE )															//Align MSA 1차 얼라인 블로우 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Blow_ON) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_1st_Blow_Enable == N_FALSE )															//Align MSA 1차 얼라인 블로우 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Blow_ON) = F_ACT_STATUS_ALARM;									// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Blow_ON) == F_ACT_STATUS_ENABLE )						
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Blow_ON) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 12) Align MSA 비전 트리거 ON
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Vision_Trg_ON) == F_ACT_STATUS_ENABLE )										//Align MSA 비전 트리거 ON 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Vision_Trg_ON) != F_ACT_STATUS_ENABLE )																		
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Vision_Trg_ON) = F_ACT_STATUS_ENABLE;									// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Vision_Trg_ON) = N_Ready_Step;			 									// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_VISION_Trigger_ON = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_VISION_Trigger_ON(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_VISION_Trigger_ON);		//Align MSA 비전 트리거 ON 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Align_Module_VISION_Trigger_ON == N_COMPLETE )															//Align MSA 비전 트리거 ON 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Vision_Trg_ON) = F_ACT_STATUS_DISABLE;									// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_VISION_Trigger_ON == N_FALSE )														//Align MSA 비전 트리거 ON 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Vision_Trg_ON) = F_ACT_STATUS_ALARM;										// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Vision_Trg_ON) == F_ACT_STATUS_ENABLE )						
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Vision_Trg_ON) = F_ACT_STATUS_INITIAL;								// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 13) Align MSA 1차 PNP 얼라인 흡착
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Vacume_ON) == F_ACT_STATUS_ENABLE )									//Align MSA 1차 PNP 얼라인 흡착 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Vacume_ON) != F_ACT_STATUS_ENABLE )																
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Vacume_ON) = F_ACT_STATUS_ENABLE;							// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Vacume_ON) = N_Ready_Step;			 							// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_1st_Align_Vacume_Enable = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_1st_Align_Vacume_ON(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_1st_Align_Vacume_Enable);	//Align MSA 1차 PNP 얼라인 흡착 시퀀스 시작			
+	if( L_Subprog_VISION_MSA_Align_Module_1st_Align_Vacume_Enable == N_COMPLETE )																				//Align MSA 1차 PNP 얼라인 흡착 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Vacume_ON) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_1st_Align_Vacume_Enable == N_FALSE )													//Align MSA 1차 PNP 얼라인 흡착 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Vacume_ON) = F_ACT_STATUS_ALARM;								// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Vacume_ON) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Vacume_ON) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+	}
+}
+//===============================================
+// 14) Align MSA 1차 얼라인 상승
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Up_Move) == F_ACT_STATUS_ENABLE )									//Align MSA 1차 얼라인 상승 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Up_Move) != F_ACT_STATUS_ENABLE )																	
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Up_Move) = F_ACT_STATUS_ENABLE;								// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Up_Move) = N_Ready_Step;			 								// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_1st_Align_Up_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_1st_PNP_Align_Up_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_1st_Align_Up_Move);		//Align MSA 1차 얼라인 상승 시퀀스 시작			
+	if( L_Subprog_VISION_MSA_Align_Module_1st_Align_Up_Move == N_COMPLETE )															//Align MSA 1차 얼라인 상승 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Up_Move) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_1st_Align_Up_Move == N_FALSE )														//Align MSA 1차 얼라인 상승 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Up_Move) = F_ACT_STATUS_ALARM;									// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Up_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Align_Up_Move) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 15) Align MSA 1차 벨트 이동
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Blet_Move) == F_ACT_STATUS_ENABLE )																		
+{																																	//Align MSA 1차 벨트 이동 활성화
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Blet_Move) != F_ACT_STATUS_ENABLE )												
+	{																																												
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Blet_Move) = F_ACT_STATUS_ENABLE;						
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Blet_Move) = N_Ready_Step;			 									// 변수 업데이트
+	}																																// 스텝 머신 실행
+	L_Subprog_VISION_MSA_Align_Module_1st_Belt_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_1st_PNP_Belt_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_1st_Belt_Move);		
+	if( L_Subprog_VISION_MSA_Align_Module_1st_Belt_Move == N_COMPLETE )																			//Align MSA 1차 벨트 이동 시퀀스 시작			
+	{																																//Align MSA 1차 벨트 이동 시퀀스 완료
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Blet_Move) = F_ACT_STATUS_DISABLE;						
+		rtn = 1;																													// 시퀀스 완료 시 상태 비활성화
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_1st_Belt_Move == N_FALSE )
+	{																																//Align MSA 1차 벨트 이동 미완료 시 
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Blet_Move) = F_ACT_STATUS_ALARM;							
+	}																																// 동작 에러
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Blet_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_1st_Blet_Move) = F_ACT_STATUS_INITIAL;					
+	}																																// 엣지 변수 초기화
+}
+
+//===============================================
+// 16) Align MSA 횟수 증가 및 확인 (재귀)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_MSA_Move_Cnt) == F_ACT_STATUS_ENABLE )										//Align MSA 횟수 증가 및 확인 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_MSA_Move_Cnt) != F_ACT_STATUS_ENABLE )																			
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_MSA_Move_Cnt) = F_ACT_STATUS_ENABLE;									// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_MSA_Move_Cnt) = N_Ready_Step;			 									// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Count_Increase = 0;																						
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_MSA_Move_Cnt(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Count_Increase);	//Align MSA 횟수 증가 및 확인 시퀀스 시작			
+	if( L_Subprog_VISION_MSA_Align_Module_Count_Increase == N_COMPLETE )															//Align MSA 횟수 증가 및 확인  시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_MSA_Move_Cnt) = F_ACT_STATUS_DISABLE;										// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Count_Increase == N_FALSE )															//Align MSA 횟수 증가 및 확인  미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_MSA_Move_Cnt) = F_ACT_STATUS_ALARM;										// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_MSA_Move_Cnt) == F_ACT_STATUS_ENABLE )						
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_MSA_Move_Cnt) = F_ACT_STATUS_INITIAL;									// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 17) Align MSA 1차 얼라인 위치 이동 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Move) == F_ACT_STATUS_ENABLE )							//Align MSA 1차 얼라인 위치 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Move) != F_ACT_STATUS_ENABLE )																				
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Move) = F_ACT_STATUS_ENABLE;						// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Move) = N_Ready_Step;			 						// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Discharge_1st_Align_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Move);//Align MSA 1차 얼라인 위치 이동 시퀀스 시작					
+	if( L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Move == N_COMPLETE )													//Align MSA 1차 얼라인 위치 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Move) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Move == N_FALSE )												//Align MSA 1차 얼라인 위치 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Move) = F_ACT_STATUS_ALARM;							// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Move) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 18) Align MSA 1차 얼라인 하강 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) == F_ACT_STATUS_ENABLE )						//Align MSA 1차 얼라인 하강 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) != F_ACT_STATUS_ENABLE )														
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Down_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Discharge_1st_Align_Down_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Down_Move);	//Align MSA 1차 얼라인 하강 시퀀스 시작			
+	if( L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Down_Move == N_COMPLETE )												//Align MSA 1차 얼라인 하강 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Down_Move == N_FALSE )											//Align MSA 1차 얼라인 하강 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 19) Align MSA 1차 얼라인 파기 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) == F_ACT_STATUS_ENABLE )							//Align MSA 1차 얼라인 파기 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) != F_ACT_STATUS_ENABLE )														
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Blow_Enable = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Discharge_1st_Align_Blow_ON(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Blow_Enable);	//Align MSA 1차 얼라인 파기 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Blow_Enable == N_COMPLETE )											//Align MSA 1차 얼라인 파기 시퀀스 완료
+	{																																
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;																													
+	}																																
+	else if( L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Blow_Enable == N_FALSE )											//Align MSA 1차 얼라인 파기 미완료 시 
+	{																																
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}																																
+}																																	
+else																																
+{																																	
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) == F_ACT_STATUS_ENABLE )					
+	{																																
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+	}																																
+}																																	
+																																	
+//===============================================																					
+// 20) Align MSA 1차 얼라인 상승 (MSA 완료)																						
+//===============================================																					
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) == F_ACT_STATUS_ENABLE )							//Align MSA 1차 얼라인 상승 활성화
+{																																	
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) != F_ACT_STATUS_ENABLE )														
+	{																																
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Up_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Discharge_1st_Align_Up_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Up_Move);		//Align MSA 1차 얼라인 상승 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Up_Move == N_COMPLETE )												//Align MSA 1차 얼라인 상승 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_Up_Move == N_FALSE )												//Align MSA 1차 얼라인 상승 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 21) Align MSA 1차 얼라인 -> 대기 위치 이동 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) == F_ACT_STATUS_ENABLE )					//Align MSA 1차 얼라인 -> 대기 위치 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) != F_ACT_STATUS_ENABLE )																
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = F_ACT_STATUS_ENABLE;				// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = N_Ready_Step;			 				// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_to_Init_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Discharge_1st_Align_to_Init_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_to_Init_Move);	//Align MSA 1차 얼라인 -> 대기 위치 이동 시퀀스 시작			
+	if( L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_to_Init_Move == N_COMPLETE )											//Align MSA 1차 얼라인 -> 대기 위치 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Discharge_1st_Align_to_Init_Move == N_FALSE )										//Align MSA 1차 얼라인 -> 대기 위치 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = F_ACT_STATUS_ALARM;					// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) == F_ACT_STATUS_ENABLE )			
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+	}
+}
+
+#ifdef F_MSA_Discharge_Use
+//↓ MSA배출 모드 사용 시
+//===============================================
+// 22) Align MSA NG PNP 얼라인 위치 이동 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) == F_ACT_STATUS_ENABLE )							//Align MSA NG PNP 얼라인 위치 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) != F_ACT_STATUS_ENABLE )														
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Discharge_NG_PNP_Align_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Move);				//Align MSA NG PNP 얼라인 위치 이동 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Move == N_COMPLETE )												//Align MSA NG PNP 얼라인 위치 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Move == N_FALSE )												//Align MSA NG PNP 얼라인 위치 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+	}
+}
+
+
+//===============================================
+// 23) Align MSA 1차 얼라인 하강 이동 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) == F_ACT_STATUS_ENABLE )					//Align MSA 1차 얼라인 하강 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) != F_ACT_STATUS_ENABLE )														
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = F_ACT_STATUS_ENABLE;				// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = N_Ready_Step;			 				// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Down_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Discharge_NG_PNP_Align_Down_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Down_Move);	//Align MSA 1차 얼라인 하강 이동 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Down_Move == N_COMPLETE )											//Align MSA 1차 얼라인 하강 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Down_Move == N_FALSE )										//Align MSA 1차 얼라인 하강 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = F_ACT_STATUS_ALARM;					// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) == F_ACT_STATUS_ENABLE )				
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+	}
+}
+
+
+//===============================================
+// 24) Align MSA NG PNP 얼라인 흡착 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) == F_ACT_STATUS_ENABLE )							//Align MSA NG PNP 얼라인 흡착 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) != F_ACT_STATUS_ENABLE )															
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Vacume_Enable = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Discharge_NG_PNP_Vacume_ON(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Vacume_Enable);		//Align MSA NG PNP 얼라인 흡착 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Vacume_Enable == N_COMPLETE )										//Align MSA NG PNP 얼라인 흡착 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Vacume_Enable == N_FALSE )									//Align MSA NG PNP 얼라인 흡착 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = F_ACT_STATUS_ALARM;							// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+	}
+}
+
+
+//===============================================
+// 25) Align MSA NG PNP 얼라인 상승 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) == F_ACT_STATUS_ENABLE )						//Align MSA NG PNP 얼라인 상승 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) != F_ACT_STATUS_ENABLE )															
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = F_ACT_STATUS_ENABLE;				// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = N_Ready_Step;			 				// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Up_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Discharge_NG_PNP_Align_Up_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Up_Move);		//Align MSA NG PNP 얼라인 상승 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Up_Move == N_COMPLETE )											//Align MSA NG PNP 얼라인 상승 시퀀스 완료
+	{																																
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;																													
+	}																																
+	else if( L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_Align_Up_Move == N_FALSE )											//Align MSA NG PNP 얼라인 상승 미완료 시 
+	{																																
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}																																
+}																																	
+else																																
+{																																	
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) == F_ACT_STATUS_ENABLE )				
+	{																																
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+	}																																
+}																																	
+																																	
+//===============================================																					
+// 26) Align MSA NG PNP NGBox 이동 (MSA 완료)																						
+//===============================================																					
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) == F_ACT_STATUS_ENABLE )							//Align MSA NG PNP NGBox 이동 활성화
+{																																	
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) != F_ACT_STATUS_ENABLE )															
+	{																																
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_NGBox_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Discharge_NG_PNP_NGBox_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_NGBox_Move);			//Align MSA NG PNP NGBox 이동 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_NGBox_Move == N_COMPLETE )												//Align MSA NG PNP NGBox 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_NGBox_Move == N_FALSE )												//Align MSA NG PNP NGBox 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 27) Align MSA NG PNP NGBox 파기 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) == F_ACT_STATUS_ENABLE )						//Align MSA NG PNP NGBox 파기 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) != F_ACT_STATUS_ENABLE )													
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = F_ACT_STATUS_ENABLE;				// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = N_Ready_Step;			 				// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_NGBox_Blow_Enable = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_NGBox_Blow_Enable);	//Align MSA NG PNP NGBox 파기 시퀀스 시작			
+	if( L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_NGBox_Blow_Enable == N_COMPLETE )										//Align MSA NG PNP NGBox 파기 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Discharge_NG_PNP_NGBox_Blow_Enable == N_FALSE )										//Align MSA NG PNP NGBox 파기 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) == F_ACT_STATUS_ENABLE )				
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+	}
+}
+#endif
+//===============================================
+// 28) Align MSA 2차 PNP 대기위치 이동(MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_2nd_Align_Move) == F_ACT_STATUS_ENABLE )							//Align MSA 2차 PNP 대기위치 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_2nd_Align_Move) != F_ACT_STATUS_ENABLE )																
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_2nd_Align_Move) = F_ACT_STATUS_ENABLE;						// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_2nd_Align_Move) = N_Ready_Step;			 						// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Discharge_2nd_Align_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Discharge_2nd_Align_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Discharge_2nd_Align_Move);					//Align MSA 2차 PNP 대기위치 이동 시퀀스 시작			
+	if( L_Subprog_VISION_MSA_Align_Module_Discharge_2nd_Align_Move == N_COMPLETE )													//Align MSA 2차 PNP 대기위치 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_2nd_Align_Move) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Discharge_2nd_Align_Move == N_FALSE )												//Align MSA 2차 PNP 대기위치 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_2nd_Align_Move) = F_ACT_STATUS_ALARM;							// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_2nd_Align_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_2nd_Align_Move) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 29) Align MSA 파이널롤러 대기위치 이동(MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) == F_ACT_STATUS_ENABLE )						//Align MSA 파이널롤러 대기위치 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) != F_ACT_STATUS_ENABLE )															
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Align_Module_Discharge_FR_Init_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Align_Discharge_FinalRoll_Init_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Align_Module_Discharge_FR_Init_Move);				//Align MSA 파이널롤러 대기위치 이동 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Align_Module_Discharge_FR_Init_Move == N_COMPLETE )													//Align MSA 파이널롤러 대기위치 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Align_Module_Discharge_FR_Init_Move == N_FALSE )													//Align MSA 파이널롤러 대기위치 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) == F_ACT_STATUS_ENABLE )				
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+	}
+}
+#endif 
+
+// Stack MSA Module Start--------------------------------------------------------------------------------------------------------------------------------
+//===============================================
+// 1) Stack MSA SET 
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Set) == F_ACT_STATUS_ENABLE )													//Stack MSA SET 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Set) != F_ACT_STATUS_ENABLE )																				
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Set) = F_ACT_STATUS_ENABLE;											// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Set) = N_Ready_Step;			 											// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_Set = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Set(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_Set);			//Stack MSA SET  시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_Set == N_COMPLETE )																		//Stack MSA SET  시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Set) = F_ACT_STATUS_DISABLE;												// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_Set == N_FALSE )																		//Stack MSA SET 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Set) = F_ACT_STATUS_ALARM;												// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Set) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Set) = F_ACT_STATUS_INITIAL;											// 엣지 변수 초기화
+	}
+}
+//===============================================
+// 2) Stack MSA 모터 위치 확인 
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Motor_Pos_Check) == F_ACT_STATUS_ENABLE )										//Stack MSA 모터 위치 확인 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Motor_Pos_Check) != F_ACT_STATUS_ENABLE )																
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Motor_Pos_Check) = F_ACT_STATUS_ENABLE;								// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Motor_Pos_Check) = N_Ready_Step;			 								// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_Pos_Check = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Motor_Pos_Check(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_Pos_Check);			//Stack MSA 모터 위치 확인 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_Pos_Check == N_COMPLETE )																					//Stack MSA 모터 위치 확인 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Motor_Pos_Check) = F_ACT_STATUS_DISABLE;									// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_Pos_Check == N_FALSE )																//Stack MSA 모터 위치 확인 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Motor_Pos_Check) = F_ACT_STATUS_ALARM;									// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Motor_Pos_Check) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Motor_Pos_Check) = F_ACT_STATUS_INITIAL;								// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 3) Stack MSA 2차 얼라인 하강
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Down_Move) == F_ACT_STATUS_ENABLE )									//Stack MSA 2차 얼라인 하강 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Down_Move) != F_ACT_STATUS_ENABLE )															
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Down_Move) = F_ACT_STATUS_ENABLE;							// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Down_Move) = N_Ready_Step;			 							// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_2nd_Align_Down_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_2nd_Align_Down_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_2nd_Align_Down_Move);		//Stack MSA 2차 얼라인 하강 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_2nd_Align_Down_Move == N_COMPLETE )														//Stack MSA 2차 얼라인 하강 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Down_Move) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_2nd_Align_Down_Move == N_FALSE )														//Stack MSA 2차 얼라인 하강 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Down_Move) = F_ACT_STATUS_ALARM;								// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Down_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Down_Move) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 4) Stack MSA 2차 얼라인 흡착
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) == F_ACT_STATUS_ENABLE )									//Stack MSA 2차 얼라인 흡착 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) != F_ACT_STATUS_ENABLE )																	
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) = F_ACT_STATUS_ENABLE;								// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) = N_Ready_Step;			 								// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_2nd_Vacume_Enable = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_2nd_PNP_Vacume_ON(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_2nd_Vacume_Enable);		//Stack MSA 2차 얼라인 흡착 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_2nd_Vacume_Enable == N_COMPLETE )															//Stack MSA 2차 얼라인 흡착 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_2nd_Vacume_Enable == N_FALSE )														//Stack MSA 2차 얼라인 흡착 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) = F_ACT_STATUS_ALARM;									// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) == F_ACT_STATUS_ENABLE )						
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 5) Stack MSA 2차 얼라인 상승
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Up_Move) == F_ACT_STATUS_ENABLE )									//Stack MSA 2차 얼라인 상승 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Up_Move) != F_ACT_STATUS_ENABLE )																	
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Up_Move) = F_ACT_STATUS_ENABLE;								// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Up_Move) = N_Ready_Step;			 								// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_2nd_Vacume_Enable = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_2nd_Align_Up_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_2nd_Vacume_Enable);	//Stack MSA 2차 얼라인 상승 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_2nd_Vacume_Enable == N_COMPLETE )															//Stack MSA 2차 얼라인 상승 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Up_Move) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_2nd_Vacume_Enable == N_FALSE )														//Stack MSA 2차 얼라인 상승 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Up_Move) = F_ACT_STATUS_ALARM;									// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Up_Move) == F_ACT_STATUS_ENABLE )							
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Up_Move) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 6) Stack MSA 2차 스텍 이동
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Move) == F_ACT_STATUS_ENABLE )										//Stack MSA 2차 스텍 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Move) != F_ACT_STATUS_ENABLE )																
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Move) = F_ACT_STATUS_ENABLE;								// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Move) = N_Ready_Step;			 								// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_2nd_Stack_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Move);		//Stack MSA 2차 스텍 이동 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Move == N_COMPLETE )															//Stack MSA 2차 스텍 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Move) = F_ACT_STATUS_DISABLE;									// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Move == N_FALSE )															//Stack MSA 2차 스텍 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Move) = F_ACT_STATUS_ALARM;										// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Move) == F_ACT_STATUS_ENABLE )						
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Move) = F_ACT_STATUS_INITIAL;								// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 7) Stack MSA 2차 스텍 하강 이동
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Down_Move) == F_ACT_STATUS_ENABLE )									// Stack MSA 2차 스텍 하강 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Down_Move) != F_ACT_STATUS_ENABLE )																
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Down_Move) = F_ACT_STATUS_ENABLE;							// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Down_Move) = N_Ready_Step;			 							// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Down_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_2nd_Stack_Down_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Down_Move);	// Stack MSA 2차 스텍 하강 이동 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Down_Move == N_COMPLETE )														// Stack MSA 2차 스텍 하강 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Down_Move) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Down_Move == N_FALSE )														// Stack MSA 2차 스텍 하강 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Down_Move) = F_ACT_STATUS_ALARM;								// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Down_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Down_Move) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+	}
+}
+
+
+//===============================================
+// 8) Stack MSA 비전 트리거 ON
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Vision_Trg_ON) == F_ACT_STATUS_ENABLE )										// Stack MSA 비전 트리거 ON 활성화
+{	
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Vision_Trg_ON) != F_ACT_STATUS_ENABLE )																			
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Vision_Trg_ON) = F_ACT_STATUS_ENABLE;									// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Vision_Trg_ON) = N_Ready_Step;			 									// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_VISION_Trigger_ON = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Vision_Trg_ON(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_VISION_Trigger_ON);	// Stack MSA 비전 트리거 ON 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_VISION_Trigger_ON == N_COMPLETE )															// Stack MSA 비전 트리거 ON 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Vision_Trg_ON) = F_ACT_STATUS_DISABLE;									// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_VISION_Trigger_ON == N_FALSE )														// Stack MSA 비전 트리거 ON 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Vision_Trg_ON) = F_ACT_STATUS_ALARM;										// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Vision_Trg_ON) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Vision_Trg_ON) = F_ACT_STATUS_INITIAL;								// 엣지 변수 초기화
+	}
+}
+
+
+//===============================================
+// 9) Stack MSA 2차 스텍 상승 이동
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Up_Move) == F_ACT_STATUS_ENABLE )									// Stack MSA 비전 트리거 ON 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Up_Move) != F_ACT_STATUS_ENABLE )																	
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Up_Move) = F_ACT_STATUS_ENABLE;								// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Up_Move) = N_Ready_Step;			 								// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Up_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_2nd_Stack_Up_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Up_Move);		// Stack MSA 비전 트리거 ON 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Up_Move == N_COMPLETE )															// Stack MSA 비전 트리거 ON 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Up_Move) = F_ACT_STATUS_DISABLE;								// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_2nd_Stack_Up_Move == N_FALSE )														// Stack MSA 비전 트리거 ON 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Up_Move) = F_ACT_STATUS_ALARM;									// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Up_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Stack_Up_Move) = F_ACT_STATUS_INITIAL;							// 엣지 변수 초기화
+	}
+}
+
+
+//===============================================
+// 10) Stack MSA 2차 얼라인 이동
+//==============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Move) == F_ACT_STATUS_ENABLE )										// Stack MSA 2차 얼라인 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Move) != F_ACT_STATUS_ENABLE )																	
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Move) = F_ACT_STATUS_ENABLE;								// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Move) = N_Ready_Step;			 								// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_2nd_Align_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_2nd_Align_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_2nd_Align_Move);		// Stack MSA 2차 얼라인 이동 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_2nd_Align_Move == N_COMPLETE )															// Stack MSA 2차 얼라인 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Move) = F_ACT_STATUS_DISABLE;									// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_2nd_Align_Move == N_FALSE )															// Stack MSA 2차 얼라인 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Move) = F_ACT_STATUS_ALARM;										// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Move) == F_ACT_STATUS_ENABLE )						
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_2nd_Align_Move) = F_ACT_STATUS_INITIAL;								// 엣지 변수 초기화
+	}
+}
+
+
+//===============================================
+// 11) Stack MSA 횟수 증가 및 확인 (재귀 및 종료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_MSA_Move_Cnt) == F_ACT_STATUS_ENABLE )										// Stack MSA 횟수 증가 및 확인 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_MSA_Move_Cnt) != F_ACT_STATUS_ENABLE )																		
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_MSA_Move_Cnt) = F_ACT_STATUS_ENABLE;									// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_MSA_Move_Cnt) = N_Ready_Step;			 									// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_Count_Increase = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_MSA_Move_Cnt(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_Count_Increase);	// Stack MSA 횟수 증가 및 확인 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_Count_Increase == N_COMPLETE )															// Stack MSA 횟수 증가 및 확인 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_MSA_Move_Cnt) = F_ACT_STATUS_DISABLE;										// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_Count_Increase == N_FALSE )															// Stack MSA 횟수 증가 및 확인 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_MSA_Move_Cnt) = F_ACT_STATUS_ALARM;										// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_MSA_Move_Cnt) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_MSA_Move_Cnt) = F_ACT_STATUS_INITIAL;									// 엣지 변수 초기화
+	}
+}
+
+#ifdef F_MSA_Discharge_Use
+//↓ MSA배출 모드 사용 시
+//===============================================
+// 12) Stack MSA 2차 PNP 얼라인 하강(MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) == F_ACT_STATUS_ENABLE )						// Stack MSA 2차 PNP 얼라인 하강 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) != F_ACT_STATUS_ENABLE )																										
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Down_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Discharge_2nd_Align_Down_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Down_Move);	// Stack MSA 2차 PNP 얼라인 하강 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Down_Move == N_COMPLETE )												// Stack MSA 2차 PNP 얼라인 하강 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Down_Move == N_FALSE )											// Stack MSA 2차 PNP 얼라인 하강 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) == F_ACT_STATUS_ENABLE )				
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+	}
+}
+
+
+//===============================================
+// 13) Stack MSA 2차 PNP 얼라인 파기(MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) == F_ACT_STATUS_ENABLE )							// Stack MSA 2차 PNP 얼라인 파기 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) != F_ACT_STATUS_ENABLE )														
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Blow_Enable = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Discharge_2nd_Align_Blow_ON(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Blow_Enable);		// Stack MSA 2차 PNP 얼라인 파기 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Blow_Enable == N_COMPLETE )											// Stack MSA 2차 PNP 얼라인 파기 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Blow_Enable == N_FALSE )											// Stack MSA 2차 PNP 얼라인 파기 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 14) Stack MSA 2차 얼라인 상승 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) == F_ACT_STATUS_ENABLE )							// Stack MSA 2차 얼라인 상승 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) != F_ACT_STATUS_ENABLE )													
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Up_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Discharge_2nd_Align_Up_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Up_Move);		// Stack MSA 2차 얼라인 상승 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Up_Move == N_COMPLETE )												// Stack MSA 2차 얼라인 상승 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Up_Move == N_FALSE )												// Stack MSA 2차 얼라인 상승 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 15) Stack MSA 2차 스텍 위치 이동 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) == F_ACT_STATUS_ENABLE )							// Stack MSA 2차 스텍 위치 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) != F_ACT_STATUS_ENABLE )														
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) = F_ACT_STATUS_ENABLE;						// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) = N_Ready_Step;			 						// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Stack_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Discharge_2nd_Stack_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Stack_Move);				// Stack MSA 2차 스텍 위치 이동 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Stack_Move == N_COMPLETE )													// Stack MSA 2차 스텍 위치 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) = F_ACT_STATUS_DISABLE;							// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_Discharge_2nd_Stack_Move == N_FALSE )												// Stack MSA 2차 스텍 위치 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) = F_ACT_STATUS_ALARM;							// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) = F_ACT_STATUS_INITIAL;						// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 16) Stack MSA NG PNP 대기→얼라인 이동 ( MSA 완료 ) 
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) == F_ACT_STATUS_ENABLE )							//  Stack MSA NG PNP 대기→얼라인 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) != F_ACT_STATUS_ENABLE )														
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Discharge_NG_PNP_Align_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Move);		//  Stack MSA NG PNP 대기→얼라인 이동 시퀀스 시작	
+	if( L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Move == N_COMPLETE )												//  Stack MSA NG PNP 대기→얼라인 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Move == N_FALSE )												//  Stack MSA NG PNP 대기→얼라인 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) == F_ACT_STATUS_ENABLE )			
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 17) Stack MSA NG PNP 얼라인 하강 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) == F_ACT_STATUS_ENABLE )					//  Stack MSA NG PNP 얼라인 하강 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) != F_ACT_STATUS_ENABLE )														
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = F_ACT_STATUS_ENABLE;				// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = N_Ready_Step;			 				// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Down_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Discharge_NG_PNP_Align_Down_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Down_Move);	//  Stack MSA NG PNP 얼라인 하강 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Down_Move == N_COMPLETE )											//  Stack MSA NG PNP 얼라인 하강 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Down_Move == N_FALSE )										//  Stack MSA NG PNP 얼라인 하강 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = F_ACT_STATUS_ALARM;					// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) == F_ACT_STATUS_ENABLE )			
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+	}
+}
+
+
+//===============================================
+// 18) Stack MSA NG PNP 얼라인 흡착 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) == F_ACT_STATUS_ENABLE )							//  Stack MSA NG PNP 얼라인 흡착 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) != F_ACT_STATUS_ENABLE )															
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Vacume_Enable = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Discharge_NG_PNP_Vacume_ON(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Vacume_Enable);	//  Stack MSA NG PNP 얼라인 흡착 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Vacume_Enable == N_COMPLETE )										//  Stack MSA NG PNP 얼라인 흡착 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Vacume_Enable == N_FALSE )									//  Stack MSA NG PNP 얼라인 흡착 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = F_ACT_STATUS_ALARM;							// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+	}
+}
+
+
+//===============================================
+// 19) Stack MSA NG PNP 얼라인 상승 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) == F_ACT_STATUS_ENABLE )						//  Stack MSA NG PNP 얼라인 상승 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) != F_ACT_STATUS_ENABLE )														
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = F_ACT_STATUS_ENABLE;				// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = N_Ready_Step;			 				// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Up_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Discharge_NG_PNP_Align_Up_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Up_Move);		//  Stack MSA NG PNP 얼라인 상승 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Up_Move == N_COMPLETE )											//  Stack MSA NG PNP 얼라인 상승 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = F_ACT_STATUS_DISABLE;					// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_Align_Up_Move == N_FALSE )											//  Stack MSA NG PNP 얼라인 상승 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) == F_ACT_STATUS_ENABLE )				
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = F_ACT_STATUS_INITIAL;				// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 20) Stack MSA NG PNP NGBox 이동 ( MSA 완료 ) 
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) == F_ACT_STATUS_ENABLE )							// Stack MSA NG PNP NGBox 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) != F_ACT_STATUS_ENABLE )														
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_NGBox_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Discharge_NG_PNP_NGBox_Move(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_NGBox_Move);		//  Stack MSA NG PNP NGBox 이동 시퀀스 시작		
+	if( L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_NGBox_Move == N_COMPLETE )												//  Stack MSA NG PNP NGBox 이동 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_NGBox_Move == N_FALSE )												//  Stack MSA NG PNP NGBox 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+	}
+}
+
+//===============================================
+// 21) Stack MSA NG PNP NGBox 파기 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) == F_ACT_STATUS_ENABLE )						// Stack MSA NG PNP NGBox 파기 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) != F_ACT_STATUS_ENABLE )														
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = F_ACT_STATUS_ENABLE;				// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = N_Ready_Step;			 				// 스텝 머신 실행
+	}
+	L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_NGBox_Blow_Enable = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON(P_VISION_MSA_MODE,&L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_NGBox_Blow_Enable);	//  Stack MSA NG PNP NGBox 파기 시퀀스 시작			
+	if( L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_NGBox_Blow_Enable == N_COMPLETE )									//  Stack MSA NG PNP NGBox 파기 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = F_ACT_STATUS_DISABLE;				// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_MSA_Stack_Module_Discharge_NG_PNP_NGBox_Blow_Enable == N_FALSE )									//  Stack MSA NG PNP NGBox 파기 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = F_ACT_STATUS_ALARM;					// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) == F_ACT_STATUS_ENABLE )			
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = F_ACT_STATUS_INITIAL;			// 엣지 변수 초기화
+	}
+}
+
+
+//===============================================
+// 22) Stack MSA 2차 PNP 얼라인 이동 (MSA 완료)
+//===============================================
+if( P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Move) == F_ACT_STATUS_ENABLE )						// Stack MSA 2차 PNP 얼라인 이동 활성화
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Move) != F_ACT_STATUS_ENABLE )													
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Move) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Move) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subpog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.MSA_Stack_Discharge_2nd_Align_Move(P_VISION_MSA_MODE,&L_Subpog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Move);	//  Stack MSA 2차 PNP 얼라인 이동 시퀀스 시작		
+	if( L_Subpog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Move == N_COMPLETE )												//  Stack MSA 2차 PNP 얼라인 이동기 시퀀스 완료
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Move) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subpog_VISION_MSA_Stack_Module_Discharge_2nd_Align_Move == N_FALSE )												//  Stack MSA 2차 PNP 얼라인 이동 미완료 시 
+	{
+		P_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Move) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Move) == F_ACT_STATUS_ENABLE )				
+	{
+		P_OLD_Module_Manual_MSA_Act_Command_Array(N_MSA_Stack_Discharge_2nd_Align_Move) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+	}
+}
+#endif
+
+
+// 얼라인 테이블 탈착 모드  --------------------------------------------------------------------------------------------------------------------------------
+//=======================================================================================================================
+//1.1) 1,2차 PNP 서버 온, 대기위치 확인(얼라인 테이블 탈착 모드 )
+//=======================================================================================================================
+if( P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Check) == F_ACT_STATUS_ENABLE )					// 1,2차 PNP 서버 온, 대기위치 활성화
+{
+	if( P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Check) != F_ACT_STATUS_ENABLE )																									
+	{
+		P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Check) = F_ACT_STATUS_ENABLE;			// 변수 업데이트
+		P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Check) = N_Ready_Step;			 			// 스텝 머신 실행
+	}
+	L_Subprog_VISION_Align_Take_Off_Ready_Pos_Check = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.Align_Take_Off_Ready_Pos_Check(P_Align_Take_Off_Mode,&L_Subprog_VISION_Align_Take_Off_Ready_Pos_Check);	//  얼라인 탈착 모드 1,2차 PNP 서버 온, 대기위치 활성화 시퀀스 시작		
+	if( L_Subprog_VISION_Align_Take_Off_Ready_Pos_Check == N_COMPLETE )															//  얼라인 탈착 모드 1,2차 PNP 서버 온, 대기위치 활성화  시퀀스 완료
+	{
+		P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Check) = F_ACT_STATUS_DISABLE;				// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_Align_Take_Off_Ready_Pos_Check == N_FALSE )														//  얼라인 탈착 모드 1,2차 PNP 서버 온, 대기위치 미완료 시 
+	{
+		P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Check) = F_ACT_STATUS_ALARM;				// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Check) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Check) = F_ACT_STATUS_INITIAL;			// 엣지 변수 초기화
+	}
+}
+//===================================================================================
+//1.2) 1차 PNP, 2차 PNP, 파이널 롤 이동 속도 설정 (얼라인 테이블 탈착 모드 )
+//===================================================================================
+if( P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Set) == F_ACT_STATUS_ENABLE )					//  1차 PNP, 2차 PNP, 파이널 롤 이동 속도 설정 활성화
+{
+	if( P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Set) != F_ACT_STATUS_ENABLE )																										
+	{
+		P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Set) = F_ACT_STATUS_ENABLE;				// 변수 업데이트
+		P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Set) = N_Ready_Step;			 				// 스텝 머신 실행
+	}
+	L_Subprog_VISION_Align_Take_Off_Ready_Pos_Set = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.Align_Take_Off_Ready_Pos_Set(P_Align_Take_Off_Mode,&L_Subprog_VISION_Align_Take_Off_Ready_Pos_Set);	//  1차 PNP, 2차 PNP, 파이널 롤 이동 속도 설정 시퀀스 시작		
+	if( L_Subprog_VISION_Align_Take_Off_Ready_Pos_Set == N_COMPLETE )															//  1차 PNP, 2차 PNP, 파이널 롤 이동 속도 설정 시퀀스 완료
+	{
+		P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Set) = F_ACT_STATUS_DISABLE;				// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_Align_Take_Off_Ready_Pos_Set == N_FALSE )															// 1차 PNP, 2차 PNP, 파이널 롤 이동 속도 설정 미완료 시 
+	{
+		P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Set) = F_ACT_STATUS_ALARM;					// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Set) == F_ACT_STATUS_ENABLE )			
+	{
+		P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_Ready_Pos_Set) = F_ACT_STATUS_INITIAL;			// 엣지 변수 초기화
+	}
+}
+//===================================================================================
+//2) 파이널롤러 회피 동작 이동 및 확인 (얼라인 테이블 탈착 모드 )
+//===================================================================================
+if( P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_FR_Move) == F_ACT_STATUS_ENABLE )							//파이널롤러 회피 동작 이동 및 확인 활성화
+{
+	if( P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_FR_Move) != F_ACT_STATUS_ENABLE )																										
+	{
+		P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_FR_Move) = F_ACT_STATUS_ENABLE;					// 변수 업데이트
+		P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_FR_Move) = N_Ready_Step;			 					// 스텝 머신 실행
+	}
+	L_Subprog_VISION_Align_Take_Off_FR_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.Align_Take_Off_FR_Move(P_Align_Take_Off_Mode,&L_Subprog_VISION_Align_Take_Off_FR_Move);	// 파이널롤러 회피 동작 이동 및 확인 시퀀스 시작		
+	if( L_Subprog_VISION_Align_Take_Off_FR_Move == N_COMPLETE )																	//  파이널롤러 회피 동작 이동 및 확인  시퀀스 완료
+	{
+		P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_FR_Move) = F_ACT_STATUS_DISABLE;						// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_Align_Take_Off_FR_Move == N_FALSE )																//  파이널롤러 회피 동작 이동 및 확인  미완료 시 
+	{
+		P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_FR_Move) = F_ACT_STATUS_ALARM;						// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_FR_Move) == F_ACT_STATUS_ENABLE )					
+	{
+		P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_FR_Move) = F_ACT_STATUS_INITIAL;					// 엣지 변수 초기화
+	}
+}
+//===================================================================================
+//3) 2차 PNP T축 스텍 위치 이동 및 확인 (얼라인 테이블 탈착 모드 )
+//===================================================================================
+if( P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) == F_ACT_STATUS_ENABLE )				// 2차 PNP T축 스텍 위치 이동 및 확인 활성화
+{
+	if( P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) != F_ACT_STATUS_ENABLE )																										
+	{
+		P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) = F_ACT_STATUS_ENABLE;		// 변수 업데이트
+		P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) = N_Ready_Step;			 		// 스텝 머신 실행
+	}
+	L_Subprog_VISION_Align_Take_Off_2nd_PNP_Stack_Move = 0;
+	call Subprog_Subprocess_VISION_Manual_Module.Align_Take_Off_2nd_PNP_Stack_Move(P_Align_Take_Off_Mode,&L_Subprog_VISION_Align_Take_Off_2nd_PNP_Stack_Move);		//  2차 PNP T축 스텍 위치 이동 및 확인 시퀀스 시작		
+	if( L_Subprog_VISION_Align_Take_Off_2nd_PNP_Stack_Move == N_COMPLETE )														// 2차 PNP T축 스텍 위치 이동 및 확인 시퀀스 완료
+	{
+		P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) = F_ACT_STATUS_DISABLE;			// 시퀀스 완료 시 상태 비활성화
+		rtn = 1;
+	}
+	else if( L_Subprog_VISION_Align_Take_Off_2nd_PNP_Stack_Move == N_FALSE )													//  2차 PNP T축 스텍 위치 이동 및 확인 미완료 시 
+	{
+		P_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) = F_ACT_STATUS_ALARM;				// 동작 에러
+	}
+}
+else
+{
+	if( P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) == F_ACT_STATUS_ENABLE )		
+	{
+		P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) = F_ACT_STATUS_INITIAL;		// 엣지 변수 초기화
+	}
+}
+return;
+
+close
+
+
+

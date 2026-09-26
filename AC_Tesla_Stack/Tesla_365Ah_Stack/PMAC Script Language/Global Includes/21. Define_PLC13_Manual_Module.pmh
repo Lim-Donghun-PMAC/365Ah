@@ -1,0 +1,274 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.09 김성중 선임
+// MSA 모듈화 프로그래밍 진행 - [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+// 25.07.28 김성중 선임 
+// Cal, Cleaning 위치 이동, Align 탈착 모드 프로그래밍 진행 - [ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ] 
+
+
+#define	P_Motor_Ready_Pos_Inpos_200um		2		// 정위치 인포지션 밴드 200 마이크로
+
+#define N_MSA_InterLock_Time						100
+#define N_PLC14_Return_EA							20
+
+// INTERLOCK BIT DEFINE
+
+//#define N_MSA_Funtion_Block_1EA						$1
+//#define N_MSA_Funtion_Block_2EA						$2
+//#define N_MSA_Funtion_Block_3EA						$7
+//#define N_MSA_Funtion_Block_4EA						$F
+//#define N_MSA_Funtion_Block_16EA					$FFFF
+//#define N_MSA_Funtion_Block_14EA					$3FFF
+
+#define Init_Pos			45
+
+																											
+//=========================================================
+//MSA 버튼 활성화 모니터링 변수
+//=========================================================
+//#define N_XOR_Define							1
+//#define N_VISION_MSA_Anode_Align_Cmd_OK						( M_Func_BTN.Push_Cathode_Align_MSA_Mode | M_Func_BTN.Push_Anode_Stack_MSA_Mode | M_Func_BTN.Push_Cathode_Stack_MSA_Mode) ^ N_XOR_Define 
+//#define N_VISION_MSA_Cathode_Align_Cmd_OK					( M_Func_BTN.Push_Anode_Align_MSA_Mode | M_Func_BTN.Push_Anode_Stack_MSA_Mode | M_Func_BTN.Push_Cathode_Stack_MSA_Mode	) ^ N_XOR_Define
+//#define N_VISION_MSA_Anode_Stack_Cmd_OK						( M_Func_BTN.Push_Anode_Align_MSA_Mode | M_Func_BTN.Push_Cathode_Align_MSA_Mode | M_Func_BTN.Push_Cathode_Stack_MSA_Mode) ^ N_XOR_Define
+//#define N_VISION_MSA_Cathode_Stack_Cmd_OK					( M_Func_BTN.Push_Anode_Align_MSA_Mode | M_Func_BTN.Push_Cathode_Align_MSA_Mode | M_Func_BTN.Push_Anode_Stack_MSA_Mode	) ^ N_XOR_Define
+															// ↓ 인덱스 0 or 상태가 0일때 = 0 Xor 1 = 1로 만듬 ( 가독성 )
+//#define N_VISION_MSA_Command_Enable_Possible				( P_VISION_MSA_Seq_Index | P_VISION_MSA_Status  ) ^ N_XOR_Define
+
+// 대격변 버튼 동시 동작 방지 sys.idata[11155]
+#define N_BTN_CA_Stack_MSA				u.user:$00AE4C.25.1		// M_Func.BTN.25	
+#define N_BTN_AN_Stack_MSA				u.user:$00AE4C.26.1		// M_Func.BTN.26
+#define N_BTN_CA_Align_MSA				u.user:$00AE4C.27.1		// M_Func.BTN.27	
+#define N_BTN_AN_Align_MSA				u.user:$00AE4C.28.1		// M_Func.BTN.28
+
+#define N_BTN_MAS_Total_Value			N_BTN_CA_Stack_MSA + N_BTN_AN_Stack_MSA + N_BTN_CA_Align_MSA + N_BTN_AN_Align_MSA
+global P_BTN_MSA_Total_Value	= 0;							
+//=========================================================
+//MSA Cycle Stop Point 디파인
+//=========================================================
+#define N_Cycle_Stop_NO  0 
+#define N_Cycle_Stop_OK	 1
+
+//=========================================================
+//MSA 좌표계 확인 변수
+//=========================================================
+#define N_MSA_Anode_Align_Coord_Check					( Coord[21].ProgActive & Coord[25].ProgActive & Coord[33].ProgActive & Coord[22].ProgActive )
+#define N_MSA_Cathode_Align_Coord_Check					( Coord[28].ProgActive & Coord[30].ProgActive & Coord[25].ProgActive & Coord[32].ProgActive & Coord[29].ProgActive)
+#define N_MSA_Anode_Stack_Coord_Check					( Coord[23].ProgActive & Coord[33].ProgActive )
+#define N_MSA_Cathode_Stack_Coord_Check					( Coord[28].ProgActive & Coord[32].ProgActive )
+
+
+//=========================================================
+//MSA 체크 타이머 
+//=========================================================
+global  P_Vision_Align_Trigger_Timer = 0;				//얼라인 트리거 타이머
+global	P_Vision_Stack_Trigger_Timer = 0;				//스텍 트리거 타이머
+global  P_MSA_Chk_Pos_Timer = 0;						//msa 위치 체크 타이머
+
+//==========================================================
+global P_MSA_Chk_Pos_Time = 100								//MSA 체크 타임 100ms 
+
+//global P_VISION_MSA_Seq_InterLock_Flag(N_PLC14_Return_EA)	//MSA 인터락 플래그 배열
+//P_VISION_MSA_Seq_InterLock_Flag(0),N_PLC14_Return_EA = 0;
+
+global P_VISION_MSA_Status_Prod_Sequence(N_PLC14_Return_EA)	//MSA 시퀀스 프로그램 배열
+P_VISION_MSA_Status_Prod_Sequence(0),N_PLC14_Return_EA = 0;
+
+global P_VISION_MSA_Seq_Index = 0;							//MSA 인덱스 변수 
+global P_VISION_MSA_Anode_Align_Bit_Pos = 0;				
+global P_VISION_MSA_Seq_PreCondition_Index = 0;				//MSA 다음 인덱스 변수
+
+global P_MSA_CycleStop_Point_Check_Complete_RTN = 0;		//MSA 사이클스탑 체크 리턴 변수
+
+
+
+//=========================================================
+// MSA 버튼 커맨드 변수
+//=========================================================
+//global P_VISION_MSA_Anode_Align_Cmd = 0;				//음극 얼라인 MSA 커맨드
+//global P_VISION_MSA_Cathode_Align_Cmd = 0;				//양극 얼라인 MSA 커맨드
+//global P_VISION_MSA_Anode_Stack_Cmd = 0;				//음극 스텍 MSA 커맨드
+//global P_VISION_MSA_Cathode_Stack_Cmd = 0;				//양극 스텍 MSA 커맨드
+global P_MSA_Cmd(5)
+P_MSA_Cmd(0),5 = 0;
+
+//=========================================================
+// MSA 카운트 변수
+//=========================================================
+global P_Current_Anode_Align_MSA_Run_Count = 0;				// 음극 얼라인 MSA 현재 진행한 횟수 초기화
+global P_Current_Cathode_Align_MSA_Run_Count = 0;			// 양극 얼라인 MSA 현재 진행한 횟수 초기화
+global P_Current_Anode_Stack_MSA_Run_Count = 0;				// 음극 스텍 MSA 현재 진행한 횟수 초기화
+global P_Current_Cathode_Stack_MSA_Run_Count = 0;			// 양극 스텍 MSA 현재 진행한 횟수 초기화
+
+P_MSA_Run_Repeat_Num(F_Anode_Align_MSA) = 10;				// 음극 얼라인 MSA 반복 설정 횟수
+P_MSA_Run_Repeat_Num(F_Cathode_Align_MSA) = 10;				// 양극 얼라인 MSA 반복 설정 횟수
+P_MSA_Run_Repeat_Num(F_Anode_Stack_MSA) = 10;				// 음극 스텍 MSA 반복 설정 횟수
+P_MSA_Run_Repeat_Num(F_Cathode_Stack_MSA) = 10;				// 양극 스텍 MSA 반복 설정 횟수
+
+P_Mode_Run_Enable_Flag(F_Anode_Align_MSA) = 0;				//msa 진행 가능상태 확인
+P_Mode_Run_Enable_Flag(F_Cathode_Align_MSA)	= 0;			//msa 진행 가능상태 확인
+P_Mode_Run_Enable_Flag(F_Anode_Stack_MSA) = 0;				//msa 진행 가능상태 확인
+P_Mode_Run_Enable_Flag(F_Cathode_Stack_MSA)	= 0;			//msa 진행 가능상태 확인
+
+
+global P_VISION_MSA_Align_Count_Chk_Flag = 0;				//얼라인 MSA 카운트 체크 플래그
+global P_VISION_MSA_Stack_Count_Chk_Flag = 0;				//스텍 MSA 카운트 체크 플래그
+
+
+//=========================================================
+// MSA 인터락 상태 변수
+//=========================================================
+global P_VISION_MSA_pre_InterLock_Cmd = 0;					//msa 인터락 커맨드
+global P_VISION_MSA_pre_InterLock_Status = 0;				//msa 인터락 상태
+global P_VISION_MSA_pre_InterLock_Check_Assy_Bit = 0;		//msa 이전 인터락 체크 비트
+global P_VISION_MSA_pre_InterLock_Assy_Bit_Pos = 0;			//msa 이전 인터락 비트 위치 
+global P_Vision_MSA_Interlock_Status = 0;					//msa 인터락 상태
+//=========================================================
+// MSA 상태 변수
+//=========================================================
+global P_VISION_MSA_MODE = 0;								//현재 msa 모드 상태 확인 
+global P_VISION_MSA_Status_Flag = 0;						//msa 상태 플래그
+global P_VISION_MSA_State_Machine = 0;						//msa 스텝머신
+global P_VISION_MSA_Status = 0;								//msa 상태 
+global P_VISION_MSA_Seq_Command_Occurs = 0;					//msa 동작 발생 커맨드
+global P_Vision_Align_Trigger_Time = 1000;					//msa 얼라인 촬상 트리거 타이머
+	
+global P_Anode_Align_MSA_Motion_Check = 0;					//음극 얼라인 msa 모션 체크 리턴 변수
+global P_Cathode_Align_MSA_Motion_Check = 0;				//양극 얼라인 msa 모션 체크 리턴 변수 
+global P_Anode_Stack_MSA_Motion_Check = 0;					//음극 스텍 msa 모션 체크 리턴 변수
+global P_Cathode_Stack_MSA_Motion_Check = 0;				//양극 스텍 msa 모션 체크 리턴 변수
+global P_Anode_Align_MSA_Motion_ProgActive_Complete = 0;	//음극 얼라인 msa 동작 프로그램 완료 
+global P_Cathode_Align_MSA_Motion_ProgActive_Complete = 0;	//양극 얼라인 msa 동작 프로그램 완료
+global P_Anode_Stack_MSA_Motion_ProgActive_Complete = 0;	//음극 스텍 msa 동작 프로그램 완료
+global P_Cathode_Stack_MSA_Motion_ProgActive_Complete = 0;	//양극 스텍 msa 동작 프로그램 완료
+
+
+
+
+//=========================================================
+//얼라인 탈착 모드 버튼 활성화 모니터링 변수
+//=========================================================
+//#define N_BtN_Align_AN_Take_Off_Cmd_OK					( M_Func_BTN.Cathode_Align_Take_OFF ) ^ N_XOR_Define
+//#define N_BtN_Align_CA_Take_Off_Cmd_OK 				( M_Func_BTN.Anode_Align_Take_OFF ) ^ N_XOR_Define 
+//
+//															// ↓ 인덱스 0 or 상태가 0일때 = 0 Xor 1 = 1로 만듬 ( 가독성 )
+//#define N_Align_Take_Off_Command_Enable_Possible			( P_Align_Take_Off_Seq_Index | P_Align_Take_Off_Status  ) ^ N_XOR_Define	
+
+// 대격변 버튼 동시 동작 방지 sys.idata[11155]
+//[참조 : 260724 2차 클리닝 위치 이동, 얼라인 탈착 모드 시퀀스 수정 ]
+#define N_BTN_Align_Off_Total_Value			M_Func_BTN.Cathode_Align_Take_OFF + M_Func_BTN.Anode_Align_Take_OFF
+global P_BTN_Align_Off_Total_Value = 0;
+	
+//==========================================================
+//얼라인 탈착 모드 
+//==========================================================
+#define N_PLC13_Align_Take_Off										6
+#define N_PLC13_Align_Take_Off_Set_Seq_Occurs_RTN					7
+#define N_PLC13_Align_Take_Off_Manage_Get_RTN						8
+#define N_PLC13_Align_Take_Off_Exe_Seq_RTN							9
+#define N_PLC13_Align_Take_Off_Pre_Seq_Complete_RTN					10
+#define N_Align_Take_Off_InterLock_Time								200
+
+//============================================================
+//양음극 얼라인 테이블 탈착 모드 버튼 커맨드
+//============================================================
+//global P_Cathode_Align_Take_OFF_Cmd = 0;					//양극 얼라인 탈착 모드 커맨드 
+//global P_Anode_Align_Take_OFF_Cmd = 0;						//음극 얼라인 탈착 모드 커맨드 
+global P_Align_Take_Off_Cmd(3)
+P_Align_Take_Off_Cmd(0),3 = 0;
+
+//============================================================
+//얼라인 탈착 모드 상태 변수
+//============================================================
+//[참조 : 260724 2차 클리닝 위치 이동, 얼라인 탈착 모드 시퀀스 수정 ]
+global P_Align_Take_Off_Status = 0;							//현재 얼라인 탈착 모드 상태				
+global P_Align_Take_Off_Mode = 0;							//얼라인 탈착 모드 선택 (양극/음극)
+global P_Align_Take_Off_Status_Flag = 0;					//얼라인 탈착 모드 상태 플래그
+global P_Align_Take_Off_State_Machine = 0;					//얼라인 탈착 모드 스텟머신
+global P_Align_Take_Off_Chk_Pos_Timer = 0;				// 2차 PNP 클리닝 위치 이동 타이머	
+
+global P_Align_Take_Off_Motor_Check_Complete = 0;			//얼라인 탈착 모드 모터 체크 완료 리턴 값 
+global P_Align_Take_Off_Speed_Return_Complete = 0;			//얼라인 탈착 모드 속도 지정 완료 리턴 값 
+//=========================================================
+// 얼라인 탈착 모드 인터락 상태 변수
+//=========================================================
+global P_Align_Take_Off_Interlock_Status = 0;				//얼라인 탈착 모드 인터락 상태	
+global P_Align_Take_Off_pre_InterLock_Cmd = 0;				//얼라인 탈착 모드 인터락 커맨드	
+global P_Align_Take_Off_pre_InterLock_Status = 0;			//얼라인 탈착 모드 인터락 상태 	
+global P_Align_Take_Off_pre_InterLock_Check_Assy_Bit = 0;	//얼라인 탈착 모드 인터락 체크 비트
+global P_Align_Take_Off_pre_InterLock_Assy_Bit_Pos = 0;		//얼라인 탈착 모드 인터락 비트 위치 
+//=========================================================
+//얼라인 탈착 모드 인덱스 상태 변수
+//=========================================================
+global P_Align_Take_Off_Seq_Index = 0;							//얼라인 탈착 모드 인덱스 
+global P_Align_Take_Off_Seq_PreCondition_Index = 0;				//얼라인 탈착 모드 다음 인덱스
+
+global P_Align_Take_Off_Status_Prod_Sequence(N_PLC14_Return_EA)	//얼라인 탈착 모드 시퀀스 프로그램 배열
+P_Align_Take_Off_Status_Prod_Sequence(0),N_PLC14_Return_EA = 0;		
+
+global P_Align_Take_Off_Stop_Signal = 0;
+																							
+//============================================================
+//얼라인 오토 캘 
+//============================================================
+global P_Vision_Cal_Reset_Count = 0;							//얼라인 오토 캘 리셋 변수
+
+#define	N_AutoCal_Mode_Disable		0						//얼라인 오토 캘 미사용 시 
+#define	N_AutoCal_Mode_Cathode		1						//얼라인 오토 캘 양극 사용 시 
+#define	N_AutoCal_Mode_Anode		2						//얼라인 오토 캘 음극 사용 시 
+
+
+//============================================================
+//2차 PNP 클리닝 모드 버튼 커맨드
+//============================================================
+//[참조 : 260724 2차 클리닝 위치 이동, 얼라인 탈착 모드 시퀀스 수정 ]
+global P_2nd_PNP_Cleaning_Mode_Cmd = 0;					//2차 PNP 클리닝 위치 이동 커맨드
+global P_2nd_PNP_Cleaning_Mode_Status = 0;				//2차 PNP 클리닝 위치 이동 상태
+
+global P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed = 10;			// 2차 PNP 클리닝 위치 이동 모터 조그 속도 10
+global P_2nd_PNP_Cleaning_Mode_X_Jog_Speed = 25;			// 2차 PNP 클리닝 위치 이동 모터 조그 속도 25
+global P_2nd_PNP_Cleaning_Mode_T_Jog_Speed = 10;			// 2차 PNP 클리닝 위치 이동 모터 조그 속도 10		
+global P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos = 45;				// 2차 PNP 클리닝 위치 회피 이동 45 위치
+
+			
+
+//#define Spare	P39
+
+//P8005-P8009 Write
+//#define P_Modbus_B_PMAC_Cur_Mode		P8005
+//#define	P_Modbus_B_PMAC_Cur_Status		P8006
+//#define P_Modbus_B_VISION_MSA_Status	P8007
+//#define P_Modbus_B_Anode_1st_Pos		P8008
+//#define P_Modbus_B_Cathode_1st_Pos		P8009
+
+//=========================================================
+//Test 
+//=========================================================
+//global P_Action_(20)
+//P_Action_(0),20 = 0;
+//global P_Bit_Masking_Test_Timer = 0;
+
+
+
+#define N_NP_Chuck					1
+#define N_NP_Tilting				2
+#define N_NP_Plate_Vac				3
+#define N_NP_Jog_Plus				4
+#define N_NP_Jog_Minus				5
+#define N_NP_Plate_Up_Dn			6
+#define N_NP_Plate_Cut				7
+#define N_NP_Plate_Stopper			8
+
+
+
+global P_Old_Upper_Sensor(8)
+P_Old_Upper_Sensor(0),8 = 0;
+global P_Edge_Upper_Sensor(8) 
+P_Edge_Upper_Sensor(0),8 = 0;
+global P_Old_Lower_Sensor(8)
+P_Old_Lower_Sensor(0),8 = 0;
+global P_Edge_Lower_Sensor(8)
+P_Edge_Lower_Sensor(0),8 = 0;
+
+global P_Edge_NP_BTN(2)		// 네임플레이트 상,하부 변경 Edge 변수		[ 참조 : 26.04.24 ARC 네임 플레이트 램프 수정 ]
+P_Edge_NP_BTN(0),2 = 0;	

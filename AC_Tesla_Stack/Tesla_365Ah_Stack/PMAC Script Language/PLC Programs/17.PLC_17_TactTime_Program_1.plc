@@ -1,0 +1,780 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.20
+// Tact Time 프로그램 추가 - [ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+
+open plc 17
+
+#define	L_System_Timer				Sys.Time				// 시스템 타이머
+//01. 다이나믹 로컬 타이머 변수 선언 
+Local L_Time_Cycle_Up_Count_Start_Time;                     // Plc[17].ldata.L[0] 시작 체크 시작 시간			 
+Local L_Time_Cycle_Up_Count_End_Time;                       // Plc[17].ldata.L[1] 시작 체크 종료 시간			
+Local L_Time_Cycle_Up_Count_Delta_Time;                     // Plc[17].ldata.L[2] 시작과 종료 시간 사이의 시간	
+Local L_Flag_Cycle_Up_Count_Init_Flag;                      // Plc[17].ldata.L[3] 타이머 초기화 플래그	
+
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+If( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	// 시간 간격 초기화
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 00.2) 시간 체크
+If( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	If( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+// 00.3) 시간 업데이트
+If (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval )
+{	
+	// 사용자 타이머
+	P_Tact_Time_Timer(N_Stack) = P_Tact_Time_Timer(N_Stack) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Discharge) = P_Tact_Time_Timer(N_Discharge) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_1st_Unloader) = P_Tact_Time_Timer(N_1st_Unloader) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Sepa_ARC) = P_Tact_Time_Timer(N_Sepa_ARC) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Final_Roller) = P_Tact_Time_Timer(N_Final_Roller) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Cathode_1st_PNP) = P_Tact_Time_Timer(N_Cathode_1st_PNP) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Cathode_Align) = P_Tact_Time_Timer(N_Cathode_Align) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Cathode_2nd_PNP) = P_Tact_Time_Timer(N_Cathode_2nd_PNP) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Cathode_Clamp) = P_Tact_Time_Timer(N_Cathode_Clamp) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Anode_1st_PNP) = P_Tact_Time_Timer(N_Anode_1st_PNP) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Anode_Align) = P_Tact_Time_Timer(N_Anode_Align) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Anode_2nd_PNP) = P_Tact_Time_Timer(N_Anode_2nd_PNP) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Anode_Clamp) = P_Tact_Time_Timer(N_Anode_Clamp) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Cathode_1st_Vac) = P_Tact_Time_Timer(N_Cathode_1st_Vac) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Cathode_Align_Vac) = P_Tact_Time_Timer(N_Cathode_Align_Vac) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Cathode_2nd_Vac) = P_Tact_Time_Timer(N_Cathode_2nd_Vac) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Anode_1st_Vac) = P_Tact_Time_Timer(N_Anode_1st_Vac) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Anode_Align_Vac) = P_Tact_Time_Timer(N_Anode_Align_Vac) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Timer(N_Anode_2nd_Vac) = P_Tact_Time_Timer(N_Anode_2nd_Vac) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Final_Roller_Clamp = P_Tact_Time_Final_Roller_Clamp + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Final_Roller_Unclamp = P_Tact_Time_Final_Roller_Unclamp + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Stack_Table_Down = P_Tact_Time_Stack_Table_Down + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Stack_Table_Up = P_Tact_Time_Stack_Table_Up + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Sepa_Cutting_Down = P_Tact_Time_Sepa_Cutting_Down + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_Sepa_Cutting_Up = P_Tact_Time_Sepa_Cutting_Up + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Upper_Plate_Up = P_Tact_Time_ARC_Upper_Plate_Up + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Upper_Plate_Down = P_Tact_Time_ARC_Upper_Plate_Down + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Upper_Tilting_On = P_Tact_Time_ARC_Upper_Tilting_On + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Upper_Tilting_Off = P_Tact_Time_ARC_Upper_Tilting_Off + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Upper_Cutter_Fwd = P_Tact_Time_ARC_Upper_Cutter_Fwd + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Upper_Cutter_Bwd = P_Tact_Time_ARC_Upper_Cutter_Bwd + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Upper_Clamp_On = P_Tact_Time_ARC_Upper_Clamp_On + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Upper_Clamp_Off = P_Tact_Time_ARC_Upper_Clamp_Off + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Lower_Plate_Up = P_Tact_Time_ARC_Lower_Plate_Up + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Lower_Plate_Down = P_Tact_Time_ARC_Lower_Plate_Down + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Lower_Tilting_On = P_Tact_Time_ARC_Lower_Tilting_On + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Lower_Tilting_Off = P_Tact_Time_ARC_Lower_Tilting_Off + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Lower_Cutter_Fwd = P_Tact_Time_ARC_Lower_Cutter_Fwd + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Lower_Cutter_Bwd = P_Tact_Time_ARC_Lower_Cutter_Bwd + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Lower_Clamp_On = P_Tact_Time_ARC_Lower_Clamp_On + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Tact_Time_ARC_Lower_Clamp_Off = P_Tact_Time_ARC_Lower_Clamp_Off + L_Time_Cycle_Up_Count_Delta_Time;
+	// [ 참조 : 25.07.02 옵저버 추가 ]
+	P_PLC12_Vacuum_1st_Cathode_MNTR_Timer = P_PLC12_Vacuum_1st_Cathode_MNTR_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Vacuum_2nd_Cathode_MNTR_Timer = P_PLC12_Vacuum_2nd_Cathode_MNTR_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Vacuum_NG_Cathode_MNTR_Timer =  P_PLC12_Vacuum_NG_Cathode_MNTR_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Vacuum_Align_Cathode_MNTR_Timer = P_PLC12_Vacuum_Align_Cathode_MNTR_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Vacuum_1st_Anode_MNTR_Timer =  P_PLC12_Vacuum_1st_Anode_MNTR_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Vacuum_2nd_Anode_MNTR_Timer =  P_PLC12_Vacuum_2nd_Anode_MNTR_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Vacuum_NG_Anode_MNTR_Timer =   P_PLC12_Vacuum_NG_Anode_MNTR_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Vacuum_Align_Anode_MNTR_Timer =  P_PLC12_Vacuum_Align_Anode_MNTR_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Blow_1st_Cathode_MNTR_Timer = P_PLC12_Blow_1st_Cathode_MNTR_Timer  + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Blow_2nd_Cathode_MNTR_Timer = P_PLC12_Blow_2nd_Cathode_MNTR_Timer  + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Blow_NG_Cathode_MNTR_Timer =  P_PLC12_Blow_NG_Cathode_MNTR_Timer  + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Blow_Align_Cathode_MNTR_Timer = P_PLC12_Blow_Align_Cathode_MNTR_Timer  + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Blow_1st_Anode_MNTR_Timer =  P_PLC12_Blow_1st_Anode_MNTR_Timer  + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Blow_2nd_Anode_MNTR_Timer =  P_PLC12_Blow_2nd_Anode_MNTR_Timer  + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Blow_NG_Anode_MNTR_Timer =  P_PLC12_Blow_NG_Anode_MNTR_Timer  + L_Time_Cycle_Up_Count_Delta_Time;
+	P_PLC12_Blow_Align_Anode_MNTR_Timer = P_PLC12_Blow_Align_Anode_MNTR_Timer  + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+//===================================================================================================================
+/*
+// =Search=========================================================================================
+Type
+1. Start_To_Start		모션 시작 → 다음 모션 시작
+2. Start_To_End			모션 시작 → 모션 끝
+3. M_Y_To_M_X			M_Y_On → M_X_On
+================================================================================================
+ Run Mode 시 연속 적으로 움직이는 유닛 Tact Time 체크 부
+ 1. N_Stack					6. N_Cathode_1st_PNP		10. N_Anode_1st_PNP
+ 2. N_Discharge				7. N_Cathode_Align			11. N_Anode_Align	
+ 3. N_1st_Unloader			8. N_Cathode_2nd_PNP		12. N_Anode_2nd_PNP	
+ 4. N_Sepa_ARC				9. N_Cathode_Clamp			13. N_Anode_Clamp
+ 5. N_Final_Roller
+================================================================================================
+================================================================================================
+ Run Mode 시 Sol Tact Time 체크 부 (배열 O)
+ 1. N_Cathode_1st_Vac		4. N_Anode_1st_Vac			
+ 2. N_Cathode_Align_Vac		5. N_Anode_Align_Vac	
+ 3. N_Cathode_2nd_Vac		6. N_Anode_2nd_Vac		
+================================================================================================
+================================================================================================
+ Sol 출력 후 입력 까지 Tact Time 체크 부 (배열 X)
+ 1. N_Final_Roller_Clamp	4. N_ARC_Upper_Plate		8. N_ARC_Lower_Plate	
+ 2. N_Stack_Table			5. N_ARC_Upper_Tilting		9. N_ARC_Lower_Tilting	
+ 3. N_Sepa_Cutting			6. N_ARC_Upper_Cutter		10. N_ARC_Lower_Cutter	
+							7. N_ARC_Upper_Clamp		11. N_ARC_Lower_Clamp	
+================================================================================================
+*/
+//===================================================================================================================
+//-------------------------------------------------------//
+// Tact Time 측정 유닛 주소 업데이트. (재빌드 시 1번 실행)
+//-------------------------------------------------------//
+if ( P_Tact_Time_Array_Init == 0 )
+{
+	call Tack_Time.Array_Init();
+	P_Tact_Time_Array_Init = 1;
+}
+//-----------------------//
+// Tact Time 측정 실행부.
+//-----------------------//
+// J/R 적층 중 정상적인 적층 시에만 텍 타임 체크.
+if ( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence )
+{
+	//--------------------------------------------------------------------------------//
+	// N_Stack []
+	// Start_To_End
+	//--------------------------------------------------------------------------------//
+	if ( P_Tact_Time_Check(N_Stack) == 1 && P_Old_Tact_Time_Check(N_Stack) == 0 )			// Tact Time 측정 ON.
+	{
+		P_Tact_Time_Timer(N_Stack) = 0;										// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Stack) = 1;									// 재진입 방지.
+	}
+	else if ( P_Tact_Time_Check(N_Stack) == 0 && P_Old_Tact_Time_Check(N_Stack) == 1 )	// Tact Time 측정 OFF. [ 모션에서 OFF 시킴 ]
+	{
+		P_Tack_Time_Save_Time(N_Stack) = P_Tact_Time_Timer(N_Stack) / 10;	// Tact Time 저장.
+		P_Tact_Time_Head_Address(N_Stack) = &P_Tact_Time_Stack_Array(0);	// Tact Time 배열 P변수 주소값 업데이트.
+		call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Stack),P_Tack_Time_Save_Time(N_Stack))	// Tact Time 배열에 저장.
+		P_Old_Tact_Time_Check(N_Stack) = 0;									// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Discharge []
+	// Start_To_End
+	//--------------------------------------------------------------------------------//
+	if ( P_Tact_Time_Check(N_Discharge) == 1 && P_Old_Tact_Time_Check(N_Discharge) == 0 )			// Tact Time 측정 ON.
+	{
+		P_Tact_Time_Timer(N_Discharge) = 0;									// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Discharge) = 1;								// 재진입 방지.
+	}
+	else if ( P_Tact_Time_Check(N_Discharge) == 0 && P_Old_Tact_Time_Check(N_Discharge) == 1 )	// Tact Time 측정 OFF. [ 모션에서 OFF 시킴 ]
+	{
+		P_Tack_Time_Save_Time(N_Discharge) = P_Tact_Time_Timer(N_Discharge) / 10;	// Tact Time 저장.
+		P_Tact_Time_Head_Address(N_Discharge) = &P_Tact_Time_Discharge_Array(0);						// Tact Time 배열 P변수 주소값 업데이트.
+		call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Discharge),P_Tack_Time_Save_Time(N_Discharge))	// Tact Time 배열에 저장.
+		P_Old_Tact_Time_Check(N_Discharge) = 0;								// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_1st_Unloader []
+	// Start_To_End
+	//--------------------------------------------------------------------------------//
+	if ( P_Tact_Time_Check(N_1st_Unloader) == 1 && P_Old_Tact_Time_Check(N_1st_Unloader) == 0 )			// Tact Time 측정 ON.
+	{
+		P_Tact_Time_Timer(N_1st_Unloader) = 0;								// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_1st_Unloader) = 1;							// 재진입 방지.
+	}
+	else if ( P_Tact_Time_Check(N_1st_Unloader) == 0 && P_Old_Tact_Time_Check(N_1st_Unloader) == 1 )	// Tact Time 측정 OFF. [ 모션에서 OFF 시킴 ]
+	{
+		P_Tack_Time_Save_Time(N_1st_Unloader) = P_Tact_Time_Timer(N_1st_Unloader) / 10;	// Tact Time 저장.
+		P_Tact_Time_Head_Address(N_1st_Unloader) = &P_Tact_Time_1st_Unloader_Array(0);					// Tact Time 배열 P변수 주소값 업데이트.
+		call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_1st_Unloader),P_Tack_Time_Save_Time(N_1st_Unloader))	// Tact Time 배열에 저장.
+		P_Old_Tact_Time_Check(N_1st_Unloader) = 0;							// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Sepa_ARC [ARC 모듈 시작 → ARC 모듈 끝]
+	// Start_To_End
+	//--------------------------------------------------------------------------------//
+	if ( P_Tact_Time_Check(N_Sepa_ARC) == 1 && P_Old_Tact_Time_Check(N_Sepa_ARC) == 0 )			// Tact Time 측정 ON.
+	{
+		P_Tact_Time_Timer(N_Sepa_ARC) = 0;									// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Sepa_ARC) = 1;								// 재진입 방지.
+	}
+	else if ( P_Tact_Time_Check(N_Sepa_ARC) == 0 && P_Old_Tact_Time_Check(N_Sepa_ARC) == 1 )	// Tact Time 측정 OFF. [ 모션에서 OFF 시킴 ]
+	{
+		P_Tack_Time_Save_Time(N_Sepa_ARC) = P_Tact_Time_Timer(N_Sepa_ARC) / 10;	// Tact Time 저장.
+		P_Tact_Time_Head_Address(N_Sepa_ARC) = &P_Tact_Time_Sepa_ARC_Array(0);							// Tact Time 배열 P변수 주소값 업데이트.
+		call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Sepa_ARC),P_Tack_Time_Save_Time(N_Sepa_ARC))	// Tact Time 배열에 저장.
+		P_Old_Tact_Time_Check(N_Sepa_ARC) = 0;								// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Final_Roller - 파이널 롤러 [(양 → 음) 모션 시작 → 모션 끝 / (음 → 양) 모션 시작 → 모션 끝]
+	// Start_To_End
+	//--------------------------------------------------------------------------------//
+	if ( P_Tact_Time_Check(N_Final_Roller) == 1 && P_Old_Tact_Time_Check(N_Final_Roller) == 0 )			// Tact Time 측정 ON.
+	{
+		P_Tact_Time_Timer(N_Final_Roller) = 0;								// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Final_Roller) = 1;							// 재진입 방지.
+	}
+	else if ( P_Tact_Time_Check(N_Final_Roller) == 0 && P_Old_Tact_Time_Check(N_Final_Roller) == 1 )	// Tact Time 측정 OFF. [ 모션에서 OFF 시킴 ]
+	{
+		P_Tack_Time_Save_Time(N_Final_Roller) = P_Tact_Time_Timer(N_Final_Roller) / 10;	// Tact Time 저장.
+		P_Tact_Time_Head_Address(N_Final_Roller) = &P_Tact_Time_Final_Roll_Array(0);					// Tact Time 배열 P변수 주소값 업데이트.
+		call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Final_Roller),P_Tack_Time_Save_Time(N_Final_Roller))	// Tact Time 배열에 저장.
+		P_Old_Tact_Time_Check(N_Final_Roller) = 0;							// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Cathode_1st_PNP - 양극 1차 P&P [벨트 흡착 → 다음 벨트 흡착]
+	// Start_To_Start
+	//--------------------------------------------------------------------------------//
+	if ( P_Tact_Time_Check(N_Cathode_1st_PNP) == 1 )						// Tact Time 측정 ON.
+	{
+		if ( P_Old_Tact_Time_Check(N_Cathode_1st_PNP) == 0 )				// Edge 변수가 0일 경우.
+		{
+			P_Tact_Time_Check(N_Cathode_1st_PNP) = 0;						// Tact Time 측정 초기화.
+			P_Tact_Time_Timer(N_Cathode_1st_PNP) = 0;						// Tact Time 타이머 초기화.
+			P_Old_Tact_Time_Check(N_Cathode_1st_PNP) = 1;					// 재진입 방지.
+		}
+		else if ( P_Old_Tact_Time_Check(N_Cathode_1st_PNP) == 1 )			// Edge 변수가 1일 경우.
+		{
+			P_Tact_Time_Check(N_Cathode_1st_PNP) = 0;						// Tact Time 측정 초기화.
+			P_Tack_Time_Save_Time(N_Cathode_1st_PNP) = P_Tact_Time_Timer(N_Cathode_1st_PNP) / 10;	// Tact Time 저장.
+			P_Tact_Time_Head_Address(N_Cathode_1st_PNP) = &P_Tact_Time_Cathode_1st_PNP_Array(0);		// Tact Time 배열 P변수 주소값 업데이트.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Cathode_1st_PNP),P_Tack_Time_Save_Time(N_Cathode_1st_PNP))	// Tact Time 배열에 저장.
+			P_Tact_Time_Timer(N_Cathode_1st_PNP) = 0;						// Tact Time 타이머 초기화.
+			P_Old_Tact_Time_Check(N_Cathode_1st_PNP) = 2;					// 재진입 방지.
+		}
+		else if ( P_Old_Tact_Time_Check(N_Cathode_1st_PNP) == 2 )			// Edge 변수가 1일 경우.
+		{
+			P_Tact_Time_Check(N_Cathode_1st_PNP) = 0;						// Tact Time 측정 초기화.
+			P_Tack_Time_Save_Time(N_Cathode_1st_PNP) = P_Tact_Time_Timer(N_Cathode_1st_PNP) / 10;	// Tact Time 저장.
+			P_Tact_Time_Head_Address(N_Cathode_1st_PNP) = &P_Tact_Time_Cathode_1st_PNP_Array(0);		// Tact Time 배열 P변수 주소값 업데이트.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Cathode_1st_PNP),P_Tack_Time_Save_Time(N_Cathode_1st_PNP))	// Tact Time 배열에 저장.
+			P_Tact_Time_Timer(N_Cathode_1st_PNP) = 0;						// Tact Time 타이머 초기화.
+			P_Old_Tact_Time_Check(N_Cathode_1st_PNP) = 1;					// 재진입 방지.
+		}
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Cathode_Align - 양극 얼라인 [Align 구동 시작 → Align 구동 끝]
+	// Start_To_End
+	//--------------------------------------------------------------------------------//
+	if ( P_Tact_Time_Check(N_Cathode_Align) == 1 && P_Old_Tact_Time_Check(N_Cathode_Align) == 0 )			// Tact Time 측정 ON.
+	{
+		P_Tact_Time_Timer(N_Cathode_Align) = 0;								// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Cathode_Align) = 1;							// 재진입 방지.
+	}
+	else if ( P_Tact_Time_Check(N_Cathode_Align) == 0 && P_Old_Tact_Time_Check(N_Cathode_Align) == 1 )	// Tact Time 측정 OFF. [ 모션에서 OFF 시킴 ]
+	{
+		P_Tack_Time_Save_Time(N_Cathode_Align) = P_Tact_Time_Timer(N_Cathode_Align) / 10;	// Tact Time 저장.
+		P_Tact_Time_Head_Address(N_Cathode_Align) = &P_Tact_Time_Cathode_Align_Array(0);				// Tact Time 배열 P변수 주소값 업데이트.
+		call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Cathode_Align),P_Tack_Time_Save_Time(N_Cathode_Align))	// Tact Time 배열에 저장.
+		P_Old_Tact_Time_Check(N_Cathode_Align) = 0;							// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Cathode_2nd_PNP - 양극 2차 P&P [얼라인 흡착 → 다음 얼라인 흡착]
+	// Start_To_Start
+	//--------------------------------------------------------------------------------//
+	if ( P_Tact_Time_Check(N_Cathode_2nd_PNP) == 1 )						// Tact Time 측정 ON.
+	{
+		if ( P_Old_Tact_Time_Check(N_Cathode_2nd_PNP) == 0 )				// Edge 변수가 0일 경우.
+		{
+			P_Tact_Time_Check(N_Cathode_2nd_PNP) = 0;						// Tact Time 측정 초기화.
+			P_Tact_Time_Timer(N_Cathode_2nd_PNP) = 0;						// Tact Time 타이머 초기화.
+			P_Old_Tact_Time_Check(N_Cathode_2nd_PNP) = 1;					// 재진입 방지.
+		}
+		else if ( P_Old_Tact_Time_Check(N_Cathode_2nd_PNP) == 1 )			// Edge 변수가 1일 경우.
+		{
+			P_Tact_Time_Check(N_Cathode_2nd_PNP) = 0;						// Tact Time 측정 초기화.
+			P_Tact_Time_Head_Address(N_Cathode_2nd_PNP) = &P_Tact_Time_Cathode_2nd_PNP_Array(0);	// Tact Time 배열 P변수 주소값 업데이트.
+			P_Tack_Time_Save_Time(N_Cathode_2nd_PNP) = P_Tact_Time_Timer(N_Cathode_2nd_PNP) / 10;	// Tact Time 저장.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Cathode_2nd_PNP),P_Tack_Time_Save_Time(N_Cathode_2nd_PNP))	// Tact Time 배열에 저장.
+			P_Tact_Time_Timer(N_Cathode_2nd_PNP) = 0;						// Tact Time 타이머 초기화.
+			P_Old_Tact_Time_Check(N_Cathode_2nd_PNP) = 2;					// 재진입 방지.
+		}
+		else if ( P_Old_Tact_Time_Check(N_Cathode_2nd_PNP) == 2 )			// Edge 변수가 2일 경우.
+		{
+			P_Tact_Time_Check(N_Cathode_2nd_PNP) = 0;						// Tact Time 측정 초기화.
+			P_Tact_Time_Head_Address(N_Cathode_2nd_PNP) = &P_Tact_Time_Cathode_2nd_PNP_Array(0);		// Tact Time 배열 P변수 주소값 업데이트.
+			P_Tack_Time_Save_Time(N_Cathode_2nd_PNP) = P_Tact_Time_Timer(N_Cathode_2nd_PNP) / 10;	// Tact Time 저장.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Cathode_2nd_PNP),P_Tack_Time_Save_Time(N_Cathode_2nd_PNP))	// Tact Time 배열에 저장.
+			P_Tact_Time_Timer(N_Cathode_2nd_PNP) = 0;						// Tact Time 타이머 초기화.
+			P_Old_Tact_Time_Check(N_Cathode_2nd_PNP) = 1;					// 재진입 방지.
+		}
+
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Cathode_Clamp - 양극 클램프 [클램프 ON → 클램프 OFF]
+	// Start_To_End
+	//--------------------------------------------------------------------------------//
+	if ( P_Tact_Time_Check(N_Cathode_Clamp) == 1 && P_Old_Tact_Time_Check(N_Cathode_Clamp) == 0 )			// Tact Time 측정 ON.
+	{
+		P_Tact_Time_Timer(N_Cathode_Clamp) = 0;								// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Cathode_Clamp) = 1;							// 재진입 방지.
+	}
+	else if ( P_Tact_Time_Check(N_Cathode_Clamp) == 0 && P_Old_Tact_Time_Check(N_Cathode_Clamp) == 1 )	// Tact Time 측정 OFF. [ 모션에서 OFF 시킴 ]
+	{
+		P_Tack_Time_Save_Time(N_Cathode_Clamp) = P_Tact_Time_Timer(N_Cathode_Clamp) / 10;	// Tact Time 저장.
+		P_Tact_Time_Head_Address(N_Cathode_Clamp) = &P_Tact_Time_Cathode_Clamp_Array(0);				// Tact Time 배열 P변수 주소값 업데이트.
+		call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Cathode_Clamp),P_Tack_Time_Save_Time(N_Cathode_Clamp))	// Tact Time 배열에 저장.
+		P_Old_Tact_Time_Check(N_Cathode_Clamp) = 0;							// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Anode_1st_PNP - 음극 1차 P&P [벨트 흡착 → 다음 벨트 흡착]
+	// Start_To_Start
+	//--------------------------------------------------------------------------------//
+	if ( P_Tact_Time_Check(N_Anode_1st_PNP) == 1 )							// Tact Time 측정 ON.
+	{
+		if ( P_Old_Tact_Time_Check(N_Anode_1st_PNP) == 0 )					// Edge 변수가 0일 경우.
+		{
+			P_Tact_Time_Check(N_Anode_1st_PNP) = 0;							// Tact Time 측정 초기화.
+			P_Tact_Time_Timer(N_Anode_1st_PNP) = 0;							// Tact Time 타이머 초기화.
+			P_Old_Tact_Time_Check(N_Anode_1st_PNP) = 1;						// 재진입 방지.
+		}
+		else if ( P_Old_Tact_Time_Check(N_Anode_1st_PNP) == 1 )				// Edge 변수가 1일 경우.
+		{
+			P_Tact_Time_Check(N_Anode_1st_PNP) = 0;							// Tact Time 측정 초기화.
+			P_Tack_Time_Save_Time(N_Anode_1st_PNP) = P_Tact_Time_Timer(N_Anode_1st_PNP) / 10;	// Tact Time 저장.
+			P_Tact_Time_Head_Address(N_Anode_1st_PNP) = &P_Tact_Time_Anode_1st_PNP_Array(0);			// Tact Time 배열 P변수 주소값 업데이트.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Anode_1st_PNP),P_Tack_Time_Save_Time(N_Anode_1st_PNP))	// Tact Time 배열에 저장.
+			P_Tact_Time_Timer(N_Anode_1st_PNP) = 0;							// Tact Time 타이머 초기화.
+			P_Old_Tact_Time_Check(N_Anode_1st_PNP) = 2;						// 재진입 방지.
+		}
+		else if ( P_Old_Tact_Time_Check(N_Anode_1st_PNP) == 2 )				// Edge 변수가 2일 경우.
+		{
+			P_Tact_Time_Check(N_Anode_1st_PNP) = 0;							// Tact Time 측정 초기화.
+			P_Tack_Time_Save_Time(N_Anode_1st_PNP) = P_Tact_Time_Timer(N_Anode_1st_PNP) / 10;	// Tact Time 저장.
+			P_Tact_Time_Head_Address(N_Anode_1st_PNP) = &P_Tact_Time_Anode_1st_PNP_Array(0);			// Tact Time 배열 P변수 주소값 업데이트.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Anode_1st_PNP),P_Tack_Time_Save_Time(N_Anode_1st_PNP))	// Tact Time 배열에 저장.
+			P_Tact_Time_Timer(N_Anode_1st_PNP) = 0;							// Tact Time 타이머 초기화.
+			P_Old_Tact_Time_Check(N_Anode_1st_PNP) = 1;						// 재진입 방지.
+		}
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Anode_Align - 음극 얼라인 [Align 구동 시작 → Align 구동 끝]
+	// Start_To_End
+	//--------------------------------------------------------------------------------//
+	if ( P_Tact_Time_Check(N_Anode_Align) == 1 && P_Old_Tact_Time_Check(N_Anode_Align) == 0 )			// Tact Time 측정 ON.
+	{
+		P_Tact_Time_Timer(N_Anode_Align) = 0;								// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Anode_Align) = 1;							// 재진입 방지.
+	}
+	else if ( P_Tact_Time_Check(N_Anode_Align) == 0 && P_Old_Tact_Time_Check(N_Anode_Align) == 1 )	// Tact Time 측정 OFF. [ 모션에서 OFF 시킴 ]
+	{
+		P_Tack_Time_Save_Time(N_Anode_Align) = P_Tact_Time_Timer(N_Anode_Align) / 10;	// Tact Time 저장.
+		P_Tact_Time_Head_Address(N_Anode_Align) = &P_Tact_Time_Anode_Align_Array(0);					// Tact Time 배열 P변수 주소값 업데이트.
+		call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Anode_Align),P_Tack_Time_Save_Time(N_Anode_Align))	// Tact Time 배열에 저장.
+		P_Old_Tact_Time_Check(N_Anode_Align) = 0;							// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Anode_2nd_PNP - 음극 2차 P&P [얼라인 흡착 → 다음 얼라인 흡착]
+	// Start_To_Start
+	//--------------------------------------------------------------------------------//
+	if ( P_Tact_Time_Check(N_Anode_2nd_PNP) == 1 )							// Tact Time 측정 ON.
+	{
+		if ( P_Old_Tact_Time_Check(N_Anode_2nd_PNP) == 0 )					// Edge 변수가 0일 경우.
+		{
+			P_Tact_Time_Check(N_Anode_2nd_PNP) = 0;							// Tact Time 측정 초기화.
+			P_Tact_Time_Timer(N_Anode_2nd_PNP) = 0;							// Tact Time 타이머 초기화.
+			P_Old_Tact_Time_Check(N_Anode_2nd_PNP) = 1;						// 재진입 방지.
+		}
+		else if ( P_Old_Tact_Time_Check(N_Anode_2nd_PNP) == 1 )				// Edge 변수가 1일 경우.
+		{
+			P_Tact_Time_Check(N_Anode_2nd_PNP) = 0;							// Tact Time 측정 초기화.
+			P_Tack_Time_Save_Time(N_Anode_2nd_PNP) = P_Tact_Time_Timer(N_Anode_2nd_PNP) / 10;	// Tact Time 저장.
+			P_Tact_Time_Head_Address(N_Anode_2nd_PNP) = &P_Tact_Time_Anode_2nd_PNP_Array(0);			// Tact Time 배열 P변수 주소값 업데이트.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Anode_2nd_PNP),P_Tack_Time_Save_Time(N_Anode_2nd_PNP))	// Tact Time 배열에 저장.
+			P_Tact_Time_Timer(N_Anode_2nd_PNP) = 0;							// Tact Time 타이머 초기화.
+			P_Old_Tact_Time_Check(N_Anode_2nd_PNP) = 2;						// 재진입 방지.
+		}
+		else if ( P_Old_Tact_Time_Check(N_Anode_2nd_PNP) == 2 )				// Edge 변수가 2일 경우.
+		{
+			P_Tact_Time_Check(N_Anode_2nd_PNP) = 0;							// Tact Time 측정 초기화.
+			P_Tack_Time_Save_Time(N_Anode_2nd_PNP) = P_Tact_Time_Timer(N_Anode_2nd_PNP) / 10;	// Tact Time 저장.
+			P_Tact_Time_Head_Address(N_Anode_2nd_PNP) = &P_Tact_Time_Anode_2nd_PNP_Array(0);			// Tact Time 배열 P변수 주소값 업데이트.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Anode_2nd_PNP),P_Tack_Time_Save_Time(N_Anode_2nd_PNP))	// Tact Time 배열에 저장.
+			P_Tact_Time_Timer(N_Anode_2nd_PNP) = 0;							// Tact Time 타이머 초기화.
+			P_Old_Tact_Time_Check(N_Anode_2nd_PNP) = 1;						// 재진입 방지.
+		}
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Anode_Clamp - 음극 클램프 [클램프 ON → 클램프 OFF]
+	// Start_To_End
+	//--------------------------------------------------------------------------------//
+	if ( P_Tact_Time_Check(N_Anode_Clamp) == 1 && P_Old_Tact_Time_Check(N_Anode_Clamp) == 0 )		// Tact Time 측정 ON.
+	{
+		P_Tact_Time_Timer(N_Anode_Clamp) = 0;								// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Anode_Clamp) = 1;							// 재진입 방지.
+	}
+	else if ( P_Tact_Time_Check(N_Anode_Clamp) == 0 && P_Old_Tact_Time_Check(N_Anode_Clamp) == 1 )	// Tact Time 측정 OFF. [ 모션에서 OFF 시킴 ]
+	{
+		P_Tack_Time_Save_Time(N_Anode_Clamp) = P_Tact_Time_Timer(N_Anode_Clamp) / 10;	// Tact Time 저장.
+		P_Tact_Time_Head_Address(N_Anode_Clamp) = &P_Tact_Time_Anode_Clamp_Array(0);					// Tact Time 배열 P변수 주소값 업데이트.
+		call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Anode_Clamp),P_Tack_Time_Save_Time(N_Anode_Clamp))	// Tact Time 배열에 저장.
+		P_Old_Tact_Time_Check(N_Anode_Clamp) = 0;							// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Cathode_1st_Vac - 양극 1차 P&P [흡착 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Cathode_1st_Vac_Sol_On == 1 && M_Y_Cathode_1st_Vac_Sol_Off == 0 && P_Old_Tact_Time_Check(N_Cathode_1st_Vac) == 0 )		// 흡착 IO ON.
+	{
+		if ( M_X_Cathode_1st_PNP_Vac_Sensor == 1 )							// 입력 센서 들어올 경우.
+		{
+			P_Tack_Time_Save_Time(N_Cathode_1st_Vac) = P_Tact_Time_Timer(N_Cathode_1st_Vac) / 10;	// Tact Time 저장.
+			P_Tact_Time_Head_Address(N_Cathode_1st_Vac) = &P_Tact_Time_Cathode_1st_PNP_Vac_Array(0);	// Tact Time 배열 P변수 주소값 업데이트.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Cathode_1st_Vac),P_Tack_Time_Save_Time(N_Cathode_1st_Vac))	// Tact Time 배열에 저장.
+			P_Old_Tact_Time_Check(N_Cathode_1st_Vac) = 1;						// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Cathode_1st_Vac_Sol_On == 0 )
+	{
+		P_Tact_Time_Timer(N_Cathode_1st_Vac) = 0;								// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Cathode_1st_Vac) = 0;							// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Cathode_Align_Vac - 양극 얼라인 [흡착 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Cathode_AT_Vac_Ejector_Vac_On == 1 && M_Y_Cathode_AT_Vac_Ejector_Vac_Off == 0 && P_Old_Tact_Time_Check(N_Cathode_Align_Vac) == 0 )		// 흡착 IO ON.
+	{
+		if ( M_X_Cathode_AT_Vac_Sensor == 1 )						// 입력 센서 들어올 경우.
+		{
+			P_Tack_Time_Save_Time(N_Cathode_Align_Vac) = P_Tact_Time_Timer(N_Cathode_Align_Vac) / 10;	// Tact Time 저장.
+			P_Tact_Time_Head_Address(N_Cathode_Align_Vac) = &P_Tact_Time_Cathode_Align_PNP_Vac_Array(0);// Tact Time 배열 P변수 주소값 업데이트.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Cathode_Align_Vac),P_Tack_Time_Save_Time(N_Cathode_Align_Vac))	// Tact Time 배열에 저장.
+			P_Old_Tact_Time_Check(N_Cathode_Align_Vac) = 1;						// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Cathode_AT_Vac_Ejector_Vac_On == 0 )
+	{
+		P_Tact_Time_Timer(N_Cathode_Align_Vac) = 0;								// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Cathode_Align_Vac) = 0;							// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Cathode_2nd_Vac - 양극 2차 P&P [흡착 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Cathode_2nd_Vac_Sol_On == 1 && M_Y_Cathode_2nd_Vac_Sol_Off == 0 && P_Old_Tact_Time_Check(N_Cathode_2nd_Vac) == 0 )		// 흡착 IO ON.
+	{
+		if ( M_X_Cathode_2nd_PNP_Vac_Sensor == 1 )								// 입력 센서 들어올 경우.
+		{
+			P_Tack_Time_Save_Time(N_Cathode_2nd_Vac) = P_Tact_Time_Timer(N_Cathode_2nd_Vac) / 10;	// Tact Time 저장.
+			P_Tact_Time_Head_Address(N_Cathode_2nd_Vac) = &P_Tact_Time_Cathode_2nd_PNP_Vac_Array(0);	// Tact Time 배열 P변수 주소값 업데이트.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Cathode_2nd_Vac),P_Tack_Time_Save_Time(N_Cathode_2nd_Vac))	// Tact Time 배열에 저장.
+			P_Old_Tact_Time_Check(N_Cathode_2nd_Vac) = 1;						// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Cathode_2nd_Vac_Sol_On == 0 )
+	{
+		P_Tact_Time_Timer(N_Cathode_2nd_Vac) = 0;								// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Cathode_2nd_Vac) = 0;							// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Anode_1st_Vac - 음극 1차 P&P [흡착 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Anode_1st_Vac_Sol_On == 1 && M_Y_Anode_1st_Vac_Sol_Off == 0 && P_Old_Tact_Time_Check(N_Anode_1st_Vac) == 0 )		// 흡착 IO ON.
+	{
+		if ( M_X_Anode_1st_PNP_Vac_Sensor == 1 )								// 입력 센서 들어올 경우.
+		{
+			P_Tack_Time_Save_Time(N_Anode_1st_Vac) = P_Tact_Time_Timer(N_Anode_1st_Vac) / 10;	// Tact Time 저장.
+			P_Tact_Time_Head_Address(N_Anode_1st_Vac) = &P_Tact_Time_Anode_1st_PNP_Vac_Array(0);		// Tact Time 배열 P변수 주소값 업데이트.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Anode_1st_Vac),P_Tack_Time_Save_Time(N_Anode_1st_Vac))	// Tact Time 배열에 저장.
+			P_Old_Tact_Time_Check(N_Anode_1st_Vac) = 1;							// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Anode_1st_Vac_Sol_On == 0 )
+	{
+		P_Tact_Time_Timer(N_Anode_1st_Vac) = 0;									// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Anode_1st_Vac) = 0;								// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Anode_Align_Vac - 양극 얼라인 [흡착 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Anode_AT_Vac_Ejector_Vac_On == 1 && M_Y_Anode_AT_Vac_Ejector_Vac_Off == 0 && P_Old_Tact_Time_Check(N_Anode_Align_Vac) == 0 )		// 흡착 IO ON.
+	{
+		if ( M_X_Anode_AT_Vac_Sensor == 1 )							// 입력 센서 들어올 경우.
+		{
+			P_Tack_Time_Save_Time(N_Anode_Align_Vac) = P_Tact_Time_Timer(N_Anode_Align_Vac) / 10;	// Tact Time 저장.
+			P_Tact_Time_Head_Address(N_Anode_Align_Vac) = &P_Tact_Time_Anode_Align_PNP_Vac_Array(0);	// Tact Time 배열 P변수 주소값 업데이트.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Anode_Align_Vac),P_Tack_Time_Save_Time(N_Anode_Align_Vac))	// Tact Time 배열에 저장.
+			P_Old_Tact_Time_Check(N_Anode_Align_Vac) = 1;						// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Anode_AT_Vac_Ejector_Vac_On == 0 )
+	{
+		P_Tact_Time_Timer(N_Anode_Align_Vac) = 0;								// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Anode_Align_Vac) = 0;							// 재진입 방지.
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Anode_2nd_Vac - 양극 2차 P&P [흡착 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Anode_2nd_Vac_Sol_On == 1 && M_Y_Anode_2nd_Vac_Sol_Off == 0 && P_Old_Tact_Time_Check(N_Anode_2nd_Vac) == 0 )		// 흡착 IO ON.
+	{
+		if ( M_X_Anode_2nd_PNP_Vac_Sensor == 1 )								// 입력 센서 들어올 경우.
+		{
+			P_Tack_Time_Save_Time(N_Anode_2nd_Vac) = P_Tact_Time_Timer(N_Anode_2nd_Vac) / 10;	// Tact Time 저장.
+			P_Tact_Time_Head_Address(N_Anode_2nd_Vac) = &P_Tact_Time_Anode_2nd_PNP_Vac_Array(0);		// Tact Time 배열 P변수 주소값 업데이트.
+			call Tack_Time.Transmission_Tact_Time(P_Tact_Time_Head_Address(N_Anode_2nd_Vac),P_Tack_Time_Save_Time(N_Anode_2nd_Vac))	// Tact Time 배열에 저장.
+			P_Old_Tact_Time_Check(N_Anode_2nd_Vac) = 1;							// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Anode_2nd_Vac_Sol_On == 0 )
+	{
+		P_Tact_Time_Timer(N_Anode_2nd_Vac) = 0;									// Tact Time 타이머 초기화.
+		P_Old_Tact_Time_Check(N_Anode_2nd_Vac) = 0;								// 재진입 방지.
+	}
+}
+	//--------------------------------------------------------------------------------//
+	// N_Final_Roller_Clamp - 파이널 롤러 [출력 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_FR_Sepa_Clamp_FWD_Sol == 1 && M_Y_FR_Sepa_Clamp_BWD_Sol == 0 )			// 클램프 ON.
+	{
+		P_Tact_Time_Final_Roller_Unclamp = 0;
+		if ( P_Old_Tact_Time_Check(N_Final_Roller_Clamp) == 0 && (M_X_FR_Sepa_Clamp_Front_Sensor & M_X_FR_Sepa_Clamp_Rear_Sensor) )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_Final_Roller_Clamp_Time = P_Tact_Time_Final_Roller_Clamp / 10;		// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_Final_Roller_Clamp) = 1;									// 재진입 방지.
+		}
+	}
+	else if ( M_Y_FR_Sepa_Clamp_FWD_Sol == 0 && M_Y_FR_Sepa_Clamp_BWD_Sol == 1 )		// 클램프 OFF.
+	{
+		P_Tact_Time_Final_Roller_Clamp = 0;
+		if ( P_Old_Tact_Time_Check(N_Final_Roller_Clamp) == 1 && (M_X_FR_Sepa_UnClamp_Front_Sensor & M_X_FR_Sepa_UnClamp_Rear_Sensor) )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_Final_Roller_Unclamp_Time = P_Tact_Time_Final_Roller_Unclamp / 10;	// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_Final_Roller_Clamp) = 0;									// 재진입 방지.
+		}
+	}
+	//--------------------------------------------------------------------------------//
+	// N_Stack_Table - 스텍 테이블 [출력 ON → 입력 센서 ON]	// 임시 변수. 통신문서 업데이트 후 IO 변경 필요
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_ST_Center_Ejector_VAC_On == 1 && M_Y_ST_Center_Ejector_VAC_Off == 0 )				// 하강.
+	{
+		P_Tact_Time_Stack_Table_Up = 0;
+		if ( P_Old_Tact_Time_Check(N_Stack_Table) == 0 && M_X_ST_Center_Vac_Sensor == 1 )		// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_Stack_Table_Down_Time = P_Tact_Time_Sepa_Cutting_Down / 10;		// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_Stack_Table) = 1;											// 재진입 방지.
+		}
+	}
+	else if ( M_Y_ST_Center_Ejector_VAC_On == 0 && M_Y_ST_Center_Ejector_VAC_Off == 1 )			// 상승.
+	{
+		P_Tact_Time_Sepa_Cutting_Down = 0;
+		if ( P_Old_Tact_Time_Check(N_Stack_Table) == 1 && M_X_ST_Center_Vac_Sensor == 0 )		// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_Stack_Table_Up_Time = P_Tact_Time_Stack_Table_Up / 10;				// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_Stack_Table) = 0;											// 재진입 방지.
+		}
+	}
+	////--------------------------------------------------------------------------------//
+	//// N_Sepa_Cutting - 세파 커팅 [출력 ON → 입력 센서 ON]
+	//// M_Y_To_M_X
+	////--------------------------------------------------------------------------------//
+	//if ( M_Y_FR_Sepa_Clamp_FWD_Sol == 1 && M_Y_FR_Sepa_Clamp_BWD_Sol == 0 )			// 하강.
+	//{
+	//	P_Tact_Time_Sepa_Cutting_Up = 0;
+	//	if ( P_Old_Tact_Time_Check(N_Sepa_Cutting) == 0 && (M_X_FR_Sepa_Clamp_Front_Sensor & M_X_FR_Sepa_Clamp_Rear_Sensor) )	// 입력 센서 들어올 경우.
+	//	{
+	//		P_Tact_Time_Save_Sepa_Cutting_Down_Time = P_Tact_Time_Sepa_Cutting_Down / 10;		// Tact TIme 저장.
+	//		P_Old_Tact_Time_Check(N_Sepa_Cutting) = 1;											// 재진입 방지.
+	//	}
+	//}
+	//else if ( M_Y_FR_Sepa_Clamp_FWD_Sol == 0 && M_Y_FR_Sepa_Clamp_BWD_Sol == 1 )	// 상승.
+	//{
+	//	P_Tact_Time_Sepa_Cutting_Down = 0;
+	//	if ( P_Old_Tact_Time_Check(N_Sepa_Cutting) == 1 && (M_X_FR_Sepa_UnClamp_Front_Sensor & M_X_FR_Sepa_UnClamp_Rear_Sensor) )	// 입력 센서 들어올 경우.
+	//	{
+	//		P_Tact_Time_Save_Sepa_Cutting_Up_Time = P_Tact_Time_Sepa_Cutting_Up / 10;			// Tact TIme 저장.
+	//		P_Old_Tact_Time_Check(N_Sepa_Cutting) = 0;											// 재진입 방지.
+	//	}
+	//}
+	//else	// 오류 상황
+	//{
+	//	P_Old_Tact_Time_Check(N_Sepa_Cutting)= 0;			// 초기화.
+	//	P_Tact_Time_Sepa_Cutting_Down = 0;					// 초기화.
+	//	P_Tact_Time_Sepa_Cutting_Up = 0;					// 초기화.
+	//}
+	//--------------------------------------------------------------------------------//
+	// N_ARC_Upper_Plate - 상부 플레이트 [출력 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Sepa_ARC_Upper_Dn_Sol == 1 && M_Y_Sepa_ARC_Upper_Up_Sol == 0 )		// 하강.
+	{
+		P_Tact_Time_ARC_Upper_Plate_Down = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Upper_Plate) == 0 && M_X_Sepa_Upper_ARC_Dn_Sensor == 1 && M_X_Sepa_Upper_ARC_Up_Sensor == 0 )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Upper_Plate_Up_Time = P_Tact_Time_ARC_Upper_Plate_Up / 10;		// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Upper_Plate) = 1;										// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Sepa_ARC_Upper_Dn_Sol == 0 && M_Y_Sepa_ARC_Upper_Up_Sol == 1 )	// 상승.
+	{
+		P_Tact_Time_ARC_Upper_Plate_Up = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Upper_Plate) == 1 && M_X_Sepa_Upper_ARC_Dn_Sensor == 0 && M_X_Sepa_Upper_ARC_Up_Sensor == 1 )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Upper_Plate_Down_Time = P_Tact_Time_ARC_Upper_Plate_Down / 10;	// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Upper_Plate) = 0;										// 재진입 방지.
+		}
+	}
+	//--------------------------------------------------------------------------------//
+	// N_ARC_Upper_Tilting - 상부 틸팅 [출력 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Sepa_ARC_Upper_Tilting_Sol == 1 && M_Y_Sepa_ARC_Upper_UnTilting_Sol == 0 )			// 틸팅 ON. (90도)
+	{
+		P_Tact_Time_ARC_Upper_Tilting_Off = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Upper_Tilting) == 0 && (M_X_Sepa_Upper_ARC_Tilting_Sensor_Front & M_X_Sepa_Upper_ARC_Tilting_Sensor_Rear) )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Upper_Tilting_On_Time = P_Tact_Time_ARC_Upper_Tilting_On / 10;		// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Upper_Tilting) = 1;											// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Sepa_ARC_Upper_Tilting_Sol == 0 && M_Y_Sepa_ARC_Upper_UnTilting_Sol == 1 )	// 틸팅 OFF. (0도)
+	{
+		P_Tact_Time_ARC_Upper_Tilting_On = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Upper_Tilting) == 1 && (M_X_Sepa_Upper_ARC_UnTilting_Sensor_Front & M_X_Sepa_Upper_ARC_UnTilting_Sensor_Rear) )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Upper_Tilting_Off_Time = P_Tact_Time_ARC_Upper_Tilting_Off / 10;	// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Upper_Tilting) = 0;											// 재진입 방지.
+		}
+	}
+	//--------------------------------------------------------------------------------//
+	// N_ARC_Upper_Cutter - 상부 커터 [출력 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Sepa_ARC_Upper_Cutting_FWD_Sol == 1 )				// 커터 전진.
+	{
+		P_Tact_Time_ARC_Upper_Cutter_Bwd = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Upper_Cutter) == 0 && M_X_Sepa_Upper_ARC_Cutting_FWD_Sensor == 1 && M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor == 0 )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Upper_Cutter_Fwd_Time = P_Tact_Time_ARC_Upper_Cutter_Fwd / 10;	// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Upper_Cutter) = 1;										// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Sepa_ARC_Upper_Cutting_FWD_Sol == 0 )			// 커터 후진.
+	{
+		P_Tact_Time_ARC_Upper_Cutter_Fwd = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Upper_Cutter) == 1 && M_X_Sepa_Upper_ARC_Cutting_FWD_Sensor == 0 && M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor == 1 )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Upper_Cutter_Bwd_Time = P_Tact_Time_ARC_Upper_Cutter_Bwd / 10;	// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Upper_Cutter) = 0;										// 재진입 방지.
+		}
+	}
+	//--------------------------------------------------------------------------------//
+	// N_ARC_Upper_Clamp - 상부 클램프 [출력 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Sepa_ARC_Upper_Stopper_Sol == 1 )			// 클램프 ON.
+	{
+		P_Tact_Time_ARC_Upper_Clamp_Off = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Upper_Clamp) == 0 && (M_X_Sepa_Upper_ARC_Stopper_Front_Sensor & M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor) )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Upper_Clamp_On_Time = P_Tact_Time_ARC_Upper_Clamp_On / 10;		// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Upper_Clamp) = 1;										// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Sepa_ARC_Upper_Stopper_Sol == 0 )		// 클램프 OFF.
+	{
+		P_Tact_Time_ARC_Upper_Clamp_On = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Upper_Clamp) == 1 && (M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor & M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor) )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Upper_Clamp_Off_Time = P_Tact_Time_ARC_Upper_Clamp_Off / 10;	// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Upper_Clamp) = 0;										// 재진입 방지.
+		}
+	}
+	//--------------------------------------------------------------------------------//
+	// N_ARC_Lower_Plate - 하부 플레이트 [출력 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Sepa_ARC_Lower_Up_Sol == 1 && M_Y_Sepa_ARC_Lower_Dn_Sol == 0 )			// 상승.
+	{
+		P_Tact_Time_ARC_Lower_Plate_Down = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Lower_Plate) == 0 && M_X_Sepa_Lower_ARC_Up_Sensor == 1 && M_X_Sepa_Lower_ARC_Dn_Sensor == 0 )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Lower_Plate_Up_Time = P_Tact_Time_ARC_Lower_Plate_Up / 10;		// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Lower_Plate) = 1;										// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Sepa_ARC_Lower_Up_Sol == 0 && M_Y_Sepa_ARC_Lower_Dn_Sol == 1 )	// 하강.
+	{
+		P_Tact_Time_ARC_Lower_Plate_Up = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Lower_Plate) == 1 && M_X_Sepa_Lower_ARC_Up_Sensor == 0 && M_X_Sepa_Lower_ARC_Dn_Sensor == 1 )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Lower_Plate_Down_Time = P_Tact_Time_ARC_Lower_Plate_Down / 10;	// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Lower_Plate) = 0;										// 재진입 방지.
+		}
+	}
+	//--------------------------------------------------------------------------------//
+	// N_ARC_Lower_Tilting - 하부 틸팅 [출력 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Sepa_ARC_Lower_Tilting_Sol == 1 && M_Y_Sepa_ARC_Lower_UnTilting_Sol == 0 )		// 틸팅 ON. (90도)
+	{
+		P_Tact_Time_ARC_Lower_Tilting_Off = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Lower_Tilting) == 0 && (M_X_Sepa_Lower_ARC_Tilting_Sensor_Front & M_X_Sepa_Lower_ARC_Tilting_Sensor_Rear) )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Lower_Tilting_On_Time = P_Tact_Time_ARC_Lower_Tilting_On / 10;		// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Lower_Tilting) = 1;											// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Sepa_ARC_Lower_Tilting_Sol == 0 && M_Y_Sepa_ARC_Lower_UnTilting_Sol == 1 )	// 틸팅 OFF. (0도)
+	{
+		P_Tact_Time_ARC_Lower_Tilting_On = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Lower_Tilting) == 1 && (M_X_Sepa_Lower_ARC_UnTilting_Sensor_Front & M_X_Sepa_Lower_ARC_UnTilting_Sensor_Rear) )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Lower_Tilting_Off_Time = P_Tact_Time_ARC_Lower_Tilting_Off / 10;	// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Lower_Tilting) = 0;											// 재진입 방지.
+		}
+	}
+	//--------------------------------------------------------------------------------//
+	// N_ARC_Lower_Cutter - 하부 커터 [출력 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Sepa_ARC_Lower_Cutting_FWD_Sol == 1 )				// 전진.
+	{
+		P_Tact_Time_ARC_Lower_Cutter_Bwd = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Lower_Cutter) == 0 && M_X_Sepa_Lower_ARC_Cutting_FWD_Sensor == 1 && M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor == 0 )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Lower_Cutter_Fwd_Time = P_Tact_Time_ARC_Lower_Cutter_Fwd / 10;	// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Lower_Cutter) = 1;										// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Sepa_ARC_Lower_Cutting_FWD_Sol == 0 )			// 후진.
+	{
+		P_Tact_Time_ARC_Lower_Cutter_Fwd = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Lower_Cutter) == 1 && M_X_Sepa_Lower_ARC_Cutting_FWD_Sensor == 0 && M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor == 1 )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Lower_Cutter_Bwd_Time = P_Tact_Time_ARC_Lower_Cutter_Bwd / 10;	// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Lower_Cutter) = 0;										// 재진입 방지.
+		}
+	}
+	//--------------------------------------------------------------------------------//
+	// N_ARC_Lower_Clamp - 하부 클램프 [출력 ON → 입력 센서 ON]
+	// M_Y_To_M_X
+	//--------------------------------------------------------------------------------//
+	if ( M_Y_Sepa_ARC_Lower_Stopper_Sol == 1 )			// 클램프 ON.
+	{
+		P_Tact_Time_ARC_Lower_Clamp_Off = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Lower_Clamp) == 0 && (M_X_Sepa_Lower_ARC_Stopper_Front_Sensor & M_X_Sepa_Lower_ARC_Stopper_Rear_Sensor) )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Lower_Clamp_On_Time = P_Tact_Time_ARC_Lower_Clamp_On / 10;		// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Lower_Clamp) = 1;										// 재진입 방지.
+		}
+	}
+	else if ( M_Y_Sepa_ARC_Lower_Stopper_Sol == 0 )	// 클램프 OFF.
+	{
+		P_Tact_Time_ARC_Lower_Clamp_On = 0;
+		if ( P_Old_Tact_Time_Check(N_ARC_Lower_Clamp) == 1 && (M_X_Sepa_Lower_ARC_UnStopper_Front_Sensor & M_X_Sepa_Lower_ARC_UnStopper_Rear_Sensor) )	// 입력 센서 들어올 경우.
+		{
+			P_Tact_Time_Save_ARC_Lower_Clamp_Off_Time = P_Tact_Time_ARC_Lower_Clamp_Off / 10;	// Tact TIme 저장.
+			P_Old_Tact_Time_Check(N_ARC_Lower_Clamp) = 0;										// 재진입 방지.
+		}
+	}
+
+
+close

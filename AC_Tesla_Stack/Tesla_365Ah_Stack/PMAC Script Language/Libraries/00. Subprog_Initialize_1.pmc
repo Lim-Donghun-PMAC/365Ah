@@ -1,0 +1,715 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.08.12 김성중 선임 
+// 1,2차 PNP 클랭크 Z축 수식 프로그램(Recipe to Count, Count to Recipe) 추가 - 김성중 선임
+// PNP Z축 레시피 관리 프로그램 추가 [ 참조 : 2025.08.27 PNP Z축 레시피 관리 프로그램 추가 ]
+//1차 PNP 대기 상승 위치, 2차 PNP 대기 상승 위치 수식 프로그램 추가 [ 참조 : 2025.09.01 1,2차 PNP 대기 상승 위치 크랭크 Z축 추가 ] - 25.09.02 김성중 선임 
+
+global	P_Error_Index_Number = 0;
+
+open subprog Initialize(void)
+	sub:Sub_Is_Ready_To_Run(&Ret_Num)
+		Ret_Num = 0;
+		local L_Index = 11;
+		local rtn_flag = 0;
+		//M_Y_Vision_Stack_EPC_Align_Vision_Trigger = 0;
+		//P_Suspend_Discharge_Cell_Out_Restart = 0;
+		if(P_Jelly_Roll_Prod_Count == 0)
+		{
+		
+		}
+		// 시작했는데, Recipe가 0이면, 스탑
+		if( P_Jelly_Roll_Recipe_Count == 0 )
+		{
+			rtn_flag = N_FALSE;
+		}
+		
+		if(P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence)
+		{
+			P_Stack_Table_NG_Count = 0;
+		}
+		
+		P_Slave1_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave2_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave3_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave4_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave5_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave6_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave7_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave8_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave9_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave10_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave11_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave12_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave13_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave14_Motion_Command = 0;	// 슬레이브축 커멘드
+		
+		L_Index = 0;
+		while( L_Index < 16 )
+		{
+			P_SubMaster_Sub_Old_Command(L_Index)=0;		// 서브 프로그램 내 변수 초기화.
+			P_SubMaster_Sub_Old_Mode(L_Index)=0;			// 서브 프로그램 내 변수 초기화.
+			P_SubMaster_Sub_Old_Trigger(L_Index)=0;		// 서브 프로그램 내 변수 초기화.
+			P_SubMaster_Sub_Mode_Command(L_Index)=0;		// 서브 프로그램 내 변수 초기화.
+			L_Index++;
+		}
+
+		
+		L_Index = 11;
+		while(L_Index < 34)
+		{
+			if(Coord[L_Index].pDesTimeBase != Coord[1].DesTimeBase.a)
+				break;
+			L_Index++;
+		}
+		
+		if(L_Index != 34 || P_Master_Motion_Program_Flag != 1)
+		{
+			P_Error_Index_Number = L_Index;
+			rtn_flag = N_FALSE;
+		}
+		L_Index = 1;
+		
+		while( L_Index < 14 )
+		{
+			if(P_Sub_Master_Motion_Program_Flag(L_Index) != 1 || P_Slave_Motion_Program_Flag(L_Index) != 1)
+				break;
+			L_Index++;
+		}
+		
+		if(L_Index != 14)
+		{
+			P_Error_Index_Number = L_Index;
+			rtn_flag = N_FALSE;
+		}
+		
+		L_Index = 33;
+		while(L_Index < 59)
+		{
+			if( Motor[L_Index].ServoCtrl == 1 )
+			{
+				if(Motor[L_Index].AmpEna != 1)
+					break;
+			}
+			L_Index++;
+		}
+		if(L_Index != 59)
+		{
+			rtn_flag = N_FALSE;
+		}
+		if( rtn_flag == N_FALSE )
+			Ret_Num = N_Error_Step;
+		else
+			Ret_Num = F_TRUE;
+	return;
+	
+	sub:Sub_Stack_Data(&Stack_data_rtn)
+		//[ 참조 : 25.07.04 모드 체크 함수 추가 ]
+		Stack_data_rtn = 0;
+		// 1.4.2.1. 유저 세파 소비 모드 레시피 카운트 관리
+		if( P_Com_User_Sepa_Consume_Mode_Flag == 1 && P_Com_ARC_Sepa_Consume_Mode_Flag == 1)
+		{
+			P_Sepa_Anode_Recipe_Count = int(P_ARC_End_Sepa_Recipe_Count/2)+1;	// 홀수,짝수를 입력하던 양극 보다 한개 더 적층(홀수)
+			P_Sepa_Cathode_Recipe_Count = int(P_ARC_End_Sepa_Recipe_Count/2);	// 홀수,짝수를 입력하던 양극 보다 한개 더 적층(짝수)
+		}
+		else if( P_Com_User_Sepa_Consume_Mode_Flag == 1  )					   
+		{
+			P_Sepa_Anode_Recipe_Count = int(P_Sepa_Mode_Recipe_Count/2)+1;		// 홀수,짝수를 입력하던 양극 보다 한개 더 적층(홀수)
+			P_Sepa_Cathode_Recipe_Count = int(P_Sepa_Mode_Recipe_Count/2);		// 홀수,짝수를 입력하던 양극 보다 한개 더 적층(짝수)
+		}
+		else if( P_Com_ARC_Sepa_Consume_Mode_Flag == 1 )
+		{
+			P_Sepa_Anode_Recipe_Count = int(P_ARC_End_Sepa_Recipe_Count/2)+1;	// 홀수,짝수를 입력하던 양극 보다 한개 더 적층(홀수)
+			P_Sepa_Cathode_Recipe_Count = int(P_ARC_End_Sepa_Recipe_Count/2);	// 홀수,짝수를 입력하던 양극 보다 한개 더 적층(짝수)
+		}
+		// 1.4.2.2. EPC 세파 소비 모드 레시피 카운트 관리
+		Else IF ( P_Com_EPC_Sepa_Consume_Mode_Flag == 1 )
+		{
+			P_Sepa_Anode_Recipe_Count = int(P_Sepa_Mode_EPC_Recipe_Count/2)+1;	 // 홀수,짝수를 입력하던 양극 보다 한개 더 적층(홀수)
+			P_Sepa_Cathode_Recipe_Count = int(P_Sepa_Mode_EPC_Recipe_Count/2);	 // 홀수,짝수를 입력하던 양극 보다 한개 더 적층(짝수)
+		}
+		
+		// 생산 모드 시
+		IF ( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence )
+		{
+			// 1.4.1.1.1. 극판 두께 관리	
+			P_Anode_Thickness = (P_Anode_Thickness_PLC * N_Use_Value_Cell_Thickenss )
+			P_Cathode_Thickness = (P_Cathode_Thickness_PLC * N_Use_Value_Cell_Thickenss )
+			P_Sepa_Thickness = (P_Sepa_Thickness_PLC * N_Use_Value_Cell_Thickenss )
+		}
+		
+		// 세파 모드 시 - 음극 및 양극 극판 두께 무효값으로 
+		Else IF ( P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence )
+		{
+			// 1.4.1.2.1. 극판 두께 관리	
+			P_Anode_Thickness = (P_Anode_Thickness_PLC * N_Not_Use_Value_Cell_Thickenss)
+			P_Cathode_Thickness = (P_Cathode_Thickness_PLC * N_Not_Use_Value_Cell_Thickenss)
+			P_Sepa_Thickness = (P_Sepa_Thickness_PLC * N_Use_Value_Cell_Thickenss) * P_Sepa_Consume_Mode_Thickness_rate
+		
+		}
+		// 드라이 런 모드 시 - 음극 및 양극 극판 두께 무효값으로
+		Else IF ( P_Buffer_Mode_Status_Sequence == N_Dryrun_Status_Sequence )
+		{
+			//드라이런 시 세파두께 0 
+			// 1.4.1.2.1. 극판 두께 관리
+			P_Anode_Thickness = (P_Anode_Thickness_PLC * N_Not_Use_Value_Cell_Thickenss)
+			P_Cathode_Thickness = (P_Cathode_Thickness_PLC * N_Not_Use_Value_Cell_Thickenss)
+			P_Sepa_Thickness = (P_Sepa_Thickness_PLC * N_Not_Use_Value_Cell_Thickenss) * P_Sepa_Consume_Mode_Thickness_rate
+		
+		}
+		//if ( P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence)				// Sepa Mode 이라면,
+		//{
+		//	P_Discharge_Cathode_Recipe_Count = P_Sepa_Cathode_Recipe_Count;						// Sepa mode 레시피 값 내부변수로 저장
+		//	P_Discharge_Anode_Recipe_Count = P_Sepa_Anode_Recipe_Count;							// Sepa mode 레시피 값 내부변수로 저장
+		//}
+		//else																					// Normal Run 이라면,
+		//{
+		//	P_Discharge_Cathode_Recipe_Count = P_Cathode_Recipe_Count;							// Normal mode 레시피 값 내부변수로 저장
+		//	P_Discharge_Anode_Recipe_Count = P_Anode_Recipe_Count;								// Normal mode 레시피 값 내부변수로 저장
+		//}
+		if ( P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence )					// Sepa Mode 이라면,
+		{
+			P_Suspend_Discharge_Cathode_Counter = P_Sepa_Cathode_Recipe_Count;					// Sepa mode 레시피 값 내부변수로 저장
+			P_Suspend_Discharge_Anode_Counter = P_Sepa_Anode_Recipe_Count;						// Sepa mode 레시피 값 내부변수로 저장
+		
+		}
+		else 																					// Normal Run 이라면,
+		{
+			P_Suspend_Discharge_Cathode_Counter = P_Sepa_Cathode_Recipe_Count;					// Normal mode 레시피 값 내부변수로 저장
+			P_Suspend_Discharge_Anode_Counter = P_Sepa_Anode_Recipe_Count;						// Normal mode 레시피 값 내부변수로 저장
+		
+		}
+		
+		Stack_data_rtn = F_TRUE;
+	return;
+
+	
+	//PNP Z축 레시피 모니터링 함수			//[ 참조 : 2025.08.27 PNP Z축 레시피 관리 프로그램 추가 ]
+	sub:PNP_Z_Axis_Recipe_Monitoring(&rtn)
+	local L_PNP_Z_Recipe_Check;
+
+	L_PNP_Z_Recipe_Check = 0;
+    // 음극 1차 PNP
+	if (P_Old_Recipe_Anode_1st_PNP_Z_Ready_Up != P_Recipe_M18_POS(1)/10000)			//음극 1차 PNP Z축 대기 상승 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+    if (P_Old_Recipe_Anode_1st_PNP_Z_Belt_Up != P_Recipe_M18_POS(3)/10000)			//음극 1차 PNP Z축 벨트 상승 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+    if (P_Old_Recipe_Anode_1st_PNP_Z_Belt_Down != P_Recipe_M18_POS(4)/10000)		//음극 1차 PNP Z축 벨트 하강 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+    if (P_Old_Recipe_Anode_1st_PNP_Z_Align_Up != P_Recipe_M18_POS(5)/10000)			//음극 1차 PNP Z축 얼라인 상승 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+    if (P_Old_Recipe_Anode_1st_PNP_Z_Align_Down != P_Recipe_M18_POS(6)/10000)		//음극 1차 PNP Z축 얼라인 하강 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+    // 양극 1차 PNP
+	if (P_Old_Recipe_Cathode_1st_PNP_Z_Ready_Up != P_Recipe_M17_POS(1)/10000)		//양극 1차 PNP Z축 대기 상승 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+    if (P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Up != P_Recipe_M17_POS(3)/10000)		//양극 1차 PNP Z축 벨트 상승 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+    if (P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Down != P_Recipe_M17_POS(4)/10000) 		//양극 1차 PNP Z축 벨트 하강 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+    if (P_Old_Recipe_Cathode_1st_PNP_Z_Align_Up != P_Recipe_M17_POS(5)/10000)		//양극 1차 PNP Z축 얼라인 상승 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+    if (P_Old_Recipe_Cathode_1st_PNP_Z_Align_Down != P_Recipe_M17_POS(6)/10000) 	//양극 1차 PNP Z축 얼라인 하강 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+
+    // 음극 2차 PNP
+    if (P_Old_Recipe_Anode_2nd_PNP_Z_Align_Up != P_Recipe_M22_POS(1)/10000) 		//음극 2차 PNP Z축 얼라인 상승 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+    if (P_Old_Recipe_Anode_2nd_PNP_Z_Align_Down != P_Recipe_M22_POS(2)/10000) 		//음극 2차 PNP Z축 얼라인 하강 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+    if (P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Up != P_Recipe_M22_POS(3)/10000) 		//음극 2차 PNP Z축 스텍 상승 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+    if (P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Down != P_Recipe_M22_POS(4)/10000) 		//음극 2차 PNP Z축 스텍 하강 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+	if (P_Old_Recipe_Anode_2nd_PNP_Z_Ready_Up != P_Recipe_M22_POS(5)/10000) 		//음극 2차 PNP Z축 대기 상승 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+
+    // 양극 2차 PNP																 
+    if (P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Up != P_Recipe_M21_POS(1)/10000) 		//양극 2차 PNP Z축 얼라인 상승 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}																			
+    if (P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Down != P_Recipe_M21_POS(2)/10000) 	//양극 2차 PNP Z축 얼라인 하강 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}																			
+    if (P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Up != P_Recipe_M21_POS(3)/10000) 		//양극 2차 PNP Z축 스텍 상승 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}																			
+    if (P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Down != P_Recipe_M21_POS(4)/10000) 	//양극 2차 PNP Z축 스텍 하강 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+	if (P_Old_Recipe_Cathode_2nd_PNP_Z_Ready_Up != P_Recipe_M21_POS(5)/10000) 		//양극 2차 PNP Z축 대기 상승 레시피 값 비교
+	{
+		L_PNP_Z_Recipe_Check = 1;
+	}
+
+    if ( L_PNP_Z_Recipe_Check == 1)		//레시피 값이 변동이 있을 경우 
+	{
+        rtn = 0;    // 하나라도 다르면 False
+	}
+    else if( L_PNP_Z_Recipe_Check == 0) //레시피 값이 변화가 없을 경우 
+	{
+        rtn = 1;    // 전부 같으면 True
+	}
+    return;
+
+
+
+	//레시피값 → 모터 카운트 값 전환 함수 [참조 : 1,2차 PNP 클랭크 Z축 수식 프로그램 추가 ]
+	sub: PNP_Z_Axis_Recipe_to_Cnt(&rtn) 
+	//=====================================================================================================================
+	//1. 음극 1차 PNP Z축 
+	//=====================================================================================================================
+	//------------------------------------------------------------------
+	//1.1 음극 1차 PNP Z축 대기 상승 위치   
+	//------------------------------------------------------------------
+	P_Anode_1st_PNP_Z_Crank_real_Move_Pos = P_Anode_1st_PNP_Z_Crank_Zero_Real - P_Recipe_M18_POS(1)/10000	
+	//↑음극 1차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 음극 1차 PNP Z축 대기 상승 위치 레시피 값  
+	P_Anode_1st_PNP_Z_Acos_numerator = ( P_Anode_1st_PNP_Z_Crank_real_Move_Pos*P_Anode_1st_PNP_Z_Crank_real_Move_Pos + P_Anode_1st_PNP_Z_Crank_radius*P_Anode_1st_PNP_Z_Crank_radius - P_Anode_1st_PNP_Z_Crank_Rod*P_Anode_1st_PNP_Z_Crank_Rod)
+	//↑음극 1차 PNP Z축 분자값 = (음극 1차 PNP Crank Z축 실제 이동해야하는 위치^2 + 음극 1차 PNP Crank Z축 반지름^2 - 음극 1차 PNP Crank Z축 빗변 길이^2)
+	P_Anode_1st_PNP_Z_Acos_denominator = 2*P_Anode_1st_PNP_Z_Crank_real_Move_Pos*P_Anode_1st_PNP_Z_Crank_radius
+	//↑음극 1차 PNP Z축 분모값 = 2*음극 1차 PNP Crank Z축 실제 이동해야하는 위치*음극 1차 PNP Crank Z축 반지름
+	P_Anode_1st_PNP_Z_Crank_radian = acos(P_Anode_1st_PNP_Z_Acos_numerator/P_Anode_1st_PNP_Z_Acos_denominator)
+	//↑음극 1차 PNP Z축 Crank 라디안 = Acos(음극 1차 PNP Z축 분자값/음극 1차 PNP Z축 분모값)
+	P_Anode_1st_PNP_Z_Crank_Angle = P_Anode_1st_PNP_Z_Crank_radian*180/PI
+	//↑음극 1차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Anode_1st_Z_Ready_Up = (P_Anode_1st_PNP_Z_Crank_Angle - P_Anode_1st_PNP_Z_Crank_Home_Angle)*1000;
+	//↑음극 1차 PNP Z축 대기 상승 위치 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000  
+
+	//------------------------------------------------------------------
+	//1.2 음극 1차 PNP Z축 벨트 상승 위치
+	//------------------------------------------------------------------  
+	P_Anode_1st_PNP_Z_Crank_real_Move_Pos = P_Anode_1st_PNP_Z_Crank_Zero_Real - P_Recipe_M18_POS(3)/10000		
+	//↑음극 1차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 음극 1차 PNP Z축 벨트 상승 레시피 값 
+	P_Anode_1st_PNP_Z_Acos_numerator = ( P_Anode_1st_PNP_Z_Crank_real_Move_Pos*P_Anode_1st_PNP_Z_Crank_real_Move_Pos + P_Anode_1st_PNP_Z_Crank_radius*P_Anode_1st_PNP_Z_Crank_radius - P_Anode_1st_PNP_Z_Crank_Rod*P_Anode_1st_PNP_Z_Crank_Rod)
+	//↑음극 1차 PNP Z축 분자값 = (음극 1차 PNP Crank Z축 실제 이동해야하는 위치^2 + 음극 1차 PNP Crank Z축 반지름^2 - 음극 1차 PNP Crank Z축 빗변 길이^2)
+	P_Anode_1st_PNP_Z_Acos_denominator = 2*P_Anode_1st_PNP_Z_Crank_real_Move_Pos*P_Anode_1st_PNP_Z_Crank_radius
+	//↑음극 1차 PNP Z축 분모값 = 2*음극 1차 PNP Crank Z축 실제 이동해야하는 위치*음극 1차 PNP Crank Z축 반지름
+	P_Anode_1st_PNP_Z_Crank_radian = acos(P_Anode_1st_PNP_Z_Acos_numerator/P_Anode_1st_PNP_Z_Acos_denominator)
+	//↑음극 1차 PNP Z축 Crank 라디안 = Acos(음극 1차 PNP Z축 분자값/음극 1차 PNP Z축 분모값)
+	P_Anode_1st_PNP_Z_Crank_Angle = P_Anode_1st_PNP_Z_Crank_radian*180/PI
+	//↑음극 1차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Anode_1st_Z_Belt_Up = (P_Anode_1st_PNP_Z_Crank_Angle - P_Anode_1st_PNP_Z_Crank_Home_Angle)*1000;
+	//↑음극 1차 PNP Z축 벨트 상승 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000    
+
+	//------------------------------------------------------------------
+	//1.3 음극 1차 PNP Z축 벨트 하강 위치  
+	//------------------------------------------------------------------
+	P_Anode_1st_PNP_Z_Crank_real_Move_Pos = P_Anode_1st_PNP_Z_Crank_Zero_Real - P_Recipe_M18_POS(4)/10000
+	//↑음극 1차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 음극 1차 PNP Z축 벨트 하강 레시피 값 
+	P_Anode_1st_PNP_Z_Acos_numerator = ( P_Anode_1st_PNP_Z_Crank_real_Move_Pos*P_Anode_1st_PNP_Z_Crank_real_Move_Pos + P_Anode_1st_PNP_Z_Crank_radius*P_Anode_1st_PNP_Z_Crank_radius - P_Anode_1st_PNP_Z_Crank_Rod*P_Anode_1st_PNP_Z_Crank_Rod)
+	//↑음극 1차 PNP Z축 분자값 = (음극 1차 PNP Crank Z축 실제 이동해야하는 위치^2 + 음극 1차 PNP Crank Z축 반지름^2 - 음극 1차 PNP Crank Z축 빗변 길이^2)
+	P_Anode_1st_PNP_Z_Acos_denominator = 2*P_Anode_1st_PNP_Z_Crank_real_Move_Pos*P_Anode_1st_PNP_Z_Crank_radius
+	//↑음극 1차 PNP Z축 분모값 = 2*음극 1차 PNP Crank Z축 실제 이동해야하는 위치*음극 1차 PNP Crank Z축 반지름
+	P_Anode_1st_PNP_Z_Crank_radian = acos(P_Anode_1st_PNP_Z_Acos_numerator/P_Anode_1st_PNP_Z_Acos_denominator)
+	//↑음극 1차 PNP Z축 Crank 라디안 = Acos(음극 1차 PNP Z축 분자값/음극 1차 PNP Z축 분모값)
+	P_Anode_1st_PNP_Z_Crank_Angle = P_Anode_1st_PNP_Z_Crank_radian*180/PI
+	//↑음극 1차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Anode_1st_Z_Belt_Down = (P_Anode_1st_PNP_Z_Crank_Angle - P_Anode_1st_PNP_Z_Crank_Home_Angle)*1000;
+	//↑음극 1차 PNP Z축 벨트 하강 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000    
+
+	//------------------------------------------------------------------
+	//1.4 음극 1차 PNP Z축 얼라인 상승 위치  
+	//------------------------------------------------------------------
+	P_Anode_1st_PNP_Z_Crank_real_Move_Pos = P_Anode_1st_PNP_Z_Crank_Zero_Real - P_Recipe_M18_POS(5)/10000	
+	//↑음극 1차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 음극 1차 PNP Z축 얼라인 상승 레시피 값  
+	P_Anode_1st_PNP_Z_Acos_numerator = ( P_Anode_1st_PNP_Z_Crank_real_Move_Pos*P_Anode_1st_PNP_Z_Crank_real_Move_Pos + P_Anode_1st_PNP_Z_Crank_radius*P_Anode_1st_PNP_Z_Crank_radius - P_Anode_1st_PNP_Z_Crank_Rod*P_Anode_1st_PNP_Z_Crank_Rod)
+	//↑음극 1차 PNP Z축 분자값 = (음극 1차 PNP Crank Z축 실제 이동해야하는 위치^2 + 음극 1차 PNP Crank Z축 반지름^2 - 음극 1차 PNP Crank Z축 빗변 길이^2)
+	P_Anode_1st_PNP_Z_Acos_denominator = 2*P_Anode_1st_PNP_Z_Crank_real_Move_Pos*P_Anode_1st_PNP_Z_Crank_radius
+	//↑음극 1차 PNP Z축 분모값 = 2*음극 1차 PNP Crank Z축 실제 이동해야하는 위치*음극 1차 PNP Crank Z축 반지름
+	P_Anode_1st_PNP_Z_Crank_radian = acos(P_Anode_1st_PNP_Z_Acos_numerator/P_Anode_1st_PNP_Z_Acos_denominator)
+	//↑음극 1차 PNP Z축 Crank 라디안 = Acos(음극 1차 PNP Z축 분자값/음극 1차 PNP Z축 분모값)
+	P_Anode_1st_PNP_Z_Crank_Angle = P_Anode_1st_PNP_Z_Crank_radian*180/PI
+	//↑음극 1차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Anode_1st_Z_Align_Up = (P_Anode_1st_PNP_Z_Crank_Angle - P_Anode_1st_PNP_Z_Crank_Home_Angle)*1000;
+	//↑음극 1차 PNP Z축 얼라인 상승 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000    
+
+	//------------------------------------------------------------------
+	//1.5 음극 1차 PNP Z축 얼라인 하강 위치  
+	//------------------------------------------------------------------
+	P_Anode_1st_PNP_Z_Crank_real_Move_Pos = P_Anode_1st_PNP_Z_Crank_Zero_Real - P_Recipe_M18_POS(6)/10000	
+	//↑음극 1차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 음극 1차 PNP Z축 얼라인 하강 레시피 값  
+	P_Anode_1st_PNP_Z_Acos_numerator = ( P_Anode_1st_PNP_Z_Crank_real_Move_Pos*P_Anode_1st_PNP_Z_Crank_real_Move_Pos + P_Anode_1st_PNP_Z_Crank_radius*P_Anode_1st_PNP_Z_Crank_radius - P_Anode_1st_PNP_Z_Crank_Rod*P_Anode_1st_PNP_Z_Crank_Rod)
+	//↑음극 1차 PNP Z축 분자값 = (음극 1차 PNP Crank Z축 실제 이동해야하는 위치^2 + 음극 1차 PNP Crank Z축 반지름^2 - 음극 1차 PNP Crank Z축 빗변 길이^2)
+	P_Anode_1st_PNP_Z_Acos_denominator = 2*P_Anode_1st_PNP_Z_Crank_real_Move_Pos*P_Anode_1st_PNP_Z_Crank_radius
+	//↑음극 1차 PNP Z축 분모값 = 2*음극 1차 PNP Crank Z축 실제 이동해야하는 위치*음극 1차 PNP Crank Z축 반지름
+	P_Anode_1st_PNP_Z_Crank_radian = acos(P_Anode_1st_PNP_Z_Acos_numerator/P_Anode_1st_PNP_Z_Acos_denominator)
+	//↑음극 1차 PNP Z축 Crank 라디안 = Acos(음극 1차 PNP Z축 분자값/음극 1차 PNP Z축 분모값)
+	P_Anode_1st_PNP_Z_Crank_Angle = P_Anode_1st_PNP_Z_Crank_radian*180/PI
+	//↑음극 1차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Anode_1st_Z_Align_Down = (P_Anode_1st_PNP_Z_Crank_Angle - P_Anode_1st_PNP_Z_Crank_Home_Angle)*1000;
+	//↑음극 1차 PNP Z축 얼라인 하강 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000  
+
+
+
+	//=====================================================================================================================
+	//2. 양극 1차 PNP Z축 
+	//=====================================================================================================================
+	
+	//------------------------------------------------------------------
+	//2.1. 양극 1차 PNP Z축 대기 상승 위치  
+	//------------------------------------------------------------------
+	P_Cathode_1st_PNP_Z_Crank_real_Move_Pos = P_Cathode_1st_PNP_Z_Crank_Zero_Real -  P_Recipe_M17_POS(1)/10000
+	//↑양극 1차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 양극 1차 PNP Z축 대기 상승 레시피 값  
+	P_Cathode_1st_PNP_Z_Acos_numerator = ( P_Cathode_1st_PNP_Z_Crank_real_Move_Pos*P_Cathode_1st_PNP_Z_Crank_real_Move_Pos + P_Cathode_1st_PNP_Z_Crank_radius*P_Cathode_1st_PNP_Z_Crank_radius - P_Cathode_1st_PNP_Z_Crank_Rod*P_Cathode_1st_PNP_Z_Crank_Rod)
+	//↑양극 1차 PNP Z축 분자값 = (양극 1차 PNP Crank Z축 실제 이동해야하는 위치^2 + 양극 1차 PNP Crank Z축 반지름^2 - 음극 1차 PNP Crank Z축 빗변 길이^2)
+	P_Cathode_1st_PNP_Z_Acos_denominator = 2*P_Cathode_1st_PNP_Z_Crank_real_Move_Pos*P_Cathode_1st_PNP_Z_Crank_radius
+	//↑양극 1차 PNP Z축 분모값 = 2*양극 1차 PNP Crank Z축 실제 이동해야하는 위치*양극 1차 PNP Crank Z축 반지름
+	P_Cathode_1st_PNP_Z_Crank_radian = acos(P_Cathode_1st_PNP_Z_Acos_numerator/P_Cathode_1st_PNP_Z_Acos_denominator)
+	//↑양극 1차 PNP Z축 Crank 라디안 = Acos(양극 1차 PNP Z축 분자값/양극 1차 PNP Z축 분모값)
+	P_Cathode_1st_PNP_Z_Crank_Angle = P_Cathode_1st_PNP_Z_Crank_radian*180/PI
+	//↑양극 1차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Cathode_1st_Z_Ready_Up = (P_Cathode_1st_PNP_Z_Crank_Angle - P_Cathode_1st_PNP_Z_Crank_Home_Angle)*1000;
+	//↑양극 1차 PNP Z축 대기 상승 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000  
+
+	//------------------------------------------------------------------
+	//2.2. 양극 1차 PNP Z축 벨트 상승 위치  
+	//------------------------------------------------------------------
+	P_Cathode_1st_PNP_Z_Crank_real_Move_Pos = P_Cathode_1st_PNP_Z_Crank_Zero_Real - P_Recipe_M17_POS(3)/10000	
+	//↑양극 1차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 양극 1차 PNP Z축 벨트 상승 레시피 값  
+	P_Cathode_1st_PNP_Z_Acos_numerator = ( P_Cathode_1st_PNP_Z_Crank_real_Move_Pos*P_Cathode_1st_PNP_Z_Crank_real_Move_Pos + P_Cathode_1st_PNP_Z_Crank_radius*P_Cathode_1st_PNP_Z_Crank_radius - P_Cathode_1st_PNP_Z_Crank_Rod*P_Cathode_1st_PNP_Z_Crank_Rod)
+	//↑양극 1차 PNP Z축 분자값 = (양극 1차 PNP Crank Z축 실제 이동해야하는 위치^2 + 양극 1차 PNP Crank Z축 반지름^2 - 음극 1차 PNP Crank Z축 빗변 길이^2)
+	P_Cathode_1st_PNP_Z_Acos_denominator = 2*P_Cathode_1st_PNP_Z_Crank_real_Move_Pos*P_Cathode_1st_PNP_Z_Crank_radius
+	//↑양극 1차 PNP Z축 분모값 = 2*양극 1차 PNP Crank Z축 실제 이동해야하는 위치*양극 1차 PNP Crank Z축 반지름
+	P_Cathode_1st_PNP_Z_Crank_radian = acos(P_Cathode_1st_PNP_Z_Acos_numerator/P_Cathode_1st_PNP_Z_Acos_denominator)
+	//↑양극 1차 PNP Z축 Crank 라디안 = Acos(양극 1차 PNP Z축 분자값/양극 1차 PNP Z축 분모값)
+	P_Cathode_1st_PNP_Z_Crank_Angle = P_Cathode_1st_PNP_Z_Crank_radian*180/PI
+	//↑양극 1차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Cathode_1st_Z_Belt_Up = (P_Cathode_1st_PNP_Z_Crank_Angle - P_Cathode_1st_PNP_Z_Crank_Home_Angle)*1000;
+	//↑양극 1차 PNP Z축 벨트 상승 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000  
+	
+	//------------------------------------------------------------------
+	//2.3. 양극 1차 PNP Z축 벨트 하강 위치 
+	//------------------------------------------------------------------ 
+	P_Cathode_1st_PNP_Z_Crank_real_Move_Pos = P_Cathode_1st_PNP_Z_Crank_Zero_Real - P_Recipe_M17_POS(4)/10000	
+	//↑양극 1차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 양극 1차 PNP Z축 벨트 하강 레시피 값  
+	P_Cathode_1st_PNP_Z_Acos_numerator = ( P_Cathode_1st_PNP_Z_Crank_real_Move_Pos*P_Cathode_1st_PNP_Z_Crank_real_Move_Pos + P_Cathode_1st_PNP_Z_Crank_radius*P_Cathode_1st_PNP_Z_Crank_radius - P_Cathode_1st_PNP_Z_Crank_Rod*P_Cathode_1st_PNP_Z_Crank_Rod)
+	//↑양극 1차 PNP Z축 분자값 = (양극 1차 PNP Crank Z축 실제 이동해야하는 위치^2 + 양극 1차 PNP Crank Z축 반지름^2 - 음극 1차 PNP Crank Z축 빗변 길이^2)
+	P_Cathode_1st_PNP_Z_Acos_denominator = 2*P_Cathode_1st_PNP_Z_Crank_real_Move_Pos*P_Cathode_1st_PNP_Z_Crank_radius
+	//↑양극 1차 PNP Z축 분모값 = 2*양극 1차 PNP Crank Z축 실제 이동해야하는 위치*양극 1차 PNP Crank Z축 반지름
+	P_Cathode_1st_PNP_Z_Crank_radian = acos(P_Cathode_1st_PNP_Z_Acos_numerator/P_Cathode_1st_PNP_Z_Acos_denominator)
+	//↑양극 1차 PNP Z축 Crank 라디안 = Acos(양극 1차 PNP Z축 분자값/양극 1차 PNP Z축 분모값)
+	P_Cathode_1st_PNP_Z_Crank_Angle = P_Cathode_1st_PNP_Z_Crank_radian*180/PI
+	//↑양극 1차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Cathode_1st_Z_Belt_Down = (P_Cathode_1st_PNP_Z_Crank_Angle - P_Cathode_1st_PNP_Z_Crank_Home_Angle)*1000;
+	//↑양극 1차 PNP Z축 벨트 하강 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000  
+
+	//------------------------------------------------------------------
+	//2.4. 양극 1차 PNP Z축 얼라인 상승 위치  
+	//------------------------------------------------------------------
+	P_Cathode_1st_PNP_Z_Crank_real_Move_Pos = P_Cathode_1st_PNP_Z_Crank_Zero_Real - P_Recipe_M17_POS(5)/10000	
+	//↑양극 1차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 양극 1차 PNP Z축 얼라인 상승 레시피 값  
+	P_Cathode_1st_PNP_Z_Acos_numerator = ( P_Cathode_1st_PNP_Z_Crank_real_Move_Pos*P_Cathode_1st_PNP_Z_Crank_real_Move_Pos + P_Cathode_1st_PNP_Z_Crank_radius*P_Cathode_1st_PNP_Z_Crank_radius - P_Cathode_1st_PNP_Z_Crank_Rod*P_Cathode_1st_PNP_Z_Crank_Rod)
+	//↑양극 1차 PNP Z축 분자값 = (양극 1차 PNP Crank Z축 실제 이동해야하는 위치^2 + 양극 1차 PNP Crank Z축 반지름^2 - 음극 1차 PNP Crank Z축 빗변 길이^2)
+	P_Cathode_1st_PNP_Z_Acos_denominator = 2*P_Cathode_1st_PNP_Z_Crank_real_Move_Pos*P_Cathode_1st_PNP_Z_Crank_radius
+	//↑양극 1차 PNP Z축 분모값 = 2*양극 1차 PNP Crank Z축 실제 이동해야하는 위치*양극 1차 PNP Crank Z축 반지름
+	P_Cathode_1st_PNP_Z_Crank_radian = acos(P_Cathode_1st_PNP_Z_Acos_numerator/P_Cathode_1st_PNP_Z_Acos_denominator)
+	//↑양극 1차 PNP Z축 Crank 라디안 = Acos(양극 1차 PNP Z축 분자값/양극 1차 PNP Z축 분모값)
+	P_Cathode_1st_PNP_Z_Crank_Angle = P_Cathode_1st_PNP_Z_Crank_radian*180/PI
+	//↑양극 1차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Cathode_1st_Z_Align_Up = (P_Cathode_1st_PNP_Z_Crank_Angle - P_Cathode_1st_PNP_Z_Crank_Home_Angle)*1000;
+	//↑양극 1차 PNP Z축 얼라인 상승 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000  
+
+	//------------------------------------------------------------------
+	//2.5. 양극 1차 PNP Z축 얼라인 하강 위치  
+	//------------------------------------------------------------------
+	P_Cathode_1st_PNP_Z_Crank_real_Move_Pos = P_Cathode_1st_PNP_Z_Crank_Zero_Real - P_Recipe_M17_POS(6)/10000
+	//↑양극 1차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 양극 1차 PNP Z축 얼라인 하강 레시피 값  
+	P_Cathode_1st_PNP_Z_Acos_numerator = ( P_Cathode_1st_PNP_Z_Crank_real_Move_Pos*P_Cathode_1st_PNP_Z_Crank_real_Move_Pos + P_Cathode_1st_PNP_Z_Crank_radius*P_Cathode_1st_PNP_Z_Crank_radius - P_Cathode_1st_PNP_Z_Crank_Rod*P_Cathode_1st_PNP_Z_Crank_Rod)
+	//↑양극 1차 PNP Z축 분자값 = (양극 1차 PNP Crank Z축 실제 이동해야하는 위치^2 + 양극 1차 PNP Crank Z축 반지름^2 - 음극 1차 PNP Crank Z축 빗변 길이^2)
+	P_Cathode_1st_PNP_Z_Acos_denominator = 2*P_Cathode_1st_PNP_Z_Crank_real_Move_Pos*P_Cathode_1st_PNP_Z_Crank_radius
+	//↑양극 1차 PNP Z축 분모값 = 2*양극 1차 PNP Crank Z축 실제 이동해야하는 위치*양극 1차 PNP Crank Z축 반지름
+	P_Cathode_1st_PNP_Z_Crank_radian = acos(P_Cathode_1st_PNP_Z_Acos_numerator/P_Cathode_1st_PNP_Z_Acos_denominator)
+	//↑양극 1차 PNP Z축 Crank 라디안 = Acos(양극 1차 PNP Z축 분자값/양극 1차 PNP Z축 분모값)
+	P_Cathode_1st_PNP_Z_Crank_Angle = P_Cathode_1st_PNP_Z_Crank_radian*180/PI
+	//↑양극 1차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Cathode_1st_Z_Align_Down = (P_Cathode_1st_PNP_Z_Crank_Angle - P_Cathode_1st_PNP_Z_Crank_Home_Angle)*1000;
+	//↑양극 1차 PNP Z축 얼라인 하강 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000  
+
+
+
+	//=====================================================================================================================
+	//3. 음극 2차 PNP Z축 
+	//=====================================================================================================================
+	//------------------------------------------------------------------
+	//3.1. 음극 2차 PNP Z축 얼라인 상승 위치  
+	//------------------------------------------------------------------
+	P_Anode_2nd_PNP_Z_Crank_real_Move_Pos = P_Anode_2nd_PNP_Z_Crank_Zero_Real - P_Recipe_M22_POS(1)/10000	
+	//↑음극 2차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 음극 2차 PNP Z축 얼라인 상승 레시피 값  
+	P_Anode_2nd_PNP_Z_Acos_numerator = ( P_Anode_2nd_PNP_Z_Crank_real_Move_Pos*P_Anode_2nd_PNP_Z_Crank_real_Move_Pos + P_Anode_2nd_PNP_Z_Crank_radius*P_Anode_2nd_PNP_Z_Crank_radius - P_Anode_2nd_PNP_Z_Crank_Rod*P_Anode_2nd_PNP_Z_Crank_Rod)
+	//↑음극 2차 PNP Z축 분자값 = (음극 2차 PNP Crank Z축 실제 이동해야하는 위치^2 + 음극 2차 PNP Crank Z축 반지름^2 - 음극 2차 PNP Crank Z축 빗변 길이^2)
+	P_Anode_2nd_PNP_Z_Acos_denominator = 2*P_Anode_2nd_PNP_Z_Crank_real_Move_Pos*P_Anode_2nd_PNP_Z_Crank_radius
+	//↑음극 2차 PNP Z축 분모값 = 2*음극 2차 PNP Crank Z축 실제 이동해야하는 위치*음극 2차 PNP Crank Z축 반지름
+	P_Anode_2nd_PNP_Z_Crank_radian = acos(P_Anode_2nd_PNP_Z_Acos_numerator/P_Anode_2nd_PNP_Z_Acos_denominator)
+	//↑음극 2차 PNP Z축 Crank 라디안 = Acos(음극 2차 PNP Z축 분자값/음극 2차 PNP Z축 분모값)
+	P_Anode_2nd_PNP_Z_Crank_Angle = P_Anode_2nd_PNP_Z_Crank_radian*180/PI
+	//↑음극 2차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Anode_2st_Z_Align_Up = (P_Anode_2nd_PNP_Z_Crank_Angle - P_Anode_2nd_PNP_Z_Crank_Home_Angle)*1000;
+	//↑음극 2차 PNP Z축 얼라인 상승 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000  
+
+	//------------------------------------------------------------------
+	//3.2. 음극 2차 PNP Z축 얼라인 하강 위치  
+	//------------------------------------------------------------------
+	P_Anode_2nd_PNP_Z_Crank_real_Move_Pos = P_Anode_2nd_PNP_Z_Crank_Zero_Real - P_Recipe_M22_POS(2)/10000	
+	//↑음극 2차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 음극 2차 PNP Z축 얼라인 하강 레시피 값  
+	P_Anode_2nd_PNP_Z_Acos_numerator = ( P_Anode_2nd_PNP_Z_Crank_real_Move_Pos*P_Anode_2nd_PNP_Z_Crank_real_Move_Pos + P_Anode_2nd_PNP_Z_Crank_radius*P_Anode_2nd_PNP_Z_Crank_radius - P_Anode_2nd_PNP_Z_Crank_Rod*P_Anode_2nd_PNP_Z_Crank_Rod)
+	//↑음극 2차 PNP Z축 분자값 = (음극 2차 PNP Crank Z축 실제 이동해야하는 위치^2 + 음극 2차 PNP Crank Z축 반지름^2 - 음극 2차 PNP Crank Z축 빗변 길이^2)
+	P_Anode_2nd_PNP_Z_Acos_denominator = 2*P_Anode_2nd_PNP_Z_Crank_real_Move_Pos*P_Anode_2nd_PNP_Z_Crank_radius
+	//↑음극 2차 PNP Z축 분모값 = 2*음극 2차 PNP Crank Z축 실제 이동해야하는 위치*음극 2차 PNP Crank Z축 반지름
+	P_Anode_2nd_PNP_Z_Crank_radian = acos(P_Anode_2nd_PNP_Z_Acos_numerator/P_Anode_2nd_PNP_Z_Acos_denominator)
+	//↑음극 2차 PNP Z축 Crank 라디안 = Acos(음극 2차 PNP Z축 분자값/음극 2차 PNP Z축 분모값)
+	P_Anode_2nd_PNP_Z_Crank_Angle = P_Anode_2nd_PNP_Z_Crank_radian*180/PI
+	//↑음극 2차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Anode_2st_Z_Align_Down = (P_Anode_2nd_PNP_Z_Crank_Angle - P_Anode_2nd_PNP_Z_Crank_Home_Angle)*1000;
+	//↑음극 2차 PNP Z축 얼라인 하강 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000  
+
+	//------------------------------------------------------------------
+	//3.3. 음극 2차 PNP Z축 Stack 상승 위치  
+	//------------------------------------------------------------------
+	P_Anode_2nd_PNP_Z_Crank_real_Move_Pos = P_Anode_2nd_PNP_Z_Crank_Zero_Real - P_Recipe_M22_POS(3)/10000	
+	//↑음극 2차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 음극 2차 PNP Z축 스텍 상승 레시피 값  
+	P_Anode_2nd_PNP_Z_Acos_numerator = ( P_Anode_2nd_PNP_Z_Crank_real_Move_Pos*P_Anode_2nd_PNP_Z_Crank_real_Move_Pos + P_Anode_2nd_PNP_Z_Crank_radius*P_Anode_2nd_PNP_Z_Crank_radius - P_Anode_2nd_PNP_Z_Crank_Rod*P_Anode_2nd_PNP_Z_Crank_Rod)
+	//↑음극 2차 PNP Z축 분자값 = (음극 2차 PNP Crank Z축 실제 이동해야하는 위치^2 + 음극 2차 PNP Crank Z축 반지름^2 - 음극 2차 PNP Crank Z축 빗변 길이^2)
+	P_Anode_2nd_PNP_Z_Acos_denominator = 2*P_Anode_2nd_PNP_Z_Crank_real_Move_Pos*P_Anode_2nd_PNP_Z_Crank_radius
+	//↑음극 2차 PNP Z축 분모값 = 2*음극 2차 PNP Crank Z축 실제 이동해야하는 위치*음극 2차 PNP Crank Z축 반지름
+	P_Anode_2nd_PNP_Z_Crank_radian = acos(P_Anode_2nd_PNP_Z_Acos_numerator/P_Anode_2nd_PNP_Z_Acos_denominator)
+	//↑음극 2차 PNP Z축 Crank 라디안 = Acos(음극 2차 PNP Z축 분자값/음극 2차 PNP Z축 분모값)
+	P_Anode_2nd_PNP_Z_Crank_Angle = P_Anode_2nd_PNP_Z_Crank_radian*180/PI
+	//↑음극 2차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Anode_2st_Z_Stack_Up = (P_Anode_2nd_PNP_Z_Crank_Angle - P_Anode_2nd_PNP_Z_Crank_Home_Angle)*1000;
+	//↑음극 2차 PNP Z축 스텍 상승 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000  
+
+	//------------------------------------------------------------------
+	//3.4. 음극 2차 PNP Z축 Stack 하강 위치  
+	//------------------------------------------------------------------
+	P_Anode_2nd_PNP_Z_Crank_real_Move_Pos = P_Anode_2nd_PNP_Z_Crank_Zero_Real - P_Recipe_M22_POS(4)/10000	
+	//↑음극 2차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 음극 2차 PNP Z축 스텍 하강 레시피 값  
+	P_Anode_2nd_PNP_Z_Acos_numerator = ( P_Anode_2nd_PNP_Z_Crank_real_Move_Pos*P_Anode_2nd_PNP_Z_Crank_real_Move_Pos + P_Anode_2nd_PNP_Z_Crank_radius*P_Anode_2nd_PNP_Z_Crank_radius - P_Anode_2nd_PNP_Z_Crank_Rod*P_Anode_2nd_PNP_Z_Crank_Rod)
+	//↑음극 2차 PNP Z축 분자값 = (음극 2차 PNP Crank Z축 실제 이동해야하는 위치^2 + 음극 2차 PNP Crank Z축 반지름^2 - 음극 2차 PNP Crank Z축 빗변 길이^2)
+	P_Anode_2nd_PNP_Z_Acos_denominator = 2*P_Anode_2nd_PNP_Z_Crank_real_Move_Pos*P_Anode_2nd_PNP_Z_Crank_radius
+	//↑음극 2차 PNP Z축 분모값 = 2*음극 2차 PNP Crank Z축 실제 이동해야하는 위치*음극 2차 PNP Crank Z축 반지름
+	P_Anode_2nd_PNP_Z_Crank_radian = acos(P_Anode_2nd_PNP_Z_Acos_numerator/P_Anode_2nd_PNP_Z_Acos_denominator)
+	//↑음극 2차 PNP Z축 Crank 라디안 = Acos(음극 2차 PNP Z축 분자값/음극 2차 PNP Z축 분모값)
+	P_Anode_2nd_PNP_Z_Crank_Angle = P_Anode_2nd_PNP_Z_Crank_radian*180/PI
+	//↑음극 2차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Anode_2st_Z_Stack_Down = (P_Anode_2nd_PNP_Z_Crank_Angle - P_Anode_2nd_PNP_Z_Crank_Home_Angle)*1000;
+	//↑음극 2차 PNP Z축 스텍 하강 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000  
+	//------------------------------------------------------------------
+	//3.5. 음극 2차 PNP Z축 대기 상승 위치 (Stack 진입 또는 후진)   
+	//------------------------------------------------------------------
+	P_Anode_2nd_PNP_Z_Crank_real_Move_Pos = P_Anode_2nd_PNP_Z_Crank_Zero_Real - P_Recipe_M22_POS(5)/10000	
+	//↑음극 2차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 음극 2차 PNP Z축 대기 상승 레시피 값  
+	P_Anode_2nd_PNP_Z_Acos_numerator = ( P_Anode_2nd_PNP_Z_Crank_real_Move_Pos*P_Anode_2nd_PNP_Z_Crank_real_Move_Pos + P_Anode_2nd_PNP_Z_Crank_radius*P_Anode_2nd_PNP_Z_Crank_radius - P_Anode_2nd_PNP_Z_Crank_Rod*P_Anode_2nd_PNP_Z_Crank_Rod)
+	//↑음극 2차 PNP Z축 분자값 = (음극 2차 PNP Crank Z축 실제 이동해야하는 위치^2 + 음극 2차 PNP Crank Z축 반지름^2 - 음극 2차 PNP Crank Z축 빗변 길이^2)
+	P_Anode_2nd_PNP_Z_Acos_denominator = 2*P_Anode_2nd_PNP_Z_Crank_real_Move_Pos*P_Anode_2nd_PNP_Z_Crank_radius
+	//↑음극 2차 PNP Z축 분모값 = 2*음극 2차 PNP Crank Z축 실제 이동해야하는 위치*음극 2차 PNP Crank Z축 반지름
+	P_Anode_2nd_PNP_Z_Crank_radian = acos(P_Anode_2nd_PNP_Z_Acos_numerator/P_Anode_2nd_PNP_Z_Acos_denominator)
+	//↑음극 2차 PNP Z축 Crank 라디안 = Acos(음극 2차 PNP Z축 분자값/음극 2차 PNP Z축 분모값)
+	P_Anode_2nd_PNP_Z_Crank_Angle = P_Anode_2nd_PNP_Z_Crank_radian*180/PI
+	//↑음극 2차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Anode_2st_Z_Ready_Up = (P_Anode_2nd_PNP_Z_Crank_Angle - P_Anode_2nd_PNP_Z_Crank_Home_Angle)*1000;
+	//↑음극 2차 PNP Z축 대기 상승 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000 
+
+	//=====================================================================================================================
+	//4. 양극 2차 PNP Z축 
+	//=====================================================================================================================
+	//------------------------------------------------------------------
+	//4.1. 양극 2차 PNP Z축 얼라인 상승 위치  
+	//------------------------------------------------------------------
+	P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos = P_Cathode_2nd_PNP_Z_Crank_Zero_Real - P_Recipe_M21_POS(1)/10000
+	//↑양극 2차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 양극 2차 PNP Z축 얼라인 상승 레시피 값  
+	P_Cathode_2nd_PNP_Z_Acos_numerator = ( P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos*P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos + P_Cathode_2nd_PNP_Z_Crank_radius*P_Cathode_2nd_PNP_Z_Crank_radius - P_Cathode_2nd_PNP_Z_Crank_Rod*P_Cathode_2nd_PNP_Z_Crank_Rod)
+	//↑양극 2차 PNP Z축 분자값 = (양극 2차 PNP Crank Z축 실제 이동해야하는 위치^2 + 양극 2차 PNP Crank Z축 반지름^2 - 양극 2차 PNP Crank Z축 빗변 길이^2)
+	P_Cathode_2nd_PNP_Z_Acos_denominator = 2*P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos*P_Cathode_2nd_PNP_Z_Crank_radius
+	//↑양극 2차 PNP Z축 분모값 = 2*양극 2차 PNP Crank Z축 실제 이동해야하는 위치*양극 2차 PNP Crank Z축 반지름
+	P_Cathode_2nd_PNP_Z_Crank_radian = acos(P_Cathode_2nd_PNP_Z_Acos_numerator/P_Cathode_2nd_PNP_Z_Acos_denominator)
+	//↑양극 2차 PNP Z축 Crank 라디안 = Acos(양극 2차 PNP Z축 분자값/양극 2차 PNP Z축 분모값)
+	P_Cathode_2nd_PNP_Z_Crank_Angle = P_Cathode_2nd_PNP_Z_Crank_radian*180/PI
+	//↑양극 2차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Cathode_2st_Z_Align_Up = (P_Cathode_2nd_PNP_Z_Crank_Angle - P_Cathode_2nd_PNP_Z_Crank_Home_Angle)*1000;
+	//↑양극 2차 PNP Z축 얼라인 상승 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000  
+
+	//------------------------------------------------------------------
+	//4.2. 양극 2차 PNP Z축 얼라인 하강 위치  
+	//------------------------------------------------------------------
+	P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos = P_Cathode_2nd_PNP_Z_Crank_Zero_Real - P_Recipe_M21_POS(2)/10000
+	//↑양극 2차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 양극 2차 PNP Z축 얼라인 하강 레시피 값  
+	P_Cathode_2nd_PNP_Z_Acos_numerator = ( P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos*P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos + P_Cathode_2nd_PNP_Z_Crank_radius*P_Cathode_2nd_PNP_Z_Crank_radius - P_Cathode_2nd_PNP_Z_Crank_Rod*P_Cathode_2nd_PNP_Z_Crank_Rod)
+	//↑양극 2차 PNP Z축 분자값 = (양극 2차 PNP Crank Z축 실제 이동해야하는 위치^2 + 양극 2차 PNP Crank Z축 반지름^2 - 양극 2차 PNP Crank Z축 빗변 길이^2)
+	P_Cathode_2nd_PNP_Z_Acos_denominator = 2*P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos*P_Cathode_2nd_PNP_Z_Crank_radius
+	//↑양극 2차 PNP Z축 분모값 = 2*양극 2차 PNP Crank Z축 실제 이동해야하는 위치*양극 2차 PNP Crank Z축 반지름
+	P_Cathode_2nd_PNP_Z_Crank_radian = acos(P_Cathode_2nd_PNP_Z_Acos_numerator/P_Cathode_2nd_PNP_Z_Acos_denominator)
+	//↑양극 2차 PNP Z축 Crank 라디안 = Acos(양극 2차 PNP Z축 분자값/양극 2차 PNP Z축 분모값)
+	P_Cathode_2nd_PNP_Z_Crank_Angle = P_Cathode_2nd_PNP_Z_Crank_radian*180/PI
+	//↑양극 2차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Cathode_2st_Z_Align_Down = (P_Cathode_2nd_PNP_Z_Crank_Angle - P_Cathode_2nd_PNP_Z_Crank_Home_Angle)*1000;
+	//↑양극 2차 PNP Z축 얼라인 하강 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000 
+
+	//------------------------------------------------------------------
+	//4.3. 양극 2차 PNP Z축 Stack 상승 위치  
+	//------------------------------------------------------------------
+	P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos = P_Cathode_2nd_PNP_Z_Crank_Zero_Real - P_Recipe_M21_POS(3)/10000
+	//↑양극 2차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 양극 2차 PNP Z축 스텍 상승 레시피 값  
+	P_Cathode_2nd_PNP_Z_Acos_numerator = ( P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos*P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos + P_Cathode_2nd_PNP_Z_Crank_radius*P_Cathode_2nd_PNP_Z_Crank_radius - P_Cathode_2nd_PNP_Z_Crank_Rod*P_Cathode_2nd_PNP_Z_Crank_Rod)
+	//↑양극 2차 PNP Z축 분자값 = (양극 2차 PNP Crank Z축 실제 이동해야하는 위치^2 + 양극 2차 PNP Crank Z축 반지름^2 - 양극 2차 PNP Crank Z축 빗변 길이^2)
+	P_Cathode_2nd_PNP_Z_Acos_denominator = 2*P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos*P_Cathode_2nd_PNP_Z_Crank_radius
+	//↑양극 2차 PNP Z축 분모값 = 2*양극 2차 PNP Crank Z축 실제 이동해야하는 위치*양극 2차 PNP Crank Z축 반지름
+	P_Cathode_2nd_PNP_Z_Crank_radian = acos(P_Cathode_2nd_PNP_Z_Acos_numerator/P_Cathode_2nd_PNP_Z_Acos_denominator)
+	//↑양극 2차 PNP Z축 Crank 라디안 = Acos(양극 2차 PNP Z축 분자값/양극 2차 PNP Z축 분모값)
+	P_Cathode_2nd_PNP_Z_Crank_Angle = P_Cathode_2nd_PNP_Z_Crank_radian*180/PI
+	//↑양극 2차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Cathode_2st_Z_Stack_Up = (P_Cathode_2nd_PNP_Z_Crank_Angle - P_Cathode_2nd_PNP_Z_Crank_Home_Angle)*1000;
+	//↑양극 2차 PNP Z축 스텍 상승 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000 
+
+	//------------------------------------------------------------------
+	//4.4. 양극 2차 PNP Z축 Stack 하강 위치  
+	//------------------------------------------------------------------
+	P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos = P_Cathode_2nd_PNP_Z_Crank_Zero_Real - P_Recipe_M21_POS(4)/10000	
+	//↑양극 2차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 양극 2차 PNP Z축 스텍 하강 레시피 값  
+	P_Cathode_2nd_PNP_Z_Acos_numerator = ( P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos*P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos + P_Cathode_2nd_PNP_Z_Crank_radius*P_Cathode_2nd_PNP_Z_Crank_radius - P_Cathode_2nd_PNP_Z_Crank_Rod*P_Cathode_2nd_PNP_Z_Crank_Rod)
+	//↑양극 2차 PNP Z축 분자값 = (양극 2차 PNP Crank Z축 실제 이동해야하는 위치^2 + 양극 2차 PNP Crank Z축 반지름^2 - 양극 2차 PNP Crank Z축 빗변 길이^2)
+	P_Cathode_2nd_PNP_Z_Acos_denominator = 2*P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos*P_Cathode_2nd_PNP_Z_Crank_radius
+	//↑양극 2차 PNP Z축 분모값 = 2*양극 2차 PNP Crank Z축 실제 이동해야하는 위치*양극 2차 PNP Crank Z축 반지름
+	P_Cathode_2nd_PNP_Z_Crank_radian = acos(P_Cathode_2nd_PNP_Z_Acos_numerator/P_Cathode_2nd_PNP_Z_Acos_denominator)
+	//↑양극 2차 PNP Z축 Crank 라디안 = Acos(양극 2차 PNP Z축 분자값/양극 2차 PNP Z축 분모값)
+	P_Cathode_2nd_PNP_Z_Crank_Angle = P_Cathode_2nd_PNP_Z_Crank_radian*180/PI
+	//↑양극 2차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Cathode_2st_Z_Stack_Down = (P_Cathode_2nd_PNP_Z_Crank_Angle - P_Cathode_2nd_PNP_Z_Crank_Home_Angle)*1000;
+	//↑양극 2차 PNP Z축 스텍 하강 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000 
+	//------------------------------------------------------------------
+	//4.5. 양극 2차 PNP Z축 대기 상승 위치 (Stack 진입 또는 후진)    
+	//------------------------------------------------------------------
+	P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos = P_Cathode_2nd_PNP_Z_Crank_Zero_Real - P_Recipe_M21_POS(5)/10000	
+	//↑양극 2차 PNP Crank Z축 실제 이동해야하는 위치 = 96.03 - 양극 2차 PNP Z축 대기 상승 레시피 값  
+	P_Cathode_2nd_PNP_Z_Acos_numerator = ( P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos*P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos + P_Cathode_2nd_PNP_Z_Crank_radius*P_Cathode_2nd_PNP_Z_Crank_radius - P_Cathode_2nd_PNP_Z_Crank_Rod*P_Cathode_2nd_PNP_Z_Crank_Rod)
+	//↑양극 2차 PNP Z축 분자값 = (양극 2차 PNP Crank Z축 실제 이동해야하는 위치^2 + 양극 2차 PNP Crank Z축 반지름^2 - 양극 2차 PNP Crank Z축 빗변 길이^2)
+	P_Cathode_2nd_PNP_Z_Acos_denominator = 2*P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos*P_Cathode_2nd_PNP_Z_Crank_radius
+	//↑양극 2차 PNP Z축 분모값 = 2*양극 2차 PNP Crank Z축 실제 이동해야하는 위치*양극 2차 PNP Crank Z축 반지름
+	P_Cathode_2nd_PNP_Z_Crank_radian = acos(P_Cathode_2nd_PNP_Z_Acos_numerator/P_Cathode_2nd_PNP_Z_Acos_denominator)
+	//↑양극 2차 PNP Z축 Crank 라디안 = Acos(양극 2차 PNP Z축 분자값/양극 2차 PNP Z축 분모값)
+	P_Cathode_2nd_PNP_Z_Crank_Angle = P_Cathode_2nd_PNP_Z_Crank_radian*180/PI
+	//↑양극 2차 PNP Z축 Crank 각도 = 라디안*180/π
+	P_Cathode_2st_Z_Ready_Up = (P_Cathode_2nd_PNP_Z_Crank_Angle - P_Cathode_2nd_PNP_Z_Crank_Home_Angle)*1000;
+	//↑양극 2차 PNP Z축 대기 상승 PMAC Motor Count  = (현재 각도 - Crank Z축 Home 상태 각도) *1000 	
+
+	//[ 참조 : 2025.08.27 PNP Z축 레시피 관리 프로그램 추가 ]
+	//음극 1차 PNP 
+	P_Old_Recipe_Anode_1st_PNP_Z_Ready_Up = P_Recipe_M18_POS(1)/10000		//음극 1차 PNP Z축 대기 상승 레시피 저장	
+	P_Old_Recipe_Anode_1st_PNP_Z_Belt_Up = P_Recipe_M18_POS(3)/10000		//음극 1차 PNP Z축 벨트 상승 레시피 저장	
+	P_Old_Recipe_Anode_1st_PNP_Z_Belt_Down = P_Recipe_M18_POS(4)/10000		//음극 1차 PNP Z축 벨트 하강 레시피 저장			
+	P_Old_Recipe_Anode_1st_PNP_Z_Align_Up = P_Recipe_M18_POS(5)/10000		//음극 1차 PNP Z축 얼라인 상승 레시피 저장	
+	P_Old_Recipe_Anode_1st_PNP_Z_Align_Down = P_Recipe_M18_POS(6)/10000		//음극 1차 PNP Z축 얼라인 하강 레시피 저장	
+	//양극 1차 PNP 
+	P_Old_Recipe_Cathode_1st_PNP_Z_Ready_Up = P_Recipe_M17_POS(1)/10000		//양극 1차 PNP Z축 대기 상승 레시피 저장	
+	P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Up = P_Recipe_M17_POS(3)/10000		//양극 1차 PNP Z축 벨트 상승 레시피 저장		
+	P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Down = P_Recipe_M17_POS(4)/10000	//양극 1차 PNP Z축 벨트 하강 레시피 저장				
+	P_Old_Recipe_Cathode_1st_PNP_Z_Align_Up = P_Recipe_M17_POS(5)/10000		//양극 1차 PNP Z축 얼라인 상승 레시피 저장		
+	P_Old_Recipe_Cathode_1st_PNP_Z_Align_Down = P_Recipe_M17_POS(6)/10000	//양극 1차 PNP Z축 얼라인 하강 레시피 저장	
+	//음극 2차 PNP
+	P_Old_Recipe_Anode_2nd_PNP_Z_Align_Up = P_Recipe_M22_POS(1)/10000		//음극 2차 PNP Z축 얼라인 상승 레시피 저장		
+	P_Old_Recipe_Anode_2nd_PNP_Z_Align_Down = P_Recipe_M22_POS(2)/10000		//음극 2차 PNP Z축 얼라인 하강 레시피 저장			
+	P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Up = P_Recipe_M22_POS(3)/10000		//음극 2차 PNP Z축 스텍 상승 레시피 저장		
+	P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Down = P_Recipe_M22_POS(4)/10000		//음극 2차 PNP Z축 스텍 하강 레시피 저장	
+	P_Old_Recipe_Anode_2nd_PNP_Z_Ready_Up = P_Recipe_M22_POS(5)/10000		//음극 2차 PNP Z축 대기 상승 레시피 저장
+	//양극 2차 PNP
+	P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Up = P_Recipe_M21_POS(1)/10000		//양극 2차 PNP Z축 얼라인 상승 레시피 저장			
+	P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Down = P_Recipe_M21_POS(2)/10000	//양극 2차 PNP Z축 얼라인 하강 레시피 저장				
+	P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Up = P_Recipe_M21_POS(3)/10000		//양극 2차 PNP Z축 스텍 상승 레시피 저장			
+	P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Down = P_Recipe_M21_POS(4)/10000	//양극 2차 PNP Z축 스텍 하강 레시피 저장
+	P_Old_Recipe_Cathode_2nd_PNP_Z_Ready_Up = P_Recipe_M21_POS(5)/10000		//양극 2차 PNP Z축 대기 상승 레시피 저장
+
+	rtn = F_TRUE;
+	
+	return;
+
+
+	//모터 카운트 → 레시피 값 전환 함수 [참조 : 1,2차 PNP 클랭크 Z축 수식 프로그램 추가 ]
+	sub: PNP_Z_Axis_Cnt_to_Recipe(&rtn) 
+	//=====================================================================================================================
+	//음극 1차 PNP Z축 
+	//=====================================================================================================================
+	P_Anode_1st_PNP_Z_Crank_Angle = P_Motor_Current_Pos(N_1st_PnP_AN_Z) + P_Anode_1st_PNP_Z_Crank_Home_Angle;
+	//↑음극 1차 PNP Z축 Crank 각도 = 음극 1차 PNP Z축 현재 Motor Count 값 - Crank Z축 Home 상태 각도
+	P_Anode_1st_PNP_Z_Crank_radian = P_Anode_1st_PNP_Z_Crank_Angle*PI/180
+	//↑음극 1차 PNP Z축 Crank 각도 = 각도*π/180
+	P_Anode_1st_PNP_Z_Crank_real_Move_Pos = P_Anode_1st_PNP_Z_Crank_radius * COS(P_Anode_1st_PNP_Z_Crank_radian) + SQRT(P_Anode_1st_PNP_Z_Crank_Rod*P_Anode_1st_PNP_Z_Crank_Rod - (P_Anode_1st_PNP_Z_Crank_radius*P_Anode_1st_PNP_Z_Crank_radius * SIN(P_Anode_1st_PNP_Z_Crank_radian) * SIN(P_Anode_1st_PNP_Z_Crank_radian)))
+	//↑음극 1차 PNP Z축 Crank 실제 이동 거리 = 음극 1차 PNP Crank Z축 반지름* Cos(음극 1차 PNP Z축 Crank 라디안) + √(음극 1차 PNP Z축 Crank 빗변 길이^2 - (음극 1차 PNP Z축 Crank 반지름^2 * Sin(음극 1차 PNP Z축 Crank 라디안)^2))
+	P_Anode_1st_PNP_Z_Real_Move_Pos = P_Anode_1st_PNP_Z_Crank_Zero_Real - P_Anode_1st_PNP_Z_Crank_real_Move_Pos
+	//↑음극 1차 PNP Z축 Crank 최종 이동 거리 = 96.03 - 음극 1차 PNP Z축 Crank 실제 이동 거리
+
+	//=====================================================================================================================
+	//양극 1차 PNP Z축 
+	//===================================================================================================================== 
+	P_Cathode_1st_PNP_Z_Crank_Angle = P_Motor_Current_Pos(N_1st_PnP_CA_Z) + P_Cathode_1st_PNP_Z_Crank_Home_Angle;
+	//↑양극 1차 PNP Z축 Crank 각도 = 양극 1차 PNP Z축 현재 Motor Count 값 - Crank Z축 Home 상태 각도
+	P_Cathode_1st_PNP_Z_Crank_radian = P_Cathode_1st_PNP_Z_Crank_Angle*PI/180
+	//↑양극 1차 PNP Z축 Crank 각도 = 각도*π/180
+	P_Cathode_1st_PNP_Z_Crank_real_Move_Pos = P_Cathode_1st_PNP_Z_Crank_radius * COS(P_Cathode_1st_PNP_Z_Crank_radian) + SQRT(P_Cathode_1st_PNP_Z_Crank_Rod*P_Cathode_1st_PNP_Z_Crank_Rod - (P_Cathode_1st_PNP_Z_Crank_radius*P_Cathode_1st_PNP_Z_Crank_radius * SIN(P_Cathode_1st_PNP_Z_Crank_radian) * SIN(P_Cathode_1st_PNP_Z_Crank_radian)))
+	//↑양극 1차 PNP Z축 Crank 실제 이동 거리 = 양극 1차 PNP Crank Z축 반지름* Cos(양극 1차 PNP Z축 Crank 라디안) + √(양극 1차 PNP Z축 Crank 빗변 길이^2 - (양극 1차 PNP Z축 Crank 반지름^2 * Sin(양극 1차 PNP Z축 Crank 라디안)^2))
+	P_Cathode_1st_PNP_Z_Real_Move_Pos = P_Cathode_1st_PNP_Z_Crank_Zero_Real - P_Cathode_1st_PNP_Z_Crank_real_Move_Pos
+	//↑양극 1차 PNP Z축 Crank 최종 이동 거리 = 96.03 - 양극 1차 PNP Z축 Crank 실제 이동 거리
+
+	//=====================================================================================================================
+	//음극 2차 PNP Z축 
+	//=====================================================================================================================
+	P_Anode_2nd_PNP_Z_Crank_Angle = P_Motor_Current_Pos(N_2nd_PnP_AN_Z) + P_Anode_2nd_PNP_Z_Crank_Home_Angle;
+	//↑음극 2차 PNP Z축 Crank 각도 = 음극 2차 PNP Z축 현재 Motor Count 값 - Crank Z축 Home 상태 각도
+	P_Anode_2nd_PNP_Z_Crank_radian = P_Anode_2nd_PNP_Z_Crank_Angle*PI/180
+	//↑음극 2차 PNP Z축 Crank 각도 = 각도*π/180
+	P_Anode_2nd_PNP_Z_Crank_real_Move_Pos = P_Anode_2nd_PNP_Z_Crank_radius * COS(P_Anode_2nd_PNP_Z_Crank_radian) + SQRT(P_Anode_2nd_PNP_Z_Crank_Rod*P_Anode_2nd_PNP_Z_Crank_Rod - (P_Anode_2nd_PNP_Z_Crank_radius*P_Anode_2nd_PNP_Z_Crank_radius * SIN(P_Anode_2nd_PNP_Z_Crank_radian) * SIN(P_Anode_2nd_PNP_Z_Crank_radian)))
+	//↑음극 2차 PNP Z축 Crank 실제 이동 거리 = 음극 2차 PNP Crank Z축 반지름* Cos(음극 2차 PNP Z축 Crank 라디안) + √(음극 2차 PNP Z축 Crank 빗변 길이^2 - (음극 2차 PNP Z축 Crank 반지름^2 * Sin(음극 2차 PNP Z축 Crank 라디안)^2))
+	P_Anode_2nd_PNP_Z_Real_Move_Pos = P_Anode_2nd_PNP_Z_Crank_Zero_Real - P_Anode_2nd_PNP_Z_Crank_real_Move_Pos
+	//↑음극 2차 PNP Z축 Crank 최종 이동 거리 = 96.03 - 음극 2차 PNP Z축 Crank 실제 이동 거리
+
+	//=====================================================================================================================
+	//양극 2차 PNP Z축 
+	//===================================================================================================================== 
+	P_Cathode_2nd_PNP_Z_Crank_Angle = P_Motor_Current_Pos(N_2nd_PnP_CA_Z) + P_Cathode_2nd_PNP_Z_Crank_Home_Angle;
+	//↑양극 2차 PNP Z축 Crank 각도 = 양극 2차 PNP Z축 현재 Motor Count 값 - Crank Z축 Home 상태 각도
+	P_Cathode_2nd_PNP_Z_Crank_radian = P_Cathode_2nd_PNP_Z_Crank_Angle*PI/180
+	//↑양극 2차 PNP Z축 Crank 각도 = 각도*π/180
+	P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos = P_Cathode_2nd_PNP_Z_Crank_radius * COS(P_Cathode_2nd_PNP_Z_Crank_radian) + SQRT(P_Cathode_2nd_PNP_Z_Crank_Rod*P_Cathode_2nd_PNP_Z_Crank_Rod - (P_Cathode_2nd_PNP_Z_Crank_radius*P_Cathode_2nd_PNP_Z_Crank_radius * SIN(P_Cathode_2nd_PNP_Z_Crank_radian) * SIN(P_Cathode_2nd_PNP_Z_Crank_radian)))
+	//↑양극 2차 PNP Z축 Crank 실제 이동 거리 = 양극 2차 PNP Crank Z축 반지름* Cos(양극 2차 PNP Z축 Crank 라디안) + √(양극 2차 PNP Z축 Crank 빗변 길이^2 - (양극 2차 PNP Z축 Crank 반지름^2 * Sin(양극 2차 PNP Z축 Crank 라디안)^2))
+	P_Cathode_2nd_PNP_Z_Real_Move_Pos = P_Cathode_2nd_PNP_Z_Crank_Zero_Real - P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos
+	//↑양극 2차 PNP Z축 Crank 최종 이동 거리 = 96.03 - 양극 2차 PNP Z축 Crank 실제 이동 거리
+
+	rtn = F_TRUE;
+	
+	return;
+	
+	
+close

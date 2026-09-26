@@ -1,0 +1,77 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.04 김형진 책임
+// Motion Coordination - [ 참조 : 25.06.04 모션 조정 신규 추가 ]  
+
+// cmd global
+global P_System_Cascading_ON_Cmd = 0;											// 케스케이딩 ON		커맨드변수
+global P_System_Cascading_OFF_Cmd = 0;											// 케스케이딩 OFF	커맨드변수
+global P_System_Master_Following_ON_Cmd = 0;									// 마스터 팔로잉 ON	커맨드변수
+global P_System_Master_Following_OFF_Cmd = 0;									// 마스터 팔로잉 OFF 커맨드변수
+global P_System_CamTable_ON_Cmd = 0;											// 캠테이블 ON		커맨드변수
+global P_System_CamTable_OFF_Cmd = 0;											// 캠테이블 OFF		커맨드변수
+global P_System_Spool_Home_Ready_Pos_Cmd = 0;									// Spool 첫 홈		커맨드변수
+
+// 상태
+global P_System_Cascading_ON_Status = 0;										// 케스케이딩 ON		상태변수
+global P_System_Cascading_OFF_Status = 0;										// 케스케이딩 OFF	상태변수
+global P_System_Master_Following_ON_Status = 0;									// 마스터팔로잉 ON	상태변수
+global P_System_Master_Following_OFF_Status = 0;								// 마스터팔로잉 OFF	상태변수
+global P_System_CamTable_ON_Status = 0;											// 캠테이블 ON		상태변수
+global P_System_CamTable_OFF_Status = 0;										// 캠테이블 OFF		상태변수
+global P_System_Spool_Home_Ready_Pos_Status = 0;								// SPool 첫 홈		상태변수
+
+// state machine
+global P_System_Cascading_ON_State_Machine = 0;									// 케스케이딩 ON		스텟머신변수
+global P_System_Cascading_OFF_State_Machine = 0;								// 케스케이딩 OFF	스텟머신변수
+global P_System_Master_Follwing_ON_State_Machine = 0;							// 마스터팔로잉 ON	스텟머신변수
+global P_System_Master_Follwing_OFF_State_Machine = 0;							// 마스터팔로잉 OFF	스텟머신변수
+global P_System_CamTable_ON_State_Machine = 0;									// 캠테이블 ON		스텟머신변수
+global P_System_CamTable_OFF_State_Machine = 0;									// 캠테이블 OFF		스텟머신변수
+global P_System_Spool_Home_Ready_Pos_State_Machine = 0;							// Spool 첫 홈		스텟머신변수
+
+// complete 
+global P_System_Cascading_ON_Complete_Flag = 0;									// 케스케이딩 ON		컴플리트변수
+global P_System_Cascading_OFF_Complete_Flag = 0;								// 케스케이딩 OFF	컴플리트변수
+global P_System_Master_Following_ON_Complete_Flag = 0;							// 마스터팔로잉 ON	컴플리트변수
+global P_System_Master_Following_OFF_Complete_Flag = 0;							// 마스터팔로잉 OFF	컴플리트변수
+global P_System_CamTable_ON_Complete_Flag = 0;									// 캠테이블 ON		컴플리트변수
+global P_System_CamTable_OFF_Complete_Flag = 0;									// 캠테이블 OFF		컴플리트변수
+global P_System_Spool_Home_Ready_Pos_Complete_Flag = 0;							// Spool 첫 홈		컴플리트변수
+// timer
+global P_Servo_Dancer_Cascading_Off_Timer = 0;
+global P_Servo_Dancer_Cascading_Set_Timer = 0;
+global P_Dancer_Frist_Home_Ready_Pos_Timer = 0;
+
+
+
+global P_Driving_Motor_Use_Flag = 1;
+//global P_Selected_Spool_Number = 0;
+global P_Home_Spool_Unwinding = 0;
+global P_OutValue = 3000;
+
+
+
+// AIO 필요 변수 선언
+
+global P_AO_Module_Arr(5);                           // AO 모듈 갯수
+P_AO_Module_Arr(0),5,1 = 0;
+global	P_AO_Range_Set_Value(5);						// AO 출력 Range 변수
+P_AO_Range_Set_Value(0),5,1 = 1500;
+
+global P_Regul_Max_kPa_Value = 500;
+global P_Regul_Min_kPa_Value = 0;
+global P_Regul_Max_AD = 7500;
+global P_Regul_Min_AD = 1500;
+
+global P_Current_Max_Value = 20;					// 20mA
+global P_Current_Min_Value = 4;						// 4mA
+global P_Current_Max_AD = 29700;					// 전류모드값 맥스 데이터 
+global P_Current_Min_AD = 20;						// 전류모드값 민 데이터 
+
+global P_Sepa_Cal_Inclination = 0;					// 기울기 변수
+global P_Regul_Cal_Inclination = 0;					// 기울기 변수
+
+global P_Cutter_Heat_Amp_Data_Bit = 0;				// 히팅 암페어 데이터 Get 비트
+global P_Cut_Heat_Amp_Value = 0;					// 히팅 암페어 변수

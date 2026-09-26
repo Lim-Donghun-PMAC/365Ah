@@ -1,0 +1,385 @@
+undefine all
+
+&1
+#49->X		// 마스터 축 
+
+OPEN PROG 1
+
+
+	LINEAR
+	INC	// 상대 위치로 이동 
+	TA( P_Master_TA )
+	TS( P_Master_TS )
+	TM( P_Master_TM )	
+	X( P_Master_Move )
+
+	// [ 참조 : 20220831 마스터 모션 프로그램 사이클 정지 플래그 추가 ]
+	while( P_Master_Motion_Program_Flag == 1 && P_Master_Motion_CycleStop_Flag == 0 )
+	{
+		P_Master_Motion_Trigger == 0	P_Parity_Bit == 0  
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1 	P_Parity_Bit == 1 
+		X( P_Master_Move )
+		
+		
+		
+		P_Master_Motion_Trigger +== 1 	P_Parity_Bit == 2 
+		X( P_Master_Move )
+		
+		
+
+		P_Master_Motion_Trigger +== 1 	P_Parity_Bit == 3 
+		X( P_Master_Move )
+		
+
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 4 
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 5
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 6 
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 7 
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 8 
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 9 
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 10
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 11
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 12
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 13
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 14
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 15
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 16
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 17
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 18
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 19
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 20		
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 21 		 
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 22		
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 23		
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 24		
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 25		 
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 26		
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 27		
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 28		
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 29	 
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 30		
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 31	
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 32 	
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 33	
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 34
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 35
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 36
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 37
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 38
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 39
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 40		
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 41		
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 42		
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 43		
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 44 		
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 45 
+		X( P_Master_Move )	
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 46		
+		X( P_Master_Move )								  
+		
+	
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 47		
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 48		
+		X( P_Master_Move )
+		
+			
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 49 		
+		X( P_Master_Move )								  
+		
+			
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 50 		
+		X( P_Master_Move )			
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 51 
+		X( P_Master_Move )		
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 52 
+		X( P_Master_Move )		
+				
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 53 
+		X( P_Master_Move )	
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 54 
+		X( P_Master_Move )		
+				
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 55 
+		X( P_Master_Move )		
+				
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 56
+		X( P_Master_Move )	
+				
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 57 
+		X( P_Master_Move )
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 58
+		X( P_Master_Move )		
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 59 
+		X( P_Master_Move )			
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 60 		
+		X( P_Master_Move )			
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 61 		
+		X( P_Master_Move )			
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 62 	
+		X( P_Master_Move )			
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 63		
+		X( P_Master_Move )			
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 64		
+		X( P_Master_Move )			
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 65 		
+		X( P_Master_Move )			
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 66		
+		X( P_Master_Move )			
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 67 		
+		X( P_Master_Move )			
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 68		
+		X( P_Master_Move )			
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 69		
+		X( P_Master_Move )			
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 70 		
+		X( P_Master_Move )			
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 71
+		X( P_Master_Move )		
+				
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 72
+		X( P_Master_Move )		
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 73
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 74
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 75
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 76 
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 77 
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 78 		
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 79 		
+		X( P_Master_Move )								  
+				
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 80 		
+		X( P_Master_Move )								  
+		
+														  
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 81 		
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 82
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 83 		
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 84 		
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 85 	
+		X( P_Master_Move )								  
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 86		
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 87 		
+		X( P_Master_Move )
+		
+		
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 88 		
+		X( P_Master_Move )
+		
+
+		P_Master_Motion_Trigger +== 1	P_Parity_Bit == 89 		
+		X( P_Master_Move )
+				
+    }
+	
+	
+	
+CLOSE

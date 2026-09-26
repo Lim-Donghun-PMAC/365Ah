@@ -1,0 +1,121 @@
+// Camtable virtual Motor → Source
+// [ 참조 : 25.10.13 시스템 셋업 추가 ]
+// [ 참조 : 26.02.02 드라이빙 구동 모션 ]
+global P_CA_DR_Ta = 60
+global P_CA_DR_Ts = 20
+global P_CA_DR_Tm = 0;
+global P_CA_DR_Td = 60
+global P_CA_DR_Tsd = 40
+global P_AN_DR_Ta = 60
+global P_AN_DR_Ts = 20
+global P_AN_DR_Tm = 0;
+global P_AN_DR_Td = 60
+global P_AN_DR_Tsd = 40
+// 260604 파이널롤러 1차 이동 시 드라이빙 양 변경 - 제조팀 요청 5->3mm
+global P_First_Sepa_1st_Driving_Move = 3;
+
+&35
+#15 -> 1000x		// 드라이빙 롤러
+
+open prog 35
+inc
+linear
+while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(15) == 1 && P_Slave_Motion_Program_Flag(15) == 1 )
+{
+	switch( P_Slave15_Motion_Command )
+	{
+		case 0:	break;
+		//[ 참조 : 26.02.25 드라이빙 롤러 모션 추가	 ]
+		// 1개의 모션으로 해도 되지만 일단 양극 음극 나누자.
+		case N_FR_Anode_Move_Motion:  
+	      P_Slave15_Motion_Command == 0;
+		  P_Sepa_DR_Start_Flag == 1;
+		  //dwell(3)
+  		  ta(P_AN_DR_Ta)ts(P_AN_DR_Ts)tm(P_AN_DR_Tm)td(P_AN_DR_Td)tsd(P_AN_DR_Tsd)			// 피딩 필요 시점 : Final roll이 스텍테이블 끝단에 위치할때 시작(스텍 테이블 md폭 : 201.2mm기준 100.6mm)
+			
+			x(P_Sepa_Length + P_AN_DR_Offset)
+			
+		   Sys.Idata[21185] = P_Sepa_Length + P_AN_DR_Offset	//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]
+			
+		  dwell(0)	
+	   break;
+
+	   case N_FR_Cathode_Move_Motion:
+	   //[ 참조 : 26.02.25 드라이빙 롤러 모션 추가	 ]
+	      P_Slave15_Motion_Command == 0;
+		  P_Sepa_DR_Start_Flag == 1;
+		  //dwell(3)
+  		  ta(P_CA_DR_Ta)ts(P_CA_DR_Ts)tm(P_CA_DR_Tm)td(P_CA_DR_Td)tsd(P_CA_DR_Tsd)			// 피딩 필요 시점  : Final roll이 스텍테이블 끝단에 위치할때 시작(스텍 테이블 md폭 : 201.2mm기준 100.6mm
+
+			x(P_Sepa_Length + P_CA_DR_Offset)
+
+		  Sys.Idata[21185] = P_Sepa_Length + P_CA_DR_Offset		//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]
+
+		  dwell(0)	
+	   break;
+
+	   case N_First_Sepa_Driving:
+	   //[ 참조 : 26.02.25 드라이빙 롤러 모션 추가	 ]
+	      P_Slave15_Motion_Command == 0;
+		   //dwell(3)
+		  dwell( P_First_Sepa_Driving_Timing * (100/(Coord[1].DesTimeBase*400)))
+		  P_Driving_Start == 1
+		  P_Sepa_DR_Start_Flag == 1;
+		  dwell(0)
+  		  ta(P_CA_DR_Ta)ts(P_CA_DR_Ts)tm(P_CA_DR_Tm)td(P_CA_DR_Td)tsd(P_CA_DR_Tsd)			// 피딩 필요 시점  : Final roll이 스텍테이블 끝단에 위치할때 시작(스텍 테이블 md폭 : 201.2mm기준 100.6mm)
+		  x(P_Sepa_Length + P_CA_DR_Offset + P_First_DR_Offset )	
+		  P_Driving_Start == 0
+
+		  Sys.Idata[21185] = P_Sepa_Length + P_CA_DR_Offset + P_First_DR_Offset				//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]
+		  dwell(0)	
+	   break;
+	   // case 8
+	   case N_FR_Last_Run_Motion://N_FR_Last_Run_Motion:
+			P_Slave15_Motion_Command == 0;
+			P_Driving_Start == 1
+			P_Sepa_DR_Start_Flag == 1;
+			dwell(0)
+			//ta(90)ts(20)tm(15)td(40)tsd(20)		// 110+30+25 + 60 = 
+			//x( P_Sepa_Length )
+			//ta(40)ts(20)tm(15)td(35)tsd(20)
+			//x( abs(P_Final_Roll_X_Discharge) - abs(P_Final_Roll_X_Anode_Move) )	
+
+			//ta(60)ts(20)tm(0)td(60)tsd(60)			// 피딩 필요 시점  : Final roll이 스텍테이블 끝단에 위치할때 시작(스텍 테이블 md폭 : 201.2mm기준 100.6mm)
+			ta(40)ts(20)tm(130)td(40)tsd(20)
+			//250ms
+			x(P_Sepa_Length + (abs(P_Final_Roll_X_Discharge) - abs(P_Final_Roll_X_Anode_Move)) + P_AN_DR_Offset + P_Last_DR_Offset)	
+
+			P_Driving_Start == 0;
+			Sys.Idata[21185] = P_Sepa_Length + (abs(P_Final_Roll_X_Discharge) - abs(P_Final_Roll_X_Anode_Move)) + P_AN_DR_Offset + P_Last_DR_Offset				//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]
+			dwell(0)
+		  //P_Current_Mode = 2;
+		  //P_AN_DR_Offset = ( abs(P_Final_Roll_X_Discharge) - abs(P_Final_Roll_X_Anode_Move) );
+		  //P_Driving_Start == 1
+		  //P_Sepa_DR_Start_Flag == 1;
+		  //dwell(0)
+  		  //ta(P_CA_DR_Ta)ts(P_CA_DR_Ts)tm(P_CA_DR_Tm)td(P_CA_DR_Td)tsd(P_CA_DR_Tsd)			// 피딩 필요 시점  : Final roll이 스텍테이블 끝단에 위치할때 시작(스텍 테이블 md폭 : 201.2mm기준 100.6mm)
+		  //x(P_Sepa_Length + P_AN_DR_Offset)	
+		  //P_Driving_Start == 0
+		  //P_Current_Mode == 0;
+		  //dwell(0)	
+	   break;
+
+	   // 세파 첫장 깔기 파이널롤러 1차이동 시 드라이빙 푸는 양
+	   case N_First_Sepa_1st_Move :
+		P_Slave15_Motion_Command = 0
+		tm(40) ta(25) ts(15)
+		x(P_First_Sepa_1st_Driving_Move)
+
+		Sys.Idata[21185] = P_First_Sepa_1st_Driving_Move		//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]
+		dwell(0)
+	   break;
+
+
+
+	   default :
+			P_Slave15_Motion_Command == 0 //커멘드 초기화.
+			dwell(0)
+	   break;
+	}
+}
+close

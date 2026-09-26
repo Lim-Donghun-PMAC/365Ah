@@ -1,0 +1,171 @@
+
+
+open subprog Sub_Motion_Target_Position(void)
+
+#ifndef F_Debug_Mode
+
+// #1 양극 1차 PNP T축 레시피
+P_Cathode_1TR_T_Ready_POS = P_Recipe_M01_POS(1)		//양극 1차 PNP T축 대기 위치
+P_Cathode_1TR_T_Belt_POS = P_Recipe_M01_POS(2)		//양극 1차 PNP T축 벨트 위치
+P_Cathode_1TR_T_Align_POS = P_Recipe_M01_POS(3)		//양극 1차 PNP T축 얼라인 위치
+
+
+// #2 음극 1차 PNP T축 레시피
+P_Anode_1TR_T_Ready_POS = P_Recipe_M02_POS(1)		//음극 1차 PNP T축 대기 위치
+P_Anode_1TR_T_Belt_POS = P_Recipe_M02_POS(2)		//음극 1차 PNP T축 벨트 위치
+P_Anode_1TR_T_Align_POS = P_Recipe_M02_POS(3)		//음극 1차 PNP T축 얼라인 위치
+
+
+// #3 양극 2차 PNP T축 레시피
+P_Cathode_2TR_T_Align_POS = P_Recipe_M03_POS(1)		//양극 2차 PNP T축 얼라인 위치
+P_Cathode_2TR_T_Stack_POS = P_Recipe_M03_POS(2)		//양극 2차 PNP T축 스택 위치
+
+
+// #4 음극 2차 PNP T축 레시피
+P_Anode_2TR_T_Align_POS = P_Recipe_M04_POS(1)		//음극 2차 PNP T축 얼라인 위치
+P_Anode_2TR_T_Stack_POS = P_Recipe_M04_POS(2)		//음극 2차 PNP T축 스택 위치
+
+
+// #5 양극 클램프 Y1 레시피
+P_Cathode_Clmap_Y1_Ready_Pos = P_Recipe_M05_POS(1)	//양극 클램프 Y1축 언클램프 위치
+P_Cathode_Clmap_Y1_Clamp_Pos = P_Recipe_M05_POS(2)	//양극 클램프 Y1축 클램프 위치
+
+
+// #6 음극 클램프 Y1 레시피
+P_Anode_Clmap_Y1_Ready_Pos = P_Recipe_M06_POS(1)	//음극 클램프 Y1축 언클램프 위치
+P_Anode_Clmap_Y1_Clamp_Pos = P_Recipe_M06_POS(2)	//음극 클램프 Y1축 클램프 위치
+
+
+// #7 양극 클램프 Y2 레시피
+P_Cathode_Clmap_Y2_Ready_Pos = P_Recipe_M07_POS(1)	//양극 클램프 Y2축 언클램프 위치
+P_Cathode_Clmap_Y2_Clamp_Pos = P_Recipe_M07_POS(2)	//양극 클램프 Y2축 클램프 위치
+
+
+// #8 음극 클램프 Y2 레시피
+P_Anode_Clmap_Y2_Ready_Pos = P_Recipe_M08_POS(1)	//음극 클램프 Y2축 언클램프 위치
+P_Anode_Clmap_Y2_Clamp_Pos = P_Recipe_M08_POS(2)	//음극 클램프 Y2축 클램프 위치
+
+
+// #9 spare
+
+
+// #10 spare
+
+
+// #11 스택테이블
+P_Stack_Table_Z_For_Init = P_Recipe_M11_POS(1)		//스택테이블 대기위치
+
+
+// #12 파이널롤러 X축 레시피
+P_Final_Roll_X_Discharge = P_Recipe_M12_POS(1)		// 파이널롤러 x축 대기 위치 및 배출 위치
+P_Final_Roll_X_Anode_Move = P_Recipe_M12_POS(2)		// 파이널롤러 X축 음극 위치
+P_Final_Roll_X_Cathode_Move = P_Recipe_M12_POS(3)	// 파이널롤러 x축 양극 위치
+
+
+// #13 파이널롤러 Z축 레시피
+P_Final_Roll_Z_Ready_And_Cutting = P_Recipe_M13_POS(1)		// 파이널롤러 Z축 대기/커팅 위치
+P_Final_Roll_Z_Run_Pos = P_Recipe_M13_POS(2)				// 파이널롤러 Z축 적층 위치
+
+// #14 spare
+
+
+// #15 드라이빙 롤			- 레시피 없음
+
+
+// #16 서보 댄서				- 레시피 없음
+
+
+// #17 양극 1차 PNP Z축		- plc 12번에서 계산
+ 
+// #18 음극 1차 PNP Z축		- plc 12번에서 계산
+
+// #19 양극 1차 피커	레시피		
+P_Cathode_1TR_Picker_T_Belt_POS = P_Recipe_M19_POS(1)												// 양극 PickerT 벨트 위치		[ 참조 : 26.08.14 PickerT 모션 변경 ]
+P_Cathode_1TR_Picker_T_Align_POS = P_Cathode_1TR_Picker_T_Belt_POS + P_1TR_Picker_T_Align_POS		// 양극 PickerT 얼라인 위치	[ 참조 : 26.08.14 PickerT 모션 변경 ]
+// #20 음극 1차 피커	레시피
+P_Anode_1TR_Picker_T_Belt_POS = P_Recipe_M20_POS(1)													// 음극 PickerT 벨트 위치		[ 참조 : 26.08.14 PickerT 모션 변경 ]
+P_Anode_1TR_Picker_T_Align_POS = P_Anode_1TR_Picker_T_Belt_POS + P_1TR_Picker_T_Align_POS			// 음극 PickerT 얼라인 위치	[ 참조 : 26.08.14 PickerT 모션 변경 ]
+
+// #21 양극 2차 PNP Z축		- plc 12번에서 계산
+
+// #22 음극 2차 PNP Z축		- plc 12번에서 계산
+
+// #23 상부 스풀				- 레시피 없음
+
+// #24 하부 스풀				- 레시피 없음
+
+
+// #25 양극 클램프 Z2축
+P_Cathode_Clamp_Z2_Ready_Pos = P_Recipe_M25_POS(1)		// 양극 클램프 Z2축 대기 위치
+P_Cathode_Clamp_Z2_Clamp_Pos = P_Recipe_M25_POS(2)		// 양극 클램프 Z2축 클램프 위치
+
+
+// #26 음극 클램프 Z2축
+P_Anode_Clamp_Z2_Ready_Pos = P_Recipe_M26_POS(1)		// 음극 클램프 Z2축 대기 위치
+P_Anode_Clamp_Z2_Clamp_Pos = P_Recipe_M26_POS(2)		// 음극 클램프 Z2축 클램프 위치
+
+
+// #27 양극 클램프 Z1축
+P_Cathode_Clamp_Z1_Ready_Pos = P_Recipe_M27_POS(1)		// 양극 클램프 Z1축 대기 위치
+P_Cathode_Clamp_Z1_Clamp_Pos = P_Recipe_M27_POS(2)		// 양극 클램프 Z1축 클램프 위치
+
+
+// #28 음극 클램프 Z1축
+P_Anode_Clamp_Z1_Ready_Pos = P_Recipe_M28_POS(1)		// 음극 클램프 Z1축 대기 위치
+P_Anode_Clamp_Z1_Clamp_Pos = P_Recipe_M28_POS(2)		// 음극 클램프 Z1축 클램프 위치
+																	   
+
+// #35 시트 페이퍼
+P_1st_Sheet_Paper_X_BWD = P_Recipe_M35_POS(1)			// 시트페이퍼 후진
+P_1st_Sheet_Paper_X_FWD = P_Recipe_M35_POS(2)			// 시트페이퍼 전진
+
+
+// #42 양극 NG PNP T축
+P_Cathode_NG_T_Align_To_NG = P_Recipe_M42_POS(1)		//양극 NG PNP NG박스 위치
+P_Cathode_NG_T_NG_To_Align = P_Recipe_M42_POS(2)		//양극 NG PNP 얼라인 위치
+
+
+// #43 음극 NG PNP T축
+P_Anode_NG_T_Align_To_NG = P_Recipe_M43_POS(1)			//음극 NG PNP NG박스 위치
+P_Anode_NG_T_NG_To_Align = P_Recipe_M43_POS(2)			//음극 NG PNP 얼라인 위치
+
+
+// #44 양극 NG PNP Z축
+P_Cathode_NG_Z_NG_Up = P_Recipe_M44_POS(1)				// 양극 NG PNP NG박스 상승 위치
+P_Cathode_NG_Z_NG_Down = P_Recipe_M44_POS(2)			// 양극 NG PNP NG박스 하강 위치
+P_Cathode_NG_Z_Align_Up = P_Recipe_M44_POS(3)			// 양극 NG PNP 얼라인 상승 위치
+P_Cathode_NG_Z_Align_Down = P_Recipe_M44_POS(4)			// 양극 NG PNP 얼라인 하강 위치
+
+
+// #45 음극 NG PNP Z축
+P_Anode_NG_Z_NG_Up = P_Recipe_M45_POS(1)				// 양극 NG PNP NG박스 상승 위치
+P_Anode_NG_Z_NG_Down = P_Recipe_M45_POS(2)				// 양극 NG PNP NG박스 하강 위치
+P_Anode_NG_Z_Align_Up = P_Recipe_M45_POS(3)				// 양극 NG PNP 얼라인 상승 위치
+P_Anode_NG_Z_Align_Down = P_Recipe_M45_POS(4)			// 양극 NG PNP 얼라인 하강 위치
+
+
+// #46 1차 언로더 X축
+P_1st_ULD_X_Init_Pos = P_Recipe_M46_POS(1)				// 1차 언로더 X축 대기 위치
+P_1st_ULD_X_Stack = P_Recipe_M46_POS(2)					// 1차 언로더 X축 스택 진입 1차 위치
+P_1st_ULD_X_FWD = P_Recipe_M46_POS(3)					// 1차 언로더 X축 스택 위치 전진
+//P_1st_ULD_X_Target_BWD = P_Recipe_M46_POS(4)			// 1차 언로더 X축 후진 위치
+
+
+// #47 1차 언로더 Z축
+P_1st_ULD_Z_Target_Down = P_Recipe_M47_POS(1)			//1차 언로더 Z축 대기/하강 위치
+P_1st_ULD_Z_Stack = P_Recipe_M47_POS(2)					//1차 언로더 Z축 스택 진입 상승 위치
+P_1st_ULD_Z_Cutting_For_Cell = P_Recipe_M47_POS(4)		//1차 언로더 그립 전 상승 위치
+P_1st_ULD_Z_Discharge_For_Cell = P_Recipe_M47_POS(5)	//1차 언로더 그립 후 위치
+
+
+// #48 1차 언로더 T축
+P_1st_ULD_T_Wait = P_Recipe_M48_POS(1)					// 1차 언로더 대기위치
+P_1st_ULD_T_90_Angle = P_Recipe_M48_POS(2)				// 2차 언로더 인계 위치
+// [260330 45도 각도 변수명 회피 위치로 변경]
+P_1st_ULD_T_Avoid_Angle = P_Recipe_M48_POS(3)			// 1차 언로더 회피 위치( 2차 언로더 인계 후 회피 위치, 젤리롤 그립 후 회피 위치)
+
+#endif
+
+
+P_Motion_Target_Position_Complete = 1
+close

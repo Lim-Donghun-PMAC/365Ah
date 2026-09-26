@@ -1,0 +1,935 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.11.17 
+// 음극, 양극 Vac Error 발생 시, Mode Inposition Trg 동기화 구문 삭제, 신규 함수 호출 구문 추가  - [ 참조 : 25.11.17 음,양극 Run Error 발생 시, 인포지션 밴드 삭제, 배열값 변경 함수 추가 ]
+
+open plc 0 	// 모드 변환 메트릭스 관리
+
+P_MNTR_PLC0_Task_Time(0) = Sys.Time
+//========================================================================================================================
+// 00. 로컬변수 선언.
+//========================================================================================================================
+	// 00.1) 타이머를 쉽게 사용하기 위한 로컬 모듈 
+	#define	L_System_Timer				Sys.Time			// 시스템 타이머
+
+	Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[0].ldata.L[0] 시간 체크 시작 시간
+	Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[0].ldata.L[1] 시간 체크 종료 시간
+	Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[0].ldata.L[2] 시작과 종료 시간 사이의 시간
+	Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[0].ldata.L[3] 타이머 초기화 플래그
+
+	// 00.2) 이외 로컬 변수
+	local	L_Mode_Depth;									// Plc[0].Ldata.L[4] 현재 실행되고 있는 케이스 스텝 번호	(모드의 깊이, Ex. NG모드가 4사이클이라면 NG모드의 DEPTH = 4 )
+	local	L_Command_Run_Flag;								// Plc[0].Ldata.L[5] 진입 시점을 체크하고 다음 스텝으로 넘어가기 위한 플래그
+	local	L_Old_Mode_PLC0;								// Plc[0].Ldata.L[6] plc0에서 사용하는 모드 이전값.
+	local	L_Old_P_Mode_Command;							// Plc[0].Ldata.L[7]
+	local	L_Old_Execute_Manage_Mode;						// Plc[0].Ldata.L[8]
+	local	L_Old_Current_Mode;								// Plc[0].Ldata.L[9]		
+
+	// 2022.07.28 추가된 로컬변수.
+	local	L_Old_PMAC_Status;								// Plc[0].ldata.L[10] PMAC Status 이전값.
+	//local	L_Old_PMAC_Current_Mode;						// Plc[0].ldata.L[11] PMAC Mode 이전값.
+	// [ 참조 : 20231128 모드 변환 개선 작업 _ 모드 변환이 안될 경우 예외처리 ]
+	local	L_Old_Trigger_PLC;								// Plc[0].ldata.L[12] 마스터 트리거 이전값.
+	local	L_Old_Mode_CMD_Change_Value;					// Plc[0].ldata.L[13] 모드 커맨드 이전값.	
+	local	L_Old_Master_Motion_Trigger;					// Plc[0].ldata.L[14]
+	//local	L_DryRun_Timer;									// Plc[0].ldata.L[15]
+		
+//========================================================================================================================
+
+//========================================================================================================================
+// 01. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 01.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+
+// 01.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 01.3) 시간 업데이트
+if (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{		
+	P_DryRun_Timer = P_DryRun_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+P_Execute_DryRun_Stop_Timer = P_DryRun_Timer / 60000
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//========================================================================================================================
+// 02. 커멘드 검출 시
+//========================================================================================================================
+if( P_Mode_Command != L_Old_Mode_CMD_Change_Value )
+{
+	L_Mode_Depth = 0;									// 로컬 Depth 초기화.
+	L_Old_Mode_CMD_Change_Value = P_Mode_Command;	
+}
+//========================================================================================================================
+// 03. 모드변경 프로세스
+//========================================================================================================================
+if( L_Command_Run_Flag == 1 ) // 명령이 진입했으면
+{
+	if( L_Mode_Depth >= P_Command_Depth( P_Mode_Command ) ) 
+	{	// 마지막 스텝이면 커멘드 초기화	
+		L_Mode_Depth = 0;						// 저장된 스텝수 초기화
+		L_Command_Run_Flag = 0;					// 진입 시점 검색 완료 플래그 초기화
+		switch( P_Last_Cycle_Command( P_Mode_Command) )	
+		{	// 각 모드의 마지막 스텝 후 해야할 것을 정해주는 지점.
+			case F_Wait			:	P_Mode_Command = F_Static_Wait_Command;			break;
+			//case F_Continuous	:	P_Mode_Command = F_Continuous_Command;		break;
+			//case F_Stop			:	P_Mode_Command = F_Stop_Command;			break;
+			//case F_Run			:	P_Mode_Command = F_Run_Command;				break;
+			default				:	P_Mode_Command = F_Static_Wait_Command;			break;
+		}
+	}
+	else
+	{	// 마지막 스텝이 아니면 스텝 증가.
+		L_Mode_Depth = L_Mode_Depth + 1;	// 다음 스텝으로 이동
+		L_Command_Run_Flag = 0;				// 진입 시점 검색 완료 플래그 초기화
+	}
+}
+
+if( P_Master_Motion_Trigger != L_Old_Trigger_PLC )		
+{	// 상승 트리거 시
+
+	// 진입 시점을 지나쳤을 ??
+	if( P_Master_Motion_Trigger > P_In_Position( P_Mode_Command + L_Mode_Depth) )	
+	{
+		// 참조 : 2020.03.06_수정 Point! 진입시점을 놓쳤을 때 현재사이클 + 1 사이클 후 Wait_Mode로 빠지는 걸 방지.
+		if( P_Mode_Command != F_Static_Wait_Command )
+		{ // 커멘드에 웨잇커멘드가 들어와있지않으면 Wait_Command
+			P_Mode_Command = F_Static_Wait_Command; 	// 현재 사이클 실행 중 트리거 99번에 Wait_Mode빠질수있게.
+		}
+
+		if( P_Master_Motion_Trigger == P_In_Position(F_Static_Wait_Command))
+		{	// Wait_Command의 In_Position지점에서 ( 트리거 99 )
+			P_Mode_Command_Wait_Count++;
+			L_Command_Run_Flag = 1;							// 진입 완료 플래그 체크
+			L_Mode_Depth = P_Command_Depth( P_Mode_Command );	// 스텝수 스탑 커멘드와 맞게. 
+		}
+	}
+	// 진입 시점 지나치지 않았을 때
+	else
+	{
+		// 진입시점과 트리거가 일치하면 모드 변환해준다.
+		if( P_Master_Motion_Trigger == P_In_Position( P_Mode_Command + L_Mode_Depth ))	
+		{
+			P_Current_Mode = P_MOde_Num( P_Mode_Command ) + L_Mode_Depth;	// 모드에 스텝수 만큼 포인팅 해서 모드 변환
+			L_Command_Run_Flag = 1; 										// 진입 완료 플래그 체크
+		}
+	}				
+	L_Old_Trigger_PLC = P_Master_Motion_Trigger;							
+}
+
+//========================================================================================================================
+
+//==================== Execute 관리모듈 Start =======================================//
+if( P_Execute_Manage_Mode )	// 값이 존재할 때만.
+{
+	// 음극런, 양극런 라스트사이클은 WaitMode로 설정한다면. -> 런 진행시 모드커멘드는 wait로 변경됨.
+	// 세미런(시퀀스) 이후 진입됨. 런,라스트런만 관리.
+	// 음극, 양극 런 진행중 예외상황(NG 등) 체크하여 Wait모드로 변경 및 PackML 상태변경(HOLD,SUSPEND)
+	// HOLD, SUSPEND 동작에서 예외상황 플래그 초기화.( Vision NG Flag 등등. ) 후 Execute 재진입.
+	// Wait Mode진입 확인 후 PMAC상태가 변경되면 Execute 런 관리모듈 종료됨.
+
+	// 1. Initialize
+	if( P_Execute_Manage_Mode != L_Old_Execute_Manage_Mode || P_Current_Mode != L_Old_Current_Mode  )
+	{ // Execute 관리 모듈 첫진입 또는 현재모드가 변경되면
+		P_Position_Calc_Status = F_Status_Nonseatus;		// 모터위치 계산 상태 초기화.
+		P_Init_Result(0),N_Mode_Total_EA,1 = 0;				// 모드배열 초기화 결과값 초기화.
+		P_Vision_Result(0),N_Vision_Total_EA,1 = 0;			// 비전결과값 초기화.			24.01.31 추가.
+		P_Vision_Result_Get_First_Cycle(0),N_Vision_Total_EA,1 = 0;	// 비전 결과값 get 사이클 카운트 변수 초기화.
+
+		L_Old_Current_Mode = P_Current_Mode;				// 모드값 동기화.
+		L_Old_Execute_Manage_Mode = P_Execute_Manage_Mode;	// Execute 관리모듈 이전값 동기화.
+	}
+	// 2. Command
+	// Wait를 최우선처리.
+	// 런커멘드가 발생하여도 Wait커멘드가 존재한다면 진입하지않음.
+	if( P_Init_Result(N_Wait) == F_Result_Complete )
+	{
+		//if( P_Master_Motion_Trigger < P_In_Position(F_Wait_Command) )
+		if( P_Master_Motion_Trigger < P_In_Position(F_Dynamic_Wait_Command) )
+		{ // Wait Command의 인포지션 전에 커멘드발생.
+			//P_Mode_Command = F_Wait_Command;
+			P_Mode_Command = F_Dynamic_Wait_Command;	
+			P_Init_Result(N_Wait)++;	// 해당구문을 벗어남.
+		}
+	}
+	else if( P_Init_Result(N_Anode_Run) | P_Init_Result(N_Cathode_Run) )
+	{ // 음극런 또는 양극런 
+		if( P_Init_Result(N_Anode_Run) & P_Init_Result(N_Cathode_Run) )
+		{	// 음극런, 양극런 2개의 시작 Flag가 On되어있다면	
+			// 에러처리.
+		}
+		else
+		{ // 둘중에 하나만.
+			if( P_Init_Result(N_Wait) == F_Result_None )
+			{ // Wait 결과가 없는 경우에만.
+				if( P_Init_Result(N_Anode_Run) == F_Result_Complete )
+				{ // 음극런.
+					if( P_Master_Motion_Trigger <= P_In_Position(F_Half_Anode_Run_Command) ) // [ 참조 : 25.07.08 모드 변환 시점 수정 ex) Anode 42 ~ 43 -> 43 Cathode 87 ~ 88 -> 88 ]
+					{
+
+						P_Mode_Command = F_Half_Anode_Run_Command;	
+						P_Init_Result(N_Anode_Run)++;	// 해당구문을 벗어남.				
+					}
+				}
+				else if( P_Init_Result(N_Cathode_Run) == F_Result_Complete )
+				{
+					if( P_Master_Motion_Trigger <= P_In_Position(F_Half_Cathode_Run_Command) ) // [ 참조 : 25.07.08 모드 변환 시점 수정 ex) Anode 42 ~ 43 -> 43 Cathode 87 ~ 88 -> 88 ]
+					{
+						P_Mode_Command = F_Half_Cathode_Run_Command;	
+						P_Init_Result(N_Cathode_Run)++;	// 해당구문을 벗어남.				
+					}
+				}
+			}
+		}
+	}	
+
+
+
+	// 3. 동작별 조건감시.
+	switch( P_Buffer_Mode_Status_Sequence )
+	{
+		case N_Normal_Status_Sequence :	// 24.01.31 - Normal Sequence 전체 변경됨. 얼라인 NG 발생 시 기존타임테이블상 얼라인ng 0.5사이클을 Execute에서 진행하는것으로 변경.
+			switch( P_Current_Mode )
+			{
+				case F_Half_Anode_Run_Mode :	// 음극런 진행중. ( 런 진 행중에는 위치값은 사용하지않고 트리거만 체크. )
+					// 예외상황 발생시 Wait 커멘드, 미발생시 양극런으로 이동.
+					// Vaccum check
+					if( P_Master_Motion_Trigger == 19 ) // [ 참조 : 25.07.08 모드 변환 시점 수정 ex) Anode 42 ~ 43 -> 43 Cathode 87 ~ 88 -> 88 ]
+					{	
+						if( P_Anode_Cur_Mode == F_Normal_Run )	
+						{	// Normal run이라면,( 음극 semi run, ng 제외 )
+							if( M_X_Anode_1st_PNP_Vac_Sensor == F_False || M_X_Anode_2nd_PNP_Vac_Sensor == F_False || M_X_Cathode_AT_Vac_Sensor == F_False ) // [ 참조 : 25.07.08 Execute Align 진공 감시 추가 ]
+							{	// Align OR 1차 OR 2차 PNP 진공센서가 감지 OFF라면. 1차 PNP 대기위치 & 2차 PNP Align 위치에서 대기하도록 배열 변경.
+								// [ 참조 : 25.11.17 음,양극 Run Error 발생 시, 인포지션 밴드 삭제, 배열값 변경 함수 추가 ]
+								call Sub_Init_Run_Mode_Array.Anode_Run_Error(F_Vac_Err,&P_Init_Result(N_Anode_Vac_Err));
+								if( M_X_Anode_1st_PNP_Vac_Sensor == F_False )
+								{
+									P_Anode_1ST_TR_Vac_Err_On = F_True;
+								}								
+								if( M_X_Anode_2nd_PNP_Vac_Sensor == F_False )
+								{
+									P_Anode_2ND_TR_Vac_Err_On = F_True;
+								}
+								if( M_X_Anode_AT_Vac_Sensor == F_False )
+								{
+									P_Anode_Align_Vac_Err_On = F_True;
+								}
+							}
+						}
+					}
+					else if( P_Master_Motion_Trigger == 43 ) // [ 참조 : 25.07.08 모드 변환 시점 수정 ex) Anode 42 ~ 43 -> 43 Cathode 87 ~ 88 -> 88 ]
+					{
+						if( P_Init_Result(N_Anode_Vac_Err) == F_Result_Complete )
+						{	// 진공 알람 발생.
+							P_Init_Result(N_Anode_Vac_Err)++;
+							if( P_Anode_1ST_TR_Vac_Err_On )
+							{
+								//call Heap_Sort.Node_Insert(F_Anode_1ST_TR_Vac_Alarm, N_High_Alarm_Cycle_Stop, Sys.Time);	
+								P_PMAC_Commands = F_Command_Stop;
+							}	
+							if( P_Anode_2ND_TR_Vac_Err_On )
+							{	
+								//call Heap_Sort.Node_Insert(F_Anode_2ND_TR_Vac_Alarm, N_High_Alarm_Cycle_Stop, Sys.Time);	
+								P_PMAC_Commands = F_Command_Stop;
+							}
+							if( P_Anode_Align_Vac_Err_On )
+							{
+								//call Heap_Sort.Node_Insert(F_Anode_Align_Vac_Alarm, N_High_Alarm_Cycle_Stop, Sys.Time);	
+								P_PMAC_Commands = F_Command_Stop;
+							}
+							// 이전 결과 초기화.
+							P_Anode_1ST_TR_Vac_Err_On = F_False;	
+							P_Anode_2ND_TR_Vac_Err_On = F_False;	
+							P_Anode_Align_Vac_Err_On = F_False;
+						}
+						else 
+						{
+							if( P_Anode_Cur_Mode == F_NG || P_Anode_Cur_Mode == F_Stop || P_Anode_Cur_Mode == F_Vac_Err )
+							{
+									P_Init_Result(N_Wait) = F_Result_None;
+									call Sub_Init_Wait_Mode_Array(44,&P_Init_Result(N_Wait));	// Wait 모드 Array 초기화.	
+							}
+							else
+							{
+								if( P_Init_Result(N_Cathode_Run) < F_Result_Complete )
+								{
+									if( P_Vision_Result(N_Vis_Anode_Run) == F_Vision_Result_None )
+									{
+										// 첫 사이클에는 vision data get -> 이후 사이클에도 결과가 없다면, wait모드로 진입.
+										if( P_Vision_Result_Get_First_Cycle(N_Vis_Anode_Run) == 0 )
+										{
+											call Sub_Vision_Result.Anode_Run(&P_Vision_Result(N_Vis_Anode_Run));		// 음극 런중에는 양극 Vision 결과 Get
+											P_Vision_Result_Get_First_Cycle(N_Vis_Anode_Run)++;
+										}	
+										else
+										{	// 스탑 모드 1차 pnp 대기위치로 회피.
+											P_Vision_Result_Get_First_Cycle(N_Vis_Anode_Run) = 0;
+											call Sub_Init_Run_Mode_Array.Cathode_Run(F_Stop,44,&P_Init_Result(N_Cathode_Run));	// Stop 모드 Array 초기화.
+										}
+									}
+									else if( P_Vision_Result(N_Vis_Anode_Run) == F_Vision_Result_Stack_NG )
+									{
+										// Stack NG 시 ( Stack NG 우선 )
+										call Sub_Init_Run_Mode_Array.Cathode_Run(F_Last_Run,44,&P_Init_Result(N_Cathode_Run));	// 양극런모드 Array 초기화. ( 라스트런 )
+									}
+									else if(( P_Vision_Result(N_Vis_Anode_Run) == F_Vision_Result_Surface_NG || P_Vision_Result(N_Vis_Anode_Run) == F_Vision_Result_Align_NG ) || Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence == F_False )
+									{
+										if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence == F_False )
+										{
+											P_Hold_Existence_Insp_Enqueue_Flag = 1;
+										}
+										p114 = Sys_Cathode_Align_Sheet_LO_Vision_BYTE
+										// 1. 양극 표면검사 ng / 2. 양극 Align ng / 3. 양극 Align 극판 없을 시 = > 양극 ng모드 실행. 
+										call Sub_Init_Run_Mode_Array.Cathode_Run(F_NG,44,&P_Init_Result(N_Cathode_Run));	// 양극런모드 Array 초기화. ( 양극 Vision NG )
+									}
+									else if( P_Vision_Result(N_Vis_Anode_Run) == F_Vision_Result_OK )
+									{
+										if( P_Cathode_Count < P_Cathode_Recipe_Count )
+										{ // 일반런.
+											call Sub_Init_Run_Mode_Array.Cathode_Run(F_Normal_Run,44,&P_Init_Result(N_Cathode_Run));	// 양극런모드 Array 초기화.
+										}
+										else
+										{ // 라스트런.
+											call Sub_Init_Run_Mode_Array.Cathode_Run(F_Last_Run,44,&P_Init_Result(N_Cathode_Run));	// 양극런모드 Array 초기화. ( 라스트런 )
+										}
+									}
+									else
+									{
+
+									}
+								}
+							}
+						}
+						if( P_PMAC_Status != F_Status_EXECUTE )	// 정지신호가 들어오면 pmac상태를 Stopping으로 바꾸니.
+						{	// 양극 1차 pnp 모션만 belt -> 대기위치(45도) 이송.(사이클 정지 전 모션으로 이동)
+							call Sub_Init_Run_Mode_Array.Cathode_Run(F_Stop,44,&P_Init_Result(N_Cathode_Run));	// Stop 모드 Array 초기화.
+						}
+					}
+				break;
+
+				case F_Half_Cathode_Run_Mode : // 양극런 진행중. ( 런 진 행중에는 위치값은 사용하지않고 트리거만 체크. )
+					// 예외상황 발생시 Wait 커멘드, 미발생시 양극런으로 이동.
+					// Vaccum check
+					if( P_Master_Motion_Trigger == 64 ) // [ 참조 : 25.07.08 모드 변환 시점 수정 ex) Anode 42 ~ 43 -> 43 Cathode 87 ~ 88 -> 88 ]
+					{	
+						if( P_Cathode_Cur_Mode == F_Last_Run )
+						P_Suspend_Discharge_Last_Run_Bit = 1;			// 중간 배출 확인 변수. [ 참조 : 25.06.20 배출 프로그램 수정 ]
+						if( P_Cathode_Cur_Mode == F_Normal_Run )	
+						{	// Normal run이라면,( 음극 semi run, ng 제외 )
+							if( M_X_Cathode_1st_PNP_Vac_Sensor == F_False || M_X_Cathode_2nd_PNP_Vac_Sensor == F_False || M_X_Anode_AT_Vac_Sensor == F_False ) // [ 참조 : 25.07.08 Execute Align 진공 감시 추가 ]
+							{	// Align OR 1차 OR 2차 PNP 진공센서가 감지 OFF라면. 1차 PNP 대기위치 & 2차 PNP Align 위치에서 대기하도록 배열 변경.
+					     		// [ 참조 : 25.11.17 음,양극 Run Error 발생 시, 인포지션 밴드 삭제, 배열값 변경 함수 추가 ]
+								call Sub_Init_Run_Mode_Array.Cathode_Run_Error(F_Vac_Err,&P_Init_Result(N_Cathode_Vac_Err));
+								if( M_X_Cathode_1st_PNP_Vac_Sensor == F_False )
+								{
+									P_Cathode_1ST_TR_Vac_Err_On = F_True;
+								}
+								if( M_X_Cathode_2nd_PNP_Vac_Sensor == F_False )
+								{
+									P_Cathode_2ND_TR_Vac_Err_On = F_True;
+								}
+								if( M_X_Cathode_AT_Vac_Sensor == F_False )
+								{
+									P_Cathode_Align_Vac_Err_On = F_True;
+								}
+
+							}
+						}
+					} 
+					else if( P_Master_Motion_Trigger == 88 ) // [ 참조 : 25.07.08 모드 변환 시점 수정 ex) Anode 42 ~ 43 -> 43 Cathode 87 ~ 88 -> 88 ]
+					{
+						if( P_Init_Result(N_Cathode_Vac_Err) == F_Result_Complete )
+						{	// 진공 알람 발생.
+							P_Init_Result(N_Cathode_Vac_Err)++;
+							if( P_Cathode_1ST_TR_Vac_Err_On )
+							{
+								//call Heap_Sort.Node_Insert(F_Cathode_1ST_TR_Vac_Alarm, N_High_Alarm_Cycle_Stop, Sys.Time);		
+								P_PMAC_Commands = F_Command_Stop;
+							}
+							if( P_Cathode_2ND_TR_Vac_Err_On )
+							{	
+								//call Heap_Sort.Node_Insert(F_Cathode_2ND_TR_Vac_Alarm, N_High_Alarm_Cycle_Stop, Sys.Time);	
+								P_PMAC_Commands = F_Command_Stop;
+							}
+							if( P_Cathode_Align_Vac_Err_On )
+							{
+								//call Heap_Sort.Node_Insert(F_Cathode_Align_Vac_Alarm, N_High_Alarm_Cycle_Stop, Sys.Time);	
+								P_PMAC_Commands = F_Command_Stop;
+							}
+							// 이전 결과 초기화.
+							P_Cathode_1ST_TR_Vac_Err_On = F_False;		
+							P_Cathode_2ND_TR_Vac_Err_On = F_False;	
+							P_Cathode_Align_Vac_Err_On = F_False;
+						}
+						else 
+						{
+							if( P_Cathode_Cur_Mode == F_Last_Run || P_Cathode_Cur_Mode == F_NG || P_Cathode_Cur_Mode == F_Stop || P_Cathode_Cur_Mode == F_Vac_Err )
+							{
+								P_Init_Result(N_Wait) = F_Result_None;
+								call Sub_Init_Wait_Mode_Array(89,&P_Init_Result(N_Wait));	// Wait 모드 Array 초기화.	
+							}
+							else
+							{
+								if( P_Init_Result(N_Anode_Run) < F_Result_Complete )
+								{
+									if( P_Vision_Result(N_Vis_Cathode_Run) == F_Vision_Result_None )
+									{
+										// 첫 사이클에는 vision data get -> 이후 사이클에도 결과가 없다면, Stop모드로 진입.
+										if( P_Vision_Result_Get_First_Cycle(N_Vis_Cathode_Run) == 0 )
+										{
+											call Sub_Vision_Result.Cathode_Run(&P_Vision_Result(N_Vis_Cathode_Run));		// 양극 런중에는 음극 Vision 결과 Get
+											P_Vision_Result_Get_First_Cycle(N_Vis_Cathode_Run)++;
+										}	
+										else
+										{	// 스탑 모드 1차 pnp 대기위치로 회피.
+											P_Vision_Result_Get_First_Cycle(N_Vis_Cathode_Run) = 0;
+											call Sub_Init_Run_Mode_Array.Anode_Run(F_Stop,89,&P_Init_Result(N_Anode_Run));
+										}
+									}
+									else if( P_Vision_Result(N_Vis_Cathode_Run) == F_Vision_Result_Stack_NG )
+									{
+										// 일반런.
+										call Sub_Init_Run_Mode_Array.Anode_Run(F_Normal_Run,89,&P_Init_Result(N_Anode_Run));	// 음극 런모드 Array 초기화.
+									}
+									else if(( P_Vision_Result(N_Vis_Cathode_Run) == F_Vision_Result_Surface_NG || P_Vision_Result(N_Vis_Cathode_Run) == F_Vision_Result_Align_NG) || Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence == F_False )
+									{
+										if( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence == F_False )
+										{
+											P_Hold_Existence_Insp_Enqueue_Flag = 1;
+										}
+										// 1. 음극 표면검사 ng / 2. 음극 Align ng / 3. 음극 Align 극판 없을 시 = > 음극 ng모드 실행. 
+										call Sub_Init_Run_Mode_Array.Anode_Run(F_NG,89,&P_Init_Result(N_Anode_Run));	// 음극런모드 Array 초기화. ( 음극 Vision NG )
+									}
+									else if( P_Vision_Result(N_Vis_Cathode_Run) == F_Vision_Result_OK )
+									{
+										// 일반런.
+										call Sub_Init_Run_Mode_Array.Anode_Run(F_Normal_Run,89,&P_Init_Result(N_Anode_Run));	// 음극 런모드 Array 초기화.
+									}
+									else
+									{
+
+									}
+								}
+							}
+
+						}
+						if( P_PMAC_Status != F_Status_EXECUTE )	// 정지신호가 들어오면 pmac상태를 Stopping으로 바꾸니.
+						{	// 음극 1차 pnp 모션만 belt -> 대기위치(45도) 이송.(사이클 정지 전 모션으로 이동)
+							call Sub_Init_Run_Mode_Array.Anode_Run(F_Stop,89,&P_Init_Result(N_Anode_Run));
+						}
+					}		
+				break;
+				case F_Wait_Mode : // HOLD, SUSPEND 이동 및 재가동(모터위치 파악하여 재가동).	
+					// 예외상황 존재 시 PackML 상태 변경.
+					// 미발생시 재가동.
+					if( P_Position_Calc_Status == F_Status_Nonseatus )
+					{ // 현재위치 계산 완료상태가 아니라면 계산시작.
+						if(Total_DesVelZero_Bit)	
+						{ // 전체 축 정지완료가 되었다면. 
+							P_Memory_Tower_Search_Flag = 1;		// 위치값 계산 명령.
+							P_MemTow_integrated_return = 0;		// 리턴값 초기화.
+							P_Position_Calc_Status = F_Status_STARTING;			
+						}
+					} 
+					else if( P_Position_Calc_Status == F_Status_STARTING && P_MemTow_integrated_return == F_True )
+					{ // 위치값 계산완료 시 Execute 관리모듈 내부변수에 업데이트.
+						P_Position_Calc_Status = F_Status_COMPLETE;
+					}
+					else if( P_Position_Calc_Status == F_Status_COMPLETE )
+					{ // 계산이 완료되었다면 ( 위치값을 신뢰할수있다면 )
+						if( P_PMAC_Status == F_Status_EXECUTE )
+						{ 
+							switch( P_Unit_integrated_Status )
+							{
+								// [참조 : 250620 수정 포인트]
+								case F_First_Sepa_On_Pos :
+									// 음극 세미런
+									if( P_Master_Motion_Trigger <= 89 )
+									{
+										if( P_Init_Result(N_Anode_Run) < F_Result_Complete )
+										{
+											call Sub_Init_Run_Mode_Array.Anode_Run(F_Semi_Run,89,&P_Init_Result(N_Anode_Run));
+										}
+									}
+								break;
+
+								case F_Equipment_Anode_Side_Pos :
+									// 음극 세미런
+									if( P_Master_Motion_Trigger <= 89 )
+									{
+										if( P_Init_Result(N_Anode_Run) < F_Result_Complete )
+										{
+											call Sub_Init_Run_Mode_Array.Anode_Run(F_Semi_Run,89,&P_Init_Result(N_Anode_Run));
+										}
+									}
+								break;
+
+								case F_Equipment_Cathode_Side_Pos :
+									// 양극 세미런
+									if( P_Suspend_Discharge_Last_Run_Bit == 1 )			// Last Run 진행 할 경우.	[ 참조 : 25.06.20 배출 프로그램 수정 ]
+									{
+										P_PMAC_Commands = F_Command_Suspend;			// Suspend로 이동. (베츨)
+									}
+									else
+									{
+										if( P_Master_Motion_Trigger <= 44 )
+										{
+											if( P_Init_Result(N_Cathode_Run) < F_Result_Complete )
+											{
+												call Sub_Init_Run_Mode_Array.Cathode_Run(F_Semi_Run,44,&P_Init_Result(N_Cathode_Run));
+											}
+										}
+									}
+
+								break;
+
+								case F_Equipment_Anode_NG_Pos :
+									P_PMAC_Commands = F_Command_Hold;	// NG처리로 이동. PACKML 상태변경. Execute 모듈에서 빠져나옴.
+								break;
+
+								case F_Equipment_Cathode_NG_Pos :
+									P_PMAC_Commands = F_Command_Hold;	// NG처리로 이동. PACKML 상태변경. Execute 모듈에서 빠져나옴.
+								break;
+
+								case F_Equipment_Stack_Completed_Pos : 	// 적층완료시 & 중간배출. 배출로이동.
+									P_PMAC_Commands = F_Command_Suspend;	// Suspend로 이동. (베츨)
+								break;
+
+								case F_Equipment_JR_Discharge_WaitPos :
+									P_PMAC_Commands = F_Command_Suspend;	// Suspend로 이동. (베츨)
+								default :	
+
+								break;							
+							}
+						}
+						else	// Execute상태가 아니면.
+							P_Execute_Manage_Mode = 0;	// 생산관리 프로그램 종료.
+					}
+				break;
+
+				default : 	
+
+				break;	// 이외모드. 없음.
+			}	// Normal - Current_Mode Finish.
+		break;	// Normal Mode Finish.
+
+		case N_Sepa_Consume_Status_Sequence :
+			// 적층개수.
+			// Stop 
+			switch( P_Current_Mode )
+			{
+				case F_Half_Anode_Run_Mode :
+					// 기존 
+					if( P_Master_Motion_Trigger == 43 )
+					{
+						if( P_PMAC_Status == F_Status_EXECUTE )
+						{	
+							// [ 참조 : 세파 모드 적층 갯수 수정 ] 
+							if( P_Cathode_Count < P_Sepa_Cathode_Recipe_Count )
+							{ // 일반 양극세파런
+								if( P_Init_Result(N_Cathode_Run) < F_Result_Complete )
+								{
+									call Sub_Init_Run_Mode_Array.Cathode_Run(F_Sepa_Run,44,&P_Init_Result(N_Cathode_Run));
+								}
+							}
+							else
+							{ // 라스트 양극세파런
+								if( P_Init_Result(N_Cathode_Run) < F_Result_Complete )
+								{
+									call Sub_Init_Run_Mode_Array.Cathode_Run(F_Sepa_Last_Run,44,&P_Init_Result(N_Cathode_Run));
+								}
+							}
+						}
+						else
+						{
+							if( P_Init_Result(N_Wait) < F_Result_Complete )
+							{
+								call Sub_Init_Wait_Mode_Array(44,&P_Init_Result(N_Wait));	// Wait모드 배열초기화.
+							}
+						}
+					}
+				break;
+				case F_Half_Cathode_Run_Mode :
+					// 기존
+					if( P_Master_Motion_Trigger == 88 )
+					{
+						if( P_Cathode_Cur_Mode == F_Sepa_Last_Run )
+							P_Suspend_Discharge_Last_Run_Bit = 1;			// 중간 배출 확인 변수. [ 참조 : 25.06.20 배출 프로그램 수정 ]
+						if( P_PMAC_Status == F_Status_EXECUTE )
+						{					
+							if( P_Anode_Count < P_Sepa_Anode_Recipe_Count )	
+							{ // 음극런.
+								if( P_Init_Result(N_Anode_Run) < F_Result_Complete )
+								{
+									call Sub_Init_Run_Mode_Array.Anode_Run(F_Sepa_Run,89,&P_Init_Result(N_Anode_Run));
+								}
+							}
+							else
+							{ // 완료.
+								if( P_Init_Result(N_Wait) < F_Result_Complete )
+								{
+									call Sub_Init_Wait_Mode_Array(89,&P_Init_Result(N_Wait));
+								}
+							}
+						}
+						else
+						{
+							if( P_Init_Result(N_Wait) < F_Result_Complete )
+							{
+								call Sub_Init_Wait_Mode_Array(89,&P_Init_Result(N_Wait));				
+							}
+						}
+					}				
+				break;
+				case F_Wait_Mode :
+					// 정지상황
+					// 재가동.
+					// 배출.
+					if( P_Position_Calc_Status == F_Status_Nonseatus )
+					{ // 현재위치 계산 완료상태가 아니라면 계산시작.
+						if(Total_DesVelZero_Bit)	
+						{ // 전체 축 정지완료가 되었다면. 
+							P_Memory_Tower_Search_Flag = 1;		// 위치값 계산 명령.
+							P_MemTow_integrated_return = 0;		// 리턴값 초기화.
+							P_Position_Calc_Status = F_Status_STARTING;			
+						}
+					} 
+					else if( P_Position_Calc_Status == F_Status_STARTING && P_MemTow_integrated_return == F_True )
+					{ // 위치값 계산완료 시 Execute 관리모듈 내부변수에 업데이트.
+						P_Position_Calc_Status = F_Status_COMPLETE;
+					}
+					else if( P_Position_Calc_Status == F_Status_COMPLETE )
+					{ // 계산이 완료되었다면 ( 위치값을 신뢰할수있다면 )					
+						if( P_PMAC_Status == F_Status_EXECUTE )
+						{ 
+							// [ 참조 : 세파 모드를 위한, 구문 변경_240304]
+							switch( P_Unit_integrated_Status )
+							{
+
+								// [참조 : 250620 수정 포인트]
+								case F_First_Sepa_On_Pos :
+									// 음극 세미런
+									if( P_Master_Motion_Trigger <= 89 )
+									{
+										if( P_Init_Result(N_Anode_Run) < F_Result_Complete )
+										{
+											call Sub_Init_Run_Mode_Array.Anode_Run(F_Sepa_Semi_Run,89,&P_Init_Result(N_Anode_Run));
+										}
+									}
+								break;
+
+								case F_Equipment_Anode_Side_Pos :
+									// 음극 세미런
+									if( P_Master_Motion_Trigger <= 89 )
+									{
+										if( P_Init_Result(N_Anode_Run) < F_Result_Complete )
+										{
+											call Sub_Init_Run_Mode_Array.Anode_Run(F_Sepa_Semi_Run,89,&P_Init_Result(N_Anode_Run));
+										}
+									}
+								break;
+
+								case F_Equipment_Cathode_Side_Pos :	
+									if( P_Cathode_Count >= P_Sepa_Cathode_Recipe_Count )
+									{
+										P_PMAC_Commands = F_Command_Suspend;	// Suspend로 이동. (베츨)
+									}
+									else
+									{
+										if( P_Master_Motion_Trigger <= 44 )
+										{
+											if( P_Init_Result(N_Cathode_Run) < F_Result_Complete )
+											{	// 양극런.
+												call Sub_Init_Run_Mode_Array.Cathode_Run(F_Sepa_Semi_Run,44,&P_Init_Result(N_Cathode_Run));			
+											}
+										}
+									}
+								break;
+
+								case F_Equipment_Stack_Completed_Pos : 	// 적층완료시 & 중간배출. 배출로이동.
+									P_PMAC_Commands = F_Command_Suspend;	// Suspend로 이동. (베츨)
+								break;
+
+								default :	
+
+								break;										
+							}
+						}
+						else	// Execute상태가 아니면.
+						{
+							P_Execute_Manage_Mode = 0;	// 생산관리 프로그램 종료.
+						}
+					}
+				break;
+
+				default : 	
+				break;	// 이외모드. 없음.
+			}	// Sepa - Current_Mode Finish.
+		break;	// Sepa Mode Finish.
+
+		case N_Dryrun_Status_Sequence :
+			switch( P_Current_Mode )
+			{
+				case F_Half_Anode_Run_Mode :
+					if( P_Master_Motion_Trigger == 43 )
+					{
+						if( P_PMAC_Status == F_Status_EXECUTE )	
+						{
+							if( P_Init_Result(N_Cathode_Run) < F_Result_Complete )
+							{
+								if( P_Execute_DryRun_Stop_Timer < P_Dryrun_Operating_Time ) 		
+								{ // 일반 양극 드라이런
+									call Sub_Init_Run_Mode_Array.Cathode_Run(F_Dry_Run,44,&P_Init_Result(N_Cathode_Run));
+								}
+								else
+								{ // 라스트 양극 드라이런
+									call Sub_Init_Run_Mode_Array.Cathode_Run(F_Dry_Last_Run,44,&P_Init_Result(N_Cathode_Run));
+								}
+							}
+						}
+						else	// 정지신호가 들어오면 pmac상태를 Stopping으로 바꾸니.
+						{	// 양극 1차 pnp 모션만 belt -> 대기위치(45도) 이송.(사이클 정지 전 모션으로 이동)
+							call Sub_Init_Run_Mode_Array.Cathode_Run(F_Stop,44,&P_Init_Result(N_Cathode_Run));	// Wait 모드 Array 초기화.
+						}
+					}
+				break;
+
+				case F_Half_Cathode_Run_Mode :
+					if( P_Master_Motion_Trigger == 88 )
+					{
+						if( P_PMAC_Status == F_Status_EXECUTE )	
+						{
+							if( P_Execute_DryRun_Stop_Timer < P_Dryrun_Operating_Time ) 
+							{	// 음극런.
+								if( P_Init_Result(N_Anode_Run) < F_Result_Complete )
+								{
+									call Sub_Init_Run_Mode_Array.Anode_Run(F_Dry_Run,89,&P_Init_Result(N_Anode_Run));
+								}
+							}
+							else 
+							{ 
+								if( P_Cathode_Cur_Mode == F_Dry_Last_Run )
+								{
+									if( P_Init_Result(N_Wait) < F_Result_Complete )
+									{
+										P_Init_Result(N_Wait) = F_Result_None;
+										call Sub_Init_Wait_Mode_Array(89,&P_Init_Result(N_Wait));
+									}
+								}
+								else
+								{
+									// 음극런.
+									if( P_Init_Result(N_Anode_Run) < F_Result_Complete )
+									{
+										call Sub_Init_Run_Mode_Array.Anode_Run(F_Dry_Run,89,&P_Init_Result(N_Anode_Run));
+									}
+								}
+							}
+						}
+						else
+						{
+							// 정지신호가 들어오면 pmac상태를 Stopping으로 바꾸니.
+							// 음극 1차 pnp 모션만 belt -> 대기위치(45도) 이송.(사이클 정지 전 모션으로 이동)
+							call Sub_Init_Run_Mode_Array.Anode_Run(F_Stop,89,&P_Init_Result(N_Anode_Run));
+						}
+					}
+				break;
+				case F_Wait_Mode :
+					// 정지상황
+					// 재가동.
+					// 배출.
+					if( P_Position_Calc_Status == F_Status_Nonseatus )
+					{ // 현재위치 계산 완료상태가 아니라면 계산시작.
+						if(Total_DesVelZero_Bit)	
+						{ // 전체 축 정지완료가 되었다면. 
+							P_Memory_Tower_Search_Flag = 1;		// 위치값 계산 명령.
+							P_MemTow_integrated_return = 0;		// 리턴값 초기화.
+							P_Position_Calc_Status = F_Status_STARTING;			
+						}
+					} 
+					else if( P_Position_Calc_Status == F_Status_STARTING && P_MemTow_integrated_return == F_True )
+					{ // 위치값 계산완료 시 Execute 관리모듈 내부변수에 업데이트.
+						P_Position_Calc_Status = F_Status_COMPLETE;
+					}
+					else if( P_Position_Calc_Status == F_Status_COMPLETE )
+					{ // 계산이 완료되었다면 ( 위치값을 신뢰할수있다면 )					
+						if( P_PMAC_Status == F_Status_EXECUTE )
+						{ 
+							switch( P_Unit_integrated_Status )
+							{
+								// [참조 : 250620 수정 포인트]
+								case F_First_Sepa_On_Pos :
+									// 음극 세미런
+									if( P_Master_Motion_Trigger <= 89 )
+									{
+										if( P_Init_Result(N_Anode_Run) < F_Result_Complete )
+										{
+											call Sub_Init_Run_Mode_Array.Anode_Run(F_Sepa_Semi_Run,89,&P_Init_Result(N_Anode_Run));
+										}
+									}
+								break;
+								case F_Equipment_Anode_Side_Pos :
+									// 음극 세미런
+									if( P_Init_Result(N_Anode_Run) < F_Result_Complete )
+									{
+										call Sub_Init_Run_Mode_Array.Anode_Run(F_Semi_Run,89,&P_Init_Result(N_Anode_Run));
+									}
+								break;
+
+								case F_Equipment_Cathode_Side_Pos :
+									// 양극런.
+									if( P_Execute_DryRun_Stop_Timer < P_Dryrun_Operating_Time ) 
+									{	// 양극 세미런.
+										if( P_Init_Result(N_Cathode_Run) < F_Result_Complete )
+										{
+											call Sub_Init_Run_Mode_Array.Cathode_Run(F_Semi_Run,44,&P_Init_Result(N_Cathode_Run));		
+										}
+									}
+									else
+									{
+										P_PMAC_Commands = F_Command_Stop;	// Stop로 이동.
+									}
+								break;
+
+								case F_Equipment_Stack_Completed_Pos : 	// 적층완료시
+									P_PMAC_Commands = F_Command_Stop;	// Stop로 이동.
+								break;
+
+								default :	
+
+								break;										
+							}
+						}
+						else	// Execute상태가 아니면.
+							P_Execute_Manage_Mode = 0;	// 생산관리 프로그램 종료.
+							//P_PMAC_Commands = F_Command_Stop;
+					}
+				break;
+
+				default : 
+				break;	// 이외모드. 없음.
+			}	// DryRun - Current_Mode Finish.		
+		break;  // DryRun Mode Finish.
+
+		default : 	
+
+		break;	// 이외모드. 진입없음.
+	} // P_Buffer_Mode_Status_Sequence	Finish.
+}
+else
+{ // Execute 관리모듈 실행중이 아니라면.
+	if( L_Old_Execute_Manage_Mode != P_Execute_Manage_Mode )	// 이전값과 값이 다르면
+	{	// 1. 이전값 동기화.
+		L_Old_Execute_Manage_Mode = P_Execute_Manage_Mode;		// Execute 관리모듈 이전값 동기화.
+		// 2. 모드커멘드 인터락. - 없어도될것같음. 혹시 모를 Execute 관리모듈에서의 마지막발생 커멘드에 대해 오동작이 있을까봐 추가해둠.
+		if( P_Mode_Command != F_Static_Wait_Command && P_Mode_Command != F_Dynamic_Wait_Command )
+		{	// Wait이 아닌 커멘드가 존재한다면
+			P_Mode_Command = 0;	// 커멘드 초기화.
+		}
+	}
+}
+
+//======= Execute 관리모듈 Finish =============//
+
+
+// 표면검사 트리거 신호 관리
+if( P_PMAC_Status == F_Status_EXECUTE )
+{
+	if( P_Current_Mode == F_Half_Anode_Run_Mode || P_Current_Mode == F_Half_Cathode_Run_Mode )
+	{
+		if( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence )
+		{	// J/R적층 모드 일때,
+			if( P_Anode_Cur_Mode == F_Normal_Run || P_Anode_Cur_Mode == F_NG || P_Anode_Cur_Mode == F_Vac_Err )
+			{	// 음극의 경우, 노말 런 || NG || Vac err 표면검사 on
+				if( P_Master_Motion_Trigger == 31 && P_Master_Motion_Trigger != L_Old_Master_Motion_Trigger )
+				{
+					P_Vision_Surface_Command = N_Cathode_Unit;
+				}
+			}
+		
+			if( P_Cathode_Cur_Mode == F_Normal_Run || P_Cathode_Cur_Mode == F_NG || P_Cathode_Cur_Mode == F_Vac_Err || P_Cathode_Cur_Mode == F_Last_Run )
+			{	// 양극의 경우, 노말 런 || NG || Vac err || 라스트 런 표면검사 on
+				if( P_Master_Motion_Trigger == 76 && P_Master_Motion_Trigger != L_Old_Master_Motion_Trigger )
+				{
+					P_Vision_Surface_Command = N_Anode_Unit;
+				}
+			}
+		}
+	}
+}
+L_Old_Master_Motion_Trigger = P_Master_Motion_Trigger;
+//========================================================================================================================	
+// 04. 이전 모드를 알기위해 추가한 코드. (2020.02 추가.)
+//========================================================================================================================	
+	if( P_Current_Mode != L_Old_Mode_PLC0 )
+	{ // 모드 변경 시 및 현재모드가 Wait모드가 아닐 때만 현재모드 저장.	
+		P_Sequence_Old_Mode(5) = P_Sequence_Old_Mode(4);	
+		P_Sequence_Old_Mode(4) = P_Sequence_Old_Mode(3);	
+		P_Sequence_Old_Mode(3) = P_Sequence_Old_Mode(2);	
+		P_Sequence_Old_Mode(2) = P_Sequence_Old_Mode(1);	
+		P_Sequence_Old_Mode(1) = P_Sequence_Old_Mode(0);	
+		P_Sequence_Old_Mode(0) = P_Current_Mode;
+	
+		P_Sequence_Old_P_Current_Mode_Trigger(5) = P_Sequence_Old_P_Current_Mode_Trigger(4);	
+		P_Sequence_Old_P_Current_Mode_Trigger(4) = P_Sequence_Old_P_Current_Mode_Trigger(3);	
+		P_Sequence_Old_P_Current_Mode_Trigger(3) = P_Sequence_Old_P_Current_Mode_Trigger(2);	
+		P_Sequence_Old_P_Current_Mode_Trigger(2) = P_Sequence_Old_P_Current_Mode_Trigger(1);	
+		P_Sequence_Old_P_Current_Mode_Trigger(1) = P_Sequence_Old_P_Current_Mode_Trigger(0);	
+		P_Sequence_Old_P_Current_Mode_Trigger(0) = P_Master_Motion_Trigger;
+	}
+
+	IF( P_Mode_Command != L_Old_P_Mode_Command ) 
+	{	// 모드 커맨드가 변경 될 ?? 마다 버퍼에 업데이트
+	
+		P_Sequence_Old_P_Mode_Command(5) = P_Sequence_Old_P_Mode_Command(4);	
+		P_Sequence_Old_P_Mode_Command(4) = P_Sequence_Old_P_Mode_Command(3);	
+		P_Sequence_Old_P_Mode_Command(3) = P_Sequence_Old_P_Mode_Command(2);	
+		P_Sequence_Old_P_Mode_Command(2) = P_Sequence_Old_P_Mode_Command(1);	
+		P_Sequence_Old_P_Mode_Command(1) = P_Sequence_Old_P_Mode_Command(0);	
+		P_Sequence_Old_P_Mode_Command(0) = P_Mode_Command;
+	
+		P_Sequence_Old_P_Mode_Command_Trigger(5) = P_Sequence_Old_P_Mode_Command_Trigger(4);	
+		P_Sequence_Old_P_Mode_Command_Trigger(4) = P_Sequence_Old_P_Mode_Command_Trigger(3);	
+		P_Sequence_Old_P_Mode_Command_Trigger(3) = P_Sequence_Old_P_Mode_Command_Trigger(2);	
+		P_Sequence_Old_P_Mode_Command_Trigger(2) = P_Sequence_Old_P_Mode_Command_Trigger(1);	
+		P_Sequence_Old_P_Mode_Command_Trigger(1) = P_Sequence_Old_P_Mode_Command_Trigger(0);	
+		P_Sequence_Old_P_Mode_Command_Trigger(0) = P_Master_Motion_Trigger;	
+	}
+//========================================================================================================================	
+
+//========================================================================================================================	
+// 05. 이전값 동기화.
+//========================================================================================================================	
+	L_Old_Mode_PLC0 = P_Current_Mode;
+	L_Old_P_Mode_Command = P_Mode_Command;
+	L_Old_PMAC_Status = P_PMAC_Status;			// 22.07.28
+//========================================================================================================================	
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+P_MNTR_PLC0_Task_Time(1) = (Sys.Time - P_MNTR_PLC0_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC0_Task_Time(1) > P_MNTR_PLC0_Task_Max_Time )
+{
+	P_MNTR_PLC0_Task_Max_Time = P_MNTR_PLC0_Task_Time(1);
+}
+
+close

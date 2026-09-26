@@ -1,0 +1,2552 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.12.02
+// 내용 - Hold 액팅 모듈 추가. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+
+open subprog Subprog_Subprocess_Hold_Act_Module(void)
+	/*---------- Search ㄴㄷㅁㄱ ----------//
+	- Module_Stop_Point						[X]			[Hold 모듈 정지 포인트]
+	- Module_Status_Clear					[X]			[Hold 모듈 관련 상태값 초기화]
+	- Cell_Data_Vision_Check				[X]			[극판 유무에 따른 극판 유무 검사, 빈테이블 검사]
+	- Cell_Data_Vision_Surface_Check		[X]			[얼라인 극판 공급 후 극판 표면 검사]
+	- First_PNP_Wait_Pos					[모터]		[1차 PNP]	[대기 위치 이동]
+	- First_PNP_Belt_Pos					[모터]		[1차 PNP]	[벨트 이동]
+	- First_PNP_Belt_Down_Pos				[모터]		[1차 PNP]	[벨트 하강]
+	- First_PNP_Belt_Up_Pos					[모터]		[1차 PNP]	[벨트 상승]
+	- First_PNP_Align_Pos					[모터]		[1차 PNP]	[얼라인 이동]
+	- First_PNP_Align_Down_Pos				[모터]		[1차 PNP]	[얼라인 하강]
+	- First_PNP_Align_Up_Pos				[모터]		[1차 PNP]	[얼라인 상승]
+	- First_PNP_Vac_On						[실린더]		[1차 PNP]	[벨트 흡착]
+	- First_PNP_Blow_On						[실린더]		[1차 PNP]	[얼라인 블로우]
+	- Second_PNP_Stack_Pos					[모터]		[2차 PNP]	[얼라인 → 스택 이동]
+	- Second_PNP_Align_Pos					[모터]		[2차 PNP]	[스택 → 얼라인 이동]
+	- Second_PNP_Align_Down_Pos				[모터]		[2차 PNP]	[얼라인 하강]
+	- Second_PNP_Align_Up_Pos				[모터]		[2차 PNP]	[얼라인 상승]
+	- Second_PNP_Vac_On						[실린더]		[2차 PNP]	[얼라인 흡착]
+	- Second_PNP_Blow_On					[실린더]		[2차 PNP]	[얼라인 블로우]
+	- First_Second_PNP_Wait_Supply_Pos		[모터]		[1,2차 PNP]	[1차 PNP 대기 위치 → 벨트, 2차 PNP 스택 → 얼라인 이동]
+	- First_Second_PNP_Supply_Pos			[모터]		[1,2차 PNP]	[1차 PNP 얼라인 → 벨트, 2차 PNP 스택 → 얼라인 이동]
+	- First_Second_PNP_Stack_Pos			[모터]		[1,2차 PNP]	[1차 PNP 벨트 → 얼라인, 2차 PNP 얼라인 → 스택 이동]
+	- Total_Down_Pos						[모터]		[1,2차 PNP]	[1,2차 PNP 동시 하강]
+	- Total_Up_Pos							[모터]		[1,2차 PNP]	[1,2차 PNP 동시 상승]
+	- Total_Vac_On							[실린더]		[1,2차 PNP]	[1,2차 PNP 동시 흡착]
+	- NG_PNP_NG_Bos_Pos						[모터]		[NG PNP]	[NG 박스 이동]
+	- NG_PNP_Align_Pos						[모터]		[NG PNP]	[얼라인 이동]
+	- NG_PNP_Align_Down_Pos					[모터]		[NG PNP]	[얼라인 하강]
+	- NG_PNP_Align_Up_Pos					[모터]		[NG PNP]	[얼라인 상승]
+	- NG_PNP_Vac_On							[실린더]		[NG PNP]	[흡착]
+	- NG_PNP_Blow_On						[실린더]		[NG PNP]	[블로우]
+	- Hold_Pause_Check						[ 퍼즈체크 ] [ 참 조: GPIO 고장 시 예외처리 (26.01.08)]
+	//------------------------------------*/
+
+	// Hold 모듈 정지 포인트.
+	sub:Module_Stop_Point(&Module_Stop_Point_RTN)
+		// 0) 반환값 초기화.
+		Module_Stop_Point_RTN = 0;
+		// 222) 현재 PMAC 상태 확인
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Module_Stop_Point) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			if ( P_PMAC_Status == F_Status_HOLD )																					// PMAC 상태가 Hold 일 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Module_Stop_Point) = N_Complete_Step;									// 완료 스텟 머신으로 이동.
+			else																													// PMAC 상태가 Hold 아닐 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Module_Stop_Point) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+		}
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Module_Stop_Point) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_Module_Stop_Point;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			Module_Stop_Point_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Module_Stop_Point) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) = 1;																	// 동작 완료 Bit On.
+			Module_Stop_Point_RTN = N_COMPLETE;																						// 반환값 : COMPLETE
+		}
+	return;
+
+	// Hold 모듈 관련 상태값 초기화.
+	sub:Module_Status_Clear(&Module_Status_Clear_RTN)
+		// 0) 반환값 초기화.
+		Module_Status_Clear_RTN = 0;
+		// 222) 초기화.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Module_Status_Clear) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			//P_Act_Hold_Complete_Bit(0),N_Act_Hold_Define_Limit,1 = 0;																// 액팅 완료 비트 초기화.
+			//P_Module_Act_Hold_State_Machine_Array(0),N_Act_Hold_Define_Limit,1 = 0;												// 액팅 스텟 머신 초기화.
+			//P_Act_Hold_Old_Time(0),N_Act_Hold_Define_Limit,1 = 0;																	// 액팅 타임 아웃 확인 타임 초기화.
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Module_Status_Clear) = N_Complete_Step;										// 완료 스텟 머신으로 이동.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Module_Status_Clear) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_Module_Status_Clear) = 1;																	// 동작 완료 Bit On.
+			Module_Status_Clear_RTN = N_COMPLETE;																					// 반환값 : COMPLETE
+		}
+	return;
+
+	// 극판 유무에 따른 극판 유무 검사, 빈테이블 검사
+	sub:Cell_Data_Vision_Check(&Cell_Data_Vision_Check_RTN)
+		// 0) 극판 데이터에 따른 비전 검사 구분.
+		Cell_Data_Vision_Check_RTN = 0;
+		// 222) 초기화.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			P_Hold_Align_Sheet_CHK = 0
+			// 222.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)
+			{
+				if( P_Hold_Anode_Exception_Empty_Flag == 1 && Sys_Anode_NG_TR_Sheet_Data != 0 )										// NG PNP가 극판을 가지고 있을 경우 → NG 극판을 버리면서 빈테이블 검사를 진행하기 때문에 완료 처리.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = N_Complete_Step;
+				
+				else if( P_Hold_Anode_Exception_Empty_Flag == 1 && Sys_Anode_NG_TR_Sheet_Data == 0 )								// NG PNP에 극판 데이터가 있는 상태로 정지 후 재시작 할 경우 → 극판 데이터가 없다면 작업자가 제거했다고 판단하여 빈테이블 검사 실행.
+				{
+					P_Vision_EmptyTable_Command = N_Anode_Unit																		// 빈테이블 검사 실행.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = 1;										// 다음 스텟 머신으로 이동.
+				}
+				else
+				{
+					P_Vision_Existence_Command = N_Anode_Unit																		// 극판 유무 검사 실행.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = 1;										// 다음 스텟 머신으로 이동.
+				}
+			}
+			// 222.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				if( P_Hold_Cathode_Exception_Empty_Flag == 1 && Sys_Cathode_NG_TR_Sheet_Data != 0 )									// NG PNP가 극판을 가지고 있을 경우 → NG 극판을 버리면서 빈테이블 검사를 진행하기 때문에 완료 처리.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = N_Complete_Step;
+				else if( P_Hold_Cathode_Exception_Empty_Flag == 1 && Sys_Cathode_NG_TR_Sheet_Data == 0 )							// NG PNP에 극판 데이터가 있는 상태로 정지 후 재시작 할 경우 → 극판 데이터가 없다면 작업자가 제거했다고 판단하여 빈테이블 검사 실행.
+				{
+					P_Vision_EmptyTable_Command = N_Cathode_Unit																	// 빈테이블 검사 실행.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = 1;										// 다음 스텟 머신으로 이동.					
+				}
+				else
+				{
+					P_Vision_Existence_Command = N_Cathode_Unit																		// 극판 유무 검사 실행.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = 1;										// 다음 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 1) 비전 검사 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) == 1 )												// 비전 검사 확인 일 경우.
+		{
+			if( P_Hold_Align_Sheet_CHK == 1 )																						// 극판유무검사 or 빈테이블 검사 완료 확인.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) == N_Complete_Step )								// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_Cell_Data_Vision_Check) = 1;																// 동작 완료 Bit On.
+			Cell_Data_Vision_Check_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return;
+
+	// 얼라인 극판 공급 후 극판 표면 검사.
+	sub:Cell_Data_Vision_Surface_Check(&Cell_Data_Vision_Surface_Check_RTN)
+		// 0) 극판 데이터에 따른 비전 검사 구분.
+		Cell_Data_Vision_Surface_Check_RTN = 0;
+		// 222) 초기화.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Surface_Check) == N_Ready_Step )							// 진행 준비 완료 일 경우.
+		{
+			P_Surface_Complete_To_Hold = 0;																							// 극판 표면 검사 완료 확인 초기화.	[ 참조 : 25.12.24 극판 표면 검사 초기화 구문 추가 ]
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Surface_Check) = 1;										// 다음 스텟 머신으로 이동.
+		}
+		// 1) 초기화.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Surface_Check) == 1 )										// 진행 준비 완료 일 경우.
+		{
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)
+			{
+				P_Vision_Surface_Command = N_Anode_Unit;																			// 극판 표면 검사 실행.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Surface_Check) = 2;									// 다음 스텟 머신으로 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Vision_Surface_Command = N_Cathode_Unit																			// 극판 표면 검사 실행.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Surface_Check) = 2;									// 다음 스텟 머신으로 이동.
+			}
+		}
+		// 2) 비전 검사 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Surface_Check) == 2 )										// 비전 검사 확인 일 경우.
+		{
+			if( P_Surface_Complete_To_Hold == 1 )																					// 극판 표면 검사 완료 확인
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Surface_Check) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Surface_Check) == N_Complete_Step )						// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_Cell_Data_Vision_Surface_Check) = 1;														// 동작 완료 Bit On.
+			Cell_Data_Vision_Surface_Check_RTN = N_COMPLETE;																		// 반환값 : COMPLETE
+		}
+	return;
+
+	// 1차 대기 위치 이동.
+	sub:First_PNP_Wait_Pos(&First_PNP_Wait_Pos_RTN)
+		local L_individual_return;
+		// 0) 반환값 초기화.
+		First_PNP_Wait_Pos_RTN = 0;
+		// 222) 개별 위치 메모리 타워 진행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			L_individual_return = 0;																								// 반환값 초기화.
+			// 222.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )																		
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP, &P_Anode_1st_Unit_Status, &L_individual_return);		// 음극 1차 PNP 메모리 타워 진행.
+				if ( L_individual_return == F_TRUE )																				// 진행 확인.
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) = 1;											// 다음 스텟 머신으로 이동.
+				}
+			}
+			// 222.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )		
+			{																														
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP, &P_Cathode_1st_Unit_Status, &L_individual_return);	// 양극 1차 PNP 메모리 타워 진행.
+				if ( L_individual_return == F_TRUE )																				// 진행 확인.
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) = 1;											// 다음 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 1) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) == 1 )													// 메모리 타워 확인 완료.
+		{
+			// 1.0) 모션 상태 초기화
+			P_First_PNP_T_Wait_Status = 0;
+			P_First_PNP_Z_Wait_Status = 0;
+			P_First_PNP_Picker_T_Turn_Status = 0;
+			P_Hold_1st_PNP_Position = 0;
+
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos)++
+		}
+		// 2) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) == 2 )													// 동작 실행 일 경우.
+		{
+			// 2.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_First_PNP_Wait_Pos) = Sys.Time;																// 동작 실행 시 시간 저장.
+			// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				if ( P_Anode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )																// 음극 1차 PNP가 벨트 위에 있을 경우.
+				{	
+					P_Hold_1st_PNP_Position = Belt_Pos;																				// 음극 1차 PNP 현재 위치.
+					P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion;															// 음극 1차 PNP T축 대기 위치 이동.
+					P_Slave16_Motion_Command = N_1st_PNP_Ready_Pos_Motion;															// 음극 1차 PNP Z축 대기 위치 이동.
+					//P_Slave2_Motion_Command = N_1st_Picker_Turn;																	//PickerT좌표계 PNP에 묶음으로 인하여 주석 처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]	// 음극 1차 PNP Picker 회전.
+					P_Hold_Resume_Need_Flag = 1;																					// 홀드 Resume.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) = 3;											// 다음 스텟 머신 이동.
+				}
+				else if ( P_Anode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )														// 음극 1차 PNP가 얼라인 위에 있을 경우.
+				{
+					P_Hold_1st_PNP_Position = Align_Pos;																			// 음극 1차 PNP 현재 위치.
+					P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion;															// 음극 1차 PNP T축 대기 위치 이동.
+					P_Slave16_Motion_Command = N_1st_PNP_Ready_Pos_Motion;															// 음극 1차 PNP Z축 대기 위치 이동.	
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) = 3;											// 다음 스텟 머신 이동.			
+				}
+				else if ( P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )														// 음극 1차 PNP가 대기위치 위에 있을 경우.
+				{
+					P_Hold_1st_PNP_Position = Init_up_Pos;																			// 음극 1차 PNP 현재 위치.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) = N_Complete_Step;								// 완료 스텟 머신 이동.			
+				}
+			}
+			// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				if ( P_Cathode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )															// 양극 1차 PNP가 벨트 위에 있을 경우.
+				{
+					P_Hold_1st_PNP_Position = Belt_Pos;																				// 양극 1차 PNP 현재 위치.
+					P_Slave10_Motion_Command = N_1st_PNP_Ready_Pos_Motion;															// 양극 1차 PNP T축 대기 위치 이동.
+					P_Slave19_Motion_Command = N_1st_PNP_Ready_Pos_Motion;															// 양극 1차 PNP Z축 대기 위치 이동.
+					//P_Slave9_Motion_Command = N_1st_Picker_Turn;																	//PickerT좌표계 PNP에 묶음으로 인하여 주석 처리 [ 참조 : 26.08.14 PickerT 모션 변경 ] // 양극 1차 PNP Picker 회전.
+					P_Hold_Resume_Need_Flag = 1;																					// 홀드 Resume.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) = 3;											// 다음 스텟 머신 이동.
+				}
+				else if ( P_Cathode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )														// 양극 1차 PNP가 얼라인 위에 있을 경우.
+				{
+					P_Hold_1st_PNP_Position = Align_Pos;																			// 양극 1차 PNP 현재 위치.
+					P_Slave10_Motion_Command = N_1st_PNP_Ready_Pos_Motion;															// 양극 1차 PNP T축 대기 위치 이동.
+					P_Slave19_Motion_Command = N_1st_PNP_Ready_Pos_Motion;															// 양극 1차 PNP Z축 대기 위치 이동.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) = 3;											// 다음 스텟 머신 이동.
+				}
+				else if ( P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )														// 양극 1차 PNP가 얼라인 위에 있을 경우.
+				{
+					P_Hold_1st_PNP_Position = Init_up_Pos;																			// 양극 1차 PNP 대기 상승 위치.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) = N_Complete_Step;								// 완료 스텟 머신 이동.
+				}
+			}
+		}
+		// 3) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) == 3 )													// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_First_PNP_Wait_Pos) + P_Act_Hold_Time_Out(N_Act_First_PNP_Wait_Pos))			// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_PNP_T_Wait_Status == F_Status_COMPLETE && P_First_PNP_Z_Wait_Status == F_Status_COMPLETE )				// 모션 프로그램 확인.
+				{
+					// 2.1) 1차 PNP가 벨트에 있을 경우.
+					if ( P_Hold_1st_PNP_Position == Belt_Pos )
+					{
+						//if ( P_First_PNP_Picker_T_Turn_Status == F_Status_COMPLETE )												//PickerT 대기위치로 이동시 움직이지 않기 때문에 완료 상태 확인 주석 처리  [ 참조 : 26.08.14 PickerT 모션 변경 ] // 모션 프로그램 확인.
+						//{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+						//}			
+					}
+					// 2.2) 1차 PNP가 얼라인에 있을 경우.
+					if ( P_Hold_1st_PNP_Position == Align_Pos )
+					{
+						P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else						
+			{
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_First_PNP_Wait_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			First_PNP_Wait_Pos_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Wait_Pos) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_First_PNP_Wait_Pos) = 1;																	// 동작 완료 Bit On.
+			First_PNP_Wait_Pos_RTN = N_COMPLETE;																					// 반환값 : COMPLETE
+		}
+	return;
+
+	// 1차 PNP 벨트 이동.
+	sub:First_PNP_Belt_Pos(&First_PNP_Belt_Pos_RTN)
+		local L_individual_return;
+		// 0) 반환값 초기화.
+		First_PNP_Belt_Pos_RTN = 0;
+		// 222) 개별 위치 메모리 타워 진행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			L_individual_return = 0;																								// 반환값 초기화.
+			// 222.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )																		
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP, &P_Anode_1st_Unit_Status, &L_individual_return);		// 음극 1차 PNP 메모리 타워 진행.
+				if ( L_individual_return == F_TRUE )																				// 진행 확인.
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = 1;											// 다음 스텟 머신으로 이동.
+				}
+			}
+			// 222.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )		
+			{																														
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP, &P_Cathode_1st_Unit_Status, &L_individual_return);	// 양극 1차 PNP 메모리 타워 진행.
+				if ( L_individual_return == F_TRUE )																				// 진행 확인.
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = 1;											// 다음 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 1) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) == 1 )													// 메모리 타워 확인 완료.
+		{
+			// 1.0) 모션 상태 초기화
+			P_First_PNP_T_Wait_To_Belt_Status = 0;
+			P_First_PNP_T_Align_To_Belt_Status = 0;
+			P_First_PNP_Z_Align_To_Belt_Status = 0;
+			P_Hold_1st_PNP_Position = 0;
+			
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = 2;											// 다음 스텟 머신으로 이동.
+		}
+		// 2) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) == 2 )													// 동작 실행 일 경우.
+		{
+			// 2.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_First_PNP_Belt_Pos) = Sys.Time;																// 동작 실행 시 시간 저장.
+			// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				if ( P_Master_Motion_Trigger == N_Hold_Anode_Belt_Move_Timing )														// 음극 벨트 이동 마스터 트리거 확인.
+				{				
+					if ( P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )															// 음극 1차 PNP가 대기 위치에 있을 경우.
+					{
+						P_Hold_1st_PNP_Position = Wait_Pos;																			// 음극 1차 PNP 현재 위치.
+						P_Slave1_Motion_Command = N_1st_PNP_Ready_To_Belt_Motion;													// 음극 1차 PNP T축 벨트 위치 이동.
+						P_Hold_Anode_Pause_CHK = 1;																					// 음극 Pause.
+						P_Seq_Pause = 1
+						P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = 3;										// 다음 스텟 머신 이동.
+					}
+					else if ( P_Anode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )													// 음극 1차 PNP가 얼라인에 있을 경우.
+					{
+						P_Hold_1st_PNP_Position = Align_Pos;																		// 음극 1차 PNP 현재 위치.
+						P_Slave1_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;													// 음극 1차 PNP T축 벨트 위치 이동.
+						P_Slave16_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;													// 음극 1차 PNP Z축 벨트 위치 이동.
+						P_Hold_Anode_Pause_CHK = 1;																					// 음극 Pause.
+						P_Seq_Pause = 2
+						P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = 3;										// 다음 스텟 머신 이동.					
+					}
+					else if ( P_Anode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )													// 음극 1차 PNP 벨트에 있을 경우.
+					{
+						P_Hold_1st_PNP_Position = Belt_Pos;																			// 음극 1차 PNP 현재 위치.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+				}
+				// [참조 : 260423 1차 공급 시 1차 PNP 벨트 들어가는 타이밍 대기 중 stopping으로 변경되면 사이클 스탑 되도록 수정]
+				else if ( P_PMAC_Status == F_Status_STOPPING )																			// 1차 PNP가 벨트로 들어가기 전 Stopping 이 될 경우.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				if( P_Master_Motion_Trigger == N_Hold_Cathode_Belt_Move_Timing )													// 양극 벨트 이동 마스터 트리거 확인.
+				{			
+					if ( P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )														// 양극 1차 PNP가 대기 위치에 있을 경우.
+					{
+						P_Hold_1st_PNP_Position = Wait_Pos;																			// 양극 1차 PNP 현재 위치.
+						P_Slave10_Motion_Command = N_1st_PNP_Ready_To_Belt_Motion;													// 양극 1차 PNP T축 벨트 위치 이동.
+						P_Hold_Cathode_Pause_CHK = 1;																				//양극 Pause.
+						P_Seq_Pause = 10
+						P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = 3;										// 다음 스텟 머신 이동.
+					}
+					else if ( P_Cathode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )													// 양극 1차 PNP가 얼라인에 있을 경우.
+					{
+						P_Hold_1st_PNP_Position = Align_Pos;																		// 양극 1차 PNP 현재 위치.
+						P_Slave10_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;													// 양극 1차 PNP T축 벨트 위치 이동.
+						P_Slave19_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;													// 양극 1차 PNP Z축 벨트 위치 이동.
+						P_Hold_Cathode_Pause_CHK = 1;																				// 양극 Pause.
+						P_Seq_Pause = 11
+						P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = 3;										// 다음 스텟 머신 이동.
+					}
+					else if ( P_Cathode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )													// 양극 1차 PNP 벨트에 있을 경우.
+					{
+						P_Hold_1st_PNP_Position = Belt_Pos;																			// 양극 1차 PNP 현재 위치.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+				}
+				// [참조 : 260423 1차 공급 시 1차 PNP 벨트 들어가는 타이밍 대기 중 stopping으로 변경되면 사이클 스탑 되도록 수정]
+				else if ( P_PMAC_Status == F_Status_STOPPING )																			// 1차 PNP가 벨트로 들어가기 전 Stopping 이 될 경우.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+			}
+		}
+		// 3) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) == 3 )													// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_First_PNP_Belt_Pos) + P_Act_Hold_Time_Out(N_Act_First_PNP_Belt_Pos))			// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_Hold_1st_PNP_Position == Wait_Pos )
+				{
+					if ( P_First_PNP_T_Wait_To_Belt_Status == F_Status_COMPLETE )													// 모션 프로그램 확인.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+				}
+				else if ( P_Hold_1st_PNP_Position == Align_Pos )
+				{		
+					if ( P_First_PNP_T_Align_To_Belt_Status == F_Status_COMPLETE && P_First_PNP_Z_Align_To_Belt_Status == F_Status_COMPLETE )		// 모션 프로그램 확인.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+				}
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+		}
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_First_PNP_Belt_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			First_PNP_Belt_Pos_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Pos) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_First_PNP_Belt_Pos) = 1;																	// 동작 완료 Bit On.
+			First_PNP_Belt_Pos_RTN = N_COMPLETE;																					// 반환값 : COMPLETE
+		}
+	return;
+
+	// 1차 PNP 벨트 하강.
+	sub:First_PNP_Belt_Down_Pos(&First_PNP_Belt_Down_Pos_RTN)
+		// 0) 반환값 초기화.
+		First_PNP_Belt_Down_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Down_Pos) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_First_PNP_Z_Belt_Down_Status = 0;
+			
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Down_Pos) = 1;										// 다음 스텟 머신으로 이동.		
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Down_Pos) == 1 )											// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_First_PNP_Belt_Down_Pos) = Sys.Time;															// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				if ( M_X_PLC_Anode_Sheet_Ready == 1 || P_Hold_Pass == 1)															// 음극 벨트 극판 Ready 확인.
+				{
+					P_Slave16_Motion_Command = N_1st_PNP_Belt_Down_Motion;															// 음극 1차 PNP Z축 벨트 하강 위치 이동.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Down_Pos) = 2;										// 다음 스텟 머신 이동.
+				}
+				else if ( M_X_PLC_Anode_Sheet_Ready == 0 )
+				{
+					if ( P_PMAC_Status == F_Status_STOPPING )																			// 1차 PNP가 벨트로 들어가기 전 Stopping 이 될 경우.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Down_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+				}
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				if( M_X_PLC_Cathode_Sheet_Ready == 1 || P_Hold_Pass == 1)															// 양극 벨트 극판 Ready 확인.
+				{
+					P_Slave19_Motion_Command = N_1st_PNP_Belt_Down_Motion;															// 양극 1차 PNP Z축 벨트 하강 위치 이동.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Down_Pos) = 2;										// 다음 스텟 머신 이동.
+				}
+				else if ( M_X_PLC_Cathode_Sheet_Ready == 0 )
+				{
+					if ( P_PMAC_Status == F_Status_STOPPING )																			// 1차 PNP가 벨트로 들어가기 전 Stopping 이 될 경우.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Down_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Down_Pos) == 2 )											// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_First_PNP_Belt_Down_Pos) + P_Act_Hold_Time_Out(N_Act_First_PNP_Belt_Down_Pos))// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_PNP_Z_Belt_Down_Status == F_Status_COMPLETE )															// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Down_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Down_Pos) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+		}	
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Down_Pos) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_First_PNP_Belt_Down_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			First_PNP_Belt_Down_Pos_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Down_Pos) == N_Complete_Step )								// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_First_PNP_Belt_Down_Pos) = 1;																// 동작 완료 Bit On.
+			First_PNP_Belt_Down_Pos_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return;
+
+	// 1차 PNP 벨트 상승.
+	sub:First_PNP_Belt_Up_Pos(&First_PNP_Belt_Up_Pos_RTN)
+		// 0) 반환값 초기화.
+		First_PNP_Belt_Up_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Up_Pos) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_First_PNP_Z_Belt_Up_Status = 0;
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Up_Pos) = 1;											// 다음 스텟 머신으로 이동.
+		
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Up_Pos) == 1 )												// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_First_PNP_Belt_Up_Pos) = Sys.Time;															// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave16_Motion_Command = N_1st_PNP_Belt_Up_Motion;																// 음극 1차 PNP Z축 벨트 상승 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Up_Pos) = 2;												// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave19_Motion_Command = N_1st_PNP_Belt_Up_Motion;																// 양극 1차 PNP Z축 벨트 상승 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Up_Pos) = 2;												// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Up_Pos) == 2 )												// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_First_PNP_Belt_Up_Pos) + P_Act_Hold_Time_Out(N_Act_First_PNP_Belt_Up_Pos))	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_PNP_Z_Belt_Up_Status == F_Status_COMPLETE )															// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Up_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Up_Pos) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+		}		
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Up_Pos) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_First_PNP_Belt_Up_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			First_PNP_Belt_Up_Pos_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Belt_Up_Pos) == N_Complete_Step )								// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_First_PNP_Belt_Up_Pos) = 1;																// 동작 완료 Bit On.
+			First_PNP_Belt_Up_Pos_RTN = N_COMPLETE;																					// 반환값 : COMPLETE
+		}
+	return;
+
+	// 1차 PNP 얼라인 이동.
+	sub:First_PNP_Align_Pos(&First_PNP_Align_Pos_RTN)
+		local L_individual_return;
+		// 0) 반환값 초기화.
+		First_PNP_Align_Pos_RTN = 0;
+		// 222) 개별 위치 메모리 타워 진행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			L_individual_return = 0;																								// 반환값 초기화.
+			// 222.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )																		
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP, &P_Anode_1st_Unit_Status, &L_individual_return);		// 음극 1차 PNP 메모리 타워 진행.
+				if ( L_individual_return == F_TRUE )																				// 진행 확인.
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = 1;											// 다음 스텟 머신으로 이동.
+				}
+			}
+			// 222.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )		
+			{																														
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP, &P_Cathode_1st_Unit_Status, &L_individual_return);	// 양극 1차 PNP 메모리 타워 진행.
+				if ( L_individual_return == F_TRUE )																				// 진행 확인.
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = 1;											// 다음 스텟 머신으로 이동.
+				}
+			}
+		}
+		// 1) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) == 1 )												// 메모리 타워 확인 완료.
+		{
+			// 222.0) 모션 상태 초기화
+			P_First_PNP_T_Wait_To_Align_Status = 0;
+			P_First_PNP_T_Belt_To_Align_Status = 0;
+			P_First_PNP_Z_Belt_To_Align_Status = 0;
+			P_Hold_1st_PNP_Position = 0;
+			
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = 2;											// 다음 스텟 머신으로 이동.		
+		}
+		// 2) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) == 2 )												// 동작 실행 일 경우.
+		{
+			// 2.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_First_PNP_Align_Pos) = Sys.Time;																// 동작 실행 시 시간 저장.
+			// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				if ( P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )																// 음극 1차 PNP가 대기 위치에 있을 경우.
+				{
+					P_Hold_1st_PNP_Position = Wait_Pos;
+					P_Slave1_Motion_Command = N_1st_PNP_Ready_To_Align_Motion;														// 음극 1차 PNP T축 얼라인 위치 이동.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = 3;											// 다음 스텟 머신 이동.
+				}
+				else if ( P_Anode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )														// 음극 1차 PNP가 벨트에 있을 경우.
+				{
+					P_Hold_1st_PNP_Position = Belt_Pos;
+					P_Slave1_Motion_Command = N_1st_PNP_Belt_To_Align_Motion;														// 음극 1차 PNP T축 얼라인 위치 이동.
+					P_Slave16_Motion_Command = N_1st_PNP_Belt_To_Align_Motion;														// 음극 1차 PNP Z축 얼라인 위치 이동.
+					//P_Slave2_Motion_Command = N_1st_Picker_Turn																	//PickerT좌표계 PNP에 묶음으로 인하여 주석 처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]
+					P_Hold_Resume_Need_Flag = 1;																					// 홀드 Resume.				
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = 3;											// 다음 스텟 머신 이동.
+				}
+				else if ( P_Anode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )														// 양극 1차 PNP가 얼라인 위에 있을 경우.
+				{	
+					P_Hold_1st_PNP_Position = Align_Pos;													
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = N_Complete_Step;								// 완료 스텟 머신으로 이동.		
+				}
+			}
+			// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				if ( P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )															// 양극 1차 PNP가 대기 위치에 있을 경우.
+				{								  
+					P_Hold_1st_PNP_Position = Wait_Pos;
+					P_Slave10_Motion_Command = N_1st_PNP_Ready_To_Align_Motion;														// 양극 1차 PNP T축 얼라인 위치 이동.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = 3;											// 다음 스텟 머신 이동.
+				}
+				else if ( P_Cathode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )														// 양극 1차 PNP가 벨트에 있을 경우.
+				{
+					P_Hold_1st_PNP_Position = Belt_Pos;
+					P_Slave10_Motion_Command = N_1st_PNP_Belt_To_Align_Motion;														// 양극 1차 PNP T축 얼라인 위치 이동.
+					P_Slave19_Motion_Command = N_1st_PNP_Belt_To_Align_Motion;														// 양극 1차 PNP Z축 얼라인 위치 이동.
+					//P_Slave9_Motion_Command = N_1st_Picker_Turn																	//PickerT좌표계 PNP에 묶음으로 인하여 주석 처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]
+					P_Hold_Resume_Need_Flag = 1;																					// 홀드 Resume.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = 3;											// 다음 스텟 머신 이동.
+				}
+				else if ( P_Cathode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )														// 양극 1차 PNP가 얼라인 위에 있을 경우.
+				{	
+					P_Hold_1st_PNP_Position = Align_Pos;													
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = N_Complete_Step;								// 완료 스텟 머신으로 이동.			
+				}
+			}
+		}
+		// 3) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) == 3 )												// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_First_PNP_Align_Pos) + P_Act_Hold_Time_Out(N_Act_First_PNP_Align_Pos))		// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_Hold_1st_PNP_Position == Wait_Pos )
+				{
+					if ( P_First_PNP_T_Wait_To_Align_Status == F_Status_COMPLETE )													// 모션 프로그램 확인.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+				}
+				else if ( P_Hold_1st_PNP_Position == Belt_Pos )
+				{
+					if ( P_First_PNP_T_Belt_To_Align_Status == F_Status_COMPLETE && P_First_PNP_Z_Belt_To_Align_Status == F_Status_COMPLETE )		// 모션 프로그램 확인.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+				}
+				else if( P_Hold_1st_PNP_Position == Align_Pos )
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = N_Complete_Step;	
+				}
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+		}
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_First_PNP_Align_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			First_PNP_Align_Pos_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Pos) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_First_PNP_Align_Pos) = 1;																	// 동작 완료 Bit On.
+			First_PNP_Align_Pos_RTN = N_COMPLETE;																					// 반환값 : COMPLETE
+		}
+	return;
+
+	// 1차 PNP 얼라인 하강.
+	sub:First_PNP_Align_Down_Pos(&First_PNP_Align_Down_Pos_RTN)
+		// 0) 반환값 초기화.
+		First_PNP_Align_Down_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Down_Pos) == N_Ready_Step )								// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_First_PNP_Z_Align_Down_Status = 0;
+		
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Down_Pos) = 1;										// 다음 스텟 머신으로 이동.		
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Down_Pos) == 1 )											// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_First_PNP_Align_Down_Pos) = Sys.Time;															// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave16_Motion_Command = N_1st_PNP_Align_Down_Motion;																// 음극 1차 PNP Z축 얼라인 하강 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Down_Pos) = 2;											// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave19_Motion_Command = N_1st_PNP_Align_Down_Motion;																// 양극 1차 PNP Z축 얼라인 하강 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Down_Pos) = 2;											// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Down_Pos) == 2 )											// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_First_PNP_Align_Down_Pos) + P_Act_Hold_Time_Out(N_Act_First_PNP_Align_Down_Pos))	// 일정 시간 전에 완료 될 경우.
+			{			
+				if ( P_First_PNP_Z_Align_Down_Status == F_Status_COMPLETE )															// 모션 프로그램 확인.
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Down_Pos) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+				}
+			}
+			else
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Down_Pos) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+		}			
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Down_Pos) == N_Error_Step )								// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_First_PNP_Align_Down_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			First_PNP_Align_Down_Pos_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Down_Pos) == N_Complete_Step )								// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_First_PNP_Align_Down_Pos) = 1;															// 동작 완료 Bit On.
+			First_PNP_Align_Down_Pos_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return;
+
+	// 1차 PNP 얼라인 상승.
+	sub:First_PNP_Align_Up_Pos(&First_PNP_Align_Up_Pos_RTN)
+		// 0) 반환값 초기화.
+		First_PNP_Align_Up_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Up_Pos) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_First_PNP_Z_Align_Up_Status = 0;
+			
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Up_Pos) = 1;										// 다음 스텟 머신으로 이동.		
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Up_Pos) == 1 )												// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_First_PNP_Align_Up_Pos) = Sys.Time;															// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave16_Motion_Command = N_1st_PNP_Align_Up_Motion;																// 음극 1차 PNP Z축 얼라인 상승 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Up_Pos) = 2;											// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave19_Motion_Command = N_1st_PNP_Align_Up_Motion;																// 양극 1차 PNP Z축 얼라인 상승 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Up_Pos) = 2;											// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Up_Pos) == 2 )												// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_First_PNP_Align_Up_Pos) + P_Act_Hold_Time_Out(N_Act_First_PNP_Align_Up_Pos))	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_PNP_Z_Align_Up_Status == F_Status_COMPLETE )															// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Up_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Up_Pos) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+		}		
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Up_Pos) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_First_PNP_Align_Up_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			First_PNP_Align_Up_Pos_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Align_Up_Pos) == N_Complete_Step )								// 완료 상태 일 경우.
+		{
+			// [참조 : 260127 얼라인 스타트 io on/off 시점 추가]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				if( P_First_Anode_Sheet_Supply_Flag == 0 )
+				{
+					P_First_Anode_Sheet_Supply_Flag = 1
+					M_Y_Vision_Anode_Align_Start = 1
+				}
+			}
+			else if( P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				if( P_First_Cathode_Sheet_Supply_Flag == 0 )
+				{
+					P_First_Cathode_Sheet_Supply_Flag = 1
+					M_Y_Vision_Cathode_Align_Start = 1
+				}
+			}
+
+			P_Act_Hold_Complete_Bit(N_Act_First_PNP_Align_Up_Pos) = 1;																// 동작 완료 Bit On.
+			First_PNP_Align_Up_Pos_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return;
+		
+	// 1차 PNP 벨트 흡착.
+	sub:First_PNP_Vac_On(&First_PNP_Vac_On_RTN)
+		// 0) 반환값 초기화.
+		First_PNP_Vac_On_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Vac_On) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_First_PNP_Vac_On_Status = 0;
+		
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Vac_On) = 1;														// 다음 스텟 머신으로 이동.		
+		}
+		// 1) 모션 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Vac_On) == 1 )													// 진행 준비 완료 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_First_PNP_Vac_On) = Sys.Time;																	// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave16_Motion_Command = N_1st_PNP_Belt_Vac;																		// 음극 1차 PNP Z축 흡착.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Vac_On) = 2;													// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave19_Motion_Command = N_1st_PNP_Belt_Vac;																		// 양극 1차 PNP Z축 흡착.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Vac_On) = 2;													// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Vac_On) == 2 )													// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_First_PNP_Vac_On) + P_Act_Hold_Time_Out(N_Act_First_PNP_Vac_On))				// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_PNP_Vac_On_Status == F_Status_COMPLETE )																// 모션 프로그램 확인.
+				{
+					// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+					if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Vac_On) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+					// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+					else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Vac_On) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Vac_On) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+		}			
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Vac_On) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_First_PNP_Vac_On;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			First_PNP_Vac_On_RTN = N_FALSE;																							// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Vac_On) == N_Complete_Step )										// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_First_PNP_Vac_On) = 1;																	// 동작 완료 Bit On.
+			First_PNP_Vac_On_RTN = N_COMPLETE;																						// 반환값 : COMPLETE
+		}
+	return;
+		
+	// 1차 PNP 얼라인 블로우.
+	sub:First_PNP_Blow_On(&First_PNP_Blow_On_RTN)
+		// 0) 반환값 초기화.
+		First_PNP_Blow_On_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Blow_On) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_First_PNP_Blow_On_Status = 0;
+			
+			P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Blow_On) = 1;														// 다음 스텟 머신으로 이동.		
+		}
+		// 1) 모션 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Blow_On) == 1 )													// 진행 준비 완료 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_First_PNP_Blow_On) = Sys.Time;																// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave16_Motion_Command = N_1st_PNP_Align_Blow;																	// 음극 1차 PNP Z축 블로우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Blow_On) = 2;													// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				//P_OLD_Slave_Motion = P_Slave19_Motion_Command;
+				P_Slave19_Motion_Command = N_1st_PNP_Align_Blow;																	// 양극 1차 PNP Z축 블로우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Blow_On) = 2;													// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Blow_On) == 2 )													// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_First_PNP_Blow_On) + P_Act_Hold_Time_Out(N_Act_First_PNP_Blow_On))			// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_PNP_Blow_On_Status == F_Status_COMPLETE )																// 모션 프로그램 확인.
+				{
+					// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+					if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Blow_On) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+					// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+					else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Blow_On) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Blow_On) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+		}	
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Blow_On) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_First_PNP_Blow_On;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			First_PNP_Blow_On_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_PNP_Blow_On) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_First_PNP_Blow_On) = 1;																	// 동작 완료 Bit On.
+			First_PNP_Blow_On_RTN = N_COMPLETE;																						// 반환값 : COMPLETE
+		}
+	return;
+
+	// 2차 PNP 스택 이동.	
+	sub:Second_PNP_Stack_Pos(&Second_PNP_Stack_Pos_RTN)
+		// 0) 반환값 초기화.
+		Second_PNP_Stack_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{	
+			// 222.0) 모션 상태 초기화
+			P_Second_PNP_T_Align_To_Stack_Status = 0;
+			P_Second_PNP_Z_Align_To_Stack_Status = 0;		
+
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,&P_Anode_2nd_Unit_Status,&P_individual_Hold_return);
+				if( P_individual_Hold_return == 1 )
+				{
+					// 음극 2차 PNP가 이미 스택 상승 위치이므로 완료 처리
+					if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = N_Complete_Step
+					else
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = 1
+				}
+			}
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,&P_Cathode_2nd_Unit_Status,&P_individual_Hold_return);
+				if( P_individual_Hold_return == 1 )
+				{
+					// 양극 2차 PNP가 이미 스택 상승 위치이므로 완료 처리
+					if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = N_Complete_Step
+					else
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = 1
+				}
+			}
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) == 1 )												// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_Second_PNP_Stack_Pos) = Sys.Time;																// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave3_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 음극 2차 PNP T축 스택 위치 이동.
+				P_Slave17_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 음극 2차 PNP Z축 스택 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = 2;												// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave8_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 양극 2차 PNP T축 스택 위치 이동.
+				P_Slave18_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 양극 2차 PNP Z축 스택 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = 2;												// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) == 2 )												// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_Second_PNP_Stack_Pos) + P_Act_Hold_Time_Out(N_Act_Second_PNP_Stack_Pos))		// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_Second_PNP_T_Align_To_Stack_Status == F_Status_COMPLETE && P_Second_PNP_Z_Align_To_Stack_Status == F_Status_COMPLETE )			// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+		}		
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_Second_PNP_Stack_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			Second_PNP_Stack_Pos_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) == N_Complete_Step )									// 완료 상태 일 경우.
+		{	
+			P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Stack_Pos) = 1;																// 동작 완료 Bit On.
+			Second_PNP_Stack_Pos_RTN = N_COMPLETE;																					// 반환값 : COMPLETE
+		}
+	return;
+
+	// 2차 PNP 얼라인 이동.
+	sub:Second_PNP_Align_Pos(&Second_PNP_Align_Pos_RTN)
+		// 0) 반환값 초기화.
+		Second_PNP_Align_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_Second_PNP_T_Stack_To_Align_Status = 0;
+			P_Second_PNP_Z_Stack_To_Align_Status = 0;
+		
+ 			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,&P_Anode_2nd_Unit_Status,&P_individual_Hold_return);
+				if( P_individual_Hold_return == 1 )
+				{
+					// 음극 2차 PNP가 이미 얼라인 상승 위치이므로 완료 처리
+					if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) = N_Complete_Step
+					else
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) = 1
+				}
+			}
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,&P_Cathode_2nd_Unit_Status,&P_individual_Hold_return);
+				if( P_individual_Hold_return == 1 )
+				{
+					// 양극 2차 PNP가 이미 얼라인 상승 위치이므로 완료 처리
+					if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) = N_Complete_Step
+					else
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) = 1
+				}
+			}
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) == 1 )												// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_Second_PNP_Align_Pos) = Sys.Time;																// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave3_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;															// 음극 2차 PNP T축 얼라인 위치 이동.
+				P_Slave17_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;															// 음극 2차 PNP Z축 얼라인 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) = 2;												// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave8_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;															// 양극 2차 PNP T축 얼라인 위치 이동.
+				P_Slave18_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;															// 양극 2차 PNP Z축 얼라인 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) = 2;												// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) == 2 )												// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_Second_PNP_Align_Pos) + P_Act_Hold_Time_Out(N_Act_Second_PNP_Align_Pos))		// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_Second_PNP_T_Stack_To_Align_Status == F_Status_COMPLETE && P_Second_PNP_Z_Stack_To_Align_Status == F_Status_COMPLETE )			// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+		}		
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_Second_PNP_Align_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			Second_PNP_Align_Pos_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Pos) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Align_Pos) = 1;																// 동작 완료 Bit On.
+			Second_PNP_Align_Pos_RTN = N_COMPLETE;																					// 반환값 : COMPLETE
+		}
+	return;
+
+	// 2차 PNP 얼라인 하강.
+	sub:Second_PNP_Align_Down_Pos(&Second_PNP_Align_Down_Pos_RTN)
+		// 0) 반환값 초기화.
+		Second_PNP_Align_Down_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) == N_Ready_Step )								// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_Second_PNP_Z_Align_Down_Status = 0;
+ 
+ 			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,&P_Anode_2nd_Unit_Status,&P_individual_Hold_return);
+				if( P_individual_Hold_return == 1 )
+				{
+					// 음극 2차 PNP가 이미 얼라인 하강 위치이므로 완료 처리
+					if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Down_Pos )
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) = N_Complete_Step
+					else
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) = 1
+				}
+			}
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,&P_Cathode_2nd_Unit_Status,&P_individual_Hold_return);
+				if( P_individual_Hold_return == 1 )
+				{
+					// 양극 2차 PNP가 이미 얼라인 하강 위치이므로 완료 처리
+					if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Down_Pos )
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) = N_Complete_Step
+					else
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) = 1
+				}
+			}	
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) == 1 )											// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_Second_PNP_Align_Down_Pos) = Sys.Time;														// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave17_Motion_Command = N_2nd_PNP_Align_Down_Motion;																// 음극 2차 PNP Z축 얼라인 하강 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) = 2;											// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave18_Motion_Command = N_2nd_PNP_Align_Down_Motion;																// 양극 2차 PNP Z축 얼라인 하강 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) = 2;											// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) == 2 )											// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_Second_PNP_Align_Down_Pos) + P_Act_Hold_Time_Out(N_Act_Second_PNP_Align_Down_Pos))	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_Second_PNP_Z_Align_Down_Status == F_Status_COMPLETE )//|| P_Hold_HJ == 1 )										// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+		}			
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) == N_Error_Step )								// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_Second_PNP_Align_Down_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			Second_PNP_Align_Down_Pos_RTN = N_FALSE;																				// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Down_Pos) == N_Complete_Step )							// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Align_Down_Pos) = 1;															// 동작 완료 Bit On.
+			Second_PNP_Align_Down_Pos_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return;
+
+	// 2차 PNP 얼라인 상승.
+	sub:Second_PNP_Align_Up_Pos(&Second_PNP_Align_Up_Pos_RTN)
+		// 0) 반환값 초기화.
+		Second_PNP_Align_Up_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_Second_PNP_Z_Align_Up_Status = 0;
+
+ 			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,&P_Anode_2nd_Unit_Status,&P_individual_Hold_return);
+				if( P_individual_Hold_return == 1 )
+				{
+					// 음극 2차 PNP가 이미 스택 상승 위치이므로 완료 처리
+					if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) = N_Complete_Step
+					else
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) = 1
+				}
+			}
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,&P_Cathode_2nd_Unit_Status,&P_individual_Hold_return);
+				if( P_individual_Hold_return == 1 )
+				{
+					// 양극 2차 PNP가 이미 스택 상승 위치이므로 완료 처리
+					if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) = N_Complete_Step
+					else
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) = 1
+				}
+			}			
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) == 1 )											// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_Second_PNP_Align_Up_Pos) = Sys.Time;															// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave17_Motion_Command = N_2nd_PNP_Align_Up_Motion;																// 음극 2차 PNP Z축 얼라인 상승 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) = 2;											// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave18_Motion_Command = N_2nd_PNP_Align_Up_Motion;																// 양극 2차 PNP Z축 얼라인 상승 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) = 2;											// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) == 2 )											// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_Second_PNP_Align_Up_Pos) + P_Act_Hold_Time_Out(N_Act_Second_PNP_Align_Up_Pos))	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_Second_PNP_Z_Align_Up_Status == F_Status_COMPLETE )															// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+		}	
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_Second_PNP_Align_Up_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			Second_PNP_Align_Up_Pos_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Align_Up_Pos) == N_Complete_Step )								// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Align_Up_Pos) = 1;																// 동작 완료 Bit On.
+			Second_PNP_Align_Up_Pos_RTN = N_COMPLETE;																				// 반환값 : COMPLETE
+		}
+	return;
+
+	// 2차 PNP 얼라인 흡착.
+	sub:Second_PNP_Vac_On(&Second_PNP_Vac_On_RTN)
+		// 0) 반환값 초기화.
+		Second_PNP_Vac_On_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_Second_PNP_Vac_On_Status = 0;
+			// 222.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				if ( Coord[N_Coord_2nd_PNP_AN_Z].ProgRunning == 1 && Motor[N_2nd_PnP_AN_Z].AmpEna == 1 )							// 음극 2차 PNP 좌표계, Servo 확인.
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = 1;												// 다음 스텟 머신으로 이동.
+				}
+				else
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+			// 222.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				if ( Coord[N_Coord_2nd_PNP_CA_Z].ProgRunning == 1 && Motor[N_2nd_PnP_CA_Z].AmpEna == 1 )							// 양극 2차 PNP 좌표계, Servo 확인.
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = 1;												// 다음 스텟 머신으로 이동.
+				}
+				else
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+			else
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+		}
+		// 1) 모션 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) == 1 )													// 진행 준비 완료 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_Second_PNP_Vac_On) = Sys.Time;																// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave17_Motion_Command = N_2nd_PNP_Align_Vac;																		// 음극 2차 PNP Z축 흡착.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = 2;													// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave18_Motion_Command = N_2nd_PNP_Align_Vac;																		// 양극 2차 PNP Z축 흡착.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = 2;													// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) == 2 )													// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_Second_PNP_Vac_On) + P_Act_Hold_Time_Out(N_Act_Second_PNP_Vac_On))			// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_Second_PNP_Vac_On_Status == F_Status_COMPLETE )																// 모션 프로그램 확인.
+				{
+					// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+					if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+					// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+					else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+		}	
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_Second_PNP_Vac_On;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			Second_PNP_Vac_On_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Vac_On) = 1;																	// 동작 완료 Bit On.
+			Second_PNP_Vac_On_RTN = N_COMPLETE;																						// 반환값 : COMPLETE
+		}
+	return;
+
+	// 2차 PNP 얼라인 블로우.
+	sub:Second_PNP_Blow_On(&Second_PNP_Blow_On_RTN)
+		// 0) 반환값 초기화.
+		Second_PNP_Blow_On_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_Second_PNP_Blow_On_Status = 0;
+			// 222.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				if ( Coord[N_Coord_2nd_PNP_AN_Z].ProgRunning == 1 && Motor[N_2nd_PnP_AN_Z].AmpEna == 1 )							// 음극 2차 PNP 좌표계, Servo 확인.
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) = 1;											// 다음 스텟 머신으로 이동.
+				}
+				else
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+			// 222.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				if ( Coord[N_Coord_2nd_PNP_CA_Z].ProgRunning == 1 && Motor[N_2nd_PnP_CA_Z].AmpEna == 1 )							// 양극 2차 PNP 좌표계, Servo 확인.
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) = 1;											// 다음 스텟 머신으로 이동.
+				}
+				else
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			}
+			else
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+		}
+		// 1) 모션 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) == 1 )													// 진행 준비 완료 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_Second_PNP_Blow_On) = Sys.Time;																// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave17_Motion_Command = N_2nd_PNP_Align_Blow;																	// 음극 2차 PNP Z축 블로우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) = 2;												// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave18_Motion_Command = N_2nd_PNP_Align_Blow;																	// 양극 2차 PNP Z축 블로우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) = 2;												// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) == 2 )													// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_Second_PNP_Blow_On) + P_Act_Hold_Time_Out(N_Act_Second_PNP_Blow_On))			// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_Second_PNP_Blow_On_Status == F_Status_COMPLETE )																// 모션 프로그램 확인.
+				{
+					// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+					if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+					// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+					else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+		}		
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_Second_PNP_Blow_On;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			Second_PNP_Blow_On_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Blow_On) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_Second_PNP_Blow_On) = 1;																	// 동작 완료 Bit On.
+			Second_PNP_Blow_On_RTN = N_COMPLETE;																					// 반환값 : COMPLETE
+		}
+	return;
+
+	// 1차 PNP 대기 위치 → 벨트, 2차 PNP 스택 → 얼라인 이동.
+	sub:First_Second_PNP_Wait_Supply_Pos(&First_Second_PNP_Wait_Supply_Pos_RTN)
+		// 0) 반환값 초기화.
+		First_Second_PNP_Wait_Supply_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) == N_Ready_Step )						// 진행 준비 완료 일 경우.
+		{
+ 			
+			P_First_PNP_T_Wait_To_Belt_Status = 0;
+			P_First_PNP_Z_Wait_To_Belt_Status = 0;
+			P_Second_PNP_T_Stack_To_Align_Status = 0;
+			P_Second_PNP_Z_Stack_To_Align_Status = 0;
+
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,&P_Anode_2nd_Unit_Status,&P_individual_Hold_return);
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP,&P_Anode_1st_Unit_Status,&P_individual_Hold_return2);
+				if( P_individual_Hold_return == 1 && P_individual_Hold_return2 == 1 )
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) = 1
+				}
+			}
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,&P_Cathode_2nd_Unit_Status,&P_individual_Hold_return);
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP,&P_Cathode_1st_Unit_Status,&P_individual_Hold_return2);
+				if( P_individual_Hold_return == 1 && P_individual_Hold_return2 == 1 )
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) = 1
+				}
+			}
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) == 1 )									// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_First_Second_PNP_Wait_Supply_Pos) = Sys.Time;													// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				if ( P_Master_Motion_Trigger == N_Hold_Anode_Belt_Move_Timing )														// 음극 벨트 이동 마스터 트리거 확인.
+				{
+					// 음극 1차 PNP 대기 -> 벨트 이동 실행
+					if( P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+					{
+						P_First_PNP_T_Wait_To_Belt_Status = 0;
+						P_First_PNP_Z_Wait_To_Belt_Status = 0;
+						P_Hold_Anode_Pause_CHK = 1;																						// 음극 Pause.
+						P_Seq_Pause = 3
+						P_Slave1_Motion_Command = N_1st_PNP_Ready_To_Belt_Motion;														// 음극 1차 PNP T축 벨트 위치 이동.
+						P_Slave16_Motion_Command = N_1st_PNP_Ready_Pos_Motion;														// 음극 1차 PNP Z축 벨트 위치 이동.
+					}
+					// 음극 1차 PNP 얼라인 -> 벨트 이동 실행
+					else if( P_Anode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )
+					{
+						P_First_PNP_T_Align_To_Belt_Status = 0;
+						P_First_PNP_Z_Align_To_Belt_Status = 0;
+						P_Hold_Anode_Pause_CHK = 1;																						// 음극 Pause.
+						P_Seq_Pause = 4
+						P_Slave1_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;														// 음극 1차 PNP T축 벨트 위치 이동.
+						P_Slave16_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;														// 음극 1차 PNP Z축 벨트 위치 이동.
+					}
+					// 음극 1차 PNP가 이미 벨트 위치이므로 움직이지 않고 상태 변수만 완료 처리
+					else if( P_Anode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )
+					{
+						P_First_PNP_T_Wait_To_Belt_Status = F_Status_COMPLETE;
+						P_First_PNP_Z_Wait_To_Belt_Status = F_Status_COMPLETE;
+					}
+
+					// 음극 2차 PNP 스택 위치면 얼라인 이동 실행
+					if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+					{
+						P_Second_PNP_T_Stack_To_Align_Status = 0;
+						P_Second_PNP_Z_Stack_To_Align_Status = 0;
+						P_Slave3_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;														// 음극 2차 PNP T축 얼라인 위치 이동.
+						P_Slave17_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;														// 음극 2차 PNP Z축 얼라인 위치 이동.
+					}
+					// 음극 2차 PNP가 이미 얼라인 위치이므로 움직이지 않고 상태 변수만 완료 처리
+					else if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+					{
+						P_Second_PNP_T_Stack_To_Align_Status = F_Status_COMPLETE;
+						P_Second_PNP_Z_Stack_To_Align_Status = F_Status_COMPLETE;
+					}
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) = 2;								// 다음 스텟 머신 이동.
+				}
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				if( P_Master_Motion_Trigger == N_Hold_Cathode_Belt_Move_Timing )													// 양극 벨트 이동 마스터 트리거 확인.
+				{
+ 					// 양극 1차 PNP 대기 -> 벨트 이동 실행
+					if( P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+					{
+						P_First_PNP_T_Wait_To_Belt_Status = 0;
+						P_First_PNP_Z_Wait_To_Belt_Status = 0;
+						P_Hold_Cathode_Pause_CHK = 1;																					// 양극 Pause.
+						P_Seq_Pause = 12
+						P_Slave10_Motion_Command = N_1st_PNP_Ready_To_Belt_Motion;														// 양극 1차 PNP T축 벨트 위치 이동.
+						P_Slave19_Motion_Command = N_1st_PNP_Ready_Pos_Motion;														// 양극 1차 PNP Z축 벨트 위치 이동.
+					}
+					// 양극 1차 PNP 얼라인 -> 벨트 이동 실행
+					else if( P_Cathode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )
+					{
+						P_First_PNP_T_Align_To_Belt_Status = 0;
+						P_First_PNP_Z_Align_To_Belt_Status = 0;
+						P_Slave10_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;														// 양극 1차 PNP T축 벨트 위치 이동.
+						P_Slave19_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;														// 양극 1차 PNP Z축 벨트 위치 이동.
+						P_Hold_Anode_Pause_CHK = 1;																						// 음극 Pause.
+						P_Seq_Pause = 5
+					}
+					// 양극 1차 PNP가 이미 벨트 위치이므로 움직이지 않고 상태 변수만 완료 처리
+					else if( P_Cathode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )
+					{
+						P_First_PNP_T_Wait_To_Belt_Status = F_Status_COMPLETE;
+						P_First_PNP_Z_Wait_To_Belt_Status = F_Status_COMPLETE;
+					}
+
+					// 양극 2차 PNP 스택 위치면 얼라인 이동 실행
+					if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+					{
+						P_Second_PNP_T_Stack_To_Align_Status = 0;
+						P_Second_PNP_Z_Stack_To_Align_Status = 0;
+						P_Slave8_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;														// 양극 2차 PNP T축 얼라인 위치 이동.
+						P_Slave18_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;														// 양극 2차 PNP Z축 얼라인 위치 이동.
+					}
+					// 양극 2차 PNP가 이미 얼라인 위치이므로 움직이지 않고 상태 변수만 완료 처리
+					else if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+					{
+						P_Second_PNP_T_Stack_To_Align_Status = F_Status_COMPLETE;
+						P_Second_PNP_Z_Stack_To_Align_Status = F_Status_COMPLETE;
+					}
+				}
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) == 2 )									// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_First_Second_PNP_Wait_Supply_Pos) + P_Act_Hold_Time_Out(N_Act_First_Second_PNP_Wait_Supply_Pos))	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_PNP_T_Wait_To_Belt_Status == F_Status_COMPLETE && P_First_PNP_Z_Wait_To_Belt_Status == F_Status_COMPLETE && P_Second_PNP_T_Stack_To_Align_Status == F_Status_COMPLETE && P_Second_PNP_Z_Stack_To_Align_Status == F_Status_COMPLETE )			// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+				if (  P_First_PNP_T_Align_To_Belt_Status == F_Status_COMPLETE && P_First_PNP_Z_Align_To_Belt_Status == F_Status_COMPLETE && P_Second_PNP_T_Stack_To_Align_Status == F_Status_COMPLETE && P_Second_PNP_Z_Stack_To_Align_Status == F_Status_COMPLETE )			// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) = N_Complete_Step;				// 완료 스텟 머신으로 이동.
+			
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) = N_Error_Step;						// 애러 스텟 머신으로 이동.
+		}		
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) == N_Error_Step )						// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_First_Second_PNP_Wait_Supply_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			First_Second_PNP_Wait_Supply_Pos_RTN = N_FALSE;																			// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Wait_Supply_Pos) == N_Complete_Step )						// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_First_Second_PNP_Wait_Supply_Pos) = 1;													// 동작 완료 Bit On.
+			First_Second_PNP_Wait_Supply_Pos_RTN = N_COMPLETE;																		// 반환값 : COMPLETE
+		}
+	return;
+
+	// 1차 PNP 얼라인 → 벨트, 2차 PNP 스택 → 얼라인 이동.
+	sub:First_Second_PNP_Supply_Pos(&First_Second_PNP_Supply_Pos_RTN)
+		// 0) 반환값 초기화.
+		First_Second_PNP_Supply_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Supply_Pos) == N_Ready_Step )								// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_First_PNP_T_Align_To_Belt_Status = 0;
+			P_First_PNP_Z_Align_To_Belt_Status = 0;
+			P_Second_PNP_T_Stack_To_Align_Status = 0;
+			P_Second_PNP_Z_Stack_To_Align_Status = 0;
+			P_First_PNP_T_Align_To_Belt_Status = 0;
+			P_First_PNP_Z_Align_To_Belt_Status = 0;
+
+ 			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,&P_Anode_2nd_Unit_Status,&P_individual_Hold_return);
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP,&P_Anode_1st_Unit_Status,&P_individual_Hold_return2);
+				if( P_individual_Hold_return == 1 && P_individual_Hold_return2 == 1 )
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Supply_Pos) = 1
+				}
+			}
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,&P_Cathode_2nd_Unit_Status,&P_individual_Hold_return);
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP,&P_Cathode_1st_Unit_Status,&P_individual_Hold_return2);
+				if( P_individual_Hold_return == 1 && P_individual_Hold_return2 == 1 )
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Supply_Pos) = 1
+				}
+			}	
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Supply_Pos) == 1 )										// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_First_Second_PNP_Supply_Pos) = Sys.Time;														// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				if ( P_Master_Motion_Trigger == N_Hold_Anode_Belt_Move_Timing )														// 음극 벨트 이동 마스터 트리거 확인.
+				{
+					// 음극 1차 PNP 얼라인 -> 벨트 이동 실행
+					if( P_Anode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )
+					{
+						P_First_PNP_T_Align_To_Belt_Status = 0;
+						P_First_PNP_Z_Align_To_Belt_Status = 0;
+						P_Slave1_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;														// 음극 1차 PNP T축 벨트 위치 이동.
+						P_Slave16_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;														// 음극 1차 PNP Z축 벨트 위치 이동.
+						P_Hold_Anode_Pause_CHK = 1;																						// 음극 Pause.
+						P_Seq_Pause = 6
+					}
+					else if ( P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos)
+					{
+						P_First_PNP_T_Wait_To_Belt_Status = 0
+						P_First_PNP_Z_Wait_Status = 0;		
+						P_Slave1_Motion_Command = N_1st_PNP_Ready_To_Belt_Motion;														// 음극 1차 PNP T축 벨트 위치 이동.
+						P_Slave16_Motion_Command = N_1st_PNP_Ready_Pos_Motion;														// 음극 1차 PNP Z축 벨트 위치 이동.
+						P_Hold_Anode_Pause_CHK = 1;																						// 음극 Pause.
+						P_Seq_Pause = 7
+					}
+					// 음극 1차 PNP가 이미 벨트 위치이므로 상태 변수만 완료 처리
+					else if( P_Anode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )
+					{
+						P_First_PNP_T_Align_To_Belt_Status = F_Status_COMPLETE;
+						P_First_PNP_Z_Align_To_Belt_Status = F_Status_COMPLETE;
+					}
+
+					// 음극 2차 PNP 스택->얼라인 이동 실행
+					if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+					{
+						P_Second_PNP_T_Stack_To_Align_Status = 0;
+						P_Second_PNP_Z_Stack_To_Align_Status = 0;
+						P_Slave3_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;														// 음극 2차 PNP T축 얼라인 위치 이동.
+						P_Slave17_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;														// 음극 2차 PNP Z축 얼라인 위치 이동.
+					}
+					// 음극 2차 PNP가 이미 얼라인 위치이므로 상태변수 완료 처리
+					else if ( P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+					{
+						P_Second_PNP_T_Stack_To_Align_Status = F_Status_COMPLETE;
+						P_Second_PNP_Z_Stack_To_Align_Status = F_Status_COMPLETE;
+					}
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Supply_Pos) = 2;									// 다음 스텟 머신 이동.
+				}
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				if( P_Master_Motion_Trigger == N_Hold_Cathode_Belt_Move_Timing )													// 양극 벨트 이동 마스터 트리거 확인.
+				{
+					// 양극 1차 PNP 얼라인 -> 벨트 이동 실행
+					if( P_Cathode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )
+					{
+						P_First_PNP_T_Align_To_Belt_Status = 0;
+						P_First_PNP_Z_Align_To_Belt_Status = 0;
+						P_Slave10_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;														// 양극 1차 PNP T축 벨트 위치 이동.
+						P_Slave19_Motion_Command = N_1st_PNP_Align_To_Belt_Motion;														// 양극 1차 PNP Z축 벨트 위치 이동.
+						P_Hold_Anode_Pause_CHK = 1;																						// 음극 Pause.
+						P_Seq_Pause = 8
+					}
+					// 양극 1차 PNP 대기 -> 벨트 이동 실행
+					else if( P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+					{
+						P_First_PNP_T_Wait_To_Belt_Status = 0
+						P_First_PNP_Z_Wait_Status = 0;		
+						P_Slave10_Motion_Command = N_1st_PNP_Ready_To_Belt_Motion;														// 양극 1차 PNP T축 벨트 위치 이동.
+						P_Slave19_Motion_Command = N_1st_PNP_Ready_Pos_Motion;														// 양극 1차 PNP Z축 벨트 위치 이동.
+						P_Hold_Anode_Pause_CHK = 1;																						// 음극 Pause.
+						P_Seq_Pause = 9
+					}					// 양극 1차 PNP가 이미 벨트 위치이므로 상태 변수만 완료 처리
+					else if( P_Cathode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )
+					{
+						P_First_PNP_T_Align_To_Belt_Status = F_Status_COMPLETE;
+						P_First_PNP_Z_Align_To_Belt_Status = F_Status_COMPLETE;
+					}
+
+					// 양극 2차 PNP 스택->얼라인 이동 실행
+					if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+					{
+						P_Second_PNP_T_Stack_To_Align_Status = 0;
+						P_Second_PNP_Z_Stack_To_Align_Status = 0;
+						P_Slave8_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;														// 양극 2차 PNP T축 얼라인 위치 이동.
+						P_Slave18_Motion_Command = N_2nd_PNP_Stack_To_Align_Motion;														// 양극 2차 PNP Z축 얼라인 위치 이동.
+					}
+					// 양극 2차 PNP가 이미 얼라인 위치이므로 상태변수 완료 처리
+					else if ( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+					{
+						P_Second_PNP_T_Stack_To_Align_Status = F_Status_COMPLETE;
+						P_Second_PNP_Z_Stack_To_Align_Status = F_Status_COMPLETE;
+					}					
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Supply_Pos) = 2;									// 다음 스텟 머신 이동.
+				}
+			}
+		}
+
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Supply_Pos) == 2 )										// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_First_Second_PNP_Supply_Pos) + P_Act_Hold_Time_Out(N_Act_First_Second_PNP_Supply_Pos))	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_PNP_T_Align_To_Belt_Status == F_Status_COMPLETE && P_First_PNP_Z_Align_To_Belt_Status == F_Status_COMPLETE && P_Second_PNP_T_Stack_To_Align_Status == F_Status_COMPLETE && P_Second_PNP_Z_Stack_To_Align_Status == F_Status_COMPLETE )			// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Supply_Pos) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+				else if ( P_First_PNP_T_Wait_To_Belt_Status == F_Status_COMPLETE && P_First_PNP_Z_Wait_Status == F_Status_COMPLETE && P_Second_PNP_T_Stack_To_Align_Status == F_Status_COMPLETE && P_Second_PNP_Z_Stack_To_Align_Status == F_Status_COMPLETE )			// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Supply_Pos) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Supply_Pos) = N_Error_Step;							// 애러 스텟 머신으로 이동.
+		}		
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Supply_Pos) == N_Error_Step )								// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_First_Second_PNP_Supply_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			First_Second_PNP_Supply_Pos_RTN = N_FALSE;																				// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Supply_Pos) == N_Complete_Step )							// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_First_Second_PNP_Supply_Pos) = 1;															// 동작 완료 Bit On.
+			First_Second_PNP_Supply_Pos_RTN = N_COMPLETE;																			// 반환값 : COMPLETE
+		}
+	return;
+
+	// 1차 PNP 벨트 → 얼라인, 2차 PNP 얼라인 → 스택 이동.
+	sub:First_Second_PNP_Stack_Pos(&First_Second_PNP_Stack_Pos_RTN)
+		// 0) 반환값 초기화.
+		First_Second_PNP_Stack_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Stack_Pos) == N_Ready_Step )								// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_First_PNP_T_Belt_To_Align_Status = 0;
+			P_First_PNP_Z_Belt_To_Align_Status = 0;
+			P_Second_PNP_T_Align_To_Stack_Status = 0;
+			P_Second_PNP_Z_Align_To_Stack_Status = 0;
+ 			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,&P_Anode_2nd_Unit_Status,&P_individual_Hold_return);
+				call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP,&P_Anode_1st_Unit_Status,&P_individual_Hold_return2);
+				if( P_individual_Hold_return == 1 && P_individual_Hold_return2 == 1 )
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Stack_Pos) = 1
+				}
+			}
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,&P_Cathode_2nd_Unit_Status,&P_individual_Hold_return);
+				call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP,&P_Cathode_1st_Unit_Status,&P_individual_Hold_return2);
+				if( P_individual_Hold_return == 1 && P_individual_Hold_return2 == 1 )
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Stack_Pos) = 1
+				}
+			}		
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Stack_Pos) == 1 )											// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_First_Second_PNP_Stack_Pos) = Sys.Time;														// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				// 음극 1차 PNP 벨트 -> 얼라인 이동 실행
+				if( P_Anode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )
+				{
+					P_First_PNP_T_Belt_To_Align_Status = 0;
+					P_First_PNP_Z_Belt_To_Align_Status = 0;
+					P_Slave1_Motion_Command = N_1st_PNP_Belt_To_Align_Motion;															// 음극 1차 PNP T축 얼라인 위치 이동.
+					P_Slave16_Motion_Command = N_1st_PNP_Belt_To_Align_Motion;															// 음극 1차 PNP Z축 얼라인 위치 이동.
+					//P_Slave2_Motion_Command = N_1st_Picker_Turn;																		//PickerT좌표계 PNP에 묶음으로 인하여 주석 처리 [ 참조 : 26.08.14 PickerT 모션 변경 ] // 음극 1차 PNP Picker 회전.
+				}
+				// 음극 1차 PNP가 이미 얼라인 위치이므로 상태변수 완료 처리
+				else if ( P_Anode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )
+				{
+					P_First_PNP_T_Belt_To_Align_Status = F_Status_COMPLETE;
+					P_First_PNP_Z_Belt_To_Align_Status = F_Status_COMPLETE;
+				}
+
+				// 음극 2차 PNP 얼라인 -> 스택 이동 실행
+				if(P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+				{
+					P_Second_PNP_T_Align_To_Stack_Status = 0;
+					P_Second_PNP_Z_Align_To_Stack_Status = 0;
+					P_Slave3_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 음극 2차 PNP T축 스택 위치 이동.
+					P_Slave17_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 음극 2차 PNP Z축 스택 위치 이동.
+				}
+				// 음극 2차가 이미 스택 위치이므로 상태변수 완료 처리
+				else if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+				{
+					P_Second_PNP_T_Align_To_Stack_Status = F_Status_COMPLETE;
+					P_Second_PNP_Z_Align_To_Stack_Status = F_Status_COMPLETE;
+				}
+				
+				P_Hold_Resume_Need_Flag = 1;																						// 홀드 Resume.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Stack_Pos) = 2;										// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				// 양극 1차 PNP 벨트 -> 얼라인 이동 실행
+				if( P_Cathode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos )
+				{
+					P_First_PNP_T_Belt_To_Align_Status = 0;
+					P_First_PNP_Z_Belt_To_Align_Status = 0;
+					P_Slave10_Motion_Command = N_1st_PNP_Belt_To_Align_Motion;															// 양극 1차 PNP T축 얼라인 위치 이동.
+					P_Slave19_Motion_Command = N_1st_PNP_Belt_To_Align_Motion;															// 양극 1차 PNP Z축 얼라인 위치 이동.
+					//P_Slave9_Motion_Command = N_1st_Picker_Turn;																		//PickerT좌표계 PNP에 묶음으로 인하여 주석 처리 [ 참조 : 26.08.14 PickerT 모션 변경 ] // 양극 1차 PNP Picker 회전.
+				}
+				// 양극 1차 PNP가 이미 얼라인 위치이므로 상태변수 완료 처리
+				else if ( P_Cathode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )
+				{
+					P_First_PNP_T_Belt_To_Align_Status = F_Status_COMPLETE;
+					P_First_PNP_Z_Belt_To_Align_Status = F_Status_COMPLETE;
+				}
+
+				// 양극 2차 PNP 얼라인 -> 스택 이동 실행
+				if(P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
+				{
+					P_Second_PNP_T_Align_To_Stack_Status = 0;
+					P_Second_PNP_Z_Align_To_Stack_Status = 0;
+					P_Slave8_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 양극 2차 PNP T축 스택 위치 이동.
+					P_Slave18_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 양극 2차 PNP Z축 스택 위치 이동.
+				}
+				// 양극 2차가 이미 스택 위치이므로 상태변수 완료 처리
+				else if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+				{
+					P_Second_PNP_T_Align_To_Stack_Status = F_Status_COMPLETE;
+					P_Second_PNP_Z_Align_To_Stack_Status = F_Status_COMPLETE;
+				}				
+				P_Hold_Resume_Need_Flag = 1;																						// 홀드 Resume.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Stack_Pos) = 2;										// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Stack_Pos) == 2 )											// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_First_Second_PNP_Stack_Pos) + P_Act_Hold_Time_Out(N_Act_First_Second_PNP_Stack_Pos))	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_PNP_T_Belt_To_Align_Status == F_Status_COMPLETE && P_First_PNP_Z_Belt_To_Align_Status == F_Status_COMPLETE && P_Second_PNP_T_Align_To_Stack_Status == F_Status_COMPLETE && P_Second_PNP_Z_Align_To_Stack_Status == F_Status_COMPLETE )			// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Stack_Pos) = N_Complete_Step;						// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Stack_Pos) = N_Error_Step;								// 애러 스텟 머신으로 이동.
+		}		
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Stack_Pos) == N_Error_Step )								// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_First_Second_PNP_Stack_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			First_Second_PNP_Stack_Pos_RTN = N_FALSE;																				// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_First_Second_PNP_Stack_Pos) == N_Complete_Step )							// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_First_Second_PNP_Stack_Pos) = 1;															// 동작 완료 Bit On.
+			First_Second_PNP_Stack_Pos_RTN = N_COMPLETE;																			// 반환값 : COMPLETE
+		}
+	return;
+
+	// 1,2차 PNP 동시 하강. [ 1차: 벨트 하강, 2차 : 얼라인 하강 ]
+	sub:Total_Down_Pos(&Total_Down_Pos_RTN)
+		// 0) 반환값 초기화.
+		Total_Down_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Down_Pos) == N_Ready_Step )											// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_First_PNP_Z_Belt_Down_Status = 0;
+			P_Second_PNP_Z_Align_Down_Status = 0;
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Down_Pos) = 1;											// 다음 스텟 머신으로 이동.		
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Down_Pos) == 1 )														// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_Total_Down_Pos) = Sys.Time;																	// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				if ( M_X_PLC_Anode_Sheet_Ready == 1 )																				// 음극 벨트 극판 Ready 확인.
+				{
+					P_Slave16_Motion_Command = N_1st_PNP_Belt_Down_Motion;															// 음극 1차 PNP Z축 벨트 하강 위치 이동.
+					P_Slave17_Motion_Command = N_2nd_PNP_Align_Down_Motion;															// 음극 2차 PNP Z축 얼라인 하강 위치 이동.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Down_Pos) = 2;												// 다음 스텟 머신 이동.
+				}
+				else if ( M_X_PLC_Anode_Sheet_Ready == 0 )
+				{
+					if ( P_PMAC_Status == F_Status_STOPPING )																			// 1차 PNP가 벨트로 들어가기 전 Stopping 이 될 경우.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Down_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+				}
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				if( M_X_PLC_Cathode_Sheet_Ready == 1 )																				// 양극 벨트 극판 Ready 확인.
+				{
+					P_Slave19_Motion_Command = N_1st_PNP_Belt_Down_Motion;															// 양극 1차 PNP Z축 벨트 하강 위치 이동.
+					P_Slave18_Motion_Command = N_2nd_PNP_Align_Down_Motion;															// 양극 2차 PNP Z축 얼라인 하강 위치 이동.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Down_Pos) = 2;												// 다음 스텟 머신 이동.
+				}		
+				else if ( M_X_PLC_Cathode_Sheet_Ready == 0 )
+				{
+					if ( P_PMAC_Status == F_Status_STOPPING )																			// 1차 PNP가 벨트로 들어가기 전 Stopping 이 될 경우.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Down_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+				}	
+			}				
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Down_Pos) == 2 )														// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_Total_Down_Pos) + P_Act_Hold_Time_Out(N_Act_Total_Down_Pos))					// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_PNP_Z_Belt_Down_Status == F_Status_COMPLETE && P_Second_PNP_Z_Align_Down_Status == F_Status_COMPLETE )	// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Down_Pos) = N_Complete_Step;									// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Down_Pos) = N_Error_Step;											// 애러 스텟 머신으로 이동.
+		}		
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Down_Pos) == N_Error_Step )											// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_Total_Down_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			Total_Down_Pos_RTN = N_FALSE;																							// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Down_Pos) == N_Complete_Step )										// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_Total_Down_Pos) = 1;																		// 동작 완료 Bit On.
+			Total_Down_Pos_RTN = N_COMPLETE;																						// 반환값 : COMPLETE
+		}
+	return;
+
+	// 1,2차 PNP 동시 상승. [ 1차: 벨트 상승, 2차 : 얼라인 상승 ]
+	sub:Total_Up_Pos(&Total_Up_Pos_RTN)
+		// 0) 반환값 초기화.
+		Total_Up_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Up_Pos) == N_Ready_Step )											// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_First_PNP_Z_Belt_Up_Status = 0;
+			P_Second_PNP_Z_Align_Up_Status = 0;
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Up_Pos) = 1;												// 다음 스텟 머신으로 이동.		
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Up_Pos) == 1 )														// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_Total_Up_Pos) = Sys.Time;																		// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave16_Motion_Command = N_1st_PNP_Belt_Up_Motion;																// 음극 1차 PNP Z축 벨트 상승 위치 이동.
+				P_Slave17_Motion_Command = N_2nd_PNP_Align_Up_Motion;																// 음극 2차 PNP Z축 얼라인 상승 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Up_Pos) = 2;														// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave19_Motion_Command = N_1st_PNP_Belt_Up_Motion;																// 양극 1차 PNP Z축 벨트 상승 위치 이동.
+				P_Slave18_Motion_Command = N_2nd_PNP_Align_Up_Motion;																// 양극 2차 PNP Z축 얼라인 상승 위치 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Up_Pos) = 2;														// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Up_Pos) == 2 )														// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_Total_Up_Pos) + P_Act_Hold_Time_Out(N_Act_Total_Up_Pos))						// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_PNP_Z_Belt_Up_Status == F_Status_COMPLETE && P_Second_PNP_Z_Align_Up_Status == F_Status_COMPLETE )		// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Up_Pos) = N_Complete_Step;									// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Up_Pos) = N_Error_Step;											// 애러 스텟 머신으로 이동.
+		}		
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Up_Pos) == N_Error_Step )											// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_Total_Up_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			Total_Up_Pos_RTN = N_FALSE;																								// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Up_Pos) == N_Complete_Step )											// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_Total_Up_Pos) = 1;																		// 동작 완료 Bit On.
+			Total_Up_Pos_RTN = N_COMPLETE;																							// 반환값 : COMPLETE
+		}
+	return;
+
+	// 1,2차 PNP 동시 흡착. [ 1차 : 벨트 흡착, 2차 : 얼라인 흡착 ]
+	sub:Total_Vac_On(&Total_Vac_On_RTN)
+		// 0) 반환값 초기화.
+		Total_Vac_On_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Vac_On) == N_Ready_Step )											// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_First_PNP_Vac_On_Status = 0;
+			P_Second_PNP_Vac_On_Status = 0;
+			P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Vac_On) = 1;												// 다음 스텟 머신으로 이동.	
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Vac_On) == 1 )														// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_Total_Vac_On) = Sys.Time;																		// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave16_Motion_Command = N_1st_PNP_Belt_Vac;																		// 음극 1차 PNP Z축 벨트 흡착 이동.
+				P_Slave17_Motion_Command = N_2nd_PNP_Align_Vac;																		// 음극 2차 PNP Z축 얼라인 흡착 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Vac_On) = 2;														// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave19_Motion_Command = N_1st_PNP_Belt_Vac;																		// 양극 1차 PNP Z축 벨트 흡착 이동.
+				P_Slave18_Motion_Command = N_2nd_PNP_Align_Vac;																		// 양극 2차 PNP Z축 얼라인 흡착 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Vac_On) = 2;														// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Vac_On) == 2 )														// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_Total_Vac_On) + P_Act_Hold_Time_Out(N_Act_Total_Vac_On))						// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_First_PNP_Vac_On_Status == F_Status_COMPLETE && P_Second_PNP_Vac_On_Status == F_Status_COMPLETE )			// 모션 프로그램 확인.
+				{
+					// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+					if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Vac_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+					// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+					else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Vac_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Vac_On) = N_Error_Step;											// 애러 스텟 머신으로 이동.
+		}	
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Vac_On) == N_Error_Step )											// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_Total_Vac_On;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			Total_Vac_On_RTN = N_FALSE;																								// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_Total_Vac_On) == N_Complete_Step )											// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_Total_Vac_On) = 1;																		// 동작 완료 Bit On.
+			Total_Vac_On_RTN = N_COMPLETE;																							// 반환값 : COMPLETE
+		}
+	return;
+
+	// NG PNP NG 박스 이동.
+	sub:NG_PNP_NG_Bos_Pos(&NG_PNP_NG_Bos_Pos_RTN)
+		// 0) 반환값 초기화.
+		NG_PNP_NG_Bos_Pos_RTN = 0;
+		if(P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) == N_Ready_Step)
+		{
+			P_NG_PNP_NG_Bos_Status = 0
+			P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) = 1;												// 다음 스텟 머신으로 이동.		
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) == 1 )													// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_NG_PNP_NG_Box_Pos) = Sys.Time;																// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave13_Motion_Command = N_NG_PNP_Align_To_NG_Motion;																// 음극 NG PNP NG박스 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) = 2;													// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave12_Motion_Command = N_NG_PNP_Align_To_NG_Motion;																// 양극 NG PNP NG박스 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) = 2;													// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) == 2 )													// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_NG_Box_Pos) + P_Act_Hold_Time_Out(N_Act_NG_PNP_NG_Box_Pos))			// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_NG_PNP_NG_Bos_Status == F_Status_COMPLETE )																	// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+		}		
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_NG_PNP_NG_Box_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			NG_PNP_NG_Bos_Pos_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_NG_PNP_NG_Box_Pos) = 1;																	// 동작 완료 Bit On.
+			NG_PNP_NG_Bos_Pos_RTN = N_COMPLETE;																						// 반환값 : COMPLETE
+		}
+	return;
+
+	// NG PNP 얼라인 이동.
+	sub:NG_PNP_Align_Pos(&NG_PNP_Align_Pos_RTN)
+		// 0) 반환값 초기화.
+		NG_PNP_Align_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_NG_PNP_Align_Status = 0;
+		
+			P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) = 1;												// 다음 스텟 머신으로 이동.		
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) == 1 )													// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Pos) = Sys.Time;																	// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave13_Motion_Command = N_NG_PNP_NG_To_Align_Motion;																// 음극 NG PNP 얼라인 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) = 2;													// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave12_Motion_Command = N_NG_PNP_NG_To_Align_Motion;																// 양극 NG PNP 얼라인 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) = 2;													// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) == 2 )													// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Pos) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Align_Pos))				// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_NG_PNP_Align_Status == F_Status_COMPLETE )																	// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+		}		
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_NG_PNP_Align_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			NG_PNP_Align_Pos_RTN = N_FALSE;																							// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) == N_Complete_Step )										// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_NG_PNP_Align_Pos) = 1;																	// 동작 완료 Bit On.
+			NG_PNP_Align_Pos_RTN = N_COMPLETE;																						// 반환값 : COMPLETE
+		}
+	return;
+
+	// NG PNP 얼라인 하강.
+	sub:NG_PNP_Align_Down_Pos(&NG_PNP_Align_Down_Pos_RTN)
+		// 0) 반환값 초기화.
+		NG_PNP_Align_Down_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) == N_Ready_Step )									// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_NG_PNP_Align_Down_Status = 0;
+			P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) = 1;											// 다음 스텟 머신으로 이동.		
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) == 1 )												// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Down_Pos) = Sys.Time;															// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave13_Motion_Command = N_NG_PNP_Align_Down_Motion;																// 음극 NG PNP 얼라인 하강 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) = 2;												// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave12_Motion_Command = N_NG_PNP_Align_Down_Motion;																// 양극 NG PNP 얼라인 하강 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) = 2;												// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) == 2 )												// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Down_Pos) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Align_Down_Pos))	// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_NG_PNP_Align_Down_Status == F_Status_COMPLETE )																// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+		}		
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) == N_Error_Step )									// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_NG_PNP_Align_Down_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			NG_PNP_Align_Down_Pos_RTN = N_FALSE;																					// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) == N_Complete_Step )								// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_NG_PNP_Align_Down_Pos) = 1;																// 동작 완료 Bit On.
+			NG_PNP_Align_Down_Pos_RTN = N_COMPLETE;																					// 반환값 : COMPLETE
+		}
+	return;
+
+	// NG PNP 얼라인 상승.
+	sub:NG_PNP_Align_Up_Pos(&NG_PNP_Align_Up_Pos_RTN)
+		// 0) 반환값 초기화.
+		NG_PNP_Align_Up_Pos_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) == N_Ready_Step )										// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_NG_PNP_Align_Up_Status = 0;
+		
+			P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) = 1;											// 다음 스텟 머신으로 이동.		
+		}
+		// 1) 동작 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) == 1 )												// 동작 실행 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Up_Pos) = Sys.Time;																// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave13_Motion_Command = N_NG_PNP_Align_UP_Motion;																// 음극 NG PNP 얼라인 상승 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) = 2;												// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave12_Motion_Command = N_NG_PNP_Align_UP_Motion;																// 양극 NG PNP 얼라인 상승 이동.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) = 2;												// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) == 2 )												// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Up_Pos) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Align_Up_Pos))		// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_NG_PNP_Align_Up_Status == F_Status_COMPLETE )																// 모션 프로그램 확인.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+		}	
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) == N_Error_Step )										// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_NG_PNP_Align_Up_Pos;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			NG_PNP_Align_Up_Pos_RTN = N_FALSE;																						// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) == N_Complete_Step )									// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_NG_PNP_Align_Up_Pos) = 1;																	// 동작 완료 Bit On.
+			NG_PNP_Align_Up_Pos_RTN = N_COMPLETE;																					// 반환값 : COMPLETE
+		}
+	return;
+
+	// NG PNP 흡착.
+	sub:NG_PNP_Vac_On(&NG_PNP_Vac_On_RTN)
+		// 0) 반환값 초기화.
+		NG_PNP_Vac_On_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) == N_Ready_Step )											// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_NG_PNP_Vac_On_Status = 0;
+		
+			P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) = 1;													// 다음 스텟 머신으로 이동.		
+		}
+		// 1) 모션 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) == 1 )														// 진행 준비 완료 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_NG_PNP_Vac_On) = Sys.Time;																	// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave13_Motion_Command = N_NG_PNP_Align_Vac;																		// 음극 NG PNP 흡착.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) = 2;														// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave12_Motion_Command = N_NG_PNP_Align_Vac;																		// 양극 NG PNP 흡착.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) = 2;														// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) == 2 )														// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Vac_On) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Vac_On))					// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_NG_PNP_Vac_On_Status == F_Status_COMPLETE )																	// 모션 프로그램 확인.
+				{
+					// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+					if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+					// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+					else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+		}	
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) == N_Error_Step )											// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_NG_PNP_Vac_On;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			NG_PNP_Vac_On_RTN = N_FALSE;																							// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) == N_Complete_Step )										// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_NG_PNP_Vac_On) = 1;																		// 동작 완료 Bit On.
+			NG_PNP_Vac_On_RTN = N_COMPLETE;																							// 반환값 : COMPLETE
+		}
+	return;
+
+	// NG PNP 블로우.
+	sub:NG_PNP_Blow_On(&NG_PNP_Blow_On_RTN)
+		// 0) 반환값 초기화.
+		NG_PNP_Blow_On_RTN = 0;
+		// 222) 좌표계 + 서보 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) == N_Ready_Step )											// 진행 준비 완료 일 경우.
+		{
+			// 222.0) 모션 상태 초기화
+			P_NG_PNP_Blow_On_Status = 0;
+		
+			P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = 1;												// 다음 스텟 머신으로 이동.		
+		}
+		// 1) 모션 실행.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) == 1 )														// 진행 준비 완료 일 경우.
+		{
+			// 1.0) 타임 아웃 확인을 위한 동작 실행 시 시간 저장.
+			P_Act_Hold_Old_Time(N_Act_NG_PNP_Blow_On) = Sys.Time;																	// 동작 실행 시 시간 저장.
+			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_Slave13_Motion_Command = N_NG_PNP_NG_Blow;																		// 음극 NG PNP 블로우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = 2;													// 다음 스텟 머신 이동.
+			}
+			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_Slave12_Motion_Command = N_NG_PNP_NG_Blow;																		// 양극 NG PNP 블로우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = 2;													// 다음 스텟 머신 이동.
+			}
+		}
+		// 2) 동작 확인.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) == 2 )														// 동작 확인 일 경우.
+		{
+			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Blow_On) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Blow_On))					// 일정 시간 전에 완료 될 경우.
+			{
+				if ( P_NG_PNP_Blow_On_Status == F_Status_COMPLETE )																	// 모션 프로그램 확인.
+				{
+					// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+					if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+					// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+					else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+					{
+							P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																													// 일정 시간을 넘겼을 경우.
+				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+		}	
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) == N_Error_Step )											// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Act_NG_PNP_Blow_On;																							// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			NG_PNP_Blow_On_RTN = N_FALSE;																							// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) == N_Complete_Step )										// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Act_NG_PNP_Blow_On) = 1;																		// 동작 완료 Bit On.
+			NG_PNP_Blow_On_RTN = N_COMPLETE;																						// 반환값 : COMPLETE
+		}
+	return;
+
+
+// Pause Check  [ 참 조: GPIO 고장 시 예외처리 (26.01.08)]
+	sub:Hold_Pause_Check(&Pasue_RTN)
+	Pasue_RTN = 0;
+		// 퍼즈 확인 
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Pasue_Check) == N_Ready_Step )											// 진행 준비 완료 일 경우.
+		{
+			P_Hold_Module_Error = 0;
+			// pause 신호를 주었는데 정지가 안되었다면 GPIO 문제임. 
+			// 반댓열이 Manual 즉 가동이 안되어도 퍼즈는 걸려야함. 아크신호 자체가 안 오는거면 GPIO문제임 
+			P_Act_Hold_Time_Out(N_Pasue_Check) = 0.1 * (100 / P_Recipe_Speed_Value);				// 100ms
+			
+			P_Act_Hold_Old_Time(N_Pasue_Check) = sys.time;			// 시간 저장
+			P_Module_Act_Hold_State_Machine_Array(N_Pasue_Check) = 1;
+		}
+		// 1) 퍼즈 체크
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Pasue_Check) == 1 )														// 진행 준비 완료 일 경우.
+		{
+			if( sys.time >= P_Act_Hold_Old_Time(N_Pasue_Check) + P_Act_Hold_Time_Out(N_Pasue_Check) )		// 10ms 대기
+			{
+				if( coord[1].progrunning == 0 )			// 퍼즈 ok
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Pasue_Check) = N_Complete_Step;
+				}
+				else									// 퍼즈 안됌 문제가 발생함
+				{
+					P_Module_Act_Hold_State_Machine_Array(N_Pasue_Check) = 2;
+				}
+			}
+		}
+		// 2) 예외처리 모션 시작
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Pasue_Check) == 2 )														// 동작 확인 일 경우.
+		{
+			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+			{
+				P_First_PNP_T_Wait_Status = F_Status_Nonseatus;					// 상태 초기화
+				P_First_PNP_Z_Wait_Status = F_Status_Nonseatus;					// 상태 초기화
+				P_Slave1_Motion_Command = N_1st_PNP_Ready_Pos_Motion;			// 대기위치 이동
+				P_Slave16_Motion_Command = N_1st_PNP_Ready_Pos_Motion;			// 대기위치 이동
+				P_Module_Act_Hold_State_Machine_Array(N_Pasue_Check) = 3;
+			}
+			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+			{
+				P_First_PNP_T_Wait_Status = F_Status_Nonseatus;					// 상태 초기화
+				P_First_PNP_Z_Wait_Status = F_Status_Nonseatus;					// 상태 초기화
+				P_Slave10_Motion_Command = N_1st_PNP_Ready_Pos_Motion;			// 대기위치 이동
+				P_Slave19_Motion_Command = N_1st_PNP_Ready_Pos_Motion;			// 대기위치 이동
+				P_Module_Act_Hold_State_Machine_Array(N_Pasue_Check) = 3;
+			}						
+		}	
+		// 위치 확인
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Pasue_Check) == 3 )													// 동작 확인 일 경우.
+		{
+			if ( P_First_PNP_T_Wait_Status == F_Status_COMPLETE && P_First_PNP_Z_Wait_Status == F_Status_COMPLETE )
+			{
+				P_Module_Act_Hold_State_Machine_Array(N_Pasue_Check) = N_Error_Step;										// Error Stop 
+			}
+		}	
+		// 444) 애러.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Pasue_Check) == N_Error_Step )											// 애러 상태 일 경우.
+		{
+			P_Hold_Module_Error = N_Pasue_Check;																					// Hold 모듈 정지.		[ 참조 : 26.01.08 Hold 모듈 수정 ]
+			Pasue_RTN = N_FALSE;																							// 반환값 : FALSE.
+		}
+		// 999) 완료.
+		if ( P_Module_Act_Hold_State_Machine_Array(N_Pasue_Check) == N_Complete_Step )										// 완료 상태 일 경우.
+		{
+			P_Act_Hold_Complete_Bit(N_Pasue_Check) = 1;																		// 동작 완료 Bit On.
+			Pasue_RTN = N_COMPLETE;																							// 반환값 : COMPLETE
+		}
+	return;
+
+close

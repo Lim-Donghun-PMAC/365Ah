@@ -1,0 +1,287 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.29 
+// 알람 프로그램 표준화 작업 - [ 참조 : 25.07.29 알람 프로그램 표준화 작업 진행 ]
+
+open plc 26
+// 04. 타이머를 쉽게 사용하기 위한 로컬 모듈 
+#define	L_System_Timer				Sys.Time				// 시스템 타이머
+
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[26].Ldata.L[0] 시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[26].Ldata.L[1] 시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[26].Ldata.L[2] 시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[26].Ldata.L[3] 타이머 초기화 플래그
+local	L_Local_Axis;									// Plc[26].Ldata.L[4] Local Motor 번호 순환 변수
+local	L_Ecat_Axis;									// Plc[26].Ldata.L[5] Ecat Motor 번호 순환 변수
+local	L_Home_Alarm_Timer(50);							// Plc[26].Ldata.L[6 ~ 55] Home Axis Timer 
+local	L_Home_Alarm_Timer_Init_Flag(50);				// Plc[26].Ldata.L[56 ~ 105] Home Axis Init Flag
+
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	// 시간 간격 초기화
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 00.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+// 00.3) 시간 업데이트
+if(L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{	
+	P_Alarm_Wait_Timer = P_Alarm_Wait_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+//==========================================================================================================================================================================================================================================
+// Alarm Program
+//===========================================================//
+// 알람 발생 시 처리 방법 분류.
+// 첫 번째 알람 → 즉시 알람 발생 (PLC), PMAC_Commands 처리.
+// 우선 순위 알람 → 2초 뒤 알람 발생 (PLC), PMAC_Commands 처리
+// 나머지 알람 → 2초 뒤 알람 발생 (PLC)
+//===========================================================//
+if(P_Alarm_Heap_Arr(0) > 0)							// Node Insert 진행 시 [알람 발생]
+{
+	if(P_Alarm_First_Request_Flag == 1)				// Node Insert에서 가장 처음 발생 일 경우.
+	{
+		P_Alarm_First_Request_Flag = 0;				// 초기화. [재진입 방지]
+		P_Alarm_Command_Active = 1;					// 알람 발생 후 Command 발생을 위한 변수. [ P_PMAC_Commands =  Abort, Stop ]
+		call Alarm_Heap_Sort.Node_Delete(&P_Alarm_Number_RTN, &P_Alarm_Priority_RTN);	// 노드 알람 번호, 우선 순위 추출 후 정보 삭제.
+		call Alarm_Heap_Sort.Alarm_Log(P_Alarm_Number_RTN);								// 알람 번호 로그 저장.
+		M(P_Alarm_Number_RTN) = 1;					// 알람 발생.
+	} 
+	else if(P_Alarm_Priority_Cnt != P_Old_Alarm_Priority_Cnt && P_Alarm_Priority_Request_Flag == 1)		// 우선 순위 알람 Cnt 변화 && 우선 순위 알람 플래그 ON. (Node_Insert에서 업데이트)
+	{
+		if( P_Alarm_Priority_Cnt == 1 )
+			P_Alarm_Priority_Request_Flag = 0;		// 초기화. [재진입 방지]
+		P_Alarm_Command_Active = 1;					// 알람 발생 후 Command 발생을 위한 변수. [ P_PMAC_Commands =  Abort, Stop ]
+		call Alarm_Heap_Sort.Node_Delete(&P_Alarm_Number_RTN, &P_Alarm_Priority_RTN);	// 노드 알람 번호, 우선 순위 추출 후 정보 삭제.
+
+		call Alarm_Heap_Sort.Send_PLC_Alarm_Enqueue(P_Alarm_Number_RTN);				// 우선순위 알람 발생시 PLC 전송용 버퍼에 추가.
+		call Alarm_Heap_Sort.Alarm_Log(P_Alarm_Number_RTN);								// 알람 번호 로그 저장.
+
+		P_Alarm_Priority_Report = 1;				// 우선 순위 알람 처리.
+		P_Alarm_Wait_Timer = 0;						// 타이머 초기화.
+		P_Old_Alarm_Priority_Cnt = P_Alarm_Priority_Cnt;								// 우선 순위 알람 발생 엣지 업데이트.
+		P_Alarm_Priority_Occur_Cnt++;				// 우선 순위 알람 발생 카운트 증가.
+
+		if(P_Alarm_Report == 2)						// 나머지 알람 처리 도중 우선순위 발생시 중단.
+		{
+			P_Alarm_Report = 0;						// 초기화. 
+			P_Alarm_Remain_Check = 0;				// 나머지 알람 유무 여부 초기화. 
+		}
+	}
+	else if(P_Alarm_Priority_Cnt == 0 && P_Alarm_Priority_Report == 0 && P_Alarm_Remain_Check == 0)	// 우선 순위 발생 카운트 && 우선 순위 알람 발생으로 인한 버퍼 사용 플래그 && 나머지 알람 유무 여부 초기화 일 경우.
+	{
+		P_Alarm_Report = 1;							// 나머지 알람 발생.
+		P_Alarm_Remain_Check = 1;					// 나머지 알람 유무 여부 확인.
+	}
+}
+//======================================================================//
+// 나머지 알람 처리 //
+//======================================================================//
+if(P_Alarm_Report == 1)								// 나머지 알람 발생.
+{
+	P_Alarm_Wait_Timer = 0;							// 타이머 초기화.
+	P_Alarm_Report = 2;								// 다음으로.
+}
+if(P_Alarm_Report == 2)								// 나머지 알람 발생.
+{
+	if(P_Alarm_Heap_Arr(0) > 0 && P_Alarm_Wait_Timer > N_Alarm_Wait )	// 알람 요소 존재 && 설정 시간 초과 일 경우.
+	{
+		call Alarm_Heap_Sort.Node_Delete(&P_Alarm_Number_RTN, &P_Alarm_Priority_RTN);	// 노드 알람 번호, 우선 순위 추출 후 정보 삭제.
+		call Alarm_Heap_Sort.Alarm_Log(P_Alarm_Number_RTN);							 	// 알람 번호 로그 저장.
+
+		M(P_Alarm_Number_RTN) = 1;					// 알람 발생.
+	}
+	else if(P_Alarm_Heap_Arr(0) == 0)				// 알람 요소 미존재 일 경우.
+	{
+		P_Alarm_Report = 0;							// 초기화.
+		P_Alarm_Remain_Check = 0;					// 나머지 알람 유무 여부 초기화.
+	}
+}
+//======================================================================//
+// 우선 순위 알람 처리 //
+//======================================================================//
+if(P_Alarm_Priority_Report == 1)					// 우선 순위 알람 처리.
+{
+	if(P_Alarm_Send_To_PLC(0) > 0 && P_Alarm_Wait_Timer > N_Alarm_Wait)	// 순차 발생 버퍼 존재 && 설정 시간 초과 일 경우.
+	{
+		call Alarm_Heap_Sort.Alarm_Send_To_PLC();	// 알람 발생.
+		P_Alarm_Wait_Timer = 0;						// 타이머 초기화.
+		P_Alarm_Priority_Cnt--;						// 우선 순위 발생 카운트 감소.
+	}
+	else if(P_Alarm_Send_To_PLC(0) == 0)			// 순차 발생 버퍼 미존재 일 경우.
+	{
+		P_Alarm_Priority_Report = 0;				// 우선 순위 알람 처리 초기화.
+	}
+}
+//======================================================================//
+// 알람 커멘드 동작 부 //
+//======================================================================//
+if(P_Alarm_Command_Active == 1)						// 알람 발생 후 Command 발생을 위한 변수. [ P_PMAC_Commands =  Abort, Stop ]
+{
+	//----------------------------------------------------------------------------------------------------------------------------------------------------------//
+	// 알람 우선 순위에 따른 알람 발생 Flag 구분 [ [1] N_High_Alarm_Emergency_Stop : 즉시 정지, [2] N_High_Alarm_Cycle_Stop : 사이클 정지, [3] N_Low_Alarm : 경고 ]
+	//----------------------------------------------------------------------------------------------------------------------------------------------------------//
+	if(P_Alarm_Priority_RTN == N_High_Alarm_Emergency_Stop)		// [루트 노드 우선 순위] 즉시 정지 일 경우.
+	{
+		if(P_PMAC_Current_Mode == F_Current_Automatic)			// Auto 모드 일 경우.
+		{
+			P_Alarm_Occur_Flag = N_High_Alarm_Emergency_Stop;	// 즉시정지 플래그 발생.
+		}
+		else if(P_PMAC_Current_Mode == F_Current_Manual)		// Manual 모드 일 경우.
+		{
+			P_Alarm_Occur_Flag = N_High_Alarm_Cycle_Stop;		// 사이클 정지 플래그 발생.
+		}
+	}
+	else if(P_Alarm_Priority_RTN == N_High_Alarm_Cycle_Stop)	// [루트 노드 우선 순위] 사이클 정지 일 경우.
+	{
+		P_Alarm_Occur_Flag = N_High_Alarm_Cycle_Stop;			// 사이클 정지 플래그 발생.
+	}
+	else														// 경알람 일 경우.
+	{
+		P_Alarm_Occur_Flag = N_Low_Alarm;						// 경알람 플래그 발생.
+	}
+	//---------------------------//
+	// Flag에 따른 Commands 실행 //
+	//---------------------------//
+	if(P_Alarm_Occur_Flag == N_High_Alarm_Emergency_Stop)		// 즉시 정지 플래그 일 경우.
+	{
+		P_PMAC_Commands = F_Command_Abort;						// Command : Abort
+	}
+	else if(P_Alarm_Occur_Flag == N_High_Alarm_Cycle_Stop)		// 사이클 정지 플래그 일 경우.
+	{
+		P_PMAC_Commands = F_Command_Stop;						// Command : Stop
+	}
+	P_Alarm_Command_Active = 0;									// 초기화. [재진입 방지]
+}	
+
+// 2025.08.25 Servo Alarm 및 +,- Limit, Home time out  [ 참조 : 2025.08.25 알람코드 추가 ]
+
+//==================================================================
+// 00. 모터 번호 업데이트
+//==================================================================
+	if( L_Local_Axis > 26 || L_Local_Axis == 0 )				// 1 ~ 26 Local Axes
+	   L_Local_Axis = 1;										// 33~48 Ecat Axes
+	else
+		L_Local_Axis++;
+
+	if( L_Ecat_Axis > 48 || L_Ecat_Axis == 0 )					// 33 ~ 48 Ecat Axes
+		L_Ecat_Axis = 33;
+	else
+		L_Ecat_Axis++;
+//==================================================================
+
+//==================================================================
+// 01. Servo Alarm Update		→ M변수는 Background C에서 켜주지만, 실제 Command는 Heap정렬 태워야함
+//==================================================================
+if( P_PMAC_Current_Mode == F_Current_Automatic )							// Auto Mode일때 
+{
+	if( Motor[L_Local_Axis].ServoCtrl == N_TRUE )							// 사용하는 서보인지 체크
+	{
+		if( Motor[L_Local_Axis].AmpEna == 0 )								// 서보 off라면
+		{
+			//call Heap_Sort.Node_Insert((L_Local_Axis - 1), N_High_Alarm_Cycle_Stop);
+		}							
+	}
+	if( Motor[L_Ecat_Axis].ServoCtrl == N_TRUE )							// 사용하는 서보인지 체크
+	{
+		if( Motor[L_Ecat_Axis].AmpEna == 0 )								// 서보 off라면
+		{
+			//call Heap_Sort.Node_Insert((L_Ecat_Axis - 2), N_High_Alarm_Cycle_Stop);
+		}							
+	}
+}
+else if( P_PMAC_Status == F_Status_RESETTING )								// Resetting 
+{
+	if( Motor[L_Local_Axis].ServoCtrl == N_TRUE )							// 사용하는 서보인지 체크
+	{
+		if( Motor[L_Local_Axis].AmpEna == 0 )								// 서보 off라면
+		{
+			//call Heap_Sort.Node_Insert((L_Local_Axis - 1), N_High_Alarm_Cycle_Stop);
+		}							
+	}
+	if( Motor[L_Ecat_Axis].ServoCtrl == N_TRUE )							// 사용하는 서보인지 체크
+	{
+		if( Motor[L_Ecat_Axis].AmpEna == 0 )								// 서보 off라면
+		{
+			//call Heap_Sort.Node_Insert((L_Ecat_Axis - 2), N_High_Alarm_Cycle_Stop);
+		}							
+	}
+}
+//==================================================================
+// 02. Servo Limit		→ M변수는 Background C에서 켜주지만, 실제 Command는 Heap정렬 태워야함 
+//==================================================================
+if( P_PMAC_Current_Mode == F_Current_Automatic )						// Auto Mode일때 
+{
+	if( Motor[L_Local_Axis].PlusLimit == N_TRUE )							// 플러스 리밋이 감지 된다면
+	{
+		//call Heap_Sort.Node_Insert((L_Local_Axis + 120), N_High_Alarm_Emergency_Stop);
+		P_PMAC_Homing_CHK(L_Local_Axis) = 0;								// 해당 모터 홈잉 체크 초기화
+	}
+	if( Motor[L_Ecat_Axis].PlusLimit == N_TRUE )							// 플러스 리밋이 감지 된다면
+	{
+		//call Heap_Sort.Node_Insert((L_Ecat_Axis + 118), N_High_Alarm_Emergency_Stop);
+		P_PMAC_Homing_CHK(L_Ecat_Axis) = 0;									// 해당 모터 홈잉 체크 초기화
+	}
+	if( Motor[L_Local_Axis].MinusLimit == N_TRUE )							// 마이너스 리밋이 감지 된다면
+	{
+		//call Heap_Sort.Node_Insert((L_Local_Axis + 60), N_High_Alarm_Emergency_Stop);
+		P_PMAC_Homing_CHK(L_Local_Axis) = 0;								// 해당 모터 홈잉 체크 초기화
+	}
+	if( Motor[L_Ecat_Axis].MinusLimit == N_TRUE )							// 마이너스 리밋이 감지 된다면
+	{
+		//call Heap_Sort.Node_Insert((L_Ecat_Axis + 58), N_High_Alarm_Emergency_Stop);
+		P_PMAC_Homing_CHK(L_Ecat_Axis) = 0;									// 해당 모터 홈잉 체크 초기화
+	}
+}
+//==================================================================
+// 03. Home Time out		→ Home PLC에서 개별 Home Command 출력 후 Time Check 
+//==================================================================
+if( P_Current_Homming_Status(L_Local_Axis) == F_Status_STARTING )			// Home Status == Starting라면
+{
+	if( L_Home_Alarm_Timer_Init_Flag(L_Local_Axis) == 0 )
+	{
+		L_Home_Alarm_Timer(L_Local_Axis) =  Sys.Time;						// 현재 시간 저장
+		L_Home_Alarm_Timer_Init_Flag(L_Local_Axis) = 1;
+	}
+	if( (Sys.Time - L_Home_Alarm_Timer(L_Local_Axis)) > P_Homing_Alarm_Time )// P_Homing_Alarm_Time = 10sec
+	{
+		//call Heap_Sort.Node_Insert((L_Local_Axis + 430 ), N_High_Alarm_Cycle_Stop);
+		L_Home_Alarm_Timer_Init_Flag(L_Local_Axis) = 0;
+	}
+}
+else
+	L_Home_Alarm_Timer_Init_Flag(L_Local_Axis) = 0;
+
+if( P_Current_Homming_Status(L_Ecat_Axis) == F_Status_STARTING )			// Home Status == Starting라면
+{
+	if( L_Home_Alarm_Timer_Init_Flag(L_Ecat_Axis) == 0 )
+	{
+		L_Home_Alarm_Timer(L_Ecat_Axis) =  Sys.Time;						// 현재 시간 저장
+		L_Home_Alarm_Timer_Init_Flag(L_Ecat_Axis) = 1;
+	}
+	if( (Sys.Time - L_Home_Alarm_Timer(L_Ecat_Axis)) > P_Homing_Alarm_Time )// P_Homing_Alarm_Time = 10sec
+	{
+		//call Heap_Sort.Node_Insert((L_Ecat_Axis + 428 ), N_High_Alarm_Cycle_Stop);
+		L_Home_Alarm_Timer_Init_Flag(L_Ecat_Axis) = 0;
+	}
+}
+else
+	L_Home_Alarm_Timer_Init_Flag(L_Ecat_Axis) = 0;
+
+close

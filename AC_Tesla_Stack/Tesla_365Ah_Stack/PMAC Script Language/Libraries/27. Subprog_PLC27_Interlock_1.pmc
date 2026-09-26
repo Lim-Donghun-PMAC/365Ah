@@ -1,0 +1,188 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+open subprog Interlcok(void)
+	sub: Get_Param(&rtn)
+		rtn = 0;
+		// 모터 별 간섭 위치 비교 할 모터 번호 사전 입력
+		// 0 ~ 9 인덱스 : N_1st_PnP_CA_T 
+		P_Interlock_Use_Motor_Arr(N_1st_PnP_CA_T) &= ( N_Hex_Machine_Auto_Interlcok_Unuse & N_Hex_Home_Miss_Interlock_Unuse );
+		// Target 모터 : N_1st_PnP_CA_T Ref 모터 : N_1st_PnP_CA_Z
+		// 모든 위치 인터락
+		P_Interlock_Info_Target_Pos_Upper(0) = F_False;
+		P_Interlock_Info_Ref_Pos_Upper(0) = F_False;
+		P_Interlock_Info_type_Upper(0)   = F_False;
+		P_Interlock_Info_Ref_M(0) = F_False;
+
+		P_Interlock_Info_Target_Motor_Home_Miss_Status(0) = ( P_Interlock_Status_Motor_Arr(N_1st_PnP_CA_Z) & N_Hex_Home_Miss_Interlock_On );
+		P_Interlock_Info_Target_Pos(0) = P_Motor_Current_Pos(N_1st_PnP_CA_Z);			// #0번 인덱스 인터락 기준 실행 모터 	: 타겟 모터 위치 지정.
+		P_Interlock_Info_Ref_Pos(0) = P_Recipe_M17_POS(1);								// #0번 인덱스 인터락 비교 위치		: 17번 모터의 대기위치
+		P_Interlock_Info_type(0)   = low;													// #0번 인덱스 인터락 비교 분류		: 17번 모터(N_1st_PnP_CA_Z)가 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(0) = P_Interlock_Info_Ref_M(0) | N_Hex_Cathode_1ST_PNP_T | N_Hex_Cathode_1ST_PNP_Z;		// #0번 인덱스 인터락 비교 실행 모터	: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(0) = N_Hex_Inc_P_Interlcok_On | N_Hex_Inc_M_Interlcok_On | N_Hex_Abs_P_Interlcok_On | N_Hex_Abs_M_Interlcok_On | N_Hex_JogP_Interlcok_On | N_Hex_JogM_Interlcok_On | N_Hex_Home_Interlcok_On | N_Hex_POS_All_Interlock_On;
+		// Target 모터 : N_1st_PnP_CA_T Ref 모터 : N_2nd_PnP_CA_T
+		// 홈, 레시피 3번 위치(얼라인 테이블) 인터락
+		P_Interlock_Info_Target_Pos_Upper(1) = F_False;
+		P_Interlock_Info_Ref_Pos_Upper(1) = F_False;
+		P_Interlock_Info_type_Upper(1)   = F_False;
+		P_Interlock_Info_Ref_M(1) = F_False;
+		
+		P_Interlock_Info_Target_Motor_Home_Miss_Status(1) = ( P_Interlock_Status_Motor_Arr(N_2nd_PnP_CA_T) & N_Hex_Home_Miss_Interlock_On );
+		P_Interlock_Info_Target_Pos(1) = P_Motor_Current_Pos(N_2nd_PnP_CA_T);			// #1번 인덱스 인터락 기준 실행 모터 		: 타겟 모터 위치 지정.
+		P_Interlock_Info_Ref_Pos(1) = P_Recipe_M03_POS(2) - 20;								// #1번 인덱스 인터락 비교 위치		: 3번 모터의 얼라인 테이블 위치
+		P_Interlock_Info_type(1)   = high;													// #1번 인덱스 인터락 비교 분류		: 3번번 모터 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(1) = P_Interlock_Info_Ref_M(1) | N_Hex_Cathode_1ST_PNP_T | N_Hex_Cathode_2ND_PNP_T;		// #1번 인덱스 인터락 비교 실행 모터		: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(1) = N_Hex_Home_Interlcok_On | N_Hex_POS3_Interlcok_On;	
+		// Target 모터 : N_1st_PnP_CA_T Ref 모터 : N_Cathode_NG_PNP_T
+		// 홈, 레시피 3번 위치(얼라인 테이블) 인터락
+		P_Interlock_Info_Target_Pos_Upper(2) = F_False;
+		P_Interlock_Info_Ref_Pos_Upper(2) = F_False;
+		P_Interlock_Info_type_Upper(2)   = F_False;
+		P_Interlock_Info_Ref_M(2) = F_False;
+		
+		P_Interlock_Info_Target_Pos(2) = P_Motor_Current_Pos(N_Cathode_NG_PNP_T);			// #2번 인덱스 인터락 기준 실행 모터 		: 타겟 모터 위치 지정.
+		P_Interlock_Info_Ref_Pos(2) = P_Recipe_M42_POS(2) - 40;								// #2번 인덱스 인터락 비교 위치		: 42번 모터의 얼라인테이블 위치
+		P_Interlock_Info_type(2)   = high;													// #2번 인덱스 인터락 비교 분류		: 17번 모터(N_1st_PnP_CA_Z)가 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(2) = P_Interlock_Info_Ref_M(2) | N_Hex_Cathode_1ST_PNP_T | N_Hex_Cathode_NG_PNP_T;			// #2번 인덱스 인터락 비교 실행 모터		: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(2) = N_Hex_Home_Interlcok_On | N_Hex_POS3_Interlcok_On;
+		// Target 모터 : N_1st_PnP_CA_T Ref 모터 : N_Other_Side_Cathode_1ST_PNP_T
+		P_Interlock_Info_Target_Pos_Upper(3) = F_False;
+		P_Interlock_Info_Ref_Pos_Upper(3) = F_False;
+		P_Interlock_Info_type_Upper(3)   = F_False;
+		P_Interlock_Info_Ref_M(3) = F_False;		
+		
+		P_Interlock_Info_Target_Pos(3) = M_X_Other_Side_Cathode_1ST_PNP_T_Interlcok;			// #0번 인덱스 인터락 기준 실행 모터 		: 타겟 모터 위치 지정.
+		P_Interlock_Info_Ref_Pos(3) = F_True;									// #0번 인덱스 인터락 비교 위치		: 17번 모터의 대기위치
+		P_Interlock_Info_type(3)   = high_and_equal;													// #0번 인덱스 인터락 비교 분류		: 17번 모터(N_1st_PnP_CA_Z)가 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(3) = P_Interlock_Info_Ref_M(3) | N_Hex_Cathode_1ST_PNP_T | N_Hex_Other_Side_Cathode_1ST_PNP_T;									// #0번 인덱스 인터락 비교 실행 모터		: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(3) = N_Hex_POS2_Interlcok_On;
+		// Target 모터 : N_1st_PnP_CA_T Ref 모터 : N_2nd_PnP_CA_T 
+		// 상대이동(-) 인터락 
+		P_Interlock_Info_Target_Pos_Upper(4) = P_Motor_Current_Pos(N_2nd_PnP_CA_T);
+		P_Interlock_Info_Ref_Pos_Upper(4) = 40;
+		P_Interlock_Info_type_Upper(4)   = high;
+		P_Interlock_Info_Ref_M(4) = N_Hex_Cathode_2ND_PNP_T;
+		
+		P_Interlock_Info_Target_Pos(4) = P_Motor_Current_Pos(N_1st_PnP_CA_T) + M_Motor_Move_Distance(N_1st_PnP_CA_T);			// #0번 인덱스 인터락 기준 실행 모터 		: 타겟 모터 위치 지정.
+		P_Interlock_Info_Ref_Pos(4) = P_Recipe_M01_POS(3) + 15;									// #0번 인덱스 인터락 비교 위치		: 17번 모터의 대기위치
+		P_Interlock_Info_type(4)   = low_and_equal;													// #0번 인덱스 인터락 비교 분류		: 17번 모터(N_1st_PnP_CA_Z)가 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(4) = P_Interlock_Info_Ref_M(4) | N_Hex_Cathode_1ST_PNP_T | N_Hex_Cathode_2ND_PNP_T;									// #0번 인덱스 인터락 비교 실행 모터		: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(4) = N_Hex_Inc_M_Interlcok_On;
+		// Target 모터 : N_1st_PnP_CA_T Ref 모터 : N_2nd_PnP_CA_T
+		// 조그 - 인터락
+		P_Interlock_Info_Target_Pos_Upper(5) = F_False;
+		P_Interlock_Info_Ref_Pos_Upper(5) = F_False;
+		P_Interlock_Info_type_Upper(5)   = F_False;
+		P_Interlock_Info_Ref_M(5) = F_False;
+		
+		P_Interlock_Info_Target_Pos(5) = P_Motor_Current_Pos(N_2nd_PnP_CA_T) - P_Motor_Current_Pos(N_1st_PnP_CA_T);		// #5번 인덱스 인터락 기준 실행 모터 		: N_1st_PnP_CA_T 타겟 모터 지정.
+		P_Interlock_Info_Ref_Pos(5) = 45;						// #5번 인덱스 인터락 비교 위치		: 17번 모터의 대기위치
+		P_Interlock_Info_type(5)   = high;						// #5번 인덱스 인터락 비교 분류		: 17번 모터(N_1st_PnP_CA_Z)가 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(5) = P_Interlock_Info_Ref_M(5) | N_Hex_Cathode_1ST_PNP_T | N_Hex_Cathode_2ND_PNP_T;		// #5번 인덱스 인터락 비교 실행 모터		: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(5) = N_Hex_JogM_Interlcok_On;
+		// Target 모터 : N_1st_PnP_CA_T Ref 모터 : N_Other_Side_Cathode_1ST_PNP_T
+		// 상대이동(+), 절대이동(+), 조그+ 인터락
+		P_Interlock_Info_Target_Pos_Upper(6) = M_X_Other_Side_Cathode_1ST_PNP_T_Interlcok;
+		P_Interlock_Info_Ref_Pos_Upper(6) = F_True;
+		P_Interlock_Info_type_Upper(6)   = high_and_equal;
+		P_Interlock_Info_Ref_M(6) = N_Hex_Other_Side_Cathode_1ST_PNP_T;
+		
+		P_Interlock_Info_Target_Pos(6) = P_Motor_Current_Pos(N_1st_PnP_CA_T);		// #6번 인덱스 인터락 기준 실행 모터 		: N_1st_PnP_CA_T 타겟 모터 지정.
+		P_Interlock_Info_Ref_Pos(6) = 40;						// #6번 인덱스 인터락 비교 위치		: 17번 모터의 대기위치
+		P_Interlock_Info_type(6)   = high;						// #6번 인덱스 인터락 비교 분류		: 17번 모터(N_1st_PnP_CA_Z)가 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(6) = P_Interlock_Info_Ref_M(6) | N_Hex_Cathode_1ST_PNP_T | N_Hex_Other_Side_Cathode_1ST_PNP_T;		// #6번 인덱스 인터락 비교 실행 모터		: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(6) = N_Hex_Inc_P_Interlcok_On | N_Hex_Abs_P_Interlcok_On| N_Hex_JogP_Interlcok_On;
+
+		// 모터 별 간섭 위치 비교 할 모터 번호 사전 입력
+		// 10 ~ 19 인덱스 : N_1st_PnP_AN_T
+		P_Interlock_Use_Motor_Arr(N_1st_PnP_AN_T) &= ( N_Hex_Machine_Auto_Interlcok_Unuse & N_Hex_Home_Miss_Interlock_Unuse );
+		// Target 모터 : N_1st_PnP_AN_T Ref 모터 : N_1st_PnP_CA_Z
+		// 모든 위치 인터락
+		P_Interlock_Info_Target_Pos_Upper(10) = F_False;
+		P_Interlock_Info_Ref_Pos_Upper(10) = F_False;
+		P_Interlock_Info_type_Upper(10)   = F_False;
+		P_Interlock_Info_Ref_M(10) = F_False;
+		
+		P_Interlock_Info_Target_Pos(10) = P_Motor_Current_Pos(N_1st_PnP_CA_Z);			// #0번 인덱스 인터락 기준 실행 모터 	: 타겟 모터 위치 지정.
+		P_Interlock_Info_Ref_Pos(10) = P_Recipe_M18_POS(1);									// #0번 인덱스 인터락 비교 위치		: 17번 모터의 대기위치
+		P_Interlock_Info_type(10)   = high;													// #0번 인덱스 인터락 비교 분류		: 17번 모터(N_1st_PnP_CA_Z)가 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(10) = P_Interlock_Info_Ref_M(10) | N_Hex_Anode_1ST_PNP_T | N_Hex_Anode_1ST_PNP_Z;		// #0번 인덱스 인터락 비교 실행 모터	: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(10) = N_Hex_Inc_P_Interlcok_On | N_Hex_Inc_M_Interlcok_On | N_Hex_Abs_P_Interlcok_On | N_Hex_Abs_M_Interlcok_On | N_Hex_JogP_Interlcok_On | N_Hex_JogM_Interlcok_On | N_Hex_Home_Interlcok_On | N_Hex_POS_All_Interlock_On;
+		// Target 모터 : N_1st_PnP_AN_T Ref 모터 : N_2nd_PnP_AN_T
+		// 홈, 레시피 3번 위치(얼라인 테이블) 인터락
+		P_Interlock_Info_Target_Pos_Upper(11) = F_False;
+		P_Interlock_Info_Ref_Pos_Upper(11) = F_False;
+		P_Interlock_Info_type_Upper(11)   = F_False;
+		P_Interlock_Info_Ref_M(11) = F_False;
+		
+		P_Interlock_Info_Target_Pos(11) = P_Motor_Current_Pos(N_2nd_PnP_AN_T);			// #1번 인덱스 인터락 기준 실행 모터 		: 타겟 모터 위치 지정.
+		P_Interlock_Info_Ref_Pos(11) = P_Recipe_M04_POS(2) - 20;								// #1번 인덱스 인터락 비교 위치		: 3번 모터의 얼라인 테이블 위치
+		P_Interlock_Info_type(11)   = high;													// #1번 인덱스 인터락 비교 분류		: 3번번 모터 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(11) = P_Interlock_Info_Ref_M(11) | N_Hex_Anode_1ST_PNP_T | N_Hex_Anode_2ND_PNP_T;		// #1번 인덱스 인터락 비교 실행 모터		: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(11) = N_Hex_Home_Interlcok_On | N_Hex_POS3_Interlcok_On;	
+		// Target 모터 : N_1st_PnP_AN_T Ref 모터 : N_Anode_NG_PNP_T
+		// 홈, 레시피 3번 위치(얼라인 테이블) 인터락
+		P_Interlock_Info_Target_Pos_Upper(12) = F_False;
+		P_Interlock_Info_Ref_Pos_Upper(12) = F_False;
+		P_Interlock_Info_type_Upper(12)   = F_False;
+		P_Interlock_Info_Ref_M(12) = F_False;
+		
+		P_Interlock_Info_Target_Pos(12) = P_Motor_Current_Pos(N_Anode_NG_PNP_T);			// #2번 인덱스 인터락 기준 실행 모터 		: 타겟 모터 위치 지정.
+		P_Interlock_Info_Ref_Pos(12) = P_Recipe_M43_POS(2) - 40;								// #2번 인덱스 인터락 비교 위치		: 4번 모터의 얼라인테이블 위치
+		P_Interlock_Info_type(12)   = high;													// #2번 인덱스 인터락 비교 분류		: 17번 모터(N_1st_PnP_CA_Z)가 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(12) = P_Interlock_Info_Ref_M(12) | N_Hex_Anode_1ST_PNP_T | N_Hex_Anode_NG_PNP_T;			// #2번 인덱스 인터락 비교 실행 모터		: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(12) = N_Hex_Home_Interlcok_On | N_Hex_POS3_Interlcok_On;
+		// Target 모터 : N_1st_PnP_AN_T Ref 모터 : N_Other_Side_Anode_1ST_PNP_T
+		P_Interlock_Info_Target_Pos_Upper(13) = F_False;
+		P_Interlock_Info_Ref_Pos_Upper(13) = F_False;
+		P_Interlock_Info_type_Upper(13)   = F_False;
+		P_Interlock_Info_Ref_M(13) = F_False;		
+		
+		P_Interlock_Info_Target_Pos(13) = M_X_Other_Side_Anode_1ST_PNP_T_Interlcok;			// #0번 인덱스 인터락 기준 실행 모터 		: 타겟 모터 위치 지정.
+		P_Interlock_Info_Ref_Pos(13) = F_True;									// #0번 인덱스 인터락 비교 위치		: 17번 모터의 대기위치
+		P_Interlock_Info_type(13)   = high_and_equal;													// #0번 인덱스 인터락 비교 분류		: 17번 모터(N_1st_PnP_CA_Z)가 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(13) = P_Interlock_Info_Ref_M(13) | N_Hex_Anode_1ST_PNP_T | N_Hex_Other_Side_Anode_1ST_PNP_T;									// #0번 인덱스 인터락 비교 실행 모터		: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(13) = N_Hex_POS2_Interlcok_On;
+		// Target 모터 : N_1st_PnP_AN_T Ref 모터 : N_2nd_PnP_AN_T 
+		// 상대이동(-) 인터락 
+		P_Interlock_Info_Target_Pos_Upper(14) = P_Motor_Current_Pos(N_2nd_PnP_AN_T);
+		P_Interlock_Info_Ref_Pos_Upper(14) = 40;
+		P_Interlock_Info_type_Upper(14)   = high;
+		P_Interlock_Info_Ref_M(14) = N_Hex_Anode_2ND_PNP_T;
+		
+		P_Interlock_Info_Target_Pos(14) = P_Motor_Current_Pos(N_1st_PnP_AN_T) + M_Motor_Move_Distance(N_1st_PnP_AN_T);			// #0번 인덱스 인터락 기준 실행 모터 		: 타겟 모터 위치 지정.
+		P_Interlock_Info_Ref_Pos(14) = P_Recipe_M02_POS(3) + 15;									// #0번 인덱스 인터락 비교 위치		: 17번 모터의 대기위치
+		P_Interlock_Info_type(14)   = low_and_equal;													// #0번 인덱스 인터락 비교 분류		: 17번 모터(N_1st_PnP_CA_Z)가 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(14) = P_Interlock_Info_Ref_M(14) | N_Hex_Anode_1ST_PNP_T | N_Hex_Anode_2ND_PNP_T;									// #0번 인덱스 인터락 비교 실행 모터		: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(14) = N_Hex_Inc_M_Interlcok_On;
+		// Target 모터 : N_1st_PnP_AN_T Ref 모터 : N_2nd_PnP_AN_T
+		// 조그 - 인터락
+		P_Interlock_Info_Target_Pos_Upper(15) = F_False;
+		P_Interlock_Info_Ref_Pos_Upper(15) = F_False;
+		P_Interlock_Info_type_Upper(15)   = F_False;
+		P_Interlock_Info_Ref_M(15) = F_False;
+		
+		P_Interlock_Info_Target_Pos(15) = P_Motor_Current_Pos(N_2nd_PnP_AN_T) - P_Motor_Current_Pos(N_1st_PnP_AN_T);		// #5번 인덱스 인터락 기준 실행 모터 		: N_1st_PnP_AN_T 타겟 모터 지정.
+		P_Interlock_Info_Ref_Pos(15) = 45;						// #5번 인덱스 인터락 비교 위치		: 17번 모터의 대기위치
+		P_Interlock_Info_type(15)   = high;						// #5번 인덱스 인터락 비교 분류		: 17번 모터(N_1st_PnP_CA_Z)가 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(15) = P_Interlock_Info_Ref_M(15) | N_Hex_Anode_1ST_PNP_T | N_Hex_Anode_2ND_PNP_T;		// #5번 인덱스 인터락 비교 실행 모터		: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(15) = N_Hex_JogM_Interlcok_On;
+		// Target 모터 : N_1st_PnP_AN_T Ref 모터 : N_Other_Side_Anode_1ST_PNP_T
+		// 상대이동(+), 절대이동(+), 조그+ 인터락
+		P_Interlock_Info_Target_Pos_Upper(16) = M_X_Other_Side_Anode_1ST_PNP_T_Interlcok;
+		P_Interlock_Info_Ref_Pos_Upper(16) = F_True;
+		P_Interlock_Info_type_Upper(16)   = high_and_equal;
+		P_Interlock_Info_Ref_M(16) = N_Hex_Other_Side_Anode_1ST_PNP_T;
+		
+		P_Interlock_Info_Target_Pos(16) = P_Motor_Current_Pos(N_1st_PnP_AN_T);		// #6번 인덱스 인터락 기준 실행 모터 		: N_1st_PnP_AN_T 타겟 모터 지정.
+		P_Interlock_Info_Ref_Pos(16) = 40;						// #6번 인덱스 인터락 비교 위치		: 17번 모터의 대기위치
+		P_Interlock_Info_type(16)   = high;						// #6번 인덱스 인터락 비교 분류		: 17번 모터(N_1st_PnP_CA_Z)가 타겟 위치 초과일때
+		P_Interlock_Info_Ref_M(16) = P_Interlock_Info_Ref_M(16) | N_Hex_Anode_1ST_PNP_T | N_Hex_Other_Side_Anode_1ST_PNP_T;		// #6번 인덱스 인터락 비교 실행 모터		: N_1st_PnP_CA_Z 비교 모터 지정.
+		P_Interlock_Info_Bit(16) = N_Hex_Inc_P_Interlcok_On | N_Hex_Abs_P_Interlcok_On| N_Hex_JogP_Interlcok_On;
+					
+		rtn = F_True;
+	return;
+close

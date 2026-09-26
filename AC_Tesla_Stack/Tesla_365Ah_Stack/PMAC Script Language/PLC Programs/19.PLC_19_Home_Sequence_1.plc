@@ -1,0 +1,235 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.08.12
+// 신규 홈 모듈화 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+//=================================================================================================================================
+/*	※ 설명
+	1. 홈 커맨드 감지 후, 1. 홈체크변수 없음, 2. 적층중 X, 3. 적층중	Child Node에 데이터 저장
+	2. Child Node에 따른 Home Sequence 다르므로, Sequence 요소 및 Unit 요소를 저장
+	3. 간섭 여부 판단이 필요 한  Unit이라면, 간섭 여부 노드에서 간섭 파악 후 처리
+	→ 3.1 간섭 여부가 있으면 회피 처리 후 Action 노드 링크
+	4. Sequence 요소에 맞게 Acting 
+	5. Acting 종료를 확인 구간 ( Verify ) → Bit Pos ( Index ) 증가 하여 시퀀스 진행
+	
+	6. Home Stop Cmd 감지 시 Stop 처리 
+*/ 
+//=================================================================================================================================
+open plc 19
+
+// Node 선언 P변수로 변경
+//Local P_Resetting_All_Home_Node_Link;						// plc[19].ldata.l[0]	홈 자식(가지) 파악 노드
+//Local P_Resetting_All_Home_Sequence_Node_Link; 			// plc[19].ldata.l[1]	홈 시퀀스 설정 노드	
+//Local P_Resetting_All_Home_Modifier_Node_Link; 			// plc[19].ldata.l[2]	간섭 여부 판단 노드
+//local P_Resetting_All_Home_Condition_Act_Node_Link;		// plc[19].ldata.l[3]	간섭 여부 회피 노드
+//Local P_Resetting_All_Home_Action_Node_Link;				// plc[19].ldata.l[4]	홈 시퀀스 행동 노드
+//Local P_Resetting_All_Home_Verify_Node_Link;				// plc[19].ldata.l[5]	홈 시퀀스 완료 확인 노드
+//local P_Resetting_All_Home_Stop_Node_Link;				// plc[19].ldata.l[6]	홈 시퀀스 정지 노드
+// 리턴값
+local L_Resetting_All_Home_State_Return ;					//	plc[19].ldata.l[0]		plc[19].ldata.l[7]
+local L_Resetting_All_Home_Block_Rtn;						//	plc[19].ldata.l[1]		plc[19].ldata.l[8]
+local L_Resetting_All_Home_Sequence_Rtn;					//	plc[19].ldata.l[2]		plc[19].ldata.l[9]
+local L_Resetting_All_Home_Condition_Rtn;					//	plc[19].ldata.l[3]		plc[19].ldata.l[10]
+local L_Resetting_All_Home_Action_Rtn;						//	plc[19].ldata.l[4]		plc[19].ldata.l[11]
+local L_Resetting_All_Home_Verify_Rtn;						//	plc[19].ldata.l[5]		plc[19].ldata.l[12]
+local L_Resetting_All_Home_Bit_Add_Rtn;						//	plc[19].ldata.l[6]		plc[19].ldata.l[13]
+local L_Condition_Act_Rtn;									//	plc[19].ldata.l[7]		plc[19].ldata.l[14]
+// 엣지값
+local L_Resetting_All_Home_Sequence_Block;					//	plc[19].ldata.l[8]		plc[19].ldata.l[15]
+local L_Resetting_All_Home_Bit_Index;						//	plc[19].ldata.l[9]		plc[19].ldata.l[16]
+
+//=================================================================================================================================
+// 홈 커맨드 감시 부
+if( P_Resetting_All_Home_Command == F_Command_Start )							// 홈 커맨드 감지 
+{
+	P_Resetting_All_Home_Command = F_Command_NonCommand;						// 커맨드 초기화
+	P_Resetting_All_Home_Bit_Index = 1;										// 첫번째 부터 시작.
+	P_Resetting_All_Home_Sequence_Block = 0;									// 시퀀스 블록 초기화
+	P_All_Home_Mode_Element = 0;												// 모드 요소 초기화
+
+	// 홈 상태 확인 구간 ↓
+	L_Resetting_All_Home_State_Return = 0;
+	call AH_Func.AH_Motor_State_Chk(&L_Resetting_All_Home_State_Return);							
+	if( L_Resetting_All_Home_State_Return == N_New_Non_Homing_CHK )				// 1. Home Check 변수가 없을때 
+	{
+		P_Resetting_All_Home_Node_Link = N_Link_Enable;
+		P_Resetting_All_Home_Sequence_Block = N_11EA_Block + 1;					// 시퀀스 블록갯수
+		P_All_Home_Mode_Element = N_New_Non_Homing_CHK;							// Non Chk 
+		P_AH_Home_Status = F_Status_STARTING;
+	}
+	else if( L_Resetting_All_Home_State_Return == N_JellyRoll_Enable )			// 2. 적층중, 젤리롤이 있다면
+	{
+		P_Resetting_All_Home_Node_Link = N_Link_Enable;
+		P_Resetting_All_Home_Sequence_Block = N_6EA_Block + 1;					// 시퀀스 블록갯수
+		P_All_Home_Mode_Element = N_JellyRoll_Enable;							// 적층중
+		P_AH_Home_Status = F_Status_STARTING;
+	}
+	else if( L_Resetting_All_Home_State_Return == N_JellyRoll_Disable)			// 3. 적층중이 아니라면
+	{
+		P_Resetting_All_Home_Node_Link = N_Link_Enable;
+		P_Resetting_All_Home_Sequence_Block = N_7EA_Block + 1;					// 시퀀스 블록갯수
+		P_All_Home_Mode_Element = N_JellyRoll_Disable;							// 적층중이아님
+		P_AH_Home_Status = F_Status_STARTING;	
+	}
+}
+else if( P_Resetting_All_Home_Command == F_Command_Stop )						// stop 커맨드 감지
+{
+	P_Resetting_All_Home_Node_Link	=			N_Link_Disable;					// 시퀀스 종류 노드 
+	P_Resetting_All_Home_Sequence_Node_Link =	N_Link_Disable;					// 시퀀스 노드 링크 해제
+	P_Resetting_All_Home_Modifier_Node_Link =	N_Link_Disable;					// 조건 노드 링크 해제
+	P_Resetting_All_Home_Action_Node_Link =		N_Link_Disable;					// 액션 노드 링크 해제
+	P_Resetting_All_Home_Verify_Node_Link =		N_Link_Disable;					// 명령 확인 노드 링크 해제
+	P_Resetting_All_Home_Condition_Act_Node_Link = N_Link_Disable;				// 조건 액션 노드 링크 해제
+	P_Resetting_All_Home_Stop_Node_Link =		N_Link_Enable;					// 스탑 노드 링크 연결
+	L_Resetting_All_Home_Sequence_Block = 0;									// 이전 시퀀스 블록값 초기화
+	L_Resetting_All_Home_Bit_Index = 0;											// 이전 위치값 초기화
+	// cycle stop [ 참조 : 2025.08.18 홈 시퀀스 스탑 보안 ]
+	if( All_Home_Stop_Bit )														// 모든 모터위치가 정지 되었다면
+	{
+		P_Resetting_All_Home_Command = F_Command_NonCommand;					// 커맨드 초기화
+		P_AH_Home_Status = F_Status_STOPPED;									// 스탑 상태
+		P_Resetting_All_Home_Stop_Node_Link = N_Link_Disable;					// 스탑 노드 링크 해제
+	}
+}
+
+//=================================================================================================================================
+// 1. Child Node Link  
+if( P_Resetting_All_Home_Node_Link == N_Link_Enable )									// 노드 링크 
+{
+	if( P_Resetting_All_Home_Sequence_Block != L_Resetting_All_Home_Sequence_Block )	// 값 변화 확인 후 
+	{
+		L_Resetting_All_Home_Block_Rtn = 0;
+		call Bit_Masking_Function.Check(P_Resetting_All_Home_Sequence_Block,P_Resetting_All_Home_Bit_Index,&L_Resetting_All_Home_Block_Rtn )
+		if( L_Resetting_All_Home_Block_Rtn == N_TRUE )										// 참 리턴 ( 종료를 확인 )
+		{
+			P_Resetting_All_Home_Node_Link	=			N_Link_Disable;					// 시퀀스 종류 노드 
+			P_Resetting_All_Home_Sequence_Node_Link =	N_Link_Disable;					// 시퀀스 노드 링크 해제
+			P_Resetting_All_Home_Modifier_Node_Link =	N_Link_Disable;					// 조건 노드 링크 해제
+			P_Resetting_All_Home_Condition_Act_Node_Link = N_Link_Disable;				// 간섭 여부 행위 노드 링크 해제
+			P_Resetting_All_Home_Action_Node_Link   =	N_Link_Disable;					// 액션 노드 링크 해제
+			P_Resetting_All_Home_Verify_Node_Link =		N_Link_Disable;					// 명령 확인 노드 링크 해제
+			P_AH_Home_Status = F_Status_COMPLETE;										// 홈 상태 완료
+			P_Resetting_All_Home_Bit_Index = 0;											// 위치 초기화
+		}
+		else																			// 거짓 리턴
+		{
+			P_AH_Home_Status = F_Status_EXECUTE;										// 전체 홈 상태 Execute
+			P_Resetting_All_Home_Sequence_Node_Link = N_Link_Enable;					// 시퀀스 노드 활성화 
+		
+		}
+		L_Resetting_All_Home_Sequence_Block = P_Resetting_All_Home_Sequence_Block;		// 값 동기화
+	}
+}
+
+//=================================================================================================================================
+// 2. Sequence Node Link  
+if( P_Resetting_All_Home_Sequence_Node_Link == N_Link_Enable )
+{
+	if( P_Resetting_All_Home_Bit_Index != L_Resetting_All_Home_Bit_Index )				// 시퀀스 위치가 변화가 있다면	( 배열로 치면 Index )
+	{
+		L_Resetting_All_Home_Sequence_Rtn = 0;		// 리턴값 초기화
+		P_Seq_Unit_Element = 0;						// 유닛 요소 초기화
+		P_Seq_Action_Element = 0;					// 액션 요소 초기화
+
+		// 인자값 : Mode, 현재 위치, 시퀀스 행위 요소값, 시퀀스 유닛 요소, Condition Flag , 결과값
+		call AH_Func.Sequence(P_All_Home_Mode_Element,P_Resetting_All_Home_Bit_Index,&P_Seq_Action_Element,&P_Seq_Unit_Element,&L_Resetting_All_Home_Sequence_Rtn);
+		//↓ Modify로 반환이 되었다면, 현재 Unit이 간섭 여부를 파악해야 하므로 조건 확인 노드로 연결
+		if( L_Resetting_All_Home_Sequence_Rtn == N_Modify )													
+		{
+			// 컨디션 링크 연결
+			P_Resetting_All_Home_Modifier_Node_Link = N_Link_Enable;					// 조건부 노드 링크 연결
+		}
+		// ↓ True로 반환이 되었다면, 간섭 여부 확인이 필요 없으므로 Action 노드로 연결
+		else if( L_Resetting_All_Home_Sequence_Rtn == N_TRUE )
+		{
+			// 액션으로 링크 연결
+			P_Resetting_All_Home_Action_Node_Link = N_Link_Enable;						// 액션 노드 링크 연결
+		}
+		L_Resetting_All_Home_Bit_Index = P_Resetting_All_Home_Bit_Index;				// 값 동기화
+	}
+}
+
+//=================================================================================================================================
+// 3. Modifier Node Link  → 간섭여부 체크 
+if( P_Resetting_All_Home_Modifier_Node_Link == N_Link_Enable )											// 모디파이어 링크 연결 
+{
+	L_Resetting_All_Home_Condition_Rtn = 0;		// 리턴값 초기화
+	P_Cathode_Modify_Act_Data = 0;				// 양극 간섭여부 데이터 초기화
+	P_Anode_Modify_Act_Data = 0;				// 음극 간섭여부 데이터 초기화
+
+	// 인자값 : Mode, 현재위치(Index),양극 데이터,음극 데이터, 결과값
+	call Modifier.Condition( P_All_Home_Mode_Element, P_Resetting_All_Home_Bit_Index,&P_Cathode_Modify_Act_Data,&P_Anode_Modify_Act_Data,&L_Resetting_All_Home_Condition_Rtn );
+	// ↓ True 반환 시 간섭여부가 있으므로 회피 동작이 필요함을 알림
+	if( L_Resetting_All_Home_Condition_Rtn == N_TRUE )													// 참으로 반환 받으면
+	{
+		P_Cathode_Modify_Act_State_Machine = 0;															// 스텟머신 초기화 
+		P_Anode_Modify_Act_State_Machine = 0;															// 스텟머신 초기화 
+		P_Resetting_All_Home_Condition_Act_Node_Link = N_Link_Enable;									// 조건처리 노드 링크 연결
+		P_Resetting_All_Home_Modifier_Node_Link = N_Link_Disable;										// 모디파이 링크 해제
+	}
+	// ↓ Except 반환 시 간섭여부가 없으므로 Action 실행을 해도 됌
+	else if( L_Resetting_All_Home_Condition_Rtn == N_EXCEPT )											// Except 반환 시 
+	{
+		P_Resetting_All_Home_Action_Node_Link = N_Link_Enable;											// 액션노드 링크 
+		P_Resetting_All_Home_Modifier_Node_Link = N_Link_Disable;										// 모디파이 링크 해제
+	}
+}
+//=================================================================================================================================
+// 3.1 Modify Acttion → 간섭 여부에 따른 회피 동작 처리 
+if(P_Resetting_All_Home_Condition_Act_Node_Link == N_Link_Enable )			// 조건 처리 링크 연결
+{
+	L_Condition_Act_Rtn = 0;												// 리턴값 초기화
+
+	// 인자값 : 양극 데이터, 음극 데이터, 결과값
+	call AH_Condition.Condition_Act( P_Cathode_Modify_Act_Data,P_Anode_Modify_Act_Data,&L_Condition_Act_Rtn );
+	// ↓ True 반환 시 회피 행위가 끝남을 알림
+	if( L_Condition_Act_Rtn == N_TRUE )
+	{
+		P_Resetting_All_Home_Condition_Act_Node_Link = N_Link_Disable;		// 회피 Node UnLink
+		P_Resetting_All_Home_Action_Node_Link = N_Link_Enable;				// Act Node Link
+	}
+} 
+//=================================================================================================================================
+// 4. Action Node Link  → 홈 시퀀스 실행
+if( P_Resetting_All_Home_Action_Node_Link == N_Link_Enable )
+{
+	L_Resetting_All_Home_Action_Rtn = 0;
+	// 인자값 : 액션 요소, 액션유닛, 결과값
+	call AH_Func.Action(P_Seq_Action_Element, P_Seq_Unit_Element,&L_Resetting_All_Home_Action_Rtn);
+	if( L_Resetting_All_Home_Action_Rtn == N_TRUE )
+	{
+		P_Resetting_All_Home_Verify_Node_Link = N_Link_Enable;											// 베리파이 링크 연결
+		P_Resetting_All_Home_Action_Node_Link = N_Link_Disable;											// 액션 링크 해제
+	}
+}
+//=================================================================================================================================
+// 5. Verify Node Link  → 홈 시퀀스 동작 확인 
+if( P_Resetting_All_Home_Verify_Node_Link == N_Link_Enable )
+{
+	L_Resetting_All_Home_Verify_Rtn = 0;
+	// 인자값 :  액션 요소,  결과값
+	call AH_Func.Verify(P_Seq_Action_Element,&L_Resetting_All_Home_Verify_Rtn);
+	// ↓ True 반환 되었다면 액션이 종료 되었음을 확인
+	if( L_Resetting_All_Home_Verify_Rtn == N_TRUE )
+	{
+		L_Resetting_All_Home_Bit_Add_Rtn = 0;		// 비트 추가 결과값 변수 초기화
+		// 인자값 : 시퀀스 블록(갯수), 시퀀스블록 갯수 반환, 현재비트위치(Index), 반환값
+		call Bit_Masking_Function.Add(P_Resetting_All_Home_Sequence_Block,&P_Resetting_All_Home_Sequence_Block,P_Resetting_All_Home_Bit_Index,&L_Resetting_All_Home_Bit_Add_Rtn);
+		// ↓ 비트 삽입이 끝났다면
+		if( L_Resetting_All_Home_Bit_Add_Rtn == N_TRUE )
+		{
+			P_Resetting_All_Home_Bit_Index++;													// 시퀀스 위치 증가 ( Index )
+			P_Resetting_All_Home_Verify_Node_Link = N_Link_Disable;								// 베리파이 링크 해제
+		}
+	}
+}
+//=================================================================================================================================
+// 6. Stop Node Link   // cycle stop [ 참조 : 2025.08.18 홈 시퀀스 스탑 보안 ]
+if( P_Resetting_All_Home_Stop_Node_Link == N_Link_Enable ) 
+{
+	call AH_Func.Stop_Action();
+}
+
+close
+

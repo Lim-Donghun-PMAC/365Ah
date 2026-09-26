@@ -1,0 +1,105 @@
+Motor[3].pAbsPos = CK3WECS[1].Chan[2].SerialEncDataA.a
+Motor[3].AbsPosFormat = $01001700
+Motor[3].AbsPosSf =  motor[3].possf
+Motor[3].Homeoffset = 0
+
+ m1000->*i.23
+
+ m1000 = Gate3[1].Chan[2].SerialEncDataA
+
+ // 방향 변경 필요 시 음수처리 필요.
+ EncTable[3].ScaleFactor
+
+
+
+
+
+
+
+ Welcome to Power PMAC terminal
+Select Device to start communication
+SSH communication to Power PMAC at 192.168.1.31 successful
+Disconnected from Power PMAC at 192.168.1.31
+SSH communication to Power PMAC at 192.168.1.31 successful
+i308
+I308=0.04291534423828125
+Motor[3].abspossf
+Motor[3].AbsPosSf=0
+Motor[3].absposforma
+stdin:4:14: error #20: ILLEGAL CMD: Motor[3].absposforma
+Motor[3].a=$d3087b10
+0
+motor[3].AbsPosFormat
+Motor[3].AbsPosFormat=$0
+Motor[3].pabspos
+Motor[3].pAbsPos=0
+i308
+I308=0.04291534423828125
+i308
+I308=0.04291534423828125
+i308=1
+Motor[3].pAbsPos = CK3WECS[1].Chan[2].SerialEncDataA.a
+Motor[3].AbsPosFormat = $01001700
+Motor[3].AbsPosSf =  motor[3].possf
+#3hmz
+motor[3].HomeOffset
+Motor[3].HomeOffset=0
+m1000->
+M1000->*
+ m1000->*s.23
+ m1000 = Gate3[1].Chan[2].SerialEncDataA
+m1000->
+M1000->*s.23
+ m1000->*i.23
+ m1000 = Gate3[1].Chan[2].SerialEncDataA
+#3hmz
+Motor[3].Homeoffset = -3153100
+#3hmz
+I308=0.04291534423828125
+Motor[3].AbsPosSf =  motor[3].possf
+motor[3].pPhaseEnc
+Motor[3].pPhaseEnc=CK3WECS[1].Chan[2].SerialEncDataA.a
+#3hmz
+Motor[3].pAbsPos = CK3WECS[1].Chan[2].SerialEncDataA.a
+Motor[3].AbsPosFormat = $01001700
+Motor[3].AbsPosSf =  motor[3].possf
+Motor[3].Homeoffset = -3153100
+#3hmz
+i308
+I308=0.04291534423828125
+i308=1
+Motor[3].pAbsPos = CK3WECS[1].Chan[2].SerialEncDataA.a
+Motor[3].AbsPosFormat = $01001700
+Motor[3].AbsPosSf =  motor[3].possf
+Motor[3].Homeoffset = -3153100
+#3hmz
+#3hmz
+#3hmz
+#3hmz
+Motor[3].Homeoffset = 0
+i308
+I308=1
+ m1000 = Gate3[1].Chan[2].SerialEncDataA
+#3hmz
+#3hmz
+#3hmz
+#3hmz
+#3hmz
+#3hmz
+#3hmz
+#3hmz
+#3hmz
+#3hmz
+#3hmz
+#3hmz
+#3hmz
+#3hmz
+#3hmz
+I308=0.04291534423828125
+Motor[3].AbsPosSf
+Motor[3].AbsPosSf=1
+Motor[3].AbsPosSf =  motor[3].possf
+#3hmz
+#3hmz
+Motor[3].AbsPosSf =  1
+#3hmz

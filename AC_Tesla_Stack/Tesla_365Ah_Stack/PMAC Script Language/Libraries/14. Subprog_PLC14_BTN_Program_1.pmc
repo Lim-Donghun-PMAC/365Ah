@@ -1,0 +1,956 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.08.01
+// 버튼 프로그램 추가 - [ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+// 25.08.07
+// NP Plate 램프 추가 - [ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+// 25.08.12 김성중 선임
+// MSA, Motion Cal, 얼라인 탈착모드  IDLE 상태에서 모터 위치 확인 시 위치가 아니여도 동작 가능하도록 수정 [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+// 25.09.25
+// Status Clear 버튼 추가 - [ 참조 : 25.09.25 Status Clear 버튼 추가 ]
+//======================================================================================================
+
+open subprog BTN_Program(void)
+
+	//===========//
+	// 버튼 동작 //
+	//===========//
+	sub:Manual(void)
+
+		local L_Reentry;
+		//=====================//
+		// [Manual] Ready 버튼.
+		//=====================//
+		//if ( P_1_2_Front_Total_PMAC_Alarm_Check == 0 )	// [VE15] 1차, 2차 프론트 내부 알람 합이 0.
+		//if ( M_X_BTN_Machine_READY == 1 && M_Old_X_BTN_Machine_READY != M_X_BTN_Machine_READY )		// Ready 버튼을 누를 경우.
+		if ( M_X_BTN_Machine_READY == 1 )										// Ready 버튼을 누를 경우.
+		{
+			M_X_BTN_Machine_READY = 0;											// 시뮬레이터 Test를 위한 초기화.
+			//if ( P_Alarm_Status == 0 )										// 알람이 없을 경우.
+			//{
+				P_PMAC_Commands = F_Command_Reset;								// (Commands) Reset.
+
+				P_Jelly_Roll_Recipe_Count = 10;									// Jelly Roll Count 업데이트.
+				if( L_Reentry == 0)												// 처음 
+				{
+					P_Buffer_Mode_Status_Sequence = N_Normal_Status_Sequence;
+					L_Reentry = 1;
+				}
+			//}
+		}
+		//=====================//
+		// [Manual] Stop 버튼.
+		//=====================//
+		//if ( M_X_BTN_Machine_STOP == 1 && M_Old_X_BTN_Machine_STOP != M_X_BTN_Machine_STOP || ( M_X_Other_Door_Open_Signal == 1 && L_X_Door_Open_Signal_Old == 0 ))		// Stop 버튼을 누를 경우 || [VE15]도어 오픈이 되었을 경우.
+		if ( M_X_BTN_Machine_STOP == 1 )				// Stop 버튼을 누를 경우.
+		{
+			if ( P_Single_Run_Status != F_Status_IDLE )	// 단동 상태가 대기가 아닐 경우.	[ 참조 : 25.09.12 단동, 연동 프로그램 주석 및 인터락 추가 ]
+				P_Single_Run_Stop_Btn_Chk = 1;			// 단동, 연동 정지 버튼 확인 변수 ON.
+			M_X_BTN_Machine_STOP = F_False;				// 버튼 값 초기화.
+			P_PMAC_Commands = F_Command_Stop			// (Commands) Stop.
+			//P_Motor_Stop_CHK_Flag = 1;	// [VE15] 모터 스탑 체크 플래그 On.( 도어 오픈 시 조그구동중이던 모터 정지 - 검수 사항)
+			// ↑ 도어 오픈 시 PLC에서 스탑버튼 I/O 1번 주기로. 20.07.31_협의사항( Manual에서도 줘야함 )
+		}
+		//L_X_Door_Open_Signal_Old = M_X_Other_Door_Open_Signal;	// [VE15] Edge 값.
+		//=====================//
+		// [Manual] Reset 버튼.
+		//=====================//
+		if ( M_X_BTN_Machine_RESET == 1 )				// Reset 버튼을 누를 경우.
+		{
+			M_X_BTN_Machine_RESET = F_False;			// 버튼 값 초기화.
+			call BTN_Program.AmpFault_Check();			// 모터 AmpFault 확인 및 알람 발생.
+			call BTN_Program.Motor_Servo_On();			// 모터 Servo On.
+			//P_Anode_Count = 0;						// 음극 카운트 초기화.
+			//P_Cathode_Count = 0;						// 양극 카운트 초기화.
+			P_Current_Mode = 0;							// 현재 모드 초기화.
+			P_PMAC_Homing_CHK(0),49=0;					// HOME RESET 버튼 추가. 
+			//P_Stack_Judgement_Memory=0;					// HOME RESET 버튼 추가. 
+			P_Master_Motion_Trigger = 0;				// 마스터 트리거 초기화.
+			P_Stack_Table_NG_Flag = 0;					// NG Flag 초기화.
+			//P_Completion_Watch_Variable(0),N_Serach_Limit,1 = 1;
+			P_Hold_NG_PNP_Remove,11 = 1;
+			local L_Num = 1;							// 모터 번호 업데이트.
+			#ifdef F_Virtual_Axis_Test
+			while(L_Num < 50)							// 모터 번호가 50개 전일 경우.
+			{
+				motor[L_Num].FatalFeLimit = 0			// 모터 FalalFeLimit 초기화.
+				L_Num++;								// 다음 모터로.
+			}
+			#endif
+			P_PMAC_Commands = F_Command_Clear;			// (Commands) Clear.
+			// P_Current_Homming_Status(1),32 = 0;		// [VE15] 현재 홈 상태 초기화
+		}
+
+	return;
+	//===========//
+	// 버튼 동작 //
+	//===========//
+	sub:Auto(void)
+
+		//=====================//
+		// [Auto] Start 버튼.
+		//=====================//
+		//if ( M_X_BTN_Machine_START == 1 && M_Old_X_BTN_Machine_START != M_X_BTN_Machine_START )		// Start 버튼을 누를 경우.
+		if ( M_X_BTN_Machine_START == 1 )				// Start 버튼을 누를 경우.
+		{
+			M_X_BTN_Machine_START = F_False;			// 버튼 값 초기화.
+			P_PMAC_Commands = F_Command_Start			// (Commands) Start.
+
+			P_Execute_DryRun_Stop_Timer = 0;			// 드라이런 타이머 초기화.
+			P_Cathode_Cur_Mode = 0;						// 양극 현재 모드 초기화.
+			P_Anode_Cur_Mode = 0;						// 음극 현재 모드 초기화.
+		}		
+		//=====================//
+		// [Auto] Stop 버튼.
+		//=====================//
+		//if ( M_X_BTN_Machine_STOP == 1 && M_Old_X_BTN_Machine_STOP != M_X_BTN_Machine_STOP || ( M_X_Other_Door_Open_Signal == 1 && L_X_Door_Open_Signal_Old == 0 ))		// Stop 버튼을 누를 경우 || [VE15]도어 오픈이 되었을 경우.
+		if ( M_X_BTN_Machine_STOP == 1 )				// Stop 버튼을 누를 경우.
+		{
+			M_X_BTN_Machine_STOP = F_False;				// 버튼 값 초기화.
+			P_PMAC_Commands = F_Command_Stop			// (Commands) Stop.
+		}
+		//L_X_Door_Open_Signal_Old = M_X_Other_Door_Open_Signal;	// [VE15] Edge 값.
+
+	return;
+	//===========//
+	// 버튼 LED //
+	//===========//
+	sub:Manual_LED(void)
+		switch(P_PMAC_Status)
+		{
+			case F_Status_IDLE:
+				if( P_PMAC_Status_IDLE_Motor_Pos == 1 )			// 대기위치, 음극 스텍 정지 위치, 양극 스텍 정지 위치, 배출 중 정지 위치.
+				{
+					call BTN_Program.Lamp(Ready_BTN,Turn_On)	// Ready Lamp [점등]
+					call BTN_Program.Lamp(Start_BTN,Turn_Off)	// Start Lamp [OFF]
+					call BTN_Program.Lamp(Stop_BTN,Turn_Off)	// Stop Lamp [OFF]
+				}
+				else if( P_PMAC_Status_IDLE_Motor_Not_Pos == 1 )// 그 외에 위치 일 경우. (IDLE 에서 모터의 위치가 움직 일 경우)
+				{
+					// MSA, Motion Cal, 얼라인 탈착 모드 진행 시 IDLE 상태여도 Commands Stop X [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+					if( P_VISION_MSA_Status == F_Status_EXECUTE || P_VISION_MSA_Status_Prod_Sequence(N_PLC21_VISION_MSA) == F_Status_STARTING || P_Align_Take_Off_Status == F_Status_EXECUTE || P_Align_Take_Off_Status_Prod_Sequence(N_PLC21_Align_Take_Off) == F_Status_STARTING || P_PMAC_AutoCal_Mode != 0 || P_Single_Run_Execute_Bit == 1 )
+					{
+						call BTN_Program.Lamp(Ready_BTN,Turn_On)	// Ready Lamp [점등]
+						call BTN_Program.Lamp(Start_BTN,Turn_Off)	// Start Lamp [OFF]
+						call BTN_Program.Lamp(Stop_BTN,Turn_Off)	// Stop Lamp [OFF]
+					}
+					else 
+					{
+						call BTN_Program.Lamp(Ready_BTN,Turn_Off)	// Ready Lamp [OFF]
+						call BTN_Program.Lamp(Start_BTN,Turn_Off)	// Start Lamp [OFF]
+						call BTN_Program.Lamp(Stop_BTN,Turn_On)		// Stop Lamp [점등]
+						P_BTN_IDLE_Motor_Not_Pos = 1;				// PackML Stopping Skip 변수 추가.
+						P_PMAC_Commands = F_Command_Stop;			// Commands Stop.
+					}
+				}
+			break;
+
+			case F_Status_RESETTING:
+				call BTN_Program.Lamp(Ready_BTN,Blinking)	// Ready Lamp [점멸]
+				call BTN_Program.Lamp(Start_BTN,Turn_Off)	// Start Lamp [OFF]
+				call BTN_Program.Lamp(Stop_BTN,Turn_Off)	// Stop Lamp [OFF]
+			break;
+
+			case F_Status_STOPPING:
+				call BTN_Program.Lamp(Ready_BTN,Turn_Off)	// Ready Lamp [OFF]
+				call BTN_Program.Lamp(Start_BTN,Turn_Off)	// Start Lamp [OFF]
+				call BTN_Program.Lamp(Stop_BTN,Blinking)	// Stop Lamp [점멸]
+			break;
+
+			case F_Status_STOPPED:
+				call BTN_Program.Lamp(Ready_BTN,Turn_Off)	// Ready Lamp [OFF]
+				call BTN_Program.Lamp(Start_BTN,Turn_Off)	// Start Lamp [OFF]
+				call BTN_Program.Lamp(Stop_BTN,Turn_On)		// Stop Lamp [점등]
+			break;
+		}
+
+	return;
+	//===========//
+	// 버튼 LED //
+	//===========//
+	sub:Auto_LED(void)
+		switch(P_PMAC_Status)
+		{
+			case F_Status_IDLE:
+				call BTN_Program.Lamp(Ready_BTN,Turn_On)	// Ready Lamp [점등]
+				call BTN_Program.Lamp(Start_BTN,Turn_Off)	// Start Lamp [OFF]
+				call BTN_Program.Lamp(Stop_BTN,Turn_Off)	// Stop Lamp [OFF]
+			break;
+
+			case F_Status_EXECUTE:
+				call BTN_Program.Lamp(Ready_BTN,Turn_Off)	// Ready Lamp [OFF]
+				call BTN_Program.Lamp(Start_BTN,Turn_On)	// Start Lamp [점등]
+				call BTN_Program.Lamp(Stop_BTN,Turn_Off)	// Stop Lamp [OFF]
+			break;
+
+			case F_Status_STARTING:
+				call BTN_Program.Lamp(Ready_BTN,Turn_Off)	// Ready Lamp [OFF]
+				call BTN_Program.Lamp(Start_BTN,Blinking)	// Start Lamp [점멸]
+				call BTN_Program.Lamp(Stop_BTN,Turn_Off)	// Stop Lamp [OFF]
+			break;
+
+			case F_Status_HOLDING:
+				call BTN_Program.Lamp(Ready_BTN,Turn_Off)	// Ready Lamp [OFF]
+				call BTN_Program.Lamp(Start_BTN,Turn_On)	// Start Lamp [점등]
+				call BTN_Program.Lamp(Stop_BTN,Turn_Off)	// Stop Lamp [OFF]
+			break;
+
+			case F_Status_HOLD:
+				call BTN_Program.Lamp(Ready_BTN,Turn_Off)	// Ready Lamp [OFF]
+				call BTN_Program.Lamp(Start_BTN,Turn_On)	// Start Lamp [점등]
+				call BTN_Program.Lamp(Stop_BTN,Turn_Off)	// Stop Lamp [OFF]
+			break;
+
+			case F_Status_UNHOLDING:
+				call BTN_Program.Lamp(Ready_BTN,Turn_Off)	// Ready Lamp [OFF]
+				call BTN_Program.Lamp(Start_BTN,Turn_On)	// Start Lamp [점등]
+				call BTN_Program.Lamp(Stop_BTN,Turn_Off)	// Stop Lamp [OFF]
+			break;
+
+			case F_Status_SUSPENDING:
+				call BTN_Program.Lamp(Ready_BTN,Turn_Off)	// Ready Lamp [OFF]
+				call BTN_Program.Lamp(Start_BTN,Turn_On)	// Start Lamp [점등]
+				call BTN_Program.Lamp(Stop_BTN,Turn_Off)	// Stop Lamp [OFF]
+			break;
+
+			case F_Status_SUSPENDED:
+				call BTN_Program.Lamp(Ready_BTN,Turn_Off)	// Ready Lamp [OFF]
+				call BTN_Program.Lamp(Start_BTN,Turn_On)	// Start Lamp [점등]
+				call BTN_Program.Lamp(Stop_BTN,Turn_Off)	// Stop Lamp [OFF]
+			break;
+
+			case F_Status_UNSUSPENDING:
+				call BTN_Program.Lamp(Ready_BTN,Turn_Off)	// Ready Lamp [OFF]
+				call BTN_Program.Lamp(Start_BTN,Turn_On)	// Start Lamp [점등]
+				call BTN_Program.Lamp(Stop_BTN,Turn_Off)	// Stop Lamp [OFF]
+			break;
+
+			case F_Status_STOPPING:
+				call BTN_Program.Lamp(Ready_BTN,Turn_Off)	// Ready Lamp [OFF]
+				call BTN_Program.Lamp(Start_BTN,Turn_Off)	// Start Lamp [OFF]
+				call BTN_Program.Lamp(Stop_BTN,Blinking)	// Stop Lamp [점멸]
+			break;
+
+			case F_Status_STOPPED:
+				call BTN_Program.Lamp(Ready_BTN,Turn_Off)	// Ready Lamp [OFF]
+				call BTN_Program.Lamp(Start_BTN,Turn_Off)	// Start Lamp [OFF]
+				call BTN_Program.Lamp(Stop_BTN,Turn_On)		// Stop Lamp [점등]
+			break;
+		}
+
+		////--------------------//
+		//// 알람 발생 신호 전달 //
+		////--------------------//
+		//If ( P_PMAC_Status == F_Status_ABORTING || P_PMAC_Status == F_Status_ABORTED )
+		//	M_Y_Trigger_Display_Enable_Alarm_To_PLC = 1;					// 알람 발생 신호 PLC 측에 전달
+		//Else 
+		//	M_Y_Trigger_Display_Enable_Alarm_To_PLC = 0;					// 알람 발생 신호 OFF PLC 측에 전달
+
+	return;
+
+	//===============//
+	// 모터 Servo ON //
+	//===============//
+	sub:Motor_Servo_On(void)
+
+		local L_Motor_Num = 0;						// 모터 번호 초기화.
+		local L_Motor_Cnt = 48;						// 모터 최대 번호 설정.
+		//if ( P_Status_Sepa_ARC_Request == 1 )		// ARC 요청 신호가 있을 경우. [Unwinder Servo On]
+			L_Motor_Num = 1;						// 모터 번호 1번 설정.
+		//else										// ARC 요청 신호가 없을 경우. 
+		//	L_Motor_Num = 3;						// 모터 번호 3번 설정.
+		while ( L_Motor_Num <= L_Motor_Cnt )		// 모터 번호 <= 모터 최대 번호.
+		{
+			if ( Motor[L_Motor_Num].AmpEna != 1 )	// 모터 Servo OFF 일 경우.
+			{
+				Ldata.Motor = L_Motor_Num			// 모터 설정 ← 모터 번호.
+				jog/								// 모터 Servo ON.
+				L_Motor_Num += 1;					// 모터 번호 증가.
+			}
+			else									// 모터 Servo ON 일 경우.
+				L_Motor_Num += 1;					// 모터 번호 증가.
+		}
+
+	return;
+
+	//================================//
+	// 모터 AmpFault 확인 및 알람 발생 //
+	//================================//
+	sub:AmpFault_Check(void)
+
+	return;
+
+	//================================//
+	// 버튼 램프 함수 //
+	//================================//
+	sub:Lamp(Obj,Type)						// 인자 (버튼(Ready, Start, Stop), 타입(소등, 점멸, 점등))
+	if ( Obj == Ready_BTN )					// Ready 버튼 일 경우.
+	{
+		if ( Type == Turn_Off )				// 소등.
+			P_BTN_Ready_Lamp = 0;			// 소등.
+		else if ( Type == Blinking )		// 점멸.
+		{				
+			if ( P_Lamp_Blinking_Timer > Blinking_Time )	// 타이머 확인.
+			{
+				P_Lamp_Blinking_Timer = 0;	// 타이머 초기화.
+				P_BTN_Ready_Lamp ^= $1;		// 점멸.
+			}
+		}
+		else if ( Type == Turn_On )			// 점등.
+			P_BTN_Ready_Lamp = 1;			// 점등.
+	}
+	if ( Obj == Start_BTN )					// Start 버튼 일 경우.
+	{
+		if ( Type == Turn_Off )				// 소등.
+			P_BTN_Start_Lamp = 0;			// 소등.
+		else if ( Type == Blinking )		// 점멸.
+		{				
+			if ( P_Lamp_Blinking_Timer > Blinking_Time )	// 타이머 확인.
+			{
+				P_Lamp_Blinking_Timer = 0;	// 타이머 초기화.
+				P_BTN_Start_Lamp ^= $1;		// 점멸.
+			}
+		}
+		else if ( Type == Turn_On )			// 점등.
+			P_BTN_Start_Lamp = 1;			// 점등.
+	}
+	if ( Obj == Stop_BTN )					// Stop 버튼 일 경우.
+	{
+		if ( Type == Turn_Off )				// 소등.
+			P_BTN_Stop_Lamp = 0;			// 소등.
+		else if ( Type == Blinking )		// 점멸.
+		{				
+			if ( P_Lamp_Blinking_Timer > Blinking_Time )	// 타이머 확인.
+			{
+				P_Lamp_Blinking_Timer = 0;	// 타이머 초기화.
+				P_BTN_Stop_Lamp ^= $1;		// 점멸.
+			}
+		}
+		else if ( Type == Turn_On )			// 점등.
+			P_BTN_Stop_Lamp = 1;			// 점등.
+	}
+	return;
+
+	//================================//
+	// 모터 위치 확인 함수 //		[ 참조 : 25.08.04 PackML 버튼 프로그램 수정 ]
+	//================================//
+	sub:BTN_Motor_Pos_Check(&BTN_Motor_Pos_Check_RTN)
+
+		if ( P_Total_Unit_Pos == 0 || P_Total_Unit_Pos == F_Equipment_Initial_Ready_Pos || P_Total_Unit_Pos == F_Equipment_IDLE_Initial_Ready_Pos || P_Total_Unit_Pos == F_Equipment_IDLE_Anode_Side_Pos || P_Total_Unit_Pos == F_Equipment_IDLE_Cathode_Side_Pos || P_Total_Unit_Pos == F_Equipment_IDLE_First_Sepa_On_Pos || P_Total_Unit_Pos == F_Equipment_Discharge_Stop_Pos || P_Total_Unit_Pos == F_Equipment_IDLE_Frist_Sepa_Stop_Pos  )		// [ 참조 : 25.09.01
+			// 대기 위치, 음극 스텍 정지 위치, 양극 스텍 정지 위치, 배출 중 정지 위치 일 경우.
+			BTN_Motor_Pos_Check_RTN = N_TRUE;		// 반환값 : TRUE.
+		else
+			if ( P_Total_Unit_Pos != 0 || P_Total_Unit_Pos != F_Equipment_Initial_Ready_Pos || P_Total_Unit_Pos != F_Equipment_IDLE_Initial_Ready_Pos || P_Total_Unit_Pos != F_Equipment_IDLE_Anode_Side_Pos || P_Total_Unit_Pos != F_Equipment_IDLE_Cathode_Side_Pos || P_Total_Unit_Pos != F_Equipment_IDLE_First_Sepa_On_Pos || P_Total_Unit_Pos != F_Equipment_Discharge_Stop_Pos || P_Total_Unit_Pos != F_Equipment_IDLE_Frist_Sepa_Stop_Pos)
+				BTN_Motor_Pos_Check_RTN = N_FALSE;	// 반환값 : FALSE.
+		
+	return;
+
+	//================================//
+	// Status Clear 진행 (항목) //	[ 참조 : 25.09.25 Status Clear 버튼 추가 ]
+	//================================//
+	sub:Status_Clear(void)
+	// 0. 공통
+		P_PMAC_Commands = F_Command_Stop;				// Command Stop.
+		call Sub_Automation_Circular_Queue.ClearQueue(&P_Queue_Clear);	// Queue Clear.
+		P_Queue_Process_Status = F_Status_IDLE;			// Queue 상태 초기화.
+		P_Queue_Process_Command = 0;					// Queue 처리 Command.
+		P_Queue_Dequeue_Command = 0;                    // Queue Dequeue Command.
+		P_Stop_CycleStop_Position = N_Layer_Pause_Number// Cycle Stop Position 업데이트.
+		P_Master_Motion_Program_Flag = 0;				// 마스터 플래그 초기화.
+	// 1. Resetting	
+		P_PMAC_Homing_CHK(1),50 = 0;					// 모터 홈 상태 초기화.
+		//P_PMAC_Homing_CHK(35),14 = 0;                   // 모터 홈 상태 초기화.
+		P_Stack_Judgement_Memory = 0;					// HOME RESET 버튼 추가. 
+	// 2. Execute
+		P_Mode_Command_Wait_Count = 0;					// 적층 - Wait 카운트 초기화. (디버깅 용)
+		P_Master_Motion_Trigger = 0;					// 적층 - 마스터 트리거 초기화.
+		P_Mode_Command = 0;								// 적층 - 모드 커멘드 초기화.
+		P_Current_Mode = 0;								// 적층 - 현재 모드 초기화.
+		P_Stack_Table_NG_Flag = 0;						// 적층 - 스텍 NG Flag 초기화. (있을 경우 Stack Table NG로 중간 배출 진행)
+
+		P_EXECUTE_IsEnable_Firt_Stacking_Flag = 0;		// 극판 처음 쌓는 조건 감시 ( 0 : 처음 쌓을 경우, 1 : 1장 이상 쌓은 경우 )
+		P_Execute_1st_Sepa_Cmd = 0;						// 세파 첫장 - 커맨드 초기화.
+		P_Execute_1st_Sepa_State_Machine = 0;			// 세파 첫장 - 스텟 머신 초기화.
+		P_Execute_1st_Sepa_Index = 0;					// 세파 첫장 - 인덱스 초기화.
+		P_Execute_1st_Sepa_Status = 0;					// 세파 첫장 - 진행 상태 초기화.
+		P_Execute_1st_Sepa_Func_RTN(0),N_Execute_Module_End_Index = 0;	// 세파 첫장 - 모듈 반환값 초기화.
+		P_Execute_1st_Sepa_Func_State_Machine(0),N_Execute_Module_End_Index = 0;	// 세파 첫장 - 모듈 스텟 머신 초기화.
+		P_PLC01_Execute_Retry_Sepa_Mode_Count = 0;		// 세파 재시도 횟수 카운트 초기화.
+	// 3. Hold 
+	// 4. Suspend
+		// 공통 //
+		P_Status_Clear_RTN = 0;							// Suspend 모듈 및 배출 PLC 인터페이스 초기화 함수 반환값 초기화.
+		call Discharge_Sub_Prog.Module_Reset(&P_Status_Clear_RTN)	// Suspend 모듈 및 배출 PLC 인터페이스 초기화.
+		// 배출 //
+		call Discharge_Sub_Prog.Discharge_After_Action();	// 배출 모듈 - PLC 인터페이스 및 배출 관련 변수 초기화.
+		P_Suspend_Discharge_Cmd = 0;					// 배출 모듈 - 커맨드 초기화.
+		P_EXECUTE_Status_Prod_Sequence(N_Discharge_Module) = 0;	// 배출 모듈 - 진행 상태 초기화.
+		P_Suspend_Discharge_Status = 0;					// 배출 모듈 - 시퀀스 모듈 실행 상태 초기화.
+		P_Suspend_Discharge_Module_Status = 0;			// 배출 모듈 - 모듈 실행 상태 초기화.
+		P_Suspend_Discharge_State_Machine = 0;			// 배출 모듈 - 스텟 머신 초기화.
+		P_Suspend_Discharge_Seq_Index = 0;				// 배출 모듈 - 인덱스 초기화.
+		P_Suspend_Discharge_Self_Index = 0;				// 배출 모듈 - Precondition 인덱스 초기화.
+		P_Jelly_Roll_Prod_Count = 0;					// 현재 젤리롤 생산 카운트 초기화.
+		P_Jelly_Roll_OK_Count = 0;						// 젤리롤 카운트 초기화.
+		P_Jelly_Roll_NG_Count = 0;						// NG 젤리롤 카운트 초기화.
+		P_Suspend_Discharge_Last_Run_Bit = 0;			// Last Run 진행 여부 확인 초기화.
+		// ARC //
+		P_Suspend_ARC_Cmd = 0;							// ARC 모듈 - 커맨드 초기화.
+		P_EXECUTE_Status_Prod_Sequence(N_ARC_Module) = 0;	// ARC 모듈 - 진행 상태 초기화.
+		P_Suspend_ARC_Status = 0;						// ARC 모듈 - 시퀀스 모듈 실행 상태 초기화.
+		P_Suspend_ARC_State_Machine = 0;				// ARC 모듈 - 스텟 머신 초기화.
+		P_Suspend_ARC_Seq_Index = 0;					// ARC 모듈 - 인덱스 초기화.
+		P_Suspend_ARC_Self_Index = 0;                   // ARC 모듈 - Precondition 인덱스 초기화.
+		P_Suspend_ARC_Module_Status = 0;				// ARC 모듈 - 스텟 머신 초기화.
+	// 5. Sheet Data
+		Sys_Cathode_Belt_Sheet_Data = 0;				// 양극 Belt Sheet Data 초기화.
+		Sys_Anode_Belt_Sheet_Data = 0;					// 음극 Belt Sheet Data 초기화.
+		Sys_Stack_Sheet_Data = 0;						// Stack Sheet Data 초기화.
+		P_Status_Clear_Sheet_Maint_Check = 1;			// 극판 존재 시 Maint NG 씌움.
+	return;
+close
+
+// [ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+/* [search / ㄴㄷㅁㄱ]
+---------------------------------------------------------------------------------------------------
+|							램		프		동		작		진		행							  |
+|-------------------------------------------------------------------------------------------------|
+|	     상부	   |	    하부		  |							조		건						  |
+|-------------------------------------|-----------------------------------------------------------|
+|  Upper_1st_Step  |  Lower_1st_Step  |		언와인더 언척											  |
+|-------------------------------------|-----------------------------------------------------------|
+|  Upper_2nd_Step  |  Lower_2nd_Step  |		언와인더 척 + 틸팅 0도 + 진공 출력 ON + 진공 입력 OFF    |
+|-------------------------------------|-----------------------------------------------------------|
+| Upper_3rd_Step__ | Lower_3rd_Step__ |		언와인더 척 + 틸팅 0도 + 진공 출력 ON + 진공 입력 ON	  |
+|-------------------------------------|-----------------------------------------------------------|
+|  Upper_4th_Step  |  Lower_4th_Step  |		언와인더 척 + 틸팅 0도								  |
+|-------------------------------------|-----------------------------------------------------------|
+|  Upper_5th_Step  |  Lower_5th_Step  |		언와인더 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 OFF   |
+|-------------------------------------|-----------------------------------------------------------|
+|  Upper_6th_Step  |  Lower_6th_Step  |		언와인더 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 ON    |
+|-------------------------------------|-----------------------------------------------------------|
+| Upper_7th_Step__ | Lower_7th_Step__ |		언와인더 척 + 틸팅 90도								  |
+---------------------------------------------------------------------------------------------------*/
+open subprog ARC_NP_Lamp(void)
+	//==============//
+	// 상부 선택 시 //
+	//============//
+	sub:Upper_1st_Step(void)		// 상부 언척 => 척 점멸
+		if ( P_ARC_NP_Upper_Timer > ARC_NP_Blinking_Time )	// 척 버튼 점멸.
+		{
+			P_ARC_NP_Upper_Timer = 0;						// 타이머 초기화.
+			M_Y_NP_Chuck_Unchuck ^= $1						// 점멸.
+		}
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Ready = 0;									// Ready 버튼.
+		M_Y_NP_Tilting = 0;									// 틸팅 버튼.
+		M_Y_NP_Vacuum_On_OFF = 0;							// 진공 버튼.
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_Upper_Ready = 0;								// 상부 언와인더 준비 완료 변수.
+		P_ARC_NP_Upper_3rd_Step_Toggle_Variable = 0;		// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		P_ARC_NP_Upper_7th_Step_Variable = 0;				// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		P_ARC_NP_Lower_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit = 0;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+
+	sub:Upper_2nd_Step(void)		// 상부 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 OFF => 틸팅 점등, 척 점등, 진공 점멸
+		if ( P_ARC_NP_Upper_Timer > ARC_NP_Blinking_Time )	// 진공 버튼 점멸.
+		{
+			P_ARC_NP_Upper_Timer = 0;						// 타이머 초기화.
+			M_Y_NP_Vacuum_On_OFF ^= $1;						// 점멸.
+		}
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Ready = 0;									// Ready 버튼.
+		M_Y_NP_Tilting = 1;									// 틸팅 버튼.
+		M_Y_NP_Chuck_Unchuck = 1;							// 척 버튼. 
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_Upper_Ready = 0;								// 상부 언와인더 준비 완료 변수.
+		P_ARC_NP_Upper_3rd_Step_Toggle_Variable = 0;		// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		P_ARC_NP_Upper_7th_Step_Variable = 0;				// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		P_ARC_NP_Lower_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit = 0;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+	
+	sub:Upper_3rd_Step(void)		// [Upper_3rd_Step__] 상부 척 + 틸팅0도 + 진공 출력 ON + 진공 입력 ON => Ready 점멸, 틸팅 점등, 척 점등, 진공 점등		
+		// Ready 버튼 점멸
+		if ( M_X_ARC_NP_Ready == 1 && M_Old_X_ARC_NP_Ready != M_X_ARC_NP_Ready)	// Ready 버튼을 누를 경우.
+			P_ARC_NP_Upper_3rd_Step_Toggle_Variable ^= $1;	// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		if ( P_ARC_NP_Upper_Timer > ARC_NP_Blinking_Time && P_ARC_NP_Upper_3rd_Step_Toggle_Variable == 0 )	// Ready 버튼 점멸.
+		{
+			P_ARC_NP_Upper_Timer = 0;						// 타이머 초기화.
+			M_Y_NP_Ready ^= $1;								// 점멸.
+			P_ARC_Upper_Ready = 0;							// 상부 언와인더 준비 완료 변수.
+		}
+		else if ( P_ARC_NP_Upper_3rd_Step_Toggle_Variable == 1 )	// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		{
+			M_Y_NP_Ready = 1;								// 점등.
+			P_ARC_Upper_Ready = 1;							// 상부 언와인더 준비 완료 변수.
+		}
+		M_Old_X_ARC_NP_Ready = M_X_ARC_NP_Ready;			// Edge 값 업데이트.
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Tilting = 1;									// 틸팅 버튼.
+		M_Y_NP_Chuck_Unchuck = 1;							// 척 버튼.
+		M_Y_NP_Vacuum_On_OFF = 1;							// 진공 버튼.
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_NP_Lower_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit = 0;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+	
+	sub:Upper_4th_Step(void)		// 상부 척 + 틸팅 0도 => 척 점등, 틸팅 점멸
+		if ( P_ARC_NP_Upper_Timer > ARC_NP_Blinking_Time )	// 틸팅 버튼 점멸.
+		{
+			P_ARC_NP_Upper_Timer = 0;						// 타이머 초기화.
+			M_Y_NP_Tilting ^= $1							// 점멸.
+		}
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Ready = 0;									// Ready 버튼.
+		M_Y_NP_Chuck_Unchuck = 1;							// 척 버튼. 
+		M_Y_NP_Vacuum_On_OFF = 0;							// 진공 버튼.
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_Upper_Ready = 0;								// 상부 언와인더 준비 완료 변수.
+		P_ARC_NP_Upper_3rd_Step_Toggle_Variable = 0;		// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		P_ARC_NP_Upper_7th_Step_Variable = 0;				// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		P_ARC_NP_Lower_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit = 0;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+	
+	sub:Upper_5th_Step(void)		// 상부 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 OFF => 틸팅 점등, 척 점등, 진공 점멸
+		if ( P_ARC_NP_Upper_Timer > ARC_NP_Blinking_Time )	// 진공 버튼 점멸.
+		{
+			P_ARC_NP_Upper_Timer = 0;						// 타이머 초기화.
+			M_Y_NP_Vacuum_On_OFF ^= $1;						// 점멸.
+		}
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Ready = 0;									// Ready 버튼.
+		M_Y_NP_Tilting = 1;									// 틸팅 버튼.
+		M_Y_NP_Chuck_Unchuck = 1;							// 척 버튼. 
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_Upper_Ready = 0;								// 상부 언와인더 준비 완료 변수.
+		P_ARC_NP_Upper_3rd_Step_Toggle_Variable = 0;		// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		P_ARC_NP_Upper_7th_Step_Variable = 0;				// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		P_ARC_NP_Lower_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit = 0;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+	
+	sub:Upper_6th_Step(void)		// 상부 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 ON => 틸팅 점멸, 척 점등, 진공 점등
+		if ( P_ARC_NP_Upper_Timer > ARC_NP_Blinking_Time )	// 틸팅 버튼 점멸.
+		{
+			P_ARC_NP_Upper_Timer = 0;						// 타이머 초기화.
+			M_Y_NP_Tilting ^= $1;							// 점멸.
+		}
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Ready = 0;									// Ready 버튼.
+		M_Y_NP_Chuck_Unchuck = 1;							// 척 버튼. 
+		M_Y_NP_Vacuum_On_OFF = 1;							// 진공 버튼.
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_Upper_Ready = 0;								// 상부 언와인더 준비 완료 변수.
+		P_ARC_NP_Upper_3rd_Step_Toggle_Variable = 0;		// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		P_ARC_NP_Upper_7th_Step_Variable = 0;				// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		P_ARC_NP_Lower_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit = 0;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+	
+	sub:Upper_7th_Step(void)		// [Upper_7th_Step__] 상부 척 + 틸팅 90도 => 틸팅 점등, 척 점등, 진공 램프 점멸, 정회전 점멸, 역회전 점멸		
+		if ( P_ARC_NP_Upper_7th_Step_Variable == 0 )		// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		{
+			M_Y_NP_Rotation = 0;							// 정회전 램프 초기화.
+			M_Y_NP_Re_Rotation = 0;							// 역회전 램프 초기화.
+			M_Y_NP_Vacuum_On_OFF = 0;						// 진공 램프 초기화.
+			P_ARC_NP_Upper_Timer = 0;						// 타이머 초기화.
+			P_ARC_NP_Upper_7th_Step_Edge_Variable = 0;		// [상,하 바꿀 때 램프 초기화]
+			P_ARC_NP_Upper_7th_Step_Variable = 1;			// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		}
+		if ( P_ARC_NP_Upper_7th_Step_Variable == 1 )		// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		{
+			if ( P_ARC_NP_Upper_7th_Step_Edge_Variable == 0 )	// [상,하 바꿀 때 램프 초기화]
+			{
+				P_ARC_NP_Upper_7th_Step_Edge_Variable = 1;	// 재진입 방지.
+				M_Y_NP_Rotation = 0;						// 정회전 램프 초기화.
+				M_Y_NP_Re_Rotation = 0;						// 역회전 램프 초기화.
+				M_Y_NP_Vacuum_On_OFF = 0;					// 진공 램프 초기화.
+				P_ARC_NP_Upper_Timer = 0;					// 타이머 초기화.
+			}
+			if ( M_X_ARC_NP_Unwinder_Rotation == 1 )		// 정회전 버튼 누를 경우.
+			{
+				if ( P_ARC_NP_Upper_Timer > ARC_NP_Blinking_Time )	// 역회전, 진공 램프 점멸.
+				{
+					P_ARC_NP_Upper_Timer = 0;				// 타이머 초기화.
+					M_Y_NP_Rotation = 1;					// 점등.
+					M_Y_NP_Re_Rotation ^= $1;				// 점멸.
+					M_Y_NP_Vacuum_On_OFF ^= $1;				// 점멸.
+				}
+			}
+			else if ( M_X_ARC_NP_Unwinder_Rotation == 0 && M_Old_X_ARC_NP_Unwinder_Rotation != M_X_ARC_NP_Unwinder_Rotation )	// 정회전 버튼을 땔 경우.
+				P_ARC_NP_Upper_7th_Step_Variable = 0;		// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+			if ( M_X_ARC_NP_Unwinder_Re_Rotation == 1 )		// 역회전 버튼 누를 경우.
+			{
+				if ( P_ARC_NP_Upper_Timer > ARC_NP_Blinking_Time )	// 정회전, 진공 버튼 점멸.
+				{
+					P_ARC_NP_Upper_Timer = 0;				// 타이머 초기화.
+					M_Y_NP_Rotation ^= $1;					// 점멸.
+					M_Y_NP_Re_Rotation = 1;					// 점등.
+					M_Y_NP_Vacuum_On_OFF ^= $1;				// 점멸.
+				}
+			}
+			else if ( M_X_ARC_NP_Unwinder_Re_Rotation == 0 && M_Old_X_ARC_NP_Unwinder_Re_Rotation != M_X_ARC_NP_Unwinder_Re_Rotation )	// 역회전 버튼을 땔 경우.
+				P_ARC_NP_Upper_7th_Step_Variable = 0;		// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+			if ( P_ARC_NP_Upper_Timer > ARC_NP_Blinking_Time )	// 정회전, 역회전, 진공 램프 점멸.
+			{
+				P_ARC_NP_Upper_Timer = 0;					// 타이머 초기화.
+				M_Y_NP_Rotation ^= $1;						// 점멸.
+				M_Y_NP_Re_Rotation ^= $1;					// 점멸.
+				M_Y_NP_Vacuum_On_OFF ^= $1;					// 점멸.
+			}
+		}
+		M_Old_X_ARC_NP_Unwinder_Rotation = M_X_ARC_NP_Unwinder_Rotation;		// Edge 값 업데이트.
+		M_Old_X_ARC_NP_Unwinder_Re_Rotation = M_X_ARC_NP_Unwinder_Re_Rotation;	// Edge 값 업데이트.
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Ready = 0;									// Ready 버튼.
+		M_Y_NP_Tilting = 1;									// 틸팅 버튼.
+		M_Y_NP_Chuck_Unchuck = 1;							// 척 버튼. 
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_Upper_Ready = 0;								// 상부 언와인더 준비 완료 변수.
+		P_ARC_NP_Upper_3rd_Step_Toggle_Variable = 0;		// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		P_ARC_NP_Lower_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit = 1;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+//===========================================================================================================================================================================//
+	//==============//
+	// 하부 선택 시 //
+	//============//
+	sub:Lower_1st_Step(void)		// 하부 언척 => 척 점멸
+		// 척 버튼 점멸
+		if ( P_ARC_NP_Lower_Timer > ARC_NP_Blinking_Time )	// 척 버튼 점멸.
+		{
+			P_ARC_NP_Lower_Timer = 0;						// 타이머 초기화.
+			M_Y_NP_Chuck_Unchuck ^= $1;						// 점멸.
+		}
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Ready = 0;									// Ready 버튼.
+		M_Y_NP_Tilting = 0;									// 틸팅 버튼.
+		M_Y_NP_Vacuum_On_OFF = 0;							// 진공 버튼.
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_Lower_Ready = 0;								// 하부 언와인더 준비 완료 변수.
+		P_ARC_NP_Lower_3rd_Step_Toggle_Variable = 0;		// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		P_ARC_NP_Lower_7th_Step_Variable = 0;				// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		P_ARC_NP_Upper_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit = 0;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+
+	sub:Lower_2nd_Step(void)		// 하부 척 + 틸팅 0도 + 진공 출력 ON + 진공 입력 OFF => 틸팅 점등, 척 점등, 진공 점멸
+		if ( P_ARC_NP_Lower_Timer > ARC_NP_Blinking_Time )	// 진공 버튼 점멸.
+		{
+			P_ARC_NP_Lower_Timer = 0;						// 타이머 초기화.
+			M_Y_NP_Vacuum_On_OFF ^= $1;						// 점멸.
+		}
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Ready = 0;									// Ready 버튼.
+		M_Y_NP_Tilting = 1;									// 틸팅 버튼.
+		M_Y_NP_Chuck_Unchuck = 1;							// 척 버튼. 
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_Lower_Ready = 0;								// 하부 언와인더 준비 완료 변수.
+		P_ARC_NP_Lower_3rd_Step_Toggle_Variable = 0;		// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		P_ARC_NP_Lower_7th_Step_Variable = 0;				// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		P_ARC_NP_Upper_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit = 0;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+	
+	sub:Lower_3rd_Step(void)		// [Lower_3rd_Step__]하부 척 + 틸팅0도 + 진공 출력 ON + 진공 입력 ON => Ready 점멸, 틸팅 점등, 척 점등, 진공 점등
+		// Ready 버튼 점멸
+		if ( M_X_ARC_NP_Ready == 1 && M_Old_X_ARC_NP_Ready != M_X_ARC_NP_Ready)	// Ready 버튼을 누를 경우.
+			P_ARC_NP_Lower_3rd_Step_Toggle_Variable ^= $1;	// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		if ( P_ARC_NP_Lower_Timer > ARC_NP_Blinking_Time && P_ARC_NP_Lower_3rd_Step_Toggle_Variable == 0 )	// Ready 버튼 점멸.
+		{
+			P_ARC_NP_Lower_Timer = 0;						// 타이머 초기화.
+			M_Y_NP_Ready ^= $1;								// 점멸.
+			P_ARC_Lower_Ready = 0;							// 하부 언와인더 준비 완료 변수.
+		}
+		else if ( P_ARC_NP_Lower_3rd_Step_Toggle_Variable == 1 )	// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		{
+			M_Y_NP_Ready = 1;								// 점등.
+			P_ARC_Lower_Ready = 1;							// 상부 언와인더 준비 완료 변수.
+		}
+		M_Old_X_ARC_NP_Ready = M_X_ARC_NP_Ready;			// Edge 값 업데이트.
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Tilting = 1;									// 틸팅 버튼
+		M_Y_NP_Chuck_Unchuck = 1;							// 척 버튼
+		M_Y_NP_Vacuum_On_OFF = 1;							// 진공 버튼
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_NP_Upper_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit = 0;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+	
+	sub:Lower_4th_Step(void)		// 하부 척 + 틸팅 0도 => 척 점등, 틸팅 점멸
+		if ( P_ARC_NP_Lower_Timer > ARC_NP_Blinking_Time )	// 틸팅 버튼 점멸.
+		{
+			P_ARC_NP_Lower_Timer = 0;						// 타이머 초기화.
+			M_Y_NP_Tilting ^= $1;							// 점멸.
+		}
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Ready = 0;									// Ready 버튼.
+		M_Y_NP_Chuck_Unchuck = 1;							// 척 버튼. 
+		M_Y_NP_Vacuum_On_OFF = 0;							// 진공 버튼.
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_Lower_Ready = 0;								// 하부 언와인더 준비 완료 변수.
+		P_ARC_NP_Lower_3rd_Step_Toggle_Variable = 0;		// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		P_ARC_NP_Lower_7th_Step_Variable = 0;				// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		P_ARC_NP_Upper_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit = 0;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+	
+	sub:Lower_5th_Step(void)		// 하부 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 OFF => 틸팅 점등, 척 점등, 진공 점멸
+		if ( P_ARC_NP_Lower_Timer > ARC_NP_Blinking_Time )	// 진공 버튼 점멸.
+		{
+			P_ARC_NP_Lower_Timer = 0;						// 타이머 초기화.
+			M_Y_NP_Vacuum_On_OFF ^= $1;						// 점멸.
+		}
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Ready = 0;									// Ready 버튼.
+		M_Y_NP_Tilting = 1;									// 틸팅 버튼.
+		M_Y_NP_Chuck_Unchuck = 1;							// 척 버튼. 
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_Lower_Ready = 0;								// 하부 언와인더 준비 완료 변수.
+		P_ARC_NP_Lower_3rd_Step_Toggle_Variable = 0;		// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		P_ARC_NP_Lower_7th_Step_Variable = 0;				// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		P_ARC_NP_Upper_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit = 0;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+	
+	sub:Lower_6th_Step(void)		// 하부 척 + 틸팅 90도 + 진공 출력 ON + 진공 입력 ON => 틸팅 점멸, 척 점등, 진공 점등
+		if ( P_ARC_NP_Lower_Timer > ARC_NP_Blinking_Time )	// 틸팅 버튼 점멸.
+		{
+			P_ARC_NP_Lower_Timer = 0;						// 타이머 초기화.
+			M_Y_NP_Tilting ^= $1;							// 점멸.
+		}
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Ready = 0;									// Ready 버튼.
+		M_Y_NP_Chuck_Unchuck = 1;							// 척 버튼. 
+		M_Y_NP_Vacuum_On_OFF = 1;							// 진공 버튼.
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_Lower_Ready = 0;								// 하부 언와인더 준비 완료 변수.
+		P_ARC_NP_Lower_3rd_Step_Toggle_Variable = 0;		// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		P_ARC_NP_Lower_7th_Step_Variable = 0;				// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		P_ARC_NP_Upper_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit = 0;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+	
+	sub:Lower_7th_Step(void)		// [Lower_7th_Step__] 하부 척 + 틸팅 90도 => 틸팅 점등, 척 점등, 진공 램프 점멸, 정회전 점멸, 역회전 점멸		
+		if ( P_ARC_NP_Lower_7th_Step_Variable == 0 )		// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		{
+			M_Y_NP_Rotation = 0;							// 정회전 램프 초기화.
+			M_Y_NP_Re_Rotation = 0;							// 역회전 램프 초기화.
+			M_Y_NP_Vacuum_On_OFF = 0;						// 진공 램프 초기화.
+			P_ARC_NP_Lower_Timer = 0;						// 타이머 초기화.
+			P_ARC_NP_Lower_7th_Step_Edge_Variable = 0;		// [상,하 바꿀 때 램프 초기화]
+			P_ARC_NP_Lower_7th_Step_Variable = 1;			// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		}
+		if ( P_ARC_NP_Lower_7th_Step_Variable == 1 )		// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+		{
+			if ( P_ARC_NP_Lower_7th_Step_Edge_Variable == 0 )	// [상,하 바꿀 때 램프 초기화]
+			{
+				P_ARC_NP_Lower_7th_Step_Edge_Variable = 1;		// 재진입 방지.
+				M_Y_NP_Rotation = 0;						// 정회전 램프 초기화.
+				M_Y_NP_Re_Rotation = 0;						// 역회전 램프 초기화.
+				M_Y_NP_Vacuum_On_OFF = 0;					// 진공 램프 초기화.
+				P_ARC_NP_Lower_Timer = 0;					// 타이머 초기화.
+			}
+			if ( M_X_ARC_NP_Unwinder_Rotation == 1 )		// 정회전 버튼 누를 경우.
+			{
+				if ( P_ARC_NP_Lower_Timer > ARC_NP_Blinking_Time )	// 역회전, 진공 램프 점멸.
+				{
+					P_ARC_NP_Lower_Timer = 0;				// 타이머 초기화.
+					M_Y_NP_Rotation = 1;					// 점등.
+					M_Y_NP_Re_Rotation ^= $1;				// 점멸.
+					M_Y_NP_Vacuum_On_OFF ^= $1;				// 점멸.
+				}
+			}
+			else if ( M_X_ARC_NP_Unwinder_Rotation == 0 && M_Old_X_ARC_NP_Unwinder_Rotation != M_X_ARC_NP_Unwinder_Rotation )	// 정회전 버튼을 땔 경우.
+				P_ARC_NP_Lower_7th_Step_Variable = 0;		// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+			if ( M_X_ARC_NP_Unwinder_Re_Rotation == 1 )		// 역회전 버튼 누를 경우.
+			{
+				if ( P_ARC_NP_Lower_Timer > ARC_NP_Blinking_Time )	// 정회전, 진공 버튼 점멸.
+				{
+					P_ARC_NP_Lower_Timer = 0;				// 타이머 초기화.
+					M_Y_NP_Rotation ^= $1;					// 점멸.
+					M_Y_NP_Re_Rotation = 1;					// 점등.
+					M_Y_NP_Vacuum_On_OFF ^= $1;				// 점멸.
+				}
+			}
+			else if ( M_X_ARC_NP_Unwinder_Re_Rotation == 0 && M_Old_X_ARC_NP_Unwinder_Re_Rotation != M_X_ARC_NP_Unwinder_Re_Rotation )	// 역회전 버튼을 땔 경우.
+				P_ARC_NP_Lower_7th_Step_Variable = 0;		// [정회전, 역회전 누른 후 땔 때 램프 초기화]
+			if ( P_ARC_NP_Lower_Timer > ARC_NP_Blinking_Time )	// 정회전, 역회전, 진공 램프 점멸.
+			{
+				P_ARC_NP_Lower_Timer = 0;					// 타이머 초기화.
+				M_Y_NP_Rotation ^= $1;						// 점멸.
+				M_Y_NP_Re_Rotation ^= $1;					// 점멸.
+				M_Y_NP_Vacuum_On_OFF ^= $1;					// 점멸.
+			}
+		}
+		M_Old_X_ARC_NP_Unwinder_Rotation = M_X_ARC_NP_Unwinder_Rotation;			// Edge 값 업데이트.
+		M_Old_X_ARC_NP_Unwinder_Re_Rotation = M_X_ARC_NP_Unwinder_Re_Rotation;		// Edge 값 업데이트.
+		//==================//
+		// 나머지 버튼 조작 //
+		//================//
+		M_Y_NP_Ready = 0;									// Ready 버튼.
+		M_Y_NP_Tilting = 1;									// 틸팅 버튼.
+		M_Y_NP_Chuck_Unchuck = 1;							// 척 버튼. 
+		//=============//
+		// 변수 초기화 //
+		//===========//
+		P_ARC_Lower_Ready = 0;								// 상부 언와인더 준비 완료 변수.
+		P_ARC_NP_Lower_3rd_Step_Toggle_Variable = 0;		// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+		P_ARC_NP_Upper_7th_Step_Edge_Variable = 0;			// [상,하 바꿀 때 램프 초기화]
+		P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit = 1;			// 정회전, 역회전 램프 점멸 확인 비트.
+	return;
+//===========================================================================================================================================================================//
+	sub:Unconditional(object)
+		switch(object)
+		{
+			case ARC_NP_Upper_Check:						// [U_Unconditional]
+				if ( M_X_Sepa_Upper_ARC_Up_Sensor && M_X_Sepa_Upper_ARC_Dn_Sensor^$1 )		// 상부 플레이트 상승 일 경우.
+				{
+					M_Y_NP_Plate_Up_Down = 1;				// NP 상승/하강 버튼 램프 ON.
+				}
+				else if ( M_X_Sepa_Upper_ARC_Up_Sensor^$1 && M_X_Sepa_Upper_ARC_Dn_Sensor )	// 상부 플레이트 하강 일 경우.
+				{
+					M_Y_NP_Plate_Up_Down = 0;				// NP 상승/하강 버튼 램프 OFF.
+				}
+				if ( M_X_ARC_NP_Plate_Stopper_Clamp )		// NP 클램프 버튼을 누를 경우.
+				{
+					M_Y_NP_Clamp_On_OFF = 1;				// NP 클램프 램프 ON.
+				}
+				else										// NP 클램프 버튼을 땔 경우.
+				{
+					M_Y_NP_Clamp_On_OFF = 0;				// NP 클램프 램프 OFF.
+				}
+				if ( M_X_ARC_NP_Plate_Sepa_Cutting )		// NP 커팅 버튼을 누를 경우.
+				{
+					M_Y_NP_Sepa_Cutting = 1;				// NP 커팅 램프 ON.
+				}
+				else										// NP 커팅 버튼을 땔 경우.
+				{
+					M_Y_NP_Sepa_Cutting = 0;				// NP 커팅 램프 OFF.
+				}
+				if ( P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit^$1)	// NP 정회전, 역회전 램프가 점멸이 아닐 경우.
+				{
+					if ( M_X_ARC_NP_Unwinder_Rotation )		// NP 정회전 버튼을 누를 경우.
+					{
+						M_Y_NP_Rotation = 1;				// NP 정회전 램프 ON.
+					}
+					else									// NP 정회전 버튼을 땔 경우.
+					{
+						M_Y_NP_Rotation = 0;				// NP 정회전 램프 OFF.
+					}
+					if ( M_X_ARC_NP_Unwinder_Re_Rotation )	// NP 역회전 버튼을 누를 경우. 
+					{
+						M_Y_NP_Re_Rotation = 1;				// NP 역회전 램프 ON. 
+					}
+					else									// NP 역회전 버튼을 땔 경우.
+					{ 
+						M_Y_NP_Re_Rotation = 0;				// NP 역회전 램프 OFF. 
+					}
+				}
+			break;
+
+			case ARC_NP_Lower_Check:						// [L_Unconditional]
+				if ( M_X_Sepa_Lower_ARC_Up_Sensor && M_X_Sepa_Lower_ARC_Dn_Sensor^$1 )		// 하부 플레이트 상승 일 경우.
+				{
+					M_Y_NP_Plate_Up_Down = 0;				// NP 상승/하강 버튼 램프 OFF.
+				}
+				else if ( M_X_Sepa_Lower_ARC_Up_Sensor^$1 && M_X_Sepa_Lower_ARC_Dn_Sensor )	// 하부 플레이트 하강 일 경우.
+				{
+					M_Y_NP_Plate_Up_Down = 1;				// NP 상승/하강 버튼 램프 ON.
+				}
+				if ( M_X_ARC_NP_Plate_Stopper_Clamp )		// NP 클램프 버튼을 누를 경우.
+				{
+					M_Y_NP_Clamp_On_OFF = 1;				// NP 클램프 램프 ON.
+				}
+				else										// NP 클램프 버튼을 땔 경우.
+				{
+					M_Y_NP_Clamp_On_OFF = 0;				// NP 클램프 램프 OFF.
+				}
+				if ( M_X_ARC_NP_Plate_Sepa_Cutting )		// NP 커팅 버튼을 누를 경우.
+				{
+					M_Y_NP_Sepa_Cutting = 1;				// NP 커팅 램프 ON.
+				}
+				else										// NP 커팅 버튼을 땔 경우.
+				{
+					M_Y_NP_Sepa_Cutting = 0;				// NP 커팅 램프 OFF.
+				}
+				if ( P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit^$1)	// NP 정회전, 역회전 램프가 점멸이 아닐 경우.
+				{
+					if ( M_X_ARC_NP_Unwinder_Rotation )		// NP 정회전 버튼을 누를 경우.
+					{
+						M_Y_NP_Rotation = 1;				// NP 정회전 램프 ON.
+					}
+					else									// NP 정회전 버튼을 땔 경우.
+					{
+						M_Y_NP_Rotation = 0;				// NP 정회전 램프 OFF.
+					}
+					if ( M_X_ARC_NP_Unwinder_Re_Rotation )	// NP 역회전 버튼을 누를 경우. 
+					{
+						M_Y_NP_Re_Rotation = 1;				// NP 역회전 램프 ON. 
+					}
+					else									// NP 역회전 버튼을 땔 경우. 
+					{
+						M_Y_NP_Re_Rotation = 0;				// NP 역회전 램프 OFF. 
+					}
+				}
+			break;
+		}
+	return;
+
+close

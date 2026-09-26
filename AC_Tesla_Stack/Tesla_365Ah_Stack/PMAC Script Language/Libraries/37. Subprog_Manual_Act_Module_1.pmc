@@ -1,0 +1,3429 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.09 김성중 선임
+// MSA 모듈화 프로그래밍 진행 - [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+// 25.07.28 김성중 선임 
+// Cal, Cleaning 위치 이동, Align 탈착 모드 프로그래밍 진행 - [ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ] 
+
+open subprog Subprog_Subprocess_VISION_Manual_Module(void)
+
+
+// Align MSA Module Start--------------------------------------------------------------------------------------------------------------------------------
+//=========================================================
+//1. 얼라인 MSA Set 
+//=========================================================
+sub: MSA_Align_Set(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_SET) == N_Ready_Step )														// 음극 얼라인 MSA 모드 Ready Step 
+{
+	if( Mode == N_MSA_Anode_Align ) // 음극 얼라인 MSA 모드일 경우
+	{
+		#ifdef F_Def_Stack_A // A열인 경우
+		P_Modbus_A_VISION_MSA_Status = F_Status_EXECUTE	//A열 MSA 진행 중 상태 EXECUTE
+		#endif
+
+		#ifdef F_Def_Stack_B // B열인 경우
+		P_Modbus_B_VISION_MSA_Status = F_Status_EXECUTE //B열 MSA 진행 중 상태 EXECUTE
+		#endif
+
+		P_Current_MSA_Run_Num(F_Anode_Align_MSA) = 0;																			// 음극 얼라인 MSA 현재 진행한 횟수 초기화
+		// 인터락 PLC disable		cmd"disable plc??"
+		// 흡착 알람 감시 PLC disable cmd"disable plc??"
+		call Manual_Module_Motor_Active.Anode_Align_MSA_Motion_Check(&P_Anode_Align_MSA_Motion_Check)									//얼라인 MSA 모터 활성화
+		if ( P_Anode_Align_MSA_Motion_Check == 1)
+		{
+			P_Anode_Align_MSA_Motion_Check = 0;
+			call Sub_Common_Function.Master_Motion_Program_On();															//마스터 모션, 서브마스터, 슬레이브 ON
+		}
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_SET) = 1;																// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align ) // 양극 얼라인 MSA 모드일 경우
+	{
+		#ifdef F_Def_Stack_A // A열인 경우
+		P_Modbus_A_VISION_MSA_Status = F_Status_EXECUTE //A열 MSA 진행 중 상태 EXECUTE
+		#endif
+
+		#ifdef F_Def_Stack_B // A열인 경우
+		P_Modbus_B_VISION_MSA_Status = F_Status_EXECUTE	//B열 MSA 진행 중 상태 EXECUTE
+		#endif
+		P_Current_MSA_Run_Num(F_Cathode_Align_MSA) = 0;																			// 양극 얼라인 MSA 현재 진행한 횟수 초기화
+		// 인터락 PLC disable		cmd"disable plc??"
+		// 흡착 알람 감시 PLC disable cmd"disable plc??"
+		call Manual_Module_Motor_Active.Cathode_Align_MSA_Motion_Check(&P_Cathode_Align_MSA_Motion_Check)								//얼라인 MSA 모터 활성화
+		if ( P_Cathode_Align_MSA_Motion_Check == 1)																			//얼라인 MSA 모터 체크 완료 
+		{
+			P_Cathode_Align_MSA_Motion_Check = 0;
+			call Sub_Common_Function.Master_Motion_Program_On();															//마스터 모션, 서브마스터, 슬레이브 ON
+		}
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_SET) = 1;																// 다음 스텟 머신으로 이동.
+	}
+	else																													
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_SET) == 1 )												
+{
+	if( Mode == N_MSA_Anode_Align )	// 음극 얼라인 MSA 모드일 경우
+	{
+		call Manual_Module_Motor_Active.Anode_Align_MSA_Motion_ProgActive(&P_Anode_Align_MSA_Motion_ProgActive_Complete)				// 음극 얼라인 MSA 좌표계 활성화
+		if ( P_Anode_Align_MSA_Motion_ProgActive_Complete == 1)																// 음극 얼라인 MSA 좌표계 활성화 완료
+		{
+			P_Anode_Align_MSA_Motion_ProgActive_Complete = 0;
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_SET) = N_Complete_Step;											//다음 스텟 이동
+		}
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우
+	{
+		call Manual_Module_Motor_Active.Cathode_Align_MSA_Motion_ProgActive(&P_Cathode_Align_MSA_Motion_ProgActive_Complete)			// 양극 얼라인 MSA 좌표계 활성화
+		if ( P_Cathode_Align_MSA_Motion_ProgActive_Complete == 1)															// 양극 얼라인 MSA 좌표계 활성화 완료
+		{
+			P_Cathode_Align_MSA_Motion_ProgActive_Complete = 0;
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_SET) = N_Complete_Step;											//다음 스텟 이동
+		}
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_SET) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_SET) = 1;															// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//2. 얼라인 MSA 모터 위치 확인
+//=========================================================
+sub: MSA_Motor_Pos_Chk(Mode,&rtn)
+rtn = 0;
+local L_individual_Anode_1st_PNP_return;
+local L_individual_Anode_2nd_PNP_return;
+local L_individual_Cathode_1st_PNP_return;
+local L_individual_Cathode_2nd_PNP_return;
+local L_individual_FR_return;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Motor_Pos_Check) == N_Ready_Step )											// 얼라인 MSA 모터 위치 확인 Ready Step 
+{
+	if( Mode == N_MSA_Anode_Align )	// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( N_MSA_Anode_Align_Coord_Check == 1 )																			//모션 슬레이브 활성화 확인
+		{
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Motor_Pos_Check) = 1;												// 다음 스텟 머신으로 이동.
+		}
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우
+	{
+	   if ( N_MSA_Cathode_Align_Coord_Check == 1 )																			//모션 슬레이브 활성화 확인
+		{
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Motor_Pos_Check) = 1;												// 다음 스텟 머신으로 이동.
+		}
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Motor_Pos_Check) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align || Mode == N_MSA_Cathode_Align )		// 음극 얼라인 MSA 모드일 경우
+	{
+		call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP,&P_Anode_1st_Unit_Status,&L_individual_Anode_1st_PNP_return);			//1차 PNP 대기 위치 확인 
+		call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,& P_Anode_2nd_Unit_Status,&L_individual_Anode_2nd_PNP_return);			//2차 PNP 대기 위치 확인 
+		call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP,&P_Cathode_1st_Unit_Status,&L_individual_Cathode_1st_PNP_return);		//1차 PNP 대기 위치 확인
+		call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,& P_Cathode_2nd_Unit_Status,&L_individual_Cathode_2nd_PNP_return);	//2차 PNP 대기 위치 확인
+		call Sub_Unit_Memory_Status.individual_mode(F_Final_Roll,&P_FinalRoll_Unit_Status,&L_individual_FR_return);							//파이널롤 대기 위치 확인
+		if ( L_individual_Anode_1st_PNP_return == 1 && L_individual_Anode_2nd_PNP_return == 1 &&L_individual_Cathode_1st_PNP_return == 1 && L_individual_Cathode_2nd_PNP_return == 1 && L_individual_FR_return == 1)
+		{
+			if( P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_FinalRoll_Unit_Status == F_FR_Discharge_Pos  )	//대기 위치 확인
+			{
+				L_individual_Anode_1st_PNP_return = 0;
+				L_individual_Anode_2nd_PNP_return = 0;
+				L_individual_Cathode_1st_PNP_return = 0;
+				L_individual_Cathode_2nd_PNP_return = 0;
+				L_individual_FR_return = 0;
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Motor_Pos_Check) = N_Complete_Step;	
+			}
+		}
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Motor_Pos_Check) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Motor_Pos_Check) = 1;										// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																								// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//3. 얼라인 MSA 1차 PNP 대기 위치 -> 벨트 이동 
+//=========================================================
+sub: MSA_Align_1st_Init_to_Belt_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Init_to_Belt_Move) == N_Ready_Step )							// 얼라인 MSA 1차 PNP 대기 위치 -> 벨트 이동 Ready Step 
+{
+	if( Mode == N_MSA_Anode_Align )		// 음극 얼라인 MSA 모드일 경우
+	{
+		if( M_X_PLC_Anode_Sheet_Ready == 1 )																		//음극 극판 공급 레디 OK일 경우
+		{
+			P_Slave1_Motion_Command = 11;																			//음극 1차 PNP 대기->Belt 모션 커멘드
+			P_MSA_Chk_Pos_Timer = 0;																				//체크 타이머 초기화
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Init_to_Belt_Move) = 1;								// 다음 스텟 머신으로 이동.
+		}
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우
+	{
+		if( M_X_PLC_Cathode_Sheet_Ready == 1 )																		//양극 극판 공급 레디 OK일 경우
+		{
+			P_Slave10_Motion_Command =11;																			//양극 1차 PNP 대기->Belt 모션 커멘드 
+			P_MSA_Chk_Pos_Timer = 0;																				//체크 타이머 초기화
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Init_to_Belt_Move) = 1;								// 다음 스텟 머신으로 이동.
+		}
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Init_to_Belt_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )	// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_1st_PnP_AN_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_AN_T) < 0 + P_Motor_Ready_Pos_Inpos_200um ) //음극 1차 PNP 대기 상승 위치 확인
+		{
+			if ( Motor[N_1st_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 																//음극 1차 PNP 속도 0 확인
+			{
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Init_to_Belt_Move) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+			}
+		}									
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_1st_PnP_CA_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_CA_T) < 0 + P_Motor_Ready_Pos_Inpos_200um ) //양극 1차 PNP 대기 상승 위치 확인
+		{
+			if (  Motor[N_1st_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time  ) 										//양극 1차 PNP 속도 0 확인
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Init_to_Belt_Move) = N_Complete_Step;			// 다음 스텟 머신으로 이동.
+			}
+		}
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Init_to_Belt_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Init_to_Belt_Move) = 1;								// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																							// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//4. 얼라인 MSA 1차 PNP 벨트 하강
+//=========================================================
+sub: MSA_1st_PNP_Belt_Down_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Down_Move) == N_Ready_Step )							// 얼라인 MSA 1차 PNP 대기 위치 -> 벨트 이동 Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )	 // 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave1_Motion_Command = 5;																			//음극 1차 PNP Belt 하강 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																				//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Down_Move) = 1;									// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )// 양극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave10_Motion_Command = 5;																			//양극 1차 PNP Belt 하강 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																				//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Down_Move) = 1;									// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Down_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )	// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_1st_PnP_AN_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um &&  P_Motor_Current_Pos(N_1st_PnP_AN_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 1차 PNP 벨트 하강 위치 확인
+		{
+			if ( Motor[N_1st_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time  )  																	// 음극 1차 PNP 속도 0 확인
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Down_Move) = N_Complete_Step;												// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우
+	{							
+		if ( P_Motor_Current_Pos(N_1st_PnP_CA_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_CA_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um )	// 양극 1차 PNP 벨트 하강 위치 확인	
+		{																					
+			if ( Motor[N_1st_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time  )										// 양극 1차 PNP 속도 0 확인
+			{																									
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Down_Move) = N_Complete_Step;				// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Down_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Down_Move) = 1;									// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																							// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//5. 얼라인 MSA 2차 PNP 얼라인 하강
+//=========================================================
+sub: MSA_2nd_PNP_Align_Down_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Down_Move) == N_Ready_Step )							// 얼라인 MSA 2차 PNP 얼라인 하강 Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )		// 음극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave3_Motion_Command = 5;																			//음극 2차 PNP 얼라인 하강 모션 커멘드 
+		P_MSA_Chk_Pos_Timer = 0;																				//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Down_Move) = 1;									// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave8_Motion_Command = 5;																			//양극 2차 PNP 얼라인 하강 모션 커멘드 
+		P_MSA_Chk_Pos_Timer = 0;																				//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Down_Move) = 1;									// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Down_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )			// 음극 얼라인 MSA 모드일 경우 
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 2차 PNP 얼라인 하강 위치 확인
+		{
+			if ( Motor[N_2nd_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 																		// 음극 2차 PNP 속도 0 확인
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Down_Move) = N_Complete_Step;											// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우 
+	{			
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um )	// 양극 2차 PNP 얼라인 하강 위치 확인
+		{																											
+			if ( Motor[N_2nd_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time )											// 양극 2차 PNP 속도 0 확인
+			{																										
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Down_Move) = N_Complete_Step;				// 다음 스텟 머신으로 이동.
+			}
+		}																											
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Down_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Align_Down_Move) = 1;									// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																								// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//6. 얼라인 MSA 1차 벨트 흡착 
+//=========================================================
+sub: MSA_Align_1st_Belt_Vacume_ON(Mode,&rtn)																		// 얼라인 MSA 1차 벨트 흡착  Ready Step
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Vacume_ON) == N_Ready_Step )
+{
+	if( Mode == N_MSA_Anode_Align )			// 음극 얼라인 MSA 모드일 경우
+	{
+		if( M_X_PLC_Anode_Sheet_Ready == 1 ) 
+		{
+			P_Slave1_Motion_Command = 13;																			//음극 1차 PNP 벨트 흡착 ON 커멘드
+			P_MSA_Chk_Pos_Timer = 0;																				//체크 타이머 초기화
+
+			//M_Y_Anode_1st_Vac_Sol_On = 1;     
+			//M_Y_Anode_1st_Vac_Sol_Off = 0;    
+			//M_Y_Anode_1st_Release_Sol_On = 0; 
+			//M_Y_Anode_1st_Release_Sol_Off = 1;
+
+			//M_Y_Anode_1st_Vac_Sol_On = 1; 
+			//M_Y_Anode_1st_Vac_Sol_Off = 0;																		
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Vacume_ON) = 1;										// 다음 스텟 머신으로 이동.
+		}
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우 
+	{
+		if( M_X_PLC_Cathode_Sheet_Ready == 1 ) 
+		{
+			P_Slave10_Motion_Command = 13;																			//양극 1차 PNP 벨트 흡착 ON 커멘드
+			P_MSA_Chk_Pos_Timer = 0;																				//체크 타이머 초기화	
+
+			//M_Y_Cathode_1st_Vac_Sol_On = 1;     
+			//M_Y_Cathode_1st_Vac_Sol_Off = 0;    
+			//M_Y_Cathode_1st_Release_Sol_On = 0; 
+			//M_Y_Cathode_1st_Release_Sol_Off = 1;
+
+			//M_Y_Cathode_1st_Vac_Sol_On = 1;
+			//M_Y_Cathode_1st_Vac_Sol_Off = 0;																					
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Vacume_ON) = 1;									// 다음 스텟 머신으로 이동
+		}
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Vacume_ON) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( M_X_Anode_1st_PNP_Vac_Sensor == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 						// 음극 1차 PNP 벨트 흡착 확인 
+		{	
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Vacume_ON) = N_Complete_Step;						// 다음 스텟 머신으로 이동.
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우 
+	{																														
+		if ( M_X_Cathode_1st_PNP_Vac_Sensor == 1  && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time )						// 양극 1차 PNP 벨트 흡착 확인 
+		{																													
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Vacume_ON) = N_Complete_Step;						// 다음 스텟 머신으로 이동.
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Vacume_ON) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Vacume_ON) = 1;										// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																								// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//7. 얼라인 MSA 2차 얼라인 흡착 
+//=========================================================
+sub: MSA_2nd_PNP_Vacume_ON(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Vacume_ON) == N_Ready_Step )									// 얼라인 MSA 2차 얼라인 흡착 Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )																					// 음극 얼라인 MSA 모드
+	{
+		P_Slave3_Motion_Command = 10;																				//음극 2차 PNP 흡착 ON 커멘드
+		//M_Y_Anode_AT_Vac_Ejector_Vac_On = 0;																														
+		//M_Y_Anode_AT_Vac_Ejector_Vac_Off = 1; 	
+			
+		//M_Y_Anode_2nd_Vac_Sol_On = 1;   
+		//M_Y_Anode_2nd_Vac_Sol_Off = 0;
+		//M_Y_Anode_2nd_Release_Sol_On = 0;
+		//M_Y_Anode_2nd_Release_Sol_Off = 1;
+
+		//M_Y_Anode_2nd_Vac_Sol_On = 1;																			
+		//M_Y_Anode_2nd_Vac_Sol_Off = 0;																			
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Vacume_ON) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )																			// 양극 얼라인 MSA 모드
+	{
+		P_Slave8_Motion_Command = 10;																				//양극 2차 PNP 흡착 ON 커멘드
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_On = 0;																	
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_Off = 1; 		
+
+		//M_Y_Cathode_2nd_Vac_Sol_On = 1;    
+		//M_Y_Cathode_2nd_Vac_Sol_Off = 0;
+		//M_Y_Cathode_2nd_Release_Sol_On = 0;
+		//M_Y_Cathode_2nd_Release_Sol_Off = 1;		
+																																																				
+		//M_Y_Cathode_2nd_Vac_Sol_On = 1;																		
+		//M_Y_Cathode_2nd_Vac_Sol_Off = 0;																			
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Vacume_ON) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Vacume_ON) == 1 )
+{
+	P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Vacume_ON) = N_Complete_Step;
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Vacume_ON) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Vacume_ON) = 1;											// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																								// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//8. 얼라인 MSA 1차 벨트 상승
+//=========================================================
+sub: MSA_1st_PNP_Belt_Up_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Up_Move) == N_Ready_Step )								// 얼라인 MSA 1차 벨트 상승 Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave1_Motion_Command = 6;																				//음극 1차 PNP 벨트 상승 모션 커멘드	
+		P_MSA_Chk_Pos_Timer = 0;																					//체크 타이머 초기화													
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Up_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave10_Motion_Command = 6;																				// 양극 1차 PNP 벨트 상승 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																					//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Up_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Up_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )			// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_1st_PnP_AN_Z) > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_AN_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 1차 PNP 벨트 상승 위치 확인
+		{
+			if ( Motor[N_1st_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time)														 // 음극 1차 PNP 속도 0 확인
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Up_Move) = N_Complete_Step;								  // 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우
+	{				
+		if ( P_Motor_Current_Pos(N_1st_PnP_CA_Z) > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_CA_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 1차 PNP 벨트 상승 위치 확인
+		{																									
+			if (  Motor[N_1st_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time)								// 양극 1차 PNP 속도 0 확인
+			{																												
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Up_Move) = N_Complete_Step;						// 다음 스텟 머신으로 이동.
+			}
+		}		
+	}		
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Belt_Up_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Belt_Up_Move) = 1;											// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																									// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//9. 얼라인 MSA 2차 얼라인 상승
+//=========================================================
+sub: MSA_2nd_PNP_Align_Up_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Up_Move) == N_Ready_Step )									 // 얼라인 MSA 2차 얼라인 상승 Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )						// 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave3_Motion_Command = 6;																					//음극 2차 PNP 얼라인 상승 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																						//체크 타이머 초기화														
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Up_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )				// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave8_Motion_Command = 6;																					//양극 2차 PNP 얼라인 상승 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																						//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Up_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Up_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_Z)  > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um )  // 음극 2차 PNP 스텍 상승 위치 확인
+		{
+			if( Motor[N_2nd_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 								// 음극 2차 PNP 속도 0 확인
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Up_Move) = N_Complete_Step;						// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )			// 양극 얼라인 MSA 모드일 경우
+	{																														
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um )  // 양극 2차 PNP 스텍 상승 위치 확인
+		{
+			if( Motor[N_2nd_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 								// 양극 2차 PNP 속도 0 확인
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Up_Move) = N_Complete_Step;						// 다음 스텟 머신으로 이동.
+			}
+		}		
+	}		
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Align_Up_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Align_Up_Move) = 1;											// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																									// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//10. 얼라인 MSA 파이널롤러 이동
+//=========================================================
+sub: MSA_Align_FinalRoll_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_FinalRoll_Move) == N_Ready_Step )										//얼라인 MSA 파이널롤러 이동 ready step
+{
+	if( Mode == N_MSA_Anode_Align )					// 음극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave5_Motion_Command = 2;																					// 음극 2차 PNP Stack 이동 예정으로 양극 방향 이동
+		P_MSA_Chk_Pos_Timer = 0;																						//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_FinalRoll_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )			// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave5_Motion_Command = 1;																					// 양극 2차 PNP Stack 이동 예정으로 음극 방향 이동
+		P_MSA_Chk_Pos_Timer = 0;																						//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_FinalRoll_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_FinalRoll_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )         	// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Final_Roll_X_Cathode_Move - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Final_Roll_X_Cathode_Move + P_Motor_Ready_Pos_Inpos_200um ) // 파이널롤러 양극 위치 이동 확인 
+		{
+			if( Motor[N_FINAL_ROLL_X].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > 250 ) 														// 파이널롤러 속도 0 확인 
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_FinalRoll_Move) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+			}
+		}
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 걍으
+	{																														
+		if ( P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Final_Roll_X_Anode_Move - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Final_Roll_X_Anode_Move + P_Motor_Ready_Pos_Inpos_200um )			// 파이널롤러 음극 위치 이동 확인 
+		{
+			if( Motor[N_FINAL_ROLL_X].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > 250 ) 													  // 파이널롤러 속도 0 확인 
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_FinalRoll_Move) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+			}	
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_FinalRoll_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_FinalRoll_Move) = 1;													// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//11. 얼라인 MSA 2차 PNP 스텍 이동
+//=========================================================
+sub: MSA_2nd_PNP_Stack_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Stack_Move) == N_Ready_Step )										//얼라인 MSA 2차 PNP 스텍 이동 ready step		
+{
+	if( Mode == N_MSA_Anode_Align )		      // 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Current_MSA_Run_Num(F_Anode_Align_MSA) == 0)																	// 음극 얼라인 MSA 첫번째 동작 시
+		{
+			P_Slave3_Motion_Command = 1;																				//음극 2차 PNP T축 Align -> Stack 이동 모션 커멘드
+			P_MSA_Chk_Pos_Timer = 0;																					//체크 타이머 초기화
+		}
+		//음극 얼라인 x축 원점 이동.
+		Motor[39].jogSpeed = 10 ;																						// 모터 조그 스피드 입력
+		Motor[39].ProgJogPos = 0; 																						// 모터 정위치 입력
+		   
+		Ldata.motor = 39;  																								// 모터 번호 선택
+		jog=*;																											// 절대 위치 이동 명령																	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Stack_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )		 // 양극 얼라인 MSA 모드일 경우 
+	{
+		if ( P_Current_MSA_Run_Num(F_Cathode_Align_MSA) == 0 )																// 양극 얼라인 MSA 첫번째 동작 시
+		{
+			P_Slave8_Motion_Command = 1;																				// 양극 2차 PNP T축 Align -> Stack 이동 모션 커멘드
+			P_MSA_Chk_Pos_Timer = 0;																					//체크 타이머 초기화		
+		}																													
+		// 양극 얼라인 x축 원점 이동.
+		Motor[36].jogSpeed = 10 ;																						// 모터 조그 스피드 입력
+		Motor[36].ProgJogPos = 0; 																						// 모터 정위치 입력
+		   
+		Ldata.motor = 36;  																								// 모터 번호 선택
+		jog=*;																											// 절대 위치 이동 명령		
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Stack_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Stack_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우 
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_T) < 90 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 2차 PNP Stack 위치 확인		
+		{
+			if( Motor[N_2nd_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													//음극 2차 PNP 속도 0 확인																			
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Stack_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우 
+	{																														
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 90 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 2차 PNP Stack 위치 확인
+		{
+			if( Motor[N_2nd_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													 // 양극 2차 PNP Stack 속도 0 확인																					
+			{																										
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Stack_Move) = N_Complete_Step;								 // 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_2nd_Stack_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_2nd_Stack_Move) = 1;													// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//12. 얼라인 MSA 1차 Belt->얼라인 이동 & 1차 PNP 피커 회전(첫번째 동작 시에만)
+//=========================================================
+sub: MSA_1st_PNP_Align_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Move) == N_Ready_Step )											//얼라인 MSA 1차 Belt->얼라인 이동 & 1차 PNP 피커 회전 ready step		
+{	if( Mode == N_MSA_Anode_Align )			// 음극 얼라인 MSA 모드일 경우 
+	{
+		if ( P_Current_MSA_Run_Num(F_Anode_Align_MSA) == 0)																		// 음극 얼라인 MSA 첫번째 동작 시
+		{
+			P_Slave2_Motion_Command = 1;																					// 음극 1차 PNP 피커 T축 180도 회전 							
+			P_MSA_Chk_Pos_Timer = 0;																						//체크 타이머 초기화																				
+		}
+		P_Slave1_Motion_Command = 1;																						// 음극 1차 PNP 얼라인 위치 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Current_MSA_Run_Num(F_Cathode_Align_MSA) == 0)																	// 양극 얼라인 MSA 첫번째 동작 시
+		{
+			P_Slave9_Motion_Command = 1;																					// 양극 1차 PNP 피커 T축 180도 회전 	
+			P_MSA_Chk_Pos_Timer = 0;																						//체크 타이머 초기화																				
+		}
+		P_Slave10_Motion_Command = 1;																						// 양극 1차 PNP 얼라인 위치 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우 
+	{
+		if ( P_Motor_Current_Pos(N_1st_PnP_AN_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_AN_T) < 90 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 1차 PNP 얼라인 위치 확인
+		{
+			if( Motor[N_1st_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 														// 음극 1차 PNP 속도 0 확인																							
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Move) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우
+	{																														
+		if ( P_Motor_Current_Pos(N_1st_PnP_CA_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_CA_T) < 90 + P_Motor_Ready_Pos_Inpos_200um )  // 양극 1차 PNP 얼라인 위치 확인
+		{
+			if( Motor[N_1st_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 														// 양극 1차 PNP 속도 0 확인																						 
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Move) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Move) = 1;														// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																											// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//13. 얼라인 MSA 1차 얼라인 하강
+//=========================================================
+sub: MSA_1st_PNP_Align_Down_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Down_Move) == N_Ready_Step )										//얼라인 MSA 1차 얼라인 하강 Ready Step 
+{
+	if( Mode == N_MSA_Anode_Align )				 // 음극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave1_Motion_Command = 3;																						// 음극 1차 PNP 얼라인 하강 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Down_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave10_Motion_Command = 3;																						// 양극 1차 PNP 얼라인 하강 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Down_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Down_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_1st_PnP_AN_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_AN_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 1차 얼라인 하강 확인		
+		{
+			if( Motor[N_1st_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 														// 음극 1차 PNP 속도 0 확인																						  
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Down_Move) = N_Complete_Step;							// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )	   // 양극 얼라인 MSA 모드일 경우
+	{																														
+		if ( P_Motor_Current_Pos(N_1st_PnP_CA_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_CA_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 1차 얼라인 하강 확인	
+		{
+			if( Motor[N_1st_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 														// 양극 1차 PNP 속도 0 확인																						
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Down_Move) = N_Complete_Step;							// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Down_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Down_Move) = 1;											// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//14. 얼라인 MSA 1차 얼라인 파기 
+//=========================================================
+sub: MSA_1st_PNP_Align_Blow_ON(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Blow_ON) == N_Ready_Step )										//얼라인 MSA 1차 얼라인 파기 Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )				 // 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave1_Motion_Command = 12;																						//음극 1차 PNP 얼라인 파기 커멘드
+		P_MSA_Chk_Pos_Timer=0;																								//체크 타이머 초기화
+		//M_Y_Anode_1st_Vac_Sol_On = 0; 																					
+		//M_Y_Anode_1st_Vac_Sol_Off = 1;
+
+		//M_Y_Anode_1st_Vac_Sol_On = 0;     
+		//M_Y_Anode_1st_Vac_Sol_Off = 1;    
+		//M_Y_Anode_1st_Release_Sol_On = 1; 
+		//M_Y_Anode_1st_Release_Sol_Off = 0;
+
+		//M_Y_Anode_AT_Vac_Ejector_Vac_On = 1;																			
+		//M_Y_Anode_AT_Vac_Ejector_Vac_Off = 0;
+		//M_X_Anode_AT_Vac_Sensor = 1; //임시
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Blow_ON) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave10_Motion_Command = 12;																						//양극 1차 PNP 얼라인 파기 커멘드
+		P_MSA_Chk_Pos_Timer= 0;																								//체크 타이머 초기화
+		//M_Y_Cathode_1st_Vac_Sol_On = 0; 																				
+		//M_Y_Cathode_1st_Vac_Sol_Off = 1; 
+
+		//M_Y_Cathode_1st_Vac_Sol_On = 0;	
+		//M_Y_Cathode_1st_Vac_Sol_Off = 1;    
+		//M_Y_Cathode_1st_Release_Sol_On = 1; 
+		//M_Y_Cathode_1st_Release_Sol_Off = 0;
+
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_On = 1;																				
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_Off = 0;
+		//M_X_Cathode_AT_Vac_Sensor = 1 //임시
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Blow_ON) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Blow_ON) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )					// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( M_X_Anode_1st_PNP_Vac_Sensor == 0 && M_X_Anode_AT_Vac_Sensor == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time )		// 음극 얼라인 흡착 확인 
+		{	
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Blow_ON) = N_Complete_Step;										// 다음 스텟 머신으로 이동.
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )			// 양극 얼라인 MSA 모드일 경우
+	{																														
+		if ( M_X_Cathode_1st_PNP_Vac_Sensor == 0 && M_X_Cathode_AT_Vac_Sensor == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time )   	// 양극 얼라인 흡착 확인 
+		{																													
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Blow_ON) = N_Complete_Step;										// 다음 스텟 머신으로 이동.
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Blow_ON) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Blow_ON) = 1;												// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//15. 얼라인 MSA 1차 얼라인 비전 촬상
+//=========================================================
+sub: MSA_Align_VISION_Trigger_ON(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Vision_Trg_ON) == N_Ready_Step )											//얼라인 MSA 1차 얼라인 비전 촬상 Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )		     // 음극 얼라인 MSA 모드일 경우
+	{
+		M_Y_VisioN_Align_AN_Trigger = 1; 																				// 음극 얼라인 비전 트리거 ON
+		P_Vision_Align_Trigger_Timer = 0;																					//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Vision_Trg_ON) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우 
+	{
+		M_Y_VisioN_Align_CA_Trigger = 1;  																				// 양극 얼라인 비전 트리거 ON
+		P_Vision_Align_Trigger_Timer = 0;																					//체크 타이머 초기화																					// 양극 얼라인 비전 트리거 ON
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Vision_Trg_ON) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Vision_Trg_ON) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )			// 음극 얼라인 MSA 모드일 경우
+	{
+		if( P_Vision_Align_Trigger_Timer > P_Vision_Align_Trigger_Time )													// 음극 얼라인 비전 촬상 트리거 1000ms 후 OFF
+		{
+			M_Y_VisioN_Align_AN_Trigger = 0; 																			// 음극 얼라인 비전 촬상 트리거 Off	
+			P_Vision_Align_Trigger_Timer = 0;																				// 촬상 트리거 타이머 초기화 
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Vision_Trg_ON) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우
+	{																														
+		if( P_Vision_Align_Trigger_Timer > P_Vision_Align_Trigger_Time )													// 양극 얼라인 비전 촬상 트리거 1000ms 후 OFF
+		{
+			M_Y_VisioN_Align_CA_Trigger = 0; 																			// 양극 얼라인 비전 촬상 트리거 O
+			P_Vision_Align_Trigger_Timer = 0;																				// 촬상 트리거 타이머 초기화 
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Vision_Trg_ON) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+		}																													
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Vision_Trg_ON) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Vision_Trg_ON) = 1;													// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//16. 얼라인 MSA 1차 얼라인 흡착
+//=========================================================
+sub: MSA_Align_1st_Align_Vacume_ON(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Vacume_ON) == N_Ready_Step )										// 얼라인 MSA 1차 얼라인 흡착 Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )			 // 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave1_Motion_Command = 14;																						// 음극 1차 PNP 얼라인 흡착 커멘드											
+		P_MSA_Chk_Pos_Timer = 0;																							//체크 타이머 초기화
+		//M_Y_Anode_AT_Vac_Ejector_Vac_On = 0;																																				
+		//M_Y_Anode_AT_Vac_Ejector_Vac_Off = 1; 
+
+		//M_Y_Anode_1st_Vac_Sol_On = 1;     
+		//M_Y_Anode_1st_Vac_Sol_Off = 0;    
+		//M_Y_Anode_1st_Release_Sol_On = 0; 
+		//M_Y_Anode_1st_Release_Sol_Off = 1;		
+																																																														
+		//M_Y_Anode_1st_Vac_Sol_On = 1;	
+		//M_Y_Anode_1st_Vac_Sol_Off = 0;	
+		//M_X_Anode_1st_PNP_Vac_Sensor = 1; //임시																			
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Vacume_ON) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave10_Motion_Command = 14;																						// 양극 1차 PNP 얼라인 흡착 커멘드				
+		P_MSA_Chk_Pos_Timer= 0;																								//체크 타이머 초기화
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_On = 0;																			
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_Off = 1; 																																																
+		//M_Y_Cathode_1st_Vac_Sol_On = 1;
+		//M_Y_Cathode_1st_Vac_Sol_Off = 0;	
+
+		//M_Y_Cathode_1st_Vac_Sol_On = 1;	
+		//M_Y_Cathode_1st_Vac_Sol_Off = 0;    
+		//M_Y_Cathode_1st_Release_Sol_On = 0; 
+		//M_Y_Cathode_1st_Release_Sol_Off = 1;
+			
+		//M_X_Cathode_1st_PNP_Vac_Sensor = 1;//임시																	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Vacume_ON) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Vacume_ON) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( M_X_Anode_1st_PNP_Vac_Sensor == 1 && M_X_Anode_AT_Vac_Sensor == 0 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time) 	//음극 1차 PNP 흡착 입력 신호 확인																	
+		{	
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Vacume_ON) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우
+	{																														
+		if ( M_X_Cathode_1st_PNP_Vac_Sensor == 1 && M_X_Cathode_AT_Vac_Sensor == 0 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time) //양극 1차 PNP 흡착 입력 신호 확인																	
+		{																													
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Vacume_ON) = N_Complete_Step;								  // 다음 스텟 머신으로 이동.
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Vacume_ON) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Vacume_ON) = 1;											// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//17. 얼라인 MSA 1차 PNP Z축 얼라인 상승
+//=========================================================
+sub: MSA_1st_PNP_Align_Up_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Up_Move) == N_Ready_Step )										//얼라인 MSA 1차 PNP Z축 얼라인 상승 Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave1_Motion_Command = 4;																						//음극 1차 PNP Z축 얼라인 상승 모션 커멘드		
+		P_MSA_Chk_Pos_Timer = 0;																							//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Up_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave10_Motion_Command = 4;																						//양극 1차 PNP Z축 얼라인 상승 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Up_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Up_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )					// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_1st_PnP_AN_Z) > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_AN_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 1차 Z축 얼라인 상승 위치 확인	
+		{
+			if( Motor[N_1st_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 										// 음극 1차 Z축 속도 0 확인																								
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Up_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우 
+	{																														
+		if ( P_Motor_Current_Pos(N_1st_PnP_CA_Z) > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_CA_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 1차 Z축 얼라인 상승 위치 확인
+		{
+			if( Motor[N_1st_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 										// 음극 1차 Z축 속도 0 확인																							
+			{																										
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Up_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}		
+	}		
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Align_Up_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Align_Up_Move) = 1;											// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																									// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//18. 얼라인 MSA 1차 PNP 얼라인 -> 벨트 이동 
+//=========================================================
+sub: MSA_1st_PNP_Belt_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Blet_Move) == N_Ready_Step )											//얼라인 MSA 1차 PNP 얼라인 -> 벨트 이동 Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )						// 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave1_Motion_Command = 2;																						// 음극 1차 PNP Align -> Belt 모션 커멘드 
+		P_MSA_Chk_Pos_Timer = 0;																							//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Blet_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )				// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave10_Motion_Command = 2;																						// 양극 1차 PNP Align -> Belt 모션 커멘드 
+		P_MSA_Chk_Pos_Timer = 0;																							//체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Blet_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Blet_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )					// 음극 얼라인 MSA 모드일 경우
+	{
+		if (P_Motor_Current_Pos(N_1st_PnP_AN_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_AN_T) < 0 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 1차 PNP 벨트 위치 확인	
+		{
+			if( Motor[N_1st_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 										// 음극 1차 PNP 속도 0 확인 																						
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Blet_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )			// 양극 얼라인 MSA 모드일 경우 
+	{																											
+		if (P_Motor_Current_Pos(N_1st_PnP_CA_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_CA_T)  < 0 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 1차 PNP 벨트 위치 확인	
+		{
+			if( Motor[N_1st_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 										// 양극 1차 PNP 속도 0 확인 																								
+			{																							
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Blet_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}		
+	}		
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_1st_Blet_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_1st_Blet_Move) = 1;												// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																									// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//19. 얼라인 MSA 카운트 
+//=========================================================
+sub: MSA_Align_MSA_Move_Cnt(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_MSA_Move_Cnt) == N_Ready_Step )											//얼라인 MSA 카운트  Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우
+	{
+		P_Current_MSA_Run_Num(F_Anode_Align_MSA)++;																				// 현재 진행한 횟수 증가
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_MSA_Move_Cnt) = 1;														// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Current_MSA_Run_Num(F_Cathode_Align_MSA)++;																			// 현재 진행한 횟수 증가
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_MSA_Move_Cnt) = 1;														// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_MSA_Move_Cnt) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )			// 음극 얼라인 MSA 모드일 경우
+	{
+		if(  P_Current_MSA_Run_Num(F_Anode_Align_MSA) < P_MSA_Run_Repeat_Num(F_Anode_Align_MSA) )											// 음극 얼라인 MSA Total 횟수 미달 시 
+		{
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_MSA_Move_Cnt) = N_Not_Complete_Step;								// 반환값 : Not COMPLETE
+		}
+		else if(  P_Current_MSA_Run_Num(F_Anode_Align_MSA) == P_MSA_Run_Repeat_Num(F_Anode_Align_MSA) )									// 음극 얼라인 MSA Total 횟수 도달 시 
+		{
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_MSA_Move_Cnt) = N_Complete_Step;									// 반환값 : COMPLETE
+		}																													
+	}		
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우
+	{	
+		if(  P_Current_MSA_Run_Num(F_Cathode_Align_MSA) < P_MSA_Run_Repeat_Num(F_Cathode_Align_MSA) )										// 양극 얼라인 MSA Total 횟수 미달 시 
+		{
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_MSA_Move_Cnt) = N_Not_Complete_Step;								// 반환값 : Not COMPLETE
+		}
+		else if(  P_Current_MSA_Run_Num(F_Cathode_Align_MSA) == P_MSA_Run_Repeat_Num(F_Cathode_Align_MSA) )								// 양극 얼라인 MSA Total 횟수 도달 시 
+		{
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_MSA_Move_Cnt) = N_Complete_Step;									// 반환값 : COMPLETE
+		}
+	}
+}
+if (P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_MSA_Move_Cnt) == N_Not_Complete_Step)										// 얼라인 MSA Total 횟수 미달 경우	
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_MSA_Move_Cnt) = 2;													// Complete Bit 2 
+	rtn = N_COMPLETE;	
+}
+else if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_MSA_Move_Cnt) == N_Complete_Step)										// 얼라인 MSA Total 횟수 도달했을 경우
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_MSA_Move_Cnt) = 1;													// Complete Bit 1
+	rtn = N_COMPLETE;	
+}
+return;
+
+//MSA 횟수 도달 시 진입
+//=========================================================
+//20. Align MSA 1차 PNP 벨트->얼라인 이동 ( MSA 완료 ) 
+//=========================================================
+sub: MSA_Align_Discharge_1st_Align_Move(Mode,&rtn)													
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Move) == N_Ready_Step )								//Align MSA 1차 벨트->얼라인 이동 Ready Step
+{	
+	if( Mode == N_MSA_Anode_Align )			// 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave1_Motion_Command = 1;																						// 음극 1차 PNP 얼라인 위치 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							//체크 타이머 변수 초기화 
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave10_Motion_Command = 1;																						// 양극 1차 PNP 얼라인 위치 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							//체크 타이머 변수 초기화	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )			// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_1st_PnP_AN_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_AN_T) < 90 + P_Motor_Ready_Pos_Inpos_200um )	// 음극 1차 PNP 얼라인 위치 확인	
+		{
+			if( Motor[N_1st_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 														// 음극 1차 PNP 속도 0 확인																				
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Move) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우 
+	{																														
+		if ( P_Motor_Current_Pos(N_1st_PnP_CA_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_CA_T) < 90 + P_Motor_Ready_Pos_Inpos_200um )	// 음극 1차 PNP 얼라인 위치 확인	
+		{
+			if( Motor[N_1st_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 														// 음극 1차 PNP 속도 0 확인																						
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Move) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Move) = 1;														// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																														// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//21. Align MSA 1차 PNP 얼라인 하강 (MSA 완료)
+//=========================================================
+sub: MSA_Align_Discharge_1st_Align_Down_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) == N_Ready_Step )										// Align MSA 1차 얼라인 하강 Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )						// 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave1_Motion_Command = 3;																									// 음극 1차 PNP 얼라인 하강 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )				// 양극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave10_Motion_Command = 3;																									// 양극 1차 PNP 얼라인 하강 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )						// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_1st_PnP_AN_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_AN_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um )	//음극 1차 PNP 얼라인 하강 확인
+		{
+			if( Motor[N_1st_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 												// 음극 1차 PNP 속도 0 확인 																							
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) = N_Complete_Step;							// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )			// 양극 얼라인 MSA 모드일 경우 																					
+	{																														
+		if ( P_Motor_Current_Pos(N_1st_PnP_CA_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_CA_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um ) //양극 1차 PNP 얼라인 하강 확인
+		{
+			if( Motor[N_1st_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 												// 양극 1차 PNP 속도 0 확인 																								
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) = N_Complete_Step;							// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Down_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Down_Move) = 1;												// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																													// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//22. 얼라인 MSA 1차 PNP 얼라인 파기 (MSA 완료)
+//=========================================================
+sub: MSA_Align_Discharge_1st_Align_Blow_ON(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) == N_Ready_Step )											//얼라인 MSA 1차 얼라인 파기 Ready Step 
+{
+	if( Mode == N_MSA_Anode_Align )					// 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave1_Motion_Command = 12;																									//음극 1차 PNP 얼라인 파기 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 																									
+		//M_Y_Anode_1st_Vac_Sol_On = 0; 																					
+		//M_Y_Anode_1st_Vac_Sol_Off = 1;
+
+		//M_Y_Anode_1st_Vac_Sol_On = 0;     
+		//M_Y_Anode_1st_Vac_Sol_Off = 1;    
+		//M_Y_Anode_1st_Release_Sol_On = 1; 
+		//M_Y_Anode_1st_Release_Sol_Off = 0;
+
+		//M_Y_Anode_AT_Vac_Ejector_Vac_On = 1;																				
+		//M_Y_Anode_AT_Vac_Ejector_Vac_Off = 0;
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )		  // 양극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave10_Motion_Command = 12;																									//양극 1차 PNP 얼라인 파기 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 
+		//M_Y_Cathode_1st_Vac_Sol_On = 0; 																							
+		//M_Y_Cathode_1st_Vac_Sol_Off = 1; 
+
+		//M_Y_Cathode_1st_Vac_Sol_On = 0;	
+		//M_Y_Cathode_1st_Vac_Sol_Off = 1;    
+		//M_Y_Cathode_1st_Release_Sol_On = 1; 
+		//M_Y_Cathode_1st_Release_Sol_Off = 0;
+
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_On = 1;																						
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_Off = 0;
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )			// 음극 얼라인 MSA 모드일 경우 
+	{
+		if ( M_X_Anode_1st_PNP_Vac_Sensor == 0 && M_X_Anode_AT_Vac_Sensor == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time) 			// 1차 PNP 입력 신호 OFF 및 음극 얼라인 테이블 흡착 확인												
+		{	
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우 
+	{																														
+		if (M_X_Cathode_1st_PNP_Vac_Sensor == 0 && M_X_Cathode_AT_Vac_Sensor == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time)   		// 1차 PNP 입력 신호 OFF 및 음극 얼라인 테이블 흡착 확인		
+		{																													
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Blow_ON) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Blow_ON) = 1;									// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//23. 얼라인 MSA 1차 PNP 얼라인 상승 (MSA 완료)
+//=========================================================
+sub: MSA_Align_Discharge_1st_Align_Up_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) == N_Ready_Step )								//얼라인 MSA 1차 PNP 얼라인 상승 Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave1_Motion_Command = 4;																						//음극 1차 PNP 얼라인 상승 모션 커멘드		
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화 												
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) = 1;										// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave10_Motion_Command = 4;																						//양극 1차 PNP 얼라인 상승 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화 
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) = 1;										// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우 
+	{
+		if ( P_Motor_Current_Pos(N_1st_PnP_AN_Z) > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_AN_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um )	// 음극 1차 얼라인 상승 위치 확인		
+		{
+			if( Motor[N_1st_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 									// 음극 1차 PNP Z축 속도 0 확인 																						
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) = N_Complete_Step;				// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우 
+	{																														
+		if ( P_Motor_Current_Pos(N_1st_PnP_CA_Z) > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_CA_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 1차 얼라인 상승 위치 확인	
+		{
+			if( Motor[N_1st_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 									// 양극 1차 PNP Z축 속도 0 확인 																					
+			{																										
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) = N_Complete_Step;				// 다음 스텟 머신으로 이동.
+			}
+		}		
+	}		
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_Up_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_Up_Move) = 1;									// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//24. 얼라인 MSA 1차 PNP 얼라인 -> 대기위치 이동(MSA 완료)
+//=========================================================
+sub: MSA_Align_Discharge_1st_Align_to_Init_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) == N_Ready_Step )
+{
+	if( Mode == N_MSA_Anode_Align )					// 음극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave1_Motion_Command = 9;																						// 음극 1차 PNP Align -> 대기 모션 커멘드 
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화 
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = 1;									// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )			// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave10_Motion_Command = 9;																						// 양극 1차 PNP Align -> 대기 모션 커멘드 
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화			
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = 1;									// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )				  // 음극 얼라인 MSA 모드일 경우 
+	{
+		if (P_Motor_Current_Pos(N_1st_PnP_AN_T) > 45 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_AN_T) < 45 + P_Motor_Ready_Pos_Inpos_200um )	// 음극 1차 대기 위치 확인 
+		{
+			if( Motor[N_1st_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 														// 음극 1차 PNP T축 속도 0 확인																							
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = N_Complete_Step;							// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우
+	{																											
+		if (P_Motor_Current_Pos(N_1st_PnP_CA_T) > 45 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_1st_PnP_CA_T)  < 45 + P_Motor_Ready_Pos_Inpos_200um )   // 양극 1차 대기 위치 확인 
+		{
+			if( Motor[N_1st_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 														// 양극 1차 PNP T축 속도 0 확인																									
+			{																							
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = N_Complete_Step;							// 다음 스텟 머신으로 이동.	
+			}
+		}		
+	}		
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_1st_Align_to_Init_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_1st_Align_to_Init_Move) = 1;												// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																														// 반환값 : COMPLETE
+}
+return;
+
+#ifdef F_MSA_Discharge_Use
+//↓ MSA배출 모드 사용 시
+//=========================================================
+//25. NG PNP 대기-> 얼라인 이동 ( MSA 완료 ) 
+//=========================================================
+sub: MSA_Align_Discharge_NG_PNP_Align_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) == N_Ready_Step )
+{	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave13_Motion_Command = 2;																									// 음극 NG PNP 얼라인 위치 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave12_Motion_Command = 2;																									// 양극 NG PNP 얼라인 위치 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_NG_PnP_AN_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_AN_T) < 90 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 NG PNP 얼라인 위치 확인 
+		{
+			if( Motor[N_NG_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													// 음극 NG PNP T축 속도 0 확인																					
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.	
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우
+	{																														
+		if ( P_Motor_Current_Pos(N_NG_PnP_CA_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_CA_T) < 90 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 NG PNP 얼라인 위치 확인 
+		{
+			if( Motor[N_NG_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													// 양극 NG PNP T축 속도 0 확인																											
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.	
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Move) = 1;													// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																														// 반환값 : COMPLETE
+}
+return;
+
+
+//=========================================================
+//26. Align MSA NG PNP 얼라인 하강 (MSA 완료)
+//=========================================================
+sub: MSA_Align_Discharge_NG_PNP_Align_Down_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) == N_Ready_Step )									//Align MSA NG PNP 얼라인 하강 Ready Step
+{
+	if( Mode == N_MSA_Anode_Align )					// 음극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave13_Motion_Command = 4;																									// 음극 1차 PNP 얼라인 하강 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave12_Motion_Command = 4;																									// 양극 1차 PNP 얼라인 하강 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )																										// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_NG_PnP_AN_Z) > 25 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_AN_Z) < 25 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 NG PNP 얼라인 하강 확인 
+		{
+			if( Motor[N_NG_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													// 음극 NG PNP T축 속도 0 확인																						
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = N_Complete_Step;							// 다음 스텟 머신으로 이동.	
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )																								// 양극 얼라인 MSA 모드일 경우 
+	{																														
+		if ( P_Motor_Current_Pos(N_NG_PnP_CA_Z) > 25 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_CA_Z) < 25 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 NG PNP 얼라인 하강 확인 
+		{
+			if( Motor[N_NG_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 												// 음극 NG PNP T축 속도 0 확인																								
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = N_Complete_Step;						// 다음 스텟 머신으로 이동.	
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Down_Move) = 1;											// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																													// 반환값 : COMPLETE
+}
+return;
+
+
+//=========================================================
+//27. Align MSA NG PNP 얼라인 흡착 (MSA 완료)
+//=========================================================
+sub: MSA_Align_Discharge_NG_PNP_Vacume_ON(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) == N_Ready_Step )											//Align MSA NG PNP 얼라인 흡착 Ready Step 
+{
+	if( Mode == N_MSA_Anode_Align )					// 음극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave13_Motion_Command = 7;																									// 음극 NG PNP 얼라인 흡착 커멘드 													
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 
+		//M_Y_Anode_AT_Vac_Ejector_Vac_On = 0;																																			
+		//M_Y_Anode_AT_Vac_Ejector_Vac_Off = 1; 																																																										
+		//M_Y_Anode_NG_PNP_Ejector_Vac_On = 1;	
+		//M_Y_Anode_NG_PNP_Ejector_Vac_Off = 0;	
+		//M_X_Anode_NG_PNP_Vac_Sensor = 1; //임시																						
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )			// 양극 얼라인 MSA 모드일 경우 																		
+	{
+		P_Slave12_Motion_Command = 7;																									// 양극 NG PNP 얼라인 흡착 커멘드 				
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_On = 0;																				
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_Off = 1; 																																															
+		//M_Y_Cathode_NG_PNP_Ejector_Vac_On = 1;
+		//M_Y_Cathode_NG_PNP_Ejector_Vac_Off = 0;	
+		//M_X_Cathode_NG_PNP_Vac_Sensor = 1; //임시																					
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )						// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( M_X_Anode_NG_PNP_Vac_Sensor == 1 && M_X_Anode_AT_Vac_Sensor == 0 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time )				// 음극 NG PNP 흡착 확인 
+		{	
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )				// 양극 얼라인 MSA 모드일 경우
+	{																														
+		if ( M_X_Cathode_NG_PNP_Vac_Sensor == 1 && M_X_Cathode_AT_Vac_Sensor == 0 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time)	 		// 양극 NG PNP 흡착 확인 
+		{																													
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Vacume_ON) = 1;													// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																													// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//28. Align MSA NG PNP 얼라인 상승 (MSA 완료)
+//=========================================================
+sub: MSA_Align_Discharge_NG_PNP_Align_Up_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) == N_Ready_Step )										//Align MSA NG PNP 얼라인 상승 Ready Step 
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave13_Motion_Command = 5;																									// 음극 NG PNP 얼라인 상승 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave12_Motion_Command = 5;																									// 양극 NG PNP 얼라인 상승 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )					// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_NG_PnP_AN_Z) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_AN_Z) < 0 + P_Motor_Ready_Pos_Inpos_200um )	// 음극 NG PNP 얼라인 상승 확인 	
+		{
+			if( Motor[N_NG_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 												// 음극 NG PNP 속도 0 확인 																						
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = N_Complete_Step;							// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )			// 양극 얼라인 MSA 모드일 경우 
+	{																														
+		if ( P_Motor_Current_Pos(N_NG_PnP_CA_Z) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_CA_Z) < 0 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 NG PNP 얼라인 상승 확인 	
+		{
+			if( Motor[N_NG_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 												// 양극 NG PNP 속도 0 확인 																							
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = N_Complete_Step;							// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_Align_Up_Move) = 1;												// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																													// 반환값 : COMPLETE
+}
+return;
+
+
+//=========================================================
+//29. NG PNP NGBox 이동 ( MSA 완료 ) 
+//=========================================================
+sub: MSA_Align_Discharge_NG_PNP_NGBox_Move(Mode,&rtn)																					// NG PNP NGBox 이동 Ready Step 
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) == N_Ready_Step )
+{	if( Mode == N_MSA_Anode_Align )			// 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave13_Motion_Command = 1;																									// 음극 NG PNP ng box 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave12_Motion_Command = 1;																									// 양극 NG PNP ng box 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )			// 음극 얼라인 MSA 모드일 경우 
+	{
+		if ( P_Motor_Current_Pos(N_NG_PnP_AN_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_AN_T) < 0 + P_Motor_Ready_Pos_Inpos_200um )	// 음극 NG PNP 얼라인 위치 확인	
+		{
+			if( Motor[N_NG_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													// 음극 NG PNP 속도 0 확인 																				
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우
+	{																														
+		if ( P_Motor_Current_Pos(N_NG_PnP_CA_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_CA_T) < 0 + P_Motor_Ready_Pos_Inpos_200um )	// 양극 NG PNP 얼라인 위치 확인	
+		{
+			if( Motor[N_NG_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 									// 양극 NG PNP 속도 0 확인 																									
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = N_Complete_Step;				// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_NGBox_Move) = 1;									// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//30. 얼라인 MSA NG PNP NGBox 파기 (MSA 완료)
+//=========================================================
+sub: MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON(Mode,&rtn)																	//얼라인 MSA NG PNP NGBox 파기 Ready Step
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) == N_Ready_Step )
+{
+	if( Mode == N_MSA_Anode_Align )							// 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave13_Motion_Command = 8;																						//음극 NG PNP NGBOX 파기 
+		P_MSA_Chk_Pos_Timer =0;																								// 체크 타이머 초기화 	
+		//M_Y_Anode_NG_PNP_Ejector_Vac_On = 0;																				
+		//M_Y_Anode_NG_PNP_Ejector_Vac_Off = 1;	
+		//M_X_Anode_NG_PNP_Vac_Sensor = 0; //임시																			
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = 1;									// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )					// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave12_Motion_Command = 8;																						//양극 NG PNP NGBOX 파기 
+		P_MSA_Chk_Pos_Timer =0;																								// 체크 타이머 초기화 	
+		//M_Y_Cathode_NG_PNP_Ejector_Vac_On = 0;																					 
+		//M_Y_Cathode_NG_PNP_Ejector_Vac_Off = 1;		
+		//M_X_Cathode_NG_PNP_Vac_Sensor = 0; //임시	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = 1;									// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )																							// 음극 얼라인 MSA 모드
+	{
+		if ( M_X_Anode_NG_PNP_Vac_Sensor == 0 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time) 									// 음극 NG PNP 흡착 입력 신호 OFF
+		{	
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = N_Complete_Step;					// 다음 스텟 머신으로 이동.
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )																					// 양극 얼라인 MSA 모드
+	{																														
+		if ( M_X_Cathode_NG_PNP_Vac_Sensor == 0 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time)   								// 양극 NG PNP 흡착 입력 신호 OFF
+		{																													
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = N_Complete_Step;					// 다음 스텟 머신으로 이동.
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_NG_PNP_NGBox_Blow_ON) = 1;									// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+#endif
+
+//=========================================================
+//31. 얼라인 2차 PNP 얼라인 이동 (MSA 완료)
+//=========================================================
+sub: MSA_Align_Discharge_2nd_Align_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_2nd_Align_Move) == N_Ready_Step )
+{	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave3_Motion_Command = 2;																						// 음극 2차 PNP 얼라인 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화 	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_2nd_Align_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave8_Motion_Command = 2;																						// 양극 2차 PNP 얼라인 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화 	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_2nd_Align_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_2nd_Align_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_T) < 0 + P_Motor_Ready_Pos_Inpos_200um )	// 음극 2차 PNP 얼라인 이동 위치 확인		
+		{
+			if( Motor[N_2nd_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													// 음극 2차 PNP 속도 0 확인 																													
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_2nd_Align_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우
+	{																														
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 0 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 2차 PNP 얼라인 이동 위치 확인		
+		{
+			if( Motor[N_2nd_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													// 양극 2차 PNP 속도 0 확인 																						 
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_2nd_Align_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_2nd_Align_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_2nd_Align_Move) = 1;														// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																														// 반환값 : COMPLETE
+}
+return;
+
+
+//=========================================================
+//32. 파이널롤러 대기 위치 이동 (MSA 완료)
+//=========================================================
+sub: MSA_Align_Discharge_FinalRoll_Init_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) == N_Ready_Step )										//파이널롤러 대기 위치 이동 Ready Step 
+{	if( Mode == N_MSA_Anode_Align )				// 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave5_Motion_Command = 3;																									// 파이널롤러 대기 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 		
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Align )		// 양극 얼라인 MSA 모드일 경우 
+	{
+		P_Slave5_Motion_Command = 3;																									// 파이널롤러 대기 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 		
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Align )			// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Final_Roll_X_Discharge - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Final_Roll_X_Discharge + P_Motor_Ready_Pos_Inpos_200um ) // 파이널롤러 대기 위치 이동 위치 확인	
+		{
+			if( Motor[N_FINAL_ROLL_X].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													// 파이널롤러 속도 0 확인 																									
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Align )	// 양극 얼라인 MSA 모드일 경우
+	{																														
+		if ( P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Final_Roll_X_Discharge - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Final_Roll_X_Discharge + P_Motor_Ready_Pos_Inpos_200um ) // 파이널롤러 대기 위치 이동 위치 확인		
+		{
+			if( Motor[N_FINAL_ROLL_X].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													// 파이널롤러 속도 0 확인 																				 
+			{																											
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Align_Discharge_FinalRoll_Init_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Align_Discharge_FinalRoll_Init_Move) = 1;													// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																														// 반환값 : COMPLETE
+}
+return;
+
+
+
+// Stack MSA Module Start--------------------------------------------------------------------------------------------------------------------------------
+//=========================================================
+//1.Stack MSA Set
+//=========================================================
+sub: MSA_Stack_Set(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Set) == N_Ready_Step )													//Stack MSA Set Ready Step
+{
+	if( Mode == N_MSA_Anode_Stack )			// 음극 Stack MSA 모드일 경우
+	{
+		#ifdef F_Def_Stack_A //A열인 경우
+		P_Modbus_A_VISION_MSA_Status = F_Status_EXECUTE		//A열 MSA 진행 중 상태 EXECUTE
+		#endif
+
+		#ifdef F_Def_Stack_B //B열인 경우
+		P_Modbus_B_VISION_MSA_Status = F_Status_EXECUTE		//B열 MSA 진행 중 상태 EXECUTE
+		#endif
+		P_Current_MSA_Run_Num(F_Anode_Stack_MSA) = 0;																		// 음극 Stack MSA 현재 진행한 횟수 초기화
+		// 인터락 PLC disable		cmd"disable plc??"
+		// 흡착 알람 감시 PLC disable cmd"disable plc??"
+		call Manual_Module_Motor_Active.Anode_Stack_MSA_Motion_Check(&P_Anode_Stack_MSA_Motion_Check)								//Stack MSA 모터 활성화
+		if(P_Anode_Stack_MSA_Motion_Check == 1)																			//Stack MSA 모터 체크 완료 
+		{
+			P_Anode_Stack_MSA_Motion_Check = 0;
+			call Sub_Common_Function.Master_Motion_Program_On ();														//마스터 모션, 서브마스터, 슬레이브 ON
+		}
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Set) = 1;															// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack ) 	// 양극 Stack MSA 모드일 경우																					
+	{
+		#ifdef F_Def_Stack_A  //A열인 경우
+		P_Modbus_A_VISION_MSA_Status = F_Status_EXECUTE	//A열 MSA 진행 중 상태 EXECUTE
+		#endif
+
+		#ifdef F_Def_Stack_B  //B열인 경우
+		P_Modbus_B_VISION_MSA_Status = F_Status_EXECUTE	//B열 MSA 진행 중 상태 EXECUTE
+		#endif
+		P_Current_MSA_Run_Num(F_Cathode_Stack_MSA) = 0;																		// 양극 Stack MSA 현재 진행한 횟수 초기화								
+		// 인터락 PLC disable		cmd"disable plc??"
+		// 흡착 알람 감시 PLC disable cmd"disable plc??"
+		call Manual_Module_Motor_Active.Cathode_Stack_MSA_Motion_Check(&P_Cathode_Stack_MSA_Motion_Check)							//Stack MSA 모터 활성화
+		if(P_Cathode_Stack_MSA_Motion_Check == 1)																		//Stack MSA 모터 체크 완료 
+		{
+			P_Cathode_Stack_MSA_Motion_Check = 0;
+			call Sub_Common_Function.Master_Motion_Program_On();														//마스터 모션, 서브마스터, 슬레이브 ON
+		}								
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Set) = 1;															// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Set) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )			// 음극 Stack MSA 모드일 경우
+	{
+		call Manual_Module_Motor_Active.Anode_Stack_MSA_Motion_ProgActive(&P_Anode_Stack_MSA_Motion_ProgActive_Complete)				// 음극 Stack MSA 좌표계 활성화
+		if( P_Anode_Stack_MSA_Motion_ProgActive_Complete == 1)																// 음극 Stack MSA 좌표계 활성화 완료
+		{
+			P_Anode_Stack_MSA_Motion_ProgActive_Complete = 0;
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Set) = N_Complete_Step;											//다음 스텟 이동
+		}
+	}
+	else if( Mode == N_MSA_Cathode_Stack )	// 양극 Stack MSA 모드일 경우		
+	{
+		call Manual_Module_Motor_Active.Cathode_Stack_MSA_Motion_ProgActive(&P_Cathode_Stack_MSA_Motion_ProgActive_Complete)			// 양극 Stack MSA 좌표계 활성화
+		if( P_Cathode_Stack_MSA_Motion_ProgActive_Complete == 1)															// 양극 Stack MSA 좌표계 활성화 완료
+		{
+			P_Cathode_Stack_MSA_Motion_ProgActive_Complete = 0;
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Set) = N_Complete_Step;											//다음 스텟 이동
+		}
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Set) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Set) = 1;															// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//2.Stack MSA 모터 위치 확인
+//=========================================================
+sub: MSA_Stack_Motor_Pos_Check(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Motor_Pos_Check) == N_Ready_Step )
+{
+	if( Mode == N_MSA_Anode_Stack )				// 음극 Stack MSA 모드일 경우
+	{
+		if ( N_MSA_Anode_Stack_Coord_Check == 1 )																			// 음극 Stack MSA 좌표계 활성화 확인 
+		{
+			P_Slave5_Motion_Command = 2;																					// 음극 2차 PNP Stack 이동 예정으로 양극 방향 이동
+			P_MSA_Chk_Pos_Timer = 0;																						// 체크 타이머 초기화 
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Motor_Pos_Check) = 1;												// 다음 스텟 머신으로 이동.
+		}
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우	
+	{
+	    if ( N_MSA_Cathode_Stack_Coord_Check == 1  )																		 // 양극 Stack MSA 좌표계 활성화 확인 
+		{
+			P_Slave5_Motion_Command = 1;																					// 음극 2차 PNP Stack 이동 예정으로 양극 방향 이동
+			P_MSA_Chk_Pos_Timer = 0;																						// 체크 타이머 초기화 
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Motor_Pos_Check) = 1;												// 다음 스텟 머신으로 이동.
+		}
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Motor_Pos_Check) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )				// 음극 Stack MSA 모드일 경우
+	{
+		if( P_Motor_Current_Pos(N_2nd_PnP_AN_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_T) < 0 + P_Motor_Ready_Pos_Inpos_200um &&  P_Motor_Current_Pos(N_2nd_PnP_AN_Z) > 24 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_Z) < 24 + P_Motor_Ready_Pos_Inpos_200um )
+		{// 2차 PNP T축 Z축 대기 위치 확인 
+			if ( P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Final_Roll_X_Cathode_Move - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Final_Roll_X_Cathode_Move + P_Motor_Ready_Pos_Inpos_200um && P_MSA_Chk_Pos_Timer >100 ) 
+			{// 파이널롤러 X축 양극 이동 방향 168mm 위치 확인 
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Motor_Pos_Check) = N_Complete_Step;
+			}
+		}
+	}
+	else if ( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우	
+	{
+		if( P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 0 + P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_Z) > 24 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_Z) < 24 + P_Motor_Ready_Pos_Inpos_200um )  
+		{// 2차 PNP T축 Z축 대기 위치 확인 
+			if(  P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Final_Roll_X_Anode_Move - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Final_Roll_X_Anode_Move + P_Motor_Ready_Pos_Inpos_200um && P_MSA_Chk_Pos_Timer >100 ) 
+			{// 파이널롤러 X축 음극 이동 방향 -168mm 위치 확인 
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Motor_Pos_Check) = N_Complete_Step;
+			}
+		}
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Motor_Pos_Check) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Motor_Pos_Check) = 1;												// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//3.Stack MSA 2차 얼라인 하강
+//=========================================================
+sub: MSA_Stack_2nd_Align_Down_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Down_Move) == N_Ready_Step )									//Stack MSA 2차 얼라인 하강 Ready Step 확인 
+{
+	if( Mode == N_MSA_Anode_Stack )				// 음극 Stack MSA 모드일 경우
+	{
+		P_Slave3_Motion_Command = 5;																					//음극 2차 PNP T축 Align -> Stack 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																						// 체크 타이머 초기화 																																				
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Down_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우
+	{
+		P_Slave8_Motion_Command = 5;																					//양극 2차 PNP T축 Align -> Stack 이동 모션 커멘드	
+		P_MSA_Chk_Pos_Timer = 0;																						// 체크 타이머 초기화 																									
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Down_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Down_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )				// 음극 Stack MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um ) 	// 음극 2차 PNP Stack 위치 확인	
+		{
+			if( Motor[N_2nd_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 								// 음극 2차 PNP 속도 0 확인 																						
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Down_Move) = N_Complete_Step;					// 다음 스텟 머신으로 이동.
+			}	
+		}
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우
+	{																														
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um )	// 양극 2차 PNP Stack 위치 확인	
+		{
+			if( Motor[N_2nd_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time )									// 음극 2차 PNP 속도 0 확인 	
+			{																											
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Down_Move) = N_Complete_Step;					// 다음 스텟 머신으로 이동.
+			}		
+		}																											
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Down_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Down_Move) = 1;										// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																									// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//4. Stack MSA 2차 PNP 얼라인 흡착 
+//=========================================================
+sub: MSA_Stack_2nd_PNP_Vacume_ON(Mode,&rtn)																			//Stack MSA 2차 얼라인 흡착 Ready Step 확인 
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) == N_Ready_Step )
+{
+	if( Mode == N_MSA_Anode_Stack )				// 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave3_Motion_Command = 10;																				//음극 2차 PNP 얼라인 흡착 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																					// 체크 타이머 초기화 	
+		//M_Y_Anode_AT_Vac_Ejector_Vac_On = 0;																										
+		//M_Y_Anode_AT_Vac_Ejector_Vac_Off = 1; 																																		
+		//M_Y_Anode_2nd_Vac_Sol_On = 1;																	
+		//M_Y_Anode_2nd_Vac_Sol_Off = 0;	
+		
+		//M_Y_Anode_2nd_Vac_Sol_On = 1;    
+		//M_Y_Anode_2nd_Vac_Sol_Off = 0;    
+		//M_Y_Anode_2nd_Release_Sol_On = 0;
+		//M_Y_Anode_2nd_Release_Sol_Off = 1;
+																					
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) = 1;										// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave8_Motion_Command = 10;																				//양극 2차 PNP 얼라인 흡착 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																					// 체크 타이머 초기화 	
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_On = 0;																			
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_Off = 1; 	
+		
+		//M_Y_Cathode_2nd_Vac_Sol_On = 1;    
+		//M_Y_Cathode_2nd_Vac_Sol_Off = 0;
+		//M_Y_Cathode_2nd_Release_Sol_On = 0;
+		//M_Y_Cathode_2nd_Release_Sol_Off = 1;	
+																																																		
+		//M_Y_Cathode_2nd_Vac_Sol_On = 1;																				
+		//M_Y_Cathode_2nd_Vac_Sol_Off = 0;																					
+
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) = 1;										// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )						// 음극 Stack MSA 모드일 경우
+	{
+		if ( M_X_Anode_2nd_PNP_Vac_Sensor == 1 && M_X_Anode_AT_Vac_Sensor == 0 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 		// 음극 얼라인 흡착 확인 
+		{	
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) = N_Complete_Step;
+		}
+	}
+	else if( Mode == N_MSA_Cathode_Stack )				// 양극 얼라인 MSA 모드일 경우
+	{
+		if ( M_X_Cathode_2nd_PNP_Vac_Sensor == 1 && M_X_Cathode_AT_Vac_Sensor == 0 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time) 	// 양극 얼라인 흡착 확인 
+		{	
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) = N_Complete_Step;
+		}
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_PNP_Vacume_ON) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_PNP_Vacume_ON) = 1;											// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																									// 반환값 : COMPLETE
+}
+return;
+
+
+//=========================================================
+//5. Stack MSA 2차 PNP 얼라인 상승
+//=========================================================
+sub: MSA_Stack_2nd_Align_Up_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Up_Move) == N_Ready_Step )									//Stack MSA 2차 PNP 얼라인 상승 Ready Step 확인 
+{
+	if( Mode == N_MSA_Anode_Stack )							// 음극 얼라인 MSA 모드일 경우
+	{
+		P_Slave3_Motion_Command = 6;																					//음극 2차 PNP 얼라인 상승 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																						// 체크 타이머 초기화 															
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Up_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )					// 양극 얼라인 MSA 모드일 경우
+	{
+		P_Slave8_Motion_Command = 6;																					//양극 2차 PNP 얼라인 상승 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																						// 체크 타이머 초기화 	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Up_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Up_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )						// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_Z)  > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um )	// 음극 2차 PNP 스텍 상승 위치 확인
+		{
+			if( Motor[N_2nd_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 										// 음극 2차 PNP 속도 0 확인 
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Up_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Stack )			// 양극 얼라인 MSA 모드일 경우
+	{																														
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 2차 PNP 스텍 상승 위치 확인
+		{
+			if( Motor[N_2nd_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 										// 양극 2차 PNP 속도 0 확인 
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Up_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}		
+	}		
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Up_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Up_Move) = 1;											// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																									// 반환값 : COMPLETE
+}
+return;
+
+
+//=========================================================
+//6. Stack MSA 2차 PNP 얼라인 -> 스텍 위치 이동 
+//=========================================================
+sub: MSA_Stack_2nd_Stack_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Move) == N_Ready_Step )										//Stack MSA 2차 PNP 얼라인 -> 스텍 위치 이동 Ready Step
+{
+	if( Mode == N_MSA_Anode_Stack )			// 음극 Stack MSA 모드일 경우
+	{
+		P_Slave3_Motion_Command = 1;																					//음극 2차 PNP T축 Align -> Stack 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																						// 체크 타이머 초기화																																					
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )	// 양극 Stack MSA 모드일 경우
+	{
+		P_Slave8_Motion_Command = 1;																					//양극 2차 PNP T축 Align -> Stack 이동 모션 커멘드	
+		P_MSA_Chk_Pos_Timer = 0;																						// 체크 타이머 초기화																									
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )				// 음극 얼라인 MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_T) < 90 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 2차 PNP Stack 위치 확인
+		{
+			if( Motor[N_2nd_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 											// 음극 2차 PNP 속도 0 확인																								
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Move) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+			}	
+		}
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우
+	{																														
+		if (P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 90 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 2차 PNP Stack 위치 확인
+		{
+			if( Motor[N_2nd_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time )										//양극 2차 PNP 속도 0 확인 	
+			{																														
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}		
+		}																											
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Move) = 1;												// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																									// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//7.Stack MSA 2차 스텍 하강
+//=========================================================
+sub: MSA_Stack_2nd_Stack_Down_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Down_Move) == N_Ready_Step )									//Stack MSA 2차 스텍 하강 Ready Step
+{
+	if( Mode == N_MSA_Anode_Stack )			// 음극 Stack MSA 모드일 경우
+	{
+		P_Slave3_Motion_Command = 3;																					//음극 2차 PNP 스텍 하강 모션 커멘드 
+		P_MSA_Chk_Pos_Timer = 0;																						// 체크 타이머 초기화	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Down_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우
+	{
+		P_Slave8_Motion_Command = 3;																					//양극 2차 PNP 스텍 하강 모션 커멘드 
+		P_MSA_Chk_Pos_Timer = 0;																						// 체크 타이머 초기화	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Down_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Down_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )			// 음극 Stack MSA 모드일 경우
+	{	
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um )  // 음극 2차 PNP 스텍 하강 위치 확인
+		{
+			if ( Motor[N_2nd_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 											// 음극 2차 PNP 속도 0 확인 
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Down_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}	
+		}
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우
+	{																														
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um ) 	// 양극 2차 PNP 스텍 하강 위치 확인
+		{
+			if( Motor[N_2nd_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time )									// 양극 2차 PNP 속도 0 확인 
+			{																									
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Down_Move) = N_Complete_Step;					// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Down_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Down_Move) = 1;										// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																									// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//8.Stack MSA 2차 스텍 촬상
+//=========================================================
+sub: MSA_Stack_Vision_Trg_ON(Mode,&rtn)																					//Stack MSA 2차 스텍 촬상 Ready Steps
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Vision_Trg_ON) == N_Ready_Step )
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우
+	{
+		//M_Y_Vision_Stack_Trigger = 1;																					// 음극 스텍 비전 촬상 트리거 ON
+		P_Vision_Stack_Trigger_Timer = 0;																				// 촬상 타이머 초기화	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Vision_Trg_ON) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )			// 양극 Stack MSA 모드일 경우
+	{
+		//M_Y_Vision_Stack_Trigger = 1;																					// 양극 스텍 비전 촬상 트리거 ON
+		P_Vision_Stack_Trigger_Timer = 0;																				// 촬상 타이머 초기화																						
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Vision_Trg_ON) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Vision_Trg_ON) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )						// 음극 Stack MSA 모드일 경우
+	{
+		if( P_Vision_Stack_Trigger_Timer > P_Vision_Align_Trigger_Time )												// 1000ms 이후
+		{
+			//M_Y_Vision_Stack_Trigger = 0; 																				// 음극 스텍 비전 촬상 트리거 Off	
+			P_Vision_Stack_Trigger_Timer = 0;																			// 타이머 초기화 
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Vision_Trg_ON) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Stack )				// 양극 Stack MSA 모드일 경우
+	{																													
+		if( P_Vision_Stack_Trigger_Timer > P_Vision_Align_Trigger_Time )												// 1000ms 이후
+		{
+			//M_Y_Vision_Stack_Trigger = 0; 																				// 양극 스텍 비전 촬상 트리거 O
+			P_Vision_Stack_Trigger_Timer = 0;																			// 타이머 초기화 
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Vision_Trg_ON) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+		}																													
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Vision_Trg_ON) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Vision_Trg_ON) = 1;												// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																									// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//9.Stack MSA 2차 스텍 상승
+//=========================================================
+sub: MSA_Stack_2nd_Stack_Up_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Up_Move) == N_Ready_Step )									//Stack MSA 2차 스텍 상승 Ready Step
+{
+	if( Mode == N_MSA_Anode_Stack )		// 음극 Stack MSA 모드일 경우
+	{
+		P_Slave3_Motion_Command = 4;																					// 음극 2차 PNP 스텍 상승 모션 커멘드 
+		P_MSA_Chk_Pos_Timer = 0;																						// 체크 타이머 초기화	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Up_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )			// 양극 Stack MSA 모드일 경우
+	{
+		P_Slave8_Motion_Command = 4;																					// 양극 2차 PNP 스텍 상승 모션 커멘드 
+		P_MSA_Chk_Pos_Timer = 0;																						// 체크 타이머 초기화	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Up_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Up_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )				// 음극 Stack MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um ) //음극 2차 PNP 스텍 상승 위치 확인
+		{
+			if( Motor[N_2nd_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 										// 음극 2차 PNP 속도 0 확인 
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Up_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}	
+		}
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우
+	{																													
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 2차 PNP 스텍 상승 위치 확인
+		{
+			if( Motor[N_2nd_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time )											// 양극 2차 PNP 속도 0 확인 
+			{																											
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Up_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}	
+		}																												
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Stack_Up_Move) == N_Complete_Step )
+{	
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Stack_Up_Move) = 1;													// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																											// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//10.Stack MSA 2차 스텍 -> 얼라인 이동 
+//=========================================================
+sub: MSA_Stack_2nd_Align_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Move) == N_Ready_Step )											//Stack MSA 2차 스텍 -> 얼라인 이동 Ready Step
+{
+	if( Mode == N_MSA_Anode_Stack )				// 음극 Stack MSA 모드일 경우
+	{
+		P_Slave3_Motion_Command = 2;																						// 음극 2차 PNP Stack -> Align 모션 커멘드 
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우
+	{
+		P_Slave8_Motion_Command = 2;																						// 양극 2차 PNP Stack -> Align 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Move) == 1  )
+{
+
+	if( Mode == N_MSA_Anode_Stack )				// 음극 Stack MSA 모드일 경우
+	{
+		if (P_Motor_Current_Pos(N_2nd_PnP_AN_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_T) < 0 + P_Motor_Ready_Pos_Inpos_200um )	// 음극 2차 PNP Stack -> Align 위치 확인
+		{
+			if( Motor[N_2nd_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time  )										// 음극 2차 PNP 속도 0 확인 
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}		
+		}
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우
+	{																													
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 0 - P_Motor_Ready_Pos_Inpos_200um &&  P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 0 + P_Motor_Ready_Pos_Inpos_200um )	// 양극 2차 PNP Stack -> Align 위치 확인
+		{
+			if( Motor[N_2nd_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time )										// 양극 2차 PNP 속도 0 확인 			
+			{																											
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}		
+		}
+	}		
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_2nd_Align_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_2nd_Align_Move) = 1;													// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//11.Stack MSA 카운트 
+//=========================================================
+sub: MSA_Stack_MSA_Move_Cnt(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_MSA_Move_Cnt) == N_Ready_Step )											//Stack MSA 카운트 Ready Step	
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우
+	{
+		 P_Current_MSA_Run_Num(F_Anode_Stack_MSA)++;																				// 현재 진행한 횟수 증가
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_MSA_Move_Cnt) = 1;														// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )			// 양극 Stack MSA 모드일 경우
+	{
+		 P_Current_MSA_Run_Num(F_Cathode_Stack_MSA)++;																			// 현재 진행한 횟수 증가
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_MSA_Move_Cnt) = 1;														// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_MSA_Move_Cnt) == 1 )
+{	
+	if( Mode == N_MSA_Anode_Stack )				// 음극 Stack MSA 모드일 경우
+	{
+		if(  P_Current_MSA_Run_Num(F_Anode_Stack_MSA) < P_MSA_Run_Repeat_Num(F_Anode_Stack_MSA) )										// 음극 스텍 MSA Total 횟수 미달 시 
+		{
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_MSA_Move_Cnt) = N_Not_Complete_Step;							// 반환값 : Not COMPLETE															
+		}
+		else if(  P_Current_MSA_Run_Num(F_Anode_Stack_MSA) == P_MSA_Run_Repeat_Num(F_Anode_Stack_MSA) )								// 음극 스텍  MSA Total 횟수 도달 시 
+		{
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_MSA_Move_Cnt) = N_Complete_Step;								// 반환값 : COMPLETE
+		}																				
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우
+	{		
+		if(  P_Current_MSA_Run_Num(F_Cathode_Stack_MSA) < P_MSA_Run_Repeat_Num(F_Cathode_Stack_MSA) )									// 양극 스텍 MSA Total 횟수 미달 시 
+		{
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_MSA_Move_Cnt) = N_Not_Complete_Step;							// 반환값 : Not COMPLETE															
+		}
+		else if( P_Current_MSA_Run_Num(F_Cathode_Stack_MSA) == P_MSA_Run_Repeat_Num(F_Cathode_Stack_MSA) )								// 양극 스텍 MSA Total 횟수 도달 시 
+		{
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_MSA_Move_Cnt) = N_Complete_Step;								// 반환값 : COMPLETE
+		}
+	}
+}
+if (P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_MSA_Move_Cnt) == N_Not_Complete_Step)									// 스텍 MSA Total 횟수 미달 경우	
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_MSA_Move_Cnt) = 2;												// Complete Bit 2 
+	rtn = N_COMPLETE;	
+}
+else if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_MSA_Move_Cnt) == N_Complete_Step)									// 스텍 MSA Total 횟수 도달했을 경우
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_MSA_Move_Cnt) = 1;												// Complete Bit 1
+	rtn = N_COMPLETE;	
+}
+return;
+
+
+#ifdef F_MSA_Discharge_Use
+//↓ MSA배출 모드 사용 시
+//MSA 횟수 도달 후 진입 
+//=========================================================
+//12. Stack MSA 2차 PNP 얼라인 하강(MSA 완료)
+//=========================================================
+sub: MSA_Stack_Discharge_2nd_Align_Down_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) == N_Ready_Step )							//Stack MSA 2차 PNP 얼라인 하강 Ready Step
+{
+	if( Mode == N_MSA_Anode_Stack )				// 음극 Stack MSA 모드일 경우
+	{
+		P_Slave3_Motion_Command = 5;																						// 음극 2차 PNP 얼라인 하강 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = 1;									// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우
+	{
+		P_Slave8_Motion_Command = 5;																						// 양극 2차 PNP 얼라인 하강 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = 1;									// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )				// 음극 Stack MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 2차 얼라인 하강 확인 	
+		{
+			if( Motor[N_2nd_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 									// 음극 2차 PNP 속도 0 확인 																								
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = N_Complete_Step;				// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우
+	{																														
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) > 59.7 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_Z) < 59.7 + P_Motor_Ready_Pos_Inpos_200um )	// 양극 2차 얼라인 하강 확인 
+		{
+			if( Motor[N_2nd_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 									// 양극 2차 PNP 속도 0 확인 																							
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = N_Complete_Step;				// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Down_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Down_Move) = 1;									// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+
+//=========================================================
+//13. Stack MSA 2차 PNP s얼라인 파기 (MSA 완료)
+//=========================================================
+sub: MSA_Stack_Discharge_2nd_Align_Blow_ON(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) == N_Ready_Step )								//Stack MSA 2차 얼라인 파기 Ready Step 
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우
+	{
+		P_Slave3_Motion_Command = 12;																						//음극 2차 PNP 파기
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화
+		//M_Y_Anode_AT_Vac_Ejector_Vac_On = 1;																			
+		//M_Y_Anode_AT_Vac_Ejector_Vac_Off = 0; 	
+		//M_Y_Anode_2nd_Vac_Sol_On = 0;								
+		//M_Y_Anode_2nd_Vac_Sol_Off = 1;	
+		
+		//M_Y_Anode_2nd_Vac_Sol_On = 0;    
+		//M_Y_Anode_2nd_Vac_Sol_Off = 1;    
+		//M_Y_Anode_2nd_Release_Sol_On = 1;
+		//M_Y_Anode_2nd_Release_Sol_Off = 0;
+			
+		//M_X_Anode_AT_Vac_Sensor = 1; //임시 
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = 1;										// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		// 양극 Stack MSA 모드일 경우
+	{
+		P_Slave8_Motion_Command = 12;																						//양극 2차 PNP 파기
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화 
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_On = 1;																			
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_Off = 0; 	
+		//M_Y_Cathode_2nd_Vac_Sol_On = 0;																				
+		//M_Y_Cathode_2nd_Vac_Sol_Off = 1;	
+		
+		//M_Y_Cathode_2nd_Vac_Sol_On = 0;    
+		//M_Y_Cathode_2nd_Vac_Sol_Off = 1;
+		//M_Y_Cathode_2nd_Release_Sol_On = 1;
+		//M_Y_Cathode_2nd_Release_Sol_Off = 0;	
+			
+		//M_X_Cathode_AT_Vac_Sensor = 1; //임시 
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = 1;										// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우
+	{
+		if ( M_X_Anode_2nd_PNP_Vac_Sensor == 0 && M_X_Anode_AT_Vac_Sensor == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time)			// 음극 얼라인 흡착 확인 
+		{	
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = N_Complete_Step;							// 다음 스텟 머신으로 이동.
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우
+	{																														
+		if ( M_X_Cathode_2nd_PNP_Vac_Sensor == 0 && M_X_Cathode_AT_Vac_Sensor == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time)   // 양극 얼라인 흡착 확인 
+		{																													
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = N_Complete_Step;						  // 다음 스텟 머신으로 이동.
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Blow_ON) = 1;									// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//14. Stack MSA 2차 PNP 얼라인 상승 (MSA 완료)
+//=========================================================
+sub: MSA_Stack_Discharge_2nd_Align_Up_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) == N_Ready_Step )								//Stack MSA 2차 PNP 얼라인 상승 Ready Step
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우
+	{																														
+		P_Slave3_Motion_Command = 6;																						//음극 2차 PNP 얼라인 상승 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화 																							
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = 1;										// 다음 스텟 머신으로 이동.
+	}																														
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우
+	{																														
+		P_Slave8_Motion_Command = 6;																						//양극 2차 PNP 얼라인 상승 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화 																							
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = 1;										// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_Z)  > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um )  	// 음극 2차 PNP 스텍 상승 위치 확인
+		{
+			if( Motor[N_2nd_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 										// 음극 2차 PNP 속도 0 확인
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = N_Complete_Step;					// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우
+	{																														
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) > 42.023 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_Z) < 42.023 + P_Motor_Ready_Pos_Inpos_200um )  // 양극 2차 PNP 스텍 상승 위치 확인
+		{
+			if( Motor[N_2nd_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 										// 음극 2차 PNP 속도 0 확인
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = N_Complete_Step;					// 다음 스텟 머신으로 이동.
+			}
+		}		
+	}		
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Up_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Up_Move) = 1;										// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																											// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//15. Stack MSA 2차 스텍 위치 이동 (MSA 완료)
+//=========================================================
+sub: MSA_Stack_Discharge_2nd_Stack_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) == N_Ready_Step )
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우
+	{																														
+		P_Slave3_Motion_Command = 1;																						// 음극 2차 PNP T축 Align -> Stack 이동 모션 커멘드	
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화																																																																						
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )			 // 양극 Stack MSA 모드일 경우
+	{
+		P_Slave8_Motion_Command = 1;																						// 양극 2차 PNP T축 Align -> Stack 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																							// 체크 타이머 초기화		
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) = 1;											// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_T) < 90 + P_Motor_Ready_Pos_Inpos_200um ) 	// 음극 2차 PNP Stack 위치 확인	
+		{
+			if( Motor[N_2nd_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 										// 음극 2차 PNP 속도 0 확인 																						
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) = N_Complete_Step;					// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우
+	{																														 
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 90 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 2차 PNP Stack 위치 확인	
+		{
+			if( Motor[N_2nd_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 										// 양극 2차 PNP 속도 0 확인 																				
+			{																										
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) = N_Complete_Step;					// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Stack_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Stack_Move) = 1;										// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//16. Stack MSA NG PNP 대기-> 얼라인 이동 ( MSA 완료 ) 
+//=========================================================
+sub: MSA_Stack_Discharge_NG_PNP_Align_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) == N_Ready_Step )
+{	
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우																				
+	{
+		P_Slave13_Motion_Command = 2;																									// 음극 NG PNP 얼라인 위치 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우																								
+	{
+		P_Slave12_Motion_Command = 2;																									// 양극 NG PNP 얼라인 위치 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화 	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우			
+	{
+		if ( P_Motor_Current_Pos(N_NG_PnP_AN_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_AN_T) < 90 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 NG PNP 얼라인 위치 확인
+		{
+			if( Motor[N_NG_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													// 음극 NG PNP 속도 0 확인																					
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우																								
+	{																														
+		if ( P_Motor_Current_Pos(N_NG_PnP_CA_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_CA_T) < 90 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 NG PNP 얼라인 위치 확인
+		{
+			if( Motor[N_NG_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													// 양극 NG PNP 속도 0 확인																						
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = N_Complete_Step;								// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Move) = 1;													// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																														// 반환값 : COMPLETE
+}
+return;
+
+
+//=========================================================
+//17. Stack MSA NG PNP 얼라인 하강 (MSA 완료)
+//=========================================================
+sub: MSA_Stack_Discharge_NG_PNP_Align_Down_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) == N_Ready_Step )									//Stack MSA NG PNP 얼라인 하강 Ready Step
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우		
+	{
+		P_Slave13_Motion_Command = 4;																									// 음극 NG PNP 얼라인 하강 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우	
+	{
+		P_Slave12_Motion_Command = 4;																									// 양극 NG PNP 얼라인 하강 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )						// 음극 Stack MSA 모드일 경우		
+	{
+		if ( P_Motor_Current_Pos(N_NG_PnP_AN_Z) > 25 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_AN_Z) < 25 + P_Motor_Ready_Pos_Inpos_200um )		// 음극 NG PNP 얼라인 하강 확인 	
+		{
+			if( Motor[N_NG_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 												// 음극 NG PNP 속도 0 확인																								
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = N_Complete_Step;						// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우	
+	{																														
+		if ( P_Motor_Current_Pos(N_NG_PnP_CA_Z) > 25 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_CA_Z) < 25 + P_Motor_Ready_Pos_Inpos_200um )		//양극 NG PNP 얼라인 하강 확인 	
+		{
+			if( Motor[N_NG_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 												// 양극 NG PNP 속도 0 확인																									
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = N_Complete_Step;						// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Down_Move) = 1;											// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																													// 반환값 : COMPLETE
+}
+return;
+
+
+//=========================================================
+//18.  Stack MSA NG PNP 얼라인 흡착 (MSA 완료)
+//=========================================================
+sub: MSA_Stack_Discharge_NG_PNP_Vacume_ON(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) == N_Ready_Step )
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우		
+	{
+		P_Slave13_Motion_Command= 7;																									//음극 NG PNP 흡착 ON 
+		P_MSA_Chk_Pos_Timer = 0; 
+		//M_Y_Anode_AT_Vac_Ejector_Vac_On = 0;																																			
+		//M_Y_Anode_AT_Vac_Ejector_Vac_Off = 1; 																																																										
+		//M_Y_Anode_NG_PNP_Ejector_Vac_On = 1;	
+		//M_Y_Anode_NG_PNP_Ejector_Vac_Off = 0;																							
+		//M_X_Anode_NG_PNP_Vac_Sensor = 1; //임시	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우	
+	{
+		P_Slave12_Motion_Command = 7;																									//음극 NG PNP 흡착 ON 
+		P_MSA_Chk_Pos_Timer = 0;
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_On = 0;																																
+		//M_Y_Cathode_AT_Vac_Ejector_Vac_Off = 1; 																																																					
+		//M_Y_Cathode_NG_PNP_Ejector_Vac_On = 1;
+		//M_Y_Cathode_NG_PNP_Ejector_Vac_Off = 0;			
+		//M_X_Cathode_NG_PNP_Vac_Sensor = 1; //임시																						
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = 1;													// 다음 스텟 머신으로 이동.	
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우		
+	{
+		if ( M_X_Anode_NG_PNP_Vac_Sensor == 1 && M_X_Anode_AT_Vac_Sensor == 0 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time) 				// 음극 NG PNP 흡착 확인 
+		{	
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우	
+	{																														
+		if ( M_X_Cathode_NG_PNP_Vac_Sensor == 1 && M_X_Cathode_AT_Vac_Sensor == 0 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time)   		// 양극 NG PNP 흡착 확인 
+		{																													
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = N_Complete_Step;									// 다음 스텟 머신으로 이동.
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Vacume_ON) = 1;													// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																													// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//19. Stack MSA NG PNP 얼라인 상승 (MSA 완료)
+//=========================================================
+sub: MSA_Stack_Discharge_NG_PNP_Align_Up_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) == N_Ready_Step )
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우		
+	{
+		P_Slave13_Motion_Command = 5;																									// 음극 NG PNP 얼라인 상승 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우	
+	{
+		P_Slave12_Motion_Command = 5;																									// 양극 NG PNP 얼라인 상승 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )						// 음극 Stack MSA 모드일 경우		
+	{
+		if ( P_Motor_Current_Pos(N_NG_PnP_AN_Z) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_AN_Z) < 0 + P_Motor_Ready_Pos_Inpos_200um )	// 음극 NG PNP 얼라인 상승 확인 		
+		{
+			if( Motor[N_NG_PnP_AN_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 												// 음극 NG PNP 속도 0 확인 																							
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = N_Complete_Step;							// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우	
+	{																														
+		if ( P_Motor_Current_Pos(N_NG_PnP_CA_Z) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_CA_Z) < 0 + P_Motor_Ready_Pos_Inpos_200um )	// 양극 NG PNP 얼라인 상승 확인 
+		{
+			if( Motor[N_NG_PnP_CA_Z].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 												//양극 NG PNP 속도 0 확인 																						
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = N_Complete_Step;							// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_Align_Up_Move) = 1;												// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																													// 반환값 : COMPLETE
+}
+return;
+
+
+//=========================================================
+//20.Stack MSA NG PNP NGBox 이동 ( MSA 완료 ) 
+//=========================================================
+sub: MSA_Stack_Discharge_NG_PNP_NGBox_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) == N_Ready_Step )											//Stack MSA NG PNP NGBox 이동 Ready Step
+{	
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우		
+	{
+		P_Slave13_Motion_Command = 1;																									// 음극 NG PNP NGBox 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우	
+	{
+		P_Slave12_Motion_Command = 1;																									// 양극 NG PNP NGBox 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = 1;													// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우		
+	{
+		if ( P_Motor_Current_Pos(N_NG_PnP_AN_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_AN_T) < 0 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 NG PNP  NGBox 위치 확인	
+		{
+			if( Motor[N_NG_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 												  // 음극 NG PNP 속도 0 확인																				
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = N_Complete_Step;							  // 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우	
+	{																														
+		if ( P_Motor_Current_Pos(N_NG_PnP_CA_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_NG_PnP_CA_T) < 0 + P_Motor_Ready_Pos_Inpos_200um ) // 양극 NG PNP  NGBox  위치 확인		
+		{
+			if( Motor[N_NG_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 												 // 양극 NG PNP 속도 0 확인																								
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = N_Complete_Step;							 // 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_NGBox_Move) = 1;												// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																													// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//21. Stack MSA NG PNP NGBox 파기 (MSA 완료)
+//=========================================================
+sub: MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) == N_Ready_Step )										//Stack MSA NG PNP NGBox 파기 Ready Step
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우		
+	{
+		P_Slave13_Motion_Command = 8;																									// 음극 NG PNP NGBox 파기 
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화	
+		//M_Y_Anode_NG_PNP_Ejector_Vac_On = 0;																				
+		//M_Y_Anode_NG_PNP_Ejector_Vac_Off = 1;	
+		//M_X_Anode_NG_PNP_Vac_Sensor = 0; //임시																					
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우	
+	{
+		P_Slave12_Motion_Command = 8;																									// 양극 NG PNP NGBox 파기 
+		P_MSA_Chk_Pos_Timer = 0;																										// 체크 타이머 초기화	
+		//M_Y_Cathode_NG_PNP_Ejector_Vac_On = 0;																					 
+		//M_Y_Cathode_NG_PNP_Ejector_Vac_Off = 1;		
+		//M_X_Cathode_NG_PNP_Vac_Sensor = 0; //임시 	
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우		
+	{
+		if ( M_X_Anode_NG_PNP_Vac_Sensor == 0 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 								// 음극 NG PNP 흡착 입력 신호 OFF
+		{	
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = N_Complete_Step;					// 다음 스텟 머신으로 이동.
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우	
+	{																														
+		if ( M_X_Cathode_NG_PNP_Vac_Sensor == 0 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time )   							// 양극 NG PNP 흡착 입력 신호 OFF
+		{																													
+			P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = N_Complete_Step;					// 다음 스텟 머신으로 이동.
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_NG_PNP_NGBox_Blow_ON) = 1;									// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																										// 반환값 : COMPLETE
+}
+return;
+
+//=========================================================
+//22. 얼라인 2차 PNP 얼라인 이동 (MSA 완료)
+//=========================================================
+sub: MSA_Stack_Discharge_2nd_Align_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Move) == N_Ready_Step )
+{	
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우		
+	{
+		P_Slave3_Motion_Command = 2;																								// 음극 2차 PNP 얼라인 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																									// 체크 타이머 초기화		
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우	
+	{
+		P_Slave8_Motion_Command = 2;																								// 양극 2차 PNP 얼라인 이동 모션 커멘드
+		P_MSA_Chk_Pos_Timer = 0;																									// 체크 타이머 초기화		
+		P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Move) = 1;												// 다음 스텟 머신으로 이동.
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Move) == 1 )
+{
+	if( Mode == N_MSA_Anode_Stack )					// 음극 Stack MSA 모드일 경우		
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_T) < 0 + P_Motor_Ready_Pos_Inpos_200um )	// 음극 2차 PNP 얼라인 이동 위치 확인	
+		{
+			if( Motor[N_2nd_PnP_AN_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													// 음극 2차 PNP 속도 0 확인																						
+			{	
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Move) = N_Complete_Step;							// 다음 스텟 머신으로 이동.
+			}
+		}	
+	}
+	else if( Mode == N_MSA_Cathode_Stack )		  // 양극 Stack MSA 모드일 경우	
+	{																														
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 0 + P_Motor_Ready_Pos_Inpos_200um )// 양극 2차 PNP 얼라인 이동 위치 확인	
+		{
+			if( Motor[N_2nd_PnP_CA_T].DesVelZero == 1 && P_MSA_Chk_Pos_Timer > P_MSA_Chk_Pos_Time ) 													// 양극 2차 PNP 속도 0 확인																												 
+			{																								
+				P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Move) = N_Complete_Step;							// 다음 스텟 머신으로 이동.
+			}
+		}																													
+	}
+}
+
+if( P_Module_MSA_Act_State_Machine_Array(N_MSA_Stack_Discharge_2nd_Align_Move) == N_Complete_Step )
+{
+	P_VISION_MSA_Align_Module_Complete_Bit(N_MSA_Stack_Discharge_2nd_Align_Move) = 1;														// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																														// 반환값 : COMPLETE
+}
+return;
+#endif 
+
+
+// 얼라인 테이블 탈착 모드  --------------------------------------------------------------------------------------------------------------------------------
+//=======================================================================================================================
+//1. 2차 PNP. 파이널롤 서버 온 & 대기위치 확인(얼라인 테이블 탈착 모드 )
+//=======================================================================================================================
+sub: Align_Take_Off_Ready_Pos_Check(Mode,&rtn)
+rtn = 0;
+local L_Align_Take_Off_individual_Anode_1st_PNP_return;
+local L_Align_Take_Off_individual_Anode_2nd_PNP_return; 
+local L_Align_Take_Off_individual_Cathode_1st_PNP_return; 
+local L_Align_Take_Off_individual_Cathode_2nd_PNP_return; 
+local L_Align_Take_Off_individual_FR_return;
+if( P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Check) == N_Ready_Step )		// 음극 얼라인 탈착 모드 위치 확인 Ready Step 
+{
+	if( Mode == N_Align_AN_Take_Off )	// 음극 얼라인 탈착 모드일 경우
+	{
+		call Manual_Module_Motor_Active.Align_Take_Off_Motor_Check(&P_Align_Take_Off_Motor_Check_Complete)	//음극 2차 PNP, 파이널 롤 서버 온
+		if ( P_Align_Take_Off_Motor_Check_Complete == 1)
+		{
+			P_Align_Take_Off_Motor_Check_Complete = 0;														
+			P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Check) = 1;			// 다음 스텟 머신으로 이동.
+		}
+	}
+	else if( Mode == N_Align_CA_Take_Off )	// 양극 얼라인 탈착 모드일 경우
+	{
+	  call Manual_Module_Motor_Active.Align_Take_Off_Motor_Check(&P_Align_Take_Off_Motor_Check_Complete)	//양극 2차 PNP, 파이널 롤 서버 온
+		if ( P_Align_Take_Off_Motor_Check_Complete == 1)
+		{
+			P_Align_Take_Off_Motor_Check_Complete = 0;														
+			P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Check) = 1;			// 다음 스텟 머신으로 이동.
+		}
+	}
+	else
+	{
+		// ERROR 
+	}
+}
+if( P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Check) == 1 )
+{
+	if( Mode == N_Align_AN_Take_Off ||  Mode == N_Align_CA_Take_Off )			// 음극 또는 양극 얼라인 탈착 모드일 경우
+	{
+		call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP,&P_Anode_1st_Unit_Status,&L_Align_Take_Off_individual_Anode_1st_PNP_return);			//음극 1차 PNP 대기 위치 확인 
+		call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,& P_Anode_2nd_Unit_Status,&L_Align_Take_Off_individual_Anode_2nd_PNP_return);			//음극 2차 PNP 대기 위치 확인 
+		call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP,&P_Cathode_1st_Unit_Status,&L_Align_Take_Off_individual_Cathode_1st_PNP_return);		//양극 1차 PNP 대기 위치 확인
+		call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,& P_Cathode_2nd_Unit_Status,&L_Align_Take_Off_individual_Cathode_2nd_PNP_return);		//양극 2차 PNP 대기 위치 확인
+		call Sub_Unit_Memory_Status.individual_mode(F_Final_Roll,&P_FinalRoll_Unit_Status,&L_Align_Take_Off_individual_FR_return);							//파이널롤 대기 위치 확인
+		if ( L_Align_Take_Off_individual_Anode_1st_PNP_return == 1 && L_Align_Take_Off_individual_Anode_2nd_PNP_return == 1 && L_Align_Take_Off_individual_Cathode_1st_PNP_return == 1 && L_Align_Take_Off_individual_Cathode_2nd_PNP_return == 1 && L_Align_Take_Off_individual_FR_return == 1)
+		{
+			if( P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_FinalRoll_Unit_Status == F_FR_Discharge_Pos  )	//대기 위치 확인
+			{
+				L_Align_Take_Off_individual_Anode_1st_PNP_return = 0;
+				L_Align_Take_Off_individual_Anode_2nd_PNP_return = 0;
+				L_Align_Take_Off_individual_Cathode_1st_PNP_return = 0;
+				L_Align_Take_Off_individual_Cathode_2nd_PNP_return = 0;
+				L_Align_Take_Off_individual_FR_return = 0;
+				P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Check) = N_Complete_Step;	
+			}
+		}
+	}
+}
+
+if( P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Check) == N_Complete_Step )
+{
+	P_Align_Take_Off_Module_Complete_Bit(N_Align_Take_Off_Ready_Pos_Check) = 1;										// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																								// 반환값 : COMPLETE
+}
+return;
+
+//=======================================================================================================================
+//2. 2차 PNP, 파이널 롤 이동 속도 설정 (얼라인 테이블 탈착 모드 )
+//=======================================================================================================================
+sub:Align_Take_Off_Ready_Pos_Set(Mode,&rtn)
+rtn = 0;
+if( P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Set) == N_Ready_Step )				//2차 PNP, 파이널 롤 이동 속도 설정 Ready Step
+{
+	if( Mode == N_Align_AN_Take_Off )		// 음극 얼라인 탈착 모드일 경우
+	{
+		call Manual_Module_Motor_Active.Align_Take_Off_Speed_Return(&P_Align_Take_Off_Speed_Return_Complete)		// 음극 2차 PNP 파이널롤 속도 50 지정 
+		if ( P_Align_Take_Off_Speed_Return_Complete == 1)
+		{
+			P_Align_Take_Off_Speed_Return_Complete = 0;
+			P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Set) = 1;					// 다음 스텟 머신으로 이동.
+		}
+	}
+	else if(  Mode == N_Align_CA_Take_Off ) // 양극 얼라인 탈착 모드일 경우
+	{
+		call Manual_Module_Motor_Active.Align_Take_Off_Speed_Return(&P_Align_Take_Off_Speed_Return_Complete)		// 양극 2차 PNP 파이널롤 속도 50 지정  
+		if ( P_Align_Take_Off_Speed_Return_Complete == 1)
+		{
+			P_Align_Take_Off_Speed_Return_Complete = 0;
+			P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Set) = 1;					// 다음 스텟 머신으로 이동.
+		}
+	}
+	else																													
+	{
+		// ERROR 
+	}
+}
+if( P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Set) == 1 )												
+{
+	P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Set) = N_Complete_Step;				//다음 스텟 이동
+}
+if( P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_Ready_Pos_Set) == N_Complete_Step )
+{
+	P_Align_Take_Off_Module_Complete_Bit(N_Align_Take_Off_Ready_Pos_Set) = 1;										// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																								// 반환값 : COMPLETE
+}
+return;
+
+//=======================================================================================================================
+//3. 파이널롤러 회피 동작 이동 및 확인 (얼라인 테이블 탈착 모드 )
+//=======================================================================================================================
+sub:Align_Take_Off_FR_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_FR_Move) == N_Ready_Step )				//파이널롤러 회피 동작 Ready Step
+{
+	if( Mode == N_Align_AN_Take_Off ) // 음극 얼라인 탈착 모드일 경우
+	{
+		jog12=(P_Final_Roll_X_Cathode_Move*1000)															//파이널롤러 양극 방향 이동 
+		P_2nd_PNP_Cleaning_Chk_Pos_Timer = 0;
+		P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_FR_Move) = 1;						// 다음 스텟 머신으로 이동.
+	}
+	else if(  Mode == N_Align_CA_Take_Off ) // 양극 얼라인 탈착 모드일 경우
+	{
+		jog12=(P_Final_Roll_X_Anode_Move*1000)															//파이널롤러 음극 방향 이동 
+		P_2nd_PNP_Cleaning_Chk_Pos_Timer = 0;
+		P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_FR_Move) = 1;						// 다음 스텟 머신으로 이동.
+	}
+	else																													
+	{
+		// ERROR 
+	}
+}
+if( P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_FR_Move) == 1 )												
+{
+	if( Mode == N_Align_AN_Take_Off ) // 음극 얼라인 탈착 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Final_Roll_X_Cathode_Move - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Final_Roll_X_Cathode_Move + P_Motor_Ready_Pos_Inpos_200um ) // 파이널롤러 양극 위치 이동 확인
+		{
+			if( Motor[N_FINAL_ROLL_X].DesVelZero == 1 && P_2nd_PNP_Cleaning_Chk_Pos_Timer > 250 ) 							// 파이널롤러 속도 0 확인 
+			{			
+				P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_FR_Move) = N_Complete_Step;	//다음 스텟 이동			
+			}
+		}
+	}
+	else if(  Mode == N_Align_CA_Take_Off )  // 양극 얼라인 탈착 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Final_Roll_X_Anode_Move - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Final_Roll_X_Anode_Move + P_Motor_Ready_Pos_Inpos_200um ) // 파이널롤러 양극 위치 이동 확인
+		{
+			if( Motor[N_FINAL_ROLL_X].DesVelZero == 1 && P_2nd_PNP_Cleaning_Chk_Pos_Timer > 250 ) 							// 파이널롤러 속도 0 확인 
+			{	
+				P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_FR_Move) = N_Complete_Step;	//다음 스텟 이동	
+			}
+		}
+	}
+}
+if( P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_FR_Move) == N_Complete_Step )
+{
+	P_Align_Take_Off_Module_Complete_Bit(N_Align_Take_Off_FR_Move) = 1;											// 동작 완료 Bit On.
+	rtn = N_COMPLETE;																							// 반환값 : COMPLETE
+}
+return;
+//===================================================================================
+//4. 2차 PNP T축 스텍 위치 이동 및 확인 (얼라인 테이블 탈착 모드 )
+//===================================================================================
+sub:Align_Take_Off_2nd_PNP_Stack_Move(Mode,&rtn)
+rtn = 0;
+if( P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) == N_Ready_Step )		//  2차 PNP T축 스텍 위치 이동 및 확인 Ready Step 
+{
+	if( Mode == N_Align_AN_Take_Off )	 // 음극 얼라인 탈착 모드일 경우
+	{
+		jog4=(90*1000)						// 음극 2차 PNP T축 스텍 위치 이동 
+		P_2nd_PNP_Cleaning_Chk_Pos_Timer = 0;
+		P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) = 1;				// 다음 스텟 머신으로 이동.
+	}
+	else if(  Mode == N_Align_CA_Take_Off ) // 양극 얼라인 탈착 모드일 경우
+	{
+		jog3=(90*1000)						// 양극 2차 PNP T축 스텍 위치 이동 
+		P_2nd_PNP_Cleaning_Chk_Pos_Timer = 0;
+		P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) = 1;				// 다음 스텟 머신으로 이동.
+	}
+	else																													
+	{
+		// ERROR 
+	}
+}
+if( P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) == 1 )												
+{
+	if( Mode == N_Align_AN_Take_Off )		// 음극 얼라인 탈착 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_AN_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_T) < 90 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 2차 PNP Stack 위치 확인
+		{
+			if( Motor[N_2nd_PnP_AN_T].DesVelZero == 1 && P_2nd_PNP_Cleaning_Chk_Pos_Timer > 100 ) 											// 음극 2차 PNP 속도 0 확인																								
+			{	
+				kill41;		// 음극 얼라인 T축 서보 Off
+				P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) = N_Complete_Step;			//다음 스텟 이동			
+			}
+		}
+	}
+	else if(  Mode == N_Align_CA_Take_Off ) // 양극 얼라인 탈착 모드일 경우
+	{
+		if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 90 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 90 + P_Motor_Ready_Pos_Inpos_200um ) // 음극 2차 PNP Stack 위치 확인
+		{
+			if( Motor[N_2nd_PnP_CA_T].DesVelZero == 1 && P_2nd_PNP_Cleaning_Chk_Pos_Timer > 100 ) 											// 음극 2차 PNP 속도 0 확인																								
+			{	
+				kill38;		// 양극 얼라인 T축 서보 Off
+				P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) = N_Complete_Step;			//다음 스텟 이동	
+			}
+		}
+	}
+}
+if( P_Module_Align_Take_Off_Act_State_Machine_Array(N_Align_Take_Off_2nd_PNP_Stack_Move) == N_Complete_Step )
+{
+	if( Mode == N_Align_AN_Take_Off )		// 음극 얼라인 탈착 모드일 경우
+	{
+		//M_Y_SOL_Align_Table_Anode_Zero_Clamp = 0;		//음극 얼라인 테이블 제로 언클램프
+		//M_Y_SOL_Align_Table_Anode_Zero_Unclamp = 1;
+		P_Align_Take_Off_Module_Complete_Bit(N_Align_Take_Off_2nd_PNP_Stack_Move) = 1;				// 동작 완료 Bit On.
+		rtn = N_COMPLETE;																			// 반환값 : COMPLETE
+	}
+	else if( Mode == N_Align_CA_Take_Off )// 양극 얼라인 탈착 모드일 경우
+	{
+		//M_Y_SOL_Align_Table_Cathode_Zero_Clamp = 0;	//양극 얼라인 테이블 제로 언클램프
+		//M_Y_SOL_Align_Table_Cathode_Zero_Unclamp = 1;
+		P_Align_Take_Off_Module_Complete_Bit(N_Align_Take_Off_2nd_PNP_Stack_Move) = 1;				// 동작 완료 Bit On.
+		rtn = N_COMPLETE;																			// 반환값 : COMPLETE
+	}
+}
+return;
+
+close
+

@@ -1,0 +1,381 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+
+open subprog Subprog_Subprocess_Execute_Act_Module(void)
+		
+	
+	sub:Motor_Pos_Check(&Motor_Pos_Check_RTN)
+		Motor_Pos_Check_RTN = 0;
+		// 0) 메모리 타워 실행.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_Motor_Pos_Check) == N_Ready_Step )
+		{
+			P_Act_Execute_Old_Time(N_Act_Motor_Pos_Check) = Sys.Time;					// 시간 업데이트.
+			P_Memory_Tower_Search_Flag = 1;												// 메모리 타워 실행.
+			P_Module_Act_Execute_State_Machine_Array(N_Act_Motor_Pos_Check) = 1;		// 다음 스텟 머신으로 이동.
+		}
+		// 1) 세파 첫장 가능 위치 확인.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_Motor_Pos_Check) == 1 )
+		{
+			if ( Sys.Time < P_Act_Execute_Old_Time(N_Act_Motor_Pos_Check) + P_Act_Execute_Time_Out(N_Act_Motor_Pos_Check))	// 제한 시간을 넘기지 않을 경우.
+			{
+				if ( P_Unit_integrated_Status == F_Equipment_Initial_Ready_Pos )	// 설비 대기 위치, Sheet Paper 입력 센서 확인.
+				{
+					if ( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence ) // && M_X_First_Sheet_Paper_Plate_Vac_Sensor == 1 )		// [ 참조 : 25.07.18 세파 첫장 프로그램 수정 ]
+					{
+						Motor_Pos_Check_RTN = N_COMPLETE;													// 반환값 : TRUE.
+						P_Act_Execute_Complete_Bit(N_Act_Motor_Pos_Check) = 1;
+						P_Module_Act_Execute_State_Machine_Array(N_Act_Motor_Pos_Check) = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+					}
+					else if ( P_Buffer_Mode_Status_Sequence == N_Dryrun_Status_Sequence )
+					{
+						Motor_Pos_Check_RTN = N_COMPLETE;													// 반환값 : TRUE.
+						P_Act_Execute_Complete_Bit(N_Act_Motor_Pos_Check) = 1;												
+						P_Module_Act_Execute_State_Machine_Array(N_Act_Motor_Pos_Check) = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+					}
+				}
+			}
+			else																	// 제한 시간을 넘길 경우.
+			{
+				P_Execute_Module_Error = N_Act_Motor_Pos_Check;									// 모듈 정지.	[ 참조 : 26.01.08 Execute 모듈 수정 ]
+				Motor_Pos_Check_RTN = N_FALSE;										// 반환값 : Error.
+			}
+		}
+	return;
+
+
+	sub:FR_1st_Move(&FR_1st_Move_RTN)
+		FR_1st_Move_RTN = 0;
+		// 0) 모션 상태 초기화.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_FR_1st_Move) == N_Ready_Step )
+		{
+			P_Act_Execute_Old_Time(N_Act_FR_1st_Move) = Sys.Time;					// 시간 업데이트.
+			P_Final_Roll_Stack_Pos_Status = 0;										// 파이널 롤러 모션 상태 초기화.
+			P_Sheet_Paper_FWD_Pos_Status = 0;										// Sheet Paper 모션 상태 초기화.
+			P_Module_Act_Execute_State_Machine_Array(N_Act_FR_1st_Move) = 1;		// 다음 스텟 머신으로 이동.
+		}
+		// 1) 모션 실행.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_FR_1st_Move) == 1 )
+		{
+			P_Slave5_Motion_Command = N_FR_Stack_Pos_Motion;						// 파이널 롤러 음극 방향 이동 (X:-168mm)
+			P_Slave11_Motion_Command = N_Sheet_Paper_FWD_Motion;					// Sheet Paper 전진 (120.1mm)
+			P_Slave15_Motion_Command = N_First_Sepa_1st_Move
+			P_Module_Act_Execute_State_Machine_Array(N_Act_FR_1st_Move) = 2;
+		}
+		// 2) 모션 실행 확인.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_FR_1st_Move) == 2 )
+		{
+			if ( Sys.Time < P_Act_Execute_Old_Time(N_Act_FR_1st_Move) + P_Act_Execute_Time_Out(N_Act_FR_1st_Move))	// 제한 시간을 넘기지 않을 경우.
+			{
+				if ( P_Final_Roll_Stack_Pos_Status & P_Sheet_Paper_FWD_Pos_Status == F_Status_COMPLETE )	// 모션 완료.
+				{
+					if( P_First_Sepa_Driving_Use == 0 )
+					{
+						if( P_Driving_Clamp == 1 )
+						{
+							M_Y_FR_Clamping_Sub_Roller_Unclamp = 1
+							M_Y_FR_Clamping_Sub_Roller_Clamp = 0
+
+							M_Y_FR_Sepa_UnClamp = 1
+							M_Y_FR_Sepa_Clamp = 0
+						}
+
+						if( P_Driving_Clamp == 1 && M_X_FR_Sepa_Clamp_Front_Sensor == 0 && M_X_FR_Sepa_UnClamp_Front_Sensor == 1 && M_X_FR_Sepa_Clamp_Rear_Sensor == 0 && M_X_FR_Sepa_UnClamp_Rear_Sensor == 1)
+						{
+							FR_1st_Move_RTN = N_COMPLETE;										// 반환값 : TRUE.
+							P_Act_Execute_Complete_Bit(N_Act_FR_1st_Move) = 1;
+							P_Module_Act_Execute_State_Machine_Array(N_Act_FR_1st_Move) = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+						}
+						else if ( P_Driving_Clamp == 0 )
+						{
+							FR_1st_Move_RTN = N_COMPLETE;										// 반환값 : TRUE.
+							P_Act_Execute_Complete_Bit(N_Act_FR_1st_Move) = 1;
+							P_Module_Act_Execute_State_Machine_Array(N_Act_FR_1st_Move) = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+						}
+
+						CMD"#%d out0",N_DRIVING_ROLL;	// open Loop 추가
+					}
+					else
+					{
+						FR_1st_Move_RTN = N_COMPLETE;
+						P_Act_Execute_Complete_Bit(N_Act_FR_1st_Move) = 1;
+						P_Module_Act_Execute_State_Machine_Array(N_Act_FR_1st_Move) = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+					}
+
+				}
+			}
+			else																		// 제한 시간을 넘길 경우.
+			{
+				P_Execute_Module_Error = N_Act_FR_1st_Move;										// 모듈 정지.	[ 참조 : 26.01.08 Execute 모듈 수정 ]
+				FR_1st_Move_RTN = N_FALSE;												// 반환값 : Error.
+			}
+		}
+	return;
+
+	sub:FR_2nd_Move(&FR_2nd_Move_RTN)
+		FR_2nd_Move_RTN = 0;
+		// 0) 모션 상태 초기화.
+			if ( P_Module_Act_Execute_State_Machine_Array(N_Act_FR_2nd_Move) == N_Ready_Step )
+			{
+				P_Act_Execute_Old_Time(N_Act_FR_2nd_Move) = Sys.Time;					// 시간 업데이트.
+				P_Final_Roll_Cathode_Pos_Status = 0;									// 파이널 롤러 모션 상태 초기화.
+				P_Module_Act_Execute_State_Machine_Array(N_Act_FR_2nd_Move) = 1;		// 다음 스텟 머신으로 이동.
+			}
+			// 1) 모션 실행.
+			if ( P_Module_Act_Execute_State_Machine_Array(N_Act_FR_2nd_Move) == 1 )
+			{
+				P_Slave5_Motion_Command = N_FR_Cathode_Move_Motion;						// 파이널 롤러 양극 방향 이동 (X:168mm)
+				if( P_First_Sepa_Driving_Use != 0 )
+				{
+					P_Slave15_Motion_Command = N_First_Sepa_Driving;					// [ 참조 : 2025.10.20 세파 첫장 드라이빙 구동 ]
+				}
+				P_Module_Act_Execute_State_Machine_Array(N_Act_FR_2nd_Move) = 2;		// 다음 스텟 머신으로 이동.
+			}
+			// 2) 모션 실행 확인.
+			if ( P_Module_Act_Execute_State_Machine_Array(N_Act_FR_2nd_Move) == 2 )
+			{
+				if ( Sys.Time < P_Act_Execute_Old_Time(N_Act_FR_2nd_Move) + P_Act_Execute_Time_Out(N_Act_FR_2nd_Move))	// 제한 시간을 넘기지 않을 경우.
+				{
+					if ( P_Final_Roll_Cathode_Pos_Status == F_Status_COMPLETE )			// 모션 완료.
+					{
+						// [ 참조 : 26.06.10 스택테이블 진공 on/off 추가 ]
+						M_Y_ST_Center_Sol = 1
+						M_Y_ST_Center_Ejector_VAC_On = 1
+						M_Y_ST_Center_Ejector_VAC_Off = 0
+
+						FR_2nd_Move_RTN = N_COMPLETE;									// 반환값 : TRUE.
+						P_Act_Execute_Complete_Bit(N_Act_FR_2nd_Move) = 1
+						P_Module_Act_Execute_State_Machine_Array(N_Act_FR_2nd_Move) = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																	// 제한 시간을 넘길 경우.
+				{
+					P_Execute_Module_Error = N_Act_FR_2nd_Move;									// 모듈 정지.	[ 참조 : 26.01.08 Execute 모듈 수정 ]
+					FR_2nd_Move_RTN = N_FALSE;											// 반환값 : Error.
+				}
+			}
+	return;
+
+	sub:FR_Down(&FR_Down_RTN)
+		FR_Down_RTN = 0;
+
+		// 0) 모션 상태 초기화.
+			if ( P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Down) == N_Ready_Step )
+			{
+				P_Act_Execute_Old_Time(N_Act_FR_Down) = Sys.Time;						// 시간 업데이트.
+				P_Final_Roll_Vision_Pos_Status = 0;										// 파이널 롤러 모션 상태 초기화.
+				P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Down) = 1;			// 다음 스텟 머신으로 이동.
+			}
+			// 1) 모션 실행.
+			if ( P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Down) == 1 )
+			{
+				P_Slave5_Motion_Command = N_FR_Stack_Down_Motion;						// 파이널 롤러 촬상 위치 이동 (Z:61.5mm)
+				P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Down) = 2;			// 다음 스텟 머신으로 이동.
+			}
+			// 2) 모션 실행 확인.
+			if ( P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Down) == 2 )
+			{
+				if ( Sys.Time < P_Act_Execute_Old_Time(N_Act_FR_Down) + P_Act_Execute_Time_Out(N_Act_FR_Down))	// 제한 시간을 넘기지 않을 경우.
+				{
+					if ( P_Final_Roll_Vision_Pos_Status == F_Status_COMPLETE )			// 모션 완료.
+					{
+						FR_Down_RTN = N_COMPLETE;										// 반환값 : TRUE.
+						P_Act_Execute_Complete_Bit(N_Act_FR_Down) = 1;
+						P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Down) = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+					}
+				}
+				else																	// 제한 시간을 넘길 경우.
+				{
+					P_Execute_Module_Error = N_Act_FR_Down;									// 모듈 정지.	[ 참조 : 26.01.08 Execute 모듈 수정 ]
+					FR_Down_RTN = N_FALSE;												// 반환값 : Error.
+				}
+			}
+	return;
+
+	sub:Anode_Clamp_On(&Anode_Clamp_On_RTN)
+		Anode_Clamp_On_RTN = 0;
+
+		// 0) 모션 상태 초기화.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_Clamp_On) == N_Ready_Step )
+		{
+			P_Act_Execute_Old_Time(N_Act_Clamp_On) = Sys.Time;							// 시간 업데이트.
+			//P_Cathode_Clamp_ON_Status = 0;											// 양극 클램프 모션 상태 초기화.
+			//P_Anode_Clamp_ON_Status = 0;												// 음극 클램프 모션 상태 초기화.	[ 참조 : 26.05.28 세파 첫장 시 클램프 미진행 ]
+			P_Module_Act_Execute_State_Machine_Array(N_Act_Clamp_On) = 1;				// 다음 스텟 머신으로 이동.
+		}
+		// 1) 모션 실행.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_Clamp_On) == 1 )
+		{
+			//P_Slave7_Motion_Command = N_Clamp_On_Motion;								// 양극 클램프 ON 이동.
+			// [ 참 조 : 2025.12.12 세파 첫장 세미런 추가 ] 
+			//P_Slave4_Motion_Command = N_Clamp_On_Motion;								// 음극 클램프 ON 이동.	[ 참조 : 26.01.12 세파 첫장 모듈 수정 - 음극 클램프만 ON ]		[ 참조 : 26.05.28 세파 첫장 시 클램프 미진행 ]
+			P_Module_Act_Execute_State_Machine_Array(N_Act_Clamp_On) = 2;				// 다음 스텟 머신으로 이동.
+		}
+		// 2) 모션 실행 확인.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_Clamp_On) == 2 )
+		{
+			if ( Sys.Time < P_Act_Execute_Old_Time(N_Act_Clamp_On) + P_Act_Execute_Time_Out(N_Act_Clamp_On))	// 제한 시간을 넘기지 않을 경우.
+			{
+				//if ( P_Cathode_Clamp_ON_Status == F_Status_COMPLETE &&  P_Anode_Clamp_ON_Status == F_Status_COMPLETE )			// 모션 완료.
+				//if (  P_Anode_Clamp_ON_Status == F_Status_COMPLETE )					// 모션 완료.	[ 참조 : 26.01.12 세파 첫장 모듈 수정 - 음극 클램프만 ON ]		[ 참조 : 26.05.28 세파 첫장 시 클램프 미진행 ]
+				//{
+					Anode_Clamp_On_RTN = N_COMPLETE;
+					P_Act_Execute_Complete_Bit(N_Act_Clamp_On) = 1;
+					P_Module_Act_Execute_State_Machine_Array(N_Act_Clamp_On) = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+				//}
+			}
+			else																		// 제한 시간을 넘길 경우.
+			{
+				P_Execute_Module_Error = N_Act_Clamp_On;										// 모듈 정지.	[ 참조 : 26.01.08 Execute 모듈 수정 ]
+				Anode_Clamp_On_RTN = N_FALSE;											// 반환값 : Error.
+			}
+		}
+	return;
+
+	sub:Vision_Check(&Vision_Check_RTN)
+		Vision_Check_RTN = 0;
+
+		// 0) 상태 초기화.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_Vision_Check) == N_Ready_Step )
+		{
+			P_Act_Execute_Old_Time(N_Act_Vision_Check) = Sys.Time;						// 시간 업데이트.
+			P_Vision_FirstSepa_Complete = 0;											// Vision 검사 상태 초기화.
+			P_Flag_Stack_Work_Host_ID = 0;												// Host ID 생성 플래그 초기화.		[ 참조 : 26.04.24 세파 첫장 Host ID 생성 수정 ]
+			P_Module_Act_Execute_State_Machine_Array(N_Act_Vision_Check) = 1;			// 다음 스텟 머신으로 이동.
+		}
+		// 1) Vision 모듈 실행.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_Vision_Check) == 1 )
+		{
+			if ( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )			// 드라이 런 모드가 아닐 경우.
+			{
+				P_Vision_FirstSepa_Command = 1;											// Vision 검사 실행.
+				P_Module_Act_Execute_State_Machine_Array(N_Act_Vision_Check) = 2;		// 다음 스텟 머신으로 이동.
+			}
+			else																		// 드라이 런 모드 일 경우.	[ 참조 : 25.07.15 세파 첫장 모듈 수정. ]
+			{
+				Vision_Check_RTN = N_COMPLETE;
+				P_Act_Execute_Complete_Bit(N_Act_Vision_Check) = 1;
+				P_Module_Act_Execute_State_Machine_Array(N_Act_Vision_Check) = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+			}
+		}
+		// 2) Vision 모듈 확인.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_Vision_Check) == 2 )
+		{
+			if ( Sys.Time < P_Act_Execute_Old_Time(N_Act_Vision_Check) + P_Act_Execute_Time_Out(N_Act_Vision_Check))	// 제한 시간을 넘기지 않을 경우.
+			{
+				if ( P_Vision_FirstSepa_Complete == 1 )													// Vision 검사 상태 완료.
+				{
+					Vision_Check_RTN = N_COMPLETE;
+					P_Act_Execute_Complete_Bit(N_Act_Vision_Check) = 1;
+					P_Module_Act_Execute_State_Machine_Array(N_Act_Vision_Check) = N_Complete_Step;		// 완료 스텟 머신으로 이동.
+				}
+			}
+			else																		// 제한 시간을 넘길 경우.
+			{
+				P_Execute_Module_Error = N_Act_Vision_Check;										// 모듈 정지.	[ 참조 : 26.01.08 Execute 모듈 수정 ]
+				Vision_Check_RTN = N_FALSE;												// 반환값 : Error.
+			}
+		}
+	return;
+
+	sub:FR_Up(&FR_Up_RTN)
+		FR_Up_RTN = 0;
+
+		// 0) 모션 상태 초기화.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Up) == N_Ready_Step )
+		{
+			P_Act_Execute_Old_Time(N_Act_FR_Up) = Sys.Time;								// 시간 업데이트.
+			P_Final_Roll_Stack_Up_Pos_Status = 0;										// 파이널 롤러 모션 상태 초기화.
+			P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Up) = 1;					// 다음 스텟 머신으로 이동.
+		}
+		// 1) 모션 실행.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Up) == 1 )
+		{
+			P_Slave5_Motion_Command = N_FR_Stack_UP_Motion2;								// 파이널 롤러 적층 위치 이동 (Z:58mm)
+			P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Up) = 2;					// 다음 스텟 머신으로 이동.
+		}
+		// 2) 모션 실행 확인.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Up) == 2 )
+		{
+			if ( Sys.Time < P_Act_Execute_Old_Time(N_Act_FR_Up) + P_Act_Execute_Time_Out(N_Act_FR_Up))	// 제한 시간을 넘기지 않을 경우.
+			{
+				if ( P_Final_Roll_Stack_Up_Pos_Status == F_Status_COMPLETE )			// 모션 완료.
+				{	
+					FR_Up_RTN = N_COMPLETE;												// 반환값 : Complete.
+					P_Act_Execute_Complete_Bit(N_Act_FR_Up) = 1;
+					P_Module_Act_Execute_State_Machine_Array(N_Act_FR_Up) = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+				}
+			}
+			else																		// 제한 시간을 넘길 경우.
+			{
+				P_Execute_Module_Error = N_Act_FR_Up;										// 모듈 정지.	[ 참조 : 26.01.08 Execute 모듈 수정 ]
+				FR_Up_RTN = N_FALSE;													// 반환값 : Error.
+			}
+		}
+	return;
+
+	sub:Host_ID(&Host_ID_RTN)															// [ 참조 : 세파 첫장 모듈 수정 - 액팅 모튤 추가 ]
+		Host_ID_RTN = 0;
+
+		// 0) Host ID 생성.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_Host_ID) == N_Ready_Step )
+		{
+			P_Act_Execute_Old_Time(N_Act_Host_ID) = Sys.Time;							// 시간 업데이트.
+			P_Flag_Stack_Work_Host_ID = 1;											
+			P_Stack_Judgement_Memory = N_TRUE;											// 
+			P_Module_Act_Execute_State_Machine_Array(N_Act_Host_ID) = 1;				// 다음 스텟 머신으로 이동.
+		}
+		// 1) 완료.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_Host_ID) == 1 )
+		{
+			if ( Sys.Time < P_Act_Execute_Old_Time(N_Act_Host_ID) + P_Act_Execute_Time_Out(N_Act_Host_ID))	// 제한 시간을 넘기지 않을 경우.
+			{
+				Host_ID_RTN = N_COMPLETE;												// 반환값 : Complete.
+				P_Act_Execute_Complete_Bit(N_Act_Host_ID) = 1;
+				P_Module_Act_Execute_State_Machine_Array(N_Act_Host_ID) = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+			}
+			else																		// 제한 시간을 넘길 경우.
+			{
+				P_Execute_Module_Error = N_Act_Host_ID;										// 모듈 정지.	[ 참조 : 26.01.08 Execute 모듈 수정 ]
+				Host_ID_RTN = N_FALSE;													// 반환값 : Error.
+			}
+		}
+	return;
+
+	sub:EPC_Judge(&EPC_Judge_RTN)
+		EPC_Judge_RTN = 0;
+
+		// 0) EPC 보정 판단.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_EPC_Judge) == N_Ready_Step )
+		{
+			P_Act_Execute_Old_Time(N_Act_EPC_Judge) = Sys.Time;							// 시간 업데이트.
+			if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence ) //임시로 해당부분 막아둠.	// 드라이런이 아닐 시에만 첫장 판정에 따른 시퀀스 진행
+			{
+					P_Module_Act_Execute_State_Machine_Array(N_Act_EPC_Judge) = 1;		// → 다음 스텟머신으로 이동			
+			}
+			else																		// 드라이런 모드라면,
+			{
+					P_Module_Act_Execute_State_Machine_Array(N_Act_EPC_Judge) = 1;		// → 다음 스텟머신으로 이동		
+			}
+		}
+		// 1) 완료.
+		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_EPC_Judge) == 1 )
+		{
+			if ( Sys.Time < P_Act_Execute_Old_Time(N_Act_EPC_Judge) + P_Act_Execute_Time_Out(N_Act_EPC_Judge))	// 제한 시간을 넘기지 않을 경우.
+			{
+					EPC_Judge_RTN = N_COMPLETE;														// 반환값 : Complete.
+					P_Act_Execute_Complete_Bit(N_Act_EPC_Judge) = 1;
+					P_Module_Act_Execute_State_Machine_Array(N_Act_EPC_Judge) = N_Complete_Step;	// 완료 스텟 머신으로 이동.
+			}
+			else																					// 제한 시간을 넘길 경우.
+			{
+				P_Execute_Module_Error = N_Act_EPC_Judge;											// 모듈 정지.	[ 참조 : 26.01.08 Execute 모듈 수정 ]
+				EPC_Judge_RTN = N_FALSE;															// 반환값 : Error.
+			}
+		}
+	return;
+
+close
+
+
+

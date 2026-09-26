@@ -1,0 +1,1258 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+#define F_Heartbeat_Check_Time		400				// 하트비트 타임아웃 시간
+
+#define F_Align_Move				1				// 얼라인 테이블 보정위치 동작
+#define F_Start_Position_Move		2				// 얼라인 테이블 대기위치 동작
+
+#define N_Anode_Unit				1				// 음극 유닛
+#define N_Cathode_Unit				2				// 양극 유닛
+
+#define	N_Inspection_OK				1				// 비전 검사 판정 OK
+#define	N_Inspection_NG				2				// 비전 검사 판정 NG
+#define	N_Inspection_TimeOut		3				// 비전 검사 판정 Timeout
+
+global P_Align_Inspection_Time = 120				// 얼라인 비전 타임아웃 시간
+global P_Front_Inspection_Time = 100				// 프론트 비전 타임아웃 시간
+global P_Stack_Inspection_Time = 150				// 스택 비전 타임아웃 시간
+global P_Existence_Inspection_Time = 300			// 유무 검사 타임아웃 시간
+global P_EmptyTable_Inspection_Time = 300			// 빈테이블 검사 타임아웃 시간
+global P_FirstSepa_Inspection_Time = 500			// 세파 첫장 검사 타임아웃 시간
+
+
+global P_Vision_Anode_Sepa_Mode_Stack_Command = 0
+global P_Vision_Cathode_Sepa_Mode_Stack_Command = 0
+global P_Cathode_Sepa_Mode_Timer = 0
+global P_Anode_Sepa_Mode_Timer = 0
+
+
+
+// 극판 정보를 1Byte로 나타냄
+#define Hex_Vision_Timeout			$1				// 0000 0000 0000 0001
+#define Hex_Maint_NG				$2				// 0000 0000 0000 0010
+
+#define Hex_Align_NG				$4				// 0000 0000 0000 0100
+
+#define Hex_Align_OK				$8				// 0000 0000 0000 1000
+
+#define Hex_Surface_NG				$10				// 0000 0000 0001 0000
+#define Hex_Surface_OK				$20				// 0000 0000 0010 0000
+
+#define Hex_Saved_Surface_Image		$40				// 0000 0000 0100 0000
+#define Hex_Cell_Existence			$80				// 0000 0000 1000 0000
+
+#define Hex_Stack_NG				$100			// 0000 0001 0000 0000
+#define Hex_Stack_OK				$200			// 0000 0010 0000 0000
+
+#define	Hex_NG_Masking				$117			// 0000 0001 0001 0111
+/*										양극 데이터 관련 변수									*/
+//------------------- Belt 에 있는 Sheet Data 저장 영역 -------------------//
+#define	Sys_Cathode_Belt_Sheet_Data						Sys.Ddata[1000]			// On Belt Sheet 전체 데이터			8Byte
+
+#define	Sys_Cathode_Belt_Sheet_HI4BYTE					Sys.Udata[2000]			// 시간 영역							4Byte
+#define	Sys_Cathode_Belt_Sheet_LO4BYTE					Sys.Udata[2001]			// Sheet 판정 정보 영역					4Byte
+
+#define	Sys_Cathode_Belt_Sheet_LO_ASCII_BYTE			u.user:$1F44.0.16		// udata[2001] Sheet ASCII0 정보		2Byte
+#define	Sys_Cathode_Belt_Sheet_LO_Vision_BYTE			u.user:$1F44.16.16		// udata[2001] 비전 검사 판정 정보		1Byte
+
+//------------------- 1차PNP에 있는 Sheet Data 저장 영역 -------------------//
+#define	Sys_Cathode_1st_Sheet_Data						Sys.Ddata[1001]			// On 1st PNP Sheet 전체 데이터			8Byte
+
+#define	Sys_Cathode_1st_Sheet_HI4BYTE					Sys.Udata[2002]			// 시간 영역								4Byte
+#define	Sys_Cathode_1st_Sheet_LO4BYTE					Sys.Udata[2003]			// Sheet 판정 정보 영역					4Byte
+
+#define	Sys_Cathode_1st_Sheet_LO_ASCII_BYTE				u.user:$1F4C.0.16		// udata[2003] Sheet ASCII0 정보			2Byte
+#define	Sys_Cathode_1st_Sheet_LO_Vision_BYTE			u.user:$1F4C.16.16		// udata[2003] 비전 검사 판정 정보		1Byte
+
+//------------------- Align에 있는 Sheet Data 저장 영역 -------------------//
+#define	Sys_Cathode_Align_Sheet_Data					Sys.Ddata[1002]			// On 1st PNP Sheet 전체 데이터			8Byte
+
+#define	Sys_Cathode_Align_Sheet_HI4BYTE					Sys.Udata[2004]			// 시간 영역							4Byte
+#define	Sys_Cathode_Align_Sheet_LO4BYTE					Sys.Udata[2005]			// Sheet 판정 정보 영역					4Byte
+
+#define	Sys_Cathode_Align_Sheet_LO_ASCII_BYTE			u.user:$1F54.0.16		// udata[2005] Sheet ASCII0 정보		2Byte
+#define	Sys_Cathode_Align_Sheet_LO_Vision_BYTE			u.user:$1F54.16.16		// udata[2005] 비전 검사 판정 정보		1Byte
+
+//------------------- 2nd PNP에 있는 Sheet Data 저장 영역 -------------------//
+#define	Sys_Cathode_2nd_Sheet_Data						Sys.Ddata[1003]			// On 1st PNP Sheet 전체 데이터			8Byte
+
+#define	Sys_Cathode_2nd_Sheet_HI4BYTE					Sys.Udata[2006]			// 시간 영역							4Byte
+#define	Sys_Cathode_2nd_Sheet_LO4BYTE					Sys.Udata[2007]			// Sheet 판정 정보 영역					4Byte
+
+#define	Sys_Cathode_2nd_Sheet_LO_ASCII_BYTE				u.user:$1F5C.0.16		// udata[2007] Sheet ASCII0 정보		2Byte
+#define	Sys_Cathode_2nd_Sheet_LO_Vision_BYTE			u.user:$1F5C.16.16		// udata[2007] 비전 검사 판정 정보		1Byte
+
+//------------------- Cathode NG PNP에 있는 Sheet Data 저장 영역 -------------------//
+
+#define	Sys_Cathode_NG_TR_Sheet_Data					Sys.Ddata[1004]			// On 1st PNP Sheet 전체 데이터			8Byte
+
+#define	Sys_Cathode_NG_TR_Sheet_HI4BYTE					Sys.Udata[2008]			// 시간 영역							4Byte
+#define	Sys_Cathode_NG_TR_Sheet_LO4BYTE					Sys.Udata[2009]			// Sheet 판정 정보 영역					4Byte
+
+#define	Sys_Cathode_NG_TR_Sheet_LO_ASCII_BYTE			u.user:$1F64.0.16		// udata[2027] Sheet ASCII0 정보		2Byte
+#define	Sys_Cathode_NG_TR_Sheet_LO_Vision_BYTE			u.user:$1F64.16.16		// udata[2027] 비전 검사 판정 정보		1Byte
+
+//------------------- Cathode NG Place에 있는 Sheet Data 저장 영역 -------------------//
+
+#define	Sys_Cathode_NG_Place_Sheet_Data					Sys.Ddata[1005]			// On 1st PNP Sheet 전체 데이터			8Byte
+
+#define	Sys_Cathode_NG_Place_Sheet_HI4BYTE				Sys.Udata[2010]			// 시간 영역							4Byte
+#define	Sys_Cathode_NG_Place_Sheet_LO4BYTE				Sys.Udata[2011]			// Sheet 판정 정보 영역					4Byte
+
+#define	Sys_Cathode_NG_Place_Sheet_LO_ASCII_BYTE		u.user:$1F6C.0.16		// udata[2027] Sheet ASCII0 정보		2Byte
+#define	Sys_Cathode_NG_Place_Sheet_LO_Vision_BYTE		u.user:$1F6C.16.16		// udata[2027] 비전 검사 판정 정보		1Byte
+
+
+//-------------------- Stack에 있는 Sheet Data 저장 영역 --------------------
+
+#define	Sys_Stack_Sheet_Data							Sys.Ddata[1009]			// Stack 적층 Sheet 전체 데이터			8Byte
+
+#define	Sys_Stack_Sheet_HI4BYTE							Sys.Udata[2018]			// 시간 영역							4Byte
+#define	Sys_Stack_Sheet_LO4BYTE							Sys.Udata[2019]			// Sheet 판정 정보 영역					4Byte
+
+#define	Sys_Stack_Sheet_LO_ASCII_BYTE					u.user:$1F8C.0.16		// udata[2027] Sheet ASCII0 정보		2Byte
+#define	Sys_Stack_Sheet_LO_Vision_BYTE					u.user:$1F8C.16.16		// udata[2027] 비전 검사 판정 정보		1Byte
+
+
+/*										음극 데이터 관련 변수									*/
+//------------------- Belt 에 있는 Sheet Data 저장 영역 -------------------
+#define	Sys_Anode_Belt_Sheet_Data						Sys.Ddata[1010]			// On Belt Sheet 전체 데이터			8Byte
+
+#define	Sys_Anode_Belt_Sheet_HI4BYTE					Sys.Udata[2020]			// 시간 영역							4Byte
+#define	Sys_Anode_Belt_Sheet_LO4BYTE					Sys.Udata[2021]			// Sheet 판정 정보 영역					4Byte
+
+#define	Sys_Anode_Belt_Sheet_LO_ASCII_BYTE				u.user:$1F94.0.16		// udata[2021] Sheet ASCII0 정보		2Byte
+#define	Sys_Anode_Belt_Sheet_LO_Vision_BYTE				u.user:$1F94.16.16		// udata[2021] 비전 검사 판정 정보		1Byte
+
+//------------------- 1차PNP에 있는 Sheet Data 저장 영역 -------------------
+#define	Sys_Anode_1st_Sheet_Data						Sys.Ddata[1011]			// On 1st PNP Sheet 전체 데이터			8Byte
+
+#define	Sys_Anode_1st_Sheet_HI4BYTE						Sys.Udata[2022]			// 시간 영역							4Byte
+#define	Sys_Anode_1st_Sheet_LO4BYTE						Sys.Udata[2023]			// Sheet 판정 정보 영역					4Byte
+
+#define	Sys_Anode_1st_Sheet_LO_ASCII_BYTE				u.user:$1F9C.0.16		// udata[2023] Sheet ASCII0 정보		2Byte
+#define	Sys_Anode_1st_Sheet_LO_Vision_BYTE				u.user:$1F9C.16.16		// udata[2023] 비전 검사 판정 정보		1Byte
+
+//------------------- Align에 있는 Sheet Data 저장 영역 -------------------
+#define	Sys_Anode_Align_Sheet_Data						Sys.Ddata[1012]			// On 1st PNP Sheet 전체 데이터			8Byte
+
+#define	Sys_Anode_Align_Sheet_HI4BYTE					Sys.Udata[2024]			// 시간 영역							4Byte
+#define	Sys_Anode_Align_Sheet_LO4BYTE					Sys.Udata[2025]			// Sheet 판정 정보 영역					4Byte
+
+#define	Sys_Anode_Align_Sheet_LO_ASCII_BYTE				u.user:$1FA4.0.16		// udata[2025] Sheet ASCII0 정보		2Byte
+#define	Sys_Anode_Align_Sheet_LO_Vision_BYTE			u.user:$1FA4.16.16		// udata[2025] 비전 검사 판정 정보		1Byte
+
+//------------------- 2nd PNP에 있는 Sheet Data 저장 영역 -------------------
+#define	Sys_Anode_2nd_Sheet_Data						Sys.Ddata[1013]			// On 1st PNP Sheet 전체 데이터			8Byte
+
+#define	Sys_Anode_2nd_Sheet_HI4BYTE						Sys.Udata[2026]			// 시간 영역							4Byte
+#define	Sys_Anode_2nd_Sheet_LO4BYTE						Sys.Udata[2027]			// Sheet 판정 정보 영역					4Byte
+
+#define	Sys_Anode_2nd_Sheet_LO_ASCII_BYTE				u.user:$1FAC.0.16		// udata[2027] Sheet ASCII0 정보		2Byte
+#define	Sys_Anode_2nd_Sheet_LO_Vision_BYTE				u.user:$1FAC.16.16		// udata[2027] 비전 검사 판정 정보		1Byte
+
+//------------------- Anode NG PNP에 있는 Sheet Data 저장 영역 -------------------
+
+#define	Sys_Anode_NG_TR_Sheet_Data						Sys.Ddata[1014]			// On 1st PNP Sheet 전체 데이터			8Byte
+
+#define	Sys_Anode_NG_TR_Sheet_HI4BYTE					Sys.Udata[2028]			// 시간 영역							4Byte
+#define	Sys_Anode_NG_TR_Sheet_LO4BYTE					Sys.Udata[2029]			// Sheet 판정 정보 영역					4Byte
+
+#define	Sys_Anode_NG_TR_Sheet_LO_ASCII_BYTE				u.user:$1FB4.0.16		// udata[2027] Sheet ASCII0 정보		2Byte
+#define	Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE			u.user:$1FB4.16.16		// udata[2027] 비전 검사 판정 정보		1Byte
+
+//------------------- Anode NG Place에 있는 Sheet Data 저장 영역 -------------------
+
+#define	Sys_Anode_NG_Place_Sheet_Data					Sys.Ddata[1015]			// On 1st PNP Sheet 전체 데이터			8Byte
+
+#define	Sys_Anode_NG_Place_Sheet_HI4BYTE				Sys.Udata[2030]			// 시간 영역							4Byte
+#define	Sys_Anode_NG_Place_Sheet_LO4BYTE				Sys.Udata[2031]			// Sheet 판정 정보 영역					4Byte
+
+#define	Sys_Anode_NG_Place_Sheet_LO_ASCII_BYTE			u.user:$1FBC.0.16		// udata[2027] Sheet ASCII0 정보		2Byte
+#define	Sys_Anode_NG_Place_Sheet_LO_Vision_BYTE			u.user:$1FBC.16.16		// udata[2027] 비전 검사 판정 정보		1Byte
+
+// 비전 패스
+global P_Vision_Pass = 0;
+
+
+global P_FirstSepa_Ret = 0
+
+// 비전 검사 커멘드
+global P_Vision_Align_Command = 0;					// 얼라인 커멘드
+global P_Vision_Surface_Command = 0;				// 표면검사 커멘드
+global P_Vision_Stack_Command = 0;					// 스택검사 커멘드
+global P_Vision_Existence_Command = 0;				// 유무검사 커멘드
+global P_Vision_EmptyTable_Command = 0;				// 빈테이블 커멘드
+global P_Vision_FirstSepa_Command = 0;				// 세파첫장 커멘드
+
+// 비전 검사 유닛
+global P_Selected_Align_Inspection_Unit = 0;		// 선택한 얼라인 검사 유닛
+global P_Selected_Surface_Inspection_Unit = 0;		// 선택한 표면검사 유닛
+global P_Selected_Stack_Inspection_Unit = 0;		// 선택한 스택 검사 유닛
+global P_Selected_Existence_Inspection_Unit = 0;	// 선택한 유무검사 유닛
+global P_Selected_EmptyTable_Inspection_Unit = 0;	// 선택한 빈테이블 유닛
+
+
+// 얼라인 테이블 무브 커멘드
+global P_Set_Cathode_Align_Zero_Pos = 0;			// 양극 얼라인 테이블 대기위치 이동 커멘드
+global P_Set_Anode_Align_Zero_Pos = 0;				// 음극 얼라인 테이블 대기위치 이동 커멘드
+
+// 비전 시퀀스 스텟머신
+global P_Vision_Align_State_Machine = 0;			// 얼라인 스텟머신
+global P_Vision_Surface_State_Machine = 0;			// 표면검사 스텟머신
+global P_Vision_Stack_State_Machine = 0;			// 스택검사 스텟머신
+global P_Vision_Existence_State_Machine = 0;		// 유무검사 스텟머신
+global P_Vision_EmptyTable_State_Machine = 0;		// 빈테이블 스텟머신
+global P_Vision_FirstSepa_State_Machine	= 0;		// 세파 첫장 스텟머신
+
+global P_Vision_Align_Status = 0;					// 비전 얼라인 진행 상태
+global P_Vision_Surface_Status = 0;					// 표면검사 진행 상태
+global P_Vision_Stack_Status = 0;					// 스택 검사 진행 상태
+global P_Vision_Existence_Status = 0;				// 유무검사 진행 상태
+global P_Vision_EmptyTable_Status = 0;				// 빈테이블 검사 진행 상태
+global P_Vision_FirstSepa_Status = 0;				// 세파 첫장 진행 상태
+
+global P_Align_Zero_Move_Start_Flag(2);				// 얼라인 대기위치 동작 플래그
+
+#define	F_Align_Move_Mode				1			// 얼라인 보정 위치 동작
+#define F_Start_Position_Move_Mode		2			// 대기 위치 무브 모드
+#define F_Align_AutoCal_Move_Mode		3			// 얼라인 비전 캘 위치 동작 
+
+global P_Cathode_Align_Table_Move;					// 양극 얼라인 테이블 동작 모드
+global P_Anode_Align_Table_Move;					// 음극 얼라인 테이블 동작 모드
+
+global P_Vision_Anode_Cell_Existence = 0;			// 음극 얼라인 테이블 극판 유무
+global P_Vision_Cathode_Cell_Existence = 0;			// 양극 얼라인 테이블 극판 유무
+
+global P_Align_Sheet_CHK = 0;
+global P_Anode_NG_Code = 0;
+global P_Cathode_NG_Code = 0;
+global P_Stack_NG_Code = 0;
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//						PMAC <-> Vision P변수 통신 영역
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define  P_Anode_Align_Stage_X_mm							P5000				// 음극 얼라인 스테이지 X 이동거리	
+#define  P_Anode_Align_Stage_Y_mm   						P5001  				// 음극 얼라인 스테이지 Y 이동거리
+#define  P_Anode_Align_Stage_T_mm   						P5002  				// 음극 얼라인 스테이지 T 이동거리							
+#define P_Cathode_Align_Stage_X_mm							P5003				// 양극 얼라인 스테이지 X 이동거리	
+#define P_Cathode_Align_Stage_Y_mm							P5004				// 양극 얼라인 스테이지 Y 이동거리
+#define P_Cathode_Align_Stage_T_mm							P5005				// 양극 얼라인 스테이지 T 이동거리
+//#define spare												P5006
+//#define spare												P5007
+//#define spare												P5008
+//#define spare												P5009
+#define P_Vision_AutoCal_Mode								P5010				// 비전 캘리브레이션 모드
+#define P_Vision_AutoCal_Command							P5011				// 비전 캘리브레이션 동작 명령
+#define P_Vision_AutoCal_Status								P5012				// 비전 캘리브레이션 모드 상태
+#define P_PMAC_AutoCal_Alarm								P5013				// 비전 캘리브레이션 알람
+#define P_PMAC_AutoCal_Mode									P5014				// 비전 캘리브레이션 PMAC 모드
+#define P_PMAC_AutoCal_Status								P5015				// 비전 캘리브레이션 PMAC 상태
+#define P_Align_AutoCal_X_POS								P5016				// 비전 캘리브레이션 X Axis 이동량
+#define P_Align_AutoCal_Y_POS								P5017				// 비전 캘리브레이션 Y Axis 이동량
+#define P_Align_AutoCal_T_POS								P5018				// 비전 캘리브레이션 T Axis 이동량
+#define P_CMD_Align_Complete								P5019				// 얼라인 이동 완료
+#define P_Anode_Align_Data_Delete_Set_Flag					P5020				// 음극 Align 데이터 삭제 PMAC -> Vision 전달 플래그
+#define P_Anode_2nd_PNP_Data_Delete_Set_Flag				P5021				// 음극 2차 P&P 데이터 삭제 PMAC -> Vision 전달 플래그
+#define P_Cathode_Align_Data_Delete_Set_Flag				P5022				// 양극 Align 데이터 삭제 PMAC -> Vision 전달 플래그
+#define P_Cathode_2nd_PNP_Data_Delete_Set_Flag				P5023				// 양극 2차 P&P 데이터 삭제 PMAC -> Vision 전달 플래그
+#define P_Anode_Data_Delete_Vision_To_PMAC_Get_Flag			P5024				// 데이터 삭제 완료 Vision -> PMAC 전달 플래그
+#define P_Cathode_Data_Delete_Vision_To_PMAC_Get_Flag		P5025				// 데이터 삭제 완료 Vision -> PMAC 전달 플래그
+//#define spare												P5026
+//#define spare												P5027
+//#define spare												P5028
+#define P_VISION_Anode_Cathode_Total_Recipe_Count			P5029				// 양, 음극 전체 극판 개수
+#define P_EPC_VISION_INPUT_Correction						P5030				// 비전 EPC 보정 값
+#define P_Vison_Read_EPC_Camera_Move_Request				P5031				// Vision -> PMAC EPC 카메라 보정 위치 이동 요청 신호
+//#define spare												P5032
+//#define spare												P5033
+//#define spare												P5034
+#define P_Anode_Vision_To_NG_Code							P5035				// Vision 전달 음극 NG Code
+#define P_Cathode_Vision_To_NG_Code							P5036				// Vision 전달 양극 NG Code
+#define P_Stack_Vision_To_NG_Code							P5037				// Vision 전달 스택 NG Code
+//#define spare												P5038
+//#define spare												P5039
+#define P_Vision_Anode_Trigger_Count_Reset_Flag				P5040				// 음극 트리거 체크 카운트 리셋 플래그
+#define P_Vision_Anode_Trigger_Count_Reset_Complete_Flag	P5041				// 음극 트리거 체크 리셋 완료 플래그
+#define P_Vision_Cathode_Trigger_Count_Reset_Flag			P5042				// 양극 트리거 체크 카운트 리셋 플래그
+#define P_Vision_Cathode_Trigger_Count_Reset_Complete_Flag	P5043				// 양극 트리거 체크 리셋 완료 플래그
+#define P_Vision_Stack_Trigger_Count_Reset_Flag				P5044				// 스택 트리거 체크 카운트 리셋 플래그
+#define P_Vision_Stack_Trigger_Count_Reset_Complete_Flag	P5045				// 스택 트리거 체크 리셋 완료 플래그
+
+//#define spare												P5046				
+// [ 참조 : 260414 Reel Work Confirm 관련 PMAC ↔ Vision,PLC I/F ]
+#define P_Y_Vision_Work_Confirm_Operation_Flag				P5047				// Work Confirm 동작했다는 플래그
+#define P_X_Vision_Work_Confirm_Operation_Ack				P5048				// Work Confirm 동작 아크 신호
+#define P_Vision_Send_Auto_Maual_Signal						P5049				// Vision에게 Auto/Maual Switch 상태 보냄
+// [ 참조 : 260420 SUSPEND 배출 시, 얼라인 재보정 기능 추가 ]
+#define	P_Vision_Ca_AT_Retry_Cal_Flag						P5050				// 양극 얼라인 재보정 플래그[ Vision -> PMAC ]
+#define	P_Vision_An_AT_Retry_Cal_Flag						P5051				// 음극 얼라인 재보정 플래그[ Vision -> PMAC ]
+#define	P_PMAC_To_Vision_Ca_AT_Retry_Cal_Ack				P5052				// 양극 얼라인 재보정 완료 플래그[ PMAC -> Vision ]
+#define	P_PMAC_To_Vision_An_AT_Retry_Cal_Ack				P5053				// 음극 얼라인 재보정 완료 플래그[ PMAC -> Vision ]
+#define	P_Vision_Send_Middle_Skip_Off_Flag					P5054				// 260609 중간 배출 무시 off 조건 수정 (비전에서 신호 주면)
+//	#define	spare											P5055
+#define	P_Vision_Sepa_ARC_Judge								P5056				// ARC 진행 후 Vision Stack Vision 판단 신호 (중간 배출 무시) [ Vision -> PMAC ]	[ 참조 : 26.05.13 중간 배출 무시 추가 ]	
+//	#define	spare											P5057
+//	#define	spare											P5058
+//	#define	spare											P5059
+//	#define	spare											P5060
+//	#define	spare											P5061
+//	#define	spare											P5062
+//	#define	spare											P5063
+//	#define	spare											P5064
+//	#define	spare											P5065
+//	#define	spare											P5066
+//	#define	spare											P5067
+//	#define	spare											P5068
+//	#define	spare											P5069
+//	#define	spare											P5070
+//	#define	spare											P5071
+//	#define	spare											P5072
+//	#define	spare											P5073
+//	#define	spare											P5074
+//	#define	spare											P5075
+//	#define	spare											P5076
+//	#define	spare											P5077
+//	#define	spare											P5078
+//	#define	spare											P5079
+//	#define	spare											P5080
+//	#define	spare											P5081
+//	#define	spare											P5082
+//	#define	spare											P5083
+//	#define	spare											P5084
+//	#define	spare											P5085
+//	#define	spare											P5086
+//	#define	spare											P5087
+//	#define	spare											P5088
+//	#define	spare											P5089
+//	#define	spare											P5090
+//	#define	spare											P5091
+//	#define	spare											P5092
+//	#define	spare											P5093
+//	#define	spare											P5094
+//	#define	spare											P5095
+//	#define	spare											P5096
+//	#define	spare											P5097
+//	#define	spare											P5098
+//	#define	spare											P5099
+#define P_Anode_Align_Vision_Sheet_1						P5100				// Vision 전달 음극 극판 데이터 1
+#define P_Anode_Align_Vision_Sheet_2						P5101				// Vision 전달 음극 극판 데이터 2
+#define P_Anode_Align_Vision_Sheet_3						P5102				// Vision 전달 음극 극판 데이터 3
+#define P_Anode_Align_Vision_Sheet_4						P5103				// Vision 전달 음극 극판 데이터 4
+#define P_Anode_Align_Vision_Sheet_5						P5104				// Vision 전달 음극 극판 데이터 5
+#define P_Anode_Align_Vision_Sheet_6						P5105				// Vision 전달 음극 극판 데이터 6
+#define P_Anode_Align_Vision_Sheet_7						P5106				// Vision 전달 음극 극판 데이터 7
+//	#define	spare											P5107
+//	#define	spare											P5108
+//	#define	spare											P5109
+#define P_Cathode_Align_Vision_Sheet_1						P5110				// Vision 전달 양극 극판 데이터 1
+#define P_Cathode_Align_Vision_Sheet_2						P5111				// Vision 전달 양극 극판 데이터 2
+#define P_Cathode_Align_Vision_Sheet_3						P5112				// Vision 전달 양극 극판 데이터 3
+#define P_Cathode_Align_Vision_Sheet_4						P5113				// Vision 전달 양극 극판 데이터 4
+#define P_Cathode_Align_Vision_Sheet_5						P5114				// Vision 전달 양극 극판 데이터 5
+#define P_Cathode_Align_Vision_Sheet_6						P5115				// Vision 전달 양극 극판 데이터 6
+#define P_Cathode_Align_Vision_Sheet_7						P5116				// Vision 전달 양극 극판 데이터 7
+//	#define	spare											P5117
+//	#define	spare											P5118
+//	#define	spare											P5119
+//	#define	spare											P5120
+//	#define	spare											P5121
+//	#define	spare											P5122
+//	#define	spare											P5123
+//	#define	spare											P5124
+//	#define	spare											P5125
+//	#define	spare											P5126
+//	#define	spare											P5127
+//	#define	spare											P5128
+//	#define	spare											P5129
+//	#define	spare											P5130
+//	#define	spare											P5131
+//	#define	spare											P5132
+//	#define	spare											P5133
+//	#define	spare											P5134
+//	#define	spare											P5135
+//	#define	spare											P5136
+//	#define	spare											P5137
+//	#define	spare											P5138
+//	#define	spare											P5139
+//	#define	spare											P5140
+//	#define	spare											P5141
+//	#define	spare											P5142
+//	#define	spare											P5143
+//	#define	spare											P5144
+//	#define	spare											P5145
+//	#define	spare											P5146
+//	#define	spare											P5147
+//	#define	spare											P5148
+//	#define	spare											P5149
+//	#define	spare											P5150
+//	#define	spare											P5151
+//	#define	spare											P5152
+//	#define	spare											P5153
+//	#define	spare											P5154
+//	#define	spare											P5155
+//	#define	spare											P5156
+//	#define	spare											P5157
+//	#define	spare											P5158
+//	#define	spare											P5159
+//	#define	spare											P5160
+//	#define	spare											P5161
+//	#define	spare											P5162
+//	#define	spare											P5163
+//	#define	spare											P5164
+//	#define	spare											P5165
+//	#define	spare											P5166
+//	#define	spare											P5167
+//	#define	spare											P5168
+//	#define	spare											P5169
+//	#define	spare											P5170
+//	#define	spare											P5171
+//	#define	spare											P5172
+//	#define	spare											P5173
+//	#define	spare											P5174
+//	#define	spare											P5175
+//	#define	spare											P5176
+//	#define	spare											P5177
+//	#define	spare											P5178
+//	#define	spare											P5179
+//	#define	spare											P5180
+//	#define	spare											P5181
+//	#define	spare											P5182
+//	#define	spare											P5183
+//	#define	spare											P5184
+//	#define	spare											P5185
+//	#define	spare											P5186
+//	#define	spare											P5187
+//	#define	spare											P5188
+//	#define	spare											P5189
+//	#define	spare											P5190
+//	#define	spare											P5191
+//	#define	spare											P5192
+//	#define	spare											P5193
+//	#define	spare											P5194
+//	#define	spare											P5195
+//	#define	spare											P5196
+//	#define	spare											P5197
+//	#define	spare											P5198
+//	#define	spare											P5199
+//	#define	spare											P5200
+//	#define	spare											P5201
+//	#define	spare											P5202
+//	#define	spare											P5203
+//	#define	spare											P5204
+//	#define	spare											P5205
+//	#define	spare											P5206
+//	#define	spare											P5207
+//	#define	spare											P5208
+//	#define	spare											P5209
+//	#define	spare											P5210
+//	#define	spare											P5211
+//	#define	spare											P5212
+//	#define	spare											P5213
+//	#define	spare											P5214
+//	#define	spare											P5215
+//	#define	spare											P5216
+//	#define	spare											P5217
+//	#define	spare											P5218
+//	#define	spare											P5219
+//	#define	spare											P5220
+//	#define	spare											P5221
+//	#define	spare											P5222
+//	#define	spare											P5223
+//	#define	spare											P5224
+//	#define	spare											P5225
+//	#define	spare											P5226
+//	#define	spare											P5227
+//	#define	spare											P5228
+//	#define	spare											P5229
+//	#define	spare											P5230
+//	#define	spare											P5231
+//	#define	spare											P5232
+//	#define	spare											P5233
+//	#define	spare											P5234
+//	#define	spare											P5235
+//	#define	spare											P5236
+//	#define	spare											P5237
+//	#define	spare											P5238
+//	#define	spare											P5239
+//	#define	spare											P5240
+//	#define	spare											P5241
+//	#define	spare											P5242
+//	#define	spare											P5243
+//	#define	spare											P5244
+//	#define	spare											P5245
+//	#define	spare											P5246
+//	#define	spare											P5247
+//	#define	spare											P5248
+//	#define	spare											P5249
+//	#define	spare											P5250
+//	#define	spare											P5251
+//	#define	spare											P5252
+//	#define	spare											P5253
+//	#define	spare											P5254
+//	#define	spare											P5255
+//	#define	spare											P5256
+//	#define	spare											P5257
+//	#define	spare											P5258
+//	#define	spare											P5259
+//	#define	spare											P5260
+//	#define	spare											P5261
+//	#define	spare											P5262
+//	#define	spare											P5263
+//	#define	spare											P5264
+//	#define	spare											P5265
+//	#define	spare											P5266
+//	#define	spare											P5267
+//	#define	spare											P5268
+//	#define	spare											P5269
+//	#define	spare											P5270
+//	#define	spare											P5271
+//	#define	spare											P5272
+//	#define	spare											P5273
+//	#define	spare											P5274
+//	#define	spare											P5275
+//	#define	spare											P5276
+//	#define	spare											P5277
+//	#define	spare											P5278
+//	#define	spare											P5279
+//	#define	spare											P5280
+//	#define	spare											P5281
+//	#define	spare											P5282
+//	#define	spare											P5283
+//	#define	spare											P5284
+//	#define	spare											P5285
+//	#define	spare											P5286
+//	#define	spare											P5287
+//	#define	spare											P5288
+//	#define	spare											P5289
+//	#define	spare											P5290
+//	#define	spare											P5291
+//	#define	spare											P5292
+//	#define	spare											P5293
+//	#define	spare											P5294
+//	#define	spare											P5295
+//	#define	spare											P5296
+//	#define	spare											P5297
+//	#define	spare											P5298
+//	#define	spare											P5299
+//	#define	spare											P5300
+//	#define	spare											P5301
+//	#define	spare											P5302
+//	#define	spare											P5303
+//	#define	spare											P5304
+//	#define	spare											P5305
+//	#define	spare											P5306
+//	#define	spare											P5307
+//	#define	spare											P5308
+//	#define	spare											P5309
+//	#define	spare											P5310
+//	#define	spare											P5311
+//	#define	spare											P5312
+//	#define	spare											P5313
+//	#define	spare											P5314
+//	#define	spare											P5315
+//	#define	spare											P5316
+//	#define	spare											P5317
+//	#define	spare											P5318
+//	#define	spare											P5319
+//	#define	spare											P5320
+//	#define	spare											P5321
+//	#define	spare											P5322
+//	#define	spare											P5323
+//	#define	spare											P5324
+//	#define	spare											P5325
+//	#define	spare											P5326
+//	#define	spare											P5327
+//	#define	spare											P5328
+//	#define	spare											P5329
+//	#define	spare											P5330
+//	#define	spare											P5331
+//	#define	spare											P5332
+//	#define	spare											P5333
+//	#define	spare											P5334
+//	#define	spare											P5335
+//	#define	spare											P5336
+//	#define	spare											P5337
+//	#define	spare											P5338
+//	#define	spare											P5339
+//	#define	spare											P5340
+//	#define	spare											P5341
+//	#define	spare											P5342
+//	#define	spare											P5343
+//	#define	spare											P5344
+//	#define	spare											P5345
+//	#define	spare											P5346
+//	#define	spare											P5347
+//	#define	spare											P5348
+//	#define	spare											P5349
+//	#define	spare											P5350
+//	#define	spare											P5351
+//	#define	spare											P5352
+//	#define	spare											P5353
+//	#define	spare											P5354
+//	#define	spare											P5355
+//	#define	spare											P5356
+//	#define	spare											P5357
+//	#define	spare											P5358
+//	#define	spare											P5359
+//	#define	spare											P5360
+//	#define	spare											P5361
+//	#define	spare											P5362
+//	#define	spare											P5363
+//	#define	spare											P5364
+//	#define	spare											P5365
+//	#define	spare											P5366
+//	#define	spare											P5367
+//	#define	spare											P5368
+//	#define	spare											P5369
+//	#define	spare											P5370
+//	#define	spare											P5371
+//	#define	spare											P5372
+//	#define	spare											P5373
+//	#define	spare											P5374
+//	#define	spare											P5375
+//	#define	spare											P5376
+//	#define	spare											P5377
+//	#define	spare											P5378
+//	#define	spare											P5379
+//	#define	spare											P5380
+//	#define	spare											P5381
+//	#define	spare											P5382
+//	#define	spare											P5383
+//	#define	spare											P5384
+//	#define	spare											P5385
+//	#define	spare											P5386
+//	#define	spare											P5387
+//	#define	spare											P5388
+//	#define	spare											P5389
+//	#define	spare											P5390
+//	#define	spare											P5391
+//	#define	spare											P5392
+//	#define	spare											P5393
+//	#define	spare											P5394
+//	#define	spare											P5395
+//	#define	spare											P5396
+//	#define	spare											P5397
+//	#define	spare											P5398
+//	#define	spare											P5399
+//	#define	spare											P5400
+//	#define	spare											P5401
+//	#define	spare											P5402
+//	#define	spare											P5403
+//	#define	spare											P5404
+//	#define	spare											P5405
+//	#define	spare											P5406
+//	#define	spare											P5407
+//	#define	spare											P5408
+//	#define	spare											P5409
+//	#define	spare											P5410
+//	#define	spare											P5411
+//	#define	spare											P5412
+//	#define	spare											P5413
+//	#define	spare											P5414
+//	#define	spare											P5415
+//	#define	spare											P5416
+//	#define	spare											P5417
+//	#define	spare											P5418
+//	#define	spare											P5419
+//	#define	spare											P5420
+//	#define	spare											P5421
+//	#define	spare											P5422
+//	#define	spare											P5423
+//	#define	spare											P5424
+//	#define	spare											P5425
+//	#define	spare											P5426
+//	#define	spare											P5427
+//	#define	spare											P5428
+//	#define	spare											P5429
+//	#define	spare											P5430
+//	#define	spare											P5431
+//	#define	spare											P5432
+//	#define	spare											P5433
+//	#define	spare											P5434
+//	#define	spare											P5435
+//	#define	spare											P5436
+//	#define	spare											P5437
+//	#define	spare											P5438
+//	#define	spare											P5439
+//	#define	spare											P5440
+//	#define	spare											P5441
+//	#define	spare											P5442
+//	#define	spare											P5443
+//	#define	spare											P5444
+//	#define	spare											P5445
+//	#define	spare											P5446
+//	#define	spare											P5447
+//	#define	spare											P5448
+//	#define	spare											P5449
+//	#define	spare											P5450
+//	#define	spare											P5451
+//	#define	spare											P5452
+//	#define	spare											P5453
+//	#define	spare											P5454
+//	#define	spare											P5455
+//	#define	spare											P5456
+//	#define	spare											P5457
+//	#define	spare											P5458
+//	#define	spare											P5459
+//	#define	spare											P5460
+//	#define	spare											P5461
+//	#define	spare											P5462
+//	#define	spare											P5463
+//	#define	spare											P5464
+//	#define	spare											P5465
+//	#define	spare											P5466
+//	#define	spare											P5467
+//	#define	spare											P5468
+//	#define	spare											P5469
+//	#define	spare											P5470
+//	#define	spare											P5471
+//	#define	spare											P5472
+//	#define	spare											P5473
+//	#define	spare											P5474
+//	#define	spare											P5475
+//	#define	spare											P5476
+//	#define	spare											P5477
+//	#define	spare											P5478
+//	#define	spare											P5479
+//	#define	spare											P5480
+//	#define	spare											P5481
+//	#define	spare											P5482
+//	#define	spare											P5483
+//	#define	spare											P5484
+//	#define	spare											P5485
+//	#define	spare											P5486
+//	#define	spare											P5487
+//	#define	spare											P5488
+//	#define	spare											P5489
+//	#define	spare											P5490
+//	#define	spare											P5491
+//	#define	spare											P5492
+//	#define	spare											P5493
+//	#define	spare											P5494
+//	#define	spare											P5495
+//	#define	spare											P5496
+//	#define	spare											P5497
+//	#define	spare											P5498
+//	#define	spare											P5499
+//	#define	spare											P5500
+//	#define	spare											P5501
+//	#define	spare											P5502
+//	#define	spare											P5503
+//	#define	spare											P5504
+//	#define	spare											P5505
+//	#define	spare											P5506
+//	#define	spare											P5507
+//	#define	spare											P5508
+//	#define	spare											P5509
+//	#define	spare											P5510
+//	#define	spare											P5511
+//	#define	spare											P5512
+//	#define	spare											P5513
+//	#define	spare											P5514
+//	#define	spare											P5515
+//	#define	spare											P5516
+//	#define	spare											P5517
+//	#define	spare											P5518
+//	#define	spare											P5519
+//	#define	spare											P5520
+//	#define	spare											P5521
+//	#define	spare											P5522
+//	#define	spare											P5523
+//	#define	spare											P5524
+//	#define	spare											P5525
+//	#define	spare											P5526
+//	#define	spare											P5527
+//	#define	spare											P5528
+//	#define	spare											P5529
+//	#define	spare											P5530
+//	#define	spare											P5531
+//	#define	spare											P5532
+//	#define	spare											P5533
+//	#define	spare											P5534
+//	#define	spare											P5535
+//	#define	spare											P5536
+//	#define	spare											P5537
+//	#define	spare											P5538
+//	#define	spare											P5539
+//	#define	spare											P5540
+//	#define	spare											P5541
+//	#define	spare											P5542
+//	#define	spare											P5543
+//	#define	spare											P5544
+//	#define	spare											P5545
+//	#define	spare											P5546
+//	#define	spare											P5547
+//	#define	spare											P5548
+//	#define	spare											P5549
+//	#define	spare											P5550
+//	#define	spare											P5551
+//	#define	spare											P5552
+//	#define	spare											P5553
+//	#define	spare											P5554
+//	#define	spare											P5555
+//	#define	spare											P5556
+//	#define	spare											P5557
+//	#define	spare											P5558
+//	#define	spare											P5559
+//	#define	spare											P5560
+//	#define	spare											P5561
+//	#define	spare											P5562
+//	#define	spare											P5563
+//	#define	spare											P5564
+//	#define	spare											P5565
+//	#define	spare											P5566
+//	#define	spare											P5567
+//	#define	spare											P5568
+//	#define	spare											P5569
+//	#define	spare											P5570
+//	#define	spare											P5571
+//	#define	spare											P5572
+//	#define	spare											P5573
+//	#define	spare											P5574
+//	#define	spare											P5575
+//	#define	spare											P5576
+//	#define	spare											P5577
+//	#define	spare											P5578
+//	#define	spare											P5579
+//	#define	spare											P5580
+//	#define	spare											P5581
+//	#define	spare											P5582
+//	#define	spare											P5583
+//	#define	spare											P5584
+//	#define	spare											P5585
+//	#define	spare											P5586
+//	#define	spare											P5587
+//	#define	spare											P5588
+//	#define	spare											P5589
+//	#define	spare											P5590
+//	#define	spare											P5591
+//	#define	spare											P5592
+//	#define	spare											P5593
+//	#define	spare											P5594
+//	#define	spare											P5595
+//	#define	spare											P5596
+//	#define	spare											P5597
+//	#define	spare											P5598
+//	#define	spare											P5599
+//	#define	spare											P5600
+//	#define	spare											P5601
+//	#define	spare											P5602
+//	#define	spare											P5603
+//	#define	spare											P5604
+//	#define	spare											P5605
+//	#define	spare											P5606
+//	#define	spare											P5607
+//	#define	spare											P5608
+//	#define	spare											P5609
+//	#define	spare											P5610
+//	#define	spare											P5611
+//	#define	spare											P5612
+//	#define	spare											P5613
+//	#define	spare											P5614
+//	#define	spare											P5615
+//	#define	spare											P5616
+//	#define	spare											P5617
+//	#define	spare											P5618
+//	#define	spare											P5619
+//	#define	spare											P5620
+//	#define	spare											P5621
+//	#define	spare											P5622
+//	#define	spare											P5623
+//	#define	spare											P5624
+//	#define	spare											P5625
+//	#define	spare											P5626
+//	#define	spare											P5627
+//	#define	spare											P5628
+//	#define	spare											P5629
+//	#define	spare											P5630
+//	#define	spare											P5631
+//	#define	spare											P5632
+//	#define	spare											P5633
+//	#define	spare											P5634
+//	#define	spare											P5635
+//	#define	spare											P5636
+//	#define	spare											P5637
+//	#define	spare											P5638
+//	#define	spare											P5639
+//	#define	spare											P5640
+//	#define	spare											P5641
+//	#define	spare											P5642
+//	#define	spare											P5643
+//	#define	spare											P5644
+//	#define	spare											P5645
+//	#define	spare											P5646
+//	#define	spare											P5647
+//	#define	spare											P5648
+//	#define	spare											P5649
+//	#define	spare											P5650
+//	#define	spare											P5651
+//	#define	spare											P5652
+//	#define	spare											P5653
+//	#define	spare											P5654
+//	#define	spare											P5655
+//	#define	spare											P5656
+//	#define	spare											P5657
+//	#define	spare											P5658
+//	#define	spare											P5659
+//	#define	spare											P5660
+//	#define	spare											P5661
+//	#define	spare											P5662
+//	#define	spare											P5663
+//	#define	spare											P5664
+//	#define	spare											P5665
+//	#define	spare											P5666
+//	#define	spare											P5667
+//	#define	spare											P5668
+//	#define	spare											P5669
+//	#define	spare											P5670
+//	#define	spare											P5671
+//	#define	spare											P5672
+//	#define	spare											P5673
+//	#define	spare											P5674
+//	#define	spare											P5675
+//	#define	spare											P5676
+//	#define	spare											P5677
+//	#define	spare											P5678
+//	#define	spare											P5679
+//	#define	spare											P5680
+//	#define	spare											P5681
+//	#define	spare											P5682
+//	#define	spare											P5683
+//	#define	spare											P5684
+//	#define	spare											P5685
+//	#define	spare											P5686
+//	#define	spare											P5687
+//	#define	spare											P5688
+//	#define	spare											P5689
+//	#define	spare											P5690
+//	#define	spare											P5691
+//	#define	spare											P5692
+//	#define	spare											P5693
+//	#define	spare											P5694
+//	#define	spare											P5695
+//	#define	spare											P5696
+//	#define	spare											P5697
+//	#define	spare											P5698
+//	#define	spare											P5699
+//	#define	spare											P5700
+//	#define	spare											P5701
+//	#define	spare											P5702
+//	#define	spare											P5703
+//	#define	spare											P5704
+//	#define	spare											P5705
+//	#define	spare											P5706
+//	#define	spare											P5707
+//	#define	spare											P5708
+//	#define	spare											P5709
+//	#define	spare											P5710
+//	#define	spare											P5711
+//	#define	spare											P5712
+//	#define	spare											P5713
+//	#define	spare											P5714
+//	#define	spare											P5715
+//	#define	spare											P5716
+//	#define	spare											P5717
+//	#define	spare											P5718
+//	#define	spare											P5719
+//	#define	spare											P5720
+//	#define	spare											P5721
+//	#define	spare											P5722
+//	#define	spare											P5723
+//	#define	spare											P5724
+//	#define	spare											P5725
+//	#define	spare											P5726
+//	#define	spare											P5727
+//	#define	spare											P5728
+//	#define	spare											P5729
+//	#define	spare											P5730
+//	#define	spare											P5731
+//	#define	spare											P5732
+//	#define	spare											P5733
+//	#define	spare											P5734
+//	#define	spare											P5735
+//	#define	spare											P5736
+//	#define	spare											P5737
+//	#define	spare											P5738
+//	#define	spare											P5739
+//	#define	spare											P5740
+//	#define	spare											P5741
+//	#define	spare											P5742
+//	#define	spare											P5743
+//	#define	spare											P5744
+//	#define	spare											P5745
+//	#define	spare											P5746
+//	#define	spare											P5747
+//	#define	spare											P5748
+//	#define	spare											P5749
+//	#define	spare											P5750
+//	#define	spare											P5751
+//	#define	spare											P5752
+//	#define	spare											P5753
+//	#define	spare											P5754
+//	#define	spare											P5755
+//	#define	spare											P5756
+//	#define	spare											P5757
+//	#define	spare											P5758
+//	#define	spare											P5759
+//	#define	spare											P5760
+//	#define	spare											P5761
+//	#define	spare											P5762
+//	#define	spare											P5763
+//	#define	spare											P5764
+//	#define	spare											P5765
+//	#define	spare											P5766
+//	#define	spare											P5767
+//	#define	spare											P5768
+//	#define	spare											P5769
+//	#define	spare											P5770
+//	#define	spare											P5771
+//	#define	spare											P5772
+//	#define	spare											P5773
+//	#define	spare											P5774
+//	#define	spare											P5775
+//	#define	spare											P5776
+//	#define	spare											P5777
+//	#define	spare											P5778
+//	#define	spare											P5779
+//	#define	spare											P5780
+//	#define	spare											P5781
+//	#define	spare											P5782
+//	#define	spare											P5783
+//	#define	spare											P5784
+//	#define	spare											P5785
+//	#define	spare											P5786
+//	#define	spare											P5787
+//	#define	spare											P5788
+//	#define	spare											P5789
+//	#define	spare											P5790
+//	#define	spare											P5791
+//	#define	spare											P5792
+//	#define	spare											P5793
+//	#define	spare											P5794
+//	#define	spare											P5795
+//	#define	spare											P5796
+//	#define	spare											P5797
+//	#define	spare											P5798
+//	#define	spare											P5799
+//	#define	spare											P5800
+//	#define	spare											P5801
+//	#define	spare											P5802
+//	#define	spare											P5803
+//	#define	spare											P5804
+//	#define	spare											P5805
+//	#define	spare											P5806
+//	#define	spare											P5807
+//	#define	spare											P5808
+//	#define	spare											P5809
+//	#define	spare											P5810
+//	#define	spare											P5811
+//	#define	spare											P5812
+//	#define	spare											P5813
+//	#define	spare											P5814
+//	#define	spare											P5815
+//	#define	spare											P5816
+//	#define	spare											P5817
+//	#define	spare											P5818
+//	#define	spare											P5819
+//	#define	spare											P5820
+//	#define	spare											P5821
+//	#define	spare											P5822
+//	#define	spare											P5823
+//	#define	spare											P5824
+//	#define	spare											P5825
+//	#define	spare											P5826
+//	#define	spare											P5827
+//	#define	spare											P5828
+//	#define	spare											P5829
+//	#define	spare											P5830
+//	#define	spare											P5831
+//	#define	spare											P5832
+//	#define	spare											P5833
+//	#define	spare											P5834
+//	#define	spare											P5835
+//	#define	spare											P5836
+//	#define	spare											P5837
+//	#define	spare											P5838
+//	#define	spare											P5839
+//	#define	spare											P5840
+//	#define	spare											P5841
+//	#define	spare											P5842
+//	#define	spare											P5843
+//	#define	spare											P5844
+//	#define	spare											P5845
+//	#define	spare											P5846
+//	#define	spare											P5847
+//	#define	spare											P5848
+//	#define	spare											P5849
+//	#define	spare											P5850
+//	#define	spare											P5851
+//	#define	spare											P5852
+//	#define	spare											P5853
+//	#define	spare											P5854
+//	#define	spare											P5855
+//	#define	spare											P5856
+//	#define	spare											P5857
+//	#define	spare											P5858
+//	#define	spare											P5859
+//	#define	spare											P5860
+//	#define	spare											P5861
+//	#define	spare											P5862
+//	#define	spare											P5863
+//	#define	spare											P5864
+//	#define	spare											P5865
+//	#define	spare											P5866
+//	#define	spare											P5867
+//	#define	spare											P5868
+//	#define	spare											P5869
+//	#define	spare											P5870
+//	#define	spare											P5871
+//	#define	spare											P5872
+//	#define	spare											P5873
+//	#define	spare											P5874
+//	#define	spare											P5875
+//	#define	spare											P5876
+//	#define	spare											P5877
+//	#define	spare											P5878
+//	#define	spare											P5879
+//	#define	spare											P5880
+//	#define	spare											P5881
+//	#define	spare											P5882
+//	#define	spare											P5883
+//	#define	spare											P5884
+//	#define	spare											P5885
+//	#define	spare											P5886
+//	#define	spare											P5887
+//	#define	spare											P5888
+//	#define	spare											P5889
+//	#define	spare											P5890
+//	#define	spare											P5891
+//	#define	spare											P5892
+//	#define	spare											P5893
+//	#define	spare											P5894
+//	#define	spare											P5895
+//	#define	spare											P5896
+//	#define	spare											P5897
+//	#define	spare											P5898
+//	#define	spare											P5899
+//	#define	spare											P5900
+//	#define	spare											P5901
+//	#define	spare											P5902
+//	#define	spare											P5903
+//	#define	spare											P5904
+//	#define	spare											P5905
+//	#define	spare											P5906
+//	#define	spare											P5907
+//	#define	spare											P5908
+//	#define	spare											P5909
+//	#define	spare											P5910
+//	#define	spare											P5911
+//	#define	spare											P5912
+//	#define	spare											P5913
+//	#define	spare											P5914
+//	#define	spare											P5915
+//	#define	spare											P5916
+//	#define	spare											P5917
+//	#define	spare											P5918
+//	#define	spare											P5919
+//	#define	spare											P5920
+//	#define	spare											P5921
+//	#define	spare											P5922
+//	#define	spare											P5923
+//	#define	spare											P5924
+//	#define	spare											P5925
+//	#define	spare											P5926
+//	#define	spare											P5927
+//	#define	spare											P5928
+//	#define	spare											P5929
+//	#define	spare											P5930
+//	#define	spare											P5931
+//	#define	spare											P5932
+//	#define	spare											P5933
+//	#define	spare											P5934
+//	#define	spare											P5935
+//	#define	spare											P5936
+//	#define	spare											P5937
+//	#define	spare											P5938
+//	#define	spare											P5939
+//	#define	spare											P5940
+//	#define	spare											P5941
+//	#define	spare											P5942
+//	#define	spare											P5943
+//	#define	spare											P5944
+//	#define	spare											P5945
+//	#define	spare											P5946
+//	#define	spare											P5947
+//	#define	spare											P5948
+//	#define	spare											P5949
+//	#define	spare											P5950
+//	#define	spare											P5951
+//	#define	spare											P5952
+//	#define	spare											P5953
+//	#define	spare											P5954
+//	#define	spare											P5955
+//	#define	spare											P5956
+//	#define	spare											P5957
+//	#define	spare											P5958
+//	#define	spare											P5959
+//	#define	spare											P5960
+//	#define	spare											P5961
+//	#define	spare											P5962
+//	#define	spare											P5963
+//	#define	spare											P5964
+//	#define	spare											P5965
+//	#define	spare											P5966
+//	#define	spare											P5967
+//	#define	spare											P5968
+//	#define	spare											P5969
+//	#define	spare											P5970
+//	#define	spare											P5971
+//	#define	spare											P5972
+//	#define	spare											P5973
+//	#define	spare											P5974
+//	#define	spare											P5975
+//	#define	spare											P5976
+//	#define	spare											P5977
+//	#define	spare											P5978
+//	#define	spare											P5979
+//	#define	spare											P5980
+//	#define	spare											P5981
+//	#define	spare											P5982
+//	#define	spare											P5983
+//	#define	spare											P5984
+//	#define	spare											P5985
+//	#define	spare											P5986
+//	#define	spare											P5987
+//	#define	spare											P5988
+//	#define	spare											P5989
+//	#define	spare											P5990
+//	#define	spare											P5991
+//	#define	spare											P5992
+//	#define	spare											P5993
+//	#define	spare											P5994
+//	#define	spare											P5995
+//	#define	spare											P5996
+//	#define	spare											P5997
+//	#define	spare											P5998
+//	#define	spare											P5999
+
+
+
+
+
+
+
+
+
+
+
+

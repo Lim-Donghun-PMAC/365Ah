@@ -1,0 +1,877 @@
+
+open subprog Popup(void)
+
+
+sub: UI( BTN )		
+	
+local L_rtn = 0;
+local L_BP = 1;
+
+switch( BTN )
+{
+	case BTN_Recipe_Pos_Run_Pushed:		// P to P 위치 모드 인터락일 경우
+		// ↓ 어떤 위치 인터락 버튼이 눌렸는지 찾는 부분											
+		while(L_BP <= 10 )	// 1번레시피포스 ~ 10번 레시피포스
+		{								//   위치인터락버튼값, 비트위치, 결과값
+			call Bit_Masking_Function.Check(M_Motor_RecipePos(P_IL_Motor_Page),L_BP,&L_rtn);
+			if( L_rtn == N_TRUE )
+			{
+				P_IL_Sprint = sprintf(F_IL_Cdata," %d Recipe Pos InterLock ",L_BP);	// 플러스 인터락 문구 표시
+				//P_IL_length = strlen(F_IL_Cdata);									// 문자열 길이 저장
+				break;
+			}
+			L_BP++;
+		}									
+	break;
+
+	default:	// P to P 위치 모드 인터락이 아닐경우
+		// ↓ 간섭 모터 검색 부분 	
+		if( P_IL_Motor_Page != P_IL_Popup_Motor )
+		{
+			call Popup.Pop_letter(P_IL_Popup_Motor);			// 모터마다 문자열 써주는건데 너무 길어서 함수처리로 함
+		}
+		else
+		{
+			switch( P_IL_Robot_Bit )
+			{
+				case Hex_IL_Plus:
+					P_IL_Sprint = sprintf(F_IL_Cdata," Plus InterLock ");	// 플러스 인터락 문구 표시
+					//P_IL_length = strlen(F_IL_Cdata);						// 문자열 길이 저장
+				break;
+		
+				case Hex_IL_Minus:
+					P_IL_Sprint = sprintf(F_IL_Cdata," Minus InterLock ");	// 마이너스 인터락 문구 표시
+					//P_IL_length = strlen(F_IL_Cdata);						// 문자열 길이 저장
+				break;
+
+				default:					
+					P_IL_Sprint = sprintf(F_IL_Cdata," InterLock ");		// 그럴땐 인터락 문구 표시
+					//P_IL_length = strlen(F_IL_Cdata);						// 문자열 길이 저장
+				break;
+			}
+		}
+	break;
+	
+}
+return;
+
+sub: Pop_letter(motor)
+
+switch( motor )					// 모터 번호
+{
+	case N_1st_PnP_CA_T:
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode 1st PNP T ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);	
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장	
+	break;
+
+	case N_1st_PnP_AN_T:
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode 1st PNP T ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);	
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장	
+	break;
+
+	case N_2nd_PnP_CA_T:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode 2nd PNP T ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);	
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장		
+	break;
+
+	case N_2nd_PnP_AN_T:	
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode 2nd PNP T ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);	
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장			
+	break;
+
+	case N_Clamp_CA_Y1:	
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode Clamp Y1 ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장			
+	break;
+
+	case N_Clamp_AN_Y1:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode Clamp Y1 ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_Clamp_CA_Y2:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode Clamp Y2 ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장			
+	break;
+
+	case N_Clamp_AN_Y2:	
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode Clamp Y2 ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장			
+	break;
+
+	case N_MAIN_Z:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Main Z ");				// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_FINAL_ROLL_X:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Final Roll X ");			// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장			
+	break;
+
+	case N_FINAL_ROLL_Z:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Final Roll Z ");			// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장			
+	break;
+
+	case N_1st_PnP_CA_Z:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode 1st PNP Z ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장					
+	break;
+
+	case N_1st_PnP_AN_Z:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode 1st PNP Z ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장			
+	break;
+
+	case N_1st_Picker_CA_T:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode Picker T ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장					
+	break;
+
+	case N_1st_Picker_AN_T:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode Picker T ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장			
+	break;
+
+	case N_2nd_PnP_CA_Z:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode 2nd PNP Z ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_2nd_PnP_AN_Z:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode 2nd PNP Z ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장		
+	break;
+
+	case N_Clamp_CA_Z1:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode Clamp Z1 ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_Clamp_AN_Z1:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode Clamp Z1 ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장			
+	break;
+
+	case N_Clamp_CA_Z2:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode Clamp Z2 ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_Clamp_AN_Z2:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode Clamp Z2 ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_Align_CA_X:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode Align X ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_Align_CA_Y:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode Align Y ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장			
+	break;
+
+	case N_Align_CA_T:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode Align T ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_Align_AN_X:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode Align X ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_Align_AN_Y:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode Align Y ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_Align_AN_T:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode Align T ");			// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_NG_PnP_CA_T:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode NG T ");			// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_NG_PnP_AN_T:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode NG T ");			// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_NG_PnP_CA_Z:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Cathode NG Z ");			// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장			
+	break;
+
+	case N_NG_PnP_AN_Z:	
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Anode NG Z ");			// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_UNLOADER_X:		
+			P_IL_Sprint = sprintf(F_IL_Cdata,"1st Unloader X ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장					
+	break;
+
+	case N_UNLOADER_Z:	
+			P_IL_Sprint = sprintf(F_IL_Cdata,"1st Unloader Z ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_UNLOADER_T:	
+			P_IL_Sprint = sprintf(F_IL_Cdata,"1st Unloader T ");		// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장				
+	break;
+
+	case N_Opp_1st_CA_T:
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Opposite 1st Cathode T ");// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장	
+	break;
+
+	case N_Opp_1st_AN_T:
+			P_IL_Sprint = sprintf(F_IL_Cdata,"Opposite 1st Anode T ");	// sprintf 문자열 저장
+			P_IL_Sprint = sprintf(F_IL_Cdata2,"Risk Motor Pos : %3f",P_Motor_Current_Pos(P_IL_Popup_Motor));
+			//P_IL_Sprint = sprintf(F_IL_Cdata3,"Offset Value : %d",P1);
+			//P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 저장	
+	break;
+}
+return;
+
+close
+
+open subprog IL_Robot_Define(void)
+
+sub: Coord_Robot(motor,&rtn)// 모터별 로봇 정의
+rtn = 0;
+	switch(motor)	// P_IL_Motor_Page
+	{
+		default:		// 0값이거나 이상한 값이 들어왔을 때 
+			rtn = 0;
+		break;
+		// 1번 로봇 양극 1차 PNP T, Z,Picker=========================================================
+		case N_1st_PnP_CA_T:			// 양극 1차 PNP Robot Unit 
+			rtn = N_IL_Robot_CA_1st_PNP;
+		break;
+		case N_1st_PnP_CA_Z:			// 양극 1차 PNP Robot Unit 
+			rtn = N_IL_Robot_CA_1st_PNP;
+		break;
+		case N_1st_Picker_CA_T:			// 양극 1차 PNP Robot Unit 
+			rtn = N_IL_Robot_CA_1st_PNP;
+		break;
+		// 2번 로봇 음극 1차 PNP T, Z,Picker=========================================================
+		case N_1st_PnP_AN_T:			// 음극 1차 PNP Robot Unit 
+			rtn = N_IL_Robot_AN_1st_PNP;
+		break;
+		case N_1st_PnP_AN_Z:			// 음극 1차 PNP Robot Unit 
+			rtn = N_IL_Robot_AN_1st_PNP;
+		break;
+		case N_1st_Picker_AN_T:			// 음극 1차 PNP Robot Unit 
+			rtn = N_IL_Robot_AN_1st_PNP;
+		break;
+		// 3번 로봇 양극 2차 PNP T, Z=========================================================
+		case N_2nd_PnP_CA_T:			// 양극 2차 PNP
+			rtn = N_IL_Robot_CA_2nd_PNP;
+		break;
+		case N_2nd_PnP_CA_Z:			// 양극 2차 PNP
+			rtn = N_IL_Robot_CA_2nd_PNP;
+		break;
+		// 4번 로봇 음극 2차 PNP T, Z=========================================================
+		case N_2nd_PnP_AN_T:			// 양극 2차 PNP
+			rtn = N_IL_Robot_AN_2nd_PNP;
+		break;
+		case N_2nd_PnP_AN_Z:			// 양극 2차 PNP
+			rtn = N_IL_Robot_AN_2nd_PNP;
+		break;
+		// 5번 로봇 양극 클램프 Y1,Z1=========================================================
+		case N_Clamp_CA_Y1:				// 양극 클램프 Y1
+			rtn = N_IL_Robot_CA_Clamp1;
+		break;
+		case N_Clamp_CA_Z1:				// 양극 클램프 Y1
+			rtn = N_IL_Robot_CA_Clamp1;
+		break;
+		// 6번 로봇 음극 클램프 Y1,Z1=========================================================
+		case N_Clamp_AN_Y1:				// 음극 클램프 Y1
+			rtn = N_IL_Robot_AN_Clamp1;
+		break;
+		case N_Clamp_AN_Z1:				// 음극 클램프 Y1
+			rtn = N_IL_Robot_AN_Clamp1;
+		break;
+		// 7번 로봇 양극 클램프 Y2,Z2=========================================================
+		case N_Clamp_CA_Y2:				// 양극 클램프 Y2
+			rtn = N_IL_Robot_CA_Clamp2;
+		break;
+		case N_Clamp_CA_Z2:				// 양극 클램프 Y2
+			rtn = N_IL_Robot_CA_Clamp2;
+		break;
+		// 8번 로봇 음극 클램프 Y2,Z2=========================================================
+		case N_Clamp_AN_Y2:				//음극 클램프 Y2
+			rtn = N_IL_Robot_AN_Clamp2;
+		break;
+		case N_Clamp_AN_Z2:				// 음극 클램프 Y2
+			rtn = N_IL_Robot_AN_Clamp2;
+		break;
+		// 9번 로봇 메인 Z축 =========================================================
+		case N_MAIN_Z:
+			rtn = N_IL_Robot_Main;
+		break;
+		// 10번 로봇 파이널롤러 X, Z =========================================================
+		case N_FINAL_ROLL_X:
+			rtn = N_IL_Robot_Final_Roller;
+		break;
+		case N_FINAL_ROLL_Z:
+			rtn = N_IL_Robot_Final_Roller;
+		break;
+		// 11번 로봇 양극얼라인 X,Y,T =========================================================
+		case N_Align_CA_X:
+			rtn = N_IL_Robot_CA_Align;
+		break;
+		case N_Align_CA_Y:
+			rtn = N_IL_Robot_CA_Align;
+		break;
+		case N_Align_CA_T:
+			rtn = N_IL_Robot_CA_Align;
+		break;
+		// 12번 로봇 음극얼라인 X,Y,T =========================================================
+		case N_Align_AN_X:
+			rtn = N_IL_Robot_AN_Align;
+		break;
+		case N_Align_AN_Y:
+			rtn = N_IL_Robot_AN_Align;
+		break;
+		case N_Align_AN_T:
+			rtn = N_IL_Robot_AN_Align;
+		break;
+		// 13번 로봇 양극 NG T,Z =========================================================
+		case N_NG_PnP_CA_T:
+			rtn = N_IL_Robot_CA_NG_PNP;
+		break;
+		case N_NG_PnP_CA_Z:
+			rtn = N_IL_Robot_CA_NG_PNP;
+		break;
+		// 14번 로봇 음극 NG T,Z =========================================================
+		case N_NG_PnP_AN_T:
+			rtn = N_IL_Robot_AN_NG_PNP;
+		break;
+		case N_NG_PnP_AN_Z:
+			rtn = N_IL_Robot_AN_NG_PNP;
+		break;
+		// 15번 로봇 언로더 X,Z,T =========================================================
+		case N_UNLOADER_X:
+			rtn = N_IL_Robot_1st_Unloader;
+		break;
+		case N_UNLOADER_Z:
+			rtn = N_IL_Robot_1st_Unloader;
+		break;
+		case N_UNLOADER_T:
+			rtn = N_IL_Robot_1st_Unloader;
+		break;
+		// 16번 로봇 시트페이퍼 X =========================================================
+		case N_SHEET_PAPER_X:
+			rtn = N_IL_Robot_Sheet_Paper;
+		break;
+	}
+
+	if( P_Stack_Judgement_Memory == N_TRUE )	// 적층 중이면서
+	{	// 양음극 클램프, 메인 스텍, 파이널롤러 로봇이라면 멈춰
+		if( rtn == N_IL_Robot_CA_Clamp1 || rtn == N_IL_Robot_AN_Clamp1 || rtn == N_IL_Robot_CA_Clamp2 || rtn == N_IL_Robot_AN_Clamp2 || rtn == N_IL_Robot_Main ||  rtn == N_IL_Robot_Final_Roller )
+		{
+			rtn = 444;
+		}
+	}
+return;
+
+sub: Home_Motor_Define(motor,&rtn)// 모터별 로봇 정의		[ 참조 : 26.06.19 모터 인터락 수정 ]
+rtn = 0;
+	switch(motor)
+	{
+		default:		// 0값이거나 이상한 값이 들어왔을 때 
+			P_IL_Home_Chk_Motor_Num(0),20 = 0;
+			rtn = 0;
+		break;
+		// P_IL_Home_Chk_Motor_Num(0)~(9)	: 10개 = 내부 인터락 모터 확인.
+		// P_IL_Home_Chk_Motor_Num(10)~(19)	: 10개 = 외부 인터락 모터 확인.
+		// 1번 로봇 양극 1차 PNP T, Z,Picker=========================================================
+		case N_1st_PnP_CA_T:			// 양극 1차 PNP Robot Unit 
+			P_IL_Home_Chk_Motor_Num(0) = N_1st_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(1) = N_1st_PnP_CA_Z;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_1st_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(11) = N_1st_PnP_CA_Z;
+			P_IL_Home_Chk_Motor_Num(12) = N_2nd_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(13) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_1st_PnP_CA_Z:			// 양극 1차 PNP Robot Unit 
+			P_IL_Home_Chk_Motor_Num(0) = N_1st_PnP_CA_Z;
+			P_IL_Home_Chk_Motor_Num(1) = N_1st_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_1st_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(11) = N_1st_PnP_CA_Z;
+			P_IL_Home_Chk_Motor_Num(12) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_1st_Picker_CA_T:			// 양극 1차 PNP Robot Unit 
+			P_IL_Home_Chk_Motor_Num(0) = N_1st_Picker_CA_T;
+			P_IL_Home_Chk_Motor_Num(1) = N_1st_PnP_CA_Z;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			rtn = N_IL_Moter_Update;
+		break;
+		// 2번 로봇 음극 1차 PNP T, Z,Picker=========================================================
+		case N_1st_PnP_AN_T:			// 음극 1차 PNP Robot Unit 
+			P_IL_Home_Chk_Motor_Num(0) = N_1st_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(1) = N_1st_PnP_AN_Z;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_1st_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(11) = N_1st_PnP_AN_Z;
+			P_IL_Home_Chk_Motor_Num(12) = N_2nd_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(13) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_1st_PnP_AN_Z:			// 음극 1차 PNP Robot Unit 
+			P_IL_Home_Chk_Motor_Num(0) = N_1st_PnP_AN_Z;
+			P_IL_Home_Chk_Motor_Num(1) = N_1st_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_1st_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(11) = N_1st_PnP_AN_Z;
+			P_IL_Home_Chk_Motor_Num(12) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_1st_Picker_AN_T:			// 음극 1차 PNP Robot Unit 
+			P_IL_Home_Chk_Motor_Num(0) = N_1st_Picker_AN_T;
+			P_IL_Home_Chk_Motor_Num(1) = N_1st_PnP_AN_Z;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			rtn = N_IL_Moter_Update;
+		break;
+		// 3번 로봇 양극 2차 PNP T, Z=========================================================
+		case N_2nd_PnP_CA_T:			// 양극 2차 PNP
+			P_IL_Home_Chk_Motor_Num(0) = N_2nd_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(1) = N_2nd_PnP_CA_Z;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_1st_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(11) = N_2nd_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(12) = N_2nd_PnP_CA_Z;
+			P_IL_Home_Chk_Motor_Num(13) = N_FINAL_ROLL_X;
+			P_IL_Home_Chk_Motor_Num(14) = N_NG_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(15) = N_UNLOADER_Z;
+			P_IL_Home_Chk_Motor_Num(16) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_2nd_PnP_CA_Z:			// 양극 2차 PNP
+			P_IL_Home_Chk_Motor_Num(0) = N_2nd_PnP_CA_Z;
+			P_IL_Home_Chk_Motor_Num(1) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_2nd_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(11) = N_2nd_PnP_CA_Z;
+			P_IL_Home_Chk_Motor_Num(12) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		// 4번 로봇 음극 2차 PNP T, Z=========================================================
+		case N_2nd_PnP_AN_T:			// 음극 2차 PNP
+			P_IL_Home_Chk_Motor_Num(0) = N_2nd_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(1) = N_2nd_PnP_AN_Z;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_1st_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(11) = N_2nd_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(12) = N_2nd_PnP_AN_Z;
+			P_IL_Home_Chk_Motor_Num(13) = N_FINAL_ROLL_X;
+			P_IL_Home_Chk_Motor_Num(14) = N_NG_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(15) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_2nd_PnP_AN_Z:			// 음극 2차 PNP
+			P_IL_Home_Chk_Motor_Num(0) = N_2nd_PnP_AN_Z;
+			P_IL_Home_Chk_Motor_Num(1) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_2nd_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(11) = N_2nd_PnP_AN_Z;
+			P_IL_Home_Chk_Motor_Num(12) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		// 5번 로봇 양극 클램프 Y1,Z1=========================================================
+		case N_Clamp_CA_Y1:				// 양극 클램프 Y1
+			P_IL_Home_Chk_Motor_Num(0) = N_Clamp_CA_Y1;
+			P_IL_Home_Chk_Motor_Num(1) = N_Clamp_CA_Z1;
+			P_IL_Home_Chk_Motor_Num(2) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(3) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_Clamp_CA_Y1;
+			P_IL_Home_Chk_Motor_Num(11) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(12) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_Clamp_CA_Z1:				// 양극 클램프 Z1
+			P_IL_Home_Chk_Motor_Num(0) = N_Clamp_CA_Y1;
+			P_IL_Home_Chk_Motor_Num(1) = N_Clamp_CA_Z1;
+			P_IL_Home_Chk_Motor_Num(2) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(3) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_Clamp_CA_Z1;
+			P_IL_Home_Chk_Motor_Num(11) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		// 6번 로봇 음극 클램프 Y1,Z1=========================================================
+		case N_Clamp_AN_Y1:				// 음극 클램프 Y1
+			P_IL_Home_Chk_Motor_Num(0) = N_Clamp_AN_Y1;
+			P_IL_Home_Chk_Motor_Num(1) = N_Clamp_AN_Z1;
+			P_IL_Home_Chk_Motor_Num(2) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(3) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_Clamp_AN_Y1;
+			P_IL_Home_Chk_Motor_Num(11) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(12) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_Clamp_AN_Z1:				// 음극 클램프 Z1
+			P_IL_Home_Chk_Motor_Num(0) = N_Clamp_AN_Y1;
+			P_IL_Home_Chk_Motor_Num(1) = N_Clamp_AN_Z1;
+			P_IL_Home_Chk_Motor_Num(2) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(3) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_Clamp_AN_Z1;
+			P_IL_Home_Chk_Motor_Num(11) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		// 7번 로봇 양극 클램프 Y2,Z2=========================================================
+		case N_Clamp_CA_Y2:				// 양극 클램프 Y2
+			P_IL_Home_Chk_Motor_Num(0) = N_Clamp_CA_Y2;
+			P_IL_Home_Chk_Motor_Num(1) = N_Clamp_CA_Z2;
+			P_IL_Home_Chk_Motor_Num(2) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(3) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_Clamp_CA_Y2;
+			P_IL_Home_Chk_Motor_Num(11) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(12) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_Clamp_CA_Z2:				// 양극 클램프 Z2
+			P_IL_Home_Chk_Motor_Num(0) = N_Clamp_CA_Y2;
+			P_IL_Home_Chk_Motor_Num(1) = N_Clamp_CA_Z2;
+			P_IL_Home_Chk_Motor_Num(2) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(3) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_Clamp_CA_Z2;
+			P_IL_Home_Chk_Motor_Num(11) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		// 8번 로봇 음극 클램프 Y2,Z2=========================================================
+		case N_Clamp_AN_Y2:				//음극 클램프 Y2
+			P_IL_Home_Chk_Motor_Num(0) = N_Clamp_AN_Y2;
+			P_IL_Home_Chk_Motor_Num(1) = N_Clamp_AN_Z2;
+			P_IL_Home_Chk_Motor_Num(2) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(3) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_Clamp_AN_Y2;
+			P_IL_Home_Chk_Motor_Num(11) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(12) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_Clamp_AN_Z2:				// 음극 클램프 Z2
+			P_IL_Home_Chk_Motor_Num(0) = N_Clamp_AN_Y2;
+			P_IL_Home_Chk_Motor_Num(1) = N_Clamp_AN_Z2;
+			P_IL_Home_Chk_Motor_Num(2) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(3) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_Clamp_AN_Z2;
+			P_IL_Home_Chk_Motor_Num(11) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		// 9번 로봇 메인 Z축 =========================================================
+		case N_MAIN_Z:
+			P_IL_Home_Chk_Motor_Num(0) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(1) = N_Clamp_CA_Y1;
+			P_IL_Home_Chk_Motor_Num(2) = N_Clamp_AN_Y1;
+			P_IL_Home_Chk_Motor_Num(3) = N_Clamp_CA_Y2;
+			P_IL_Home_Chk_Motor_Num(4) = N_Clamp_AN_Y2;
+			P_IL_Home_Chk_Motor_Num(5) = N_Clamp_CA_Z1;
+			P_IL_Home_Chk_Motor_Num(6) = N_Clamp_AN_Z1;
+			P_IL_Home_Chk_Motor_Num(7) = N_Clamp_CA_Z2;
+			P_IL_Home_Chk_Motor_Num(8) = N_Clamp_AN_Z2;
+			P_IL_Home_Chk_Motor_Num(9) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		// 10번 로봇 파이널롤러 X, Z =========================================================
+		case N_FINAL_ROLL_X:
+			P_IL_Home_Chk_Motor_Num(0) = N_FINAL_ROLL_X;
+			P_IL_Home_Chk_Motor_Num(1) = N_FINAL_ROLL_Z;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_FINAL_ROLL_X;
+			P_IL_Home_Chk_Motor_Num(11) = N_FINAL_ROLL_Z;
+			P_IL_Home_Chk_Motor_Num(12) = N_2nd_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(13) = N_2nd_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(14) = N_Clamp_CA_Z1;
+			P_IL_Home_Chk_Motor_Num(15) = N_Clamp_CA_Z2;
+			P_IL_Home_Chk_Motor_Num(16) = N_Clamp_AN_Z1;
+			P_IL_Home_Chk_Motor_Num(17) = N_Clamp_AN_Z2;
+			P_IL_Home_Chk_Motor_Num(18) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_FINAL_ROLL_Z:
+			P_IL_Home_Chk_Motor_Num(0) = N_FINAL_ROLL_X;
+			P_IL_Home_Chk_Motor_Num(1) = N_FINAL_ROLL_Z;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_FINAL_ROLL_X;
+			P_IL_Home_Chk_Motor_Num(11) = N_FINAL_ROLL_Z;
+			P_IL_Home_Chk_Motor_Num(12) = N_MAIN_Z;
+			P_IL_Home_Chk_Motor_Num(13) = N_Clamp_CA_Z1;
+			P_IL_Home_Chk_Motor_Num(14) = N_Clamp_CA_Z2;
+			P_IL_Home_Chk_Motor_Num(15) = N_Clamp_AN_Z1;
+			P_IL_Home_Chk_Motor_Num(16) = N_Clamp_AN_Z2;
+			P_IL_Home_Chk_Motor_Num(17) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		// 11번 로봇 양극얼라인 X,Y,T =========================================================
+		case N_Align_CA_X:
+			rtn = N_IL_Motor_Skip;
+		break;
+		case N_Align_CA_Y:
+			rtn = N_IL_Motor_Skip;
+		break;
+		case N_Align_CA_T:
+			rtn = N_IL_Motor_Skip;
+		break;
+		// 12번 로봇 음극얼라인 X,Y,T =========================================================
+		case N_Align_AN_X:
+			rtn = N_IL_Motor_Skip;
+		break;
+		case N_Align_AN_Y:
+			rtn = N_IL_Motor_Skip;
+		break;
+		case N_Align_AN_T:
+			rtn = N_IL_Motor_Skip;
+		break;
+		// 13번 로봇 양극 NG T,Z =========================================================
+		case N_NG_PnP_CA_T:
+			P_IL_Home_Chk_Motor_Num(0) = N_NG_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(1) = N_NG_PnP_CA_Z;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_NG_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(11) = N_1st_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(12) = N_2nd_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(13) = N_UNLOADER_Z;
+			P_IL_Home_Chk_Motor_Num(14) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_NG_PnP_CA_Z:
+			P_IL_Home_Chk_Motor_Num(0) = N_NG_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(1) = N_NG_PnP_CA_Z;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_NG_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(11) = N_NG_PnP_CA_Z;
+			P_IL_Home_Chk_Motor_Num(12) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		// 14번 로봇 음극 NG T,Z =========================================================
+		case N_NG_PnP_AN_T:
+			P_IL_Home_Chk_Motor_Num(0) = N_NG_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(1) = N_NG_PnP_AN_Z;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_NG_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(11) = N_1st_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(12) = N_2nd_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(13) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_NG_PnP_AN_Z:
+			P_IL_Home_Chk_Motor_Num(0) = N_NG_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(1) = N_NG_PnP_AN_Z;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_NG_PnP_AN_T;
+			P_IL_Home_Chk_Motor_Num(11) = N_NG_PnP_AN_Z;
+			P_IL_Home_Chk_Motor_Num(12) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		// 15번 로봇 언로더 X,Z,T =========================================================
+		case N_UNLOADER_X:
+			P_IL_Home_Chk_Motor_Num(0) = N_UNLOADER_X;
+			P_IL_Home_Chk_Motor_Num(1) = N_UNLOADER_Z;
+			P_IL_Home_Chk_Motor_Num(2) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_UNLOADER_X;
+			P_IL_Home_Chk_Motor_Num(11) = N_UNLOADER_Z;
+			P_IL_Home_Chk_Motor_Num(12) = N_UNLOADER_T;
+			P_IL_Home_Chk_Motor_Num(13) = N_2nd_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(14) = N_NG_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(15) = N_FINAL_ROLL_X;
+			P_IL_Home_Chk_Motor_Num(16) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_UNLOADER_Z:
+			P_IL_Home_Chk_Motor_Num(0) = N_UNLOADER_X;
+			P_IL_Home_Chk_Motor_Num(1) = N_UNLOADER_Z;
+			P_IL_Home_Chk_Motor_Num(2) = N_UNLOADER_T;
+			P_IL_Home_Chk_Motor_Num(3) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_UNLOADER_X;
+			P_IL_Home_Chk_Motor_Num(11) = N_UNLOADER_Z;
+			P_IL_Home_Chk_Motor_Num(12) = N_UNLOADER_T;
+			P_IL_Home_Chk_Motor_Num(13) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		case N_UNLOADER_T:
+			P_IL_Home_Chk_Motor_Num(0) = N_UNLOADER_X;
+			P_IL_Home_Chk_Motor_Num(1) = N_UNLOADER_Z;
+			P_IL_Home_Chk_Motor_Num(2) = N_UNLOADER_T;
+			P_IL_Home_Chk_Motor_Num(3) = 0;
+			//=====================================================//
+			P_IL_Home_Chk_Motor_Num(10) = N_UNLOADER_X;
+			P_IL_Home_Chk_Motor_Num(11) = N_UNLOADER_Z;
+			P_IL_Home_Chk_Motor_Num(12) = N_UNLOADER_T;
+			P_IL_Home_Chk_Motor_Num(13) = N_2nd_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(14) = N_NG_PnP_CA_T;
+			P_IL_Home_Chk_Motor_Num(15) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+		// 16번 로봇 시트페이퍼 X =========================================================
+		case N_SHEET_PAPER_X:
+			P_IL_Home_Chk_Motor_Num(0) = N_SHEET_PAPER_X;
+			P_IL_Home_Chk_Motor_Num(1) = 0;
+			rtn = N_IL_Moter_Update;
+		break;
+	}
+return;
+
+sub: Home_Motor_Check(input,&rtn)
+	rtn = input;
+	local L_Motor_Num;
+	if( P_IL_Function_Cnt < 10 )									// 내부 인터락 모터 확인.
+	{
+		P_IL_Function_Motor_Num = P_IL_Home_Chk_Motor_Num(P_IL_Function_Cnt)
+		L_Motor_Num = P_IL_Home_Chk_Motor_Num(P_IL_Function_Cnt)	// 모터 번호 업데이트.
+		if( L_Motor_Num != 0 )										// 모터 번호가 있을 경우.
+		{
+			if( Motor[L_Motor_Num].HomeComplete == 1 )				// 모터 홈 완료 확인.
+			{
+				P_IL_Function_Cnt++;								// 카운트 증가.
+			}
+			else													// 모터 홈 미확인.
+			{
+				P_IL_Function_Cnt = 10;								// 외부 인터락 모터 확인으로 넘어감.
+				P_IL_Inside_Home_Chk_Complete = 0;					// 내부 인터락 모터 확인 미완료.
+			}
+		}
+		else if ( L_Motor_Num == 0 )								// 모터 번호가 없을 경우.
+		{
+			P_IL_Function_Cnt = 10;									// 외부 인터락 모터 확인으로 넘어감.
+			P_IL_Inside_Home_Chk_Complete = 1;						// 내부 인터락 모터 확인 완료.
+		}
+	}
+	else if( P_IL_Function_Cnt < 20 )								// 외부 인터락 모터 확인.
+	{
+		L_Motor_Num = P_IL_Home_Chk_Motor_Num(P_IL_Function_Cnt)	// 모터 번호 업데이트.
+		if( L_Motor_Num != 0 )										// 모터 번호가 있을 경우.
+		{
+			if( Motor[L_Motor_Num].HomeComplete == 1 )				// 모터 홈 완료 확인.
+			{
+				P_IL_Function_Cnt++;								// 카운트 증가.
+			}
+			else													// 모터 홈 미확인.
+			{
+				P_IL_Function_Cnt = 20;								// 내부 인터락 모터 확인으로 넘어감.
+				P_IL_Outside_Home_Chk_Complete = 0;					// 외부 인터락 모터 확인 미완료.
+			}
+		}
+		else if ( L_Motor_Num == 0 )								// 모터 번호가 없을 경우.
+		{
+			P_IL_Function_Cnt = 20;									// 내부 인터락 모터 확인으로 넘어감.
+			P_IL_Outside_Home_Chk_Complete = 1;						// 외부 인터락 모터 확인 완료.
+		}
+	}
+	else if( P_IL_Function_Cnt >= 20 )								// 카운트가 넘어갈 경우
+	{
+		P_IL_Function_Cnt = 0;										// 카운트 초기화.
+		rtn = 1;													// 한바퀴 돌았다고 판단.
+	}
+return;
+
+
+close

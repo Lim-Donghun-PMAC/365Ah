@@ -1,0 +1,134 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+
+// [ 참조 : 2025.09.30 모터 번호 Define 추가 ] 
+// Motor Number Define
+// Motor 넘버가 변경된다면, Define 변경으로 다 바뀌게 하자.
+// 상수로 처리하게 된다면, 일일이 변경해줘야 하는 단점이 있으므로.. 
+// 2025.09.29 Define Test 
+// Motor[define].~~		가능
+// Cmd"#%d j+",define	가능
+// AN → 애노드
+// CA → 캐소드
+
+#define N_None_Motor					0
+#define N_1st_PnP_CA_T					1
+#define N_1st_PnP_AN_T					2
+#define N_2nd_PnP_CA_T					3
+#define N_2nd_PnP_AN_T					4
+#define N_Clamp_CA_Y1					5
+#define N_Clamp_AN_Y1					6
+#define N_Clamp_CA_Y2					7
+#define N_Clamp_AN_Y2					8			
+//#define N_Clamp_CA_Z1					9			// [ 참조 : 클램프 Z1 모터 번호 변경 2025.10.16 ]
+//#define N_Clamp_AN_Z1					10			// [ 참조 : 클램프 Z1 모터 번호 변경 2025.10.16 ]
+
+#define N_Motor_Spare_1					9
+#define N_Motor_Spare_2					10
+
+#define N_MAIN_Z						11
+#define N_FINAL_ROLL_X					12
+#define N_FINAL_ROLL_Z					13
+#define N_SUB_FEEDING_ROLL				14
+#define N_DRIVING_ROLL					15
+#define N_SERVO_DANCER					16
+#define N_1st_PnP_CA_Z					17
+#define N_1st_PnP_AN_Z					18
+#define N_1st_Picker_CA_T				19
+#define N_1st_Picker_AN_T				20
+#define N_2nd_PnP_CA_Z					21			// 양극 2차 z
+#define N_2nd_PnP_AN_Z					22			// 음극 2차 z
+#define N_UNWINDER_UPPER				23
+#define N_UNWINDER_LOWER				24
+#define N_Clamp_CA_Z2					25
+#define N_Clamp_AN_Z2					26
+#define N_Clamp_CA_Z1					27			// [ 참조 : 클램프 Z1 모터 번호 변경 2025.10.16 ]
+#define N_Clamp_AN_Z1					28			// [ 참조 : 클램프 Z1 모터 번호 변경 2025.10.16 ]
+
+#define N_Motor_Spare_3					29
+#define N_Motor_Spare_4					30
+#define N_Motor_Spare_5					31
+#define N_Motor_Spare_6					32
+
+#define N_EPC_SENSOR					33
+#define N_STACK_VISION					34
+#define N_SHEET_PAPER_X					35
+#define N_Align_CA_X					36
+#define N_Align_CA_Y					37
+#define N_Align_CA_T					38
+#define N_Align_AN_X					39
+#define N_Align_AN_Y					40
+#define N_Align_AN_T					41
+#define N_NG_PnP_CA_T					42
+#define N_NG_PnP_AN_T					43
+#define N_NG_PnP_CA_Z					44
+#define N_NG_PnP_AN_Z					45
+#define N_UNLOADER_X					46
+#define N_UNLOADER_Z					47
+#define N_UNLOADER_T					48			
+
+#define N_Max_Motor_EA					48	
+
+#define N_Opp_1st_CA_T					51
+#define N_Opp_1st_AN_T					52
+//=====================================================================================================================================
+
+#define N_Coord_1st_PNP_AN_T			21
+#define N_Coord_1st_Picker_An_T			22
+#define N_Coord_2nd_PNP_AN_T			23
+#define N_Coord_2nd_PNP_CA_T			28
+#define N_Coord_1st_Picker_CA_T			29
+#define N_Coord_1st_PNP_CA_T			30
+#define N_Coord_NG_PNP_CA				32
+#define N_Coord_NG_PNP_AN				33
+#define N_Coord_1st_PNP_AN_Z			37
+#define N_Coord_2nd_PNP_AN_Z			38
+#define N_Coord_2nd_PNP_CA_Z			39
+#define N_Coord_1st_PNP_CA_Z			40
+#define N_Coord_FR						25
+
+
+#define N_FR_Virtual_Num				63
+
+
+//[ 참조: 2026.06.17 Ecat Ratio Check Prog ]
+//global P_Ecat_Load_Ratio(50)
+//P_Ecat_Load_Ratio(0),50 = 0;
+
+// Ecat Motor 부하 M변수 선언
+ptr M_Ecat_Load_Ratio(50)->*
+//M_Ecat_Load_Ratio(33)->ECAT[0].IO[4107].Data;	// Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(34)->ECAT[0].IO[4114].Data;	// Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(35)->ECAT[0].IO[4121].Data;	// Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(36)->ECAT[0].IO[4128].Data;	// Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(37)->ECAT[0].IO[4135].Data;	// Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(38)->ECAT[0].IO[4143].Data;	// Slave_1008_InoSV680I_1008_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(39)->ECAT[0].IO[4151].Data;	// Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(40)->ECAT[0].IO[4158].Data;	// Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(41)->ECAT[0].IO[4166].Data;	// Slave_1011_InoSV680I_1011_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(42)->ECAT[0].IO[4174].Data;	// Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(43)->ECAT[0].IO[4181].Data;	// Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(44)->ECAT[0].IO[4188].Data;	// Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(45)->ECAT[0].IO[4195].Data;	// Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(46)->ECAT[0].IO[4202].Data;	// Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(47)->ECAT[0].IO[4209].Data;	// Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_6077_0_Torqueactualvalue
+//M_Ecat_Load_Ratio(48)->ECAT[0].IO[4216].Data;	// Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_6077_0_Torqueactualvalue
+
+
+M_Ecat_Load_Ratio(33)->Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_6077_0_Torqueactualvalue;	// Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(34)->Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_6077_0_Torqueactualvalue;	// Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(35)->Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_6077_0_Torqueactualvalue;	// Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(36)->Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_6077_0_Torqueactualvalue;	// Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(37)->Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_6077_0_Torqueactualvalue;	// Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(38)->Slave_1008_InoSV680I_1008_6077_0_Torqueactualvalue;					// Slave_1008_InoSV680I_1008_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(39)->Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_6077_0_Torqueactualvalue;	// Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(40)->Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_6077_0_Torqueactualvalue;	// Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(41)->Slave_1011_InoSV680I_1011_6077_0_Torqueactualvalue;					// Slave_1011_InoSV680I_1011_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(42)->Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_6077_0_Torqueactualvalue;	// Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(43)->Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_6077_0_Torqueactualvalue;	// Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(44)->Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_6077_0_Torqueactualvalue;	// Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(45)->Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_6077_0_Torqueactualvalue;	// Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(46)->Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_6077_0_Torqueactualvalue;	// Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(47)->Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_6077_0_Torqueactualvalue;	// Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_6077_0_Torqueactualvalue
+M_Ecat_Load_Ratio(48)->Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_6077_0_Torqueactualvalue;	// Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_6077_0_Torqueactualvalue

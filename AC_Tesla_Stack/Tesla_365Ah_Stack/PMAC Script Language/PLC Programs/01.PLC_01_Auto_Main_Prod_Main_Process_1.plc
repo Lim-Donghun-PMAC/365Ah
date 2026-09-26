@@ -1,0 +1,2043 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.04 
+// Queue 일원화 코드, 부분보완 (자동화 처리, 실시간보정타이밍) - [ 참조 : 25.06.04 프로그램 상세 주석 변경 및 부분 보완 ]
+
+
+open plc 1
+
+Local L_PLC01_Time_Cycle_Up_Count_Start_Time;	// Plc[1].ldata.L[0]	시간 체크 시작 시간
+Local L_PLC01_Time_Cycle_Up_Count_End_Time;		// Plc[1].ldata.L[1]	시간 체크 종료 시간
+Local L_PLC01_Time_Cycle_Up_Count_Delta_Time;	// Plc[1].ldata.L[2]	시작과 종료 시간 사이의 시간
+Local L_PLC01_Flag_Cycle_Up_Count_Init_Flag;	// Plc[1].ldata.L[3]	타이머 초기화 플래그
+local L_Main_Program = 1;						// PLC[1].ldata.L[4]	메인 프로그램 실행 변수
+local L_Auto_Main_Program_Active;				// PLC[1].ldata.L[5]	자동화 프로그램 관리 변수
+local L_PMAC_Status_Edge_Value;					// PLC[1].ldata.L[6]	PMAC 상태 변경 엣지
+local L_Queue_ClearQueue_Command;				// PLC[1].ldata.L[7]	Queue 관리 변수
+local L_Queue_ClearQueue_return;				// PLC[1].ldata.L[8]	Queue 관리 변수
+local L_Queue_isEmpty_Command;					// PLC[1].ldata.L[9]	Queue 관리 변수
+local L_Queue_isEmpty_return;					// PLC[1].ldata.L[10]	Queue 관리 변수
+local L_Queue_isFull_Command;					// PLC[1].ldata.L[11]	Queue 관리 변수
+local L_Queue_isFull_return;					// PLC[1].ldata.L[12]	Queue 관리 변수
+local L_Queue_SizeQueue_Command;				// PLC[1].ldata.L[13]	Queue 관리 변수
+local L_Queue_SizeQueue_return;					// PLC[1].ldata.L[14]	Queue 관리 변수	
+local L_Auto_SubSequence_Movement_Command;		// PLC[1].ldata.L[15]	자동화 시퀀스 변수
+local L_Set_Interval_Time=5;					// PLC[1].ldata.L[16]	메인 리드 주기 셋팅
+local L_Interval_Timer;							// PLC[1].ldata.L[17]	메인 리드 주기 타이머
+local L_Queue_Command_Occurs;					// PLC[1].ldata.L[18]	큐 커맨드 발생 변수
+
+local L_Queue_location_Error_Check;				// PLC[1].ldata.L[19]	
+local L_Sepa_Edge_Insp_Timer;					// PLC[1].ldata.L[20]	
+local L_Stop_Timer;								// PLC[1].ldata.L[21]	
+local L_individual_return;						// PLC[1].ldata.L[22]	
+local L_Discharge_cal_rtn;						// PLC[1].ldata.L[23]	
+local L_Old_Master_Motion_Trigger;				// PLC[1].ldata.L[24]		
+local L_PLC01_SUSPEND_Discharge_RTN;			// PLC[1].ldata.L[25]	배출 초기화 확인 변수		[ 2025.06.18 서스펜드 추가 ]	
+local L_QUEUE_STOP_Initial_Timer				// PLC[1].ldata.L[26]	Stopping 진입 타이머
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_PLC01_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_PLC01_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_PLC01_Time_Cycle_Up_Count_Start_Time = L_PLC01_System_Timer;
+	L_PLC01_Time_Cycle_Up_Count_End_Time = L_PLC01_System_Timer;
+}
+
+// 00.2) 시간 체크
+if( L_PLC01_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_PLC01_Time_Cycle_Up_Count_End_Time = L_PLC01_System_Timer;
+	L_PLC01_Time_Cycle_Up_Count_Delta_Time = (L_PLC01_Time_Cycle_Up_Count_End_Time - L_PLC01_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_PLC01_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_PLC01_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if (L_PLC01_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{		
+	L_Interval_Timer = L_Interval_Timer + L_PLC01_Time_Cycle_Up_Count_Delta_Time;
+	L_Sepa_Edge_Insp_Timer = L_Sepa_Edge_Insp_Timer + L_PLC01_Time_Cycle_Up_Count_Delta_Time;
+	L_Stop_Timer = L_Stop_Timer + L_PLC01_Time_Cycle_Up_Count_Delta_Time;
+	P_Discharge_Hold_Timer = P_Discharge_Hold_Timer + L_PLC01_Time_Cycle_Up_Count_Delta_Time;
+	L_QUEUE_STOP_Initial_Timer = L_QUEUE_STOP_Initial_Timer + L_PLC01_Time_Cycle_Up_Count_Delta_Time;
+	L_PLC01_Time_Cycle_Up_Count_Start_Time = L_PLC01_Time_Cycle_Up_Count_End_Time;
+	L_PLC01_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+P_PLC01_SubMotion_Active = ACTIVE_SubMaster;
+P_PLC01_SlaveMotion_Active = ACTIVE_SlaveMaster ;
+//========================================================================================================================
+// 01. Queue - 오토 메인 프로그램
+//========================================================================================================================
+
+// 1. 오토 메인 프로그램 - 설비 상태에 따른 프로그램 실행 오토 서브 및 사이클 정지 쓰레드 실행
+// 자동상태에서 Starting -> Execute로 진입하게 되면 실행되는 프로그램
+// 오토 모드에서 상태가 변경됨에 따라 서브 프로그램이 실행되는 형태의 모듈
+
+// 모든 프로그램의 시작은 메인 프로그램에서 진행!
+// 오토 모드 시 메인 감시 프로그램 활성화 
+
+// 1. 오토 메인 프로그램 활성화 - 자동모드 시 활성화 
+if ( P_PMAC_Current_Mode == F_Current_Automatic )
+{
+	L_Auto_Main_Program_Active = F_Status_STARTING;
+}
+else
+{
+	L_Auto_Main_Program_Active = F_Status_STOPPING;
+}
+
+// 1.1. 오토 메인 프로그램 - 상태별 서브 프로그램 실행
+if ( L_Auto_Main_Program_Active == F_Status_STARTING )
+{
+	// 1.1.1. 상태 변경 감지
+	// 설비 상태 변경 시 상태 함수 큐 업데이트 진행
+	if ( P_PMAC_Status != L_PMAC_Status_Edge_Value )
+	{
+		call Sub_Common_Function.Mode_Flag_Check();				// [ 참조 : 25.07.04 모드 체크 함수 추가 ] - Mode Flag 감시 및 버퍼 모드 결정, 적층 계속 진행 여부 결정
+
+		// 공정 변환 시 DEQUEUE 해주는 프로세스 IDLE 초기화가 안되는 현상으로 인해 구문 추가
+		P_Queue_Process_Status = F_Status_IDLE;
+		L_PMAC_Status_Edge_Value = P_PMAC_Status;				// 엣지 상태 업데이트
+		P_Queue_Command_Status = L_PMAC_Status_Edge_Value;		// 큐 커맨드 상태 발생
+		L_Queue_Command_Occurs = 1;								// 큐 커맨드 발생 변수
+		
+	}
+
+	// 1.1.2. 서브 프로그램 실시간 커맨드 감지 
+	// Queue 실행 프로그램이 명령 대기 상태 일 경우 
+	if ( P_Queue_Process_Status == F_Status_IDLE && P_Queue_Process_Command == 0 )	// 명령 탐색 조건 필요
+	{
+		P_Queue_Peek_Command = 0;		// 변수 초기화
+		P_Queue_Peek_return = 0;		// 변수 초기화
+		
+		if ( P_QueueCommand_Occurs == 0 )
+		{	
+			call Sub_Automation_Circular_Queue.Peek(&P_Queue_Peek_Command,&P_Except_Return_Array(N_PLC01_Queue_Peek_RTN))
+			
+			if ( P_Except_Return_Array(N_PLC01_Queue_Peek_RTN) == N_CirQueue_TRUE )				// 커맨드가 생성 되었을 경우 실행
+			{	
+				P_QueueCommand_Occurs = 1;								// 커맨드가 있을 경우 
+			}
+		}
+	}
+
+	// 1.1.3. 큐 커맨드 처리 프로그램
+	// 커맨드 발생 감시
+	if ( P_QueueCommand_Occurs == 1 )		// 커맨드 발생 
+	{	
+		
+		P_Queue_Dequeue_Command = 0;
+		P_Queue_Dequeue_return = 0;
+	
+		call Sub_Automation_Circular_Queue.Dequeue(&P_Queue_Dequeue_Command,&P_Except_Return_Array(N_PLC01_Queue_Dequeue_RTN));		// 큐 반환해오기
+		if ( P_Except_Return_Array(N_PLC01_Queue_Dequeue_RTN) == N_CirQueue_TRUE )													// 반환 성공
+		{
+			
+			P_QueueCommand_Occurs = 0;										// 커맨드 초기화
+			P_Queue_Process_Command = P_Queue_Dequeue_Command;				// 커맨드 실행 -> 로컬 변수에서 글로벌 변수 커맨드로 반환
+	
+			P_Dequeue_Log(11) = P_Dequeue_Log(10);							// 디큐 로그 추가 부분 
+			P_Dequeue_Log(10) = P_Dequeue_Log(9);		
+			P_Dequeue_Log(9) = P_Dequeue_Log(8);	
+			P_Dequeue_Log(8) = P_Dequeue_Log(7);	
+			P_Dequeue_Log(7) = P_Dequeue_Log(6);	
+			P_Dequeue_Log(6) = P_Dequeue_Log(5);	
+			P_Dequeue_Log(5) = P_Dequeue_Log(4);	
+			P_Dequeue_Log(4) = P_Dequeue_Log(3);	
+			P_Dequeue_Log(3) = P_Dequeue_Log(2);	
+			P_Dequeue_Log(2) = P_Dequeue_Log(1);	
+			P_Dequeue_Log(1) = P_Dequeue_Log(0);	
+			P_Dequeue_Log(0) = P_Queue_Dequeue_Command;
+
+		}
+		else if ( P_Except_Return_Array(N_PLC01_Queue_Dequeue_RTN) == N_CirQueue_FALSE )	// 커맨드 반환 실패 시
+		{
+			P_QueueCommand_Occurs = 0;													
+			// 에러 처리 프로그램 개발 필요!
+		}
+	}
+}
+// 1.2. 메인 프로그램 정지
+else if ( L_Auto_Main_Program_Active == F_Status_STOPPING )
+{
+	// 1.2.1. 상태 변경 감지 - 자동 정지
+
+	// 1.2.2. 실시간 커맨드 감지 프로그램 - 종료 커맨드 필요
+	if ( ACTIVE_PLC_2 == N_TRUE )
+	{
+		//disable plc 2
+	}
+	// 1.2.3. 위치 메모리 타워 실행 - 종료
+	//disable plc 3
+}
+
+
+//========================================================================================================================
+// 02. Queue - 메인 프로그램 함수 호출 프로그램 - 상태별 입력 기능별  인큐
+//========================================================================================================================
+// 2.0. Queue Command 입력
+Switch ( P_Queue_Command_Status )
+{
+	// 2.1. EXECUTE
+	case F_Status_EXECUTE :
+
+		// 대기 상태
+		if ( L_Queue_Command_Occurs == 1 )
+		{
+			L_Queue_Command_Occurs = 0;
+			P_Execute_Enqueue_State_Machine = 1;
+		}
+		// 2.1.1. EXECUTE 실행 가능 한지 판단 - 극판공급/배출상태/ARC상태 일 경우 EXECUTE 빠진 후 상태 변경
+		if ( P_Execute_Enqueue_State_Machine == 1 ) 
+		{	
+			
+			IF ( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence)
+			{	
+				P_Except_Return_Array(N_PLC01_Execute_Enqueue_IsEnable_RTN) = 0;
+				call Sub_Automation_Circular_Queue.Enqueue(N_Function_Execute_isEnable,&P_Except_Return_Array(N_PLC01_Execute_Enqueue_IsEnable_RTN));
+				if ( P_Except_Return_Array(N_PLC01_Execute_Enqueue_IsEnable_RTN) == N_CirQueue_TRUE )
+				{	
+					P_Execute_Enqueue_State_Machine = 2
+				}
+				else
+				{
+					P_EXECUTE_Error_STEP = P_Execute_Enqueue_State_Machine;
+					P_Execute_Enqueue_State_Machine	= N_Error_Step;
+				}
+			}
+			// 드라이 런이라면
+			else
+			{
+				P_Execute_Enqueue_State_Machine = 2;
+			}
+		}
+
+		// 2.1.2. 세파 깔기 - 세파 첫장 이후로 이뤄지는 조건이 많으므로 하나의 CMD로 분리하여 제공
+		if ( P_Execute_Enqueue_State_Machine == 2 ) 
+		{
+			P_Except_Return_Array(N_PLC01_Execute_Enqueue_First_Sepa_Ontable_RTN) = 0;
+			call Sub_Automation_Circular_Queue.Enqueue(N_Function_Execute_First_Sepa_OnTable, &P_Except_Return_Array(N_PLC01_Execute_Enqueue_First_Sepa_Ontable_RTN));
+			
+			if ( P_Except_Return_Array(N_PLC01_Execute_Enqueue_First_Sepa_Ontable_RTN) == N_CirQueue_TRUE )
+			{	
+				P_Execute_Enqueue_State_Machine = 3
+			}
+			else
+			{
+				P_EXECUTE_Error_STEP = P_Execute_Enqueue_State_Machine;
+				P_Execute_Enqueue_State_Machine	= N_Error_Step;
+			}
+		}
+
+
+		// 2.1.5. 생산 모듈 -> 런모드
+		if (P_Execute_Enqueue_State_Machine == 3 )
+		{
+			P_Except_Return_Array(N_PLC01_Execute_Enqueue_Prod_Manage_RTN) = 0;
+			call Sub_Automation_Circular_Queue.Enqueue(N_Function_Prod_Management,&P_Except_Return_Array(N_PLC01_Execute_Enqueue_Prod_Manage_RTN));
+			if ( P_Except_Return_Array(N_PLC01_Execute_Enqueue_Prod_Manage_RTN) == N_CirQueue_TRUE )
+			{	
+				P_Execute_Enqueue_State_Machine = 4;
+			}
+			else
+			{
+				P_EXECUTE_Error_STEP = P_Execute_Enqueue_State_Machine;
+				P_Execute_Enqueue_State_Machine = N_Error_Step;
+			}
+		}
+
+		// 2.1.6. 종료
+		if (P_Execute_Enqueue_State_Machine == 4 )
+		{	
+			P_Execute_Enqueue_State_Machine = N_Complete_Step;
+			P_Queue_Command_Status = 0;				// 큐 상태 초기화
+		}
+
+		// 2.1.5. 에러 일 경우
+		if ( P_Execute_Enqueue_State_Machine == N_Error_Step )
+		{
+			// 커맨드가 꽉차있을 경우니까, 선행 커맨드 종료 된 후 복귀 시키기.
+			P_Except_Return_Array(N_PLC01_Queue_IsFull_RTN) = 0;
+			call Sub_Automation_Circular_Queue.isFull(&P_Except_Return_Array(N_PLC01_Queue_IsFull_RTN));
+			if ( P_Except_Return_Array(N_PLC01_Queue_IsFull_RTN) == N_CirQueue_FALSE )						// 큐가 꽉차있지 않을 경우		
+			{
+				// 에러 스텝으로 복귀
+				P_Execute_Enqueue_State_Machine = P_EXECUTE_Error_STEP;
+			}
+		}
+
+	break;
+
+	// 2.2. HOLD 
+	case F_Status_HOLD :
+
+		// 대기 상태
+		if ( L_Queue_Command_Occurs == 1 )
+		{
+			L_Queue_Command_Occurs = 0;
+			P_HOLD_STEP = 1;
+		}
+
+		// 2.2.1. 유무검사 시퀀스
+		if ( P_HOLD_STEP == 1 )
+		{
+			IF ( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence)
+			{
+				if( P_Hold_Existence_Insp_Enqueue_Flag == 1 )
+				{
+					P_Hold_Existence_Insp_Enqueue_Flag = 0;
+					local L_Check_Existence_Insp_Rtn = 0;
+					call Sub_Automation_Circular_Queue.Enqueue(N_Function_Hold_Existence_Insp_Process,&L_Check_Existence_Insp_Rtn);
+					if ( L_Check_Existence_Insp_Rtn == N_CirQueue_TRUE )
+					{
+						P_HOLD_STEP = 2
+					}
+					else
+					{
+						P_HOLD_Error_STEP = P_HOLD_STEP;
+						P_HOLD_STEP = N_Error_Step;
+					}			
+				}
+				else
+					P_HOLD_STEP = 2	
+			}
+			else
+			{
+				P_HOLD_STEP = 2
+			}
+		}
+		// 2.2.2. Hold Process
+		if ( P_HOLD_STEP == 2 )
+		{
+			local L_Check_Remove_Cell_Rtn = 0;
+			call Sub_Automation_Circular_Queue.Enqueue(N_Function_Hold_Process,&L_Check_Remove_Cell_Rtn);
+			if ( L_Check_Remove_Cell_Rtn == N_CirQueue_TRUE )
+			{
+				P_HOLD_STEP = 3
+			}
+			else
+			{
+				P_HOLD_Error_STEP = P_HOLD_STEP;
+				P_HOLD_STEP = N_Error_Step;
+			}		
+		}
+
+		// 2.2.4. 종료
+		if ( P_HOLD_STEP == 3 )
+		{
+			P_HOLD_STEP = N_Complete_Step;
+			P_Queue_Command_Status = 0;				// 큐 상태 초기화
+		}
+
+		// 2.3.5. 에러 일 경우
+		if ( P_HOLD_STEP == N_Error_Step )
+		{
+			// 커맨드가 꽉차있을 경우니까, 선행 커맨드 종료 된 후 복귀 시키기.
+			L_Queue_isFull_return = 0;
+			call Sub_Automation_Circular_Queue.isFull(&L_Queue_isFull_return);
+			if ( L_Queue_isFull_return == N_CirQueue_FALSE )						// 큐가 꽉차있지 않을 경우		
+			{
+				// 에러 스텝으로 복귀
+				P_HOLD_STEP = P_HOLD_Error_STEP;
+			}
+		}
+
+
+	break;
+
+	// 2.3. SUSPEND
+	case F_Status_SUSPENDED :
+
+		// 대기 상태
+		if ( L_Queue_Command_Occurs == 1 )
+		{
+			L_Queue_Command_Occurs = 0;
+			P_SUSPEND_STEP = 1;
+		}
+		
+		// 2.3.2. 젤리 롤 배출
+		if ( P_SUSPEND_STEP == 1 )
+		{
+			if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )
+			{
+				local L_Check_JR_Discharge_Rtn = 0;
+				call Sub_Automation_Circular_Queue.Enqueue(N_Function_JR_Discharge,&L_Check_JR_Discharge_Rtn);
+				if ( L_Check_JR_Discharge_Rtn == N_CirQueue_TRUE )
+				{
+					P_SUSPEND_STEP = 2
+				}
+				else
+				{
+					P_SUSPEND_Error_STEP = P_SUSPEND_STEP;
+					P_SUSPEND_STEP = N_Error_Step;
+				}	
+			}
+			else
+			{
+				P_SUSPEND_STEP = 2
+			}
+		}
+		// 2.3.3. 세파 ARC
+		if ( P_SUSPEND_STEP == 2 )
+		{
+			if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )
+			{
+				local L_Check_Sepa_ARC_Rtn = 0;
+				call Sub_Automation_Circular_Queue.Enqueue(N_Function_Sepa_ARC_Mode,&L_Check_Sepa_ARC_Rtn);
+				if ( L_Check_Sepa_ARC_Rtn == N_CirQueue_TRUE )
+				{
+					P_SUSPEND_STEP = 3
+				}
+				else
+				{
+					P_SUSPEND_Error_STEP = P_SUSPEND_STEP;
+					P_SUSPEND_STEP = N_Error_Step;
+				}	
+			}
+			else
+			{
+				P_SUSPEND_STEP = 3
+			}
+		}
+
+		// 2.3.5. 종료
+		if ( P_SUSPEND_STEP == 3 )
+		{
+			P_SUSPEND_STEP = N_Complete_Step;
+			P_Queue_Command_Status = 0;				// 큐 상태 초기화
+		}
+
+		// 2.3.6. 에러 일 경우
+		if ( P_SUSPEND_STEP == N_Error_Step )
+		{
+			// 커맨드가 꽉차있을 경우니까, 선행 커맨드 종료 된 후 복귀 시키기.
+			L_Queue_isFull_return = 0;
+			call Sub_Automation_Circular_Queue.isFull(&L_Queue_isFull_return);
+			if ( L_Queue_isFull_return == N_CirQueue_FALSE )						// 큐가 꽉차있지 않을 경우		
+			{
+				// 에러 스텝으로 복귀
+				P_SUSPEND_STEP = P_SUSPEND_Error_STEP;
+			}
+		}
+
+	break;
+
+	// 2.4. 사이클 정지
+	case F_Status_STOPPING :
+		
+		if ( L_Queue_Command_Occurs == 1 )
+		{
+			L_Queue_Command_Occurs = 0;
+			P_STOP_STEP = N_Ready_Step;
+		}
+
+		if ( P_STOP_STEP == N_Ready_Step )
+		{
+			P_Process_Function_Command = N_Function_Complete;
+			P_STOP_STEP = 1
+		}
+
+		if ( P_STOP_STEP == 1 )
+		{
+			// 클리어 함수 필요
+			local L_Stopping_QueueClear = 0;
+
+			call Sub_Automation_Circular_Queue.ClearQueue(&L_Stopping_QueueClear);
+			if ( L_Stopping_QueueClear == N_CirQueue_TRUE )
+			{
+				P_STOP_STEP = 2;
+			}
+		}
+
+		// 2.4.1. 프로그램 사이클 정지
+		if ( P_STOP_STEP == 2 )
+		{
+			local L_Check_CycleStop_Rtn = 0;
+			call Sub_Automation_Circular_Queue.Enqueue(N_Function_Stop_Initial_Process,&L_Check_CycleStop_Rtn);
+			if ( L_Check_CycleStop_Rtn == N_CirQueue_TRUE )
+			{
+				P_STOP_STEP = 3
+			}
+			else
+			{
+				P_STOP_Error_STEP = P_STOP_STEP;
+				P_STOP_STEP = N_Error_Step;
+			}	
+		}
+		// 2.4.2. 사이클 정지 위치 이동
+		if ( P_STOP_STEP == 3 )
+		{
+			P_STOP_STEP = N_Complete_Step;
+			P_Queue_Command_Status = 0;				// 큐 상태 초기화
+
+			local L_Check_PauseProcessC_Rtn = 0;
+			call Sub_Automation_Circular_Queue.Enqueue(N_Function_CycleStop,&L_Check_PauseProcessC_Rtn);
+			if ( L_Check_PauseProcessC_Rtn == N_CirQueue_TRUE )
+			{
+				P_STOP_STEP = 4
+			}
+			else
+			{
+				P_STOP_Error_STEP = P_STOP_STEP;
+				P_STOP_STEP = N_Error_Step;
+			}	
+		}
+
+		// 2.4.4. 종료
+		if ( P_STOP_STEP == 4 )
+		{
+			P_STOP_STEP = N_Complete_Step;
+			P_Queue_Command_Status = 0;				// 큐 상태 초기화
+		}
+
+		// 2.4.5. 에러 일 경우
+		if ( P_STOP_STEP == N_Error_Step )
+		{
+			// 커맨드가 꽉차있을 경우니까, 선행 커맨드 종료 된 후 복귀 시키기.
+			L_Queue_isFull_return = 0;
+			call Sub_Automation_Circular_Queue.isFull(&L_Queue_isFull_return);
+			if ( L_Queue_isFull_return == N_CirQueue_FALSE )						// 큐가 꽉차있지 않을 경우		
+			{
+				// 에러 스텝으로 복귀
+				P_STOP_STEP = 444;
+			}
+		}
+	break;
+
+	default :
+
+	break;
+}
+
+
+//========================================================================================================================
+// 3.큐 커맨드 발생 관리 프로그램
+//========================================================================================================================
+// 3.1 큐 커맨드 발생 관리
+if ( P_Queue_Process_Command != 0 )										// 글로벌 커맨드 로컬 변수로 변경
+{
+	if( Total_DesVelZero_Bit )
+	{
+		P_Process_Function_Command = P_Queue_Process_Command;			// 로컬 커맨드 변환 후 글로벌 커맨드 초기화 
+		P_Queue_Process_Status = F_Status_EXECUTE;					
+		P_PLC01_Process_Function_Enter_Flag = 1; 
+		P_Queue_Process_Command = 0;
+
+		P_PLC01_Convert_to_Execute_Status = 0;
+		P_PLC01_Convert_to_Hold_Status = 0;								// 상태 변경 변수
+		P_PLC01_Convert_to_Suspend_Status = 0;
+	}
+}
+
+//========================================================================================================================
+// 04.큐 커맨드 실행 프로그램 -  큐_명령_처리_변수 (기존 PLC02번 역할 수행하는곳)
+//========================================================================================================================
+Switch ( P_Process_Function_Command )
+{
+	 //------------------------------------------------------------------
+	 // EXECUTE_(1) - IsEnable : 실행 전 조건 보기
+	 //------------------------------------------------------------------
+	case N_Function_Execute_isEnable /* def 01 */:
+
+		// 기능 첫 시작 시 스텝 머신 초기화
+		if ( P_PLC01_Process_Function_Enter_Flag == 1 )
+		{
+			P_PLC01_Process_Function_Enter_Flag = 0;				// 1) Queue Function CMD 기능 첫시작 스텟머신 진행
+			//if(Total_DesVelZero_Bit)		
+			//{														// 1.1) 재진입 방지 초기화
+				P_Execute_IsEnable_State_Machine = 1;				// 1.2) 해당 함수 스텟머신 진행
+			//}
+			//else													
+			//{	
+			//	P_EXECUTE_Isenable_MNTR = 1
+			//	P_PMAC_Commands = F_Command_Stop;
+			//}
+		}
+		// 일단 무시하고 진행
+		// ISenable -> First Excute에서 상태를 확인하는 단계. 배출,ARC 등등 볼 예정.
+		Switch (P_Execute_IsEnable_State_Machine)					// 1) IsEnable 스텟머신 진행
+		{
+			//------------------------------------------------------------------------------------
+			// 1) IsEnable - 동작전 초기화, 필수 세팅 단계 
+			//------------------------------------------------------------------------------------
+			case 1 :
+					P_Memory_Tower_Search_Flag = 1;										// 1) 메모리타워 통합 유닛 변수 리턴값 초기화 
+					P_MemTow_integrated_return = 0;										// 2) PLC03 위치 메모리 타워 Flag ON
+					if( P_EXECUTE_IsEnable_Firt_Stacking_Flag == 0 )					// 3) 처음 쌓는 조건 감시 
+					{ 												
+						P_EXECUTE_IsEnable_Firt_Stacking_Flag = 1;						//      → 처음이라면, Flag On 	
+
+						P_Except_Return_Array(N_PLC01_Execute_Is_Ready_to_Run_RTN) = 0;										// 1.1) 함수 진입 전 리턴값 초기화 		
+						call Initialize.Sub_Is_Ready_To_Run(&P_Except_Return_Array(N_PLC01_Execute_Is_Ready_to_Run_RTN));	// 1.2) 시작전 초기화 해야 할 항목 Init 
+					}
+					if(P_Except_Return_Array(N_PLC01_Execute_Is_Ready_to_Run_RTN) == N_Error_Step)							//		  → 리턴값 에러 시, Cycle Stop
+					{
+						P_EXECUTE_Isenable_MNTR = 2;																		// 1.3) 모니터링
+						P_PMAC_Commands = F_Command_Stop;																	// 1.4) STOP CMD 발생
+					}
+					
+					P_Except_Return_Array(N_PLC01_Execute_Set_Stack_Data_RTN) = 0;											// 1.5) 함수 진입 전 리턴값 초기화 	
+					call Initialize.Sub_Stack_Data(&P_Except_Return_Array(N_PLC01_Execute_Set_Stack_Data_RTN));				// 1.6) 모드별 카운팅, 극판 및 세파 두께 대입 함수 
+					if( P_Except_Return_Array(N_PLC01_Execute_Set_Stack_Data_RTN) == N_TRUE )								//		  → 리턴값 TURE 반환 시 
+					{																										
+						P_Execute_IsEnable_State_Machine =  P_Execute_IsEnable_State_Machine + P_Upcount_NextStep;			// 1.7) 2번 스텝머신으로 증가 	
+					}
+			break;
+			//------------------------------------------------------------------------------------
+			// 2) IsEnable - 세파 깔기 전,후 / 적층 중, 배출진행중 단계별 체크 스텝 	
+			//------------------------------------------------------------------------------------
+			case 2:
+				if( P_Memory_Tower_Search_Flag == 0 && P_MemTow_integrated_return == 1 )		// 1) 메모리타워 Flag 초기화, 통합 메모리타워 리턴값 확인
+				{
+					if( P_Unit_integrated_Status == F_Error_Status )							// 2) 통합 메모리타워 에러상태일 경우 
+					{
+						P_EXECUTE_Isenable_MNTR = 3												// 2.1) 모니터링
+						P_PMAC_Commands = F_Command_Stop;										// 2.2) 에러 상태로인한 스탑커맨드 발생
+					}
+					else if( P_Suspend_Discharge_Last_Run_Bit == 1 )							// 3) 라스트 런 진행 했을 경우.	[ 참조 : 25.06.20 배출 프로그램 수정 ]
+					{															// [ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가]
+						if( P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Cell_Down_Pos ) //P_Cathode_CLP_Unit_Status == F_Clamp_On_Pos )	// 3.1) 양극 클램프 ON, 음극 클램프 OFF 확인.
+						{
+							P_PMAC_Commands = F_Command_Suspend;								// 3.2) 자동화 상태 - SUSPEND 변경
+							P_EXECUTE_Isenable_MNTR = 4;										// 3.3) 모니터링 변수 4 대입;
+						}
+						else																	// 3.2) 그 외 상황일 경우.
+						{
+							P_Execute_IsEnable_State_Machine = N_Error_Step;					// 3.2.1) 에러 스텟머신으로 이동.
+							P_EXECUTE_Isenable_MNTR = 5;										// 3.2.2) 모니터링 변수 5 대입;
+						}
+					}
+					else if ( P_Suspend_Discharge_1st_Unloader_JR_Grip == 1 && P_Suspend_Discharge_Module_Status != F_Status_EXECUTE )					// 4) 1차 언로더가 JR을 잡고 있는 경우 (JR을 잡고 있는 상태에서 Resetting에서 0도 이동) [JR 커팅 후 정지 될 경우 Suspend 재가동을 위함] [ 참조 : 25.07.08 배출 재가동 진행 추가 ]
+					{
+						P_PMAC_Commands = F_Command_Suspend;									// 4.1) 자동화 상태 - SUSPEND 변경
+						P_EXECUTE_Isenable_MNTR = 6;											// 4.2) 모니터링 변수 6 대입;
+					}
+					else if( P_Suspend_ARC_Request_Flag == 1 )									// 5) ARC 필요 플래그 ON이라면										
+					{	// [ 참조 : 2025.09.26 PMAC 내부 세파 레디신호 처리 ]
+						// 여기로 들어올 수 있는 상황은 ARC 요구 Flag on이면서 배출 도중 Stop눌렀을때 탄다.
+						// 그때 유저가 수동조작으로 ARC 건드리면 Alarm으로 막는구간.
+						#ifdef F_Debug_Mode
+						P_PMAC_Commands = F_Command_Suspend;									// 5.2) 자동화 상태 - SUSPEND 변경
+						P_EXECUTE_Isenable_MNTR = 7;											// 5.3) 모니터링 변수 7 대입;
+						#else
+						if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+						{
+							if( P_ARC_Ready_Flag(N_Lower) == N_FALSE )
+							{
+								// Ready 안됨 알람 발생
+							}
+							else
+							{
+								P_PMAC_Commands = F_Command_Suspend;									// 5.2) 자동화 상태 - SUSPEND 변경
+								P_EXECUTE_Isenable_MNTR = 7;											// 5.3) 모니터링 변수 7 대입;
+							}
+						}
+						else if( P_Selected_Spool_Number == N_UNWINDER_LOWER )
+						{
+							if( P_ARC_Ready_Flag(N_Upper) == N_FALSE )
+							{
+								// Ready 안됨 알람 발생
+							}
+							else
+							{
+								P_PMAC_Commands = F_Command_Suspend;									// 5.2) 자동화 상태 - SUSPEND 변경
+								P_EXECUTE_Isenable_MNTR = 7;											// 5.3) 모니터링 변수 7 대입;
+							}
+						}
+						#endif
+					}
+					else																		// 6) 라스트 런 진행이 아닐 경우.
+					{
+						P_Execute_IsEnable_State_Machine = P_Execute_IsEnable_State_Machine + P_Upcount_NextStep;	// 6.1) 다음 스텟머신으로 증가
+						P_EXECUTE_Isenable_MNTR = 8;																// 6.2) 모니터링 변수 8 대입
+					}
+				}
+			break;
+			//------------------------------------------------------------------------------------
+			// 3) IsEnable - 모드 별 스텝 오버 체크 구문  	
+			//------------------------------------------------------------------------------------
+			case 3:
+				if(P_Memory_Tower_Search_Flag == 0 && P_MemTow_integrated_return == N_TRUE )	 // 1) 설비 위치 업데이트 플래그 ON
+				{																				 
+					if(P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence)			 // 2) 세파 모드일 경우
+					{																			 
+						P_Execute_IsEnable_State_Machine = N_Complete_Step;						 //    → 완료 스텝으로 (생산 모드 큐 함수로 이동) 
+					}																			 
+					else																		 // 3) 그외 모드일 경우
+					{																			 
+						P_Execute_IsEnable_State_Machine++;										 //   → 다음 스텝머신으로 
+					}
+				}
+			break;
+			//------------------------------------------------------------------------------------
+			// 4) IsEnable - 극판 미공급 확인 단계 
+			//------------------------------------------------------------------------------------
+			case 4:																		//------------------------------------------------
+																						// 세파 첫장 깔기 {전} 단계 
+																						//------------------------------------------------
+				if( P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )						// 1) 파이널롤러 X축이, 대기/배출 위치일 경우
+				{
+					if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Surf_OK && (Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_NG_Masking == 0) && Sys_Cathode_1st_Sheet_Data == 0 && Sys_Cathode_2nd_Sheet_Data == 0 )		// 1.1) 양극의 극판이 OK마스킹 처리 되어있는지 확인 (파이널롤러 X축의 위치의따라 자율성이 확보된 극판의 데이터를 확인 ) 
+					{
+						P_Execute_IsEnable_State_Machine = N_Complete_Step;				// 1.2) 완료스텝 이동 
+						P_EXECUTE_Isenable_MNTR = 8;									// 1.3) 모니터링 변수 값 대입
+					}
+					else																// 2) 양극 극판 OK마스킹이 안될경우 Hold가서, 극판 공급
+					{ 
+						P_PMAC_Commands = F_Command_Hold;								// 2.1) 자동화 커맨드 - 홀드 대입
+						P_Execute_IsEnable_State_Machine = N_Complete_Step;				// 2.2) 완료스텝
+						P_EXECUTE_Isenable_MNTR = 9;									// 2.3) 모니터링 변수 값 대입 
+					}
+				}
+																						//------------------------------------------------
+				else if( P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_1st_MotorNo(12) )			// 세파 첫장깔기 방향이 음극 정지 위치에 있을 경우 
+				{																		//------------------------------------------------		
+					// 1) final roll x축이 음극 방향에 있을 경우, 즉, 양극 PNP가 자유로운 경우.
+					// 1.1) 양극 AL (X) 양극 1차 (O) 양극 2차 (O)
+					if( Sys_Cathode_1st_Sheet_Data != 0 && Sys_Cathode_2nd_Sheet_Data != 0 && (Sys_Cathode_2nd_Sheet_LO_Vision_BYTE & Hex_NG_Masking == 0) && Sys_Cathode_Align_Sheet_Data == 0 )					
+					{	
+						P_EXECUTE_Isenable_MNTR = 10;									// 1.2) 모니터링 변수 대입
+						P_Execute_IsEnable_State_Machine = N_Complete_Step;				// 1.3) 완료 스텝머신으로 
+					}
+					else
+					{																	// 2) 그외 상황 일경우 (양극 극판 공급하러 가야지~!)
+						P_EXECUTE_Isenable_MNTR = 11;									// 2.1) 모니터링 변수 대입 
+						P_PMAC_Commands = F_Command_Hold								// 2.2) 양극 극판 공급 처리 하러 HOLD로.	
+						P_Execute_IsEnable_State_Machine = N_Complete_Step;				// 2.3) 완료 스텝머신으로 
+					}				
+				}
+																						//------------------------------------------------
+				else if( P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_2nd_MotorNo(12) )			// 세파 첫장깔기 방향이 양극 정지 위치에 있을 경우 
+				{																		//------------------------------------------------	
+					// 1) FR - X 축이 양극 방향에 있을 경우, 즉, 음극 PNP가 자유로운 경우   
+					// 1.1) 음극 AL(X) 음극 1차 (O) 음극 2차 (O)
+					if( Sys_Anode_1st_Sheet_Data != 0 && Sys_Anode_2nd_Sheet_Data != 0 &&  (Sys_Anode_2nd_Sheet_LO_Vision_BYTE & Hex_NG_Masking == 0) && Sys_Anode_Align_Sheet_Data == 0 )
+					{	
+						P_EXECUTE_Isenable_MNTR = 12;									// 1.2) 모니터링 변수 대입
+						P_Execute_IsEnable_State_Machine = N_Complete_Step;				// 1.3) 완료 스텝머신으로 
+					}
+					else
+					{																	// 2) 그외 상황 일경우 (음극 극판 공급하러 가야지~!)
+						P_EXECUTE_Isenable_MNTR = 13;									// 2.1) 모니터링 변수 대입 
+						P_PMAC_Commands = F_Command_Hold								// 2.2) 음극 극판 공급 처리 하러 HOLD로.	
+						P_Execute_IsEnable_State_Machine = N_Complete_Step;				// 2.3) 완료 스텝머신으로 
+					}	
+				}	
+
+				else																	//------------------------------------------------
+				{																		// FInal roll이 음/양극 정지위치가 아닌 경우.
+					P_EXECUTE_Isenable_MNTR = 14;										//------------------------------------------------
+					P_PMAC_Commands = F_Command_Stop;									// 1) 자동화 상태 - Hold CMD 발생 시키기 
+				}													
+			break;
+
+			case N_Complete_Step :														// 1) 완료 단계!!
+				P_Process_Function_Command = N_Function_Complete;						// 2) IS ENABLE 완료 Complete -> 다음 세파 첫장 Queue 상태로 이동 
+			break;
+
+			case N_Error_Step :
+				L_Queue_location_Error_Check = P_Process_Function_Command;
+				P_Process_Function_Command = N_Function_Error;
+			break;
+		}
+	break;
+
+	 //------------------------------------------------------------------
+	 // EXECUTE_(2) - First_Sepa_OnTable : 세파 첫장 함수		/* def 2 */
+	 //------------------------------------------------------------------
+	case N_Function_Execute_First_Sepa_OnTable :
+
+		// 기능 첫 시작 시 스텝 머신 초기화
+		if ( P_PLC01_Process_Function_Enter_Flag == 1 )				// 1) Queue Function CMD 기능 첫시작 스텟머신 진행
+		{
+			P_PLC01_Process_Function_Enter_Flag = 0;				// 1.1) 재진입 방지 초기화
+									
+			P_Execute_First_Sepa_Ontable_State_Machine = 1;			// 1.2) 해당 함수 스텟머신 진행
+		}
+
+		switch(P_Execute_First_Sepa_Ontable_State_Machine)
+		{
+			//------------------------------------------------------------------------------------ 
+			// 1) First_Sepa_OnTable - 메모리타워On + EPC 실시간보정 
+			//------------------------------------------------------------------------------------
+			case 1:
+				P_Memory_Tower_Search_Flag = 1;																										// 메모리 타워 실행
+				P_MemTow_integrated_return = 0;																										// 메모리 타워 실행 확인 반환값 초기화
+
+				// ARC후 세파, 세파모드, 일반모드 등 무조건 실시간 적층 진행예정(컨셉 1안) - VISION , PLC 천안TTS 요청사항
+				IF ( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence || P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence )	// 1) 일반모드, 세파모드때 적층 수의 따른 보정값 요청 
+				{						
+					//M_Y_Vision_EPC_Correction_Request = 1;																						// 1.1) J/R 적층 중 특정 적층 수마다 Vision에게 EPC 보정 값 요청 신호(이 신호 ON이면 비전에서 줌)
+				}
+				ELSE																																// 2) 그 외의 상황,
+				{					
+					//M_Y_Vision_EPC_Correction_Request = 0;																						// 2.1) Vision에게 EPC 보정 값 요청 신호 OFF
+				}
+				P_Execute_First_Sepa_Ontable_State_Machine = P_Execute_First_Sepa_Ontable_State_Machine + P_Upcount_NextStep;						// → 다음 스텟으로 이동
+			break;
+
+			//------------------------------------------------------------------------------------ 
+			// 2) First_Sepa_OnTable - 위치 확인
+			//------------------------------------------------------------------------------------
+			case 2:
+				if ( P_Memory_Tower_Search_Flag == 0 && P_MemTow_integrated_return == N_TRUE )														 // 1) 설비 위치 업데이트 플래그 ON
+				{
+					if ( P_Unit_integrated_Status == F_Equipment_Initial_Ready_Pos )																//  2) 설비 대기위치 (첫 Ready 위치) 
+					{	
+						P_Execute_1st_Sepa_Status = 0;	
+						P_PLC01_SemiRun_Flag = 1;					// MES PV영역 보고 플래그 																						//	2.1) 세파 첫장 상태 초기화
+						P_Execute_First_Sepa_Ontable_State_Machine = P_Execute_First_Sepa_Ontable_State_Machine + P_Upcount_NextStep;				// → 다음 스텝머신으로 이동					
+					}
+					else																															//	3) 세파가 깔려있는 위치라면 
+					{	
+						P_Execute_First_Sepa_Ontable_State_Machine = N_Complete_Step;																// → 완료 스텝머신으로 이돟
+					}
+					P_Execute_Memory(1) = P_Unit_integrated_Status;																					// MNTR변수 
+				}
+			break;
+			//------------------------------------------------------------------------------------
+			// 3) First_Sepa_OnTable - 세파 깔기 Start - 외부 모듈 실행 
+			//------------------------------------------------------------------------------------
+			case 3 :
+				P_Sepa_Run_Completed_Flag = 0					// J/R ID 생성 플래그 초기화
+				P_Execute_1st_Sepa_Cmd = F_Command_Start;																							//	1) 세파 첫장 Cmd ON.
+				P_Execute_First_Sepa_Ontable_State_Machine = P_Execute_First_Sepa_Ontable_State_Machine + P_Upcount_NextStep;						// → 다음 스텝머신으로 이동
+
+			break;
+			//------------------------------------------------------------------------------------
+			// 4) First_Sepa_OnTable - 완료상태 감시 
+			//------------------------------------------------------------------------------------
+			case 4:
+				if ( P_Execute_1st_Sepa_Status == F_Status_COMPLETE )																				// 1) 완료 상태 확인 
+				{
+					P_Flag_Stack_Work_Host_ID = 1;																								// 2) 최윤영 선임 확인 - [Data Shift] 호스트 생성 플래그 - 데이타 시프트 프로그램에서 PLC 정보를 Read하는 타이밍
+					P_Stack_Judgement_Memory = N_TRUE;																																		
+					P_Execute_First_Sepa_Ontable_State_Machine = P_Execute_First_Sepa_Ontable_State_Machine + P_Upcount_NextStep;					// → 다음 스텝머신으로 이동
+				}
+			break;
+
+			//------------------------------------------------------------------------------------
+			// 5) First_Sepa_OnTable - EPC 보정 판단 
+			//------------------------------------------------------------------------------------
+			case 5 :
+			if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence ) //임시로 해당부분 막아둠.	// 드라이런이 아닐 시에만 첫장 판정에 따른 시퀀스 진행
+			{
+																																				//-------OK판정 경우----------//																																														
+				IF ( M_X_Vision_Stack_First_Sepa_OK == 1 )																						// 1.1) OK 경우 
+				{																																																																					 																																																									 	 	
+					P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag = 1;																			// 1.1.1) 세파 첫장 완료 HOST ID Flag 
+					P_PLC01_Execute_Retry_Sepa_Mode_Count = 0;																					// 1.1.2) 리트라이 세파 보정 횟수 초기화																									 						
+					P_Execute_First_Sepa_Ontable_State_Machine = P_Execute_First_Sepa_Ontable_State_Machine + P_Upcount_NextStep;				// → 다음 스텟머신으로 이동		
+				}
+				ELSE IF ( M_X_Vision_Stack_First_Sepa_NG == 1 )																					//-------NG판정 경우----------//		
+				{
+					P_Flag_Stack_Work_Host_ID = 0;
+					if( P_PLC01_Execute_Retry_Sepa_Mode_Count < P_PLC_Recipe_PLC2_Revise_Sepa )													// 1) 리트라이 세파모드 카운트 확인, 설정된 리트라이 횟수 카운트보다 현재 리트라이 횟수가 적을경우 EPC 세파모드 진행
+					{
+						P_PLC01_Execute_Retry_Sepa_Mode_Count++;																				// 2) 리트라이 세파 모드 진행 횟수 증가												
+						P_PLC18_EPC_Retry_Mode_Time_Use_Flag = F_Command_Start;																	// 3) EPC 세파모드 진행 전, 엑츄에이터를 켜준다면, 엑츄에이터 ON -> 해당위치 이동까지의 텍시간 적용 / 실시간 보정 텍과 다르게 가져가기 위함.					
+						P_Com_EPC_Sepa_Consume_Mode_Flag = 1;																					// 4) EPC 세파 모드 레시피 적용 Flag ON	 
+					}																																				//--------NG 판정 경우-------리트라이 세파모드 횟수 초과----------//
+					else																														// 1) 리트라이 세파모드 카운트 확인, 설정된 리트라이 횟수 카운트보다 현재 리트라이 횟수가 큰 경우 
+					{
+						// [ 참조 : 2025.07.25 Retry 알람 발생 시점 변경 ]
+						P_Com_EPC_Sepa_Consume_Mode_Flag = 1;																					// 2) EPC 세파 모드 레시피 적용 Flag OFF 		
+						P_PLC01_Execute_Retry_Sepa_Mode_Count = 0;																				// 3) 리트라이 세파 보정 횟수 초기화						
+						P_EPC_Retry_Over_Alarm_Flag = N_TRUE;																					// 4) 정지 타이밍 -> 기구물 한계로 배출 이후 알람 발생 및 정지 하도록 수정	
+					}
+					P_Execute_First_Sepa_Ontable_State_Machine = P_Execute_First_Sepa_Ontable_State_Machine + P_Upcount_NextStep;				// → 다음 스텝머신으로 이동						
+				}
+							
+			}
+			else																																	// 드라이런 모드라면,
+			{
+				P_Execute_First_Sepa_Ontable_State_Machine = P_Execute_First_Sepa_Ontable_State_Machine + P_Upcount_NextStep;						// → 다음 스텝머신으로 이동
+			}
+
+			break;
+			//------------------------------------------------------------------------------------
+			// 6) First_Sepa_OnTable - EPC 보정 판단 후, Hold Status 변경
+			//------------------------------------------------------------------------------------
+			case 6 :
+				P_Execute_First_Sepa_Ontable_State_Machine = P_Execute_First_Sepa_Ontable_State_Machine + P_Upcount_NextStep;						// → 다음 스텝머신으로
+				P_PMAC_Commands = F_Command_Hold																									// 1) 자동화 상태 Hold 처리 변경 		
+			break;
+			//------------------------------------------------------------------------------------
+			// 7) First_Sepa_OnTable_7 - 완료단계 변경 
+			//------------------------------------------------------------------------------------
+			case 7 :
+				P_Execute_First_Sepa_Ontable_State_Machine = N_Complete_Step;																		// → 스텝머신 Complete으로
+			break;
+
+			case N_Complete_Step :
+				P_Process_Function_Command = N_Function_Complete;
+			break;
+
+			case N_Error_Step :
+				L_Queue_location_Error_Check = P_Process_Function_Command;
+				P_EXECUTE_FUNC_Debug_On_Sepa_STEP = P_Execute_First_Sepa_Ontable_State_Machine;
+				P_Process_Function_Command = N_Function_Error;
+			break;
+		}
+	break;
+
+
+	 //------------------------------------------------------------------------------------------
+	 // EXECUTE_(3) - Prod_Management : 생산 관리 모드 함수		/* def 3 */
+	 //     → TRG, MODE 사용하는 프로그램은 모드변환모듈과 EXECUTE 생산모드관리모듈만 사용.
+	 //------------------------------------------------------------------------------------------
+	case N_Function_Prod_Management : 
+	
+		if ( P_PLC01_Process_Function_Enter_Flag == 1 )		// 1) Queue Function CMD 기능 첫시작 스텟머신 진행
+		{
+			P_PLC01_Process_Function_Enter_Flag = 0;		// 1.1) 재진입 방지 초기화
+			P_Execute_Prod_Manage_State_Machine = 1;		// 1.2) 해당 함수 스텟머신 진행
+		}
+
+		switch(P_Execute_Prod_Manage_State_Machine)
+		{
+			//------------------------------------------------------------------------------------
+			// 1) Prod_Mangement - Execute 관리모듈 시작 
+			//------------------------------------------------------------------------------------
+			case 1 : 
+				P_Execute_Manage_Mode = F_Command_Start;	// 생산모드관리 모듈 실행.
+				#ifdef F_Debug_Mode
+					//P_Vision_Status(F_All) = F_True;		// Vision 상태 all true;
+				#endif
+				P_Execute_Prod_Manage_State_Machine = P_Execute_Prod_Manage_State_Machine + P_Upcount_NextStep;	// 다음 스텝으로 이동.
+				break;
+			//------------------------------------------------------------------------------------
+			// 2) Prod_Mangement - 스텝오버
+			//------------------------------------------------------------------------------------
+			case 2 : // Execute관리모듈 실행 감시 
+				if( P_Execute_Manage_Mode )	
+				{	// 실행되면
+					P_Execute_Prod_Manage_State_Machine = P_Execute_Prod_Manage_State_Machine + P_Upcount_NextStep;	// 다음 스텝으로 이동.
+				}
+			break;
+			//------------------------------------------------------------------------------------
+			// 3) Prod_Mangement - 종료모듈 감시 
+			//------------------------------------------------------------------------------------
+			case 3 : // Execute관리모듈 감시.
+				if( P_Execute_Manage_Mode == 0 )	
+				{
+					P_Execute_Prod_Manage_State_Machine = N_Complete_Step;		// 완료 스텝으로 이동.
+				}
+			break;
+			//------------------------------------------------------------------------------------
+			// 4) Prod_Mangement - 시퀀스 종료 
+			//------------------------------------------------------------------------------------
+			case N_Complete_Step :
+				P_Process_Function_Command = N_Function_Complete;		// 명령 초기화
+				break;
+			default:	break;	
+		}				
+	break;
+
+	 //------------------------------------------------------------------
+	 // HOLD_(1) - Exitence_Insp - 유무검사  
+	 // → 얼라인 테이블 극판 공급 전, 더블 시트를 방지하기 위하여 얼라인 테이블에 극판이 없는 상태를 촬상하는 기능
+	 //------------------------------------------------------------------
+	case N_Function_Hold_Existence_Insp_Process	/* def 5 */ :
+		// 기능 첫 시작 시 스텝 머신 초기화
+		if ( P_PLC01_Process_Function_Enter_Flag == 1 )
+		{
+			P_PLC01_Process_Function_Enter_Flag = 0;					// 재진입 방지 초기화
+			P_HOLD_Existence_Insp_Queue_State_Machine = 1;						// 스텝머신 진행
+		}
+	
+		switch( P_HOLD_Existence_Insp_Queue_State_Machine )
+		{
+			case 1 :
+				if( SubMaster_Status == 0 )		//P_SubMaster_Sub_Old_Mode가 초기화 된지 확인 -> P_SubMaster_Sub_Old_Mode가 변하면 slave motion command를 초기화하여 모션이 씹히는 경우가 있어서
+				{
+					P_HOLD_Existence_Insp_Queue_State_Machine = 2;
+				}
+				else
+				{
+					P_SubMaster_Status_Err++	//모니터링 변수
+				}
+			break;
+	
+			case 2 :
+				P_Except_Return_Array(N_Hold_Memory_Tower_RTN) = 0
+				//HOLD는 파이널롤러 위치를 보고 파이널롤러로 부터 자유로운(양극 or 음극)쪽 유닛에 위치 또는 극판 상태를 맞춰줌
+				call Sub_Unit_Memory_Status.individual_mode(F_Final_Roll, &P_FinalRoll_Unit_Status, &P_Except_Return_Array(N_Hold_Memory_Tower_RTN))	
+				if( P_Except_Return_Array(N_Hold_Memory_Tower_RTN) == 1 )
+				{
+					if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)
+					{
+						if( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )	// 얼라인에 극판 존재하면 유무검사 큐 완료
+							P_HOLD_Existence_Insp_Queue_State_Machine = N_Complete_Step
+						else
+							P_HOLD_Existence_Insp_Queue_State_Machine = 3
+					}
+					else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+					{
+						if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence ) // 얼라인에 극판 존재하면 유무검사 큐 완료
+							P_HOLD_Existence_Insp_Queue_State_Machine = N_Complete_Step
+						else
+							P_HOLD_Existence_Insp_Queue_State_Machine = 3
+					}
+				}
+			break;
+	
+			case 3 :
+				P_Except_Return_Array(N_Hold_Existence_Insp_RTN) = 0
+				call Hold_Process.Existence_Insp(&P_Except_Return_Array(N_Hold_Existence_Insp_RTN))	// 유무검사 위치 이동
+				if( P_Except_Return_Array(N_Hold_Existence_Insp_RTN) == 1 )
+				{
+					P_HOLD_Existence_Insp_Queue_State_Machine = 4
+					//P_HOLD_Existence_Insp_Queue_State_Machine = N_Complete_Step
+				}
+				else if ( P_Except_Return_Array(N_Hold_Existence_Insp_RTN) ==  N_Stop_Point )
+				{
+					P_Hold_Stop_Existence_Insp_STEP = P_HOLD_Existence_Insp_Queue_State_Machine							// 스탑 포인트 모니터링
+					P_HOLD_Existence_Insp_Queue_State_Machine = N_Stop_Step
+				}
+				else
+				{
+					P_Debug_Existence_Insp_STEP = P_HOLD_Existence_Insp_Queue_State_Machine
+					P_HOLD_Existence_Insp_Queue_State_Machine = 444
+				}
+	
+			break;
+	
+			case 4 :
+				#ifndef F_Debug_Mode
+					P_Hold_Align_Sheet_CHK = 0	// 극판유무검사 or 빈테이블 검사 완료 확인 변수 초기화
+				#endif
+				
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)
+				{
+					if( P_Hold_Anode_Exception_Empty_Flag == 1 && Sys_Anode_NG_TR_Sheet_Data != 0 )	//NG PNP가 극판을 가지고 있으면 NG 버리면서 빈테이블 검사를 하기 때문에 완료 처리
+					{
+						P_HOLD_Existence_Insp_Queue_State_Machine = N_Complete_Step
+					}
+					// 장비가 정지할 때 NG PNP에 극판 데이터가 있는 상태로 정지 후 재시작 하였을 때 극판 데이터가 없으면 작업자가 제거했다고 판단하여 빈테이블 검사 실행
+					else if( P_Hold_Anode_Exception_Empty_Flag == 1 && Sys_Anode_NG_TR_Sheet_Data == 0 )	
+					{
+						P_Vision_EmptyTable_Command = N_Anode_Unit	// 빈테이블 검사 실행
+						P_HOLD_Existence_Insp_Queue_State_Machine = 5
+					}
+					else
+					{
+						P_Vision_Existence_Command = N_Anode_Unit					// 극판 유무 검사 실행
+						P_HOLD_Existence_Insp_Queue_State_Machine = 5;
+					}
+					P_Hold_Anode_Exception_Empty_Flag = 0
+				}
+				else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+				{
+					if( P_Hold_Cathode_Exception_Empty_Flag == 1 && Sys_Cathode_NG_TR_Sheet_Data != 0 )	//NG PNP가 극판을 가지고 있으면 NG 버리면서 빈테이블 검사를 하기 때문에 완료 처리
+					{
+						P_HOLD_Existence_Insp_Queue_State_Machine = N_Complete_Step
+					}
+					// 장비가 정지할 때 NG PNP에 극판 데이터가 있는 상태로 정지 후 재시작 하였을 때 극판 데이터가 없으면 작업자가 제거했다고 판단하여 빈테이블 검사 실행
+					else if( P_Hold_Cathode_Exception_Empty_Flag == 1 && Sys_Cathode_NG_TR_Sheet_Data == 0 )
+					{
+						P_Vision_EmptyTable_Command = N_Cathode_Unit	// 빈테이블 검사 실행
+						P_HOLD_Existence_Insp_Queue_State_Machine = 5;				// 극판 유무 검사 실행
+					}
+					else
+					{
+						P_Vision_Existence_Command = N_Cathode_Unit
+						P_HOLD_Existence_Insp_Queue_State_Machine = 5
+					}
+					P_Hold_Cathode_Exception_Empty_Flag = 0;
+				}
+			break;
+			
+			case 5 :
+				if( P_Hold_Align_Sheet_CHK == 1 )	// 극판유무검사 or 빈테이블 검사 완료 확인
+				{
+					P_HOLD_Existence_Insp_Queue_State_Machine = N_Complete_Step
+				}
+			break;
+			
+			case N_Stop_Step :
+				P_HOLD_Existence_Insp_Queue_State_Machine = 0
+				//P_Completion_Watch_Variable(0),N_Serach_Limit,1 = 1; 
+				P_Hold_NG_PNP_Remove,11 = 1;
+				P_Hold_Stop_Point = 1
+			break
+
+			case N_Complete_Step :
+				P_Process_Function_Command = N_Function_Complete;
+			break;
+	
+		}
+	break;
+
+	// def 6
+	//HOLD는 파이널롤러 위치를 보고 파이널롤러로 부터 자유로운(양극 or 음극)쪽 유닛에 위치 또는 극판 상태를 맞춰줌
+	case N_Function_Hold_Process :
+		// 기능 첫 시작 시 스텝 머신 초기화
+		if ( P_PLC01_Process_Function_Enter_Flag == 1 )
+		{
+			P_PLC01_Process_Function_Enter_Flag = 0;				// 재진입 방지 초기화
+			P_HOLD_Hold_Process_State_Machine = 1;						// 스텝머신 진행
+		}
+	
+		switch ( P_HOLD_Hold_Process_State_Machine )
+		{
+			// 1. 메모리 타워 
+			case 1 :
+				if( SubMaster_Status == 0 )		//P_SubMaster_Sub_Old_Mode가 초기화 된지 확인 -> P_SubMaster_Sub_Old_Mode가 변하면 slave motion command를 초기화하여 모션이 씹히는 경우가 있어서		
+				{
+					P_Memory_Tower_Search_Flag = 1					// 메모리 타워 실행
+					P_HOLD_Hold_Process_State_Machine = 2
+				}
+				else
+				{
+					P_SubMaster_Status_Err++	// 모니터리용 변수
+				}
+			break;
+
+
+			// 2. 메모리 타워 확인(파이널롤러 방향 확인)
+			case 2 :
+				P_Hold_Rtn = 0;
+				if( P_Memory_Tower_Search_Flag == 0 && P_MemTow_integrated_return == 1 )
+				{
+					if( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence )
+						P_HOLD_Hold_Process_State_Machine = 3
+					else
+						// 노말모드가 아닐 경우 극판 제거 및 공급할 필요가 없으므로 바로 세미런 가능 위치 이동 스탭으로 이동
+						P_HOLD_Hold_Process_State_Machine = 10
+				}
+			break;
+	
+			// 3. NG PNP 극판 제거
+			case 3 :
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)			// 파이널롤러 양극 방향 위치로 음극 유닛 조작
+				{
+					if( Sys_Anode_NG_TR_Sheet_Data != 0 )					// NG PNP에 데이터가 있으면 NG 극판을 가지고 있다는 의미로 극판 제거
+					{
+						P_Except_Return_Array(N_Hold_Anode_NG_PNP_Remove_RTN) = 0;
+						call Hold_Process.NG_PNP_Remove(&P_Except_Return_Array(N_Hold_Anode_NG_PNP_Remove_RTN))		// NG PNP 제거 시퀀스 실행
+						if( P_Except_Return_Array (N_Hold_Anode_NG_PNP_Remove_RTN) == 1 )								// 정상 종료
+						{
+							P_HOLD_Hold_Process_State_Machine = 4;
+						}
+						else if( P_Except_Return_Array(N_Hold_Anode_NG_PNP_Remove_RTN) == N_Stop_Point )								// NG PNP 제거 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;					
+						}
+					}
+					else // NG PNP에 극판이 없으면 다음 HOLD Process 진행
+					{
+						P_HOLD_Hold_Process_State_Machine = 4;
+					}
+				}
+				else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+				{
+					if( Sys_Cathode_NG_TR_Sheet_Data != 0 )								// NG PNP에 데이터가 있으면 NG 극판을 가지고 있다는 의미로 극판 제거
+					{
+						P_Except_Return_Array(N_Hold_Cathode_NG_PNP_Remove_RTN) = 0;
+						call Hold_Process.NG_PNP_Remove(&P_Except_Return_Array(N_Hold_Cathode_NG_PNP_Remove_RTN))					// NG PNP 제거 시퀀스 실행
+						if( P_Except_Return_Array(N_Hold_Cathode_NG_PNP_Remove_RTN) == 1 )											// 정상 종료
+						{
+							P_HOLD_Hold_Process_State_Machine = 4;
+						}
+						else if( P_Except_Return_Array(N_Hold_Cathode_NG_PNP_Remove_RTN) == N_Stop_Point )								// NG PNP 제거 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 스탑 포인트 모니터링
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+					}
+					else  // NG PNP에 극판이 없으면 다음 HOLD Process 진행
+					{
+						P_HOLD_Hold_Process_State_Machine = 4;
+					}
+				}
+			break;
+	
+			// 4. 얼라인 극판 제거
+			case 4 :
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)						//파이널롤러 양극 방향 위치
+				{
+					if( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_NG_Masking )			// 음극 얼라인 테이블에 NG 극판 존재로 제거 필요
+					{
+						P_Except_Return_Array(N_Hold_Anode_Align_Remove_RTN) = 0;
+						call Hold_Process.align_remove(&P_Except_Return_Array(N_Hold_Anode_Align_Remove_RTN))						// 얼라인 테이블 극판 제거 시퀀스 실행
+						if( P_Except_Return_Array(N_Hold_Anode_Align_Remove_RTN) == 1 )											// 정상 종료
+						{
+							P_HOLD_Hold_Process_State_Machine = 5;							
+						}
+						else if( P_Except_Return_Array(N_Hold_Anode_Align_Remove_RTN) == N_Stop_Point )								// 얼라인 제거 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 스탑 포인트 모니터링
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+					}
+					else // 얼라인테이블에 NG 극판 미존재로 다음 HOLD Process 진행
+					{
+						P_HOLD_Hold_Process_State_Machine = 5;
+					}
+				}
+				else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )				//파이널롤러 음극 방향 위치
+				{
+					if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_NG_Masking )													// 양극 얼라인 테이블에 NG 극판 존재로 제거 필요
+					{
+						P_Except_Return_Array(N_Hold_Cathode_Align_Remove_RTN) = 0;
+						call Hold_Process.align_remove(&P_Except_Return_Array(N_Hold_Cathode_Align_Remove_RTN))						// 얼라인 테이블 극판 제거 시퀀스 실행
+						if( P_Except_Return_Array(N_Hold_Cathode_Align_Remove_RTN) == 1 )												// 정상 종료
+						{
+							P_HOLD_Hold_Process_State_Machine = 5;
+						}
+						else if( P_Except_Return_Array(N_Hold_Cathode_Align_Remove_RTN) == N_Stop_Point )								// 얼라인 제거 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 스탑 포인트 모니터링
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+					}
+					else  // 얼라인테이블에 NG 극판 미존재로 다음 HOLD Process 진행
+					{
+						P_HOLD_Hold_Process_State_Machine = 5;
+					}
+				}		
+			break;
+	
+			// 5. 2차 PNP 극판 제거
+			case 5 :
+				if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)						// 파이널롤러 양극 방향 위치
+				{
+					if( Sys_Anode_2nd_Sheet_LO_Vision_BYTE & Hex_NG_Masking )			// 음극 2차 PNP NG 극판 존재로 제거 필요
+					{
+						P_Except_Return_Array(N_Hold_Anode_2nd_PNP_Remove_RTN) = 0;
+						call Hold_Process.remove_2nd(&P_Except_Return_Array(N_Hold_Anode_2nd_PNP_Remove_RTN))						// 2차 PNP 제거 시퀀스 실행
+						if( P_Except_Return_Array(N_Hold_Anode_2nd_PNP_Remove_RTN) == 1 )											// 정상 종료
+						{
+							P_HOLD_Hold_Process_State_Machine = 4;							// 2차 PNP 극판 제거는 2차 PNP -> 얼라인으로 극판을 옮기는 시퀀스로 종료 후 얼라인 제거 시퀀스 실행 필요
+						}
+						else if( P_Except_Return_Array(N_Hold_Anode_2nd_PNP_Remove_RTN) == N_Stop_Point )								// 2차 PNP 제거 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 스탑 포인트 모니터링
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+					}
+					else  // 2차 PNP에 NG 극판 미존재로 다음 HOLD Process 진행
+					{
+						P_HOLD_Hold_Process_State_Machine = 6;
+					}
+				}
+				else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )					// 파이널롤러 음극 방향 위치	
+				{
+					if( Sys_Cathode_2nd_Sheet_LO_Vision_BYTE & Hex_NG_Masking )			// 양극 2차 PNP NG 극판 존재로 제거 필요
+					{
+						P_Except_Return_Array(N_Hold_Cathode_2nd_PNP_Remove_RTN) = 0;
+						call Hold_Process.remove_2nd(&P_Except_Return_Array(N_Hold_Cathode_2nd_PNP_Remove_RTN))						// 2차 PNP 제거 시퀀스 실행
+						if( P_Except_Return_Array(N_Hold_Cathode_2nd_PNP_Remove_RTN) == 1 )											// 정상 종료
+						{
+							P_HOLD_Hold_Process_State_Machine = 4;							// 2차 PNP 극판 제거는 2차 PNP -> 얼라인으로 극판을 옮기는 시퀀스로 종료 후 얼라인 제거 시퀀스 실행 필요
+						}
+						else if( P_Except_Return_Array(N_Hold_Cathode_2nd_PNP_Remove_RTN) == N_Stop_Point )								// 2차 PNP 제거 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 스탑 포인트 모니터링
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+					}
+					else  // 2차 PNP에 NG 극판 미존재로 다음 HOLD Process 진행
+					{
+						P_HOLD_Hold_Process_State_Machine = 6;
+					}
+				}		
+			break;
+	
+			// 6. 1차 PNP 극판 공급
+			case 6 :
+				// 세파 첫장 안깔린 상태
+				if( P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+				{
+					// 세파 첫장이 깔려있지 않은 상태에서는 얼라인에만 극판이 있어야하기 때문에 얼라인테이블에 극판을 공급하기 위한 1차 PNP 극판 공급으로 얼라인테이블에 극판이 존재하면 1차 PNP 극판 공급을 하지 않음
+					if( Sys_Cathode_Align_Sheet_Data == 0 && Sys_Cathode_1st_Sheet_Data == 0 )		// 양극 얼라인테이블에 극판 미존재면 1차 PNP 극판 공급 						
+					{
+						P_Except_Return_Array(N_Hold_Supply_1st_RTN) = 0;
+						call Hold_Process.supply_1st(&P_Except_Return_Array(N_Hold_Supply_1st_RTN))								// 1차 PNP 극판 공급 시퀀스 실행
+						if( P_Except_Return_Array(N_Hold_Supply_1st_RTN) == 1 )													// 정상 종료	
+						{
+							P_HOLD_Hold_Process_State_Machine = 7;
+						}
+						else if( P_Except_Return_Array(N_Hold_Supply_1st_RTN) == N_Stop_Point )										// 1차 PNP 극판 공급 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine		// 스탑 포인트 모니터링
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine		// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+					}
+					else
+						P_HOLD_Hold_Process_State_Machine = 7;									
+				}
+				// 파이널롤러가 양극 방향이라는 건 세파 첫장이 깔린 이후
+				else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)							// 파이널롤러 양극 방향 위치
+				{
+					if( Sys_Anode_1st_Sheet_Data != 0 )										// 1차 PNP에 극판 존재하여 다음 HOLD Process 진행
+					{
+						P_HOLD_Hold_Process_State_Machine = 7;
+					}
+					else																	// 1차 PNP 극판 미존재로 극판 공급 필요
+					{
+						P_Except_Return_Array(N_Hold_Supply_1st_RTN) = 0;	
+						call Hold_Process.supply_1st(&P_Except_Return_Array(N_Hold_Supply_1st_RTN))						// 1차 PNP 극판 공급 시퀀스 실행
+						if( P_Except_Return_Array(N_Hold_Supply_1st_RTN) == 1 )											// 정상 종료
+						{
+							P_HOLD_Hold_Process_State_Machine = 7;
+						}
+						else if( P_Except_Return_Array(N_Hold_Supply_1st_RTN) == N_Stop_Point )								// 1차 PNP 극판 공급 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 스탑 포인트 모니터링
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+					}
+				}
+				else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos )	// 파이널롤러 음극 방향 위치					
+				{
+					if( Sys_Cathode_1st_Sheet_Data != 0 )										// 1차 PNP에 극판 존재로 다음 HOLD Process 진행						
+						P_HOLD_Hold_Process_State_Machine = 7;
+					else
+					{
+						P_Except_Return_Array(N_Hold_Supply_1st_RTN) = 0
+						call Hold_Process.supply_1st(&P_Except_Return_Array(N_Hold_Supply_1st_RTN))							// 1차 PNP 극판 공급 시퀀스 실행
+						if( P_Except_Return_Array(N_Hold_Supply_1st_RTN) == 1 )												// 정상 종료
+						{
+							P_HOLD_Hold_Process_State_Machine = 7;
+						}
+						else if( P_Except_Return_Array(N_Hold_Supply_1st_RTN) == N_Stop_Point )									// 1차 PNP 극판 공급 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine		// 스탑 포인트 모니터링
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine		// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+					}
+				}		
+			break;
+	
+			// 7. 얼라인 극판 공급
+			case 7 :
+				if( P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+				{
+					// 세파 첫장이 깔려 있을 경우 HOLD 종료 시 1차와 2차에만 극판이 존재해야됨
+					// 세파 첫장을 잡지 않은 경우 얼라인에만 극판을 공급이 필요하기 때문에 2차 PNP에 극판 유무와 상관 없이 공급 진행
+					if( Sys_Cathode_Align_Sheet_Data == 0)								// 얼라인 테이블에 극판 미존재 시 얼라인 극판 공급 진행
+					{
+						P_Except_Return_Array(N_Hold_Supply_Align_RTN) = 0;
+						call Hold_Process.supply_Align(&P_Except_Return_Array(N_Hold_Supply_Align_RTN))						// 얼라인 극판 공급 시퀀스 실행
+						if( P_Except_Return_Array(N_Hold_Supply_Align_RTN) == 1 )											// 정상 종료
+						{
+							P_HOLD_Hold_Process_State_Machine = 4;							// 얼라인 극판 공급 후 공급한 극판이 NG면 제거가 필요하므로 얼라인 극판 제거 case로 이동
+						}
+						else if( P_Except_Return_Array(N_Hold_Supply_Align_RTN) == N_Stop_Point )								// 얼라인 극판 공급 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 스탑 포인트 모니터링
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+					}
+					else
+						P_HOLD_Hold_Process_State_Machine = 8;
+				}
+				else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)	// 파이널롤러가 양극 방향이라는 건 세파 첫장이 깔린 이후
+				{
+					// 세파 첫장이 깔려 있을 경우 HOLD 종료 시 1차와 2차에만 극판이 존재해야됨
+					// 세파 첫장이 깔려 있는 경우 얼라인 극판 공급은 2차 PNP에 극판을 공급해주는 수단으로 2차 PNP에 극판 존재 시 다음 HOLD Process 진행
+					if( Sys_Anode_Align_Sheet_Data != 0 || Sys_Anode_2nd_Sheet_Data != 0 )
+					{
+						P_HOLD_Hold_Process_State_Machine = 8;
+					}
+					else
+					{
+						P_Except_Return_Array(N_Hold_Supply_Align_RTN) = 0;
+						call Hold_Process.supply_Align(&P_Except_Return_Array(N_Hold_Supply_Align_RTN))							// 얼라인 극판 공급 시퀀스 진행
+						if( P_Except_Return_Array(N_Hold_Supply_Align_RTN) == 1 )												// 정상 종료
+						{
+							P_HOLD_Hold_Process_State_Machine = 4;								// 얼라인 극판 공급 후 공급한 극판이 NG면 제거가 필요하므로 얼라인 극판 제거 case로 이동
+						}
+						else if( P_Except_Return_Array(N_Hold_Supply_Align_RTN) == N_Stop_Point )									// 얼라인 극판 공급 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine		// 스탑 포인트 모니터링
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine		// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+					}
+				}
+				else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos )						// 파이널롤러 음극 방향 위치
+				{
+					// 세파 첫장이 깔려 있을 경우 HOLD 종료 시 1차와 2차에만 극판이 존재해야됨
+					// 세파 첫장이 깔려 있는 경우 얼라인 극판 공급은 2차 PNP에 극판을 공급해주는 수단으로 2차 PNP에 극판 존재 시 다음 HOLD Process 진행
+					if( Sys_Cathode_Align_Sheet_Data != 0 || Sys_Cathode_2nd_Sheet_Data != 0 )
+					{
+						P_HOLD_Hold_Process_State_Machine = 8;
+					}
+					else                                                                // 얼라인 테이블에 극판 미존재 시 얼라인 극판 공급 진행
+					{
+						P_Except_Return_Array(N_Hold_Supply_Align_RTN) = 0;
+						call Hold_Process.supply_Align(&P_Except_Return_Array(N_Hold_Supply_Align_RTN))						// 얼라인 극판 공급 시퀀스 실행
+						if( P_Except_Return_Array(N_Hold_Supply_Align_RTN) == 1 )											// 정상 종료
+						{
+							P_HOLD_Hold_Process_State_Machine = 4;
+						}
+						else if( P_Except_Return_Array(N_Hold_Supply_Align_RTN) == N_Stop_Point )								// 얼라인 극판 공급 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 스탑 포인트 모니터링
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+					}
+				}		
+			break
+	
+	
+			// 8. 2차 PNP 극판 공급
+			case 8 :
+
+				if( P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+				{
+					// 세파 첫장이 깔려 있을 경우 HOLD 종료 시 1차와 2차에만 극판이 존재해야됨
+					// 세파 첫장을 잡지 않은 경우 얼라인에만 극판이 존재해야하기 때문에 2차 PNP 극판 공급은 하지 않고 다음 HOLD Process 진행
+					P_HOLD_Hold_Process_State_Machine = 9;
+				}
+				else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)						// 파이널롤러가 양극 방향이라는 건 세파 첫장이 깔린 이후
+				{
+					if( Sys_Anode_2nd_Sheet_Data != 0 )									// 2차 PNP에 극판 존재 시 다음 HOLD Process 진행
+					{
+						P_HOLD_Hold_Process_State_Machine = 9;
+					}
+					else
+					{
+						P_Except_Return_Array(N_Hold_Supply_2nd_RTN) = 0;
+						call Hold_Process.supply_2nd(&P_Except_Return_Array(N_Hold_Supply_2nd_RTN))						// 2차 PNP 극판 공급 시퀀스 실행
+						if( P_Except_Return_Array(N_Hold_Supply_2nd_RTN) == 1 )											// 정상 종료
+						{
+							P_HOLD_Hold_Process_State_Machine = 6;							// 2차 PNP 극판 공급 후 세미런 위치 이동 전에 1차 PNP에 극판이 있는지 확인하기 위해 1차 PNP 극판 공급 case로 이동
+						}
+						else if( P_Except_Return_Array(N_Hold_Supply_2nd_RTN) == N_Stop_Point )								// 2차 PNP 극판 공급 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 스탑 포인트 모니터링
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step					
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+					}
+				}
+				else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos )
+				{
+
+					if( Sys_Cathode_2nd_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )		// 2차 PNP 극판이 존재하면 다음 HOLD Process 진행
+					{
+						P_HOLD_Hold_Process_State_Machine = 9;
+					}
+					else
+					{
+						P_Except_Return_Array(N_Hold_Supply_2nd_RTN) = 0;
+						call Hold_Process.supply_2nd(&P_Except_Return_Array(N_Hold_Supply_2nd_RTN))						// 2차 PNP 극판 공급 시퀀스 실행
+						if( P_Except_Return_Array(N_Hold_Supply_2nd_RTN) == 1 )											// 정상 종료
+						{
+							P_HOLD_Hold_Process_State_Machine = 6;							// 2차 PNP 극판 공급 후 세미런 위치 이동 전에 1차 PNP에 극판이 있는지 확인하기 위해 1차 PNP 극판 공급 case로 이동
+						}
+						else if( P_Except_Return_Array(N_Hold_Supply_2nd_RTN) == N_Stop_Point )								// 2차 PNP 극판 공급 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+						{
+							P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 스탑 포인트 모니터링
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+						}
+						else
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine	// 비정상 상황 모니터링
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+					}
+				}		
+			break
+	
+			// 9. 세미런 가능한 극판 상태 확인
+			case 9 :
+				if( P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) )
+				{
+					#ifdef F_Debug_Mode
+						// 세파 첫장이 깔려있지 않은 경우 얼라인에만 극판이 존재해야하므로 얼라인 데이터만 확인
+						if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )
+							P_HOLD_Hold_Process_State_Machine = 10;
+						// case 9번까지 넘어 왔으면 극판 상태가 만족해야하는데 만족하지 않을 경우 디버깅 필요
+						else 
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+							p7455 = Sys_Cathode_Align_Sheet_LO_Vision_BYTE
+
+					#else
+						// 세파 첫장이 깔려있지 않은 경우 얼라인에만 극판이 존재해야하므로 얼라인 데이터만 확인
+						//if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )
+						if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Surf_OK && (Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_NG_Masking == 0) && Sys_Cathode_1st_Sheet_Data == 0 && Sys_Cathode_2nd_Sheet_Data == 0 )
+							P_HOLD_Hold_Process_State_Machine = 10;
+						// case 9번까지 넘어 왔으면 극판 상태가 만족해야하는데 만족하지 않을 경우 디버깅 필요
+						else 
+						{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine
+							P_HOLD_Hold_Process_State_Machine = 444;
+						}
+							p7456 = Sys_Cathode_Align_Sheet_LO_Vision_BYTE
+
+					#endif
+				}
+
+				else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos)	// 파이널롤러가 양극 방향이라는 건 세파 첫장은 깔려있다는 의미로 1차/2차 PNP에 극판이 존재해야됨
+				{
+					//if( Sys_Anode_2nd_Sheet_Data != 0 && Sys_Anode_1st_Sheet_Data != 0 && Sys_Anode_Align_Sheet_Data == 0 )
+					if( Sys_Anode_1st_Sheet_Data != 0 && Sys_Anode_2nd_Sheet_Data != 0 &&  (Sys_Anode_2nd_Sheet_LO_Vision_BYTE & Hex_NG_Masking == 0) && Sys_Anode_Align_Sheet_Data == 0 )
+					{
+						P_HOLD_Hold_Process_State_Machine = 10;
+					}
+					// case 9번까지 넘어 왔으면 극판 상태가 만족해야하는데 만족하지 않을 경우 디버깅 필요
+					else 
+					{
+						P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine
+						P_HOLD_Hold_Process_State_Machine = 444;
+						//P_HOLD_Hold_Process_State_Machine = 6;
+					}
+				}
+				else if ( P_FinalRoll_Unit_Status == F_FR_Anode_Pos )
+				{
+					// 세파 첫장이 깔려있는 상황이면 1차/2차 PNP에 극판 존재해야됨
+					//if( Sys_Cathode_2nd_Sheet_Data != 0 && Sys_Cathode_1st_Sheet_Data != 0 && Sys_Cathode_Align_Sheet_Data == 0 )
+					if( Sys_Cathode_1st_Sheet_Data != 0 && Sys_Cathode_2nd_Sheet_Data != 0 && (Sys_Cathode_2nd_Sheet_LO_Vision_BYTE & Hex_NG_Masking == 0) && Sys_Cathode_Align_Sheet_Data == 0 )					
+					{
+						P_HOLD_Hold_Process_State_Machine = 10;
+					}
+					// case 9번까지 넘어 왔으면 극판 상태가 만족해야하는데 만족하지 않을 경우 디버깅 필요
+					else
+					{
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine
+							P_HOLD_Hold_Process_State_Machine = 444;
+							//P_HOLD_Hold_Process_State_Machine = 6;
+					}
+				}
+			break;
+	
+			// 10. 세미런 가능한 모터 위치 이동
+			case 10 :
+				P_Except_Return_Array(N_Hold_Semi_Run_Enable_Pos_RTN) = 0;
+				call Hold_Process.Semi_Run_Enable_Pos(&P_Except_Return_Array(N_Hold_Semi_Run_Enable_Pos_RTN))	// 세미런 가능 위치 이동 시퀀스 실행
+				if( P_Except_Return_Array(N_Hold_Semi_Run_Enable_Pos_RTN) == 1 )								// 정상 종료
+				{	
+					// [참조 : 250919 J/R ID 생성 시점 변경]
+					if( P_Sepa_Run_Completed_Flag == 1 && P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence )
+					{
+						P_Sepa_Run_Completed_Flag = 0
+						P_Sepa_Run_Completed_Status_Machine = 1			// J/R ID 생성 스탯 머신 시작
+					}
+					P_HOLD_Hold_Process_State_Machine = N_Complete_Step
+				}
+				else if( P_Except_Return_Array(N_Hold_Semi_Run_Enable_Pos_RTN) == N_Stop_Point )					// 세미런 가능 위치 이동 시퀀스 진행 중 Stopping 상태로 변화되어 스탑포인트까지 진행 후 리턴값 스탑으로 반환
+				{
+					P_Hold_Stop_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine							// 스탑 포인트 모니터링
+					P_HOLD_Hold_Process_State_Machine = N_Stop_Step
+				}
+				else
+				{
+					P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine							// 비정상 상황 모니터링
+					P_HOLD_Hold_Process_State_Machine = 444
+				}
+			break;
+			
+			// HOLD 진행 중 Stopping 상태 전환
+			case N_Stop_Step :
+				P_HOLD_Hold_Process_State_Machine = 0
+				P_Hold_NG_PNP_Remove,11 = 1;
+				//P_Completion_Watch_Variable(0),N_Serach_Limit,1 = 1; 
+				P_Hold_Stop_Point = 1
+			break;
+
+			case N_Complete_Step :
+				if( P_Master_Motion_Trigger != L_Old_Master_Motion_Trigger )
+				{
+					P_HOLD_Hold_Process_State_Machine = 0
+					P_PMAC_Commands = F_Command_Unhold
+				}
+			break;
+		}
+	
+	break;
+
+	// [ 2025.06.18 서스펜드 추가 ]
+	// [ 참조 : 25.07.04 ARC,Discharge 모듈 모드 확인 추가 ] 
+	// [ 참조 : 25.07.04 EPC 프로그램 신규 추가 ]
+	// 3.2.6. SUSPEND - 젤리 롤 배출
+	case N_Function_JR_Discharge /* def 11 */ :
+
+		if ( P_PLC01_Process_Function_Enter_Flag == 1 )
+		{
+			P_PLC01_Process_Function_Enter_Flag = 0;			// 재진입 방지 초기화
+			P_SUSPEND_FUNC_JR_Discharge_STEP = 1;				// 스텝머신 진행	
+		}
+
+		switch( P_SUSPEND_FUNC_JR_Discharge_STEP )
+		{
+			case 0 :
+			break;
+
+			case 1 :																						// 0. 세파모드 or 노말모드 구분
+				if ( P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence )						// 0.1) Sepa Mode 이라면,
+				{
+					P_Suspend_Discharge_Cathode_Counter = P_Sepa_Cathode_Recipe_Count;						// 0.1.1) Sepa mode 레시피 값 내부변수로 저장
+					P_Suspend_Discharge_Anode_Counter = P_Sepa_Anode_Recipe_Count;							// 0.1.2) Sepa mode 레시피 값 내부변수로 저장
+
+				}
+				else 																						// 0.2) Normal Run 이라면,
+				{
+					// 노말 모드 레시피 추가 되면 변경 예정
+					P_Suspend_Discharge_Cathode_Counter = P_Sepa_Cathode_Recipe_Count;						// 0.2.1) Normal mode 레시피 값 내부변수로 저장
+					P_Suspend_Discharge_Anode_Counter = P_Sepa_Anode_Recipe_Count;							// 0.2.2) Normal mode 레시피 값 내부변수로 저장
+
+				}
+				P_SUSPEND_FUNC_JR_Discharge_STEP = 2;														// 다음 스텝으로 이동
+			break;
+
+			case 2 :																						// 1. 언로더 모듈 진행 사항 체크
+				if( P_Suspend_Discharge_Module_Status != F_Status_EXECUTE  )								// 1.1) 인터페이스 동작중인지 아닌지												
+				{
+					call Sub_Unit_Memory_Status.individual_mode(F_1st_Unloader,&P_1st_Unloader_Unit_Status,&L_individual_return);	// 1.1.2) 언로더 개별 위치 메모리 함수 Call
+					if( P_1st_Unloader_Unit_Status == F_1st_Unloader_Init_Pos )								// 1.1.2)언로더 대기위치라면
+					{
+						P_Buffer_Mode_Module_Status_Sequence(N_Discharge_Module) = P_Buffer_Mode_Status_Sequence;		// 1.1.3) 모듈 버퍼 모드 결정 
+						P_Buffer_Mode_Module_Status_Sequence(N_ARC_Module) = P_Buffer_Mode_Status_Sequence;				// 1.1.4) 모듈 버퍼 모드 결정
+						P_Buffer_Mode_Module_Status_Sequence(N_Anode_1TR_Supply_Module) = P_Buffer_Mode_Status_Sequence;// 1.1.5) 모듈 버퍼 모드 결정
+						P_SUSPEND_FUNC_JR_Discharge_STEP = 3;															// 다음 스텝으로 이동
+					}
+				}						
+			break;
+
+			case 3 :																						// 2. 메모리타워 실행
+					P_Memory_Tower_Search_Flag = 1;															// 2.1) 메모리 타워 Search Flag ON
+					P_MemTow_integrated_return = 0;															// 2.2) 메모리 타워 함수 Return 값 초기화
+					P_SUSPEND_FUNC_JR_Discharge_STEP = 4;													// 다음 스텝으로 이동
+			break;
+
+			case 4 :																						// 3. 메모리타워 확인 및 배출로 인한 서스펜드인지 확인 구간
+				if ( P_Memory_Tower_Search_Flag == 0 && P_MemTow_integrated_return == F_TRUE )				// 3.1) 업데이트 플래그 OFF 후
+				{	
+					P_SUSPEND_MNTR = P_Unit_integrated_Status;												// 3.2) Suspend 큐 메모리타워 감시 변수
+					if( P_Unit_integrated_Status == F_Error_Status )										// 3.3) 통합 메모리타워 에러상태일 경우 
+					{
+						P_SUSPEND_FUNC_JR_Discharge_STEP = N_Error_Step;									// Discharge Queue Step [Error]
+					}
+					else
+					{
+						if( P_Suspend_Discharge_Last_Run_Bit == 1 )												// 3.4) 라스트 런 진행 했을 경우.	[ 참조 : 25.06.20 배출 프로그램 수정 ]	[ 참조 : 25.07.08 배출 재가동 진행 추가 ]
+						{													// [ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가]
+							if( P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Cell_Down_Pos )  //P_Cathode_CLP_Unit_Status == F_Clamp_On_Pos )	// 3.5) 양극 클램프 ON, 음극 클램프 OFF 확인.
+							{
+								P_SUSPEND_FUNC_JR_Discharge_STEP = 5;											// 다음 스텝으로 이동
+							}
+							else																				// 3.6) 그 외 상황일 경우.
+							{
+								P_SUSPEND_FUNC_JR_Discharge_STEP = N_Error_Step;								// Discharge Queue Step [Error]
+							}
+						}
+						else if ( P_Suspend_Discharge_1st_Unloader_JR_Grip == 1 && P_1st_Unloader_Unit_Status == F_1st_Unloader_Init_Pos )	// 3.7) 1차 언로더가 JR을 잡고 있는 경우 (JR을 잡고 있는 상태에서 Resetting에서 0도 이동) [JR 커팅 후 정지 될 경우 Suspend 재가동을 위함] [ 참조 : 25.07.08 배출 재가동 진행 추가 ]
+						{
+							P_SUSPEND_FUNC_JR_Discharge_STEP = 5;												// 다음 스텝으로 이동
+						}
+					}
+				}
+			break;
+
+			case 5 :																						// 4. 배출하기 전에 필요 데이터 수집 ( 젤리롤 폭 계산 및 젤리롤 데이터 ) 
+							
+				L_Discharge_cal_rtn = 0;																	// 4.1) 두께 계산 함수 반환값 초기화
+
+				call Discharge_Sub_Prog.Discharge_Cal_Prog(&L_Discharge_cal_rtn);							// 4.2) 두께 계산 함수 Call
+				if( L_Discharge_cal_rtn == F_TRUE )															// 4.3) 반환값 True라면,
+				{
+					P_Suspend_Discharge_Cell_Out_Restart = 1;												// 4.3.1) 배출 완료 전 JR Cnt 중복 증가 방지. [1차 언와인더 45도 회전 후 초기화]	[ 참조 : 25.06.05 배출 시 JR Cnt 관리 ]
+					P_Jelly_Roll_Total_Count = P_Jelly_Roll_OK_Count + P_Jelly_Roll_NG_Count;				// 4.3.2) 총 JR Cnt 업데이트.	[ 참조 : 25.06.05 배출 시 JR Cnt 관리 ]
+					L_PLC01_SUSPEND_Discharge_RTN = 0;														// 4.3.3) 배출 모듈 실행전 Reset 함수 반환값 초기화
+					call Discharge_Sub_Prog.Module_Reset(&L_PLC01_SUSPEND_Discharge_RTN);					// 4.3.4) 배출 모듈 실행전 Reset 함수 Call
+					if( L_PLC01_SUSPEND_Discharge_RTN == F_TRUE )											// 4.3.5) 배출 모듈 실행전 Reset 함수 반환값 True라면,
+					{
+						P_SUSPEND_FUNC_JR_Discharge_STEP = 6;												// 다음 스텝으로 이동 
+					}
+				}
+				else																						// 4.4) 반환값 False라면,
+				{
+					P_SUSPEND_FUNC_JR_Discharge_STEP = N_Error_Step;										// Discharge Queue Step [Error]
+				}
+			break;
+
+			// [ 참조 : 2025.10.28 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]
+			case 6 :	// Supply 조건 검색
+				// ↓ 음극 1차에 Data 있거나, 얼라인 테이블 NG가 있다면 → HOLD에서 처리해야 하므로 Supply X
+				if( Sys_Anode_1st_Sheet_Data != 0 || Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_NG_Masking )
+				{
+					P_Suspend_Discharge_Cmd = F_Command_Start;												// 5.1) 배출 커맨드 발생	
+					P_SUSPEND_FUNC_JR_Discharge_STEP = N_Only_Discharge;									// 다음 스텝으로 이동
+				}
+				else // 음극 1차 Data 없음, 얼라인 OK → Supply Cmd 
+				{															
+					P_Suspend_Anode_1TR_Cell_Supply_Cmd = F_Command_Start;									// Supply Cmd 
+					P_Suspend_Discharge_Cmd = F_Command_Start;												// 5.1) 배출 커맨드 발생	
+					P_SUSPEND_FUNC_JR_Discharge_STEP = N_Both_Act;											// 다음 스텝으로 이동
+				}
+			break;
+
+			case N_Only_Discharge:	// 배출 모듈만 활성화
+				if( P_Suspend_Discharge_To_Execute_Flag == N_TRUE )
+				{
+					P_Com_User_Sepa_After_ARC_Mode_Continue_Flag = 0;										// 사용자 세파모드 -> ARC 세파모드 -> 메뉴얼 -> 재가동 -> STOP 으로 빠질 수 있도록 해주는 플레그 초기화
+					P_Suspend_Discharge_To_Execute_Flag = 0;												//6.1.1) 플래그 초기화
+					P_Execute_Last_Run_Flag = 0;															//6.1.2) 라스트런 플래그 초기화 하여 배출 종료를 알림
+					P_SUSPEND_FUNC_JR_Discharge_STEP = N_Complete_Step;										// Discharge Queue Step [Complete]
+				}
+			break;
+
+			case N_Both_Act:		// 배출모듈 및 공급모듈 활성화
+				if( P_Suspend_Discharge_To_Execute_Flag == N_TRUE && P_Suspend_Anode_1TR_Supply_Complete_Flag == N_TRUE )	//6.1) 배출 완료라면
+				{										
+					P_Com_User_Sepa_After_ARC_Mode_Continue_Flag = 0;										// 사용자 세파모드 -> ARC 세파모드 -> 메뉴얼 -> 재가동 -> STOP 으로 빠질 수 있도록 해주는 플레그 초기화
+					P_Suspend_Discharge_To_Execute_Flag = 0;												//6.1.1) 플래그 초기화
+					P_Suspend_Anode_1TR_Supply_Complete_Flag = 0;
+					P_Execute_Last_Run_Flag = 0;															//6.1.2) 라스트런 플래그 초기화 하여 배출 종료를 알림
+					P_SUSPEND_FUNC_JR_Discharge_STEP = N_Complete_Step;										// Discharge Queue Step [Complete]	
+				}
+			break;
+
+			case N_Complete_Step :
+				P_Process_Function_Command = N_Function_Complete;
+			
+			break;
+
+			case N_Error_Step :
+				L_Queue_location_Error_Check = P_Process_Function_Command;
+				P_Process_Function_Command = N_Error_Step;			
+			break;
+		}
+
+
+	break;
+
+
+	// [ 2025.06.18 서스펜드 추가 ]
+	// [ 참조 : 25.07.04 모드 체크 함수 추가 ]  
+case N_Function_Sepa_ARC_Mode :	// 세파 ARC 란
+		if ( P_PLC01_Process_Function_Enter_Flag == 1 )
+		{
+			P_PLC01_Process_Function_Enter_Flag = 0;																				// 재진입 방지 초기화
+			P_SUSPEND_FUNC_ARC_STEP = 1;																							// 스텝머신 진행
+		}
+		switch( P_SUSPEND_FUNC_ARC_STEP )
+		{
+			case 0: break;
+			case 1 :																												// 0. 메모리타워 실행
+				P_Memory_Tower_Search_Flag = 1;																						// 0.1) 메모리 타워 Search Flag ON
+				P_SUSPEND_FUNC_ARC_STEP = 2;																						// 다음스텝으로 이동
+			break;
+			
+			case 2:																													// 1. ARC Cmd 판단						 
+				if ( P_Memory_Tower_Search_Flag == 0 && P_MemTow_integrated_return == N_TRUE )										// 1.1) 업데이트 플래그 OFF 후
+				{
+					if( P_Suspend_ARC_Request_Flag == 1 )																			// 1.1.1) ARC 요청 신호 ON 이라면,
+					{
+						P_Suspend_ARC_Cmd = F_Command_Start;																		// 1.1.1.1) ARC 커맨드 발생
+						P_PLC01_Execute_Retry_Sepa_Mode_Count = 0;																	// 1.1.1.2) 리트라이 세파 보정 횟수 초기화  
+						P_SUSPEND_FUNC_ARC_STEP = 3;																				// ARC 커맨드 종료 대기 구간 Case로 이동
+					}	
+					else																											// 1.2) ARC 요청 신호 OFF 라면,
+					{
+						P_SUSPEND_FUNC_ARC_STEP = 4;																				// PMAC 상태변환 Case로 이동					
+					}
+				}
+			break;
+
+			case 3 :																												// 2. ARC Cmd 완료 대기 구간
+				if( P_Suspend_ARC_Complete_Flag == 1 )																				// 2.1) ARC 완료 상태가 된다면,
+				{
+					P_Suspend_ARC_Request_Flag = 0;																					// 요구 플래그 초기화
+					P_Suspend_ARC_Complete_Flag = 0;																				// 완료 플래그 초기화
+					P_PMAC_Commands = F_Command_Unsuspend;																			// 자동화 상태 [Unsuspend]
+					P_SUSPEND_FUNC_ARC_STEP = N_Complete_Step;																		// ARC Queue Step [Complete]
+				}
+			break;
+
+			case 4:																													// 3. ARC 상태 변환
+				if( P_Buffer_Mode_Status_Sequence != N_Normal_Status_Sequence )														// 3.1) 현재 모드가 일반모드가 아닐 때,
+				{
+					if( P_Com_After_Sepa_Mode_Status == F_Status_EXECUTE )															// 3.1.1) 계속 적층 진행 여부 [Execute]
+					{
+						P_PMAC_Commands = F_Command_Unsuspend;																		// 3.1.1.1) 자동화 상태 [Unsuspend]
+						P_SUSPEND_FUNC_ARC_STEP = N_Complete_Step;																	// ARC Queue Step [Complete]
+					}
+					else																											// 3.1.2) 계속 적층 진행 여부 [Execute]가 아닐때,
+					{
+						P_PMAC_Commands = F_Command_Stop;																			// 3.1.2.1) 자동화 상태 [Stop]
+						P_SUSPEND_FUNC_ARC_STEP = N_Complete_Step;																	// ARC Queue Step [Complete]
+					}
+					P_Com_After_Sepa_Mode_Status = 0;																				// 3.2) 계속 적층 진행 여부 상태 초기화	
+				}
+				else																												// 3.3) 현재 모드가 일반모드 또는 드라이런 일때
+				{
+					if( P_Jelly_Roll_Total_Count >= P_Jelly_Roll_Recipe_Count )														// 3.3.1) Total 카운트가 레시피 값보다 크다면,
+					{
+						// [ 참조 : 2025.09.29 최종 젤리롤 확인 플래그 추가 ]
+						P_JR_Target_Product_Complete_Flag = 1;																		// 생산 목표 달성 플래그 on
+						P_PMAC_Commands = F_Command_Stop;																			// 3.3.1.1) 자동화 상태 [Stop]
+						P_SUSPEND_FUNC_ARC_STEP = N_Complete_Step;																	// ARC Queue Step [Complete]
+					}
+					else																											// 3.3.2) Total 카운트가 레시피 값보다 크지 않다면,
+					{
+						P_PMAC_Commands = F_Command_Unsuspend;																		// 3.3.2.1) 자동화 상태 [Unsuspend] 
+						P_SUSPEND_FUNC_ARC_STEP = N_Complete_Step;																	// ARC Queue Step [Complete]	
+					}
+				}
+			break;
+			break;
+
+	
+			case N_Complete_Step :
+				P_Process_Function_Command = N_Function_Complete;
+			
+			break;
+			
+			case N_Error_Step :
+				L_Queue_location_Error_Check = P_Process_Function_Command;
+				P_Process_Function_Command = N_Error_Step;
+			
+			break;	
+		}
+	break;
+
+
+	/* def 14 */
+	//프로그램 사이클 정지
+	case N_Function_Stop_Initial_Process :
+
+		// 기능 첫 시작 시 스텝 머신 초기화 
+		if ( P_PLC01_Process_Function_Enter_Flag == 1 )
+		{
+			P_PLC01_Process_Function_Enter_Flag = 0;				// 재진입 방지 초기화
+			P_STOP_Initial_Process_STEP = N_STOP_Initial_Ready;		// 스텝머신 진행	
+		}
+
+		switch(P_STOP_Initial_Process_STEP)
+		{
+
+			case 0:
+				P_STOP_Initial_Process_Status = F_Status_IDLE;													// Stop_Initial Process[ IDLE 상태 ]
+			break;
+
+			case N_STOP_Initial_Ready :																			// 1. Stopping 진입 조건 확인
+				
+				P_STOP_Initial_Process_Status = F_Status_STARTING;												// 1) Stop_Initial Process[ EXECUTE 상태 ]
+
+				if( Total_DesVelZero_Bit && L_QUEUE_STOP_Initial_Timer > N_QUEUE_STOP_Interval )				// 2) 실축 모터 안움직이는 지 확인, Timer 확인
+				{
+					if( Hold_Status == F_Hold_Complete )														// 2.1) HOLD에서 사용하는 While이 전부 풀렸다는 상태로 HOLD가 완료 되었다는 의미 or 스탑포인트까지 진행 완료 했다는 의미
+					{	
+						if( P_Execute_1st_Sepa_Status == 0 || P_Execute_1st_Sepa_Status == F_Status_COMPLETE || P_Execute_1st_Sepa_Status == F_Status_STOPPED )	// 2.1.1) 세파 첫장 모듈 0 || 완료 일 경우 || 타임 아웃 일 경우 (세파 첫장 진행중일 경우 사이클 정지 X)		[ 참조 : 25.06.20 세파 첫장 모듈 추가. ]	[ 참조 : 25.07.15 세파 첫장 타임아웃 정지 추가. ]
+						{
+							//call Sub_Exception_Suspend_Function.Last_Jelly_Roll_Action(&P_Last_JR_Ret);		// 2.1.1.1) ARC QUEUE가 실행이 안되는 경우가 있을 수도 있음.
+							P_STOP_Initial_Process_STEP = 1;													// 다음 스텝으로 이동 
+						}
+					}
+				}
+			break;
+
+			case 1:																								// 2. 배출 여부 확인
+
+				if ( P_Suspend_Discharge_Module_Status != F_Status_EXECUTE )									// 1) 배출 진행 중이 아닐 경우 (배출 진행 중일 경우 사이클 정지 X) - 타임아웃에 의거한 코드 
+				{
+					P_Master_Motion_CycleStop_Flag = 1;															// 1.1) 사이클 정지 Flag ON
+					P_STOP_Initial_Process_STEP = P_STOP_Initial_Process_STEP + P_Upcount_NextStep;				// 다음 스텝으로 이동
+				}
+				
+			break;
+
+			case 2:																								// 3. 좌표계 off 확인
+				if ( Coord[1].ProgActive == 0 )																	// 1) 1번 좌표계가 off되었다면,
+				{
+					P_Master_Motion_Program_Flag = 0;															// 1.1) 마스터 모션 플래그 OFF					
+					P_STOP_Initial_Process_STEP = P_STOP_Initial_Process_STEP + P_Upcount_NextStep;				// 다음 스텝으로 이동 
+				}
+			break;
+
+			case 3:																								// 4. Stopping 처리 
+				if ( P_PLC01_SubMotion_Active == 0 && P_PLC01_SlaveMotion_Active == 0 )							// 1) 서브마스터 및 슬레이브 모션 프로그램 종료
+				{
+					if( P_Buffer_Mode_Status_Sequence == N_Dryrun_Status_Sequence )								// 1.1) 드라이런 모드 일시
+					{
+						P_Stop_CycleStop_Position = N_Equipment_Initial_Ready_Pos;								// 1.1.1) P_Stop_CycleStop_Position -> initial pos (전체 홈)	
+					}
+					else																						// 1.2) 드라이런 모드가 아닐시,
+					{
+						P_Stop_CycleStop_Position = N_Layer_Pause_Number;										// 1.2.1) P_Stop_CycleStop_Position -> N_Layer_Pause_Number (대기 위치 이동)
+					}
+					//250718
+					if( P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) && P_Stack_Judgement_Memory == 0 )		// 2)  파이널롤러 X축이 배출위치일 시, 젤리롤 메모리 없을 시 -> 다른 변수로 하나 Global 해줄 예정,
+					{
+						P_Status_Clear_Sheet_Maint_Check = 1;													// 2.1) 젤리롤 메모리 없는 상황 재가동시 버리고 시작
+					}
+
+					P_STOP_Initial_Process_STEP = P_STOP_Initial_Process_STEP + P_Upcount_NextStep;				// 다음 스텝으로 이동
+				}
+			break;
+
+			case 4:																				// 5.빈테이블 판정
+				if( Sys_Cathode_NG_TR_Sheet_LO_Vision_BYTE & Hex_NG_Masking)					// 1) 양극 NG PNP에 NG 마스킹이 되어 있다면, 
+				{
+					P_Hold_Cathode_Exception_Empty_Flag = 1;									// 1.1) NG PNP에만 ng 극판이 있으면 빈테이블 검사 플래그 on
+				}			
+				if( Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE & Hex_NG_Masking )						// 2) 음극 NG PNP에 NG 마스킹이 되어 있다면,
+				{
+					P_Hold_Anode_Exception_Empty_Flag = 1;										// 2.1) NG PNP에만 ng 극판이 있으면 빈테이블 검사 플래그 on
+				}	
+				P_STOP_Initial_Process_STEP = P_STOP_Initial_Process_STEP + P_Upcount_NextStep;	// 다음 스텝으로 이동
+			break;
+
+			case 5:
+				P_STOP_Initial_Process_STEP = N_Complete_Step;
+			break;
+
+			case N_Complete_Step:
+				P_Process_Function_Command = N_Function_Complete;
+			break;
+
+			default : break; 
+		}
+	break;
+
+	// 사이클 정지 대기위치 이동
+	case N_Function_CycleStop :
+
+		if( P_PLC01_Process_Function_Enter_Flag == 1 )
+		{
+			P_PLC01_Process_Function_Enter_Flag = 0;
+			P_STOP_Cylce_Stop_STEP = N_STOP_CylcleStop_Ready;
+		}
+		
+		switch(P_STOP_Cylce_Stop_STEP)
+		{
+			case 0 :
+				P_Stop_Cycle_Stop_Move_Status = F_Status_IDLE;											// 사이클 스탑 QUEUE 상태 [ IDLE 상태 ]
+			break;
+
+			case N_STOP_CylcleStop_Ready :																// 1. 사이클 스탑 실행부,
+				P_Stop_Cycle_Stop_Move_Status = F_Status_STARTING;										// 1) 사이클 스탑 QUEUE 상태 [STARTING]
+				P_Stopping_CycleStop_Cmd = F_Command_Start												// 2) 사이클 스탑 스탭머신 실행 커맨드
+
+				P_STOP_Cylce_Stop_STEP = 2;																// 다음 스텝으로 이동				
+			break;
+
+			case 2 :																					// 2. 사이클 스탑 완료 확인부,
+				if( P_Stopping_CycleStop_Module_Status == F_Status_COMPLETE )							// 1) 사이클 스탑 완료대기
+				{
+					P_Stopping_CycleStop_Init_Flag = N_TRUE;											// 1.2) 사이클 스탑 상태 초기화 flag
+					//call Heap_Sort.Node_Insert(632, N_Low_Alarm, Sys.Time);							// 1.3) 사이클 스탑 완료 알람 발생(사용 예정)
+					//P_PLC01_STOP_Queue_Complete_Flag = 1;												// 1.4) PackML Stopping 플래그 발생 [ 2025.06.24 추가 ]
+					P_STOP_Cylce_Stop_STEP = 3;															// 다음 스텝머신 이동
+				}							
+			break;
+
+			case 3 :		// [ 2025.07.25 마지막 공정 초기화 부분 추가 ] 
+				// ↓ 수정 [ 참조 : 2025.09.29 최종 젤리롤 확인 플래그 추가 ]
+				// 수정 이유 : 마지막 공정 시 배출 중 stop 누르게 되면, 초기화 구간을 타게 되서 마지막 젤리롤 배출이 안됌.
+				if( P_JR_Target_Product_Complete_Flag == 1 ) 
+				{
+					// [ 참고 : 2025.10.15 미비 사항 추가 건 ] → 마지막 공정 시 추가 필요하다면 추가 
+					P_JR_Target_Product_Complete_Flag = 0;
+					call Sub_Common_Function_Cycle_Stop.Last_JellyRoll_Init();
+				}
+				P_PLC01_STOP_Queue_Complete_Flag = 1;													// 1.4) PackML Stopping 플래그 발생 [ 2025.06.24 추가 ]
+				P_STOP_Cylce_Stop_STEP = N_Complete_Step;
+			break;
+
+			case N_Complete_Step:
+				P_Stop_Cycle_Stop_Move_Status = F_Status_COMPLETE;										// 사이클 스탑 완료확인 변수 초기화
+				P_Process_Function_Command = N_Function_Complete;
+			break;
+
+			default : break;
+		}
+	break;
+	
+	// 완료
+	case N_Function_Complete /* def 999 */ :
+		P_Queue_Process_Status = F_Status_IDLE;		// 함수 처리 대기
+		P_Process_Function_Command = 0;
+	break;
+
+	case N_Function_Error /* def 444 */ :
+		P_Queue_Process_Status = F_Status_ABORTED;											// 함수 처리 대기
+		P_Process_Function_Command = 0;
+		// ERROR 상황이라면 cycle stop cmd 해줘야 하나? 
+	break;
+
+}
+L_Old_Master_Motion_Trigger = P_Master_Motion_Trigger
+
+
+
+close

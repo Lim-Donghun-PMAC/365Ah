@@ -1,0 +1,444 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.09 김성중 선임
+// MSA 모듈화 프로그래밍 진행 - [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+// 25.07.28 김성중 선임 
+// Cal, Cleaning 위치 이동, Align 탈착 모드 프로그래밍 진행 - [ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ] 
+
+open plc 21
+
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+	
+Local L_Time_Cycle_Up_Count_Start_Time;						// Plc[21].ldata.L[0] 시간 체크 시작 시간
+Local L_Time_Cycle_Up_Count_End_Time;						// Plc[21].ldata.L[1] 시간 체크 종료 시간
+Local L_Time_Cycle_Up_Count_Delta_Time;						// Plc[21].ldata.L[2] 시작과 종료 시간 사이의 시간
+Local L_Flag_Cycle_Up_Count_Init_Flag;						// Plc[21].ldata.L[3] 타이머 초기화 플래그
+local L_PLC21_MSA_InterLock_Program_Active;					// Plc[21].ldata.L[4] 상태에 따른 프로그램 
+local L_MSA_InterLock_MNTR;									// Plc[21].ldata.L[5] MSA Interlock 모니터링 
+local L_VISION_MSA_Anode_Align_Btn;							// Plc[21].ldata.L[6] 음극 얼라인 MSA 버튼 상태 
+local L_VISION_MSA_Cathode_Align_Btn;						// Plc[21].ldata.L[7] 양극 얼라인 MSA 버튼 상태
+local L_VISION_MSA_Anode_Stack_Btn;							// Plc[21].ldata.L[8] 음극 Stack MSA 버튼 상태 
+local L_VISION_MSA_Cathode_Stack_Btn;						// Plc[21].ldata.L[9] 양극 Stack MSA 버튼 상태 
+local L_VISION_MSA_InterLock_Check_Assy_Bit;				// Plc[21].ldata.L[10] MSA 인터락 비트 변화 감지
+local L_MSA_Check_Bit_Rtn;									// Plc[21].ldata.L[11] MSA 체크 비트 리턴 값 
+local L_MSA_InterLock_Check_Rtn;							// Plc[21].ldata.L[12] MSA 인터락 비트 리턴 값 
+local L_MSA_InterLock_Bit_Add_Rtn;							// Plc[21].ldata.L[13] 비트 삽입 함수 결과값 리턴 값
+local L_Module_Interval_Timer;								// Plc[21].ldata.L[14] 인터벌 타이머
+
+local L_Old_BTN_Align_AN_Take_OFF;						// Plc[21].ldata.L[15] 음극 얼라인 탈착 모드 버튼 이전 값 
+Local L_Old_BTN_Align_CA_Take_OFF;						// Plc[21].ldata.L[16] 양극 얼라인 탈착 모드 버튼 이전 값 
+
+local L_PLC21_Align_Take_Off_Program_Active;				// Plc[21].ldata.L[17] 얼라인 탈착 모드 Interlock 모니터링 
+local L_Align_Take_Off_InterLock_Check_Assy_Bit;			// Plc[21].ldata.L[18] 양극 얼라인 탈착 모드 비트 변화 감지 
+Local L_Align_Take_Off_InterLock_MNTR;						// Plc[21].ldata.L[19] 음극 얼라인 탈착 모드 Interlock 모니터링
+local L_Align_Take_Off_Check_Bit_Rtn;						// Plc[21].ldata.L[20] 양극 얼라인 탈착 모드 체크 비트 리턴 값  
+Local L_Align_Take_Off_InterLock_Check_Rtn;					// Plc[21].ldata.L[21] 음극 얼라인 탈착 모드 인터락 비트 리턴 값  
+local L_Align_Take_Off_InterLock_Bit_Add_Rtn;				// Plc[21].ldata.L[22] 양극 얼라인 탈착 모드 비트 삽입 함수 결과값 리턴 값
+local L_Align_Take_Off_individual_Anode_1st_PNP_return;		// Plc[21].ldata.L[23] 음극 얼라인 탈착 모드 음극 1차 PNP 위치 리턴 값
+local L_Align_Take_Off_individual_Anode_2nd_PNP_return; 	// Plc[21].ldata.L[24] 양극 얼라인 탈착 모드 음극 2차 PNP 위치 리턴 값
+local L_Align_Take_Off_individual_Cathode_1st_PNP_return;	// Plc[21].ldata.L[25] 음극 얼라인 탈착 모드 양극 1차 PNP 위치 리턴 값
+local L_Align_Take_Off_individual_Cathode_2nd_PNP_return; 	// Plc[21].ldata.L[26] 양극 얼라인 탈착 모드 양극 2차 PNP 위치 리턴 값
+local L_Align_Take_Off_individual_FR_return;				// Plc[21].ldata.L[27] 양극 얼라인 탈착 모드 파이널롤러 위치 리턴 값
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+	
+// 00.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{		
+	
+	L_Module_Interval_Timer = L_Module_Interval_Timer +	L_Time_Cycle_Up_Count_Delta_Time;
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	P_MSA_Chk_Pos_Timer = P_MSA_Chk_Pos_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_2nd_PNP_Cleaning_Chk_Pos_Timer = P_2nd_PNP_Cleaning_Chk_Pos_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+
+//==============================================================================================================================================
+//1.  MSA, 비전 캘 버튼 커맨드 명령어 부분 
+//==============================================================================================================================================
+//1. MSA 모듈
+// MSA 동시 버튼 커맨드 방지 
+if( M_Func_BTN.Push_Anode_Align_MSA_Mode == 1 && M_Func_BTN.Push_Anode_Align_MSA_Mode != L_VISION_MSA_Anode_Align_Btn && N_VISION_MSA_Anode_Align_Cmd_OK == 1 )				// 상승엣지 & 다른 MSA 커맨드 합 0
+{
+	if( P_Mode_Run_Enable_Flag(F_Anode_Align_MSA) == 1)
+	{
+		M_Func_BTN.Push_Anode_Align_MSA_Mode = 0;
+		P_VISION_MSA_Anode_Align_Cmd = F_Command_Start;
+	}
+	else 
+	{
+		M_Func_BTN.Push_Anode_Align_MSA_Mode = 0;
+		P_VISION_MSA_Anode_Align_Cmd = 0;
+	}
+}
+if( M_Func_BTN.Push_Cathode_Align_MSA_Mode == 1 && M_Func_BTN.Push_Cathode_Align_MSA_Mode != L_VISION_MSA_Cathode_Align_Btn && N_VISION_MSA_Cathode_Align_Cmd_OK == 1 )		// 상승엣지 & 다른 MSA 커맨드 합 0
+{
+	if( P_Mode_Run_Enable_Flag(F_Cathode_Align_MSA) == 1)
+	{
+		M_Func_BTN.Push_Cathode_Align_MSA_Mode = 0;
+		P_VISION_MSA_Cathode_Align_Cmd = F_Command_Start;
+	}
+	else 
+	{
+		M_Func_BTN.Push_Cathode_Align_MSA_Mode = 0;
+		P_VISION_MSA_Cathode_Align_Cmd = 0;
+	}
+}
+if( M_Func_BTN.Push_Anode_Stack_MSA_Mode == 1 &&  M_Func_BTN.Push_Anode_Stack_MSA_Mode != L_VISION_MSA_Anode_Stack_Btn && N_VISION_MSA_Anode_Stack_Cmd_OK == 1 )				// 상승엣지 & 다른 MSA 커맨드 합 0
+{
+	if (P_Mode_Run_Enable_Flag(F_Anode_Stack_MSA) == 1) 
+	{
+		 M_Func_BTN.Push_Anode_Stack_MSA_Mode = 0;
+		P_VISION_MSA_Anode_Stack_Cmd = F_Command_Start;
+	}
+	else 
+	{
+		M_Func_BTN.Push_Anode_Stack_MSA_Mode = 0;
+		P_VISION_MSA_Anode_Stack_Cmd = 0;
+	}
+}
+if( M_Func_BTN.Push_Cathode_Stack_MSA_Mode == 1 && M_Func_BTN.Push_Cathode_Stack_MSA_Mode != L_VISION_MSA_Cathode_Stack_Btn && N_VISION_MSA_Cathode_Stack_Cmd_OK == 1 )		// 상승엣지 & 다른 MSA 커맨드 합 0
+{
+	if( P_Mode_Run_Enable_Flag(F_Cathode_Stack_MSA) == 1)
+	{
+		M_Func_BTN.Push_Cathode_Stack_MSA_Mode = 0;
+		P_VISION_MSA_Cathode_Stack_Cmd = F_Command_Start;
+	}
+	else
+	{
+		M_Func_BTN.Push_Cathode_Stack_MSA_Mode = 0;
+		P_VISION_MSA_Cathode_Stack_Cmd = 0;
+	}
+}
+
+L_VISION_MSA_Anode_Align_Btn =  M_Func_BTN.Push_Anode_Align_MSA_Mode;
+L_VISION_MSA_Cathode_Align_Btn = M_Func_BTN.Push_Cathode_Align_MSA_Mode;
+L_VISION_MSA_Anode_Stack_Btn =  M_Func_BTN.Push_Anode_Stack_MSA_Mode;
+L_VISION_MSA_Cathode_Stack_Btn = M_Func_BTN.Push_Cathode_Stack_MSA_Mode;
+
+//==============================================================================================================================================
+//2.  양음극 얼라인테이블 탈착 모드 버튼 커맨드 명령어 부분 
+//=============================================================================================================================================
+//1. 음극 얼라인 테이블 탈착 모드 
+if( M_Func_BTN.Anode_Align_Take_OFF == 1 && M_Func_BTN.Anode_Align_Take_OFF != L_Old_BTN_Align_AN_Take_OFF && N_BtN_Align_AN_Take_Off_Cmd_OK == 1)	// 상승엣지 & 다른 MSA 커맨드 합 0
+{
+	call Sub_Unit_Memory_Status.individual_mode(F_Anode_1st_PNP,&P_Anode_1st_Unit_Status,&L_Align_Take_Off_individual_Anode_1st_PNP_return);			//음극 1차 PNP 대기 위치 확인 
+	call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,& P_Anode_2nd_Unit_Status,&L_Align_Take_Off_individual_Anode_2nd_PNP_return);			//음극 2차 PNP 대기 위치 확인 
+	call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,& P_Cathode_2nd_Unit_Status,&L_Align_Take_Off_individual_Cathode_2nd_PNP_return);		//양극 2차 PNP 대기 위치 확인
+	call Sub_Unit_Memory_Status.individual_mode(F_Final_Roll,&P_FinalRoll_Unit_Status,&L_Align_Take_Off_individual_FR_return);							//파이널롤 대기 위치 확인
+	if ( L_Align_Take_Off_individual_Anode_1st_PNP_return == 1 && L_Align_Take_Off_individual_Anode_2nd_PNP_return == 1 && L_Align_Take_Off_individual_Cathode_2nd_PNP_return == 1 && L_Align_Take_Off_individual_FR_return == 1)
+	{
+		if( P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_FinalRoll_Unit_Status == F_FR_Discharge_Pos  )	//대기 위치 확인
+		{
+			L_Align_Take_Off_individual_Anode_1st_PNP_return = 0;
+			L_Align_Take_Off_individual_Anode_2nd_PNP_return = 0;
+			L_Align_Take_Off_individual_Cathode_2nd_PNP_return = 0;
+			L_Align_Take_Off_individual_FR_return = 0;
+			M_Func_BTN.Anode_Align_Take_OFF = 0;				//음극 얼라인 테이블 탈착 모드 버튼 초기화
+			P_Anode_Align_Take_OFF_Cmd = F_Command_Start;		//음극 얼라인 테이블 탈착 모드 커멘드 Start
+		}
+		else
+		{
+			L_Align_Take_Off_individual_Anode_1st_PNP_return = 0;
+			L_Align_Take_Off_individual_Anode_2nd_PNP_return = 0;
+			L_Align_Take_Off_individual_Cathode_2nd_PNP_return = 0;
+			L_Align_Take_Off_individual_FR_return = 0;
+			M_Func_BTN.Anode_Align_Take_OFF = 0;				//음극 얼라인 테이블 탈착 모드 버튼 초기화
+			P_Anode_Align_Take_OFF_Cmd = 0;						//음극 얼라인 테이블 탈착 모드 커멘드 초기화
+		}
+	}
+}
+//2. 양극 얼라인 테이블 탈착 모드 
+if( M_Func_BTN.Cathode_Align_Take_OFF == 1 && M_Func_BTN.Cathode_Align_Take_OFF != L_Old_BTN_Align_CA_Take_OFF && N_BtN_Align_CA_Take_Off_Cmd_OK == 1 )	// 상승엣지 & 다른 MSA 커맨드 합 0
+{
+	call Sub_Unit_Memory_Status.individual_mode(F_Anode_2nd_PNP,& P_Anode_2nd_Unit_Status,&L_Align_Take_Off_individual_Anode_2nd_PNP_return);			//음극 2차 PNP 대기 위치 확인 
+	call Sub_Unit_Memory_Status.individual_mode(F_Cathode_1st_PNP,&P_Cathode_1st_Unit_Status,&L_Align_Take_Off_individual_Cathode_1st_PNP_return);		//양극 1차 PNP 대기 위치 확인
+	call Sub_Unit_Memory_Status.individual_mode(F_Cathode_2nd_PNP,& P_Cathode_2nd_Unit_Status,&L_Align_Take_Off_individual_Cathode_2nd_PNP_return);		//양극 2차 PNP 대기 위치 확인
+	call Sub_Unit_Memory_Status.individual_mode(F_Final_Roll,&P_FinalRoll_Unit_Status,&L_Align_Take_Off_individual_FR_return);							//파이널롤 대기 위치 확인
+	if ( L_Align_Take_Off_individual_Anode_2nd_PNP_return == 1 && L_Align_Take_Off_individual_Cathode_1st_PNP_return == 1 && L_Align_Take_Off_individual_Cathode_2nd_PNP_return == 1 && L_Align_Take_Off_individual_FR_return == 1)
+	{
+		if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_FinalRoll_Unit_Status == F_FR_Discharge_Pos  )	//대기 위치 확인
+		{
+			L_Align_Take_Off_individual_Anode_2nd_PNP_return = 0;
+			L_Align_Take_Off_individual_Cathode_1st_PNP_return = 0;
+			L_Align_Take_Off_individual_Cathode_2nd_PNP_return = 0;
+			L_Align_Take_Off_individual_FR_return = 0;
+			M_Func_BTN.Cathode_Align_Take_OFF = 0;					//양극 얼라인 테이블 탈착 모드 버튼 초기화
+			P_Cathode_Align_Take_OFF_Cmd = F_Command_Start;			//양극 얼라인 테이블 탈착 모드 커멘드 Start
+		}
+		else
+		{
+			L_Align_Take_Off_individual_Anode_2nd_PNP_return = 0;
+			L_Align_Take_Off_individual_Cathode_1st_PNP_return = 0;
+			L_Align_Take_Off_individual_Cathode_2nd_PNP_return = 0;
+			L_Align_Take_Off_individual_FR_return = 0;
+			M_Func_BTN.Cathode_Align_Take_OFF = 0;					//양극 얼라인 테이블 탈착 모드 버튼 초기화
+			P_Cathode_Align_Take_OFF_Cmd = 0;						//양극 얼라인 테이블 탈착 모드 커멘드 초기화
+		}
+	}
+}
+L_Old_BTN_Align_AN_Take_OFF = M_Func_BTN.Anode_Align_Take_OFF;
+L_Old_BTN_Align_CA_Take_OFF = M_Func_BTN.Cathode_Align_Take_OFF;
+
+
+
+
+//===========================================================================================================================================================
+//MSA, Align 탈착 모드 인터락 프로그램 활성화 
+//===========================================================================================================================================================
+if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status == F_Status_IDLE )			//현재 Manual & Idle 상태일 경우
+{
+	L_PLC21_MSA_InterLock_Program_Active = F_Status_STARTING;							// MSA 인터락 프로그램 Start
+	L_PLC21_Align_Take_Off_Program_Active= F_Status_STARTING;							// Align 탈착 프로그램 Start
+}
+else 																					//아닐 경우
+{
+	L_PLC21_MSA_InterLock_Program_Active = F_Status_STOPPING;							// MSA 인터락 프로그램 Stop
+	L_PLC21_Align_Take_Off_Program_Active= F_Status_STOPPING;							// Align 탈착 프로그램 Start
+}
+//=============================================================================================================================================================
+// 1) MSA - 인터락 커맨드 
+//=============================================================================================================================================================
+//1)MSA 인터락 
+if( P_VISION_MSA_pre_InterLock_Cmd == F_Command_Start )									// MSA 인터락 커맨드 
+{
+	P_VISION_MSA_pre_InterLock_Cmd = F_Command_NonCommand;								// 커맨드 초기화
+	P_VISION_MSA_pre_InterLock_Status = F_Status_STARTING;								// 상태 스타팅 대입
+	P_VISION_MSA_pre_InterLock_Check_Assy_Bit = N_MSA_Funtion_Block_1EA + 1;			// 인터락 블록 갯수 + 1 
+	P_VISION_MSA_pre_InterLock_Assy_Bit_Pos = 1;										// 비트 위치
+	L_MSA_InterLock_MNTR = 0;															// 모니터링 변수 초기화
+}
+//=============================================================================================================================================================
+// 2)  MSA - 인터락 체크 
+//=============================================================================================================================================================
+//2.1) MSA 인터락 체크
+if( L_PLC21_MSA_InterLock_Program_Active == F_Status_STARTING )										// 상태에 따른 프로그램 
+{
+	if( P_VISION_MSA_pre_InterLock_Check_Assy_Bit != L_VISION_MSA_InterLock_Check_Assy_Bit )		// 비트 변화 감지
+	{
+		L_MSA_Check_Bit_Rtn = 0;																	// 리턴값 초기화
+		call Bit_Masking_Function.Check(P_VISION_MSA_pre_InterLock_Check_Assy_Bit,P_VISION_MSA_pre_InterLock_Assy_Bit_Pos,&L_MSA_Check_Bit_Rtn); //비트 마스킹 함수 체크
+		if( L_MSA_Check_Bit_Rtn == N_TRUE )															// 참 리턴값이라면 컴플리트.
+		{
+			// complete
+			P_VISION_MSA_pre_InterLock_Status = F_Status_COMPLETE;									// 컴플리트 상태 대입
+			P_VISION_MSA_pre_InterLock_Cmd = F_Command_Start;										// 인터락 커맨드 시작
+		}
+		else																						// 거짓이 나온다면 인터락 모니터링 시작
+		{
+			P_VISION_MSA_pre_InterLock_Status = F_Status_EXECUTE;									// 생산상태 대입						
+			L_MSA_InterLock_MNTR = 1;																// 인터락 활성화 모니터링 on
+		}
+	}
+}
+else if( L_PLC21_MSA_InterLock_Program_Active == F_Status_STOPPING )								// 상태에 따른 프로그램
+{
+	P_VISION_MSA_pre_InterLock_Cmd = F_Command_NonCommand;											// 커맨드 초기화								
+	P_VISION_MSA_pre_InterLock_Check_Assy_Bit = 0;													// 비트값 초기화
+	P_VISION_MSA_pre_InterLock_Assy_Bit_Pos = 0;													// 비트 위치값 초기화
+	L_MSA_InterLock_MNTR = 0;																		// 모니터링 변수 초기화
+	P_Vision_MSA_Interlock_Status = F_Status_ABORTED;												// 어볼트 상태
+
+}
+L_VISION_MSA_InterLock_Check_Assy_Bit = P_VISION_MSA_pre_InterLock_Check_Assy_Bit;					// 비트 동기화
+//=============================================================================================================================================================
+// 3) MSA 인터락 검사 
+//=============================================================================================================================================================
+if( L_MSA_InterLock_MNTR == 1 )																		// 인터락 활성화 모니터링 on
+{
+	L_MSA_InterLock_Check_Rtn = 0;																	// 리턴 변수 초기화
+	call Manual_Bit_InterLock_Function.MSA_InterLock(P_VISION_MSA_pre_InterLock_Assy_Bit_Pos,&L_MSA_InterLock_Check_Rtn);
+	if( L_MSA_InterLock_Check_Rtn == N_TRUE )														// 참 이라면, 방해요소 없음
+	{
+		P_Vision_MSA_Interlock_Status = F_Status_COMPLETE;											// MSA Module에 진행 되어도 된다는 완료 상태 대입
+		L_MSA_InterLock_Bit_Add_Rtn = 0;															// 비트 삽입 함수 결과값 초기화
+		call Bit_Masking_Function.Add(P_VISION_MSA_pre_InterLock_Check_Assy_Bit,&P_VISION_MSA_pre_InterLock_Check_Assy_Bit,P_VISION_MSA_pre_InterLock_Assy_Bit_Pos,&L_MSA_InterLock_Bit_Add_Rtn);
+		if( L_MSA_InterLock_Bit_Add_Rtn == N_TRUE )													// 비트 삽입이 되었다면
+		{
+			P_VISION_MSA_pre_InterLock_Assy_Bit_Pos++;												// 자릿수 증가
+			L_MSA_InterLock_MNTR = 0;																// 모니터링 off
+		}
+	}
+	else if( L_MSA_InterLock_Check_Rtn == N_FALSE )													// 거짓이라면, 방해요소가 있음 ( 커맨드 스탑 )
+	{
+		P_Vision_MSA_Interlock_Status = F_Status_ABORTED;											// MSA Module에 진행 되면 안된다는 상태 대입
+		P_VISION_MSA_pre_InterLock_Status = F_Status_ABORTED;										// InterLock 자체 상태 Abort
+		L_MSA_InterLock_MNTR = 0;																	// 모니터링 off
+	}
+}
+//=============================================================================================================================================================
+
+
+
+// 얼라인 테이블 탈착 모드  --------------------------------------------------------------------------------------------------------------------------------
+//=============================================================================================================================================================
+//1) 얼라인 탈착 모드  - 인터락 커맨드 
+//=============================================================================================================================================================
+if ( P_Align_Take_Off_pre_InterLock_Cmd == F_Command_Start ) 
+{
+	P_Align_Take_Off_pre_InterLock_Cmd = F_Command_NonCommand;											// 커맨드 초기화
+	P_Align_Take_Off_pre_InterLock_Status = F_Status_STARTING;											// 상태 스타팅 대입
+	P_Align_Take_Off_pre_InterLock_Check_Assy_Bit = N_MSA_Funtion_Block_1EA + 1;						// 인터락 블록 갯수 + 1 
+	P_Align_Take_Off_pre_InterLock_Assy_Bit_Pos = 1;													// 비트 위치
+	L_Align_Take_Off_InterLock_MNTR = 0;																// 모니터링 변수 초기화
+}
+//=============================================================================================================================================================
+// 2) 얼라인 탈착 모드  - 인터락 체크 
+//=============================================================================================================================================================
+if( L_PLC21_Align_Take_Off_Program_Active == F_Status_STARTING )										// 상태에 따른 프로그램 
+{
+	if( P_Align_Take_Off_pre_InterLock_Check_Assy_Bit != L_Align_Take_Off_InterLock_Check_Assy_Bit )	// 비트 변화 감지
+	{
+		L_Align_Take_Off_Check_Bit_Rtn = 0;																// 리턴값 초기화
+		call Bit_Masking_Function.Check(P_Align_Take_Off_pre_InterLock_Check_Assy_Bit,P_Align_Take_Off_pre_InterLock_Assy_Bit_Pos,&L_Align_Take_Off_Check_Bit_Rtn); //비트 마스킹 함수 체크
+		if( L_Align_Take_Off_Check_Bit_Rtn == N_TRUE )													// 참 리턴값이라면 컴플리트.
+		{
+			// complete
+			P_Align_Take_Off_pre_InterLock_Status = F_Status_COMPLETE;									//
+			P_Align_Take_Off_pre_InterLock_Cmd = F_Command_Start;										
+		}
+		else																						
+		{
+			P_Align_Take_Off_pre_InterLock_Status = F_Status_EXECUTE;									// 생산상태 대입						
+			L_Align_Take_Off_InterLock_MNTR = 1;														// 인터락 활성화 모니터링 on
+		}
+	}
+}
+else if( L_PLC21_Align_Take_Off_Program_Active == F_Status_STOPPING )									// 상태에 따른 프로그램
+{
+	P_Align_Take_Off_pre_InterLock_Cmd = F_Command_NonCommand;											// 커맨드 초기화								
+	P_Align_Take_Off_pre_InterLock_Check_Assy_Bit = 0;													// 비트값 초기화
+	P_Align_Take_Off_pre_InterLock_Assy_Bit_Pos = 0;													// 비트 위치값 초기화
+	L_Align_Take_Off_InterLock_MNTR = 0;																// 모니터링 변수 초기화
+	P_Align_Take_Off_Interlock_Status = F_Status_ABORTED;												// 어볼트 상태
+}
+L_Align_Take_Off_InterLock_Check_Assy_Bit = P_Align_Take_Off_pre_InterLock_Check_Assy_Bit;				// 비트 동기화
+//=============================================================================================================================================================
+// 3) 얼라인 탈착 모드  - 인터락 검사 
+//=============================================================================================================================================================
+if( L_Align_Take_Off_InterLock_MNTR == 1 )																// 인터락 활성화 모니터링 on
+{
+	L_Align_Take_Off_InterLock_Check_Rtn = 0;															// 리턴 변수 초기화
+	call Manual_Bit_InterLock_Function.Align_Take_Off_InterLock(P_Align_Take_Off_pre_InterLock_Assy_Bit_Pos,&L_Align_Take_Off_InterLock_Check_Rtn);
+	if( L_Align_Take_Off_InterLock_Check_Rtn == N_TRUE )												// 참 이라면, 방해요소 없음
+	{
+		P_Align_Take_Off_Interlock_Status = F_Status_COMPLETE;											// Align 탈착 Module에 진행 되어도 된다는 완료 상태 대입
+		L_Align_Take_Off_InterLock_Bit_Add_Rtn = 0;														// 비트 삽입 함수 결과값 초기화
+		call Bit_Masking_Function.Add(P_Align_Take_Off_pre_InterLock_Check_Assy_Bit,&P_Align_Take_Off_pre_InterLock_Check_Assy_Bit,P_Align_Take_Off_pre_InterLock_Assy_Bit_Pos,&L_Align_Take_Off_InterLock_Bit_Add_Rtn);
+		if( L_Align_Take_Off_InterLock_Bit_Add_Rtn == N_TRUE )											// 비트 삽입이 되었다면
+		{
+			P_Align_Take_Off_pre_InterLock_Assy_Bit_Pos++;												// 자릿수 증가
+			L_Align_Take_Off_InterLock_MNTR = 0;														// 모니터링 off
+		}
+	}
+	else if( L_Align_Take_Off_InterLock_Check_Rtn == N_FALSE )											// 거짓이라면, 방해요소가 있음 ( 커맨드 스탑 )
+	{
+		P_Align_Take_Off_Interlock_Status = F_Status_ABORTED;											//Align 탈착 Module에  진행 되면 안된다는 상태 대입
+		P_Align_Take_Off_pre_InterLock_Status = F_Status_ABORTED;										// InterLock 자체 상태 Abort
+		L_Align_Take_Off_InterLock_MNTR = 0;															// 모니터링 off
+	}
+}
+
+//==============================================================================================================================================
+//2. 비전 오토 캘 모듈 ( 극판 선택이 완료 되어 있다면 실행 명령부 가능)
+//==============================================================================================================================================
+//2.1) 자동 캘리브레이션일 경우 
+IF ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Cathode || P_Vision_AutoCal_Mode == N_AutoCal_Mode_Anode )	//오토 캘 양극, 음극 선택
+{
+	//2.1.1)비전 오토 캘 시작
+	if( P_Vision_AutoCal_Command == F_Command_Start )				//비전 오토 캘 시작 커맨드 
+	{
+		P_Vision_AutoCal_Command = 0;
+		if ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Cathode )		//양극 비전 오토 캘 일 경우 
+		{
+			P_Cathode_Align_Table_Move = F_Align_AutoCal_Move_Mode;	//양극 얼라인 캘 무브 설정 
+		}
+		else if ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Anode )	//음극 비전 오토 캘 일 경우 
+		{
+			P_Anode_Align_Table_Move = F_Align_AutoCal_Move_Mode;	//음극 얼라인 캘 무브 설정 
+		}
+		P_CMD_Align_Complete = 0;							
+		P_CMD_Cell_Align(P_Vision_AutoCal_Mode) = 1;				
+	}	
+	//2.1.2)비전 오토 스탑
+	if( P_Vision_AutoCal_Command == F_Command_Stop )				 //비전 오토 캘 스탑 커맨드 
+	{
+		P_Vision_AutoCal_Command = 0;
+		if ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Cathode )		 //양극 비전 오토 캘 일 경우 
+		{															 
+			P_Cathode_Align_Table_Move = F_Align_AutoCal_Move_Mode;	 //양극 얼라인 캘 무브 설정 
+		}															 
+		else if ( P_Vision_AutoCal_Mode == N_AutoCal_Mode_Anode )	 //음극 비전 오토 캘 일 경우 
+		{															 
+			P_Anode_Align_Table_Move = F_Align_AutoCal_Move_Mode;	 //음극 얼라인 캘 무브 설정 
+		} 
+		P_CMD_Align_Complete = 0;									 //얼라인 캘 무브 시작	
+		P_CMD_Cell_Stop(P_Vision_AutoCal_Mode) = 1;		
+	}
+	//2.1.3)비전 리셋 시작
+	if( P_Vision_AutoCal_Command == F_Command_Reset )				//비전 오토 캘 리셋 커맨드 
+	{
+		P_Vision_AutoCal_Command = 0;								//얼라인 캘 무브 설정 
+		P_CMD_Cell_Reset(P_Vision_AutoCal_Mode) = 1;				//얼라인 캘 무브 시작	
+		P_Vision_Cal_Reset_Count = 1;
+	}
+}
+//==============================================================================================================================================
+//3. 2차 PNP 클리닝 위치 이동 
+//==============================================================================================================================================
+ if ( P_PMAC_Current_Mode == F_Current_Manual )					// 메뉴얼 상태일 경우 
+ { 
+	if ( P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 0 + P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_T) > 0 - P_Motor_Ready_Pos_Inpos_200um && P_Motor_Current_Pos(N_2nd_PnP_AN_T) < 0 + P_Motor_Ready_Pos_Inpos_200um ) // 양음극 2차 PNP T축 얼라인 위치 확인 
+	{
+		if ( M_Func_BTN.Stack_2nd_PNP_Cleaning_Mode == F_Command_Start )	// 2차 PNP 클리닝 위치 이동 시작 
+		{
+			M_Func_BTN.Stack_2nd_PNP_Cleaning_Mode = 0;
+			P_2nd_PNP_Cleaning_Mode_Cmd = F_Command_Start;		//2차 PNP 클린이 위치 이동 커멘드 시작 
+		}
+	}
+	else 
+	{
+		M_Func_BTN.Stack_2nd_PNP_Cleaning_Mode = 0;
+		P_2nd_PNP_Cleaning_Mode_Cmd = 0;
+	}
+}
+//=============================================================================================================================================
+// Modbus Test 변수 추가 
+      
+//#ifdef F_Def_Stack_A										//A열일 경우 
+//	P_Modbus_A_PMAC_Cur_Mode = P_PMAC_Current_Mode			// 현재 A열의 PMAC 모드 확인 변수
+//	P_Modbus_A_PMAC_Cur_Status = P_PMAC_Status				// 현재 A열의 PMAC 상태 확인 변수
+//	P_Modbus_A_Anode_1st_Pos = P_Motor_Current_Pos(N_1st_PnP_AN_T)		// 현재 A열의 음극 1차 PNP 위치 확인 변수
+//	P_Modbus_A_Cathode_1st_Pos = P_Motor_Current_Pos(N_1st_PnP_CA_T)		// 현재 A열의 양극 1차 PNP 위치 확인 변수
+//															
+//#endif														
+//															
+//#ifdef F_Def_Stack_B										//B열일 경우 
+//	P_Modbus_B_PMAC_Cur_Mode = P_PMAC_Current_Mode			// 현재 B열의 PMAC 모드 확인 변수
+//	P_Modbus_B_PMAC_Cur_Status = P_PMAC_Status				// 현재 B열의 PMAC 상태 확인 변수
+//	P_Modbus_B_Anode_1st_Pos = P_Motor_Current_Pos(N_1st_PnP_AN_T)		// 현재 B열의 음극 1차 PNP 위치 확인 변수
+//	P_Modbus_B_Cathode_1st_Pos = P_Motor_Current_Pos(N_1st_PnP_CA_T)		// 현재 B열의 양극 1차 PNP 위치 확인 변수
+//#endif 
+ 
+close
+

@@ -1,0 +1,66 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+//=========================================================//
+// 무언 정지 확인 프로그램.	[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
+//=========================================================//
+//-----------//
+// Define 값 //
+//-----------//
+#define F_Type_Motor	1								// Motor 타입.
+#define F_Type_Coord	2								// 좌표계 타입.
+#define F_Type_Flag		3								// Flag 타입.
+#define F_Type_Coord_EA 20
+//------------------------//
+// 정지 시 상태 저장 변수 //
+//------------------------//
+global P_Stop_Debug_Flag = 0;										// 저장 프로그램 실행 Flag.
+global P_Stop_Sub_Master_Motion_Program_Flag(F_Type_Coord_EA);		// 무언 정지 모듈 - Save 저장 변수. [P_Sub_Master_Motion_Program_Flag]
+P_Stop_Sub_Master_Motion_Program_Flag(0),F_Type_Coord_EA = 0;		// 초기화.
+global P_Stop_Slave_Motion_Program_Flag(F_Type_Coord_EA);			// 무언 정지 모듈 - Save 저장 변수. [P_Slave_Motion_Program_Flag]
+P_Stop_Slave_Motion_Program_Flag(0),F_Type_Coord_EA = 0;			// 초기화.
+global P_Stop_Motor_Status(48);										// 무언 정지 모듈 - Save 저장 변수. [Motor]
+P_Stop_Motor_Status(0),48 = 0;										// 초기화.
+global P_Stop_Coord_Status(34);										// 무언 정지 모듈 - Save 저장 변수. [Coord]
+P_Stop_Coord_Status(0),34 = 0;										// 초기화.
+global P_Stop_Status_Check_Address = 0;								// 확인 변수 주소값 변수.
+global P_Stop_Status_Save_Address = 0;								// 저장 변수 주소값 변수.
+global P_Stop_Check_RTN = 0;										// 무언 정지 모듈 - 확인 함수 실행 반환값.
+global P_Stop_Save_RTN(4);											// 무언 정지 모듈 - 저장 함수 실행 반환값.
+P_Stop_Save_RTN(0),4 = 0;											// 초기화.			
+#define P_Stop_Save_Total_RTN					P_Stop_Save_RTN(0) & P_Stop_Save_RTN(1) & P_Stop_Save_RTN(2) & P_Stop_Save_RTN(3)
+//------------------------//
+// 16진수 → 10진수 변환 변수.
+//------------------------//
+#define Stop_A_1st_PNP							1							
+#define Stop_A_2nd_PNP							2						
+#define Stop_C_1st_PNP							3						
+#define Stop_C_2nd_PNP							4						
+#define Stop_A_Clamp							5
+#define Stop_C_Clamp							6
+#define Stop_Unloader							7
+#define Stop_FR									8
+#define Total_Arry_No							9
+global P_Old_Total_Unit_Bit = 0;						// Total Bit Edge 값.
+global P_Memory_Tower_Dec_Result = 0;					// 16진수 → 10진수 완료 변수.
+global P_Stop_Motor_Pos(Total_Arry_No);					// 모터 상태 확인.
+P_Stop_Motor_Pos(0),Total_Arry_No = 0;					// 초기화.
+global P_PNP_Move_Timer = 0;							// 1,2차 PNP 대기 위치 이동 타이머.
+global P_PNP_Move_Delay_Time = 10;						// 1,2차 PNP 대기 위치 이동 딜레이 타임.
+global P_Stop_Memory_Pos_RTN = 0;						// 10진수 반환값.
+
+
+
+// NamePlate BG.C Address 
+#define NP_Addr_Plate_Tilting		u.user:$002008.00	// Sys.Idata[2050] -> Sys.Cdata[8200]
+#define NP_Addr_Chuck_UnChuck		u.user:$002008.01	// Sys.Idata[2050] -> Sys.Cdata[8200]
+#define NP_Addr_Plate_Vac_Blow		u.user:$002008.02	// Sys.Idata[2050] -> Sys.Cdata[8200]
+#define NP_Addr_Plate_Cutting		u.user:$002008.03	// Sys.Idata[2050] -> Sys.Cdata[8200]
+#define NP_Addr_Stopper_Clamp		u.user:$002008.04	// Sys.Idata[2050] -> Sys.Cdata[8200]
+#define NP_Addr_Plate_Up			u.user:$002008.05	// Sys.Idata[2050] -> Sys.Cdata[8200]
+#define NP_Addr_Plate_Down			u.user:$002008.06	// Sys.Idata[2050] -> Sys.Cdata[8200]
+#define NP_Addr_Rotation			u.user:$002008.07	// Sys.Idata[2050] -> Sys.Cdata[8200]
+#define NP_Addr_RE_Rotation			u.user:$002008.08	// Sys.Idata[2050] -> Sys.Cdata[8201]

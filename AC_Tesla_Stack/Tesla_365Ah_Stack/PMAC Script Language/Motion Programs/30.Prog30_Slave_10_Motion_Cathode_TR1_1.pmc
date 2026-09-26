@@ -1,0 +1,209 @@
+// Slave10 Cathode_TR_1(양극)
+
+&30
+#1-> 1000tt		// 양극 1차 PNP T축
+#17-> 1000z		// 양극 1차 PNP Z축
+//===============//
+
+
+
+open prog 30
+	
+	ABS					// 절대좌표모드
+	LINEAR
+	
+	while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(10) == 1 && P_Slave_Motion_Program_Flag(10) == 1 )
+	{	// 프로그램 허용 플래그
+	
+		Switch ( P_Slave10_Motion_Command )
+		{	
+						// 커멘드별 모션
+			case 0:
+			break;
+
+
+			// case 1
+			case N_1st_PNP_Belt_To_Align_Motion :		// Stack 진입
+				P_Slave10_Motion_Command = 0;
+				P_C_1st_PNP_FWD_Abort_Calc_Bit == 1;	// Abort Calc 진행 Bit.		[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+				P_C_1st_PNP_FWD_Restore_Bit == 1;		// Abort 완료 후 원복 Bit.	[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+				dwell(0)
+				linear
+				tm(P_PNP_90_Deg_TM) ta(P_PNP_90_Deg_TA) ts(P_PNP_90_Deg_TS)		// 230ms
+				tt(90) z( 24 )	
+				//tt(P_Cathode_1st_T_Belt_To_Align) z(P_Cathode_1st_Z_Ready_Up)		// [ 참조 : 25.09.01 추후 레시피로 받을때 상수->레시피변수로변경 ]			
+				dwell(0)
+				P_Cathode_1st_Motion_Complete == 1;
+				P_C_1st_PNP_FWD_Abort_Calc_Bit == 0;	// Abort Calc 진행 Bit.		[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+				dwell(0)
+			break;
+
+			// case 2
+			case N_1st_PNP_Align_To_Belt_Motion :		// Blet 진입
+				P_Slave10_Motion_Command = 0;
+				P_C_1st_PNP_BWD_Abort_Calc_Bit == 1;	// Abort Calc 진행 Bit.		[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+				P_C_1st_PNP_BWD_Restore_Bit == 1;		// Abort 완료 후 원복 Bit.	[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+				dwell(0)
+				linear
+				tm(P_PNP_90_Deg_TM) ta(P_PNP_90_Deg_TA) ts(P_PNP_90_Deg_TS)		// 230ms
+				tt(0) z( 24 )
+				//tt(P_Cathode_1st_T_Align_To_Belt) z(P_Cathode_1st_Z_Ready_Up) // [ 참조 : 25.09.01 추후 레시피로 받을때 상수->레시피변수로변경 ]
+				dwell(0)
+				P_Cathode_1st_Motion_Complete == 1;
+				P_C_1st_PNP_BWD_Abort_Calc_Bit == 0;	// Abort Calc 진행 Bit.		[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]	
+				dwell(0)
+			break;
+
+			// case 3
+			case N_1st_PNP_Align_Down_Motion :			// 얼라인 하강
+				P_Slave10_Motion_Command = 0;
+				linear
+				//ta(33.5)ts(10)tm(45)td(21.5)			// 90ms
+				//ta(38)ts(10)tm(41)td(24)				// 90ms 수정250415 잘 못 만들었어서 부하율 비슷하게 나옴
+				//ta(46)ts(10)tm(48)td(28)				// 100ms
+				ta(35)ts(5)tm(0)
+				z(59.7)									// 실제 유닛 진공 테스트용 위치	
+				//Z(P_Recipe_C_1st_Z_Align_Down)		// Crank Z축 Count 수식 값 적용 완료(추후 변수로 변경 필요)		
+				dwell(0)
+				P_Cathode_1st_Motion_Complete == 1
+				dwell(0)
+			break;
+
+			// case 4
+			case N_1st_PNP_Align_Up_Motion :		// 얼라인 상승
+				P_Slave10_Motion_Command = 0;
+				linear
+				//ta(37.5)ts(10)tm(45)td(17.5)					// 90ms
+				//ta(32.5)ts(10)tm(41.25)td(15)					// 80ms
+				ta(30) ts(5) tm(0)
+				//z(15)	
+				z(42.023)		
+				//Z(P_Recipe_C_1st_Z_Align_Up)		// Crank Z축 Count 수식 값 적용 완료(추후 변수로 변경 필요)	
+				dwell(0)
+				P_Cathode_1st_Motion_Complete == 1
+				dwell(0)	
+			break;
+
+			// case 5
+			case N_1st_PNP_Belt_Down_Motion :		// Belt 하강
+				P_Slave10_Motion_Command = 0;
+				p16++
+				P_Cathode_1st_TR_Belt_Down_Flag == 1
+				linear
+				//ta(35)ts(10)tm(45)td(20)
+				//ta(33.5)ts(10)tm(45)td(21.5)			// 90ms
+				//ta(38)ts(10)tm(41)td(24)				// 90ms 수정250415 잘 못 만들었어서 부하율 비슷하게 나옴
+				//ta(46)ts(10)tm(48)td(28)				// 100ms
+				ta(35)ts(5)tm(0)
+				z(59.7)												// 실제 유닛 진공 테스트용 위치	
+				//Z(P_Recipe_C_1st_Z_Belt_Down)		// Crank Z축 Count 수식 값 적용 완료(추후 변수로 변경 필요)	
+				dwell(0)
+				P_Cathode_1st_Motion_Complete == 1
+				dwell(0)
+			break;
+
+			// case 6
+			case N_1st_PNP_Belt_Up_Motion :		// Belt 상승
+				P_Slave10_Motion_Command = 0;
+				P_PLC11_Cathode_Sheet_Pick_Up_Flag == 1;	// 벨트 픽업 체크 플래그
+				linear
+				//ta(37.5)ts(10)tm(45)td(17.5)			// 90ms
+				//ta(32.5)ts(10)tm(41.25)td(15)			// 80ms
+				ta(30) ts(5) tm(0)
+				z(42.023)			
+				//Z(P_Recipe_C_1st_Z_Belt_Up)		// Crank Z축 Count 수식 값 적용 완료(추후 변수로 변경 필요)		
+				dwell(0)
+				P_Cathode_1st_Motion_Complete == 1
+				dwell(0)
+			break;
+
+			// 대기위치
+			// case 9
+			case N_1st_PNP_Ready_Pos_Motion :
+				P_Slave10_Motion_Command = 0;
+				linear
+				//ta(90) ts(20) tm(115) 						// 230ms	
+				//ta(50) ts(15) tm(100) 							// 170ms	
+				tm(P_PNP_Ready_TM) ta(P_PNP_Ready_TA) ts(P_PNP_Ready_TS) 							// 170ms	
+				tt(45) z(24)
+				//tt(P_Cathode_1st_T_Ready) z(P_Cathode_1st_Z_Ready_Up)		// [ 참조 : 25.09.01 추후 레시피로 받을때 상수->레시피변수로변경 ]
+				dwell(0)
+				P_Cathode_1st_Motion_Complete == 1
+				dwell(0)
+			break;
+
+			// 대기 -> A/S 이동
+			// case 10
+			case N_1st_PNP_Ready_To_Align_Motion :
+				P_Slave10_Motion_Command = 0
+				linear
+				//ta(90) ts(20) tm(115) 						// 230ms	
+				tm(P_PNP_45_Deg_TM) ta(P_PNP_45_Deg_TA) ts(P_PNP_45_Deg_TS)	
+				tt(90) 
+				dwell(0)
+				P_Cathode_1st_Motion_Complete == 1
+				dwell(0)
+			break;
+
+			// 대기 -> BELT 이동
+			// case 11
+			case N_1st_PNP_Ready_To_Belt_Motion :
+				P_Slave10_Motion_Command = 0
+				linear
+				//ta(90) ts(20) tm(115) 						// 230ms	
+				tm(P_PNP_45_Deg_TM) ta(P_PNP_45_Deg_TA) ts(P_PNP_45_Deg_TS)	
+				tt(0) 
+				dwell(0)
+				P_Cathode_1st_Motion_Complete == 1
+				dwell(0)
+			break;
+
+			// 얼라인 블로우
+			// case 12
+			case N_1st_PNP_Align_Blow :
+				P_Slave10_Motion_Command = 0
+				P_Cathode_1st_TR_Align_Down_Flag == 1
+				P_Vision_Align_Command == N_Cathode_Unit
+				P_PLC12_Blow_MNTR(N_1st_Cathode) == 1;							// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+				P_PLC12_Vacuum_MNTR(N_Align_Cathode) == 1;						// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+				dwell(50)
+
+				P_Cathode_1st_Motion_Complete == 1
+				P_Cathode_Trigger_IO_Test_Motion_Loop++;						// 모션, PLC 실제 Vision측 루프 카운트 측정 변수
+				dwell(0)
+			break
+			
+			// 벨트 흡착
+			case N_1st_PNP_Belt_Vac :
+			// case 13
+				P_Slave10_Motion_Command = 0
+				P_Tact_Time_Check(N_Cathode_1st_PNP) == 1;						// Tact Time 측정 시작 및 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+				P_PLC12_Vacuum_MNTR(N_1st_Cathode) == 1;						// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+				P_Cathode_1st_TR_Belt_Pick_Up_Flag == 1
+				
+				dwell(50)
+				//dwell(5000)
+				P_Cathode_1st_Motion_Complete == 1
+				dwell(0)
+			break
+
+			// case 14
+			case N_1st_PNP_Align_Vac :						// 음극 1차 PNP 얼라인 흡착
+				P_Slave10_Motion_Command = 0
+				P_Cathode_1st_TR_Align_Pick_Up_Flag == 1
+				P_PLC12_Vacuum_MNTR(N_1st_Cathode) == 1;		// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+				P_PLC12_Blow_MNTR(N_Align_Cathode) == 1;		// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+				dwell(50)
+				P_Anode_1st_Motion_Complete == 1
+				dwell(0)
+			break
+
+			default :
+
+			break;
+
+		}
+		
+	}
+
+close

@@ -1,0 +1,2452 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+#define Max_Motor_EA		62		// 가상축 모터 추가 시 증가
+#ifdef F_Virtual_Axis_Test	// 가상축으로 테스트 용 설정.
+
+//============================================================================================================================
+//-------Virtual Axis #1--------------------
+// 1ST P&P CATHODE T
+                           
+Motor[1].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[1].ServoCtrl	= 1
+Motor[1].pDac		= Sys.Idata[1].a 
+Motor[1].pAmpEnable = 0
+Motor[1].pAmpFault	= 0
+Motor[1].pLimits	= 0
+Motor[1].CaptureMode= 1 // software capture 
+Motor[1].pEnc=EncTable[1].a
+Motor[1].pEnc2=EncTable[1].a
+// needed gains
+Motor[1].Servo.Kp	= 1 
+Motor[1].Servo.Kvfb = 0 
+Motor[1].Servo.Kvff = 0
+Motor[1].Servo.Kaff = 0
+Motor[1].Servo.Ki	= 0.001
+Motor[1].servo.MaxGainFactor=28000
+Motor[1].servo.MaxPosErr=10000
+Motor[1].MaxSpeed=0
+Motor[1].InvAmax = 0;
+Motor[1].InvDmax = 0;
+Motor[1].InvJmax = 0;
+Motor[1].JogTa=100
+Motor[1].JogTs=50
+Motor[1].JogSpeed=10
+Motor[1].MaxDac=32767
+Motor[1].PosSf=1
+Motor[1].Pos2Sf=1
+// process Dac data
+EncTable[1].type		= 1
+EncTable[1].ScaleFactor = 1/65536
+EncTable[1].pEnc		= Sys.Idata[1].a
+EncTable[1].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #2--------------------
+// 1ST P&P ANODE T
+                      
+Motor[2].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[2].ServoCtrl	= 1
+Motor[2].pDac		= Sys.Idata[2].a 
+Motor[2].pAmpEnable = 0
+Motor[2].pAmpFault	= 0
+Motor[2].pLimits	= 0
+Motor[2].CaptureMode= 1 // software capture 
+Motor[2].pEnc=EncTable[2].a
+Motor[2].pEnc2=EncTable[2].a
+// needed gains
+Motor[2].Servo.Kp	= 1 
+Motor[2].Servo.Kvfb = 0 
+Motor[2].Servo.Kvff = 0
+Motor[2].Servo.Kaff = 0
+Motor[2].Servo.Ki	= 0.001
+Motor[2].servo.MaxGainFactor=28000
+Motor[2].servo.MaxPosErr=10000
+Motor[2].MaxSpeed=0
+Motor[2].InvAmax = 0;
+Motor[2].InvDmax = 0;
+Motor[2].InvJmax = 0;
+Motor[2].JogTa=100
+Motor[2].JogTs=50
+Motor[2].JogSpeed=10
+Motor[2].MaxDac=32767
+Motor[2].PosSf=1
+Motor[2].Pos2Sf=1
+// process Dac data
+EncTable[2].type		= 1
+EncTable[2].ScaleFactor = 1/65536
+EncTable[2].pEnc		= Sys.Idata[2].a
+EncTable[2].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #3--------------------
+// 2ND P&P CATHODE T
+                      
+Motor[3].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[3].ServoCtrl	= 1
+Motor[3].pDac		= Sys.Idata[3].a 
+Motor[3].pAmpEnable = 0
+Motor[3].pAmpFault	= 0
+Motor[3].pLimits	= 0
+Motor[3].CaptureMode= 1 // software capture 
+Motor[3].pEnc=EncTable[3].a
+Motor[3].pEnc2=EncTable[3].a
+// needed gains
+Motor[3].Servo.Kp	= 1 
+Motor[3].Servo.Kvfb = 0 
+Motor[3].Servo.Kvff = 0
+Motor[3].Servo.Kaff = 0
+Motor[3].Servo.Ki	= 0.001
+Motor[3].servo.MaxGainFactor=28000
+Motor[3].servo.MaxPosErr=10000
+Motor[3].MaxSpeed=0
+Motor[3].InvAmax = 0;
+Motor[3].InvDmax = 0;
+Motor[3].InvJmax = 0;
+Motor[3].JogTa=100
+Motor[3].JogTs=50
+Motor[3].JogSpeed=10
+Motor[3].MaxDac=32767
+Motor[3].PosSf=1
+Motor[3].Pos2Sf=1
+// process Dac data
+EncTable[3].type		= 1
+EncTable[3].ScaleFactor = 1/65536
+EncTable[3].pEnc		= Sys.Idata[3].a
+EncTable[3].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #4--------------------
+// 2ND P&P ANODE T
+                      
+Motor[4].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[4].ServoCtrl	= 1
+Motor[4].pDac		= Sys.Idata[4].a 
+Motor[4].pAmpEnable = 0
+Motor[4].pAmpFault	= 0
+Motor[4].pLimits	= 0
+Motor[4].CaptureMode= 1 // software capture 
+Motor[4].pEnc=EncTable[4].a
+Motor[4].pEnc2=EncTable[4].a
+// needed gains
+Motor[4].Servo.Kp	= 1 
+Motor[4].Servo.Kvfb = 0 
+Motor[4].Servo.Kvff = 0
+Motor[4].Servo.Kaff = 0
+Motor[4].Servo.Ki	= 0.001
+Motor[4].servo.MaxGainFactor=28000
+Motor[4].servo.MaxPosErr=10000
+Motor[4].MaxSpeed=0
+Motor[4].InvAmax = 0;
+Motor[4].InvDmax = 0;
+Motor[4].InvJmax = 0;
+Motor[4].JogTa=100
+Motor[4].JogTs=50
+Motor[4].JogSpeed=10
+Motor[4].MaxDac=32767
+Motor[4].PosSf=1
+Motor[4].Pos2Sf=1
+// process Dac data
+EncTable[4].type		= 1
+EncTable[4].ScaleFactor = 1/65536
+EncTable[4].pEnc		= Sys.Idata[4].a
+EncTable[4].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #5--------------------
+// ST CATHODE CLAMP Y1
+                      
+Motor[5].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[5].ServoCtrl	= 1
+Motor[5].pDac		= Sys.Idata[5].a 
+Motor[5].pAmpEnable = 0
+Motor[5].pAmpFault	= 0
+Motor[5].pLimits	= 0
+Motor[5].CaptureMode= 1 // software capture 
+Motor[5].pEnc=EncTable[5].a
+Motor[5].pEnc2=EncTable[5].a
+// needed gains
+Motor[5].Servo.Kp	= 1 
+Motor[5].Servo.Kvfb = 0 
+Motor[5].Servo.Kvff = 0
+Motor[5].Servo.Kaff = 0
+Motor[5].Servo.Ki	= 0.001
+Motor[5].servo.MaxGainFactor=28000
+Motor[5].servo.MaxPosErr=10000
+Motor[5].MaxSpeed=0
+Motor[5].InvAmax = 0;
+Motor[5].InvDmax = 0;
+Motor[5].InvJmax = 0;
+Motor[5].JogTa=100
+Motor[5].JogTs=50
+Motor[5].JogSpeed=10
+Motor[5].MaxDac=32767
+Motor[5].PosSf=1
+Motor[5].Pos2Sf=1
+// process Dac data
+EncTable[5].type		= 1
+EncTable[5].ScaleFactor = 1/65536
+EncTable[5].pEnc		= Sys.Idata[5].a
+EncTable[5].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #6--------------------
+// ST ANODE CLAMP Y1
+                      
+Motor[6].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[6].ServoCtrl	= 1
+Motor[6].pDac		= Sys.Idata[6].a 
+Motor[6].pAmpEnable = 0
+Motor[6].pAmpFault	= 0
+Motor[6].pLimits	= 0
+Motor[6].CaptureMode= 1 // software capture 
+Motor[6].pEnc=EncTable[6].a
+Motor[6].pEnc2=EncTable[6].a
+// needed gains
+Motor[6].Servo.Kp	= 1 
+Motor[6].Servo.Kvfb = 0 
+Motor[6].Servo.Kvff = 0
+Motor[6].Servo.Kaff = 0
+Motor[6].Servo.Ki	= 0.001
+Motor[6].servo.MaxGainFactor=28000
+Motor[6].servo.MaxPosErr=10000
+Motor[6].MaxSpeed=0
+Motor[6].InvAmax = 0;
+Motor[6].InvDmax = 0;
+Motor[6].InvJmax = 0;
+Motor[6].JogTa=100
+Motor[6].JogTs=50
+Motor[6].JogSpeed=10
+Motor[6].MaxDac=32767
+Motor[6].PosSf=1
+Motor[6].Pos2Sf=1
+// process Dac data
+EncTable[6].type		= 1
+EncTable[6].ScaleFactor = 1/65536
+EncTable[6].pEnc		= Sys.Idata[6].a
+EncTable[6].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #7--------------------
+// ST CATHODE CLAMP Y2
+                      
+Motor[7].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[7].ServoCtrl	= 1
+Motor[7].pDac		= Sys.Idata[7].a 
+Motor[7].pAmpEnable = 0
+Motor[7].pAmpFault	= 0
+Motor[7].pLimits	= 0
+Motor[7].CaptureMode= 1 // software capture 
+Motor[7].pEnc=EncTable[7].a
+Motor[7].pEnc2=EncTable[7].a
+// needed gains
+Motor[7].Servo.Kp	= 1 
+Motor[7].Servo.Kvfb = 0 
+Motor[7].Servo.Kvff = 0
+Motor[7].Servo.Kaff = 0
+Motor[7].Servo.Ki	= 0.001
+Motor[7].servo.MaxGainFactor=28000
+Motor[7].servo.MaxPosErr=10000
+Motor[7].MaxSpeed=0
+Motor[7].InvAmax = 0;
+Motor[7].InvDmax = 0;
+Motor[7].InvJmax = 0;
+Motor[7].JogTa=100
+Motor[7].JogTs=50
+Motor[7].JogSpeed=10
+Motor[7].MaxDac=32767
+Motor[7].PosSf=1
+Motor[7].Pos2Sf=1
+// process Dac data
+EncTable[7].type		= 1
+EncTable[7].ScaleFactor = 1/65536
+EncTable[7].pEnc		= Sys.Idata[7].a
+EncTable[7].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #8--------------------
+// ST ANODE CLAMP Y2
+                      
+Motor[8].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[8].ServoCtrl	= 1
+Motor[8].pDac		= Sys.Idata[8].a 
+Motor[8].pAmpEnable = 0
+Motor[8].pAmpFault	= 0
+Motor[8].pLimits	= 0
+Motor[8].CaptureMode= 1 // software capture 
+Motor[8].pEnc=EncTable[8].a
+Motor[8].pEnc2=EncTable[8].a
+// needed gains
+Motor[8].Servo.Kp	= 1 
+Motor[8].Servo.Kvfb = 0 
+Motor[8].Servo.Kvff = 0
+Motor[8].Servo.Kaff = 0
+Motor[8].Servo.Ki	= 0.001
+Motor[8].servo.MaxGainFactor=28000
+Motor[8].servo.MaxPosErr=10000
+Motor[8].MaxSpeed=0
+Motor[8].InvAmax = 0;
+Motor[8].InvDmax = 0;
+Motor[8].InvJmax = 0;
+Motor[8].JogTa=100
+Motor[8].JogTs=50
+Motor[8].JogSpeed=10
+Motor[8].MaxDac=32767
+Motor[8].PosSf=1
+Motor[8].Pos2Sf=1
+// process Dac data
+EncTable[8].type		= 1
+EncTable[8].ScaleFactor = 1/65536
+EncTable[8].pEnc		= Sys.Idata[8].a
+EncTable[8].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #9--------------------
+// ST CATHODE CLAMP Z1
+                      
+Motor[9].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[9].ServoCtrl	= 1
+Motor[9].pDac		= Sys.Idata[9].a 
+Motor[9].pAmpEnable = 0
+Motor[9].pAmpFault	= 0
+Motor[9].pLimits	= 0
+Motor[9].CaptureMode= 1 // software capture 
+Motor[9].pEnc=EncTable[9].a
+Motor[9].pEnc2=EncTable[9].a
+// needed gains
+Motor[9].Servo.Kp	= 1 
+Motor[9].Servo.Kvfb = 0 
+Motor[9].Servo.Kvff = 0
+Motor[9].Servo.Kaff = 0
+Motor[9].Servo.Ki	= 0.001
+Motor[9].servo.MaxGainFactor=28000
+Motor[9].servo.MaxPosErr=10000
+Motor[9].MaxSpeed=0
+Motor[9].InvAmax = 0;
+Motor[9].InvDmax = 0;
+Motor[9].InvJmax = 0;
+Motor[9].JogTa=100
+Motor[9].JogTs=50
+Motor[9].JogSpeed=10
+Motor[9].MaxDac=32767
+Motor[9].PosSf=1
+Motor[9].Pos2Sf=1
+// process Dac data
+EncTable[9].type		= 1
+EncTable[9].ScaleFactor = 1/65536
+EncTable[9].pEnc		= Sys.Idata[9].a
+EncTable[9].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #10--------------------
+// ST ANODE CLAMP Z1
+                      
+Motor[10].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[10].ServoCtrl	= 1
+Motor[10].pDac		= Sys.Idata[10].a 
+Motor[10].pAmpEnable = 0
+Motor[10].pAmpFault	= 0
+Motor[10].pLimits	= 0
+Motor[10].CaptureMode= 1 // software capture 
+Motor[10].pEnc=EncTable[10].a
+Motor[10].pEnc2=EncTable[10].a
+// needed gains
+Motor[10].Servo.Kp	= 1 
+Motor[10].Servo.Kvfb = 0 
+Motor[10].Servo.Kvff = 0
+Motor[10].Servo.Kaff = 0
+Motor[10].Servo.Ki	= 0.001
+Motor[10].servo.MaxGainFactor=28000
+Motor[10].servo.MaxPosErr=10000
+Motor[10].MaxSpeed=0
+Motor[10].InvAmax = 0;
+Motor[10].InvDmax = 0;
+Motor[10].InvJmax = 0;
+Motor[10].JogTa=100
+Motor[10].JogTs=50
+Motor[10].JogSpeed=10
+Motor[10].MaxDac=32767
+Motor[10].PosSf=1
+Motor[10].Pos2Sf=1
+// process Dac data
+EncTable[10].type		= 1
+EncTable[10].ScaleFactor = 1/65536
+EncTable[10].pEnc		= Sys.Idata[10].a
+EncTable[10].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #11--------------------
+// ST MAIN Z
+                      
+Motor[11].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[11].ServoCtrl	= 1
+Motor[11].pDac		= Sys.Idata[11].a 
+Motor[11].pAmpEnable = 0
+Motor[11].pAmpFault	= 0
+Motor[11].pLimits	= 0
+Motor[11].CaptureMode= 1 // software capture 
+Motor[11].pEnc=EncTable[11].a
+Motor[11].pEnc2=EncTable[11].a
+// needed gains
+Motor[11].Servo.Kp	= 1 
+Motor[11].Servo.Kvfb = 0 
+Motor[11].Servo.Kvff = 0
+Motor[11].Servo.Kaff = 0
+Motor[11].Servo.Ki	= 0.001
+Motor[11].servo.MaxGainFactor=28000
+Motor[11].servo.MaxPosErr=10000
+Motor[11].MaxSpeed=0
+Motor[11].InvAmax = 0;
+Motor[11].InvDmax = 0;
+Motor[11].InvJmax = 0;
+Motor[11].JogTa=100
+Motor[11].JogTs=50
+Motor[11].JogSpeed=10
+Motor[11].MaxDac=32767
+Motor[11].PosSf=1
+Motor[11].Pos2Sf=1
+// process Dac data
+EncTable[11].type		= 1
+EncTable[11].ScaleFactor = 1/65536
+EncTable[11].pEnc		= Sys.Idata[11].a
+EncTable[11].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #12--------------------
+// FINAL ROLL X
+                      
+Motor[12].Ctrl= Sys.PidCtrl // only need simple PID loop
+Motor[12].ServoCtrl=1
+Motor[12].pDac= Sys.Idata[12].a 
+Motor[12].pAmpEnable=0
+Motor[12].pAmpFault=0
+Motor[12].pLimits= 0
+Motor[12].CaptureMode= 1 // software capture 
+Motor[12].pEnc=EncTable[12].a
+Motor[12].pEnc2=EncTable[12].a
+// needed gains
+Motor[12].Servo.Kp= 1 
+Motor[12].Servo.Kvfb=0 
+Motor[12].Servo.Kvff=0
+Motor[12].Servo.Kaff=0
+Motor[12].Servo.Ki= 0.001
+Motor[12].servo.MaxGainFactor=28000
+Motor[12].servo.MaxPosErr=10000
+Motor[12].MaxSpeed=0
+Motor[12].InvAmax=0;
+Motor[12].InvDmax=0;
+Motor[12].InvJmax=0;
+Motor[12].JogTa=100
+Motor[12].JogTs=50
+Motor[12].JogSpeed=10
+Motor[12].MaxDac=32767
+Motor[12].PosSf=1
+Motor[12].Pos2Sf=1
+// process Dac data
+EncTable[12].type= 1
+EncTable[12].ScaleFactor = 1/65536
+EncTable[12].pEnc= Sys.Idata[12].a
+EncTable[12].index4=1
+
+//============================================================================================================================
+//-------Virtual Axis #13--------------------
+// FINAL ROLL Z
+                      
+Motor[13].Ctrl= Sys.PidCtrl // only need simple PID loop
+Motor[13].ServoCtrl=1
+Motor[13].pDac= Sys.Idata[13].a 
+Motor[13].pAmpEnable=0
+Motor[13].pAmpFault=0
+Motor[13].pLimits=0
+Motor[13].CaptureMode= 1 // software capture 
+Motor[13].pEnc=EncTable[13].a
+Motor[13].pEnc2=EncTable[13].a
+// needed gains
+Motor[13].Servo.Kp=1 
+Motor[13].Servo.Kvfb=0 
+Motor[13].Servo.Kvff=0
+Motor[13].Servo.Kaff=0
+Motor[13].Servo.Ki=0.001
+Motor[13].servo.MaxGainFactor=28000
+Motor[13].servo.MaxPosErr=10000
+Motor[13].MaxSpeed=0
+Motor[13].InvAmax=0;
+Motor[13].InvDmax=0;
+Motor[13].InvJmax=0;
+Motor[13].JogTa=100
+Motor[13].JogTs=50
+Motor[13].JogSpeed=10
+Motor[13].MaxDac=32767
+Motor[13].PosSf=1
+Motor[13].Pos2Sf=1
+// process Dac data
+EncTable[13].type=1
+EncTable[13].ScaleFactor=1/65536
+EncTable[13].pEnc= Sys.Idata[13].a
+EncTable[13].index4=1
+
+//============================================================================================================================
+//-------Virtual Axis #14--------------------
+// SEPA SUB FEEDING ROLL
+                      
+Motor[14].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[14].ServoCtrl	= 1
+Motor[14].pDac		= Sys.Idata[14].a 
+Motor[14].pAmpEnable = 0
+Motor[14].pAmpFault	= 0
+Motor[14].pLimits	= 0
+Motor[14].CaptureMode= 1 // software capture 
+Motor[14].pEnc=EncTable[14].a
+Motor[14].pEnc2=EncTable[14].a
+// needed gains
+Motor[14].Servo.Kp	= 1 
+Motor[14].Servo.Kvfb = 0 
+Motor[14].Servo.Kvff = 0
+Motor[14].Servo.Kaff = 0
+Motor[14].Servo.Ki	= 0.001
+Motor[14].servo.MaxGainFactor=28000
+Motor[14].servo.MaxPosErr=10000
+Motor[14].MaxSpeed=0
+Motor[14].InvAmax = 0;
+Motor[14].InvDmax = 0;
+Motor[14].InvJmax = 0;
+Motor[14].JogTa=100
+Motor[14].JogTs=50
+Motor[14].JogSpeed=10
+Motor[14].MaxDac=32767
+Motor[14].PosSf=1
+Motor[14].Pos2Sf=1
+// process Dac data
+EncTable[14].type		= 1
+EncTable[14].ScaleFactor = 1/65536
+EncTable[14].pEnc		= Sys.Idata[14].a
+EncTable[14].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #15--------------------
+// DRIVING ROLL
+                      
+Motor[15].Ctrl=Sys.PidCtrl // only need simple PID loop
+Motor[15].ServoCtrl=1
+Motor[15].pDac=Sys.Idata[15].a 
+Motor[15].pAmpEnable=0
+Motor[15].pAmpFault=0
+Motor[15].pLimits=0
+Motor[15].CaptureMode=1 // software capture 
+Motor[15].pEnc=EncTable[15].a
+Motor[15].pEnc2=EncTable[15].a
+// needed gains
+Motor[15].Servo.Kp=1 
+Motor[15].Servo.Kvfb=0 
+Motor[15].Servo.Kvff=0
+Motor[15].Servo.Kaff=0
+Motor[15].Servo.Ki= 0.001
+Motor[15].servo.MaxGainFactor=28000
+Motor[15].servo.MaxPosErr=10000
+Motor[15].MaxSpeed=0
+Motor[15].InvAmax=0;
+Motor[15].InvDmax=0;
+Motor[15].InvJmax=0;
+Motor[15].JogTa=100
+Motor[15].JogTs=50
+Motor[15].JogSpeed=10
+Motor[15].MaxDac=32767
+Motor[15].PosSf=1
+Motor[15].Pos2Sf=1
+// process Dac data
+EncTable[15].type=1
+EncTable[15].ScaleFactor=1/65536
+EncTable[15].pEnc=Sys.Idata[15].a
+EncTable[15].index4=1
+
+//============================================================================================================================
+//-------Virtual Axis #16--------------------
+//SERVO DANCER
+                      
+Motor[16].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[16].ServoCtrl	= 1
+Motor[16].pDac		= Sys.Idata[16].a 
+Motor[16].pAmpEnable = 0
+Motor[16].pAmpFault	= 0
+Motor[16].pLimits	= 0
+Motor[16].CaptureMode= 1 // software capture 
+Motor[16].pEnc=EncTable[16].a
+Motor[16].pEnc2=EncTable[16].a
+// needed gains
+Motor[16].Servo.Kp	= 1 
+Motor[16].Servo.Kvfb = 0 
+Motor[16].Servo.Kvff = 0
+Motor[16].Servo.Kaff = 0
+Motor[16].Servo.Ki	= 0.001
+Motor[16].servo.MaxGainFactor=28000
+Motor[16].servo.MaxPosErr=10000
+Motor[16].MaxSpeed=0
+Motor[16].InvAmax = 0;
+Motor[16].InvDmax = 0;
+Motor[16].InvJmax = 0;
+Motor[16].JogTa=100
+Motor[16].JogTs=50
+Motor[16].JogSpeed=10
+Motor[16].MaxDac=32767
+Motor[16].PosSf=1
+Motor[16].Pos2Sf=1
+// process Dac data
+EncTable[16].type		= 1
+EncTable[16].ScaleFactor = 1/65536
+EncTable[16].pEnc		= Sys.Idata[16].a
+EncTable[16].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #17--------------------
+// 1ST P&P CATHODE Z
+                      
+Motor[17].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[17].ServoCtrl	= 1
+Motor[17].pDac		= Sys.Idata[17].a 
+Motor[17].pAmpEnable = 0
+Motor[17].pAmpFault	= 0
+Motor[17].pLimits	= 0
+Motor[17].CaptureMode= 1 // software capture 
+Motor[17].pEnc=EncTable[17].a
+Motor[17].pEnc2=EncTable[17].a
+// needed gains
+Motor[17].Servo.Kp	= 1 
+Motor[17].Servo.Kvfb = 0 
+Motor[17].Servo.Kvff = 0
+Motor[17].Servo.Kaff = 0
+Motor[17].Servo.Ki	= 0.001
+Motor[17].servo.MaxGainFactor=28000
+Motor[17].servo.MaxPosErr=10000
+Motor[17].MaxSpeed=0
+Motor[17].InvAmax = 0;
+Motor[17].InvDmax = 0;
+Motor[17].InvJmax = 0;
+Motor[17].JogTa=100
+Motor[17].JogTs=50
+Motor[17].JogSpeed=10
+Motor[17].MaxDac=32767
+Motor[17].PosSf=1
+Motor[17].Pos2Sf=1
+// process Dac data
+EncTable[17].type		= 1
+EncTable[17].ScaleFactor = 1/65536
+EncTable[17].pEnc		= Sys.Idata[17].a
+EncTable[17].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #18--------------------
+// 1ST P&P ANODE Z
+                      
+Motor[18].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[18].ServoCtrl	= 1
+Motor[18].pDac		= Sys.Idata[18].a 
+Motor[18].pAmpEnable = 0
+Motor[18].pAmpFault	= 0
+Motor[18].pLimits	= 0
+Motor[18].CaptureMode= 1 // software capture 
+Motor[18].pEnc=EncTable[18].a
+Motor[18].pEnc2=EncTable[18].a
+// needed gains
+Motor[18].Servo.Kp	= 1 
+Motor[18].Servo.Kvfb = 0 
+Motor[18].Servo.Kvff = 0
+Motor[18].Servo.Kaff = 0
+Motor[18].Servo.Ki	= 0.001
+Motor[18].servo.MaxGainFactor=28000
+Motor[18].servo.MaxPosErr=10000
+Motor[18].MaxSpeed=0
+Motor[18].InvAmax = 0;
+Motor[18].InvDmax = 0;
+Motor[18].InvJmax = 0;
+Motor[18].JogTa=100
+Motor[18].JogTs=50
+Motor[18].JogSpeed=10
+Motor[18].MaxDac=32767
+Motor[18].PosSf=1
+Motor[18].Pos2Sf=1
+// process Dac data
+EncTable[18].type		= 1
+EncTable[18].ScaleFactor = 1/65536
+EncTable[18].pEnc		= Sys.Idata[18].a
+EncTable[18].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #19--------------------
+// 1ST P&P CATHODE PICKER T
+                      
+Motor[19].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[19].ServoCtrl	= 1
+Motor[19].pDac		= Sys.Idata[19].a 
+Motor[19].pAmpEnable = 0
+Motor[19].pAmpFault	= 0
+Motor[19].pLimits	= 0
+Motor[19].CaptureMode= 1 // software capture 
+Motor[19].pEnc=EncTable[19].a
+Motor[19].pEnc2=EncTable[19].a
+// needed gains
+Motor[19].Servo.Kp	= 1 
+Motor[19].Servo.Kvfb = 0 
+Motor[19].Servo.Kvff = 0
+Motor[19].Servo.Kaff = 0
+Motor[19].Servo.Ki	= 0.001
+Motor[19].servo.MaxGainFactor=28000
+Motor[19].servo.MaxPosErr=10000
+Motor[19].MaxSpeed=0
+Motor[19].InvAmax = 0;
+Motor[19].InvDmax = 0;
+Motor[19].InvJmax = 0;
+Motor[19].JogTa=100
+Motor[19].JogTs=50
+Motor[19].JogSpeed=10
+Motor[19].MaxDac=32767
+Motor[19].PosSf=1
+Motor[19].Pos2Sf=1
+// process Dac data
+EncTable[19].type		= 1
+EncTable[19].ScaleFactor = 1/65536
+EncTable[19].pEnc		= Sys.Idata[19].a
+EncTable[19].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #20--------------------
+// 1ST P&P ANODE PICKER T     
+                      
+Motor[20].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[20].ServoCtrl	= 1
+Motor[20].pDac		= Sys.Idata[20].a 
+Motor[20].pAmpEnable = 0
+Motor[20].pAmpFault	= 0
+Motor[20].pLimits	= 0
+Motor[20].CaptureMode= 1 // software capture 
+Motor[20].pEnc=EncTable[20].a
+Motor[20].pEnc2=EncTable[20].a
+// needed gains
+Motor[20].Servo.Kp	= 1 
+Motor[20].Servo.Kvfb = 0 
+Motor[20].Servo.Kvff = 0
+Motor[20].Servo.Kaff = 0
+Motor[20].Servo.Ki	= 0.001
+Motor[20].servo.MaxGainFactor=28000
+Motor[20].servo.MaxPosErr=10000
+Motor[20].MaxSpeed=0
+Motor[20].InvAmax = 0;
+Motor[20].InvDmax = 0;
+Motor[20].InvJmax = 0;
+Motor[20].JogTa=100
+Motor[20].JogTs=50
+Motor[20].JogSpeed=10
+Motor[20].MaxDac=32767
+Motor[20].PosSf=1
+Motor[20].Pos2Sf=1
+// process Dac data
+EncTable[20].type		= 1
+EncTable[20].ScaleFactor = 1/65536
+EncTable[20].pEnc		= Sys.Idata[20].a
+EncTable[20].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #21--------------------
+// 2ND P&P CATHODE Z     
+                      
+Motor[21].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[21].ServoCtrl	= 1
+Motor[21].pDac		= Sys.Idata[21].a 
+Motor[21].pAmpEnable = 0
+Motor[21].pAmpFault	= 0
+Motor[21].pLimits	= 0
+Motor[21].CaptureMode= 1 // software capture 
+Motor[21].pEnc=EncTable[21].a
+Motor[21].pEnc2=EncTable[21].a
+// needed gains
+Motor[21].Servo.Kp	= 1 
+Motor[21].Servo.Kvfb = 0 
+Motor[21].Servo.Kvff = 0
+Motor[21].Servo.Kaff = 0
+Motor[21].Servo.Ki	= 0.001
+Motor[21].servo.MaxGainFactor=28000
+Motor[21].servo.MaxPosErr=10000
+Motor[21].MaxSpeed=0
+Motor[21].InvAmax = 0;
+Motor[21].InvDmax = 0;
+Motor[21].InvJmax = 0;
+Motor[21].JogTa=100
+Motor[21].JogTs=50
+Motor[21].JogSpeed=10
+Motor[21].MaxDac=32767
+Motor[21].PosSf=1
+Motor[21].Pos2Sf=1
+// process Dac data
+EncTable[21].type		= 1
+EncTable[21].ScaleFactor = 1/65536
+EncTable[21].pEnc		= Sys.Idata[21].a
+EncTable[21].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #22--------------------
+// 2ND P&P ANODE Z   
+                      
+Motor[22].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[22].ServoCtrl	= 1
+Motor[22].pDac		= Sys.Idata[22].a 
+Motor[22].pAmpEnable = 0
+Motor[22].pAmpFault	= 0
+Motor[22].pLimits	= 0
+Motor[22].CaptureMode= 1 // software capture 
+Motor[22].pEnc=EncTable[22].a
+Motor[22].pEnc2=EncTable[22].a
+// needed gains
+Motor[22].Servo.Kp	= 1 
+Motor[22].Servo.Kvfb = 0 
+Motor[22].Servo.Kvff = 0
+Motor[22].Servo.Kaff = 0
+Motor[22].Servo.Ki	= 0.001
+Motor[22].servo.MaxGainFactor=28000
+Motor[22].servo.MaxPosErr=10000
+Motor[22].MaxSpeed=0
+Motor[22].InvAmax = 0;
+Motor[22].InvDmax = 0;
+Motor[22].InvJmax = 0;
+Motor[22].JogTa=100
+Motor[22].JogTs=50
+Motor[22].JogSpeed=10
+Motor[22].MaxDac=32767
+Motor[22].PosSf=1
+Motor[22].Pos2Sf=1
+// process Dac data
+EncTable[22].type		= 1
+EncTable[22].ScaleFactor = 1/65536
+EncTable[22].pEnc		= Sys.Idata[22].a
+EncTable[22].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #23--------------------
+//SEPA UNWINDER UPPER   
+                      
+Motor[23].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[23].ServoCtrl	= 1
+Motor[23].pDac		= Sys.Idata[23].a 
+Motor[23].pAmpEnable = 0
+Motor[23].pAmpFault	= 0
+Motor[23].pLimits	= 0
+Motor[23].CaptureMode= 1 // software capture 
+Motor[23].pEnc=EncTable[23].a
+Motor[23].pEnc2=EncTable[23].a
+// needed gains
+Motor[23].Servo.Kp	= 1 
+Motor[23].Servo.Kvfb = 0 
+Motor[23].Servo.Kvff = 0
+Motor[23].Servo.Kaff = 0
+Motor[23].Servo.Ki	= 0.001
+Motor[23].servo.MaxGainFactor=28000
+Motor[23].servo.MaxPosErr=10000
+Motor[23].MaxSpeed=0
+Motor[23].InvAmax = 0;
+Motor[23].InvDmax = 0;
+Motor[23].InvJmax = 0;
+Motor[23].JogTa=100
+Motor[23].JogTs=50
+Motor[23].JogSpeed=10
+Motor[23].MaxDac=32767
+Motor[23].PosSf=1
+Motor[23].Pos2Sf=1
+// process Dac data
+EncTable[23].type		= 1
+EncTable[23].ScaleFactor = 1/65536
+EncTable[23].pEnc		= Sys.Idata[23].a
+EncTable[23].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #24--------------------
+// SEPA UNWINDER LOWER    
+                      
+Motor[24].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[24].ServoCtrl	= 1
+Motor[24].pDac		= Sys.Idata[24].a 
+Motor[24].pAmpEnable = 0
+Motor[24].pAmpFault	= 0
+Motor[24].pLimits	= 0
+Motor[24].CaptureMode= 1 // software capture 
+Motor[24].pEnc=EncTable[24].a
+Motor[24].pEnc2=EncTable[24].a
+// needed gains
+Motor[24].Servo.Kp	= 1 
+Motor[24].Servo.Kvfb = 0 
+Motor[24].Servo.Kvff = 0
+Motor[24].Servo.Kaff = 0
+Motor[24].Servo.Ki	= 0.001
+Motor[24].servo.MaxGainFactor=28000
+Motor[24].servo.MaxPosErr=10000
+Motor[24].MaxSpeed=0
+Motor[24].InvAmax = 0;
+Motor[24].InvDmax = 0;
+Motor[24].InvJmax = 0;
+Motor[24].JogTa=100
+Motor[24].JogTs=50
+Motor[24].JogSpeed=10
+Motor[24].MaxDac=32767
+Motor[24].PosSf=1
+Motor[24].Pos2Sf=1
+// process Dac data
+EncTable[24].type		= 1
+EncTable[24].ScaleFactor = 1/65536
+EncTable[24].pEnc		= Sys.Idata[24].a
+EncTable[24].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #25--------------------
+// Empty slot
+Motor[25].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[25].ServoCtrl	= 1
+Motor[25].pDac		= Sys.Idata[25].a 
+Motor[25].pAmpEnable = 0
+Motor[25].pAmpFault	= 0
+Motor[25].pLimits	= 0
+Motor[25].CaptureMode= 1 // software capture 
+Motor[25].pEnc=EncTable[25].a
+Motor[25].pEnc2=EncTable[25].a
+// needed gains
+Motor[25].Servo.Kp	= 1 
+Motor[25].Servo.Kvfb = 0 
+Motor[25].Servo.Kvff = 0
+Motor[25].Servo.Kaff = 0
+Motor[25].Servo.Ki	= 0.001
+Motor[25].servo.MaxGainFactor=28000
+Motor[25].servo.MaxPosErr=10000
+Motor[25].MaxSpeed=0
+Motor[25].InvAmax = 0;
+Motor[25].InvDmax = 0;
+Motor[25].InvJmax = 0;
+Motor[25].JogTa=100
+Motor[25].JogTs=50
+Motor[25].JogSpeed=10
+Motor[25].MaxDac=32767
+Motor[25].PosSf=1
+Motor[25].Pos2Sf=1
+//-------Encoder Table Dummy #25------------
+EncTable[25].type		= 1
+EncTable[25].ScaleFactor = 1/65536
+EncTable[25].pEnc		= Sys.Idata[25].a
+EncTable[25].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #26--------------------
+// Empty slot
+Motor[26].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[26].ServoCtrl	= 1
+Motor[26].pDac		= Sys.Idata[26].a 
+Motor[26].pAmpEnable = 0
+Motor[26].pAmpFault	= 0
+Motor[26].pLimits	= 0
+Motor[26].CaptureMode= 1 // software capture 
+Motor[26].pEnc=EncTable[26].a
+Motor[26].pEnc2=EncTable[26].a
+// needed gains
+Motor[26].Servo.Kp	= 1 
+Motor[26].Servo.Kvfb = 0 
+Motor[26].Servo.Kvff = 0
+Motor[26].Servo.Kaff = 0
+Motor[26].Servo.Ki	= 0.001
+Motor[26].servo.MaxGainFactor=28000
+Motor[26].servo.MaxPosErr=10000
+Motor[26].MaxSpeed=0
+Motor[26].InvAmax = 0;
+Motor[26].InvDmax = 0;
+Motor[26].InvJmax = 0;
+Motor[26].JogTa=100
+Motor[26].JogTs=50
+Motor[26].JogSpeed=10
+Motor[26].MaxDac=32767
+Motor[26].PosSf=1
+Motor[26].Pos2Sf=1
+//-------Encoder Table Dummy #26------------
+EncTable[26].type		= 1
+EncTable[26].ScaleFactor = 1/65536
+EncTable[26].pEnc		= Sys.Idata[26].a
+EncTable[26].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #27-------------------- // [ 참조 : 클램프 Z1 모터 번호 변경 2025.10.16 ]
+// Empty slot
+Motor[27].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[27].ServoCtrl	= 1
+Motor[27].pDac		= Sys.Idata[27].a 
+Motor[27].pAmpEnable = 0
+Motor[27].pAmpFault	= 0
+Motor[27].pLimits	= 0
+Motor[27].CaptureMode= 1 // software capture 
+Motor[27].pEnc=EncTable[27].a
+Motor[27].pEnc2=EncTable[27].a
+// needed gains
+Motor[27].Servo.Kp	= 1 
+Motor[27].Servo.Kvfb = 0 
+Motor[27].Servo.Kvff = 0
+Motor[27].Servo.Kaff = 0
+Motor[27].Servo.Ki	= 0.001
+Motor[27].servo.MaxGainFactor=28000
+Motor[27].servo.MaxPosErr=10000
+Motor[27].MaxSpeed=0
+Motor[27].InvAmax = 0;
+Motor[27].InvDmax = 0;
+Motor[27].InvJmax = 0;
+Motor[27].JogTa=100
+Motor[27].JogTs=50
+Motor[27].JogSpeed=10
+Motor[27].MaxDac=32767
+Motor[27].PosSf=1
+Motor[27].Pos2Sf=1
+//-------Encoder Table Dummy #27------------
+EncTable[27].type		= 1
+EncTable[27].ScaleFactor = 1/65536
+EncTable[27].pEnc		= Sys.Idata[27].a
+EncTable[27].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #28-------------------- // [ 참조 : 클램프 Z1 모터 번호 변경 2025.10.16 ]
+// Empty slot
+Motor[28].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[28].ServoCtrl	= 1
+Motor[28].pDac		= Sys.Idata[28].a 
+Motor[28].pAmpEnable = 0
+Motor[28].pAmpFault	= 0
+Motor[28].pLimits	= 0
+Motor[28].CaptureMode= 1 // software capture 
+Motor[28].pEnc=EncTable[28].a
+Motor[28].pEnc2=EncTable[28].a
+// needed gains
+Motor[28].Servo.Kp	= 1 
+Motor[28].Servo.Kvfb = 0 
+Motor[28].Servo.Kvff = 0
+Motor[28].Servo.Kaff = 0
+Motor[28].Servo.Ki	= 0.001
+Motor[28].servo.MaxGainFactor=28000
+Motor[28].servo.MaxPosErr=10000
+Motor[28].MaxSpeed=0
+Motor[28].InvAmax = 0;
+Motor[28].InvDmax = 0;
+Motor[28].InvJmax = 0;
+Motor[28].JogTa=100
+Motor[28].JogTs=50
+Motor[28].JogSpeed=10
+Motor[28].MaxDac=32767
+Motor[28].PosSf=1
+Motor[28].Pos2Sf=1
+//-------Encoder Table Dummy #28------------
+EncTable[28].type		= 1
+EncTable[28].ScaleFactor = 1/65536
+EncTable[28].pEnc		= Sys.Idata[28].a
+EncTable[28].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #29--------------------
+// Empty slot
+
+//-------Encoder Table Dummy #29------------
+EncTable[29].type		= 1
+EncTable[29].ScaleFactor = 1/65536
+EncTable[29].pEnc		= Sys.Idata[29].a
+EncTable[29].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #30--------------------
+// Empty slot
+
+//-------Encoder Table Dummy #30------------
+EncTable[30].type		= 1
+EncTable[30].ScaleFactor = 1/65536
+EncTable[30].pEnc		= Sys.Idata[30].a
+EncTable[30].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #31--------------------
+// Empty slot
+
+//-------Encoder Table Dummy #31------------
+EncTable[31].type		= 1
+EncTable[31].ScaleFactor = 1/65536
+EncTable[31].pEnc		= Sys.Idata[31].a
+EncTable[31].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #32--------------------
+// Empty slot
+
+//-------Encoder Table Dummy #32------------
+EncTable[32].type		= 1
+EncTable[32].ScaleFactor = 1/65536
+EncTable[32].pEnc		= Sys.Idata[32].a
+EncTable[32].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #33--------------------
+// SA EPC SENSOR 
+                               
+Motor[33].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[33].ServoCtrl	= 1
+Motor[33].pDac		= Sys.Idata[33].a 
+Motor[33].pAmpEnable = 0
+Motor[33].pAmpFault	= 0
+Motor[33].pLimits	= 0
+Motor[33].CaptureMode= 1 // software capture 
+Motor[33].pEnc=EncTable[33].a
+Motor[33].pEnc2=EncTable[33].a
+// needed gains
+Motor[33].Servo.Kp	= 1 
+Motor[33].Servo.Kvfb = 0 
+Motor[33].Servo.Kvff = 0
+Motor[33].Servo.Kaff = 0
+Motor[33].Servo.Ki	= 0.001
+Motor[33].servo.MaxGainFactor=28000
+Motor[33].servo.MaxPosErr=10000
+Motor[33].MaxSpeed=0
+Motor[33].InvAmax = 0;
+Motor[33].InvDmax = 0;
+Motor[33].InvJmax = 0;
+Motor[33].JogTa=100
+Motor[33].JogTs=50
+Motor[33].JogSpeed=10
+Motor[33].MaxDac=32767
+Motor[33].PosSf=1
+Motor[33].Pos2Sf=1
+// process Dac data
+EncTable[33].type		= 1
+EncTable[33].ScaleFactor = 1/65536
+EncTable[33].pEnc		= Sys.Idata[33].a
+EncTable[33].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #34--------------------             
+// SA STACK VISION
+                 
+Motor[34].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[34].ServoCtrl	= 1
+Motor[34].pDac		= Sys.Idata[34].a 
+Motor[34].pAmpEnable = 0
+Motor[34].pAmpFault	= 0
+Motor[34].pLimits	= 0
+Motor[34].CaptureMode= 1 // software capture 
+Motor[34].pEnc=EncTable[34].a
+Motor[34].pEnc2=EncTable[34].a
+// needed gains
+Motor[34].Servo.Kp	= 1 
+Motor[34].Servo.Kvfb = 0 
+Motor[34].Servo.Kvff = 0
+Motor[34].Servo.Kaff = 0
+Motor[34].Servo.Ki	= 0.001
+Motor[34].servo.MaxGainFactor=28000
+Motor[34].servo.MaxPosErr=10000
+Motor[34].MaxSpeed=0
+Motor[34].InvAmax = 0;
+Motor[34].InvDmax = 0;
+Motor[34].InvJmax = 0;
+Motor[34].JogTa=100
+Motor[34].JogTs=50
+Motor[34].JogSpeed=10
+Motor[34].MaxDac=32767
+Motor[34].PosSf=1
+Motor[34].Pos2Sf=1
+// process Dac data
+EncTable[34].type		= 1
+EncTable[34].ScaleFactor = 1/65536
+EncTable[34].pEnc		= Sys.Idata[34].a
+EncTable[34].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #35--------------------     
+// SA 1ST SHEET PAPER X
+                          
+Motor[35].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[35].ServoCtrl	= 1
+Motor[35].pDac		= Sys.Idata[35].a 
+Motor[35].pAmpEnable = 0
+Motor[35].pAmpFault	= 0
+Motor[35].pLimits	= 0
+Motor[35].CaptureMode= 1 // software capture 
+Motor[35].pEnc=EncTable[35].a
+Motor[35].pEnc2=EncTable[35].a
+// needed gains
+Motor[35].Servo.Kp	= 1 
+Motor[35].Servo.Kvfb = 0 
+Motor[35].Servo.Kvff = 0
+Motor[35].Servo.Kaff = 0
+Motor[35].Servo.Ki	= 0.001
+Motor[35].servo.MaxGainFactor=28000
+Motor[35].servo.MaxPosErr=10000
+Motor[35].MaxSpeed=0
+Motor[35].InvAmax = 0;
+Motor[35].InvDmax = 0;
+Motor[35].InvJmax = 0;
+Motor[35].JogTa=100
+Motor[35].JogTs=50
+Motor[35].JogSpeed=10
+Motor[35].MaxDac=32767
+Motor[35].PosSf=1
+Motor[35].Pos2Sf=1
+// process Dac data
+EncTable[35].type		= 1
+EncTable[35].ScaleFactor = 1/65536
+EncTable[35].pEnc		= Sys.Idata[35].a
+EncTable[35].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #36-------------------- 
+// SA AT CATHODE X
+                              
+Motor[36].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[36].ServoCtrl	= 1
+Motor[36].pDac		= Sys.Idata[36].a 
+Motor[36].pAmpEnable = 0
+Motor[36].pAmpFault	= 0
+Motor[36].pLimits	= 0
+Motor[36].CaptureMode= 1 // software capture 
+Motor[36].pEnc=EncTable[36].a
+Motor[36].pEnc2=EncTable[36].a
+// needed gains
+Motor[36].Servo.Kp	= 1 
+Motor[36].Servo.Kvfb = 0 
+Motor[36].Servo.Kvff = 0
+Motor[36].Servo.Kaff = 0
+Motor[36].Servo.Ki	= 0.001
+Motor[36].servo.MaxGainFactor=28000
+Motor[36].servo.MaxPosErr=10000
+Motor[36].MaxSpeed=0
+Motor[36].InvAmax = 0;
+Motor[36].InvDmax = 0;
+Motor[36].InvJmax = 0;
+Motor[36].JogTa=100
+Motor[36].JogTs=50
+Motor[36].JogSpeed=10
+Motor[36].MaxDac=32767
+Motor[36].PosSf=1
+Motor[36].Pos2Sf=1
+// process Dac data
+EncTable[36].type		= 1
+EncTable[36].ScaleFactor = 1/65536
+EncTable[36].pEnc		= Sys.Idata[36].a
+EncTable[36].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #37-------------------- 
+// SA AT CATHODE Y
+                              
+Motor[37].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[37].ServoCtrl	= 1
+Motor[37].pDac		= Sys.Idata[37].a 
+Motor[37].pAmpEnable = 0
+Motor[37].pAmpFault	= 0
+Motor[37].pLimits	= 0
+Motor[37].CaptureMode= 1 // software capture 
+Motor[37].pEnc=EncTable[37].a
+Motor[37].pEnc2=EncTable[37].a
+// needed gains
+Motor[37].Servo.Kp	= 1 
+Motor[37].Servo.Kvfb = 0 
+Motor[37].Servo.Kvff = 0
+Motor[37].Servo.Kaff = 0
+Motor[37].Servo.Ki	= 0.001
+Motor[37].servo.MaxGainFactor=28000
+Motor[37].servo.MaxPosErr=10000
+Motor[37].MaxSpeed=0
+Motor[37].InvAmax = 0;
+Motor[37].InvDmax = 0;
+Motor[37].InvJmax = 0;
+Motor[37].JogTa=100
+Motor[37].JogTs=50
+Motor[37].JogSpeed=10
+Motor[37].MaxDac=32767
+Motor[37].PosSf=1
+Motor[37].Pos2Sf=1
+// process Dac data
+EncTable[37].type		= 1
+EncTable[37].ScaleFactor = 1/65536
+EncTable[37].pEnc		= Sys.Idata[37].a
+EncTable[37].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #38--------------------    
+// SA AT CATHODE T
+                           
+Motor[38].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[38].ServoCtrl	= 1
+Motor[38].pDac		= Sys.Idata[38].a 
+Motor[38].pAmpEnable = 0
+Motor[38].pAmpFault	= 0
+Motor[38].pLimits	= 0
+Motor[38].CaptureMode= 1 // software capture 
+Motor[38].pEnc=EncTable[38].a
+Motor[38].pEnc2=EncTable[38].a
+// needed gains
+Motor[38].Servo.Kp	= 1 
+Motor[38].Servo.Kvfb = 0 
+Motor[38].Servo.Kvff = 0
+Motor[38].Servo.Kaff = 0
+Motor[38].Servo.Ki	= 0.001
+Motor[38].servo.MaxGainFactor=28000
+Motor[38].servo.MaxPosErr=10000
+Motor[38].MaxSpeed=0
+Motor[38].InvAmax = 0;
+Motor[38].InvDmax = 0;
+Motor[38].InvJmax = 0;
+Motor[38].JogTa=100
+Motor[38].JogTs=50
+Motor[38].JogSpeed=10
+Motor[38].MaxDac=32767
+Motor[38].PosSf=1
+Motor[38].Pos2Sf=1
+// process Dac data
+EncTable[38].type		= 1
+EncTable[38].ScaleFactor = 1/65536
+EncTable[38].pEnc		= Sys.Idata[38].a
+EncTable[38].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #39--------------------   
+// SA AT ANODE X
+                            
+Motor[39].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[39].ServoCtrl	= 1
+Motor[39].pDac		= Sys.Idata[39].a 
+Motor[39].pAmpEnable = 0
+Motor[39].pAmpFault	= 0
+Motor[39].pLimits	= 0
+Motor[39].CaptureMode= 1 // software capture 
+Motor[39].pEnc=EncTable[39].a
+Motor[39].pEnc2=EncTable[39].a
+// needed gains
+Motor[39].Servo.Kp	= 1 
+Motor[39].Servo.Kvfb = 0 
+Motor[39].Servo.Kvff = 0
+Motor[39].Servo.Kaff = 0
+Motor[39].Servo.Ki	= 0.001
+Motor[39].servo.MaxGainFactor=28000
+Motor[39].servo.MaxPosErr=10000
+Motor[39].MaxSpeed=0
+Motor[39].InvAmax = 0;
+Motor[39].InvDmax = 0;
+Motor[39].InvJmax = 0;
+Motor[39].JogTa=100
+Motor[39].JogTs=50
+Motor[39].JogSpeed=10
+Motor[39].MaxDac=32767
+Motor[39].PosSf=1
+Motor[39].Pos2Sf=1
+// process Dac data
+EncTable[39].type		= 1
+EncTable[39].ScaleFactor = 1/65536
+EncTable[39].pEnc		= Sys.Idata[39].a
+EncTable[39].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #40--------------------        
+// SA AT ANODE Y
+                       
+Motor[40].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[40].ServoCtrl	= 1
+Motor[40].pDac		= Sys.Idata[40].a 
+Motor[40].pAmpEnable = 0
+Motor[40].pAmpFault	= 0
+Motor[40].pLimits	= 0
+Motor[40].CaptureMode= 1 // software capture 
+Motor[40].pEnc=EncTable[40].a
+Motor[40].pEnc2=EncTable[40].a
+// needed gains
+Motor[40].Servo.Kp	= 1 
+Motor[40].Servo.Kvfb = 0 
+Motor[40].Servo.Kvff = 0
+Motor[40].Servo.Kaff = 0
+Motor[40].Servo.Ki	= 0.001
+Motor[40].servo.MaxGainFactor=28000
+Motor[40].servo.MaxPosErr=10000
+Motor[40].MaxSpeed=0
+Motor[40].InvAmax = 0;
+Motor[40].InvDmax = 0;
+Motor[40].InvJmax = 0;
+Motor[40].JogTa=100
+Motor[40].JogTs=50
+Motor[40].JogSpeed=10
+Motor[40].MaxDac=32767
+Motor[40].PosSf=1
+Motor[40].Pos2Sf=1
+// process Dac data
+EncTable[40].type		= 1
+EncTable[40].ScaleFactor = 1/65536
+EncTable[40].pEnc		= Sys.Idata[40].a
+EncTable[40].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #41-------------------- 
+// SA AT ANODE T
+                              
+Motor[41].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[41].ServoCtrl	= 1
+Motor[41].pDac		= Sys.Idata[41].a 
+Motor[41].pAmpEnable = 0
+Motor[41].pAmpFault	= 0
+Motor[41].pLimits	= 0
+Motor[41].CaptureMode= 1 // software capture 
+Motor[41].pEnc=EncTable[41].a
+Motor[41].pEnc2=EncTable[41].a
+// needed gains
+Motor[41].Servo.Kp	= 1 
+Motor[41].Servo.Kvfb = 0 
+Motor[41].Servo.Kvff = 0
+Motor[41].Servo.Kaff = 0
+Motor[41].Servo.Ki	= 0.001
+Motor[41].servo.MaxGainFactor=28000
+Motor[41].servo.MaxPosErr=10000
+Motor[41].MaxSpeed=0
+Motor[41].InvAmax = 0;
+Motor[41].InvDmax = 0;
+Motor[41].InvJmax = 0;
+Motor[41].JogTa=100
+Motor[41].JogTs=50
+Motor[41].JogSpeed=10
+Motor[41].MaxDac=32767
+Motor[41].PosSf=1
+Motor[41].Pos2Sf=1
+// process Dac data
+EncTable[41].type		= 1
+EncTable[41].ScaleFactor = 1/65536
+EncTable[41].pEnc		= Sys.Idata[41].a
+EncTable[41].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #42--------------------  
+// SA SAMPLE & NG CATHODE T
+                             
+Motor[42].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[42].ServoCtrl	= 1
+Motor[42].pDac		= Sys.Idata[42].a 
+Motor[42].pAmpEnable = 0
+Motor[42].pAmpFault	= 0
+Motor[42].pLimits	= 0
+Motor[42].CaptureMode= 1 // software capture 
+Motor[42].pEnc=EncTable[42].a
+Motor[42].pEnc2=EncTable[42].a
+// needed gains
+Motor[42].Servo.Kp	= 1 
+Motor[42].Servo.Kvfb = 0 
+Motor[42].Servo.Kvff = 0
+Motor[42].Servo.Kaff = 0
+Motor[42].Servo.Ki	= 0.001
+Motor[42].servo.MaxGainFactor=28000
+Motor[42].servo.MaxPosErr=10000
+Motor[42].MaxSpeed=0
+Motor[42].InvAmax = 0;
+Motor[42].InvDmax = 0;
+Motor[42].InvJmax = 0;
+Motor[42].JogTa=100
+Motor[42].JogTs=50
+Motor[42].JogSpeed=10
+Motor[42].MaxDac=32767
+Motor[42].PosSf=1
+Motor[42].Pos2Sf=1
+// process Dac data
+EncTable[42].type		= 1
+EncTable[42].ScaleFactor = 1/65536
+EncTable[42].pEnc		= Sys.Idata[42].a
+EncTable[42].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #43--------------------         
+// SA SAMPLE & NG ANODE T
+                      
+Motor[43].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[43].ServoCtrl	= 1
+Motor[43].pDac		= Sys.Idata[43].a 
+Motor[43].pAmpEnable = 0
+Motor[43].pAmpFault	= 0
+Motor[43].pLimits	= 0
+Motor[43].CaptureMode= 1 // software capture 
+Motor[43].pEnc=EncTable[43].a
+Motor[43].pEnc2=EncTable[43].a
+// needed gains
+Motor[43].Servo.Kp	= 1 
+Motor[43].Servo.Kvfb = 0 
+Motor[43].Servo.Kvff = 0
+Motor[43].Servo.Kaff = 0
+Motor[43].Servo.Ki	= 0.001
+Motor[43].servo.MaxGainFactor=28000
+Motor[43].servo.MaxPosErr=10000
+Motor[43].MaxSpeed=0
+Motor[43].InvAmax = 0;
+Motor[43].InvDmax = 0;
+Motor[43].InvJmax = 0;
+Motor[43].JogTa=100
+Motor[43].JogTs=50
+Motor[43].JogSpeed=10
+Motor[43].MaxDac=32767
+Motor[43].PosSf=1
+Motor[43].Pos2Sf=1
+// process Dac data
+EncTable[43].type		= 1
+EncTable[43].ScaleFactor = 1/65536
+EncTable[43].pEnc		= Sys.Idata[43].a
+EncTable[43].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #44--------------------          
+// SA SAMPLE & NG CATHODE Z            
+      
+Motor[44].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[44].ServoCtrl	= 1
+Motor[44].pDac		= Sys.Idata[44].a 
+Motor[44].pAmpEnable = 0
+Motor[44].pAmpFault	= 0
+Motor[44].pLimits	= 0
+Motor[44].CaptureMode= 1 // software capture 
+Motor[44].pEnc=EncTable[44].a
+Motor[44].pEnc2=EncTable[44].a
+// needed gains
+Motor[44].Servo.Kp	= 1 
+Motor[44].Servo.Kvfb = 0 
+Motor[44].Servo.Kvff = 0
+Motor[44].Servo.Kaff = 0
+Motor[44].Servo.Ki	= 0.001
+Motor[44].servo.MaxGainFactor=28000
+Motor[44].servo.MaxPosErr=10000
+Motor[44].MaxSpeed=0
+Motor[44].InvAmax = 0;
+Motor[44].InvDmax = 0;
+Motor[44].InvJmax = 0;
+Motor[44].JogTa=100
+Motor[44].JogTs=50
+Motor[44].JogSpeed=10
+Motor[44].MaxDac=32767
+Motor[44].PosSf=1
+Motor[44].Pos2Sf=1
+// process Dac data
+EncTable[44].type		= 1
+EncTable[44].ScaleFactor = 1/65536
+EncTable[44].pEnc		= Sys.Idata[44].a
+EncTable[44].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #45-------------------- 
+// SA SAMPLE & NG ANODE Z
+                        
+Motor[45].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[45].ServoCtrl	= 1
+Motor[45].pDac		= Sys.Idata[45].a 
+Motor[45].pAmpEnable = 0
+Motor[45].pAmpFault	= 0
+Motor[45].pLimits	= 0
+Motor[45].CaptureMode= 1 // software capture 
+Motor[45].pEnc=EncTable[45].a
+Motor[45].pEnc2=EncTable[45].a
+// needed gains
+Motor[45].Servo.Kp	= 1 
+Motor[45].Servo.Kvfb = 0 
+Motor[45].Servo.Kvff = 0
+Motor[45].Servo.Kaff = 0
+Motor[45].Servo.Ki	= 0.001
+Motor[45].servo.MaxGainFactor=28000
+Motor[45].servo.MaxPosErr=10000
+Motor[45].MaxSpeed=0
+Motor[45].InvAmax = 0;
+Motor[45].InvDmax = 0;
+Motor[45].InvJmax = 0;
+Motor[45].JogTa=100
+Motor[45].JogTs=50
+Motor[45].JogSpeed=10
+Motor[45].MaxDac=32767
+Motor[45].PosSf=1
+Motor[45].Pos2Sf=1
+// process Dac data
+EncTable[45].type		= 1
+EncTable[45].ScaleFactor = 1/65536
+EncTable[45].pEnc		= Sys.Idata[45].a
+EncTable[45].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #46-------------------- 
+// SA 1ST UNLOADER X
+                            
+Motor[46].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[46].ServoCtrl	= 1
+Motor[46].pDac		= Sys.Idata[46].a 
+Motor[46].pAmpEnable = 0
+Motor[46].pAmpFault	= 0
+Motor[46].pLimits	= 0
+Motor[46].CaptureMode= 1 // software capture 
+Motor[46].pEnc=EncTable[46].a
+Motor[46].pEnc2=EncTable[46].a
+// needed gains
+Motor[46].Servo.Kp	= 1 
+Motor[46].Servo.Kvfb = 0 
+Motor[46].Servo.Kvff = 0
+Motor[46].Servo.Kaff = 0
+Motor[46].Servo.Ki	= 0.001
+Motor[46].servo.MaxGainFactor=28000
+Motor[46].servo.MaxPosErr=10000
+Motor[46].MaxSpeed=0
+Motor[46].InvAmax = 0;
+Motor[46].InvDmax = 0;
+Motor[46].InvJmax = 0;
+Motor[46].JogTa=100
+Motor[46].JogTs=50
+Motor[46].JogSpeed=10
+Motor[46].MaxDac=32767
+Motor[46].PosSf=1
+Motor[46].Pos2Sf=1
+// process Dac data
+EncTable[46].type		= 1
+EncTable[46].ScaleFactor = 1/65536
+EncTable[46].pEnc		= Sys.Idata[46].a
+EncTable[46].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #47-------------------- 
+// SA 1ST UNLOADER Z
+                             
+Motor[47].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[47].ServoCtrl	= 1
+Motor[47].pDac		= Sys.Idata[47].a 
+Motor[47].pAmpEnable = 0
+Motor[47].pAmpFault	= 0
+Motor[47].pLimits	= 0
+Motor[47].CaptureMode= 1 // software capture 
+Motor[47].pEnc=EncTable[47].a
+Motor[47].pEnc2=EncTable[47].a
+// needed gains
+Motor[47].Servo.Kp	= 1 
+Motor[47].Servo.Kvfb = 0 
+Motor[47].Servo.Kvff = 0
+Motor[47].Servo.Kaff = 0
+Motor[47].Servo.Ki	= 0.001
+Motor[47].servo.MaxGainFactor=28000
+Motor[47].servo.MaxPosErr=10000
+Motor[47].MaxSpeed=0
+Motor[47].InvAmax = 0;
+Motor[47].InvDmax = 0;
+Motor[47].InvJmax = 0;
+Motor[47].JogTa=100
+Motor[47].JogTs=50
+Motor[47].JogSpeed=10
+Motor[47].MaxDac=32767
+Motor[47].PosSf=1
+Motor[47].Pos2Sf=1
+// process Dac data
+EncTable[47].type		= 1
+EncTable[47].ScaleFactor = 1/65536
+EncTable[47].pEnc		= Sys.Idata[47].a
+EncTable[47].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #48-------------------- 
+// SA 1ST UNLOADER T
+                            
+Motor[48].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[48].ServoCtrl	= 1
+Motor[48].pDac		= Sys.Idata[48].a 
+Motor[48].pAmpEnable = 0
+Motor[48].pAmpFault	= 0
+Motor[48].pLimits	= 0
+Motor[48].CaptureMode= 1 // software capture 
+Motor[48].pEnc=EncTable[48].a
+Motor[48].pEnc2=EncTable[48].a
+// needed gains
+Motor[48].Servo.Kp	= 1 
+Motor[48].Servo.Kvfb = 0 
+Motor[48].Servo.Kvff = 0
+Motor[48].Servo.Kaff = 0
+Motor[48].Servo.Ki	= 0.001
+Motor[48].servo.MaxGainFactor=28000
+Motor[48].servo.MaxPosErr=10000
+Motor[48].MaxSpeed=0
+Motor[48].InvAmax = 0;
+Motor[48].InvDmax = 0;
+Motor[48].InvJmax = 0;
+Motor[48].JogTa=100
+Motor[48].JogTs=50
+Motor[48].JogSpeed=10
+Motor[48].MaxDac=32767
+Motor[48].PosSf=1
+Motor[48].Pos2Sf=1
+// process Dac data
+EncTable[48].type		= 1
+EncTable[48].ScaleFactor = 1/65536
+EncTable[48].pEnc		= Sys.Idata[48].a
+EncTable[48].index4		= 1
+
+#endif						// 가상축으로 테스트 용 설정.
+
+
+//============================================================================================================================
+// 실제 가상축!!!
+//-------Virtual Axis #49--------------------
+// Master Motion
+                              
+Motor[49].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[49].ServoCtrl	= 1
+Motor[49].pDac		= Sys.Idata[49].a 
+Motor[49].pAmpEnable = 0
+Motor[49].pAmpFault	= 0
+Motor[49].pLimits	= 0
+Motor[49].CaptureMode= 1 // software capture 
+Motor[49].pEnc=EncTable[49].a
+Motor[49].pEnc2=EncTable[49].a
+// needed gains
+Motor[49].Servo.Kp	= 1 
+Motor[49].Servo.Kvfb = 0 
+Motor[49].Servo.Kvff = 0
+Motor[49].Servo.Kaff = 0
+Motor[49].Servo.Ki	= 0.001
+Motor[49].servo.MaxGainFactor=28000
+Motor[49].servo.MaxPosErr=10000
+Motor[49].MaxSpeed=0
+Motor[49].InvAmax = 0;
+Motor[49].InvDmax = 0;
+Motor[49].InvJmax = 0;
+Motor[49].JogTa=100
+Motor[49].JogTs=50
+Motor[49].JogSpeed=10
+Motor[49].MaxDac=32767
+Motor[49].PosSf=1
+Motor[49].Pos2Sf=1
+// process Dac data
+EncTable[49].type		= 1
+EncTable[49].ScaleFactor = 1/65536
+EncTable[49].pEnc		= Sys.Idata[49].a
+EncTable[49].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #50--------------------
+// 양극 1차 PNP Submaster 
+                              
+Motor[50].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[50].ServoCtrl	= 1
+Motor[50].pDac		= Sys.Idata[50].a 
+Motor[50].pAmpEnable = 0
+Motor[50].pAmpFault	= 0
+Motor[50].pLimits	= 0
+Motor[50].CaptureMode= 1 // software capture 
+Motor[50].pEnc=EncTable[50].a
+Motor[50].pEnc2=EncTable[50].a
+// needed gains
+Motor[50].Servo.Kp	= 1 
+Motor[50].Servo.Kvfb = 0 
+Motor[50].Servo.Kvff = 0
+Motor[50].Servo.Kaff = 0
+Motor[50].Servo.Ki	= 0.001
+Motor[50].servo.MaxGainFactor=28000
+Motor[50].servo.MaxPosErr=10000
+Motor[50].MaxSpeed=0
+Motor[50].InvAmax = 0;
+Motor[50].InvDmax = 0;
+Motor[50].InvJmax = 0;
+Motor[50].JogTa=100
+Motor[50].JogTs=50
+Motor[50].JogSpeed=10
+Motor[50].MaxDac=32767
+Motor[50].PosSf=1
+Motor[50].Pos2Sf=1
+// process Dac data
+EncTable[50].type		= 1
+EncTable[50].ScaleFactor = 1/65536
+EncTable[50].pEnc		= Sys.Idata[50].a
+EncTable[50].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #51--------------------          
+// 음극 1차 PNP Submaster
+       
+Motor[51].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[51].ServoCtrl	= 1
+Motor[51].pDac		= Sys.Idata[51].a 
+Motor[51].pAmpEnable = 0
+Motor[51].pAmpFault	= 0
+Motor[51].pLimits	= 0
+Motor[51].CaptureMode= 1 // software capture 
+Motor[51].pEnc=EncTable[51].a
+Motor[51].pEnc2=EncTable[51].a
+// needed gains
+Motor[51].Servo.Kp	= 1 
+Motor[51].Servo.Kvfb = 0 
+Motor[51].Servo.Kvff = 0
+Motor[51].Servo.Kaff = 0
+Motor[51].Servo.Ki	= 0.001
+Motor[51].servo.MaxGainFactor=28000
+Motor[51].servo.MaxPosErr=10000
+Motor[51].MaxSpeed=0
+Motor[51].InvAmax = 0;
+Motor[51].InvDmax = 0;
+Motor[51].InvJmax = 0;
+Motor[51].JogTa=100
+Motor[51].JogTs=50
+Motor[51].JogSpeed=10
+Motor[51].MaxDac=32767
+Motor[51].PosSf=1
+Motor[51].Pos2Sf=1
+// process Dac data
+EncTable[51].type		= 1
+EncTable[51].ScaleFactor = 1/65536
+EncTable[51].pEnc		= Sys.Idata[51].a
+EncTable[51].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #52-------------------- 
+// 양극 2차 PNP Submaster
+                   
+Motor[52].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[52].ServoCtrl	= 1
+Motor[52].pDac		= Sys.Idata[52].a 
+Motor[52].pAmpEnable = 0
+Motor[52].pAmpFault	= 0
+Motor[52].pLimits	= 0
+Motor[52].CaptureMode= 1 // software capture 
+Motor[52].pEnc=EncTable[52].a
+Motor[52].pEnc2=EncTable[52].a
+// needed gains
+Motor[52].Servo.Kp	= 1 
+Motor[52].Servo.Kvfb = 0 
+Motor[52].Servo.Kvff = 0
+Motor[52].Servo.Kaff = 0
+Motor[52].Servo.Ki	= 0.001
+Motor[52].servo.MaxGainFactor=28000
+Motor[52].servo.MaxPosErr=10000
+Motor[52].MaxSpeed=0
+Motor[52].InvAmax = 0;
+Motor[52].InvDmax = 0;
+Motor[52].InvJmax = 0;
+Motor[52].JogTa=100
+Motor[52].JogTs=50
+Motor[52].JogSpeed=10
+Motor[52].MaxDac=32767
+Motor[52].PosSf=1
+Motor[52].Pos2Sf=1
+// process Dac data
+EncTable[52].type		= 1
+EncTable[52].ScaleFactor = 1/65536
+EncTable[52].pEnc		= Sys.Idata[52].a
+EncTable[52].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #53--------------------
+// 음극 2차 PNP Submaster  
+                         
+Motor[53].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[53].ServoCtrl	= 1
+Motor[53].pDac		= Sys.Idata[53].a 
+Motor[53].pAmpEnable = 0
+Motor[53].pAmpFault	= 0
+Motor[53].pLimits	= 0
+Motor[53].CaptureMode= 1 // software capture 
+Motor[53].pEnc=EncTable[53].a
+Motor[53].pEnc2=EncTable[53].a
+// needed gains
+Motor[53].Servo.Kp	= 1 
+Motor[53].Servo.Kvfb = 0 
+Motor[53].Servo.Kvff = 0
+Motor[53].Servo.Kaff = 0
+Motor[53].Servo.Ki	= 0.001
+Motor[53].servo.MaxGainFactor=28000
+Motor[53].servo.MaxPosErr=10000
+Motor[53].MaxSpeed=0
+Motor[53].InvAmax = 0;
+Motor[53].InvDmax = 0;
+Motor[53].InvJmax = 0;
+Motor[53].JogTa=100
+Motor[53].JogTs=50
+Motor[53].JogSpeed=10
+Motor[53].MaxDac=32767
+Motor[53].PosSf=1
+Motor[53].Pos2Sf=1
+// process Dac data
+EncTable[53].type		= 1
+EncTable[53].ScaleFactor = 1/65536
+EncTable[53].pEnc		= Sys.Idata[53].a
+EncTable[53].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #54--------------------
+// 양극 클램프 Submaster
+                      
+Motor[54].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[54].ServoCtrl	= 1
+Motor[54].pDac		= Sys.Idata[54].a 
+Motor[54].pAmpEnable = 0
+Motor[54].pAmpFault	= 0
+Motor[54].pLimits	= 0
+Motor[54].CaptureMode= 1 // software capture 
+Motor[54].pEnc=EncTable[54].a
+Motor[54].pEnc2=EncTable[54].a
+// needed gains
+Motor[54].Servo.Kp	= 1 
+Motor[54].Servo.Kvfb = 0 
+Motor[54].Servo.Kvff = 0
+Motor[54].Servo.Kaff = 0
+Motor[54].Servo.Ki	= 0.001
+Motor[54].servo.MaxGainFactor=28000
+Motor[54].servo.MaxPosErr=10000
+Motor[54].MaxSpeed=0
+Motor[54].InvAmax = 0;
+Motor[54].InvDmax = 0;
+Motor[54].InvJmax = 0;
+Motor[54].JogTa=100
+Motor[54].JogTs=50
+Motor[54].JogSpeed=10
+Motor[54].MaxDac=32767
+Motor[54].PosSf=1
+Motor[54].Pos2Sf=1
+// process Dac data
+EncTable[54].type		= 1
+EncTable[54].ScaleFactor = 1/65536
+EncTable[54].pEnc		= Sys.Idata[54].a
+EncTable[54].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #55--------------------
+// 음극 클램프 Submaster
+                        
+Motor[55].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[55].ServoCtrl	= 1
+Motor[55].pDac		= Sys.Idata[55].a 
+Motor[55].pAmpEnable = 0
+Motor[55].pAmpFault	= 0
+Motor[55].pLimits	= 0
+Motor[55].CaptureMode= 1 // software capture 
+Motor[55].pEnc=EncTable[55].a
+Motor[55].pEnc2=EncTable[55].a
+// needed gains
+Motor[55].Servo.Kp	= 1 
+Motor[55].Servo.Kvfb = 0 
+Motor[55].Servo.Kvff = 0
+Motor[55].Servo.Kaff = 0
+Motor[55].Servo.Ki	= 0.001
+Motor[55].servo.MaxGainFactor=28000
+Motor[55].servo.MaxPosErr=10000
+Motor[55].MaxSpeed=0
+Motor[55].InvAmax = 0;
+Motor[55].InvDmax = 0;
+Motor[55].InvJmax = 0;
+Motor[55].JogTa=100
+Motor[55].JogTs=50
+Motor[55].JogSpeed=10
+Motor[55].MaxDac=32767
+Motor[55].PosSf=1
+Motor[55].Pos2Sf=1
+// process Dac data
+EncTable[55].type		= 1
+EncTable[55].ScaleFactor = 1/65536
+EncTable[55].pEnc		= Sys.Idata[55].a
+EncTable[55].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #56--------------------
+// Stack Table Submaster
+                 
+Motor[56].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[56].ServoCtrl	= 1
+Motor[56].pDac		= Sys.Idata[56].a 
+Motor[56].pAmpEnable = 0
+Motor[56].pAmpFault	= 0
+Motor[56].pLimits	= 0
+Motor[56].CaptureMode= 1 // software capture 
+Motor[56].pEnc=EncTable[56].a
+Motor[56].pEnc2=EncTable[56].a
+// needed gains
+Motor[56].Servo.Kp	= 1 
+Motor[56].Servo.Kvfb = 0 
+Motor[56].Servo.Kvff = 0
+Motor[56].Servo.Kaff = 0
+Motor[56].Servo.Ki	= 0.001
+Motor[56].servo.MaxGainFactor=28000
+Motor[56].servo.MaxPosErr=10000
+Motor[56].MaxSpeed=0
+Motor[56].InvAmax = 0;
+Motor[56].InvDmax = 0;
+Motor[56].InvJmax = 0;
+Motor[56].JogTa=100
+Motor[56].JogTs=50
+Motor[56].JogSpeed=10
+Motor[56].MaxDac=32767
+Motor[56].PosSf=1
+Motor[56].Pos2Sf=1
+// process Dac data
+EncTable[56].type		= 1
+EncTable[56].ScaleFactor = 1/65536
+EncTable[56].pEnc		= Sys.Idata[56].a
+EncTable[56].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #57--------------------
+// F/R Submaster  
+                    
+Motor[57].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[57].ServoCtrl	= 1
+Motor[57].pDac		= Sys.Idata[57].a 
+Motor[57].pAmpEnable = 0
+Motor[57].pAmpFault	= 0
+Motor[57].pLimits	= 0
+Motor[57].CaptureMode= 1 // software capture 
+Motor[57].pEnc=EncTable[57].a
+Motor[57].pEnc2=EncTable[57].a
+// needed gains
+Motor[57].Servo.Kp	= 1 
+Motor[57].Servo.Kvfb = 0 
+Motor[57].Servo.Kvff = 0
+Motor[57].Servo.Kaff = 0
+Motor[57].Servo.Ki	= 0.001
+Motor[57].servo.MaxGainFactor=28000
+Motor[57].servo.MaxPosErr=10000
+Motor[57].MaxSpeed=0
+Motor[57].InvAmax = 0;
+Motor[57].InvDmax = 0;
+Motor[57].InvJmax = 0;
+Motor[57].JogTa=100
+Motor[57].JogTs=50
+Motor[57].JogSpeed=10
+Motor[57].MaxDac=32767
+Motor[57].PosSf=1
+Motor[57].Pos2Sf=1
+// process Dac data
+EncTable[57].type		= 1
+EncTable[57].ScaleFactor = 1/65536
+EncTable[57].pEnc		= Sys.Idata[57].a
+EncTable[57].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #58--------------------
+// Servo Dancer Submaster
+                     
+Motor[58].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[58].ServoCtrl	= 1
+Motor[58].pDac		= Sys.Idata[58].a 
+Motor[58].pAmpEnable = 0
+Motor[58].pAmpFault	= 0
+Motor[58].pLimits	= 0
+Motor[58].CaptureMode= 1 // software capture 
+Motor[58].pEnc=EncTable[58].a
+Motor[58].pEnc2=EncTable[58].a
+// needed gains
+Motor[58].Servo.Kp	= 1 
+Motor[58].Servo.Kvfb = 0 
+Motor[58].Servo.Kvff = 0
+Motor[58].Servo.Kaff = 0
+Motor[58].Servo.Ki	= 0.001
+Motor[58].servo.MaxGainFactor=28000
+Motor[58].servo.MaxPosErr=10000
+Motor[58].MaxSpeed=0
+Motor[58].InvAmax = 0;
+Motor[58].InvDmax = 0;
+Motor[58].InvJmax = 0;
+Motor[58].JogTa=100
+Motor[58].JogTs=50
+Motor[58].JogSpeed=10
+Motor[58].MaxDac=32767
+Motor[58].PosSf=1
+Motor[58].Pos2Sf=1
+// process Dac data
+EncTable[58].type		= 1
+EncTable[58].ScaleFactor = 1/65536
+EncTable[58].pEnc		= Sys.Idata[58].a
+EncTable[58].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #59--------------------
+// Cathode_1st_PNP_PICKER_AXIS_T Submaster
+                     
+Motor[59].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[59].ServoCtrl	= 1
+Motor[59].pDac		= Sys.Idata[59].a 
+Motor[59].pAmpEnable = 0
+Motor[59].pAmpFault	= 0
+Motor[59].pLimits	= 0
+Motor[59].CaptureMode= 1 // software capture 
+Motor[59].pEnc=EncTable[59].a
+Motor[59].pEnc2=EncTable[59].a
+// needed gains
+Motor[59].Servo.Kp	= 1 
+Motor[59].Servo.Kvfb = 0 
+Motor[59].Servo.Kvff = 0
+Motor[59].Servo.Kaff = 0
+Motor[59].Servo.Ki	= 0.001
+Motor[59].servo.MaxGainFactor=28000
+Motor[59].servo.MaxPosErr=10000
+Motor[59].MaxSpeed=0
+Motor[59].InvAmax = 0;
+Motor[59].InvDmax = 0;
+Motor[59].InvJmax = 0;
+Motor[59].JogTa=100
+Motor[59].JogTs=50
+Motor[59].JogSpeed=10
+Motor[59].MaxDac=32767
+Motor[59].PosSf=1
+Motor[59].Pos2Sf=1
+// process Dac data
+EncTable[59].type		= 1
+EncTable[59].ScaleFactor = 1/65536
+EncTable[59].pEnc		= Sys.Idata[59].a
+EncTable[59].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #60--------------------
+// Anode_1st_PNP_PICKER_AXIS_T Submaster
+                     
+Motor[60].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[60].ServoCtrl	= 1
+Motor[60].pDac		= Sys.Idata[60].a 
+Motor[60].pAmpEnable = 0
+Motor[60].pAmpFault	= 0
+Motor[60].pLimits	= 0
+Motor[60].CaptureMode= 1 // software capture 
+Motor[60].pEnc=EncTable[60].a
+Motor[60].pEnc2=EncTable[60].a
+// needed gains
+Motor[60].Servo.Kp	= 1 
+Motor[60].Servo.Kvfb = 0 
+Motor[60].Servo.Kvff = 0
+Motor[60].Servo.Kaff = 0
+Motor[60].Servo.Ki	= 0.001
+Motor[60].servo.MaxGainFactor=28000
+Motor[60].servo.MaxPosErr=10000
+Motor[60].MaxSpeed=0
+Motor[60].InvAmax = 0;
+Motor[60].InvDmax = 0;
+Motor[60].InvJmax = 0;
+Motor[60].JogTa=100
+Motor[60].JogTs=50
+Motor[60].JogSpeed=10
+Motor[60].MaxDac=32767
+Motor[60].PosSf=1
+Motor[60].Pos2Sf=1
+// process Dac data
+EncTable[60].type		= 1
+EncTable[60].ScaleFactor = 1/65536
+EncTable[60].pEnc		= Sys.Idata[60].a
+EncTable[60].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #61--------------------
+// CamTable Source Virtual Motor
+                     
+Motor[61].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[61].ServoCtrl	= 1
+Motor[61].pDac		= Sys.Idata[61].a 
+Motor[61].pAmpEnable = 0
+Motor[61].pAmpFault	= 0
+Motor[61].pLimits	= 0
+Motor[61].CaptureMode= 1 // software capture 
+Motor[61].pEnc=EncTable[61].a
+Motor[61].pEnc2=EncTable[61].a
+// needed gains
+Motor[61].Servo.Kp	= 1 
+Motor[61].Servo.Kvfb = 0 
+Motor[61].Servo.Kvff = 0
+Motor[61].Servo.Kaff = 0
+Motor[61].Servo.Ki	= 0.001
+Motor[61].servo.MaxGainFactor=28000
+Motor[61].servo.MaxPosErr=10000
+Motor[61].MaxSpeed=0
+Motor[61].InvAmax = 0;
+Motor[61].InvDmax = 0;
+Motor[61].InvJmax = 0;
+Motor[61].JogTa=100
+Motor[61].JogTs=50
+Motor[61].JogSpeed=10
+Motor[61].MaxDac=32767
+Motor[61].PosSf=1
+Motor[61].Pos2Sf=1
+// process Dac data
+EncTable[61].type		= 1
+EncTable[61].ScaleFactor = 1/65536
+EncTable[61].pEnc		= Sys.Idata[61].a
+EncTable[61].index4		= 1
+
+//============================================================================================================================
+
+//============================================================================================================================
+//-------Virtual Axis #62--------------------
+// CamTable Target Virtual Motor
+                     
+Motor[62].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[62].ServoCtrl	= 1
+Motor[62].pDac		= Sys.Idata[62].a 
+Motor[62].pAmpEnable = 0
+Motor[62].pAmpFault	= 0
+Motor[62].pLimits	= 0
+Motor[62].CaptureMode= 1 // software capture 
+Motor[62].pEnc=EncTable[62].a
+Motor[62].pEnc2=EncTable[62].a
+// needed gains
+Motor[62].Servo.Kp	= 1 
+Motor[62].Servo.Kvfb = 0 
+Motor[62].Servo.Kvff = 0
+Motor[62].Servo.Kaff = 0
+Motor[62].Servo.Ki	= 0.001
+Motor[62].servo.MaxGainFactor=28000
+Motor[62].servo.MaxPosErr=10000
+Motor[62].MaxSpeed=0
+Motor[62].InvAmax = 0;
+Motor[62].InvDmax = 0;
+Motor[62].InvJmax = 0;
+Motor[62].JogTa=100
+Motor[62].JogTs=50
+Motor[62].JogSpeed=10
+Motor[62].MaxDac=32767
+Motor[62].PosSf=1
+Motor[62].Pos2Sf=1
+// process Dac data
+EncTable[62].type		= 1
+EncTable[62].ScaleFactor = 1/65536
+EncTable[62].pEnc		= Sys.Idata[62].a
+EncTable[62].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #63--------------------
+// Anode 1st Z Sub Master 
+                     
+Motor[63].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[63].ServoCtrl	= 1
+Motor[63].pDac		= Sys.Idata[63].a 
+Motor[63].pAmpEnable = 0
+Motor[63].pAmpFault	= 0
+Motor[63].pLimits	= 0
+Motor[63].CaptureMode= 1 // software capture 
+Motor[63].pEnc=EncTable[63].a
+Motor[63].pEnc2=EncTable[63].a
+// needed gains
+Motor[63].Servo.Kp	= 1 
+Motor[63].Servo.Kvfb = 0 
+Motor[63].Servo.Kvff = 0
+Motor[63].Servo.Kaff = 0
+Motor[63].Servo.Ki	= 0.001
+Motor[63].servo.MaxGainFactor=28000
+Motor[63].servo.MaxPosErr=10000
+Motor[63].MaxSpeed=0
+Motor[63].InvAmax = 0;
+Motor[63].InvDmax = 0;
+Motor[63].InvJmax = 0;
+Motor[63].JogTa=100
+Motor[63].JogTs=50
+Motor[63].JogSpeed=10
+Motor[63].MaxDac=32767
+Motor[63].PosSf=1
+Motor[63].Pos2Sf=1
+// process Dac data
+EncTable[63].type		= 1
+EncTable[63].ScaleFactor = 1/65536
+EncTable[63].pEnc		= Sys.Idata[63].a
+EncTable[63].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #64--------------------
+// Anode 2nd Z Sub Master 
+                     
+Motor[64].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[64].ServoCtrl	= 1
+Motor[64].pDac		= Sys.Idata[64].a 
+Motor[64].pAmpEnable = 0
+Motor[64].pAmpFault	= 0
+Motor[64].pLimits	= 0
+Motor[64].CaptureMode= 1 // software capture 
+Motor[64].pEnc=EncTable[64].a
+Motor[64].pEnc2=EncTable[64].a
+// needed gains
+Motor[64].Servo.Kp	= 1 
+Motor[64].Servo.Kvfb = 0 
+Motor[64].Servo.Kvff = 0
+Motor[64].Servo.Kaff = 0
+Motor[64].Servo.Ki	= 0.001
+Motor[64].servo.MaxGainFactor=28000
+Motor[64].servo.MaxPosErr=10000
+Motor[64].MaxSpeed=0
+Motor[64].InvAmax = 0;
+Motor[64].InvDmax = 0;
+Motor[64].InvJmax = 0;
+Motor[64].JogTa=100
+Motor[64].JogTs=50
+Motor[64].JogSpeed=10
+Motor[64].MaxDac=32767
+Motor[64].PosSf=1
+Motor[64].Pos2Sf=1
+// process Dac data
+EncTable[64].type		= 1
+EncTable[64].ScaleFactor = 1/65536
+EncTable[64].pEnc		= Sys.Idata[64].a
+EncTable[64].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #65--------------------
+// Cathode 2nd Z Sub Master 
+                     
+Motor[65].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[65].ServoCtrl	= 1
+Motor[65].pDac		= Sys.Idata[65].a 
+Motor[65].pAmpEnable = 0
+Motor[65].pAmpFault	= 0
+Motor[65].pLimits	= 0
+Motor[65].CaptureMode= 1 // software capture 
+Motor[65].pEnc=EncTable[65].a
+Motor[65].pEnc2=EncTable[65].a
+// needed gains
+Motor[65].Servo.Kp	= 1 
+Motor[65].Servo.Kvfb = 0 
+Motor[65].Servo.Kvff = 0
+Motor[65].Servo.Kaff = 0
+Motor[65].Servo.Ki	= 0.001
+Motor[65].servo.MaxGainFactor=28000
+Motor[65].servo.MaxPosErr=10000
+Motor[65].MaxSpeed=0
+Motor[65].InvAmax = 0;
+Motor[65].InvDmax = 0;
+Motor[65].InvJmax = 0;
+Motor[65].JogTa=100
+Motor[65].JogTs=50
+Motor[65].JogSpeed=10
+Motor[65].MaxDac=32767
+Motor[65].PosSf=1
+Motor[65].Pos2Sf=1
+// process Dac data
+EncTable[65].type		= 1
+EncTable[65].ScaleFactor = 1/65536
+EncTable[65].pEnc		= Sys.Idata[65].a
+EncTable[65].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #66--------------------
+// Cathode 1st Z Sub Master 
+                     
+Motor[66].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[66].ServoCtrl	= 1
+Motor[66].pDac		= Sys.Idata[66].a 
+Motor[66].pAmpEnable = 0
+Motor[66].pAmpFault	= 0
+Motor[66].pLimits	= 0
+Motor[66].CaptureMode= 1 // software capture 
+Motor[66].pEnc=EncTable[66].a
+Motor[66].pEnc2=EncTable[66].a
+// needed gains
+Motor[66].Servo.Kp	= 1 
+Motor[66].Servo.Kvfb = 0 
+Motor[66].Servo.Kvff = 0
+Motor[66].Servo.Kaff = 0
+Motor[66].Servo.Ki	= 0.001
+Motor[66].servo.MaxGainFactor=28000
+Motor[66].servo.MaxPosErr=10000
+Motor[66].MaxSpeed=0
+Motor[66].InvAmax = 0;
+Motor[66].InvDmax = 0;
+Motor[66].InvJmax = 0;
+Motor[66].JogTa=100
+Motor[66].JogTs=50
+Motor[66].JogSpeed=10
+Motor[66].MaxDac=32767
+Motor[66].PosSf=1
+Motor[66].Pos2Sf=1
+// process Dac data
+EncTable[66].type		= 1
+EncTable[66].ScaleFactor = 1/65536
+EncTable[66].pEnc		= Sys.Idata[66].a
+EncTable[66].index4		= 1
+
+//============================================================================================================================
+//-------Virtual Axis #67--------------------
+// 액티브 댄선 압력 천천히 주기 위한 가상축
+                     
+Motor[67].Ctrl		= Sys.PidCtrl // only need simple PID loop
+Motor[67].ServoCtrl	= 1
+Motor[67].pDac		= Sys.Idata[67].a 
+Motor[67].pAmpEnable = 0
+Motor[67].pAmpFault	= 0
+Motor[67].pLimits	= 0
+Motor[67].CaptureMode= 1 // software capture 
+Motor[67].pEnc=EncTable[67].a
+Motor[67].pEnc2=EncTable[67].a
+// needed gains
+Motor[67].Servo.Kp	= 1 
+Motor[67].Servo.Kvfb = 0 
+Motor[67].Servo.Kvff = 0
+Motor[67].Servo.Kaff = 0
+Motor[67].Servo.Ki	= 0.001
+Motor[67].servo.MaxGainFactor=28000
+Motor[67].servo.MaxPosErr=10000
+Motor[67].MaxSpeed=0
+Motor[67].InvAmax = 0;
+Motor[67].InvDmax = 0;
+Motor[67].InvJmax = 0;
+Motor[67].JogTa=100
+Motor[67].JogTs=50
+Motor[67].JogSpeed=10
+Motor[67].MaxDac=32767
+Motor[67].PosSf=1
+Motor[67].Pos2Sf=1
+// process Dac data
+EncTable[67].type		= 1
+EncTable[67].ScaleFactor = 1/65536
+EncTable[67].pEnc		= Sys.Idata[67].a
+EncTable[67].index4		= 1
+
+Motor[67].MasterPosSf = 0 // MasterPosSf가 1이면 ActiveMasterPosSf값이 1부터 시작해서 액티브 댄서 out이 처음에 튐
+Motor[67].MasterCtrl = 1;
+//============================================================================================================================
+
+//============================================================================================================================
+
+Coord[1].FeedTime = 1000
+Coord[2].FeedTime = 1000
+Coord[3].FeedTime = 1000
+Coord[4].FeedTime = 1000
+Coord[5].FeedTime = 1000
+Coord[6].FeedTime = 1000
+Coord[7].FeedTime = 1000
+Coord[8].FeedTime = 1000
+Coord[9].FeedTime = 1000
+Coord[10].FeedTime = 1000
+Coord[11].FeedTime = 1000
+Coord[12].FeedTime = 1000
+Coord[13].FeedTime = 1000
+Coord[14].FeedTime = 1000
+Coord[15].FeedTime = 1000
+Coord[16].FeedTime = 1000
+Coord[17].FeedTime = 1000
+Coord[18].FeedTime = 1000
+Coord[19].FeedTime = 1000
+Coord[20].FeedTime = 1000
+Coord[21].FeedTime = 1000
+Coord[22].FeedTime = 1000
+Coord[23].FeedTime = 1000
+Coord[24].FeedTime = 1000
+Coord[25].FeedTime = 1000
+Coord[26].FeedTime = 1000
+Coord[27].FeedTime = 1000
+Coord[28].FeedTime = 1000
+Coord[29].FeedTime = 1000
+Coord[30].FeedTime = 1000
+Coord[31].FeedTime = 1000
+Coord[32].FeedTime = 1000
+Coord[33].FeedTime = 1000
+Coord[34].FeedTime = 1000
+Coord[35].FeedTime = 1000
+Coord[36].FeedTime = 1000
+Coord[37].FeedTime = 1000
+Coord[38].FeedTime = 1000
+Coord[39].FeedTime = 1000
+Coord[40].FeedTime = 1000
+Coord[41].FeedTime = 1000
+Coord[42].FeedTime = 1000
+Coord[43].FeedTime = 1000
+Coord[44].FeedTime = 1000
+Coord[45].FeedTime = 1000
+Coord[46].FeedTime = 1000
+Coord[47].FeedTime = 1000
+Coord[48].FeedTime = 1000
+Coord[49].FeedTime = 1000
+Coord[50].FeedTime = 1000
+Coord[51].FeedTime = 1000
+
+
+
+
+
+
+
+
+
+
+
+
+

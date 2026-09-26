@@ -1,0 +1,2151 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+open PLC 7
+P_MNTR_PLC7_Task_Time(0) = Sys.Time;
+#define	L_System_Timer							Sys.Time
+#define N_Time_Scale							1000
+#define N_Range_Update_Interval_Interface		0.1
+Local   L_Time_Cycle_Up_Count_Start_Time;       // Plc[7].ldata.L[0]  시작 체크 시작 시간 
+Local   L_Time_Cycle_Up_Count_End_Time;         // Plc[7].ldata.L[1]  시작 체크 종료 시간
+Local   L_Time_Cycle_Up_Count_Delta_Time;       // Plc[7].ldata.L[2]  시작과 종료 시간 사이의 시간
+Local   L_Flag_Cycle_Up_Count_Init_Flag;        // Plc[7].ldata.L[3]  타이머 초기화 플래그
+local	L_SizeQueue_Select_Clear;
+
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+If (L_Flag_Cycle_Up_Count_Init_Flag == 0)
+{
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+
+// 00.2) 시간 체크
+If (L_Flag_Cycle_Up_Count_Init_Flag == 1)
+{
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+
+	If( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+     		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+If (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval_Interface)
+{
+    // 여기에 타이머 추가	
+    P_Read_Timer_S(1) = P_Read_Timer_S(1) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Read_Timer_S(2) = P_Read_Timer_S(2) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Read_Timer_S(3) = P_Read_Timer_S(3) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Read_Timer_S(4) = P_Read_Timer_S(4) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Read_Timer_S(5) = P_Read_Timer_S(5) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Read_Timer_S(6) = P_Read_Timer_S(6) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Read_Timer_S(7) = P_Read_Timer_S(7) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Read_Timer_S(8) = P_Read_Timer_S(8) + L_Time_Cycle_Up_Count_Delta_Time;
+
+	P_Write_Timer_S(1) = P_Write_Timer_S(1) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Write_Timer_S(2) = P_Write_Timer_S(2) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Write_Timer_S(3) = P_Write_Timer_S(3) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Write_Timer_S(4) = P_Write_Timer_S(4) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Write_Timer_S(5) = P_Write_Timer_S(5) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Write_Timer_S(6) = P_Write_Timer_S(6) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Write_Timer_S(7) = P_Write_Timer_S(7) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Write_Timer_S(8) = P_Write_Timer_S(8) + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+//========================================================================================================================
+if(P_PMAC_Current_Mode == F_Current_Automatic)
+{
+	P_Interval_Read_S(1) = P_Read_Sector_TactTime(1);
+	P_Interval_Read_S(2) = P_Read_Sector_TactTime(2);			
+	P_Interval_Read_S(3) = P_Read_Sector_TactTime(3);			
+	P_Interval_Read_S(4) = P_Read_Sector_TactTime(4);			
+	P_Interval_Read_S(5) = P_Read_Sector_TactTime(5);			
+
+	P_Interval_Write_S(1) = P_Write_Sector_TactTime(1);
+	P_Interval_Write_S(2) = P_Write_Sector_TactTime(2);
+	P_Interval_Write_S(3) = P_Write_Sector_TactTime(3);
+	P_Interval_Write_S(4) = P_Write_Sector_TactTime(4);
+	P_Interval_Write_S(5) = P_Write_Sector_TactTime(5);
+}
+else if(P_PMAC_Current_Mode == F_Current_Manual)
+{
+	P_Interval_Read_S(1) = P_Interval_Read_Time(1)
+	P_Interval_Read_S(2) = P_Interval_Read_Time(2)		
+	P_Interval_Read_S(3) = P_Interval_Read_Time(3)		
+	P_Interval_Read_S(4) = P_Interval_Read_Time(4)		
+	P_Interval_Read_S(5) = P_Interval_Read_Time(5)			
+
+	P_Interval_Write_S(1) = P_Interval_Write_Time(1)
+	P_Interval_Write_S(2) = P_Interval_Write_Time(2)
+	P_Interval_Write_S(3) = P_Interval_Write_Time(3)
+	P_Interval_Write_S(4) = P_Interval_Write_Time(4)
+	P_Interval_Write_S(5) = P_Interval_Write_Time(5)
+}
+
+//=========================================================================
+// <Sector 1> Receive Data (Receive From PLC)
+//=========================================================================
+// Sector 별 가중치
+if( P_Read_Timer_S(1) > P_Interval_Read_S(1))
+{
+	M_Read_Sector_Scan_Complete(1) = 0;
+	M_Read_Sector_Scan_Cmd(1) = 1;			// Read Sector No.1 Scan Command!
+	P_Read_Timer_S(1) = 0;
+}
+
+if( P_SV_Read_Enable_Flag == 0 && M_Read_Sector_Scan_Complete(1) == 1 ) // sv 읽기 허가 신호 on
+{	// Recipe에 있는 값을 Auto, Starting 시 1번 값을 읽어온다.
+	M_Read_Sector_Scan_Complete(1) = 0;
+	//삭제 해도 될 듯? 
+	// 김준수 삭제
+	// [ 참조 : MES APC 기반 MES -> PLC-> PMAC 보정값 영역 추가 ]
+	//P_Cathode_MES_X_Average_mm = Sys.Idata[41675] / 10000;
+	//P_Anode_MES_X_Average_mm = Sys.Idata[41676] / 10000;
+	// [ 참조 : MES APC 사용 미사용 버튼 추가 사용 : 1 미사용 : 0 ]
+	//P_MES_APC_Select_Btn = u.user:$028B34.00.1;
+
+}
+
+if( P_Read_Timer_S(2) > P_Interval_Read_S(2))
+{
+	M_Read_Sector_Scan_Complete(2) = 0;
+	M_Read_Sector_Scan_Cmd(2) = 1;			// Read Sector No.1 Scan Command!
+	P_Read_Timer_S(2) = 0;
+}
+
+if( M_Read_Sector_Scan_Complete(2) == 1 )			// QCP Data 구간. → 구간 맞는지 확인 필요
+{
+	// QCP 1-1
+	if( Sys.Idata[10400] >= 0 )
+	{	
+		P_Jelly_Roll_Recipe_Count = Sys.Idata[10400];				// 젤리 롤 목표 생산 개수 설정
+	}
+
+	P_ARC_End_Sepa_Recipe_Count	                        = Sys.Idata[10403];				// 세파 ARC 종료 후 적층 개수
+	P_Sepa_Mode_Sepa_Recipe_Count	                    = Sys.Idata[10404];				// 세파 모드 적층 개수
+
+	if( Sys.Idata[10405] >= 0 && Sys.Idata[10405] <= 100 )								
+	{																					
+		P_Recipe_Speed_Value = Sys.Idata[10405];										// 장비 속도
+	}
+	P_Separate_Cutter_Heating_Limit_Value = Sys.Idata[10406];							// 1차 언로더 열선 커터 온 리미트 값 
+	P_Separate_Cutting_Current   = Sys.Idata[10407];									// Separate_Cutting 전류 확인 값
+	
+	P_Cathode_Clamp_MC_Cylinder_Count = Sys.Idata[10416];					// 양극 클램프 상단 실린더 사용 횟수 저장 영역
+	P_Anode_Clamp_MC_Cylinder_Count	  = Sys.Idata[10417];					// 음극 클램프 상단 실린더 사용 횟수 저장 영역
+	P_Cathode_Clamp_OP_Cylinder_Count = Sys.Idata[10418];					// 양극 클램프 중단 실런더 사용 횟수 저장 영역
+	P_Anode_Clamp_OP_Cylinder_Count   = Sys.Idata[10419];					// 음극 클램프 중단 실런더 사용 횟수 저장 영역
+
+	//[ 참조 : 26.08.21 Power Rack 풀림 현상 개선 프로그램. ]
+	//P_Cathode_Run_FR_Move_Check_AI	= Sys.Idata[10428];					// 테스트 후, 해당 영역 잡아주시면 됩니다.
+	//P_Anode_Run_FR_Move_Check_AI		= Sys.Idata[10429];					// 테스트 후, 해당 영역 잡아주시면 됩니다.
+
+	P_Separate_Cutter_Change_Cycle = Sys.Idata[10442];									// 세파 커터 교체 주기
+
+	P_Recipe_Dancer_input_kgf = u.user:$00A394.00.16;
+
+	// 터치에서 3자리로 받아옴 0 ~ 116범위.
+	if( P_Recipe_Dancer_input_kgf/10 <= P_MAX_KGF )
+	{
+		P_Rot_OutValue = int((P_Recipe_Dancer_input_kgf/10) * P_KGF_TO_DAC_RATIO)/100;
+	}
+	else
+	{
+		//현재 값 유지.
+	}
+
+	P_Servo_Dancer_Alarm_Maximum_Angle_Value = Sys.Idata[10456];				//서보 댄서 알람 발생 각도 상한 값
+	P_Servo_Dancer_Alarm_Minimum_Angle_Value = Sys.Idata[10457];				//서보 댄서 알람 발생 각도 하한 값
+
+
+	if( P_SV_Read_Enable_Flag == 0 )
+	{
+		// J/R 폭
+		if( Sys.Idata[10441] < 30000 && Sys.Idata[10441] >= 0 )
+		{
+		  P_SV_Jelly_Roll_Width	= Sys.Idata[10441]/100;
+		}
+
+		// 양극 Stack 수 
+		if( Sys.Idata[10421] < 300 && Sys.Idata[10421] >= 0 )
+		{
+			P_SV_Cathode_Count	= Sys.Idata[10421];
+		}
+
+		// 음극 Stack 수
+		if( Sys.Idata[10422] < 300 && Sys.Idata[10422] >= 0 )
+		{
+			P_SV_Anode_Count = Sys.Idata[10422];
+		}	
+
+
+		// Clamp 압력_양극뱡항_기준값
+		if( I_Cathode_Clamp_Damper < 1000 && I_Cathode_Clamp_Damper >= 0 )
+		{
+		//									I_Cathode_Clamp_Damper = Sys.Idata[10423] 
+		  P_SV_AO_Reference_Value_Chanel(1)	= I_Cathode_Clamp_Damper/50;	// 나누기 50을 하는 이유는 Voltage 변환을 위함
+																			// ex) 0.5를 입력하게 되면 PLC에선 500이란 값을 주게됌. -> 500/50 = 10V 사용
+																			//		0.5Mpa = Max = 10V
+		}
+		// Clamp 압력_음극뱡항_기준값
+		if( I_Anode_Clamp_Damper < 1000 && I_Anode_Clamp_Damper >= 0 )
+		{  
+		//									I_Anode_Clamp_Damper = Sys.Idata[10426] 
+		  P_SV_AO_Reference_Value_Chanel(2)	= I_Anode_Clamp_Damper/50;		// 나누기 50을 하는 이유는 Voltage 변환을 위함
+																			// ex) 0.5를 입력하게 되면 PLC에선 500이란 값을 주게됌. -> 500/50 = 10V 사용
+																			//		0.5Mpa = Max = 10V
+		}
+
+		// 양극 두께_기준값
+		if( Sys.Idata[10432] < 1000 && Sys.Idata[10432] >= 0 )
+		{
+		  P_SV_Cathode_Reference_Thickness	= Sys.Idata[10432]/1000;
+		}
+
+		// 음극 두께_기준값
+		if( Sys.Idata[10435] < 1000 && Sys.Idata[10435] >= 0 )
+		{
+		  P_SV_Anode_Reference_Thickness	= Sys.Idata[10435]/1000;
+		}
+
+		// 분리막 두께_기준값
+		if( Sys.Idata[10438] < 1000 && Sys.Idata[10438] >= 0 )
+		{
+		  P_SV_Sepa_Reference_Thickness	= Sys.Idata[10438]/1000;
+		}
+
+		P_SV_Stack_Table_Cathode_Reference_Value = Sys.Idata[10436];		// 스택 테이블 댐퍼 정공 레귤레이터 양극
+		P_SV_Stack_Table_Anode_Reference_Value = Sys.Idata[10437];			// 스택 테이블 댐퍼 정공 레귤레이터 음극
+
+		P_Cathode_Recipe_Count = P_SV_Cathode_Count;								// 양극 Stack 수
+		P_Anode_Recipe_Count = P_SV_Anode_Count;									// 음극 Stack 수
+		P_AO_Cathode_Clamp_Damper = P_SV_AO_Reference_Value_Chanel(1);				// Clamp 압력_양극 방향_기준 값
+		P_AO_Anode_Clamp_Damper = P_SV_AO_Reference_Value_Chanel(2);				// Clamp 압력_음극 방향_기준 값
+		P_Cathode_Thickness_PLC = P_SV_Cathode_Reference_Thickness;					// 양극 두께_기준 값
+		P_Anode_Thickness_PLC = P_SV_Anode_Reference_Thickness;						// 음극 두께_기준 값
+		P_Sepa_Thickness_PLC = P_SV_Sepa_Reference_Thickness;						// 분리막 두께_기준 값
+		
+		// 드라이빙 롤러 옵셋 값 (임시로 1호기만 적용해서 테스트)
+		P_CA_DR_Offset = Sys.Idata[10473]/1000;
+		P_AN_DR_Offset = Sys.Idata[10474]/1000;
+		P_First_DR_Offset = Sys.Idata[10475]/1000;
+		P_Last_DR_Offset = Sys.Idata[10476]/1000;
+
+		P_SV_Read_Enable_Flag = 1;
+	}
+		P_After_ARC_Rotate_Distance = sys.Idata[10464] / 10000;						// 260423
+
+		P_X_Move_Recipe_Percent					  = Sys.Idata[10408];						// APC 보정값 
+		P_Discharged_After_End_Trigger			  = u.user:$00A2A4.00.16					// 중간 배출 후 설비 정지 신호 (APC 관련 - 배출 후 PLC에서 생산을 멈추기 위해 주는 신호)
+		P_Unloader_1st_Grip_Delay				  = Sys.Idata[10410];						// 1차 언로더 그립 딜레이 값 (소수점 두자리) ex ui: 20sec -> idata = 2000
+
+		/*
+		// 양/음극 탭 재검사 연속ng 발생시 plc <-> ppmac 인터페이스 신호
+		P_X_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger = u.user:$00A2AC.00.1;
+		P_X_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger = u.user:$00A2AC.01.1;
+
+		// 양/음극 캘틀어짐 사이클정지 사용/미사용 정의
+		#ifdef F_Align_Calibration_twisted_Enable 
+		// 양/음극 캘틀어짐 사이클정지
+		P_X_Cathode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger = u.user:$00A2AC.02.1;
+		P_X_Anode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger = u.user:$00A2AC.03.1;
+
+		// 스텍 얼라인 캘리브레이션 틀어짐 vision -> ppmac 인터페이스 신호 
+		P_X_Stack_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger = u.user:$00A2AC.04.1;
+		#endif
+		*/
+		P_Interlock_Messege_Confirmed = u.user:$00A2AC.05.1;								// 인터락 팝업 완료 신호
+		P_X_MC_Communication_HeartBit = u.user:$00A2AC.06.1;								// 이더넷 통신 하트 비트 신호 (D영역 하트비트 신호 입력)
+		P_BTN_LED_LAMP = u.user:$00A2AC.07.1
+		
+		P_X_Ecat_Reconnection_BTN = u.user:$00A2AC.08.1
+
+		//[참조 : 260730 환경안전검수용 인터락 활성화 버튼 추가]
+		P_X_Interlock_Enable_BTN = u.user:$00A2AC.09.1;
+
+		//양극 vision 연속 불량 알람 발생 횟수
+		if( Sys.Idata[10444] > P_Cathode_Align_Continuous_NG_Check_range )
+		{
+			P_Cathode_Align_Continuous_NG_Recipe = P_Cathode_Align_Continuous_NG_Check_range;	
+		}
+		else
+		{
+			P_Cathode_Align_Continuous_NG_Recipe = Sys.Idata[10444];
+		}
+
+		//음극 vision 연속 불량 알람 발생 횟수
+		if( Sys.Idata[10445] > P_Anode_Align_Continuous_NG_Check_range )
+		{
+			P_Anode_Align_Continuous_NG_Recipe = P_Anode_Align_Continuous_NG_Check_range;	
+		}
+		else
+		{
+			P_Anode_Align_Continuous_NG_Recipe = Sys.Idata[10445];
+		}
+
+		//양극 Surface vision 연속 불량 알람 발생 횟수
+		if( Sys.Idata[10446] > P_Cathode_Surface_Continuous_NG_Check_range )
+		{
+			P_Cathode_Surface_Continuous_NG_Recipe = P_Cathode_Surface_Continuous_NG_Check_range;	
+		}
+		else
+		{
+			P_Cathode_Surface_Continuous_NG_Recipe = Sys.Idata[10446];
+		}
+		
+		//음극 Surface vision 연속 불량 알람 발생 횟수
+		if( Sys.Idata[10447] > P_Anode_Surface_Continuous_NG_Check_range )
+		{
+			P_Anode_Surface_Continuous_NG_Recipe = P_Anode_Surface_Continuous_NG_Check_range;	
+		}
+		else
+		{
+			P_Anode_Surface_Continuous_NG_Recipe = Sys.Idata[10447];
+		}
+
+		//스텍 vision 연속 불량 알람 발생 횟수
+		if( Sys.Idata[10450] > P_Stack_Align_Continuous_NG_Check_range )
+		{
+			P_Stack_Vision_Continuous_NG_Recipe = P_Stack_Align_Continuous_NG_Check_range;	
+		}
+		else
+		{
+			P_Stack_Vision_Continuous_NG_Recipe = Sys.Idata[10450];
+		}
+
+		P_PLC_EPC_Status = u.user:$00A34C.16.16;								// 엑츄에이터 동작 상태 0 - AUTO , 2 - Manual,  4- Center
+
+		P_Sepa_Mode_EPC_Recipe_Count = u.user:$00A350.00.16;					// EPC 보정 모드 2차 세파 모드 개수
+		P_PLC_Recipe_Revise_Sepa	 =	u.user:$00A350.16.16;					// EPC 보정 모드 Retry 횟수 설정
+		P_X_PLC_to_PMAC_Correction_Value = u.user:$00A354.00.16;				// EPC 보정률
+
+		//음극 Align Vision 연속 불량 알람 발생 탐색 범위 설정
+		if( u.user:$00A354.16.16 > N_Queue_Max_Size )
+		{
+			P_Anode_Align_Continuous_NG_Check_range = N_Queue_Max_Size;
+		}
+		else if( u.user:$00A354.16.16 > 0 )
+		{
+			P_Anode_Align_Continuous_NG_Check_range	= u.user:$00A354.16.16;
+		}
+
+		//양극 Align Vision 연속 불량 알람 발생 탐색 범위 설정
+		if( u.user:$00A358.00.16 > N_Queue_Max_Size )
+		{
+			P_Cathode_Align_Continuous_NG_Check_range = N_Queue_Max_Size;
+		}
+		else if( u.user:$00A358.00.16 > 0 )
+		{
+			P_Cathode_Align_Continuous_NG_Check_range	= u.user:$00A358.00.16;
+		}
+
+		//스텍 Align Vision 연속 불량 알람 발생 탐색 범위 설정
+		if( u.user:$00A35C.16.16 > N_Queue_Max_Size )
+		{
+			P_Stack_Align_Continuous_NG_Check_range = N_Queue_Max_Size;
+		}
+		else if( u.user:$00A35C.16.16 > 0 )
+		{
+			P_Stack_Align_Continuous_NG_Check_range	= u.user:$00A35C.16.16;
+		}	
+
+		//양극 Surface Vision 연속 불량 알람 발생 탐색 범위 설정
+		if( u.user:$00A35C.00.16 > N_Queue_Max_Size )
+		{
+			P_Cathode_Surface_Continuous_NG_Check_range = N_Queue_Max_Size;
+		}
+		else if( u.user:$00A35C.00.16 > 0 )
+		{
+			P_Cathode_Surface_Continuous_NG_Check_range	= u.user:$00A35C.00.16;
+		}	
+
+		//음극 Surface Vision 연속 불량 알람 발생 탐색 범위 설정
+		if( u.user:$00A358.16.16 > N_Queue_Max_Size )
+		{
+			P_Anode_Surface_Continuous_NG_Check_range = N_Queue_Max_Size;
+		}
+		else if( u.user:$00A358.16.16 > 0 )
+		{
+			P_Anode_Surface_Continuous_NG_Check_range	= u.user:$00A358.16.16;
+		}	
+
+
+
+		// 프로그램 다운로드후plc로부터 저장된 스풀 회전수 읽어오기
+		P_Current_Selected_Spool_Rev_Counts_Init_Read = Sys.Idata[10458];
+		P_Sepa_Rotation_Sequence_Run_Trigger_Cnt = P_Current_Selected_Spool_Rev_Counts_Init_Read*10;
+		P_Spool_ARC_Distance_mm = Sys.Idata[10461];									// 세파 ARC 이동량 설정
+		P_ARC_Upper_Request_Sepa_Thickness_mm = Sys.Idata[10462]/1000				// 상단 세파 ARC교체 두께
+		P_ARC_Lower_Request_Sepa_Thickness_mm = Sys.Idata[10463]/1000				// 하단 세파 ARC교체 두께
+		//250513
+		P_Spool_Rotate_Distance_mm = Sys.Idata[10464]/10000
+
+		P_Selected_Spool_Arc_Set_Rev_Counts_Value = Sys.Idata[10465];				// 현재 사용 중인 스풀 ARC 교체 회전수 설정 
+		P_Set_Cnt_FR_Moving_Sepa_ARC = Sys.Idata[10466];							// 세파 arc 교체 F/R 이동 횟수 설정
+
+		//고객사 요청으로 도어 오픈 시 / PLC에서 M_X_PLC_Cathode_NG, M_X_PLC_Anode_NG 신호 온 시 얼라인 극판 배출 실행시 및 ng코드 수신,보고 추가 ]
+		P_Receive_Cathode_NG_Code_From_PLC = Sys.Idata[10467];				
+		P_Receive_Anode_NG_Code_From_PLC = Sys.Idata[10468];	 
+
+		// 세파길이 계산. ( SV값을 스풀 속도계산에 필요한 변수에 대입. ) 
+		if ( P_SV_Jelly_Roll_Width == 0 )
+		{
+			P_Sepa_Length = 201.2;
+		}
+		else
+		{
+			P_Sepa_Length = P_SV_Jelly_Roll_Width;
+		}
+
+		P_Middle_Discharge_Ignore_Total_Count = Sys.Idata[10472];					// 중간 배출 무시 목표 수량 [ 참조 : 26.05.13 중간 배출 무시 추가 ]
+
+		M_Y_Stack_Vision_Camera_Clamp_Sol = u.user:$00A2B0.06;
+
+		P_MC_Power_Down_Flag = u.user:$00A3C4.00;								// MC Trip 발생 변수
+
+	M_Read_Sector_Scan_Complete(2) = 0;
+
+}
+
+
+
+if( P_Read_Timer_S(3) > P_Interval_Read_S(3))
+{
+	M_Read_Sector_Scan_Cmd(3) = 1;			// Read Sector No.1 Scan Command!
+	P_Read_Timer_S(3) = 0;
+}
+
+if( M_Read_Sector_Scan_Complete(3) == 1)
+{
+	M_Read_Sector_Scan_Complete(3) = 0;
+
+	// 홈 오프셋
+	//Motor[1].Homeoffset = Sys.Idata[10805];
+	//Motor[2].Homeoffset = Sys.Idata[10812];
+	//Motor[3].Homeoffset = Sys.Idata[10819];
+	//Motor[4].Homeoffset = Sys.Idata[10826];
+	Motor[5].Homeoffset = 	M_Motor_Home_Offset(5);			//Sys.Idata[10833];
+	Motor[6].Homeoffset =	M_Motor_Home_Offset(6);			//Sys.Idata[10840];
+	Motor[7].Homeoffset =	M_Motor_Home_Offset(7);			//Sys.Idata[10847];
+	Motor[8].Homeoffset =	M_Motor_Home_Offset(8);			//Sys.Idata[10854];
+	Motor[9].Homeoffset =	M_Motor_Home_Offset(9);			//Sys.Idata[10861];
+	Motor[10].Homeoffset =	M_Motor_Home_Offset(10);		//Sys.Idata[10868];
+	Motor[11].Homeoffset =	M_Motor_Home_Offset(11);		//Sys.Idata[10875];
+	Motor[12].Homeoffset =	M_Motor_Home_Offset(12);		//Sys.Idata[10882];
+	Motor[13].Homeoffset =	M_Motor_Home_Offset(13);		//Sys.Idata[10889];
+	Motor[14].Homeoffset =	M_Motor_Home_Offset(14);		//Sys.Idata[10896];
+	Motor[15].Homeoffset =	M_Motor_Home_Offset(15);		//Sys.Idata[10903];
+	Motor[16].Homeoffset =	M_Motor_Home_Offset(16);		//Sys.Idata[10910];
+	//Motor[17].Homeoffset = Sys.Idata[10917];
+	//Motor[18].Homeoffset = Sys.Idata[10924];
+
+	// [ 참조 : 26.04.28 Picker T축 탭방향에 따른 홈방식 변경 ]
+//	#ifdef F_Def_Stack_A
+		if ( P_Ca_Picker_T_Home_Type == 0 )
+			Motor[19].Homeoffset = M_Motor_Home_Offset(19);				//Sys.Idata[10931];
+		else if ( P_Ca_Picker_T_Home_Type == 1 )
+			Motor[19].Homeoffset = M_Motor_Home_Offset(19) - 180000;	// Sys.Idata[10931] - 180000;
+		if ( P_An_Picker_T_Home_Type == 0 )
+			Motor[20].Homeoffset = M_Motor_Home_Offset(20);				//Sys.Idata[10938];
+		else if ( P_An_Picker_T_Home_Type == 1 )
+			Motor[20].Homeoffset = M_Motor_Home_Offset(20) - 180000;	//Sys.Idata[10938] - 180000;
+//	#endif
+//
+//	// [ 참조 : 26.04.28 Picker T축 탭방향에 따른 홈방식 변경 ]
+//	#ifdef F_Def_Stack_B
+//		if ( P_Ca_Picker_T_Home_Type == 0 )
+//			Motor[19].Homeoffset = Sys.Idata[10931] - 180000;
+//		else if ( P_Ca_Picker_T_Home_Type == 1 )
+//			Motor[19].Homeoffset = Sys.Idata[10931];
+//		if ( P_An_Picker_T_Home_Type == 0 )
+//			Motor[20].Homeoffset = Sys.Idata[10938] - 180000;
+//		else if ( P_An_Picker_T_Home_Type == 1 )
+//			Motor[20].Homeoffset = Sys.Idata[10938];
+//	#endif
+
+	//Motor[21].Homeoffset = Sys.Idata[10945];
+	//Motor[22].Homeoffset = Sys.Idata[10952];
+	Motor[23].Homeoffset = M_Motor_Home_Offset(23);		//Sys.Idata[10959];
+	Motor[24].Homeoffset = M_Motor_Home_Offset(24);		//Sys.Idata[10966];
+	Motor[25].Homeoffset = M_Motor_Home_Offset(25);		//Sys.Idata[10973];
+	Motor[26].Homeoffset = M_Motor_Home_Offset(26);		//Sys.Idata[10980];
+	Motor[27].Homeoffset = M_Motor_Home_Offset(27);		//Sys.Idata[10987];
+	Motor[28].Homeoffset = M_Motor_Home_Offset(28);		//Sys.Idata[10994];
+	Motor[29].Homeoffset = M_Motor_Home_Offset(29);		//Sys.Idata[11001];
+	Motor[30].Homeoffset = M_Motor_Home_Offset(30);		//Sys.Idata[11008];
+	Motor[31].Homeoffset = M_Motor_Home_Offset(31);		//Sys.Idata[11015];
+	Motor[32].Homeoffset = M_Motor_Home_Offset(32);		//Sys.Idata[11022];
+	Motor[33].Homeoffset = M_Motor_Home_Offset(33);		//Sys.Idata[11029];
+	Motor[34].Homeoffset = M_Motor_Home_Offset(34);		//Sys.Idata[11036];
+	Motor[35].Homeoffset = M_Motor_Home_Offset(35);		//Sys.Idata[11043];
+	Motor[36].Homeoffset = M_Motor_Home_Offset(36);		//Sys.Idata[11050];
+	Motor[37].Homeoffset = M_Motor_Home_Offset(37);		//Sys.Idata[11057];
+	Motor[38].Homeoffset = M_Motor_Home_Offset(38);		//Sys.Idata[11064];
+	Motor[39].Homeoffset = M_Motor_Home_Offset(39);		//Sys.Idata[11071];
+	Motor[40].Homeoffset = M_Motor_Home_Offset(40);		//Sys.Idata[11078];
+	Motor[41].Homeoffset = M_Motor_Home_Offset(41);		//Sys.Idata[11085];
+	Motor[42].Homeoffset = M_Motor_Home_Offset(42);		//Sys.Idata[11092];
+	Motor[43].Homeoffset = M_Motor_Home_Offset(43);		//Sys.Idata[11099];
+	Motor[44].Homeoffset = M_Motor_Home_Offset(44);		//Sys.Idata[11106];
+	Motor[45].Homeoffset = M_Motor_Home_Offset(45);		//Sys.Idata[11113];
+	Motor[46].Homeoffset = M_Motor_Home_Offset(46);		//Sys.Idata[11120];
+	Motor[47].Homeoffset = M_Motor_Home_Offset(47);		//Sys.Idata[11127];
+	Motor[48].Homeoffset = M_Motor_Home_Offset(48);		//Sys.Idata[11134];
+
+	// 홈센서 상태
+	u.user:$013EC8.04 = Gate3[0].Chan[0].HomeFlag^1;
+	u.user:$013EE4.04= Gate3[0].Chan[1].HomeFlag^1;
+	u.user:$013F00.04 = Gate3[0].Chan[2].HomeFlag^1;
+	u.user:$013F1C.04 = Gate3[0].Chan[3].HomeFlag^1;
+	u.user:$013F38.04 = Gate3[2].Chan[0].HomeFlag^1;
+	u.user:$013F54.04 = Gate3[2].Chan[1].HomeFlag^1;
+	u.user:$013F70.04 = Gate3[2].Chan[2].HomeFlag^1;
+	u.user:$013F8C.04 = Gate3[2].Chan[3].HomeFlag^1;
+	u.user:$013FA8.04 = Gate3[3].Chan[0].HomeFlag^1;
+	u.user:$013FC4.04 = Gate3[3].Chan[1].HomeFlag^1;
+	u.user:$013FE0.04 = Gate3[3].Chan[2].HomeFlag^1;
+	u.user:$013FFC.04 = Gate3[3].Chan[3].HomeFlag^1;
+	u.user:$014018.04 = Gate3[4].Chan[0].HomeFlag^1;
+	u.user:$014034.04 = Gate3[4].Chan[1].HomeFlag^1;
+	u.user:$014050.04 = Gate3[4].Chan[2].HomeFlag^1;
+	u.user:$01406C.04 = Gate3[4].Chan[3].HomeFlag^1;
+	u.user:$014088.04 = Gate3[5].Chan[0].HomeFlag^1;
+	u.user:$0140A4.04 = Gate3[5].Chan[1].HomeFlag^1;
+	u.user:$0140C0.04 = Gate3[5].Chan[2].HomeFlag^1;
+	u.user:$0140DC.04 = Gate3[5].Chan[3].HomeFlag^1;
+	u.user:$0140F8.04 = Gate3[6].Chan[0].HomeFlag^1;
+	u.user:$014114.04 = Gate3[6].Chan[1].HomeFlag^1;
+	u.user:$014130.04 = Gate3[6].Chan[2].HomeFlag^1;
+	u.user:$01414C.04 = Gate3[6].Chan[3].HomeFlag^1;
+	u.user:$014168.04 = Gate3[7].Chan[0].HomeFlag^1;
+	u.user:$014184.04 = Gate3[7].Chan[1].HomeFlag^1;
+	u.user:$0141A0.04 = Gate3[7].Chan[2].HomeFlag^1;
+	u.user:$0141BC.04 = Gate3[7].Chan[3].HomeFlag^1;
+
+	u.user:$014248.04 = (Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_60FD_0_Digitalinputs & $400000)>>22;		//33    Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_60FD_0_Digitalinputs
+	u.user:$014264.04 = (Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_60FD_0_Digitalinputs & $400000)>>22;		//34	Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_60FD_0_Digitalinputs
+	u.user:$014280.04 = (Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_60FD_0_Digitalinputs & $400000)>>22;		//35	Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_60FD_0_Digitalinputs
+	u.user:$01429C.04 = (Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_60FD_0_Digitalinputs & $400000)>>22;		//36	Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_60FD_0_Digitalinputs
+	u.user:$0142B8.04 = (Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_60FD_0_Digitalinputs & $400000)>>22;		//37	Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_60FD_0_Digitalinputs
+	u.user:$0142D4.04 = (Slave_1008_InoSV680I_1008_60FD_0_Digitalinputs & $40000)>>18;						//38	Slave_1008_InoSV680I_1008_60FD_0_Digitalinputs
+	u.user:$0142F0.04 = (Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_60FD_0_Digitalinputs & $400000)>>22;		//39	Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_60FD_0_Digitalinputs
+	u.user:$01430C.04 = (Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_60FD_0_Digitalinputs & $400000)>>22;		//40	Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_60FD_0_Digitalinputs
+	u.user:$014328.04 = (Slave_1011_InoSV680I_1011_60FD_0_Digitalinputs & $40000)>>18;						//41	Slave_1011_InoSV680I_1011_60FD_0_Digitalinputs
+	u.user:$014360.04 = (Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_60FD_0_Digitalinputs & $400000)>>22;		//43	Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_60FD_0_Digitalinputs
+	u.user:$014344.04 = (Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_60FD_0_Digitalinputs & $400000)>>22;		//42	Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_60FD_0_Digitalinputs
+	u.user:$01437C.04 = (Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_60FD_0_Digitalinputs & $400000)>>22;		//44	Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_60FD_0_Digitalinputs	
+	u.user:$014398.04 = (Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_60FD_0_Digitalinputs & $400000)>>22;		//45	Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_60FD_0_Digitalinputs
+	u.user:$0143B4.04 = (Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_60FD_0_Digitalinputs & $400000)>>22;		//46	Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_60FD_0_Digitalinputs
+	u.user:$0143D0.04 = (Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_60FD_0_Digitalinputs & $400000)>>22;		//47	Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_60FD_0_Digitalinputs
+	u.user:$0143EC.04 = (Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_60FD_0_Digitalinputs & $400000)>>22;		//48	Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_60FD_0_Digitalinputs
+
+
+
+	#ifdef F_Virtual_Axis_Test
+	local L_Motor_Page = 10802 + ( (P_Motor_Page - 1) * 7 );
+	if( Sys.Idata[L_Motor_Page] & $1 )
+	{
+		M_X_BTN_Press_Jog_Plus = 1;
+	}
+	else
+		M_X_BTN_Press_Jog_Plus = 0;
+
+	if( Sys.Idata[L_Motor_Page] & $2 )
+	{
+		M_X_BTN_Press_Jog_Minus = 1;
+	}
+	else
+		M_X_BTN_Press_Jog_Minus = 0;
+
+		//M_X_BTN_Press_Jog_Plus =	Sys.Idata[L_Motor_Page]		//u.user:$00AA88.00.1;
+		//M_X_BTN_Press_Jog_Minus =	Sys.Idata[L_Motor_Page]		//u.user:$00AA88.01.1; 
+	#endif
+
+	//[ 참조 : 260423 버튼 추가]
+	P_BTN_Anode_1st_TR_Buffer_Clear = u.user:$00AE50.05
+	P_BTN_Anode_2nd_TR_Buffer_Clear = u.user:$00AE50.06
+	P_BTN_Anode_Align_Buffer_Clear = u.user:$00AE50.07
+	P_BTN_Anode_NG_TR_Buffer_Clear = u.user:$00AE50.01
+	P_BTN_Cathode_1st_TR_Buffer_Clear = u.user:$00AE50.02
+	P_BTN_Cathode_2nd_TR_Buffer_Clear = u.user:$00AE50.03
+	P_BTN_Cathode_Align_Buffer_Clear = u.user:$00AE50.04
+	P_BTN_Cathode_NG_TR_Buffer_Clear = u.user:$00AE50.00
+
+	// 260605 1차 언로더 데이터 삭제 추가
+	P_BTN_1st_ULD_Data_Clear = u.user:$00AE50.17
+
+
+	//로그 데이터
+	P_Log_Data_Y = u.user:$00AE54.00.16;
+	P_Log_Data_M = u.user:$00AE54.16.16;
+	P_Log_Data_D = u.user:$00AE58.00.16;
+	P_Log_Data_H = u.user:$00AE58.16.16;
+	P_Log_Data_m = u.user:$00AE5C.00.16;
+	P_Log_Data_s = u.user:$00AE5C.16.16;
+
+	P_MSA_Run_Repeat_Num(F_Cathode_Stack_MSA)	= u.user:$00AE64.00.16			// 양극 스텍 msa 반복 횟수( gui로부터 입력 )
+	P_MSA_Run_Repeat_Num(F_Anode_Stack_MSA)		= u.user:$00AE64.16.16			// 음극 스텍 msa 반복 횟수( gui로부터 입력 )
+	P_MSA_Run_Repeat_Num(F_Cathode_Align_MSA)	= u.user:$00AE68.00.16			// 양극 얼라인 msa 반복 횟수( gui로부터 입력 )
+	P_MSA_Run_Repeat_Num(F_Anode_Align_MSA)		= u.user:$00AE68.16.16			// 음극 얼라인 msa 반복 횟수( gui로부터 입력 )
+
+	// 레시피 자동 적용 
+	IF ( u.user:$00AE6C.00.16 != 0 )
+	{
+		P_Select_Sheet_Value = u.user:$00AE6C.00.16;
+	}
+
+	P_Dryrun_Operating_Time		= u.user:$00AE6C.16.16;							// 드라이런 가동 시간 설정
+
+	//  pmac 셋업 모드 / 생산 모드 선택 버튼 
+	P_BTN_Config_Setup_Mode_Select = u.user:$00AE70.00.16;
+
+	// [ 참조 : 20210503 세파 두께 최댓값 설정 mm단위 ] 
+	P_Sepa_Thickness_Max_Value = u.user:$00AE70.16.16;
+
+	P_AI_Cathode_Clamp_Damper_Zero_Mpa_Analog_Value			= Sys.Idata[11165];  
+	P_AI_Anode_Clamp_Damper_Zero_Mpa_Analog_Value			= Sys.Idata[11166];
+
+	// [ 참조 : 26.09.14 MES PV 수정 ]
+	if ( M_Func_BTN.Cathode_NG_Move_Count_Reset == 1 )		// 양극 얼라인 NG 카운트 신호가 들어올 경우.
+		P_PV_Cathode_NG_TR_NG_Count = 0;					// 양극 얼라인 NG 개수 PV 초기화.
+	if ( M_Func_BTN.Anode_NG_Move_Count_Reset == 1 )		// 음극 얼라인 NG 카운트 신호가 들어올 경우.
+		P_PV_Anode_NG_TR_NG_Count = 0;						// 음극 얼라인 NG 개수 PV 초기화.
+
+	//// 양/음극 1,2차 pnp x축 누적 이동량 읽기 영역 - 프로그램 다운로드시 또는 전원 off->on시 1회 읽음 / plc로부터 저장영역 빌림 
+	//P_Accumulated_Movement_MM_Unit_Cathode_1ST_pnp = Sys.Idata[11178]*1000;
+	//P_Accumulated_Movement_MM_Unit_Anode_1ST_pnp = Sys.Idata[11179]*1000;
+	//P_Accumulated_Movement_MM_Unit_Cathode_2nd_pnp = Sys.Idata[11180]*1000;
+	//P_Accumulated_Movement_MM_Unit_Anode_2nd_pnp = Sys.Idata[11181]*1000;
+
+	// 세파 두께 최대 값 설정 값 적용.
+	P_Sepa_Thickness_Jig_Value = P_Sepa_Thickness_Max_Value;
+
+	P_Partition_Up_Flag = u.user:$00AEF8.00;
+	P_Partition_Down_Flag = u.user:$00AEF8.01;
+
+	// 샘플 버튼
+	P_BTN_QC_Sample_Flag = u.user:$00A3C0.00;	// QC 샘플 버튼
+	P_BTN_Loss_Sample_Flag = u.user:$00A3C0.01; // LOSS 샘플 버튼
+
+	P_Sample_JR_Recipe_Count = Sys.Udata[10479];	// 샘플 목표 수량
+}
+
+// 상시 확인 필요
+P_BTN_Jog_FWD_M(1),49 = M_X_BTN_Press_Jog_Plus;		// Jog Plus Button
+P_BTN_Jog_BWD_M(1),49 = M_X_BTN_Press_Jog_Minus;	// Jog Minus Button
+
+if( P_Read_Timer_S(4) > P_Interval_Read_S(4))
+{
+	M_Read_Sector_Scan_Cmd(4) = 1;			// Read Sector No.1 Scan Command!
+	P_Read_Timer_S(4) = 0;
+}
+if( M_Read_Sector_Scan_Complete(4) == 1)
+{
+	M_Read_Sector_Scan_Complete(4) = 0;
+
+	// Recipe Pos를 기존엔 그냥 받고 필요 한 부분에서 /10000 하여 사용하였는데
+	// 그냥 처음부터 받을때 /10000 값으로 받게되면 되는부분 아닌가?
+	
+	P_Recipe_M01_POS(1)	    = Sys.Idata[11200] / 10000;		//양극 1차 PNP T축 대기 위치
+	P_Recipe_M01_POS(2)	    = Sys.Idata[11201] / 10000;		//양극 1차 PNP T축 벨트 위치
+	P_Recipe_M01_POS(3)	    = Sys.Idata[11202] / 10000;		//양극 1차 PNP T축 얼라인 위치
+	P_Recipe_M01_POS(4)	    = Sys.Idata[11203] / 10000;
+	P_Recipe_M01_POS(5)	    = Sys.Idata[11204] / 10000;	
+	P_Recipe_M01_POS(6)	    = Sys.Idata[11205] / 10000;
+	P_Recipe_M01_POS(7)	    = Sys.Idata[11206] / 10000;
+	P_Recipe_M01_POS(8)	    = Sys.Idata[11207] / 10000;
+	P_Recipe_M01_POS(9)	    = Sys.Idata[11208] / 10000;
+	P_Recipe_M01_POS(10)	= Sys.Idata[11209] / 10000;
+
+	P_Recipe_M02_POS(1)	    = Sys.Idata[11210] / 10000;		//음극 1차 PNP T축 대기 위치
+	P_Recipe_M02_POS(2)	    = Sys.Idata[11211] / 10000;		//음극 1차 PNP T축 벨트 위치
+	P_Recipe_M02_POS(3)	    = Sys.Idata[11212] / 10000;		//음극 1차 PNP T축 얼라인 위치
+	P_Recipe_M02_POS(4)	    = Sys.Idata[11213] / 10000;
+	P_Recipe_M02_POS(5)	    = Sys.Idata[11214] / 10000;	
+	P_Recipe_M02_POS(6)	    = Sys.Idata[11215] / 10000;
+	P_Recipe_M02_POS(7)	    = Sys.Idata[11216] / 10000;
+	P_Recipe_M02_POS(8)	    = Sys.Idata[11217] / 10000;
+	P_Recipe_M02_POS(9)	    = Sys.Idata[11218] / 10000;
+	P_Recipe_M02_POS(10)	= Sys.Idata[11219] / 10000;
+
+	P_Recipe_M03_POS(1)	    = Sys.Idata[11220] / 10000;		//양극 2차 PNP T축 얼라인 위치
+	P_Recipe_M03_POS(2)	    = Sys.Idata[11221] / 10000;		//양극 2차 PNP T축 스택 위치
+	P_Recipe_M03_POS(3)	    = Sys.Idata[11222] / 10000;
+	P_Recipe_M03_POS(4)	    = Sys.Idata[11223] / 10000;
+	P_Recipe_M03_POS(5)	    = Sys.Idata[11224] / 10000;
+	P_Recipe_M03_POS(6)	    = Sys.Idata[11225] / 10000;
+	P_Recipe_M03_POS(7)	    = Sys.Idata[11226] / 10000;
+	P_Recipe_M03_POS(8)	    = Sys.Idata[11227] / 10000;
+	P_Recipe_M03_POS(9)	    = Sys.Idata[11228] / 10000;
+	P_Recipe_M03_POS(10)	= Sys.Idata[11229] / 10000;
+
+	P_Recipe_M04_POS(1)	    = Sys.Idata[11230] / 10000;		//음극 2차 PNP T축 얼라인 위치
+	P_Recipe_M04_POS(2)	    = Sys.Idata[11231] / 10000;		//음극 2차 PNP T축 스택 위치
+	P_Recipe_M04_POS(3)	    = Sys.Idata[11232] / 10000;
+	P_Recipe_M04_POS(4)	    = Sys.Idata[11233] / 10000;
+	P_Recipe_M04_POS(5)	    = Sys.Idata[11234] / 10000;
+	P_Recipe_M04_POS(6)	    = Sys.Idata[11235] / 10000;
+	P_Recipe_M04_POS(7)	    = Sys.Idata[11236] / 10000;
+	P_Recipe_M04_POS(8)	    = Sys.Idata[11237] / 10000;
+	P_Recipe_M04_POS(9)	    = Sys.Idata[11238] / 10000;
+	P_Recipe_M04_POS(10)	= Sys.Idata[11239] / 10000;
+
+	P_Recipe_M05_POS(1)	    = Sys.Idata[11240] / 10000;		//양극 언클램프 Y1축 클램프 위치
+	P_Recipe_M05_POS(2)	    = Sys.Idata[11241] / 10000;		//양극 클램프 Y1축 클램프 위치
+	P_Recipe_M05_POS(3)	    = Sys.Idata[11242] / 10000;
+	P_Recipe_M05_POS(4)	    = Sys.Idata[11243] / 10000;
+	P_Recipe_M05_POS(5)	    = Sys.Idata[11244] / 10000;
+	P_Recipe_M05_POS(6)	    = Sys.Idata[11245] / 10000;
+	P_Recipe_M05_POS(7)	    = Sys.Idata[11246] / 10000;
+	P_Recipe_M05_POS(8)	    = Sys.Idata[11247] / 10000;
+	P_Recipe_M05_POS(9)	    = Sys.Idata[11248] / 10000;
+	P_Recipe_M05_POS(10)	= Sys.Idata[11249] / 10000;
+
+	P_Recipe_M06_POS(1)	    = Sys.Idata[11250] / 10000;		//음극 언클램프 Y1축 클램프 위치
+	P_Recipe_M06_POS(2)	    = Sys.Idata[11251] / 10000;		//음극 클램프 Y1축 클램프 위치
+	P_Recipe_M06_POS(3)	    = Sys.Idata[11252] / 10000;
+	P_Recipe_M06_POS(4)	    = Sys.Idata[11253] / 10000;
+	P_Recipe_M06_POS(5)	    = Sys.Idata[11254] / 10000;
+	P_Recipe_M06_POS(6)	    = Sys.Idata[11255] / 10000;
+	P_Recipe_M06_POS(7)	    = Sys.Idata[11256] / 10000;
+	P_Recipe_M06_POS(8)	    = Sys.Idata[11257] / 10000;
+	P_Recipe_M06_POS(9)	    = Sys.Idata[11258] / 10000;
+	P_Recipe_M06_POS(10)	= Sys.Idata[11259] / 10000;
+
+	P_Recipe_M07_POS(1)	    = Sys.Idata[11260] / 10000;		//양극 클램프 Y2축 언클램프 위치
+	P_Recipe_M07_POS(2)	    = Sys.Idata[11261] / 10000;		//양극 클램프 Y2축 클램프 위치
+	P_Recipe_M07_POS(3)	    = Sys.Idata[11262] / 10000;
+	P_Recipe_M07_POS(4)	    = Sys.Idata[11263] / 10000;
+	P_Recipe_M07_POS(5)	    = Sys.Idata[11264] / 10000;
+	P_Recipe_M07_POS(6)	    = Sys.Idata[11265] / 10000;
+	P_Recipe_M07_POS(7)	    = Sys.Idata[11266] / 10000;
+	P_Recipe_M07_POS(8)	    = Sys.Idata[11267] / 10000;
+	P_Recipe_M07_POS(9)	    = Sys.Idata[11268] / 10000;
+	P_Recipe_M07_POS(10)	= Sys.Idata[11269] / 10000;
+
+	P_Recipe_M08_POS(1)	    = Sys.Idata[11270] / 10000;		//음극 클램프 Y2축 언클램프 위치
+	P_Recipe_M08_POS(2)	    = Sys.Idata[11271] / 10000;		//음극 클램프 Y2축 클램프 위치
+	P_Recipe_M08_POS(3)	    = Sys.Idata[11272] / 10000;
+	P_Recipe_M08_POS(4)	    = Sys.Idata[11273] / 10000;
+	P_Recipe_M08_POS(5)	    = Sys.Idata[11274] / 10000;
+	P_Recipe_M08_POS(6)	    = Sys.Idata[11275] / 10000;
+	P_Recipe_M08_POS(7)	    = Sys.Idata[11276] / 10000;
+	P_Recipe_M08_POS(8)	    = Sys.Idata[11277] / 10000;
+	P_Recipe_M08_POS(9)	    = Sys.Idata[11278] / 10000;
+	P_Recipe_M08_POS(10)	= Sys.Idata[11279] / 10000;
+
+	P_Recipe_M09_POS(1)	    = Sys.Idata[11280] / 10000;
+	P_Recipe_M09_POS(2)	    = Sys.Idata[11281] / 10000;
+	P_Recipe_M09_POS(3)	    = Sys.Idata[11282] / 10000;
+	P_Recipe_M09_POS(4)	    = Sys.Idata[11283] / 10000;
+	P_Recipe_M09_POS(5)	    = Sys.Idata[11284] / 10000;
+	P_Recipe_M09_POS(6)	    = Sys.Idata[11285] / 10000;
+	P_Recipe_M09_POS(7)	    = Sys.Idata[11286] / 10000;
+	P_Recipe_M09_POS(8)	    = Sys.Idata[11287] / 10000;
+	P_Recipe_M09_POS(9)	    = Sys.Idata[11288] / 10000;
+	P_Recipe_M09_POS(10)	= Sys.Idata[11289] / 10000;
+
+	P_Recipe_M10_POS(1)	    = Sys.Idata[11290] / 10000;
+	P_Recipe_M10_POS(2)	    = Sys.Idata[11291] / 10000;
+	P_Recipe_M10_POS(3)	    = Sys.Idata[11292] / 10000;
+	P_Recipe_M10_POS(4)	    = Sys.Idata[11293] / 10000;
+	P_Recipe_M10_POS(5)	    = Sys.Idata[11294] / 10000;
+	P_Recipe_M10_POS(6)	    = Sys.Idata[11295] / 10000;
+	P_Recipe_M10_POS(7)	    = Sys.Idata[11296] / 10000;
+	P_Recipe_M10_POS(8)	    = Sys.Idata[11297] / 10000;
+	P_Recipe_M10_POS(9)	    = Sys.Idata[11298] / 10000;
+	P_Recipe_M10_POS(10)	= Sys.Idata[11299] / 10000;
+
+	P_Recipe_M11_POS(1)	    = Sys.Idata[11300] / 10000;
+	P_Recipe_M11_POS(2)	    = Sys.Idata[11301] / 10000;
+	P_Recipe_M11_POS(3)	    = Sys.Idata[11302] / 10000;
+	P_Recipe_M11_POS(4)	    = Sys.Idata[11303] / 10000;
+	P_Recipe_M11_POS(5)	    = Sys.Idata[11304] / 10000;
+	P_Recipe_M11_POS(6)	    = Sys.Idata[11305] / 10000;
+	P_Recipe_M11_POS(7)	    = Sys.Idata[11306] / 10000;
+	P_Recipe_M11_POS(8)	    = Sys.Idata[11307] / 10000;
+	P_Recipe_M11_POS(9)	    = Sys.Idata[11308] / 10000;
+	P_Recipe_M11_POS(10)	= Sys.Idata[11309] / 10000;
+
+	P_Recipe_M12_POS(1)	    = Sys.Idata[11310] / 10000;
+	P_Recipe_M12_POS(2)	    = Sys.Idata[11311] / 10000;
+	P_Recipe_M12_POS(3)	    = Sys.Idata[11312] / 10000;
+	P_Recipe_M12_POS(4)	    = Sys.Idata[11313] / 10000;
+	P_Recipe_M12_POS(5)	    = Sys.Idata[11314] / 10000;
+	P_Recipe_M12_POS(6)	    = Sys.Idata[11315] / 10000;
+	P_Recipe_M12_POS(7)	    = Sys.Idata[11316] / 10000;
+	P_Recipe_M12_POS(8)	    = Sys.Idata[11317] / 10000;
+	P_Recipe_M12_POS(9)	    = Sys.Idata[11318] / 10000;
+	P_Recipe_M12_POS(10)	= Sys.Idata[11319] / 10000;
+
+	P_Recipe_M13_POS(1)	    = Sys.Idata[11320] / 10000;		// 파이널롤러 Z축 대기 위치
+	P_Recipe_M13_POS(2)	    = Sys.Idata[11321] / 10000;
+	P_Recipe_M13_POS(3)	    = Sys.Idata[11322] / 10000;		// 파이널롤러 Z축 세파 컷팅 위치
+	P_Recipe_M13_POS(4)	    = Sys.Idata[11323] / 10000;		
+	P_Recipe_M13_POS(5)	    = Sys.Idata[11324] / 10000;
+	P_Recipe_M13_POS(6)	    = Sys.Idata[11325] / 10000;
+	P_Recipe_M13_POS(7)	    = Sys.Idata[11326] / 10000;
+	P_Recipe_M13_POS(8)	    = Sys.Idata[11327] / 10000;
+	P_Recipe_M13_POS(9)	    = Sys.Idata[11328] / 10000;
+	P_Recipe_M13_POS(10)	= Sys.Idata[11329] / 10000;
+
+	P_Recipe_M14_POS(1)	    = Sys.Idata[11330] / 10000;
+	P_Recipe_M14_POS(2)	    = Sys.Idata[11331] / 10000;
+	P_Recipe_M14_POS(3)	    = Sys.Idata[11332] / 10000;
+	P_Recipe_M14_POS(4)	    = Sys.Idata[11333] / 10000;
+	P_Recipe_M14_POS(5)	    = Sys.Idata[11334] / 10000;
+	P_Recipe_M14_POS(6)	    = Sys.Idata[11335] / 10000;
+	P_Recipe_M14_POS(7)	    = Sys.Idata[11336] / 10000;
+	P_Recipe_M14_POS(8)	    = Sys.Idata[11337] / 10000;
+	P_Recipe_M14_POS(9)	    = Sys.Idata[11338] / 10000;
+	P_Recipe_M14_POS(10)	= Sys.Idata[11339] / 10000;
+
+	P_Recipe_M15_POS(1)	    = Sys.Idata[11340] / 10000;
+	P_Recipe_M15_POS(2)	    = Sys.Idata[11341] / 10000;
+	P_Recipe_M15_POS(3)	    = Sys.Idata[11342] / 10000;
+	P_Recipe_M15_POS(4)	    = Sys.Idata[11343] / 10000;
+	P_Recipe_M15_POS(5)	    = Sys.Idata[11344] / 10000;
+	P_Recipe_M15_POS(6)	    = Sys.Idata[11345] / 10000;
+	P_Recipe_M15_POS(7)	    = Sys.Idata[11346] / 10000;
+	P_Recipe_M15_POS(8)	    = Sys.Idata[11347] / 10000;
+	P_Recipe_M15_POS(9)	    = Sys.Idata[11348] / 10000;
+	P_Recipe_M15_POS(10)	= Sys.Idata[11349] / 10000;
+
+	P_Recipe_M16_POS(1)	    = Sys.Idata[11350] / 10000;
+	P_Recipe_M16_POS(2)	    = Sys.Idata[11351] / 10000;
+	P_Recipe_M16_POS(3)	    = Sys.Idata[11352] / 10000;
+	P_Recipe_M16_POS(4)	    = Sys.Idata[11353] / 10000;
+	P_Recipe_M16_POS(5)	    = Sys.Idata[11354] / 10000;
+	P_Recipe_M16_POS(6)	    = Sys.Idata[11355] / 10000;
+	P_Recipe_M16_POS(7)	    = Sys.Idata[11356] / 10000;
+	P_Recipe_M16_POS(8)	    = Sys.Idata[11357] / 10000;
+	P_Recipe_M16_POS(9)	    = Sys.Idata[11358] / 10000;
+	P_Recipe_M16_POS(10)	= Sys.Idata[11359] / 10000;
+
+	P_Recipe_M17_POS(1)	    = Sys.Idata[11360] / 10000;
+	P_Recipe_M17_POS(2)	    = Sys.Idata[11361] / 10000;
+	P_Recipe_M17_POS(3)	    = Sys.Idata[11362] / 10000;
+	P_Recipe_M17_POS(4)	    = Sys.Idata[11363] / 10000;
+	P_Recipe_M17_POS(5)	    = Sys.Idata[11364] / 10000;
+	P_Recipe_M17_POS(6)	    = Sys.Idata[11365] / 10000;
+	P_Recipe_M17_POS(7)	    = Sys.Idata[11366] / 10000;
+	P_Recipe_M17_POS(8)	    = Sys.Idata[11367] / 10000;
+	P_Recipe_M17_POS(9)	    = Sys.Idata[11368] / 10000;
+	P_Recipe_M17_POS(10)	= Sys.Idata[11369] / 10000;
+
+	P_Recipe_M18_POS(1)	    = Sys.Idata[11370] / 10000;
+	P_Recipe_M18_POS(2)	    = Sys.Idata[11371] / 10000;
+	P_Recipe_M18_POS(3)	    = Sys.Idata[11372] / 10000;
+	P_Recipe_M18_POS(4)	    = Sys.Idata[11373] / 10000;
+	P_Recipe_M18_POS(5)	    = Sys.Idata[11374] / 10000;
+	P_Recipe_M18_POS(6)	    = Sys.Idata[11375] / 10000;
+	P_Recipe_M18_POS(7)	    = Sys.Idata[11376] / 10000;
+	P_Recipe_M18_POS(8)	    = Sys.Idata[11377] / 10000;
+	P_Recipe_M18_POS(9)	    = Sys.Idata[11378] / 10000;
+	P_Recipe_M18_POS(10)	= Sys.Idata[11379] / 10000;
+
+	P_Recipe_M19_POS(1)	    = Sys.Idata[11380] / 10000;
+	P_Recipe_M19_POS(2)	    = Sys.Idata[11381] / 10000;
+	P_Recipe_M19_POS(3)	    = Sys.Idata[11382] / 10000;
+	P_Recipe_M19_POS(4)	    = Sys.Idata[11383] / 10000;
+	P_Recipe_M19_POS(5)	    = Sys.Idata[11384] / 10000;
+	P_Recipe_M19_POS(6)	    = Sys.Idata[11385] / 10000;
+	P_Recipe_M19_POS(7)	    = Sys.Idata[11386] / 10000;
+	P_Recipe_M19_POS(8)	    = Sys.Idata[11387] / 10000;
+	P_Recipe_M19_POS(9)	    = Sys.Idata[11388] / 10000;
+	P_Recipe_M19_POS(10)	= Sys.Idata[11389] / 10000;
+
+	P_Recipe_M20_POS(1)	    = Sys.Idata[11390] / 10000;
+	P_Recipe_M20_POS(2)	    = Sys.Idata[11391] / 10000;
+	P_Recipe_M20_POS(3)	    = Sys.Idata[11392] / 10000;
+	P_Recipe_M20_POS(4)	    = Sys.Idata[11393] / 10000;
+	P_Recipe_M20_POS(5)	    = Sys.Idata[11394] / 10000;
+	P_Recipe_M20_POS(6)	    = Sys.Idata[11395] / 10000;
+	P_Recipe_M20_POS(7)	    = Sys.Idata[11396] / 10000;
+	P_Recipe_M20_POS(8)	    = Sys.Idata[11397] / 10000;
+	P_Recipe_M20_POS(9)	    = Sys.Idata[11398] / 10000;
+	P_Recipe_M20_POS(10)	= Sys.Idata[11399] / 10000;
+
+	P_Recipe_M21_POS(1)	    = Sys.Idata[11400] / 10000;			// 대기위치		
+	P_Recipe_M21_POS(2)	    = Sys.Idata[11401] / 10000;			// 얼라인 상승
+	P_Recipe_M21_POS(3)	    = Sys.Idata[11402] / 10000;			// 얼라인 하강
+	P_Recipe_M21_POS(4)	    = Sys.Idata[11403] / 10000;			// 스택 상승
+	P_Recipe_M21_POS(5)	    = Sys.Idata[11404] / 10000;			// 스택 하강
+	P_Recipe_M21_POS(6)	    = Sys.Idata[11405] / 10000;			// 얼라인 블로우 z축 높이
+	P_Recipe_M21_POS(7)	    = Sys.Idata[11406] / 10000;
+	P_Recipe_M21_POS(8)	    = Sys.Idata[11407] / 10000;
+	P_Recipe_M21_POS(9)	    = Sys.Idata[11408] / 10000;
+	P_Recipe_M21_POS(10)	= Sys.Idata[11409] / 10000;
+
+	P_Recipe_M22_POS(1)	    = Sys.Idata[11410] / 10000;			// 대기위치
+	P_Recipe_M22_POS(2)	    = Sys.Idata[11411] / 10000;			// 얼라인 상승
+	P_Recipe_M22_POS(3)	    = Sys.Idata[11412] / 10000;			// 얼라인 하강
+	P_Recipe_M22_POS(4)	    = Sys.Idata[11413] / 10000;			// 스택 상승
+	P_Recipe_M22_POS(5)	    = Sys.Idata[11414] / 10000;			// 스택 하강
+	P_Recipe_M22_POS(6)	    = Sys.Idata[11415] / 10000;			// 얼라인 블로우 z축 높이
+	P_Recipe_M22_POS(7)	    = Sys.Idata[11416] / 10000;
+	P_Recipe_M22_POS(8)	    = Sys.Idata[11417] / 10000;
+	P_Recipe_M22_POS(9)	    = Sys.Idata[11418] / 10000;
+	P_Recipe_M22_POS(10)	= Sys.Idata[11419] / 10000;
+
+	P_Recipe_M23_POS(1)	    = Sys.Idata[11420] / 10000;
+	P_Recipe_M23_POS(2)	    = Sys.Idata[11421] / 10000;
+	P_Recipe_M23_POS(3)	    = Sys.Idata[11422] / 10000;
+	P_Recipe_M23_POS(4)	    = Sys.Idata[11423] / 10000;
+	P_Recipe_M23_POS(5)	    = Sys.Idata[11424] / 10000;
+	P_Recipe_M23_POS(6)	    = Sys.Idata[11425] / 10000;
+	P_Recipe_M23_POS(7)	    = Sys.Idata[11426] / 10000;
+	P_Recipe_M23_POS(8)	    = Sys.Idata[11427] / 10000;
+	P_Recipe_M23_POS(9)	    = Sys.Idata[11428] / 10000;
+	P_Recipe_M23_POS(10)	= Sys.Idata[11429] / 10000;
+
+	P_Recipe_M24_POS(1)	    = Sys.Idata[11430] / 10000;
+	P_Recipe_M24_POS(2)	    = Sys.Idata[11431] / 10000;
+	P_Recipe_M24_POS(3)	    = Sys.Idata[11432] / 10000;
+	P_Recipe_M24_POS(4)	    = Sys.Idata[11433] / 10000;
+	P_Recipe_M24_POS(5)	    = Sys.Idata[11434] / 10000;
+	P_Recipe_M24_POS(6)	    = Sys.Idata[11435] / 10000;
+	P_Recipe_M24_POS(7)	    = Sys.Idata[11436] / 10000;
+	P_Recipe_M24_POS(8)	    = Sys.Idata[11437] / 10000;
+	P_Recipe_M24_POS(9)	    = Sys.Idata[11438] / 10000;
+	P_Recipe_M24_POS(10)	= Sys.Idata[11439] / 10000;
+
+	P_Recipe_M25_POS(1)	    = Sys.Idata[11440] / 10000;
+	P_Recipe_M25_POS(2)	    = Sys.Idata[11441] / 10000;
+	P_Recipe_M25_POS(3)	    = Sys.Idata[11442] / 10000;
+	P_Recipe_M25_POS(4)	    = Sys.Idata[11443] / 10000;
+	P_Recipe_M25_POS(5)	    = Sys.Idata[11444] / 10000;
+	P_Recipe_M25_POS(6)	    = Sys.Idata[11445] / 10000;
+	P_Recipe_M25_POS(7)	    = Sys.Idata[11446] / 10000;
+	P_Recipe_M25_POS(8)	    = Sys.Idata[11447] / 10000;
+	P_Recipe_M25_POS(9)	    = Sys.Idata[11448] / 10000;
+	P_Recipe_M25_POS(10)	= Sys.Idata[11449] / 10000;
+
+	P_Recipe_M26_POS(1)	    = Sys.Idata[11450] / 10000;
+	P_Recipe_M26_POS(2)	    = Sys.Idata[11451] / 10000;
+	P_Recipe_M26_POS(3)	    = Sys.Idata[11452] / 10000;
+	P_Recipe_M26_POS(4)	    = Sys.Idata[11453] / 10000;
+	P_Recipe_M26_POS(5)	    = Sys.Idata[11454] / 10000;
+	P_Recipe_M26_POS(6)	    = Sys.Idata[11455] / 10000;
+	P_Recipe_M26_POS(7)	    = Sys.Idata[11456] / 10000;
+	P_Recipe_M26_POS(8)	    = Sys.Idata[11457] / 10000;
+	P_Recipe_M26_POS(9)	    = Sys.Idata[11458] / 10000;
+	P_Recipe_M26_POS(10)	= Sys.Idata[11459] / 10000;
+
+	P_Recipe_M27_POS(1)	    = Sys.Idata[11460] / 10000;
+	P_Recipe_M27_POS(2)	    = Sys.Idata[11461] / 10000;
+	P_Recipe_M27_POS(3)	    = Sys.Idata[11462] / 10000;
+	P_Recipe_M27_POS(4)	    = Sys.Idata[11463] / 10000;
+	P_Recipe_M27_POS(5)	    = Sys.Idata[11464] / 10000;
+	P_Recipe_M27_POS(6)	    = Sys.Idata[11465] / 10000;
+	P_Recipe_M27_POS(7)	    = Sys.Idata[11466] / 10000;
+	P_Recipe_M27_POS(8)	    = Sys.Idata[11467] / 10000;
+	P_Recipe_M27_POS(9)	    = Sys.Idata[11468] / 10000;
+	P_Recipe_M27_POS(10)	= Sys.Idata[11469] / 10000;
+
+	P_Recipe_M28_POS(1)	    = Sys.Idata[11470] / 10000;
+	P_Recipe_M28_POS(2)	    = Sys.Idata[11471] / 10000;
+	P_Recipe_M28_POS(3)	    = Sys.Idata[11472] / 10000;
+	P_Recipe_M28_POS(4)	    = Sys.Idata[11473] / 10000;
+	P_Recipe_M28_POS(5)	    = Sys.Idata[11474] / 10000;
+	P_Recipe_M28_POS(6)	    = Sys.Idata[11475] / 10000;
+	P_Recipe_M28_POS(7)	    = Sys.Idata[11476] / 10000;
+	P_Recipe_M28_POS(8)	    = Sys.Idata[11477] / 10000;
+	P_Recipe_M28_POS(9)	    = Sys.Idata[11478] / 10000;
+	P_Recipe_M28_POS(10)	= Sys.Idata[11479] / 10000;
+
+	P_Recipe_M29_POS(1)	    = Sys.Idata[11480] / 10000;
+	P_Recipe_M29_POS(2)	    = Sys.Idata[11481] / 10000;
+	P_Recipe_M29_POS(3)	    = Sys.Idata[11482] / 10000;
+	P_Recipe_M29_POS(4)	    = Sys.Idata[11483] / 10000;
+	P_Recipe_M29_POS(5)	    = Sys.Idata[11484] / 10000;
+	P_Recipe_M29_POS(6)	    = Sys.Idata[11485] / 10000;
+	P_Recipe_M29_POS(7)	    = Sys.Idata[11486] / 10000;
+	P_Recipe_M29_POS(8)	    = Sys.Idata[11487] / 10000;
+	P_Recipe_M29_POS(9)	    = Sys.Idata[11488] / 10000;
+	P_Recipe_M29_POS(10)	= Sys.Idata[11489] / 10000;
+
+	P_Recipe_M30_POS(1)	    = Sys.Idata[11490] / 10000;
+	P_Recipe_M30_POS(2)	    = Sys.Idata[11491] / 10000;
+	P_Recipe_M30_POS(3)	    = Sys.Idata[11492] / 10000;
+	P_Recipe_M30_POS(4)	    = Sys.Idata[11493] / 10000;
+	P_Recipe_M30_POS(5)	    = Sys.Idata[11494] / 10000;
+	P_Recipe_M30_POS(6)	    = Sys.Idata[11495] / 10000;
+	P_Recipe_M30_POS(7)	    = Sys.Idata[11496] / 10000;
+	P_Recipe_M30_POS(8)	    = Sys.Idata[11497] / 10000;
+	P_Recipe_M30_POS(9)	    = Sys.Idata[11498] / 10000;
+	P_Recipe_M30_POS(10)	= Sys.Idata[11499] / 10000;
+
+	P_Recipe_M31_POS(1)	    = Sys.Idata[11500] / 10000;
+	P_Recipe_M31_POS(2)	    = Sys.Idata[11501] / 10000;
+	P_Recipe_M31_POS(3)	    = Sys.Idata[11502] / 10000;
+	P_Recipe_M31_POS(4)	    = Sys.Idata[11503] / 10000;
+	P_Recipe_M31_POS(5)	    = Sys.Idata[11504] / 10000;
+	P_Recipe_M31_POS(6)	    = Sys.Idata[11505] / 10000;
+	P_Recipe_M31_POS(7)	    = Sys.Idata[11506] / 10000;
+	P_Recipe_M31_POS(8)	    = Sys.Idata[11507] / 10000;
+	P_Recipe_M31_POS(9)	    = Sys.Idata[11508] / 10000;
+	P_Recipe_M31_POS(10)	= Sys.Idata[11509] / 10000;
+
+	P_Recipe_M32_POS(1)	    = Sys.Idata[11510] / 10000;
+	P_Recipe_M32_POS(2)	    = Sys.Idata[11511] / 10000;
+	P_Recipe_M32_POS(3)	    = Sys.Idata[11512] / 10000;
+	P_Recipe_M32_POS(4)	    = Sys.Idata[11513] / 10000;
+	P_Recipe_M32_POS(5)	    = Sys.Idata[11514] / 10000;
+	P_Recipe_M32_POS(6)	    = Sys.Idata[11515] / 10000;
+	P_Recipe_M32_POS(7)	    = Sys.Idata[11516] / 10000;
+	P_Recipe_M32_POS(8)	    = Sys.Idata[11517] / 10000;
+	P_Recipe_M32_POS(9)	    = Sys.Idata[11518] / 10000;
+	P_Recipe_M32_POS(10)	= Sys.Idata[11519] / 10000;
+
+	P_Recipe_M33_POS(1)	    = Sys.Idata[11520] / 10000;
+	P_Recipe_M33_POS(2)	    = Sys.Idata[11521] / 10000;
+	P_Recipe_M33_POS(3)	    = Sys.Idata[11522] / 10000;
+	P_Recipe_M33_POS(4)	    = Sys.Idata[11523] / 10000;
+	P_Recipe_M33_POS(5)	    = Sys.Idata[11524] / 10000;	
+	P_Recipe_M33_POS(6)	    = Sys.Idata[11525] / 10000;
+	P_Recipe_M33_POS(7)	    = Sys.Idata[11526] / 10000;
+	P_Recipe_M33_POS(8)	    = Sys.Idata[11527] / 10000;
+	P_Recipe_M33_POS(9)	    = Sys.Idata[11528] / 10000;
+	P_Recipe_M33_POS(10)	= Sys.Idata[11529] / 10000;	
+
+	P_Recipe_M34_POS(1)	    = Sys.Idata[11530] / 10000;
+	P_Recipe_M34_POS(2)	    = Sys.Idata[11531] / 10000;
+	P_Recipe_M34_POS(3)	    = Sys.Idata[11532] / 10000;
+	P_Recipe_M34_POS(4)	    = Sys.Idata[11533] / 10000;
+	P_Recipe_M34_POS(5)	    = Sys.Idata[11534] / 10000;	
+	P_Recipe_M34_POS(6)	    = Sys.Idata[11535] / 10000;
+	P_Recipe_M34_POS(7)	    = Sys.Idata[11536] / 10000;
+	P_Recipe_M34_POS(8)	    = Sys.Idata[11537] / 10000;
+	P_Recipe_M34_POS(9)	    = Sys.Idata[11538] / 10000;
+	P_Recipe_M34_POS(10)	= Sys.Idata[11539] / 10000;	
+
+	P_Recipe_M35_POS(1)	    = Sys.Idata[11540] / 10000;
+	P_Recipe_M35_POS(2)	    = Sys.Idata[11541] / 10000;
+	P_Recipe_M35_POS(3)	    = Sys.Idata[11542] / 10000;
+	P_Recipe_M35_POS(4)	    = Sys.Idata[11543] / 10000;
+	P_Recipe_M35_POS(5)	    = Sys.Idata[11544] / 10000;
+	P_Recipe_M35_POS(6)	    = Sys.Idata[11545] / 10000;
+	P_Recipe_M35_POS(7)	    = Sys.Idata[11546] / 10000;
+	P_Recipe_M35_POS(8)	    = Sys.Idata[11547] / 10000;
+	P_Recipe_M35_POS(9)	    = Sys.Idata[11548] / 10000;
+	P_Recipe_M35_POS(10)	= Sys.Idata[11549] / 10000;
+
+	P_Recipe_M36_POS(1)	    = Sys.Idata[11550] / 10000;
+	P_Recipe_M36_POS(2)	    = Sys.Idata[11551] / 10000;
+	P_Recipe_M36_POS(3)	    = Sys.Idata[11552] / 10000;
+	P_Recipe_M36_POS(4)	    = Sys.Idata[11553] / 10000;
+	P_Recipe_M36_POS(5)	    = Sys.Idata[11554] / 10000;	
+	P_Recipe_M36_POS(6)	    = Sys.Idata[11555] / 10000;
+	P_Recipe_M36_POS(7)	    = Sys.Idata[11556] / 10000;
+	P_Recipe_M36_POS(8)	    = Sys.Idata[11557] / 10000;
+	P_Recipe_M36_POS(9)	    = Sys.Idata[11558] / 10000;
+	P_Recipe_M36_POS(10)	= Sys.Idata[11559] / 10000;	
+
+	P_Recipe_M37_POS(1)	    = Sys.Idata[11560] / 10000;
+	P_Recipe_M37_POS(2)	    = Sys.Idata[11561] / 10000;
+	P_Recipe_M37_POS(3)	    = Sys.Idata[11562] / 10000;
+	P_Recipe_M37_POS(4)	    = Sys.Idata[11563] / 10000;
+	P_Recipe_M37_POS(5)	    = Sys.Idata[11564] / 10000;
+	P_Recipe_M37_POS(6)	    = Sys.Idata[11565] / 10000;
+	P_Recipe_M37_POS(7)	    = Sys.Idata[11566] / 10000;
+	P_Recipe_M37_POS(8)	    = Sys.Idata[11567] / 10000;
+	P_Recipe_M37_POS(9)	    = Sys.Idata[11568] / 10000;
+	P_Recipe_M37_POS(10)	= Sys.Idata[11569] / 10000;
+
+	P_Recipe_M38_POS(1)	    = Sys.Idata[11570] / 10000;
+	P_Recipe_M38_POS(2)	    = Sys.Idata[11571] / 10000;
+	P_Recipe_M38_POS(3)	    = Sys.Idata[11572] / 10000;
+	P_Recipe_M38_POS(4)	    = Sys.Idata[11573] / 10000;
+	P_Recipe_M38_POS(5)	    = Sys.Idata[11574] / 10000;
+	P_Recipe_M38_POS(6)	    = Sys.Idata[11575] / 10000;
+	P_Recipe_M38_POS(7)	    = Sys.Idata[11576] / 10000;
+	P_Recipe_M38_POS(8)	    = Sys.Idata[11577] / 10000;
+	P_Recipe_M38_POS(9)	    = Sys.Idata[11578] / 10000;
+	P_Recipe_M38_POS(10)	= Sys.Idata[11579] / 10000;
+
+	P_Recipe_M39_POS(1)	    = Sys.Idata[11580] / 10000;
+	P_Recipe_M39_POS(2)	    = Sys.Idata[11581] / 10000;
+	P_Recipe_M39_POS(3)	    = Sys.Idata[11582] / 10000;
+	P_Recipe_M39_POS(4)	    = Sys.Idata[11583] / 10000;
+	P_Recipe_M39_POS(5)	    = Sys.Idata[11584] / 10000;
+	P_Recipe_M39_POS(6)	    = Sys.Idata[11585] / 10000;
+	P_Recipe_M39_POS(7)	    = Sys.Idata[11586] / 10000;
+	P_Recipe_M39_POS(8)	    = Sys.Idata[11587] / 10000;
+	P_Recipe_M39_POS(9)	    = Sys.Idata[11588] / 10000;
+	P_Recipe_M39_POS(10)	= Sys.Idata[11589] / 10000;
+
+	P_Recipe_M40_POS(1)	    = Sys.Idata[11590] / 10000;
+	P_Recipe_M40_POS(2)	    = Sys.Idata[11591] / 10000;
+	P_Recipe_M40_POS(3)	    = Sys.Idata[11592] / 10000;
+	P_Recipe_M40_POS(4)	    = Sys.Idata[11593] / 10000;
+	P_Recipe_M40_POS(5)	    = Sys.Idata[11594] / 10000;
+	P_Recipe_M40_POS(6)	    = Sys.Idata[11595] / 10000;
+	P_Recipe_M40_POS(7)	    = Sys.Idata[11596] / 10000;
+	P_Recipe_M40_POS(8)	    = Sys.Idata[11597] / 10000;
+	P_Recipe_M40_POS(9)	    = Sys.Idata[11598] / 10000;
+	P_Recipe_M40_POS(10)	= Sys.Idata[11599] / 10000;
+
+	// [참조 : 260520 ECAT 재연결 프로그램 추가] //인터락 알람 팝업 요청 주소와 충돌로 주석처리 
+	//u.user:$014C04.00 = P_Y_Ecat_Reconnecting
+	//u.user:$014C04.01 = P_Y_Ecat_ReConnection_Complete
+	//u.user:$014C04.02 = P_Y_Ecat_ReConnection_Fail
+
+}
+
+if( P_Read_Timer_S(5) > P_Interval_Read_S(5))
+{
+	M_Read_Sector_Scan_Cmd(5) = 1;			// Read Sector No.1 Scan Command!
+	P_Read_Timer_S(5) = 0;
+}
+if( M_Read_Sector_Scan_Complete(5) == 1)
+{
+	M_Read_Sector_Scan_Complete(5) = 0;
+	// Recipe Pos를 기존엔 그냥 받고 필요 한 부분에서 /10000 하여 사용하였는데
+	// 그냥 처음부터 받을때 /10000 값으로 받게되면 되는부분 아닌가?
+
+	P_Recipe_M41_POS(1)	    = Sys.Idata[11600] / 10000;
+	P_Recipe_M41_POS(2)	    = Sys.Idata[11601] / 10000;
+	P_Recipe_M41_POS(3)	    = Sys.Idata[11602] / 10000;
+	P_Recipe_M41_POS(4)	    = Sys.Idata[11603] / 10000;
+	P_Recipe_M41_POS(5)	    = Sys.Idata[11604] / 10000;
+	P_Recipe_M41_POS(6)	    = Sys.Idata[11605] / 10000;
+	P_Recipe_M41_POS(7)	    = Sys.Idata[11606] / 10000;
+	P_Recipe_M41_POS(8)	    = Sys.Idata[11607] / 10000;
+	P_Recipe_M41_POS(9)	    = Sys.Idata[11608] / 10000;
+	P_Recipe_M41_POS(10)	= Sys.Idata[11609] / 10000;
+
+	P_Recipe_M42_POS(1)	    = Sys.Idata[11610] / 10000;
+	P_Recipe_M42_POS(2)	    = Sys.Idata[11611] / 10000;
+	P_Recipe_M42_POS(3)	    = Sys.Idata[11612] / 10000;
+	P_Recipe_M42_POS(4)	    = Sys.Idata[11613] / 10000;
+	P_Recipe_M42_POS(5)	    = Sys.Idata[11614] / 10000;
+	P_Recipe_M42_POS(6)	    = Sys.Idata[11615] / 10000;
+	P_Recipe_M42_POS(7)	    = Sys.Idata[11616] / 10000;
+	P_Recipe_M42_POS(8)	    = Sys.Idata[11617] / 10000;
+	P_Recipe_M42_POS(9)	    = Sys.Idata[11618] / 10000;
+	P_Recipe_M42_POS(10)	= Sys.Idata[11619] / 10000;
+
+	P_Recipe_M43_POS(1)	    = Sys.Idata[11620] / 10000;
+	P_Recipe_M43_POS(2)	    = Sys.Idata[11621] / 10000;
+	P_Recipe_M43_POS(3)	    = Sys.Idata[11622] / 10000;
+	P_Recipe_M43_POS(4)	    = Sys.Idata[11623] / 10000;
+	P_Recipe_M43_POS(5)	    = Sys.Idata[11624] / 10000;
+	P_Recipe_M43_POS(6)	    = Sys.Idata[11625] / 10000;
+	P_Recipe_M43_POS(7)	    = Sys.Idata[11626] / 10000;
+	P_Recipe_M43_POS(8)	    = Sys.Idata[11627] / 10000;
+	P_Recipe_M43_POS(9)	    = Sys.Idata[11628] / 10000;
+	P_Recipe_M43_POS(10)	= Sys.Idata[11629] / 10000;
+
+	P_Recipe_M44_POS(1)	    = Sys.Idata[11630] / 10000;
+	P_Recipe_M44_POS(2)	    = Sys.Idata[11631] / 10000;
+	P_Recipe_M44_POS(3)	    = Sys.Idata[11632] / 10000;
+	P_Recipe_M44_POS(4)	    = Sys.Idata[11633] / 10000;
+	P_Recipe_M44_POS(5)	    = Sys.Idata[11634] / 10000;
+	P_Recipe_M44_POS(6)	    = Sys.Idata[11635] / 10000;
+	P_Recipe_M44_POS(7)	    = Sys.Idata[11636] / 10000;
+	P_Recipe_M44_POS(8)	    = Sys.Idata[11637] / 10000;
+	P_Recipe_M44_POS(9)	    = Sys.Idata[11638] / 10000;
+	P_Recipe_M44_POS(10)	= Sys.Idata[11639] / 10000;
+
+	P_Recipe_M45_POS(1)	    = Sys.Idata[11640] / 10000;
+	P_Recipe_M45_POS(2)	    = Sys.Idata[11641] / 10000;
+	P_Recipe_M45_POS(3)	    = Sys.Idata[11642] / 10000;
+	P_Recipe_M45_POS(4)	    = Sys.Idata[11643] / 10000;
+	P_Recipe_M45_POS(5)	    = Sys.Idata[11644] / 10000;
+	P_Recipe_M45_POS(6)	    = Sys.Idata[11645] / 10000;
+	P_Recipe_M45_POS(7)	    = Sys.Idata[11646] / 10000;
+	P_Recipe_M45_POS(8)	    = Sys.Idata[11647] / 10000;
+	P_Recipe_M45_POS(9)	    = Sys.Idata[11648] / 10000;
+	P_Recipe_M45_POS(10)	= Sys.Idata[11649] / 10000;
+
+	P_Recipe_M46_POS(1)	    = Sys.Idata[11650] / 10000;
+	P_Recipe_M46_POS(2)	    = Sys.Idata[11651] / 10000;
+	P_Recipe_M46_POS(3)	    = Sys.Idata[11652] / 10000;
+	P_Recipe_M46_POS(4)	    = Sys.Idata[11653] / 10000;
+	P_Recipe_M46_POS(5)	    = Sys.Idata[11654] / 10000;
+	P_Recipe_M46_POS(6)	    = Sys.Idata[11655] / 10000;
+	P_Recipe_M46_POS(7)	    = Sys.Idata[11656] / 10000;
+	P_Recipe_M46_POS(8)	    = Sys.Idata[11657] / 10000;
+	P_Recipe_M46_POS(9)	    = Sys.Idata[11658] / 10000;
+	P_Recipe_M46_POS(10)	= Sys.Idata[11659] / 10000;
+
+	P_Recipe_M47_POS(1)	    = Sys.Idata[11660] / 10000;
+	P_Recipe_M47_POS(2)	    = Sys.Idata[11661] / 10000;
+	P_Recipe_M47_POS(3)	    = Sys.Idata[11662] / 10000;
+	P_Recipe_M47_POS(4)	    = Sys.Idata[11663] / 10000;
+	P_Recipe_M47_POS(5)	    = Sys.Idata[11664] / 10000;
+	P_Recipe_M47_POS(6)	    = Sys.Idata[11665] / 10000;
+	P_Recipe_M47_POS(7)	    = Sys.Idata[11666] / 10000;
+	P_Recipe_M47_POS(8)	    = Sys.Idata[11667] / 10000;
+	P_Recipe_M47_POS(9)	    = Sys.Idata[11668] / 10000;
+	P_Recipe_M47_POS(10)	= Sys.Idata[11669] / 10000;
+
+	P_Recipe_M48_POS(1)	    = Sys.Idata[11670] / 10000;
+	P_Recipe_M48_POS(2)	    = Sys.Idata[11671] / 10000;
+	P_Recipe_M48_POS(3)	    = Sys.Idata[11672] / 10000;
+	P_Recipe_M48_POS(4)	    = Sys.Idata[11673] / 10000;
+	P_Recipe_M48_POS(5)	    = Sys.Idata[11674] / 10000;
+	P_Recipe_M48_POS(6)	    = Sys.Idata[11675] / 10000;
+	P_Recipe_M48_POS(7)	    = Sys.Idata[11676] / 10000;
+	P_Recipe_M48_POS(8)	    = Sys.Idata[11677] / 10000;
+	P_Recipe_M48_POS(9)	    = Sys.Idata[11678] / 10000;
+	P_Recipe_M48_POS(10)	= Sys.Idata[11679] / 10000;
+
+	P_Recipe_M49_POS(1)	    = Sys.Idata[11680] / 10000;
+	P_Recipe_M49_POS(2)	    = Sys.Idata[11681] / 10000;
+	P_Recipe_M49_POS(3)	    = Sys.Idata[11682] / 10000;
+	P_Recipe_M49_POS(4)	    = Sys.Idata[11683] / 10000;
+	P_Recipe_M49_POS(5)	    = Sys.Idata[11684] / 10000;
+	P_Recipe_M49_POS(6)	    = Sys.Idata[11685] / 10000;
+	P_Recipe_M49_POS(7)	    = Sys.Idata[11686] / 10000;
+	P_Recipe_M49_POS(8)	    = Sys.Idata[11687] / 10000;
+	P_Recipe_M49_POS(9)	    = Sys.Idata[11688] / 10000;
+	P_Recipe_M49_POS(10)	= Sys.Idata[11689] / 10000;
+
+	P_Recipe_M50_POS(1)	    = Sys.Idata[11690] / 10000;
+	P_Recipe_M50_POS(2)	    = Sys.Idata[11691] / 10000;
+	P_Recipe_M50_POS(3)	    = Sys.Idata[11692] / 10000;
+	P_Recipe_M50_POS(4)	    = Sys.Idata[11693] / 10000;
+	P_Recipe_M50_POS(5)	    = Sys.Idata[11694] / 10000;	
+	P_Recipe_M50_POS(6)	    = Sys.Idata[11695] / 10000;
+	P_Recipe_M50_POS(7)	    = Sys.Idata[11696] / 10000;
+	P_Recipe_M50_POS(8)	    = Sys.Idata[11697] / 10000;
+	P_Recipe_M50_POS(9)	    = Sys.Idata[11698] / 10000;
+	P_Recipe_M50_POS(10)	= Sys.Idata[11699] / 10000;
+
+	// 대기위치 변수 업데이트
+	P_Axis_Ready_Pos(1) = P_Recipe_M01_POS(1);
+	P_Axis_Ready_Pos(2) = P_Recipe_M02_POS(1);
+	P_Axis_Ready_Pos(3) = P_Recipe_M03_POS(1);
+	P_Axis_Ready_Pos(4) = P_Recipe_M04_POS(1);
+	P_Axis_Ready_Pos(5) = P_Recipe_M05_POS(1);
+	P_Axis_Ready_Pos(6) = P_Recipe_M06_POS(1);
+	P_Axis_Ready_Pos(7) = P_Recipe_M07_POS(1);
+	P_Axis_Ready_Pos(8) = P_Recipe_M08_POS(1);
+	P_Axis_Ready_Pos(11) = P_Recipe_M11_POS(1);
+	P_Axis_Ready_Pos(12) = P_Recipe_M12_POS(1);
+	P_Axis_Ready_Pos(13) = P_Recipe_M13_POS(1);
+	P_Axis_Ready_Pos(15) = P_Recipe_M15_POS(1);
+	P_Axis_Ready_Pos(16) = P_Recipe_M16_POS(1);
+	P_Axis_Ready_Pos(17) = P_Recipe_M17_POS(1);
+	P_Axis_Ready_Pos(18) = P_Recipe_M18_POS(1);
+	P_Axis_Ready_Pos(19) = P_Recipe_M19_POS(1);
+	P_Axis_Ready_Pos(20) = P_Recipe_M20_POS(1);
+	P_Axis_Ready_Pos(21) = P_Recipe_M21_POS(1);
+	P_Axis_Ready_Pos(22) = P_Recipe_M22_POS(1);
+	P_Axis_Ready_Pos(23) = P_Recipe_M23_POS(1);
+	P_Axis_Ready_Pos(24) = P_Recipe_M24_POS(1);
+	P_Axis_Ready_Pos(25) = P_Recipe_M25_POS(1);
+	P_Axis_Ready_Pos(26) = P_Recipe_M26_POS(1);
+	P_Axis_Ready_Pos(27) = P_Recipe_M27_POS(1);
+	P_Axis_Ready_Pos(28) = P_Recipe_M28_POS(1);
+	P_Axis_Ready_Pos(33) = P_Recipe_M33_POS(1);
+	P_Axis_Ready_Pos(34) = P_Recipe_M34_POS(1);
+	P_Axis_Ready_Pos(35) = P_Recipe_M35_POS(1);
+	P_Axis_Ready_Pos(36) = P_Recipe_M36_POS(1);
+	P_Axis_Ready_Pos(37) = P_Recipe_M37_POS(1);
+	P_Axis_Ready_Pos(38) = P_Recipe_M38_POS(1);
+	P_Axis_Ready_Pos(39) = P_Recipe_M39_POS(1);
+	P_Axis_Ready_Pos(40) = P_Recipe_M40_POS(1);
+	P_Axis_Ready_Pos(41) = P_Recipe_M41_POS(1);
+	P_Axis_Ready_Pos(42) = P_Recipe_M42_POS(1);
+	P_Axis_Ready_Pos(43) = P_Recipe_M43_POS(1);
+	P_Axis_Ready_Pos(44) = P_Recipe_M44_POS(1);
+	P_Axis_Ready_Pos(45) = P_Recipe_M45_POS(1);
+	P_Axis_Ready_Pos(46) = P_Recipe_M46_POS(1);
+	P_Axis_Ready_Pos(47) = P_Recipe_M47_POS(1);
+	P_Axis_Ready_Pos(48) = P_Recipe_M48_POS(1);
+
+	// 강제 DIO 출력 모드가 허가 라면.
+	if( P_Force_BTN_Force_Mode_Complete_Flag == 1 )
+	{
+		// GPIO #0번 출력 Address
+		Gate3[0].GpioData[0].16.16 = u.user:$00B6E0.00.16
+		// GPIO #1번 출력 Address
+		Gate3[2].GpioData[0].16.16 = u.user:$00B6E0.16.16
+		// GPIO #2번 출력 Address
+		Gate3[3].GpioData[0].16.16 = u.user:$00B6E4.00.16
+		// GPIO #3번 출력 Address
+		Gate3[4].GpioData[0].16.16 = u.user:$00B6E4.16.16
+		// GPIO #4번 출력 Address
+		Gate3[5].GpioData[0].16.16 = u.user:$00B6E8.00.16
+		// GPIO #5번 출력 Address
+		Gate3[6].GpioData[0].16.16 = u.user:$00B6E8.16.16
+		// GPIO #6번 출력 Address
+		Gate3[7].GpioData[0].16.16 = u.user:$00B6EC.00.16
+		// Ecat #100
+		Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits = u.user:$00B6F0.00.16		//Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits
+		// Ecat #101	
+		Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits = u.user:$00B6F0.16.16		//Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits
+		// Ecat #102
+		Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits = u.user:$00B6F4.00.16		//Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits
+		// Ecat #103
+		Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits = u.user:$00B6F4.16.16		//Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits
+		// Ecat #104
+		Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits = u.user:$00B6F8.00.16		//Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits
+		// Ecat #106
+		Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits = u.user:$00B6FC.00.16		//Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits
+		// Ecat #107
+		Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits = u.user:$00B6FC.16.16		//Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits
+		// Ecat #108
+		Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits = u.user:$00B700.00.16		//Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits
+		// Ecat #111
+		Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits = u.user:$00B704.16.16		//Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits
+		// Ecat #112
+		Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits = u.user:$00B708.00.16		//Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits
+		// Ecat #113
+		Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits = u.user:$00B708.16.16		//Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits
+		// Ecat #114
+		Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits = u.user:$00B70C.00.16		//Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits
+	}
+}
+
+if( P_Write_Timer_S(1) > P_Interval_Write_S(1) )
+{
+	M_Write_Sector_Scan_Cmd(1) = 1;			
+	P_Write_Timer_S(1) = 0;
+}
+
+if(M_Write_Sector_Scan_Complete(1) == 1)
+{
+	M_Write_Sector_Scan_Complete(1) = 0;
+	u.user:$013CE0.00.16 = P_Cathode_Count + P_Anode_Count;		// 카운트 업데이트 변수 수정	[ 참조 : 26.06.04 카운트 업데이트 변수 수정 ]
+
+	Sys.Idata[20281] = P_Cathode_NG_Code;
+	Sys.Idata[20282] = P_Anode_NG_Code;
+	Sys.Idata[20283] = P_Stack_NG_Code;	
+
+	// 260612 세파 열선 로그 추가
+	u.user:$013CF0.00.16 = P_Cutter_FWB_Heater_Current(0) * 100
+	u.user:$013CF0.16.16 = P_Cutter_FWB_Heater_Current(1) * 100
+	u.user:$013CF4.00.16 = P_Cutter_FWB_Heater_Current(2) * 100
+	u.user:$013CF4.16.16 = P_Cutter_FWB_Heater_Current(3) * 100
+	u.user:$013CF8.00.16 = P_Cutter_FWB_Heater_Current(4) * 100
+	u.user:$013CF8.16.16 = P_Cutter_FWB_Heater_Current(5) * 100
+	u.user:$013CFC.00.16 = P_Cutter_FWB_Heater_Current(6) * 100
+	u.user:$013CFC.16.16 = P_Cutter_FWB_Heater_Current(7) * 100
+	u.user:$013D00.00.16 = P_Cutter_FWB_Heater_Current(8) * 100
+	u.user:$013D00.16.16 = P_Cutter_FWB_Heater_Current(9) * 100
+	
+	// 260605 세파 커터 열선 계산
+	Sys.Idata[20831] = P_Sepa_Cutter_Heat_Meter * 100;
+}
+
+if( P_Write_Timer_S(2) > P_Interval_Write_S(2) )
+{
+	M_Write_Sector_Scan_Cmd(2) = 1;			
+	P_Write_Timer_S(2) = 0;
+}
+
+if(M_Write_Sector_Scan_Complete(2) == 1)
+{
+	M_Write_Sector_Scan_Complete(2) = 0 ;
+
+}
+
+if( P_Write_Timer_S(3) > P_Interval_Write_S(3) )
+{
+	M_Write_Sector_Scan_Cmd(3) = 1;			
+	P_Write_Timer_S(3) = 0;
+}
+
+if(M_Write_Sector_Scan_Complete(3) == 1)
+{
+	P_PV_Cathode_Count = P_Cathode_Count;								// 양극 적재 카운트
+	P_PV_Anode_Count = P_Anode_Count;									// 음극 적재 카운트
+	Sys.Idata[20800] = P_Cathode_Clamp_MC_Cylinder_Count;				//양극 클램프 설비 안쪽 실린더 사용 횟수 표시
+	Sys.Idata[20801] = P_Anode_Clamp_MC_Cylinder_Count;					//음극 클램프 설비 안쪽 실린더 사용 횟수 표시
+	Sys.Idata[20802] = P_Cathode_Clamp_OP_Cylinder_Count;				//양극 클램프 작업자쪽 실린더 사용 횟수 표시
+	Sys.Idata[20803] = P_Anode_Clamp_OP_Cylinder_Count;					//음극 클램프 작업자쪽 실린더 사용 횟수 표시
+	Sys.Idata[20804] = P_Cathode_Picker_Cylinder_Count;					// 양극 피커 실린더 사용 횟수 표시
+	Sys.Idata[20805] = P_Anode_Picker_Cylinder_Count;					// 음극 피커 실린더 사용 횟수 표시
+
+	if( P_PMAC_Current_Mode == F_Current_Automatic )					//메뉴얼 상태일 경우 작업자가 수동으로 실린더 동작이 가능함으로 가동 중 사용 횟수 갱신하도록 함
+	{
+		//[참조 : 260617 커터 실린더 사용 횟수 갱신 ]
+		u.user:$014B0C.00.1 = M_Y_Sepa_ARC_Upper_Cutting_FWD_Sol;			//상부 ARC 커터 실린더 전진 후진 PLC 측으로 전달 ( 전진 1, 후진0 PLC 측에서 카운팅)
+		u.user:$014B0C.01.1 = M_Y_Sepa_ARC_Lower_Cutting_FWD_Sol;			//하부 ARC 커터 실린더 전진 후진 PLC 측으로 전달 ( 전진 1, 후진0 PLC 측에서 카운팅)
+		u.user:$014B0C.02.1 = M_Y_FR_Sepa_Cutter_Dn_Sol;					//세파 히팅 커터 실린더 전진 후진 PLC 측으로 전달 ( 전진 1, 후진0 PLC 측에서 카운팅)
+		// [ 참조 : 260630 클램프 동작 횟수 PMAC ↔ PLC I/F 추가 ]
+		u.user:$014B0C.03.1 = P_Ca_Clamp_Y_Move;							//양극 클램프 Y1 동작 PLC 측으로 전달 ( Clamp 동작 1, UnClamp 동작 0 PLC 측에서 카운팅)
+		u.user:$014B0C.04.1 = P_An_Clamp_Y_Move;							//음극 클램프 Y1 동작 PLC 측으로 전달 ( Clamp 동작 1, UnClamp 동작 0 PLC 측에서 카운팅)
+		u.user:$014B0C.05.1 = P_Ca_Clamp_Y_Move;							//양극 클램프 Y2 동작 PLC 측으로 전달 ( Clamp 동작 1, UnClamp 동작 0 PLC 측에서 카운팅)
+		u.user:$014B0C.06.1 = P_An_Clamp_Y_Move;							//음극 클램프 Y2 동작 PLC 측으로 전달 ( Clamp 동작 1, UnClamp 동작 0 PLC 측에서 카운팅)
+	}
+
+	Sys.Idata[20806] = P_Accumulated_Movement_MM_Unit_Cathode_1ST_pnp;	//양극 1차 pnp x축 누적 이동량
+	Sys.Idata[20807] = P_Accumulated_Movement_MM_Unit_Anode_1ST_pnp;	//음극 1차 pnp x축 누적 이동량
+	Sys.Idata[20808] = P_Accumulated_Movement_MM_Unit_Cathode_2nd_pnp;	//양극 2차 pnp x축 누적 이동량
+	Sys.Idata[20809] = P_Accumulated_Movement_MM_Unit_Anode_2nd_pnp;	//음극 2차 pnp x축 누적 이동량
+	//250529 수정
+	// QCP 주소 영역 재매칭	[ 참조 : 26.06.02 QCP 주소 영역 수정 ]
+	Sys.Idata[20811] = P_Anode_Count;									//음극 현재 쌓은 개수 표시     
+	Sys.Idata[20812] = P_Cathode_Count;									//양극 현재 쌓은 개수 표시
+	//양,음극 클램프 현재 아날로그 값을 Mpa로 변환한 값 송신.
+	Sys.Idata[20813] = P_AI_Anode_Clamp_Damper_Mpa;						//음극 클램프 공압 현재 AD값 표시
+	Sys.Idata[20814] = P_AI_Cathode_Clamp_Damper_Mpa;					//양극 클램프 공압 현재 AD값 표시
+	//Sys.Idata[20815] = P_Jelly_Roll_Prod_Count;						//젤리 롤 현재 생산 개수 표시 	//250529 수정
+	Sys.Idata[20815] = P_Jelly_Roll_Total_Count;						//젤리 롤 현재 생산 개수 표시
+	Sys.Idata[20816] = P_Recipe_Speed_Value;							//PMAC 장비 현재 속도 표시
+	Sys.Idata[20817] = P_Anode_Thickness_PLC*1000;						//음극 두께 표시
+	Sys.Idata[20818] = P_Cathode_Thickness_PLC*1000;					//양극 두께 표시
+	Sys.Idata[20819] = P_Sepa_Thickness_PLC*1000;						//세파 두께 표시
+
+	P_Current_Whole_Stack_Jelly_Roll_Thinckness_mm = ((P_Anode_Thickness_PLC + P_Sepa_Thickness_PLC ) * P_Anode_Recipe_Count) + ((P_Cathode_Thickness_PLC + P_Sepa_Thickness_PLC ) * P_Cathode_Recipe_Count);
+	Sys.Idata[20820] = P_Current_Whole_Stack_Jelly_Roll_Thinckness_mm	//STACK A 배출 J/R 두께 (정상배출) 
+
+	if( P_Current_Jelly_Roll_Thinckness_mm_Send_Enable_Flag == 1 )
+	{
+		P_Current_Jelly_Roll_Thinckness_mm_Send_Enable_Flag = 0;
+		Sys.Idata[20821] = (P_Current_JR_Thickness_mm*10000);			//현재 젤리롤 두께
+	}
+	Sys.Idata[20824] = P_AVRG_Upper_Sepa_Thickness_mm * 1000;//P_Upper_Sepa_Current_Thickness_um;			//상단 언와인더 세파 현재 두께
+	Sys.Idata[20825] = P_AVRG_Lower_Sepa_Thickness_mm * 1000;//P_Lower_Sepa_Current_Thickness_um;			//하단 언와인더 세파 현재 두께
+	Sys.Idata[20826] = ((P_Spool_Rotate_Distance/1000)*(2*3.14*Spool_Diameter)/360)*100*1;		//현재 세파 되감기 거리 표시
+	Sys.Idata[20827] = P_Current_Selected_Spool_Rev_Counts;										//현재 사용 중인 스풀 교체 후 회전 수 카운트
+	Sys.Idata[20828] = P_Current_FR_Moving_Cnt_To_PlC;											//세파 ARC 현재 F/R 이동횟수 카운트
+
+	// 1차 P&P Belt -> Align Table 이동 거리 APC 적용 값 ( 실제 움직이는 거리로 계산 해서 PV에 올림 )
+	Sys.Idata[20829] = P_Cathode_X_Sum_Move_mm * 10;
+	Sys.Idata[20830] = P_Anode_X_Sum_Move_mm * 10;
+	Sys.Idata[20832] = P_AI_Cathode_Clamp_Damper;									//양극 클램프 댐퍼값	
+	Sys.Idata[20833] = P_AI_Anode_Clamp_Damper;										//음극 클램프 댐퍼값
+	// 드라이런 경과 시간 기록 머신
+	IF ( P_PLC15_Sub_Function_Dryrun_Active_Flag == 1 )								// 드라이 런 서브 시퀀스 활성화 변수가 ON 될 경우
+	{
+		u.user:$014588.00.16 = int(P_Execute_DryRun_Stop_Timer);									// 드라이런 경과 시간 기재
+	}
+	Else																			// 드라이런 활성화 플래그가 꺼져있으면 (드라이런 완료 되었으면 OFf)
+	{	
+		u.user:$014588.00.16 = 0;													// 드라이런 경과 시간 초기화
+	}
+
+	// 고객사 요청으로 모션 슬레이브 다운 알람 시 팝업 창 비트 추가
+	u.user:$014588.16.1 = P_Minus_Limit_Detect_Popup_Flag;
+	u.user:$014588.17.1 = P_Plus_Limit_Detect_Popup_Flag;
+	u.user:$014588.18.1	= P_Fatal_Fe_Limit_Detect_Popup_Flag;
+	u.user:$014588.19.1 = P_Emergency_Alarm_Popup_Flag;								// 즉시정지 알람 , MC프로토콜 끊김 발생시 2차 PNP, 파이널 롤러 점검 요청 팝업
+	u.user:$014588.20.1 = P_SepaArcing_Popup_Flag;									// Sepa Arc 진행중 팝업
+
+	u.user:$01458C.00.1 = P_Y_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger; //양극 탭 재검사 연속 ng발생 및 1차 언로더 배출 후 사이클 정지 요청 신호 
+	u.user:$01458C.01.1 = P_Y_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger;	  //음극 탭 재검사 연속 ng발생 및 1차 언로더 배출 후 사이클 정지 요청 신호 
+	
+	//양/음극 캘틀어짐 사이클정지 사용/미사용 정의
+	#ifdef F_Align_Calibration_twisted_Enable 
+	u.user:$01458C.02.1 = P_Y_Cathode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger;				 // 양극 캘트러짐 얼라인 캘리브레이션 사이클 스탑 요청 신호
+	u.user:$01458C.03.1 = P_Y_Anode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger;				 // 음극 캘트러짐 얼라인 캘리브레이션 사이클 스탑 요청 신호
+	u.user:$01458C.04.1 = P_Y_Stack_Align_Calibration_twisted_Cycle_Stop_Request_Trigger;				 // 스텍 캘트러짐 얼라인 캘리브레이션 사이클 스탑 요청 신호
+	#endif
+
+	// MSA 진행 횟수 표시하는 변수.
+	u.user:$01458C.16.16 = P_Cathode_Stack_MSA_Count					//msa 진행 횟수
+	u.user:$014590.00.16 = P_Anode_Stack_MSA_Count					    //msa 진행 횟수
+	u.user:$014590.16.16 = P_Cathode_Align_MSA_Count					//msa 진행 횟수
+	u.user:$014594.00.16 = P_Anode_Align_MSA_Count					    //msa 진행 횟수
+
+	//  현재 선택된 젤리 롤 기종 plc에 송신
+	u.user:$014594.16.16 = P_Current_Selected_Sheet_Value;
+
+	u.user:$014598.00.16 = P_Status_Config_Mode_Select;					//PMAC 현재모드 PLC 전달
+	u.user:$014598.16.16 = P_Sepa_Thickness_Jig_Value;					//현재 세파 최대 두께 설정 값
+
+	Sys.Idata[20839] = P_PV_Stack_Table_Damper_Cathode;					//양극 스텍 테이블 댐퍼 전공 레귤레이터 
+	Sys.Idata[20840] = P_PV_Stack_Table_Damper_Anode;					//음극 스텍 테이블 댐퍼 전공 레귤레이터 
+	
+
+	// 배출 텍타임 변수 맵핑
+	//u.user:$014600.00.16 = INT(P_Discharge_Standby_Pos_Tack_Time)/10					// 대기 위치 이동
+	//u.user:$014600.16.16 = INT(P_Discharge_FR_MainZ_Pos_Tack_Time)/10					// 배출 위치 이동
+	//u.user:$014604.00.16 = INT(P_Discharge_Unloader_Go_Pos_Tack_Time)/10				// 언로더 진입
+	//u.user:$014604.16.16 = INT(P_Discharge_SubZ_Down_Pos_Tack_Time)/10					// 스텍 테이블 하강
+	//u.user:$014608.00.16 = INT(P_Discharge_Unloader_Cutting_Pos_Tack_Time)/10			// 언로더 컷팅 위치 이동
+	//u.user:$014608.16.16 = INT(P_Discharge_FR_Clamp_ON_Complete_Tack_Time)/10			// 파이널 롤 클램프 완료
+	//u.user:$01460C.00.16 = INT(P_Discharge_Cutting_Complete_Tack_Time)/10				// 컷티 후 배출 완료
+	//u.user:$01460C.16.16 = INT(P_Discharge_Motion_PG_Active_Starting_Tack_Time)/10		// 모션 프로그램 활성화 시작 (A,B 동기화)
+	//u.user:$014610.00.16 = INT(P_Discharge_Motion_PG_Active_Complete_Tack_Time)/10		// 모션 프로그램 활성화 완료 (A,B 동기화)
+	//u.user:$014610.16.16 = INT(P_Discharge_Sepa_First_Complete_Tack_Time)/10			// 세파 첫장 완료
+	//u.user:$014614.00.16 = INT(P_Discharge_Complete_Tack_Time)/10						// 배출 완료
+	//P_Discharge_Total_Tact = u.user:$014600.00.16 + u.user:$014600.16.16 + u.user:$014604.00.16 +u.user:$014604.16.16 + u.user:$014608.00.16 +u.user:$014608.16.16 + u.user:$01460C.00.16 + u.user:$01460C.16.16 + u.user:$014610.00.16 + u.user:$014610.16.16 + u.user:$014614.00.16
+	//u.user:$014614.16.16 = P_Discharge_Total_Tact;
+
+	// 배출 텍타임 변수 맵핑	[ 참조 : 26.05.28 Suspend 택타임 수정 ]
+	u.user:$014600.00.16 = P_Last_Run_To_Discharge_Tact_Time/10							// 라스트 런 → 배출 모듈 시작
+	u.user:$014600.16.16 = P_Suspend_Discharge_Tact_Time_Array(1)/10					// 배출 1 인덱스) 파이널 롤러 클램프 OFF
+	u.user:$014604.00.16 = P_Suspend_Discharge_Tact_Time_Array(2)/10					// 배출 2 인덱스) 1차 언로더 상승
+	u.user:$014604.16.16 = P_Suspend_Discharge_Tact_Time_Array(3)/10					// 배출 3 인덱스) 1차 언로더 전진
+	u.user:$014608.00.16 = P_Suspend_Discharge_Tact_Time_Array(4)/10					// 배출 4 인덱스) 1차 언로더 셀 부착 위치 이동
+	u.user:$014608.16.16 = P_Suspend_Discharge_Tact_Time_Array(5)/10					// 배출 5 인덱스) 1차 언로더 그립 및 시트 페이퍼 후진
+	u.user:$01460C.00.16 = P_Suspend_Discharge_Tact_Time_Array(6)/10					// 배출 6 인덱스) 양극 클램프 OFF
+	u.user:$01460C.16.16 = P_Suspend_Discharge_Tact_Time_Array(7)/10					// 배출 7 인덱스) 파이널 롤러 클램프 ON
+	u.user:$014610.00.16 = P_Suspend_Discharge_Tact_Time_Array(8)/10					// 배출 8 인덱스) 세파 커터 전진
+	u.user:$014610.16.16 = P_Suspend_Discharge_Tact_Time_Array(9)/10					// 배출 9 인덱스) 세파 커터 후진 및 1차 언로더 후진 전 대기 위치
+	u.user:$014614.00.16 = P_Suspend_Discharge_Tact_Time_Array(10)/10					// 배출 10 인덱스) 1차 언로더 후진
+	u.user:$014614.16.16 = P_Execute_First_Sepa_Total_Tact_Time/10						// 세파 첫장 모듈) 세파 첫장 완료	
+	u.user:$014618.00.16 = P_Master_Trigger_Sync_Tact_Time/10							// 마스터 트리거 Sync (A,B열 동기화) (세파 첫장 완료 → 음극 세미런 전)		 
+	// ↓ 배출 총 택타임
+	u.user:$014618.16.16 = u.user:$014600.00.16 + u.user:$014600.16.16 + u.user:$014604.00.16 + u.user:$014604.16.16 + u.user:$014608.00.16 + u.user:$014608.16.16 + u.user:$01460C.00.16 + u.user:$01460C.16.16 + u.user:$014610.00.16 + u.user:$014610.16.16 + u.user:$014614.00.16 + u.user:$014614.16.16 + u.user:$014618.00.16
+																					   
+	u.user:$014620.00.16 = P_Anode_Clamp_TackTime_Array1 / 10				// 음극 Clamp 타임 버퍼 1
+	u.user:$014620.16.16 = P_Anode_Clamp_TackTime_Array2 / 10				// 음극 Clamp 타임 버퍼 2
+	u.user:$014624.00.16 = P_Anode_Clamp_TackTime_Array3 / 10				// 음극 Clamp 타임 버퍼 3
+	u.user:$014624.16.16 = P_Anode_Clamp_TackTime_Array4 / 10				// 음극 Clamp 타임 버퍼 4
+	u.user:$014628.00.16 = P_Anode_Clamp_TackTime_Array5 / 10				// 음극 Clamp 타임 버퍼 5
+	u.user:$014628.16.16 = P_Anode_Clamp_TackTime_Array6 / 10				// 음극 Clamp 타임 버퍼 6
+	u.user:$01462C.00.16 = P_Anode_Clamp_TackTime_Array7 / 10				// 음극 Clamp 타임 버퍼 7
+	u.user:$01462C.16.16 = P_Anode_Clamp_TackTime_Array8 / 10				// 음극 Clamp 타임 버퍼 8
+	u.user:$014630.00.16 = P_Anode_Clamp_TackTime_Array9 / 10				// 음극 Clamp 타임 버퍼 9
+	u.user:$014630.16.16 = P_Anode_Clamp_TackTime_Array10 / 10				// 음극 Clamp 타임 버퍼 10
+
+	u.user:$014634.00.16 = P_Stacking_TackTime_Array1 / 10;				// 스텍 텍 타임 버퍼 1
+	u.user:$014634.16.16 = P_Stacking_TackTime_Array2 / 10;				// 스텍 텍 타임 버퍼 2
+	u.user:$014638.00.16 = P_Stacking_TackTime_Array3 / 10;				// 스텍 텍 타임 버퍼 3
+	u.user:$014638.16.16 = P_Stacking_TackTime_Array4 / 10;				// 스텍 텍 타임 버퍼 4
+	u.user:$01463C.00.16 = P_Stacking_TackTime_Array5 / 10;				// 스텍 텍 타임 버퍼 5
+	u.user:$01463C.16.16 = P_Stacking_TackTime_Array6 / 10;				// 스텍 텍 타임 버퍼 6
+	u.user:$014640.00.16 = P_Stacking_TackTime_Array7 / 10;				// 스텍 텍 타임 버퍼 7
+	u.user:$014640.16.16 = P_Stacking_TackTime_Array8 / 10;				// 스텍 텍 타임 버퍼 8
+	u.user:$014644.00.16 = P_Stacking_TackTime_Array9 / 10;				// 스텍 텍 타임 버퍼 9
+	u.user:$014644.16.16 = P_Stacking_TackTime_Array10 / 10;				// 스텍 텍 타임 버퍼 10
+
+	u.user:$014648.00.16 = P_Cathode_Clamp_TackTime_Array1 / 10				// 양극 Clamp 타임 버퍼 1
+	u.user:$014648.16.16 = P_Cathode_Clamp_TackTime_Array2 / 10				// 양극 Clamp 타임 버퍼 2
+	u.user:$01464C.00.16 = P_Cathode_Clamp_TackTime_Array3 / 10				// 양극 Clamp 타임 버퍼 3
+	u.user:$01464C.16.16 = P_Cathode_Clamp_TackTime_Array4 / 10				// 양극 Clamp 타임 버퍼 4
+	u.user:$014650.00.16 = P_Cathode_Clamp_TackTime_Array5 / 10				// 양극 Clamp 타임 버퍼 5
+	u.user:$014650.16.16 = P_Cathode_Clamp_TackTime_Array6 / 10				// 양극 Clamp 타임 버퍼 6
+	u.user:$014654.00.16 = P_Cathode_Clamp_TackTime_Array7 / 10				// 양극 Clamp 타임 버퍼 7
+	u.user:$014654.16.16 = P_Cathode_Clamp_TackTime_Array8 / 10				// 양극 Clamp 타임 버퍼 8
+	u.user:$014658.00.16 = P_Cathode_Clamp_TackTime_Array9 / 10				// 양극 Clamp 타임 버퍼 9
+	u.user:$014658.16.16 = P_Cathode_Clamp_TackTime_Array10	/ 10			// 양극 Clamp 타임 버퍼 10
+
+	u.user:$01465C.00.16 = P_JellyRoll_Out_TackTime_Array1 / 10			// 젤리롤 배출 타임 버퍼 1
+	u.user:$01465C.16.16 = P_JellyRoll_Out_TackTime_Array2 / 10	    	// 젤리롤 배출 타임 버퍼 2
+	u.user:$014660.00.16 = P_JellyRoll_Out_TackTime_Array3 / 10	    	// 젤리롤 배출 타임 버퍼 3
+	u.user:$014660.16.16 = P_JellyRoll_Out_TackTime_Array4 / 10	    	// 젤리롤 배출 타임 버퍼 4
+	u.user:$014664.00.16 = P_JellyRoll_Out_TackTime_Array5 / 10	    	// 젤리롤 배출 타임 버퍼 5
+	u.user:$014664.16.16 = P_JellyRoll_Out_TackTime_Array6 / 10	    	// 젤리롤 배출 타임 버퍼 6
+	u.user:$014668.00.16 = P_JellyRoll_Out_TackTime_Array7 / 10	    	// 젤리롤 배출 타임 버퍼 7
+	u.user:$014668.16.16 = P_JellyRoll_Out_TackTime_Array8 / 10	    	// 젤리롤 배출 타임 버퍼 8
+	u.user:$01466C.00.16 = P_JellyRoll_Out_TackTime_Array9 / 10	    	// 젤리롤 배출 타임 버퍼 9
+	u.user:$01466C.16.16 = P_JellyRoll_Out_TackTime_Array10	/ 10		// 젤리롤 배출 타임 버퍼 10
+
+	u.user:$014670.00.16 = P_Anode_1th_TackTime_Array1 / 10					// 음극 1차 P&P 타임 버퍼 1
+	u.user:$014670.16.16 = P_Anode_1th_TackTime_Array2 / 10	    			// 음극 1차 P&P 타임 버퍼 2
+	u.user:$014674.00.16 = P_Anode_1th_TackTime_Array3 / 10	    			// 음극 1차 P&P 타임 버퍼 3
+	u.user:$014674.16.16 = P_Anode_1th_TackTime_Array4 / 10	    			// 음극 1차 P&P 타임 버퍼 4
+	u.user:$014678.00.16 = P_Anode_1th_TackTime_Array5 / 10	    			// 음극 1차 P&P 타임 버퍼 5
+	u.user:$014678.16.16 = P_Anode_1th_TackTime_Array6 / 10	    			// 음극 1차 P&P 타임 버퍼 6
+	u.user:$01467C.00.16 = P_Anode_1th_TackTime_Array7 / 10	    			// 음극 1차 P&P 타임 버퍼 7
+	u.user:$01467C.16.16 = P_Anode_1th_TackTime_Array8 / 10	    			// 음극 1차 P&P 타임 버퍼 8
+	u.user:$014680.00.16 = P_Anode_1th_TackTime_Array9 / 10	    			// 음극 1차 P&P 타임 버퍼 9
+	u.user:$014680.16.16 = P_Anode_1th_TackTime_Array10	/ 10				// 음극 1차 P&P 타임 버퍼 10
+
+	u.user:$014684.00.16 = P_Cathode_1th_TackTime_Array1 / 10				// 양극 1차 P&P 타임 버퍼 1
+	u.user:$014684.16.16 = P_Cathode_1th_TackTime_Array2 / 10				// 양극 1차 P&P 타임 버퍼 2
+	u.user:$014688.00.16 = P_Cathode_1th_TackTime_Array3 / 10				// 양극 1차 P&P 타임 버퍼 3
+	u.user:$014688.16.16 = P_Cathode_1th_TackTime_Array4 / 10				// 양극 1차 P&P 타임 버퍼 4
+	u.user:$01468C.00.16 = P_Cathode_1th_TackTime_Array5 / 10				// 양극 1차 P&P 타임 버퍼 5
+	u.user:$01468C.16.16 = P_Cathode_1th_TackTime_Array6 / 10				// 양극 1차 P&P 타임 버퍼 6
+	u.user:$014690.00.16 = P_Cathode_1th_TackTime_Array7 / 10				// 양극 1차 P&P 타임 버퍼 7
+	u.user:$014690.16.16 = P_Cathode_1th_TackTime_Array8 / 10				// 양극 1차 P&P 타임 버퍼 8
+	u.user:$014694.00.16 = P_Cathode_1th_TackTime_Array9 / 10				// 양극 1차 P&P 타임 버퍼 9
+	u.user:$014694.16.16 = P_Cathode_1th_TackTime_Array10 / 10 				// 양극 1차 P&P 타임 버퍼 10
+
+	u.user:$014698.00.16 = P_Anode_2th_TackTime_Array1 / 10					// 음극 2차 P&P 타임 버퍼 1    
+	u.user:$014698.16.16 = P_Anode_2th_TackTime_Array2 / 10	    			// 음극 2차 P&P 타임 버퍼 2
+	u.user:$01469C.00.16 = P_Anode_2th_TackTime_Array3 / 10	    			// 음극 2차 P&P 타임 버퍼 3
+	u.user:$01469C.16.16 = P_Anode_2th_TackTime_Array4 / 10	    			// 음극 2차 P&P 타임 버퍼 4
+	u.user:$0146A0.00.16 = P_Anode_2th_TackTime_Array5 / 10	    			// 음극 2차 P&P 타임 버퍼 5
+	u.user:$0146A0.16.16 = P_Anode_2th_TackTime_Array6 / 10	    			// 음극 2차 P&P 타임 버퍼 6
+	u.user:$0146A4.00.16 = P_Anode_2th_TackTime_Array7 / 10	    			// 음극 2차 P&P 타임 버퍼 7
+	u.user:$0146A4.16.16 = P_Anode_2th_TackTime_Array8 / 10	    			// 음극 2차 P&P 타임 버퍼 8
+	u.user:$0146A8.00.16 = P_Anode_2th_TackTime_Array9 / 10	    			// 음극 2차 P&P 타임 버퍼 9
+	u.user:$0146A8.16.16 = P_Anode_2th_TackTime_Array10  / 10 				// 음극 2차 P&P 타임 버퍼 10
+
+	u.user:$0146AC.00.16 = P_Cathode_2th_TackTime_Array1 / 10				// 양극 2차 P&P 타임 버퍼 1
+	u.user:$0146AC.16.16 = P_Cathode_2th_TackTime_Array2 / 10				// 양극 2차 P&P 타임 버퍼 2
+	u.user:$0146B0.00.16 = P_Cathode_2th_TackTime_Array3 / 10				// 양극 2차 P&P 타임 버퍼 3
+	u.user:$0146B0.16.16 = P_Cathode_2th_TackTime_Array4 / 10				// 양극 2차 P&P 타임 버퍼 4
+	u.user:$0146B4.00.16 = P_Cathode_2th_TackTime_Array5 / 10				// 양극 2차 P&P 타임 버퍼 5
+	u.user:$0146B4.16.16 = P_Cathode_2th_TackTime_Array6 / 10				// 양극 2차 P&P 타임 버퍼 6
+	u.user:$0146B8.00.16 = P_Cathode_2th_TackTime_Array7 / 10				// 양극 2차 P&P 타임 버퍼 7
+	u.user:$0146B8.16.16 = P_Cathode_2th_TackTime_Array8 / 10				// 양극 2차 P&P 타임 버퍼 8
+	u.user:$0146BC.00.16 = P_Cathode_2th_TackTime_Array9 / 10				// 양극 2차 P&P 타임 버퍼 9
+	u.user:$0146BC.16.16 = P_Cathode_2th_TackTime_Array10 / 10  			// 양극 2차 P&P 타임 버퍼 10
+
+	u.user:$0146C0.00.16 = P_Anode_Align_Table_TackTime_Array1 / 10			// 음극 얼라인 테이블 타임 버퍼 1
+	u.user:$0146C0.16.16 = P_Anode_Align_Table_TackTime_Array2 / 10			// 음극 얼라인 테이블 타임 버퍼 2
+	u.user:$0146C4.00.16 = P_Anode_Align_Table_TackTime_Array3 / 10			// 음극 얼라인 테이블 타임 버퍼 3
+	u.user:$0146C4.16.16 = P_Anode_Align_Table_TackTime_Array4 / 10			// 음극 얼라인 테이블 타임 버퍼 4
+	u.user:$0146C8.00.16 = P_Anode_Align_Table_TackTime_Array5 / 10			// 음극 얼라인 테이블 타임 버퍼 5
+	u.user:$0146C8.16.16 = P_Anode_Align_Table_TackTime_Array6 / 10			// 음극 얼라인 테이블 타임 버퍼 6
+	u.user:$0146CC.00.16 = P_Anode_Align_Table_TackTime_Array7 / 10			// 음극 얼라인 테이블 타임 버퍼 7
+	u.user:$0146CC.16.16 = P_Anode_Align_Table_TackTime_Array8 / 10			// 음극 얼라인 테이블 타임 버퍼 8
+	u.user:$0146D0.00.16 = P_Anode_Align_Table_TackTime_Array9 / 10			// 음극 얼라인 테이블 타임 버퍼 9
+	u.user:$0146D0.16.16 = P_Anode_Align_Table_TackTime_Array10 / 10		// 음극 얼라인 테이블 타임 버퍼 10
+
+	u.user:$0146D4.00.16 = P_Cathode_Align_Table_TackTime_Array1 / 10		// 양극 얼라인 테이블 타임 버퍼 1	
+	u.user:$0146D4.16.16 = P_Cathode_Align_Table_TackTime_Array2 / 10		// 양극 얼라인 테이블 타임 버퍼 2
+	u.user:$0146D8.00.16 = P_Cathode_Align_Table_TackTime_Array3 / 10		// 양극 얼라인 테이블 타임 버퍼 3
+	u.user:$0146D8.16.16 = P_Cathode_Align_Table_TackTime_Array4 / 10		// 양극 얼라인 테이블 타임 버퍼 4
+	u.user:$0146DC.00.16 = P_Cathode_Align_Table_TackTime_Array5 / 10		// 양극 얼라인 테이블 타임 버퍼 5
+	u.user:$0146DC.16.16 = P_Cathode_Align_Table_TackTime_Array6 / 10		// 양극 얼라인 테이블 타임 버퍼 6
+	u.user:$0146E0.00.16 = P_Cathode_Align_Table_TackTime_Array7 / 10		// 양극 얼라인 테이블 타임 버퍼 7
+	u.user:$0146E0.16.16 = P_Cathode_Align_Table_TackTime_Array8 / 10		// 양극 얼라인 테이블 타임 버퍼 8
+	u.user:$0146E4.00.16 = P_Cathode_Align_Table_TackTime_Array9 / 10		// 양극 얼라인 테이블 타임 버퍼 9
+	u.user:$0146E4.16.16 = P_Cathode_Align_Table_TackTime_Array10 / 10		// 양극 얼라인 테이블 타임 버퍼 10
+
+	u.user:$0146E8.00.16 = P_Anode_NG_PNP_TackTime_Array1 / 10				// 음극 NG P&P 타임 버퍼 1
+	u.user:$0146E8.16.16 = P_Anode_NG_PNP_TackTime_Array2 / 10				// 음극 NG P&P 타임 버퍼 2
+	u.user:$0146EC.00.16 = P_Anode_NG_PNP_TackTime_Array3 / 10				// 음극 NG P&P 타임 버퍼 3
+	u.user:$0146EC.16.16 = P_Anode_NG_PNP_TackTime_Array4 / 10				// 음극 NG P&P 타임 버퍼 4
+	u.user:$0146F0.00.16 = P_Anode_NG_PNP_TackTime_Array5 / 10				// 음극 NG P&P 타임 버퍼 5
+	u.user:$0146F0.16.16 = P_Anode_NG_PNP_TackTime_Array6 / 10				// 음극 NG P&P 타임 버퍼 6
+	u.user:$0146F4.00.16 = P_Anode_NG_PNP_TackTime_Array7 / 10				// 음극 NG P&P 타임 버퍼 7
+	u.user:$0146F4.16.16 = P_Anode_NG_PNP_TackTime_Array8 / 10				// 음극 NG P&P 타임 버퍼 8
+	u.user:$0146F8.00.16 = P_Anode_NG_PNP_TackTime_Array9 / 10				// 음극 NG P&P 타임 버퍼 9
+	u.user:$0146F8.16.16 = P_Anode_NG_PNP_TackTime_Array10 / 10				// 음극 NG P&P 타임 버퍼 1 
+
+	u.user:$0146FC.00.16 = P_Cathode_NG_PNP_TackTime_Array1 / 10			// 양극 NG P&P 타임 버퍼 1
+	u.user:$0146FC.16.16 = P_Cathode_NG_PNP_TackTime_Array2 / 10			// 양극 NG P&P 타임 버퍼 2
+	u.user:$014700.00.16 = P_Cathode_NG_PNP_TackTime_Array3 / 10			// 양극 NG P&P 타임 버퍼 3
+	u.user:$014700.16.16 = P_Cathode_NG_PNP_TackTime_Array4 / 10			// 양극 NG P&P 타임 버퍼 4
+	u.user:$014704.00.16 = P_Cathode_NG_PNP_TackTime_Array5 / 10			// 양극 NG P&P 타임 버퍼 5
+	u.user:$014704.16.16 = P_Cathode_NG_PNP_TackTime_Array6 / 10			// 양극 NG P&P 타임 버퍼 6
+	u.user:$014708.00.16 = P_Cathode_NG_PNP_TackTime_Array7 / 10			// 양극 NG P&P 타임 버퍼 7
+	u.user:$014708.16.16 = P_Cathode_NG_PNP_TackTime_Array8 / 10			// 양극 NG P&P 타임 버퍼 8
+	u.user:$01470C.00.16 = P_Cathode_NG_PNP_TackTime_Array9 / 10			// 양극 NG P&P 타임 버퍼 9
+	u.user:$01470C.16.16 = P_Cathode_NG_PNP_TackTime_Array10 / 10			// 양극 NG P&P 타임 버퍼 1
+
+	u.user:$014710.00.1 = P_Whole_Stacking_TackTime_MES_Report_Flag;	//전체 스텍 TACTIME MES보고 신호
+	u.user:$014710.01.1 = P_JellyRoll_Out_TackTime_MES_Report_Flag;		//배출 TACTIME MES보고 신호
+
+	Sys.Idata[20933] = P_PV_Cathode_Count;								//양극 스텍 수 	         
+	Sys.Idata[20934] = P_PV_Anode_Count;								//음극 스텍 수 
+	//Sys.Idata[20936] = P_PV_AO_Value_Chanel(1);							//양극 클램프 압력   
+	//Sys.Idata[20937] = P_PV_AO_Value_Chanel(2);							//음극 클램프 압력
+	Sys.Idata[20936] = I_Cathode_Clamp_Damper;							// PV 양극 클램프 압력	[ 참조 : 26.09.14 MES PV 수정 ]
+	Sys.Idata[20937] = I_Anode_Clamp_Damper;							// PV 음극 클램프 압력	[ 참조 : 26.09.14 MES PV 수정 ]
+	Sys.Idata[20938] = P_Recipe_Speed_Value;							//PMAC 장비 속도 전달 PV
+	Sys.Idata[20939] = P_PV_Cathode_NG_TR_NG_Count;						//양극 얼라인 NG 개수 PV
+	Sys.Idata[20940] = P_PV_Anode_NG_TR_NG_Count;						//음극 얼라인 NG 개수 PV
+	Sys.Idata[20941] = P_PV_Cathode_Retry_NG_Count;						//양극 리트라이 NG 개수 PV //사용안할듯?
+	Sys.Idata[20942] = P_PV_Anode_Retry_NG_Count;						//음극 리트라이 NG 개수 PV //사용안할듯?
+	Sys.Idata[20943] = M_AI_1st_Unloader_Grip_Sensing;					//1차 언로드 그립 압력
+	Sys.Idata[20944] = P_PV_Align_INPUT_Count;							//얼라인 극판 투입 개수
+	Sys.Idata[20945] = P_Sepa_Cutter_Heat_Meter * 100;					//히트미터 값
+
+	//250513
+	//극판 현황 램프
+	u.user:$014748.00.1 = P_Current_Cell_Memory_Anode_1P;
+	u.user:$014748.01.1 = P_Current_Cell_Memory_Anode_AT;
+	u.user:$014748.02.1 = P_Current_Cell_Memory_Anode_2P;
+	u.user:$014748.03.1 = P_Current_Cell_Memory_Cathode_1P;
+	u.user:$014748.04.1 = P_Current_Cell_Memory_Cathode_AT;
+	u.user:$014748.05.1 = P_Current_Cell_Memory_Cathode_2P;
+	u.user:$014748.06.1 = P_Current_Cell_Memory_Stack_Table;
+	u.user:$014748.07.1 = P_Current_Cell_Memory_Cathode_NG_TR;
+	u.user:$014748.08.1 = P_Current_Cell_Memory_Anode_NG_TR;
+	u.user:$014748.09.1 = P_1st_ULD_OK_Lamp								// 젤리롤 OK 램프
+	u.user:$014748.10.1 = P_1st_ULD_NG_Lamp								// 젤리롤 NG 램프
+	// 참조 260605 1차 언로더 터치화면 존재 데이터 매칭
+	u.user:$014748.11.1 = P_Suspend_Discharge_1st_Unloader_JR_Grip
+	u.user:$014748.12.1 = P_1st_ULD_Sample_QC_Lamp						//qc, sample 램프
+
+
+
+	u.user:$014748.16.16 = P_UI_Unit_Status(N_Unwinder_Unit_Lamp)	// UI 유닛 상태 [ 세파 언와인더 ]
+	u.user:$01474C.00.16 = P_UI_Unit_Status(N_Anode_Unit_Lamp)		// UI 유닛 상태 [ 음극 ]
+	u.user:$01474C.16.16 = P_UI_Unit_Status(N_Cathode_Unit_Lamp)	// UI 유닛 상태 [ 양극 ]
+	u.user:$014750.00.16 = P_UI_Unit_Status(N_Stack_Unit_Lamp)		// UI 유닛 상태 [ 스텍 테이블 ]
+	u.user:$014750.16.16 = P_UI_Unit_Status(N_ARC_Unit_Lamp)		// UI 유닛 상태 [ ARC ]
+	u.user:$014824.00.16 = P_UI_Unit_Status(N_1st_Unloader_Lamp)	// UI 유닛 상태 [ 1차 언로더 ]
+	
+	u.user:$014828.00.1 = P_Stack_Table_JR_Exist_Flag;				// 스택 테이블 젤리롤 적층 완료 상태
+
+	u.user:$014754.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Align_Table_Anode_Zero_Clamp_Lock)					// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014754.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Align_Table_Anode_Zero_Clamp_UnLock) 				// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014758.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Final_Roll_Sepa_Clamp) 							// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014758.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Final_Roll_Sepa_UnClamp)							// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$01475C.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Align_Table_Cathode_Zero_Clamp_Lock)				// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$01475C.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Align_Table_Cathode_Zero_Clamp_UnLock) 			// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014760.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_1ST_TR_Anode_VAC_On) 								// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014760.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_1ST_TR_Anode_VAC_Off)								// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014764.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_1ST_TR_Cathode_VAC_On) 							// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014764.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_1ST_TR_Cathode_VAC_Off) 							// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014768.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_2ND_TR_Anode_VAC_On)								// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014768.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_2ND_TR_Anode_VAC_Off) 								// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$01476C.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_2ND_TR_Cathode_VAC_On)								// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$01476C.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_2ND_TR_Cathode_VAC_Off) 							// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014770.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Align_Table_Anode_VAC_On) 							// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014770.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Align_Table_Anode_VAC_Off) 						// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014774.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Align_Table_Cathode_VAC_On) 						// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014774.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Align_Table_Cathode_VAC_Off) 						// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014778.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Stack_Table_VAC_On)								// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014778.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Stack_Table_VAC_Off)								// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$01477C.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Stack_Table_Rise)									// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$01477C.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Stack_Table_Down)									// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014780.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Sepa_Cutting_Rise)									// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014780.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Sepa_Cutting_Down)									// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014784.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_2ND_TR_Cathode_Zero_Clamp_Lock)					// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014784.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_2ND_TR_Cathode_Zero_Clamp_UnLock)					// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014788.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_2ND_TR_Anode_Zero_Clamp_Lock)						// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014788.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_2ND_TR_Anode_Zero_Clamp_UnLock)					// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$01478C.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Stack_Job_Change_Lock)								// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$01478C.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Stack_Job_Change_UnLock)							// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014790.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Final_Back_UP_Roll_Clamp)							// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$014790.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Final_Back_UP_Roll_UnClamp)						// 공압 실린더, 진공 텍타임 측정 시간
+
+	//프로그램 버전 관리 변수 영역
+	u.user:$014794.00.16 = P_Project_Ver_A
+	u.user:$014794.16.16 = P_Project_Ver_B;
+	u.user:$014798.00.16 = P_Project_Ver_C;
+	u.user:$014798.16.16 = P_Project_Ver_D;
+
+	u.user:$01479C = P_Cathode_1St_Flow_Chart_Bit_Flag;			// 양극 1차 P&P 플로우차트 플래그.
+	u.user:$0147A0 = P_Cathode_AT_Flow_Chart_Bit_Flag;			// 양극 A/T 플로우차트 플래그.
+	u.user:$0147A4 = P_Cathode_2nd_Flow_Chart_Bit_Flag;			// 양극 2차 P&P 플로우차트 플래그.
+	u.user:$0147A8 = P_Anode_Clamp_Flow_Chart_Bit_Flag;			// 음극 클램프 플로우차트 플래그.
+	u.user:$0147AC = P_Final_Roll_Flow_Chart_Bit_Flag;			// 파이널롤 플로우차트 플래그.
+	u.user:$0147B0 = P_Stack_Table_Flow_Chart_Bit_Flag;			// 스택테이블 플로우차트 플래그.
+	u.user:$0147B4 = P_Cathode_Clamp_Flow_Chart_Bit_Flag;		// 양극 클램프 프롤우차트 플래그.
+	u.user:$0147B8 = P_Anode_2nd_Flow_Chart_Bit_Flag;			// 음극 2차 P&P 플로우차트 플래그.
+	u.user:$0147BC = P_Anode_AT_Flow_Chart_Bit_Flag;			// 음극 A/T 플로우차트 플래그.
+	u.user:$0147C0 = P_Anode_1St_Flow_Chart_Bit_Flag;			// 음극 1차 P&P 플로우차트 플래그.
+	u.user:$0147C4 = P_Sepa_Unwinder_Flow_Chart_Bit_Flag		// 세파 언와인더 플로우차트 플래그
+	
+	//임시  
+	u.user:$0147F4.00.1 = P_TEST_EPC_Interlock_Auto				// EPC Auto 인터락
+	u.user:$0147F4.01.1 = P_TEST_EPC_Interlock_Manual			// EPC Manual 인터락
+
+	// Ecat_MC_Reconnect 버튼 추가		[ 참조 : 26.07.10 Ecat MC Reconnect 프로그램 수정 ]
+	u.user:$0147F4.16.1 = P_Ecat_Reconn_Chk_Lamp;				// Ecat 재연결 확인 램프.		[ 0 : 종료, 1 : 연결 중 ] 
+	u.user:$0147F4.17.1 = P_MC_Reconn_Chk_Lamp;					// MC 재연결 확인 램프. 		[ 0 : 종료, 1 : 연결 중 ]
+
+	u.user:$0147FC.00.1 = P_Mode_Run_Enable_Flag(F_Cathode_Stack_MSA)	//msa 진행 가능상태 확인
+	u.user:$0147FC.01.1 = P_Mode_Run_Enable_Flag(F_Anode_Stack_MSA)		//msa 진행 가능상태 확인
+	u.user:$0147FC.02.1 = P_Mode_Run_Enable_Flag(F_Cathode_Align_MSA)	//msa 진행 가능상태 확인
+	u.user:$0147FC.03.1 = P_Mode_Run_Enable_Flag(F_Anode_Align_MSA)		//msa 진행 가능상태 확인
+
+	// 홈진행 상태 램프
+	u.user:$014800.00.1 = P_Current_Homming_Status_To_PLC(1);
+	u.user:$014800.01.1 = P_Current_Homming_Status_To_PLC(2);
+	u.user:$014800.02.1 = P_Current_Homming_Status_To_PLC(3);
+	u.user:$014800.03.1 = P_Current_Homming_Status_To_PLC(4);
+	u.user:$014800.04.1 = P_Current_Homming_Status_To_PLC(5);
+	u.user:$014800.05.1 = P_Current_Homming_Status_To_PLC(6);
+	u.user:$014800.06.1 = P_Current_Homming_Status_To_PLC(7);
+	u.user:$014800.07.1 = P_Current_Homming_Status_To_PLC(8);
+	
+	u.user:$014800.10.1 = P_Current_Homming_Status_To_PLC(11);
+	u.user:$014800.11.1 = P_Current_Homming_Status_To_PLC(12);
+	u.user:$014800.12.1 = P_Current_Homming_Status_To_PLC(13);
+	u.user:$014800.13.1 = P_Current_Homming_Status_To_PLC(14);
+	u.user:$014800.14.1 = P_Current_Homming_Status_To_PLC(15);
+	u.user:$014800.15.1 = P_Current_Homming_Status_To_PLC(16);
+	u.user:$014800.16.1 = P_Current_Homming_Status_To_PLC(17);
+	u.user:$014800.17.1 = P_Current_Homming_Status_To_PLC(18);
+	u.user:$014800.18.1 = P_Current_Homming_Status_To_PLC(19);
+	u.user:$014800.19.1 = P_Current_Homming_Status_To_PLC(20);
+	u.user:$014800.20.1 = P_Current_Homming_Status_To_PLC(21);
+	u.user:$014800.21.1 = P_Current_Homming_Status_To_PLC(22);
+	u.user:$014800.22.1 = P_Current_Homming_Status_To_PLC(23);
+	u.user:$014800.23.1 = P_Current_Homming_Status_To_PLC(24);
+	u.user:$014800.24.1 = P_Current_Homming_Status_To_PLC(25);
+	u.user:$014800.25.1 = P_Current_Homming_Status_To_PLC(26);
+	u.user:$014800.26.1 = P_Current_Homming_Status_To_PLC(27);
+	u.user:$014800.27.1 = P_Current_Homming_Status_To_PLC(28);
+	
+	u.user:$014804.00.1 = P_Current_Homming_Status_To_PLC(33);
+	u.user:$014804.01.1 = P_Current_Homming_Status_To_PLC(34);
+	u.user:$014804.02.1 = P_Current_Homming_Status_To_PLC(35);
+	u.user:$014804.03.1 = P_Current_Homming_Status_To_PLC(36);
+	u.user:$014804.04.1 = P_Current_Homming_Status_To_PLC(37);
+	u.user:$014804.05.1 = P_Current_Homming_Status_To_PLC(38);
+	u.user:$014804.06.1 = P_Current_Homming_Status_To_PLC(39);
+	u.user:$014804.07.1 = P_Current_Homming_Status_To_PLC(40);
+	u.user:$014804.08.1 = P_Current_Homming_Status_To_PLC(41);
+	u.user:$014804.09.1 = P_Current_Homming_Status_To_PLC(42);
+	u.user:$014804.10.1 = P_Current_Homming_Status_To_PLC(43);
+	u.user:$014804.11.1 = P_Current_Homming_Status_To_PLC(44);
+	u.user:$014804.12.1 = P_Current_Homming_Status_To_PLC(45);
+	u.user:$014804.13.1 = P_Current_Homming_Status_To_PLC(46);
+	u.user:$014804.14.1 = P_Current_Homming_Status_To_PLC(47);
+	u.user:$014804.15.1 = P_Current_Homming_Status_To_PLC(48);
+	// 인터락 메시지 
+	u.user:$014808.01.1 =	P_Interlock_Messege(1)					// 위치 인터락 팝업
+	u.user:$014808.02.1 =	P_Interlock_Messege(2)					// 위치 인터락 팝업
+	u.user:$014808.03.1 =	P_Interlock_Messege(3)					// 위치 인터락 팝업
+	u.user:$014808.04.1 =	P_Interlock_Messege(4)					// 위치 인터락 팝업
+	u.user:$014808.05.1 =	P_Interlock_Messege(5)					// 위치 인터락 팝업
+	u.user:$014808.06.1 =	P_Interlock_Messege(6)					// 위치 인터락 팝업
+	u.user:$014808.07.1 =	P_Interlock_Messege(7)					// 위치 인터락 팝업
+	u.user:$014808.08.1 =	P_Interlock_Messege(8)					// 위치 인터락 팝업
+	u.user:$014808.09.1 =	P_Interlock_Messege(9)					// 위치 인터락 팝업
+	u.user:$014808.10.1 =	P_Interlock_Messege(10)					// 위치 인터락 팝업
+	u.user:$014808.11.1 =	P_Interlock_Messege(11)					// 위치 인터락 팝업
+	u.user:$014808.12.1 =	P_Interlock_Messege(12)					// 위치 인터락 팝업
+	u.user:$014808.13.1 =	P_Interlock_Messege(13)					// 위치 인터락 팝업
+	u.user:$014808.14.1 =	P_Interlock_Messege(14)					// 위치 인터락 팝업
+	u.user:$014808.15.1 =	P_Interlock_Messege(15)					// 위치 인터락 팝업
+	u.user:$014808.16.1 =	P_Interlock_Messege(16)					// 위치 인터락 팝업
+	u.user:$014808.17.1 =	P_Interlock_Messege(17)					// 위치 인터락 팝업
+	u.user:$014808.18.1 =	P_Interlock_Messege(18)					// 위치 인터락 팝업
+	u.user:$014808.19.1 =	P_Interlock_Messege(19)					// 위치 인터락 팝업
+	u.user:$014808.20.1 =	P_Interlock_Messege(20)					// 위치 인터락 팝업
+	u.user:$014808.21.1 =	P_Interlock_Messege(21)					// 위치 인터락 팝업
+	u.user:$014808.22.1 =	P_Interlock_Messege(22)					// 위치 인터락 팝업
+	u.user:$014808.23.1 =	P_Interlock_Messege(23)					// 위치 인터락 팝업
+	u.user:$014808.24.1 =	P_Interlock_Messege(24)					// 위치 인터락 팝업
+	u.user:$014808.25.1 =	P_Interlock_Messege(25)					// 위치 인터락 팝업
+	u.user:$014808.26.1 =	P_Interlock_Messege(26)					// 위치 인터락 팝업
+	u.user:$014808.27.1 =	P_Interlock_Messege(27)					// 위치 인터락 팝업
+	u.user:$014808.28.1 =	P_Interlock_Messege(28)					// 위치 인터락 팝업
+	u.user:$014808.29.1 =	P_Interlock_Messege(29)					// 위치 인터락 팝업
+	u.user:$014808.30.1 =	P_Interlock_Messege(30)					// 위치 인터락 팝업
+	u.user:$014808.31.1 =	P_Interlock_Messege(31)					// 위치 인터락 팝업
+
+	u.user:$01480C.00.1 =	P_Interlock_Messege(32)					// 위치 인터락 팝업
+	u.user:$01480C.01.1 =	P_Interlock_Messege(33)					// 위치 인터락 팝업
+	u.user:$01480C.02.1 =	P_Interlock_Messege(34)					// 위치 인터락 팝업
+	u.user:$01480C.03.1 =	P_Interlock_Messege(35)					// 위치 인터락 팝업
+	u.user:$01480C.04.1 =	P_Interlock_Messege(36)					// 위치 인터락 팝업
+	u.user:$01480C.05.1 =	P_Interlock_Messege(37)					// 위치 인터락 팝업
+	u.user:$01480C.06.1 =	P_Interlock_Messege(38)					// 위치 인터락 팝업
+	u.user:$01480C.07.1 =	P_Interlock_Messege(39)					// 위치 인터락 팝업
+	u.user:$01480C.08.1 =	P_Interlock_Messege(40)					// 위치 인터락 팝업
+	u.user:$01480C.09.1 =	P_Interlock_Messege(41)					// 위치 인터락 팝업
+	u.user:$01480C.10.1 =	P_Interlock_Messege(42)					// 위치 인터락 팝업
+	u.user:$01480C.11.1 =	P_Interlock_Messege(43)					// 위치 인터락 팝업
+	u.user:$01480C.12.1 =	P_Interlock_Messege(44)					// 위치 인터락 팝업
+	u.user:$01480C.13.1 =	P_Interlock_Messege(45)					// 위치 인터락 팝업
+	u.user:$01480C.14.1 =	P_Interlock_Messege(46)					// 위치 인터락 팝업
+	u.user:$01480C.15.1 =	P_Interlock_Messege(47)					// 위치 인터락 팝업
+	u.user:$01480C.16.1 =	P_Interlock_Messege(48)					// 위치 인터락 팝업
+	u.user:$01480C.17.1 =	P_Interlock_Messege(49)					// 위치 인터락 팝업
+	u.user:$01480C.18.1 =	P_Interlock_Messege(50)					// 위치 인터락 팝업
+
+	//  PLC에서 M_X_PLC_Cathode_NG, M_X_PLC_Anode_NG 신호 온 시 얼라인 극판 배출 실행시 및 ng코드 수신,보고
+	Sys.Idata[20996] = P_Send_Cathode_NG_Code_To_PLC;
+	Sys.Idata[20997] = P_Send_Anode_NG_Code_To_PLC;
+	Sys.Idata[20998] = P_EPC_VISION_INPUT_Correction * 10000;
+	Sys.Idata[20999] = P_Motor_Current_Pos(N_EPC_SENSOR) * 10000;
+
+	//김준수
+	Sys.Idata[21005] = P_PACK_ML_Status_bit;						// PACK ML Staus bit
+
+	u.user:$014870.00 = P_Current_Cell_Memory_Jelly_Roll
+	u.user:$014870.01 = M_Y_Inner_Led_Lamp_On
+	u.user:$014870.02 = Sys_MC_Protocol_HeartBit
+
+	// Suspend 배출, ARC 팝업 추가.	[ 참조 : 26.04.24 Suspend 모듈 팝업 추가 ]
+	// 배출 팝업
+	u.user:$014874.00.1 = P_Suspend_Discharging_Popup_Flag			
+	u.user:$014874.01.1 = P_Suspend_Discharge_FR_Unclamp_Error_Popup_Flag			
+	u.user:$014874.02.1 = P_Suspend_Discharge_Cathode_Align_Retry_Cal_Error_Popup_Flag
+	u.user:$014874.03.1 = P_Suspend_Discharge_Anode_Align_Retry_Cal_Error_Popup_Flag
+	u.user:$014874.04.1 = P_Suspend_Discharge_FR_Discharge_Pos_Error_Popup_Flag			
+	u.user:$014874.05.1 = P_Suspend_Discharge_1st_Unloader_Grip_OFF_Error_Popup_Flag
+	u.user:$014874.06.1 = P_Suspend_Discharge_1st_Unloader_Up_Error_Popup_Flag		
+	u.user:$014874.07.1 = P_Suspend_Discharge_1st_Unloader_FWD_Error_Popup_Flag	
+	u.user:$014874.08.1 = P_Suspend_Discharge_FR_Clamp_Error_Popup_Flag	
+	u.user:$014874.09.1 = P_Suspend_Discharge_Sepa_Cutter_Heating_Error_Popup_Flag	
+	u.user:$014874.10.1 = P_Suspend_Discharge_1st_Unloader_Grip_Cell_Pos_Error_Popup_Flag
+	u.user:$014874.11.1 = P_Suspend_Discharge_1st_Unloader_Grip_ON_Error_Popup_Flag
+	u.user:$014874.12.1 = P_Suspend_Discharge_Sheet_Paper_BWD_Error_Popup_Flag
+	u.user:$014874.13.1 = P_Suspend_Discharge_Cathode_Clamp_OFF_Error_Popup_Flag
+	u.user:$014874.14.1 = P_Suspend_Discharge_FR_Clamp_Error_Popup_Flag
+	//u.user:$014874.15.1 = Spare
+	u.user:$014874.16.1 = P_Suspend_Discharge_Sepa_Cutter_FWD_Error_Popup_Flag
+	u.user:$014874.17.1 = P_Suspend_Discharge_Sheet_Paper_Vacuum_ON_Error_Popup_Flag
+	u.user:$014874.18.1 = P_Suspend_Discharge_Sepa_Cutter_BWD_Error_Popup_Flag
+	u.user:$014874.19.1 = P_Suspend_Discharge_1st_Unloader_BWD_Wait_Pos_Error_Popup_Flag
+	u.user:$014874.20.1 = P_Suspend_Discharge_1st_Unloader_BWD_Error_Popup_Flag
+	u.user:$014874.21.1 = P_Suspend_Discharge_1st_Unloader_Stack_Down_Error_Popup_Flag
+	u.user:$014874.22.1 = P_Suspend_Discharge_FR_Stack_Pos_Error_Popup_Flag
+	u.user:$014874.23.1 = P_Suspend_Discharge_After_Action_Init_Error_Popup_Flag
+	u.user:$014874.24.1 = P_Suspend_Discharge_1st_Unloader_Avoid_Pos_Error_Popup_Flag
+	u.user:$014874.25.1 = P_Suspend_Discharge_1st_2nd_Unloader_Handover_Chk_Error_Popup_Flag
+	u.user:$014874.26.1 = P_Suspend_Discharge_1st_Unloader_Handover_Pos_Error_Popup_Flag
+	u.user:$014874.27.1 = P_Suspend_Discharge_2nd_3rd_Unloader_Grip_Request_Error_Popup_Flag
+	u.user:$014874.28.1 = P_Suspend_Discharge_1st_Unloader_Wait_Pos_Error_Popup_Flag
+	//u.user:$014874.29.1 = Spare
+	//u.user:$014874.30.1 = Spare
+	//u.user:$014874.31.1 = Spare
+	
+	
+	// ARC 팝업
+	u.user:$014878.00.1 = P_Suspend_ARC_Manual_ARC_Active_Popup_Flag
+	u.user:$014878.01.1 = P_Suspend_ARC_Auto_ARC_Active_Popup_Flag
+	u.user:$014878.02.1 = P_Suspend_ARC_Pre_Act_Popup_Flag
+	u.user:$014878.03.1 = P_Suspend_ARC_Dancer_Close_Popup_Flag
+	u.user:$014878.04.1 = P_Suspend_ARC_Use_Plate_FWD_Popup_Flag
+	u.user:$014878.05.1 = P_Suspend_ARC_Replace_Plate_Blow_ON_Popup_Flag
+	u.user:$014878.06.1 = P_Suspend_ARC_Use_Plate_Clamp_Popup_Flag
+	u.user:$014878.07.1 = P_Suspend_ARC_Use_Plate_Cutter_FWD_Popup_Flag
+	u.user:$014878.08.1 = P_Suspend_ARC_Use_Plate_Cutter_BWD_Popup_Flag
+	u.user:$014878.09.1 = P_Suspend_ARC_Use_Plate_Unclamp_Popup_Flag
+	u.user:$014878.10.1 = P_Suspend_ARC_Use_Plate_BWD_Popup_Flag
+	u.user:$014878.11.1 = P_Suspend_ARC_Replace_Plate_Blow_OFF_Popup_Flag
+	u.user:$014878.12.1 = P_Suspend_ARC_Dancer_Open_Popup_Flag
+	u.user:$014878.13.1 = P_Suspend_ARC_Spool_Change_Popup_Flag
+	u.user:$014878.14.1 = P_Suspend_ARC_Post_Act_Popup_Flag
+	u.user:$014878.15.1 = P_Suspend_ARC_Previous_Spool_Remain_Winding_Popup_Flag
+
+
+	//추가해야 할 수 도 있음 MCC Chart
+	u.user:$014848.00.16 = P_Sepa_Unwinder_TackTime_Array1 / 10			// 세파언와인더 타임 버퍼 1 
+	u.user:$014848.16.16 = P_Sepa_Unwinder_TackTime_Array2 / 10			// 세파언와인더 타임 버퍼 2
+	u.user:$01484C.00.16 = P_Sepa_Unwinder_TackTime_Array3 / 10			// 세파언와인더 타임 버퍼 3
+	u.user:$01484C.16.16 = P_Sepa_Unwinder_TackTime_Array4 / 10			// 세파언와인더 타임 버퍼 4
+	u.user:$014850.00.16 = P_Sepa_Unwinder_TackTime_Array5 / 10			// 세파언와인더 타임 버퍼 5
+	u.user:$014850.16.16 = P_Sepa_Unwinder_TackTime_Array6 / 10			// 세파언와인더 타임 버퍼 6
+	u.user:$014854.00.16 = P_Sepa_Unwinder_TackTime_Array7 / 10			// 세파언와인더 타임 버퍼 7
+	u.user:$014854.16.16 = P_Sepa_Unwinder_TackTime_Array8 / 10			// 세파언와인더 타임 버퍼 8
+	u.user:$014858.00.16 = P_Sepa_Unwinder_TackTime_Array9 / 10			// 세파언와인더 타임 버퍼 9
+	u.user:$014858.16.16 = P_Sepa_Unwinder_TackTime_Array10 / 10		// 세파언와인더 타임 버퍼 10
+	u.user:$01485C.00.16 = P_Sepa_Unwinder_TackTime_Array11 / 10		// 세파언와인더 타임 버퍼 11
+
+	u.user:$0148D4.00.16 = P_Sepa_ARC_TackTime_Array1 / 10				// 세파 ARC 텍타임 버퍼 1
+	u.user:$0148D4.16.16 = P_Sepa_ARC_TackTime_Array2 / 10 				// 세파 ARC 텍타임 버퍼 2
+	u.user:$0148D8.00.16 = P_Sepa_ARC_TackTime_Array3 / 10 				// 세파 ARC 텍타임 버퍼 3
+	u.user:$0148D8.16.16 = P_Sepa_ARC_TackTime_Array4 / 10 				// 세파 ARC 텍타임 버퍼 4
+	u.user:$0148DC.00.16 = P_Sepa_ARC_TackTime_Array5 / 10 				// 세파 ARC 텍타임 버퍼 5
+	u.user:$0148DC.16.16 = P_Sepa_ARC_TackTime_Array6 / 10 				// 세파 ARC 텍타임 버퍼 6
+	u.user:$0148E0.00.16 = P_Sepa_ARC_TackTime_Array7 / 10 				// 세파 ARC 텍타임 버퍼 7
+	u.user:$0148E0.16.16 = P_Sepa_ARC_TackTime_Array8 / 10 				// 세파 ARC 텍타임 버퍼 8
+	u.user:$0148E4.00.16 = P_Sepa_ARC_TackTime_Array9 / 10 				// 세파 ARC 텍타임 버퍼 9
+	u.user:$0148E4.16.16 = P_Sepa_ARC_TackTime_Array10 / 10				// 세파 ARC 텍타임 버퍼 10
+
+	u.user:$0148E8.00.16 = P_1st_Unloader_TackTime_Array1 / 10			// 1차 언로더 타임 버퍼 1
+	u.user:$0148E8.16.16 = P_1st_Unloader_TackTime_Array2 / 10			// 1차 언로더 타임 버퍼 2
+	u.user:$0148EC.00.16 = P_1st_Unloader_TackTime_Array3 / 10			// 1차 언로더 타임 버퍼 3
+	u.user:$0148EC.16.16 = P_1st_Unloader_TackTime_Array4 / 10			// 1차 언로더 타임 버퍼 4
+	u.user:$0148F0.00.16 = P_1st_Unloader_TackTime_Array5 / 10			// 1차 언로더 타임 버퍼 5
+	u.user:$0148F0.16.16 = P_1st_Unloader_TackTime_Array6 / 10			// 1차 언로더 타임 버퍼 6
+	u.user:$0148F4.00.16 = P_1st_Unloader_TackTime_Array7 / 10			// 1차 언로더 타임 버퍼 7
+	u.user:$0148F4.16.16 = P_1st_Unloader_TackTime_Array8 / 10			// 1차 언로더 타임 버퍼 8
+	u.user:$0148F8.00.16 = P_1st_Unloader_TackTime_Array9 / 10			// 1차 언로더 타임 버퍼 9
+	u.user:$0148F8.16.16 = P_1st_Unloader_TackTime_Array10 / 10			// 1차 언로더 타임 버퍼 10
+
+	u.user:$0148FC.00.16 = P_Cathode_1st_Vacuum_TackTime_Array1 / 10	// 양극 1차 PNP 진공 타임 버퍼 1
+	u.user:$0148FC.16.16 = P_Cathode_1st_Vacuum_TackTime_Array2 / 10	// 양극 1차 PNP 진공 타임 버퍼 2
+	u.user:$014900.00.16 = P_Cathode_1st_Vacuum_TackTime_Array3 / 10	// 양극 1차 PNP 진공 타임 버퍼 3
+	u.user:$014900.16.16 = P_Cathode_1st_Vacuum_TackTime_Array4 / 10	// 양극 1차 PNP 진공 타임 버퍼 4
+	u.user:$014904.00.16 = P_Cathode_1st_Vacuum_TackTime_Array5 / 10	// 양극 1차 PNP 진공 타임 버퍼 5
+	u.user:$014904.16.16 = P_Cathode_1st_Vacuum_TackTime_Array6 / 10	// 양극 1차 PNP 진공 타임 버퍼 6
+	u.user:$014908.00.16 = P_Cathode_1st_Vacuum_TackTime_Array7 / 10	// 양극 1차 PNP 진공 타임 버퍼 7
+	u.user:$014908.16.16 = P_Cathode_1st_Vacuum_TackTime_Array8 / 10	// 양극 1차 PNP 진공 타임 버퍼 8
+	u.user:$01490C.00.16 = P_Cathode_1st_Vacuum_TackTime_Array9 / 10	// 양극 1차 PNP 진공 타임 버퍼 9
+	u.user:$01490C.16.16 = P_Cathode_1st_Vacuum_TackTime_Array10 / 10	// 양극 1차 PNP 진공 타임 버퍼 10
+
+	u.user:$014910.00.16 = P_Cathode_Align_Vacuum_TackTime_Array1 / 10	// 양극 얼라인 테이블 진공 타임 버퍼 1
+	u.user:$014910.16.16 = P_Cathode_Align_Vacuum_TackTime_Array2 / 10 	// 양극 얼라인 테이블 진공 타임 버퍼 2
+	u.user:$014914.00.16 = P_Cathode_Align_Vacuum_TackTime_Array3 / 10 	// 양극 얼라인 테이블 진공 타임 버퍼 3
+	u.user:$014914.16.16 = P_Cathode_Align_Vacuum_TackTime_Array4 / 10 	// 양극 얼라인 테이블 진공 타임 버퍼 4
+	u.user:$014918.00.16 = P_Cathode_Align_Vacuum_TackTime_Array5 / 10 	// 양극 얼라인 테이블 진공 타임 버퍼 5
+	u.user:$014918.16.16 = P_Cathode_Align_Vacuum_TackTime_Array6 / 10 	// 양극 얼라인 테이블 진공 타임 버퍼 6
+	u.user:$01491C.00.16 = P_Cathode_Align_Vacuum_TackTime_Array7 / 10 	// 양극 얼라인 테이블 진공 타임 버퍼 7
+	u.user:$01491C.16.16 = P_Cathode_Align_Vacuum_TackTime_Array8 / 10 	// 양극 얼라인 테이블 진공 타임 버퍼 8
+	u.user:$014920.00.16 = P_Cathode_Align_Vacuum_TackTime_Array9 / 10 	// 양극 얼라인 테이블 진공 타임 버퍼 9
+	u.user:$014920.16.16 = P_Cathode_Align_Vacuum_TackTime_Array10 / 10	// 양극 얼라인 테이블 진공 타임 버퍼 10
+
+	u.user:$014924.00.16 = P_Cathode_2nd_Vacuum_TackTime_Array1 / 10	// 양극 2차 PNP 진공 타임 버퍼 1
+	u.user:$014924.16.16 = P_Cathode_2nd_Vacuum_TackTime_Array2 / 10 	// 양극 2차 PNP 진공 타임 버퍼 2
+	u.user:$014928.00.16 = P_Cathode_2nd_Vacuum_TackTime_Array3 / 10 	// 양극 2차 PNP 진공 타임 버퍼 3
+	u.user:$014928.16.16 = P_Cathode_2nd_Vacuum_TackTime_Array4 / 10 	// 양극 2차 PNP 진공 타임 버퍼 4
+	u.user:$01492C.00.16 = P_Cathode_2nd_Vacuum_TackTime_Array5 / 10 	// 양극 2차 PNP 진공 타임 버퍼 5
+	u.user:$01492C.16.16 = P_Cathode_2nd_Vacuum_TackTime_Array6 / 10 	// 양극 2차 PNP 진공 타임 버퍼 6
+	u.user:$014930.00.16 = P_Cathode_2nd_Vacuum_TackTime_Array7 / 10 	// 양극 2차 PNP 진공 타임 버퍼 7
+	u.user:$014930.16.16 = P_Cathode_2nd_Vacuum_TackTime_Array8 / 10 	// 양극 2차 PNP 진공 타임 버퍼 8
+	u.user:$014934.00.16 = P_Cathode_2nd_Vacuum_TackTime_Array9 / 10 	// 양극 2차 PNP 진공 타임 버퍼 9
+	u.user:$014934.16.16 = P_Cathode_2nd_Vacuum_TackTime_Array10 / 10	// 양극 2차 PNP 진공 타임 버퍼 10
+
+	u.user:$014938.00.16 = P_Anode_1st_Vacuum_TackTime_Array1 / 10		// 음극 1차 PNP 진공 타임 버퍼 1
+	u.user:$014938.16.16 = P_Anode_1st_Vacuum_TackTime_Array2 / 10 		// 음극 1차 PNP 진공 타임 버퍼 2
+	u.user:$01493C.00.16 = P_Anode_1st_Vacuum_TackTime_Array3 / 10 		// 음극 1차 PNP 진공 타임 버퍼 3
+	u.user:$01493C.16.16 = P_Anode_1st_Vacuum_TackTime_Array4 / 10 		// 음극 1차 PNP 진공 타임 버퍼 4
+	u.user:$014940.00.16 = P_Anode_1st_Vacuum_TackTime_Array5 / 10 		// 음극 1차 PNP 진공 타임 버퍼 5
+	u.user:$014940.16.16 = P_Anode_1st_Vacuum_TackTime_Array6 / 10 		// 음극 1차 PNP 진공 타임 버퍼 6
+	u.user:$014944.00.16 = P_Anode_1st_Vacuum_TackTime_Array7 / 10 		// 음극 1차 PNP 진공 타임 버퍼 7
+	u.user:$014944.16.16 = P_Anode_1st_Vacuum_TackTime_Array8 / 10 		// 음극 1차 PNP 진공 타임 버퍼 8
+	u.user:$014948.00.16 = P_Anode_1st_Vacuum_TackTime_Array9 / 10 		// 음극 1차 PNP 진공 타임 버퍼 9
+	u.user:$014948.16.16 = P_Anode_1st_Vacuum_TackTime_Array10 / 10		// 음극 1차 PNP 진공 타임 버퍼 10
+
+	u.user:$01494C.00.16 = P_Anode_Align_Vacuum_TackTime_Array1 / 10	// 음극 얼라인 테이블 진공 타임 버퍼 1
+	u.user:$01494C.16.16 = P_Anode_Align_Vacuum_TackTime_Array2 / 10 	// 음극 얼라인 테이블 진공 타임 버퍼 2
+	u.user:$014950.00.16 = P_Anode_Align_Vacuum_TackTime_Array3 / 10 	// 음극 얼라인 테이블 진공 타임 버퍼 3
+	u.user:$014950.16.16 = P_Anode_Align_Vacuum_TackTime_Array4 / 10 	// 음극 얼라인 테이블 진공 타임 버퍼 4
+	u.user:$014954.00.16 = P_Anode_Align_Vacuum_TackTime_Array5 / 10 	// 음극 얼라인 테이블 진공 타임 버퍼 5
+	u.user:$014954.16.16 = P_Anode_Align_Vacuum_TackTime_Array6 / 10 	// 음극 얼라인 테이블 진공 타임 버퍼 6
+	u.user:$014958.00.16 = P_Anode_Align_Vacuum_TackTime_Array7 / 10 	// 음극 얼라인 테이블 진공 타임 버퍼 7
+	u.user:$014958.16.16 = P_Anode_Align_Vacuum_TackTime_Array8 / 10 	// 음극 얼라인 테이블 진공 타임 버퍼 8
+	u.user:$01495C.00.16 = P_Anode_Align_Vacuum_TackTime_Array9 / 10 	// 음극 얼라인 테이블 진공 타임 버퍼 9
+	u.user:$01495C.16.16 = P_Anode_Align_Vacuum_TackTime_Array10 / 10	// 음극 얼라인 테이블 진공 타임 버퍼 10
+
+	u.user:$014960.00.16 = P_Anode_2nd_Vacuum_TackTime_Array1 / 10		// 음극 2차 PNP 진공 타임 버퍼 1
+	u.user:$014960.16.16 = P_Anode_2nd_Vacuum_TackTime_Array2 / 10 		// 음극 2차 PNP 진공 타임 버퍼 2
+	u.user:$014964.00.16 = P_Anode_2nd_Vacuum_TackTime_Array3 / 10 		// 음극 2차 PNP 진공 타임 버퍼 3
+	u.user:$014964.16.16 = P_Anode_2nd_Vacuum_TackTime_Array4 / 10 		// 음극 2차 PNP 진공 타임 버퍼 4
+	u.user:$014968.00.16 = P_Anode_2nd_Vacuum_TackTime_Array5 / 10 		// 음극 2차 PNP 진공 타임 버퍼 5
+	u.user:$014968.16.16 = P_Anode_2nd_Vacuum_TackTime_Array6 / 10 		// 음극 2차 PNP 진공 타임 버퍼 6
+	u.user:$01496C.00.16 = P_Anode_2nd_Vacuum_TackTime_Array7 / 10 		// 음극 2차 PNP 진공 타임 버퍼 7
+	u.user:$01496C.16.16 = P_Anode_2nd_Vacuum_TackTime_Array8 / 10 		// 음극 2차 PNP 진공 타임 버퍼 8
+	u.user:$014970.00.16 = P_Anode_2nd_Vacuum_TackTime_Array9 / 10 		// 음극 2차 PNP 진공 타임 버퍼 9
+	u.user:$014970.16.16 = P_Anode_2nd_Vacuum_TackTime_Array10 / 10		// 음극 2차 PNP 진공 타임 버퍼 10
+
+	u.user:$014974.00.16 = P_Final_Roll_TackTime_Array1	/ 10			// 파이널 롤러 타임 버퍼 1
+	u.user:$014974.16.16 = P_Final_Roll_TackTime_Array2 / 10			// 파이널 롤러 타임 버퍼 2
+	u.user:$014978.00.16 = P_Final_Roll_TackTime_Array3 / 10			// 파이널 롤러 타임 버퍼 3
+	u.user:$014978.16.16 = P_Final_Roll_TackTime_Array4 / 10			// 파이널 롤러 타임 버퍼 4
+	u.user:$01497C.00.16 = P_Final_Roll_TackTime_Array5 / 10			// 파이널 롤러 타임 버퍼 5
+	u.user:$01497C.16.16 = P_Final_Roll_TackTime_Array6 / 10			// 파이널 롤러 타임 버퍼 6
+	u.user:$014980.00.16 = P_Final_Roll_TackTime_Array7 / 10			// 파이널 롤러 타임 버퍼 7
+	u.user:$014980.16.16 = P_Final_Roll_TackTime_Array8 / 10			// 파이널 롤러 타임 버퍼 8
+	u.user:$014984.00.16 = P_Final_Roll_TackTime_Array9 / 10			// 파이널 롤러 타임 버퍼 9
+	u.user:$014984.16.16 = P_Final_Roll_TackTime_Array10 / 10			// 파이널 롤러 타임 버퍼 10
+
+	u.user:$014988.00.16 = P_Discharge_Unloader_Handover_Time			// 1차 언로더 → 2차 언로더 JR 인계 시간.		[ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ]
+
+	u.user:$0149A4.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_UPPER_Plate)		// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149A8.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_UPPER_UnPlate)		// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149A8.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_UPPER_Tilting)		// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149AC.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_UPPER_UnTilting)	// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149AC.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_UPPER_Cutter)		// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149B0.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_UPPER_UnCutter)	// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149B0.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_UPPER_Clamp)		// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149B4.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_UPPER_UnClamp)		// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149B4.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_LOWER_Plate)		// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149B8.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_LOWER_UnPlate)		// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149B8.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_LOWER_Tilting)		// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149BC.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_LOWER_UnTilting)	// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149BC.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_LOWER_Cutter)		// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149C0.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_LOWER_UnCutter)	// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149C0.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_LOWER_Clamp)		// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149C4.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_ARC_LOWER_UnClamp)		// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149C4.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_1ST_Unloader_Grip)		// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149C8.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_1ST_Unloader_UnGrip)	// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149C8.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Cathode_Clamp_Damper_Rise) // 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149CC.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Cathode_Clamp_Damper_Down) // 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149CC.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Anode_Clamp_Damper_Rise)	// 공압 실린더, 진공 텍타임 측정 시간
+	u.user:$0149D0.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Anode_Clamp_Damper_Down)	// 공압 실린더, 진공 텍타임 측정 시간
+
+	// ARC Ready 램프 점멸 상태로 일정 시간 지난 후 팝업 띄움 //	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
+	u.user:$01486C.16.1 = P_ARC_NP_Upper_Ready_Check_Bit
+	u.user:$01486C.17.1 = P_ARC_NP_Lower_Ready_Check_Bit
+
+	// GPIO InPut
+	u.user:$01444C.00.16 = Gate3[0].GpioData[0].0.16;		// M4000 ~ M4015
+	//u.user:$01444C.16.16 = Gate3[0].GpioData[1].0.16 
+	u.user:$01444C.16.16 = Gate3[2].GpioData[0].0.16;		// M4016 ~ M4031
+	u.user:$014450.00.16 = Gate3[3].GpioData[0].0.16; 		// M4032 ~ M4047
+	u.user:$014450.16.16 = Gate3[4].GpioData[0].0.16; 		// M4048 ~ M4063
+	u.user:$014454.00.16 = Gate3[5].GpioData[0].0.16; 		// M4064 ~ M4079
+	u.user:$014454.16.16 = Gate3[6].GpioData[0].0.16; 		// M4080 ~ M4095
+	u.user:$014458.00.16 = Gate3[7].GpioData[0].0.16; 		// M4096 ~ M4111
+
+	// GPIO OutPut 
+	u.user:$01445C.00.16 = Gate3[0].GpioData[0].16.16;		// M5000 ~ M5015
+	//u.user:$01445C.16.16 = Gate3[2].GpioData[0];
+	u.user:$01445C.16.16 = Gate3[2].GpioData[0].16.16;		// M5016 ~ M5031
+	u.user:$014460.00.16 = Gate3[3].GpioData[0].16.16;		// M5032 ~ M5047
+	u.user:$014460.16.16 = Gate3[4].GpioData[0].16.16;		// M5048 ~ M5063
+	u.user:$014464.00.16 = Gate3[5].GpioData[0].16.16;		// M5064 ~ M5079
+	u.user:$014464.16.16 = Gate3[6].GpioData[0].16.16;		// M5080 ~ M5095
+	u.user:$014468.00.16 = Gate3[7].GpioData[0].16.16;		// M5096 ~ M5111
+
+	// ECAT InPut
+	//EtherCat_Link DIO Board 01
+	u.user:$0149E8.00.16  = Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits.0.16;	//Slave_1002_NX_ECC203_1002_6002_1_InputBit16bits
+	u.user:$0149E8.16.16  = Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits.0.16; //Slave_1002_NX_ECC203_1002_6022_1_InputBit16bits
+	//EtherCat_Link DIO Board 02
+	u.user:$0149EC.00.16 = Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits.0.16; // Slave_1002_NX_ECC203_1002_6042_1_InputBit16bits
+	u.user:$0149EC.16.16 = Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits.0.16; // Slave_1002_NX_ECC203_1002_6062_1_InputBit16bits
+	//EtherCat_Link DIO Board 03
+	u.user:$0149F0.00.16 = Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits.0.16; //Slave_1002_NX_ECC203_1002_6082_1_InputBit16bits
+	u.user:$0149F0.16.16 = Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits.0.16; // Slave_1002_NX_ECC203_1002_60A2_1_InputBit16bits
+	//EtherCat_Link DIO Board 04
+	u.user:$0149F4.00.16 = Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits.0.16; // Slave_1020_NX_ECC203_1020_6002_1_InputBit16bits
+	u.user:$0149F4.16.16 = Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits.0.16; // Slave_1020_NX_ECC203_1020_6022_1_InputBit16bits
+	//EtherCat_Link DIO Board 05
+	u.user:$0149F8.00.16 = Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits.0.16;	//Slave_1020_NX_ECC203_1020_6042_1_InputBit16bits
+	//u.user:$0149F8.16.16 = X
+	//EtherCat_Link DIO Board 06
+	//u.user:$0149FC.00.16 = X
+	u.user:$0149FC.16.16 = Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits.0.16;	//Slave_1019_NX_ECC203_1019_6002_1_InputBit16bits
+	//EtherCat_Link DIO Board 07
+	u.user:$014A00.00.16 = Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits.0.16;	//Slave_1019_NX_ECC203_1019_6022_1_InputBit16bits
+	u.user:$014A00.16.16 = Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits.0.16;  // Slave_1019_NX_ECC203_1019_6042_1_InputBit16bits
+	//EtherCat_Link DIO Board 08
+	u.user:$014A04.00.16 = Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits.0.16;  //Slave_1019_NX_ECC203_1019_6062_1_InputBit16bits
+	//u.user:$014A04.16.16 = x
+	//EtherCat_Link DIO Board 09
+	//u.user:$014A08.00.16 = x
+	//u.user:$014A08.16.16 = x
+
+	// ECAT OutPut
+	u.user:$014A10.00.16 = Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits.0.16; //  Slave_1002_NX_ECC203_1002_70C2_1_OutputBit16bits
+	u.user:$014A10.16.16 = Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits.0.16; //  Slave_1002_NX_ECC203_1002_70E2_1_OutputBit16bits
+	u.user:$014A14.00.16 = Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits.0.16; //  Slave_1002_NX_ECC203_1002_7102_1_OutputBit16bits
+	u.user:$014A14.16.16 = Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits.0.16; //  Slave_1002_NX_ECC203_1002_7122_1_OutputBit16bits
+	u.user:$014A18.00.16 = Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits.0.16; //  Slave_1002_NX_ECC203_1002_7142_1_OutputBit16bits
+	u.user:$014A1C.00.16 = Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits.0.16; //  Slave_1020_NX_ECC203_1020_7062_1_OutputBit16bits
+	u.user:$014A1C.16.16 = Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits.0.16; //  Slave_1020_NX_ECC203_1020_7082_1_OutputBit16bits
+	u.user:$014A20.00.16 = Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits.0.16; //  Slave_1020_NX_ECC203_1020_70A2_1_OutputBit16bits
+	u.user:$014A24.16.16 = Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits.0.16; //  Slave_1019_NX_ECC203_1019_7082_1_OutputBit16bits
+	u.user:$014A28.00.16 = Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits.0.16; //  Slave_1019_NX_ECC203_1019_70A2_1_OutputBit16bits
+	u.user:$014A28.16.16 = Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits.0.16; //  Slave_1019_NX_ECC203_1019_70C2_1_OutputBit16bits
+	u.user:$014A2C.00.16 = Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits.0.16; //  Slave_1019_NX_ECC203_1019_70E2_1_OutputBit16bits
+
+	// [ 참조 : 26.05.13 중간 배출 무시 추가 ]
+	Sys.Idata[21025] = P_Middle_Discharge_Ignore_Stack_Count;	// 중간 배출 무시 적층 수량.	
+	u.user:$014888.00 = P_Middle_Discharge_Ignore_ON_Signal;	// 중간 배출 무시 ON 요청 신호.
+	u.user:$014888.01 = P_Middle_Discharge_Ignore_OFF_Signal;	// 중간 배출 무시 OFF 요청 신호.
+
+	// [ 참조 : 26.09.14 PV EPC Camera Pos 추가 ]
+	Sys.Idata[21030] = P_PV_EPC_Camera_Pos(0);					// Separator_EPC_Sensor_Target_00turn
+	Sys.Idata[21031] = P_PV_EPC_Camera_Pos(1);					// Separator_EPC_Sensor_Target_10turn
+	Sys.Idata[21032] = P_PV_EPC_Camera_Pos(2);					// Separator_EPC_Sensor_Target_40turn
+	Sys.Idata[21033] = P_PV_EPC_Camera_Pos(3);					// Separator_EPC_Sensor_Target_70turn
+	Sys.Idata[21034] = P_PV_EPC_Camera_Pos(4);					// Separator_EPC_Sensor_Target_100turn
+	Sys.Idata[21035] = P_PV_EPC_Camera_Pos(5);					// Separator_EPC_Sensor_Target_130turn
+	Sys.Idata[21036] = P_PV_EPC_Camera_Pos(6);					// Separator_EPC_Sensor_Target_160turn
+	Sys.Idata[21037] = P_PV_EPC_Camera_Pos(7);					// Separator_EPC_Sensor_Target_190turn
+	Sys.Idata[21038] = P_PV_EPC_Camera_Pos(8);					// Separator_EPC_Sensor_Target_220turn
+	Sys.Idata[21039] = P_PV_EPC_Camera_Pos(9);					// Separator_EPC_Sensor_Target_250turn
+	Sys.Idata[21040] = P_PV_EPC_Camera_Pos(10);					// Separator_EPC_Sensor_Target_280turn
+	Sys.Idata[21041] = P_PV_EPC_Camera_Pos(11);					// Separator_EPC_Sensor_Target_310turn
+	Sys.Idata[21042] = P_PV_EPC_Camera_Pos(12);					// Separator_EPC_Sensor_Target_end-20turn
+
+	Sys.Idata[21190] = P_Sepa_Required_Amount;	// 세파 소요량
+	// [ 참조 : 2026.06.18 현재 Dacout 값을 kgf 변환 프로그램 ]
+	// 올릴때 벨류를 모르겠네 몇을 곱해줘야할지 ( kgf 내려올때 3자리로 내려온다니까 *100 하자 )
+	Sys.Idata[21191] = P_Dancer_Cur_Kgf * 100;
+
+}
+
+if( P_Write_Timer_S(4) > P_Interval_Write_S(4) )
+{
+	M_Write_Sector_Scan_Cmd(4) = 1;			
+	P_Write_Timer_S(4) = 0;
+}
+
+P_MNTR_PLC7_Task_Time(1) = (Sys.Time - P_MNTR_PLC7_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC7_Task_Time(1) > P_MNTR_PLC7_Task_Max_Time )
+{
+	P_MNTR_PLC7_Task_Max_Time = P_MNTR_PLC7_Task_Time(1);
+}
+close
+

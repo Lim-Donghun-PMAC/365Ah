@@ -1,0 +1,35 @@
+// Camtable virtual Motor → Source
+// [ 참조 : 25.10.13 시스템 셋업 추가 ]
+&35
+#61 -> x
+
+open prog 35
+inc
+linear
+while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(15) == 1 && P_Slave_Motion_Program_Flag(15) == 1 )
+{
+	switch( P_Slave15_Motion_Command )
+	{
+		case 0:	break;
+
+		case N_FR_Anode_Move_Motion:  
+	      P_Slave15_Motion_Command == 0;
+  		  tm(230)
+		  x(P_Cam_Move_Distanse)	
+		  dwell(0)	
+	   break;
+
+	   case N_FR_Cathode_Move_Motion:
+	      P_Slave15_Motion_Command == 0;
+  		  tm(230)
+		  x(P_Cam_Move_Distanse)	
+		  dwell(0)	
+	   break;
+
+	   default :
+			P_Slave15_Motion_Command == 0 //커멘드 초기화.
+			dwell(0)
+	   break;
+	}
+}
+close

@@ -1,0 +1,13 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+global P_System_Setting_Flag = 1;				// System, Motor,Coord 설정 시작 플래그
+global P_Ecat_Setting_Flag = 0;					// Ecat 설정 시작 플래그
+global P_Ecat_Activation_State_Machine = 0;		// Ecat 설정 스텟머신
+global P_PLC31_Ecat_Retry_Cnt = 0;				// Ecat 활성화 리트라이 횟수
+global P_Ecat_Connect_Result = 0;				// Ecat 연결 결과
+global P_Ecat_Slave_Error = 0;					// 슬레이브 에러 번호
+

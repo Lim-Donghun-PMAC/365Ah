@@ -1,0 +1,492 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.09.12
+// 단동, 연동 프로그램 주석 정리 및 인터락 추가. [ 참조 : 25.09.12 단동, 연동 프로그램 주석 및 인터락 추가 ]
+
+ open plc 29
+ P_MNTR_PLC28_Task_Time(0) = Sys.Time;
+ #define	L_System_Timer				Sys.Time		// 시스템 타이머
+	
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[29].ldata.L[0] 시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[29].ldata.L[1] 시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[29].ldata.L[2] 시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[29].ldata.L[3] 타이머 초기화 플래그
+							
+local	L_Motor_Index_1;								// Plc[29].ldata.L[10]
+local	L_Motor_Index_2;								// Plc[29].ldata.L[11]
+local	L_Motor_Index_3;								// Plc[29].ldata.L[12]
+													
+local	L_Old_Single_Run_Mode_Flag;						// Plc[29].ldata.L[13]
+local	L_Old_Current_Mode;								// Plc[29].ldata.L[14]
+	
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+
+// 00.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{		
+	P_Single_Run_Timer = P_Single_Run_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Single_Run_Align_Timer = P_Single_Run_Align_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Single_Run_Align_Timer2 = P_Single_Run_Align_Timer2 + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Single_Run_Finall_Roll_Z_Timer = P_Single_Run_Finall_Roll_Z_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Single_RuN_MAIN_Z_Timer = P_Single_RuN_MAIN_Z_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Single_Run_Stop_Timer = P_Single_Run_Stop_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Single_Run_Sheet_Paper_Timer = P_Single_Run_Sheet_Paper_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* search [ㄴㄷㅁㄱ] ← 검색용.
+	종류		← 단동, 연동 유닛 설정.
+	__Flag	← 단동, 연동 Flag 실행.
+	__Inter	← 단동, 연동 인터락.
+	__Stop	← 단동, 연동 정지.
+*/
+//-----------//
+// 모터 지정 //
+//-----------//
+/*
+	P_Single_Run_Unit =	N_Cathode_1st_Picker_T		(← 복사 붙여넣기로 사용)
+
+	- 종류
+	[양극]							[음극]							[파이널 롤러]					
+	N_Cathode_1st_PNP_Unit 			N_Anode_1st_PNP_Unit			N_Finall_Roller_X_Unit	
+	N_Cathode_2nd_PNP_Unit			N_Anode_2nd_PNP_Unit			N_Finall_Roller_Z_Unit	
+	N_Cathode_1st_Picker_T			N_Anode_1st_Picker_T			
+	N_Cathode_Clamp_Unit			N_Anode_Clamp_Unit		
+						
+	N_Cathode_NG_PNP_Total_Unit		N_Anode_NG_PNP_Total_Unit
+	N_Cathode_Align_Unit			N_Anode_Align_Unit
+						
+
+
+	P_User_Dry_Run_Mode // 패스기능
+	P_Single_Run_Pass	//패스기능
+*/
+//=======//
+// 명령부
+//=======//	
+if ( P_Single_Run_Start_Flag == 1 )							// 단동 시작 Flag.
+{
+	P_Single_Run_Start_Flag = 0;							// 재진입 방지.
+	P_Single_Run_Control_State_Machine = 1;					// 명령부 스텟 머신 ON.
+}
+
+switch ( P_Single_Run_Control_State_Machine )
+{
+	case 0:
+		P_Single_Run_Control_Status = F_Status_IDLE;		// IDLE 상태.
+	break;
+
+	case 1:
+		P_Single_Run_Control_Status = F_Status_STARTING;	// STARTING 상태.
+		if( P_User_Dry_Run_Mode == 0 )
+		{
+			P_Memory_Tower_Search_Flag = 1;						// 위치값 계산 명령.
+			P_MemTow_integrated_return = 0;						// 리턴값 초기화.
+		}
+		call Sub_Motion_Target_Position();
+		P_Motion_Target_Position_Complete = 0
+		P_Single_Run_Control_State_Machine++;				// 다음 스텟 머신으로 이동.
+	break;
+
+	case 2:
+		P_Single_Run_Control_Status = F_Status_EXECUTE;		// EXECUTE 상태.
+		if ( (P_Memory_Tower_Search_Flag == 0 && P_MemTow_integrated_return == 1) || P_User_Dry_Run_Mode == 1 )		// 메모리 타워 실행 확인.
+		{
+			if ( P_Execute_Manage_Mode == 0 && ( P_Unit_integrated_Status == F_Equipment_Initial_Ready_Pos || P_Unit_integrated_Status == F_Equipment_IDLE_Initial_Ready_Pos ) || P_User_Dry_Run_Mode == 1) 		// 기구물 대기 상태 || 유저 드라이런 모드 일 경우.
+			{
+				P_Single_Run_Execute_Bit = 1;				// 메모리 타워 오류 || 기구물 위치 변경 되어도 Command Stop을 막음.
+				P_Single_Run_State_Machine = 1;				// 실행부 스텟 머신 ON.
+				P_Master_Motion_CycleStop_Flag = 0;			// 마스터 트리거 실행.
+				P_Single_Run_Debug_SM = 0;					// 디버깅 변수 초기화.
+				P_Single_Run_Control_State_Machine = N_Complete_Step;		// 완료 스텟 머신으로 이동.
+			}
+			else
+			{
+				P_Single_Run_Execute_Bit = 0;				// 메모리 타워 오류 || 기구물 위치 변경 되어도 Command Stop을 막음.
+				P_Single_Run_Control_State_Machine = N_Error_Step;			// 애러 스텟 머신으로 이동.
+			}
+		}
+	break;
+
+	case N_Complete_Step:
+		P_Single_Run_Control_Status = F_Status_COMPLETE;		// COMPLETE 상태.
+	break;
+
+	case N_Error_Step:
+		P_Single_Run_Control_Status = F_Status_ABORTED;			// ABORTED 상태.
+	break;
+}
+//=======//
+// 실행부
+//=======//
+
+switch ( P_Single_Run_State_Machine )
+{
+	case 0 : // 초기화 상태.
+			P_Single_Run_Status = F_Status_IDLE;									// 단동 상태 [ IDLE ]
+	break;
+
+	case 1 : // 모드에 따른 구분.
+		P_Single_Run_Status = F_Status_STARTING;									// 단동 상태 [ STARTING ]
+		cmd"disable plc 28"
+		if ( P_User_Dry_Run_Mode == 0)												// 유저 드라이런 모드 OFF 일 경우.
+			P_Single_Run_State_Machine = 2;											// 다음 스텟 머신으로 이동.
+		else if ( P_User_Dry_Run_Mode == 1)											// 유저 드라이런 모드 ON 일 경우.
+		{
+			//P_User_Dry_Run_Mode = 0;												// 재진입 방지.
+			P_Single_Run_Motion_Ready_State_Machine = 1;							// 모션 준비 스텟 머신 활성화.
+			P_Single_Run_State_Machine = 7;											// 모션 준비 스텟 머신으로 이동.
+		}
+	break;
+
+	// 파이널롤러 상승 위치로 회피
+	case 2 :
+		P_Single_Run_Status = F_Status_EXECUTE;										// 단동 상태 [ EXECUTE ]
+		
+		//if( P_Single_Run_Unit == N_Cathode_1st_PNP_Unit || P_Single_Run_Unit == N_Cathode_2nd_PNP_Unit || P_Single_Run_Unit == N_Anode_1st_PNP_Unit || P_Single_Run_Unit == N_Anode_2nd_PNP_Unit || P_Single_Run_Unit == N_1st_UND_X )
+		//{	
+		//	P_Single_Run_Evade_Pos_RTN = 0;
+		//	call Single_Dry_Run.Evade_Pos ( N_Final_Roll_Evade, &P_Single_Run_Evade_Pos_RTN )
+		//	if ( P_Single_Run_Evade_Pos_RTN == N_TRUE)
+		//	{
+		//		P_Single_Run_Timer = 0;
+		//		//P_Single_Run_State_Machine = 3;
+		//		P_Single_Run_State_Machine = 4;
+		//	}
+		//	else
+		//	{
+		//		P_Single_Run_Debug_SM = P_Single_Run_State_Machine;
+		//		P_Single_Run_State_Machine = N_Error_STMS;
+		//	}
+		//}
+		//else
+		//	P_Single_Run_State_Machine = 4;
+		P_Single_Run_State_Machine = 4;												// 회피 동작 스텟 머신으로 이동.
+	break;
+
+
+	// 파이널롤러 회피 위치 확인
+	case 3 :
+		if( Motor[N_FINAL_ROLL_Z].MinusLimit == 1 )									// 파이널 롤러가 Minus Limit 위치 일 경우.
+		{
+			P_Single_Run_State_Machine = 4;											// 다음 스텟 머신으로 이동.
+		}	
+	break;
+
+	case 4 : // 회피동작.
+		P_Single_Run_Status = F_Status_EXECUTE;										// 단동 상태 [ EXECUTE ]
+		
+		P_Single_Run_Evade_Pos_RTN = 0;												// 회피 동작 반환값 초기화.
+		call Single_Dry_Run.Evade_Pos ( P_Single_Run_Unit, &P_Single_Run_Evade_Pos_RTN )	// 회피 동작 함수 호출.
+		if ( P_Single_Run_Evade_Pos_RTN == N_TRUE)									// 반환값 업데이트 확인. [TRUE]
+		{
+			P_Single_Run_Evade_Pos_RTN = 0;											// 반환값 초기화.
+			P_Single_Run_Timer = 0;													// 타이머 초기화.
+			P_Single_Run_State_Machine = 5;											// 다음 스텟 머신으로 이동.
+		}
+		else																		// 반환값 업데이트 확인. [FALSE]
+		{
+			P_Single_Run_Debug_SM = P_Single_Run_State_Machine;						// 현재 스텟 머신 저장.
+			P_Single_Run_State_Machine = N_Error_STMS;								// Error 스텟 머신으로 이동.
+		}
+	break;	
+	
+	case 5 : //회피동작 확인
+		P_Single_Run_Status = F_Status_EXECUTE;										// 단동 상태 [ EXECUTE ]
+		
+		if ( P_Single_Run_Timer >  500 )											// 500ms 이후.
+		{
+			P_Single_Run_Evade_Pos_Check_RTN = 0;									// 회피 동작 확인 반환값 초기화.
+			call Single_Dry_Run.Evade_Pos_Check(P_Single_Run_Unit, &P_Single_Run_Evade_Pos_Check_RTN )	// 회피 동작 확인 함수 호출.
+			if ( P_Single_Run_Evade_Pos_Check_RTN == N_TRUE )						// 반환값 업데이트 확인. [TRUE]
+			{
+				P_Single_Run_Evade_Pos_Check_RTN = 0;								// 회피 동작 확인 반환값 초기화.
+				P_Single_Run_Motion_Ready_State_Machine = 1;						// 모션 준비 스텟 머신 활성화.
+				P_Single_Run_State_Machine = 6;										// 다음 스텟 머신으로 이동.
+			}
+			else if ( P_Single_Run_Evade_Pos_Check_RTN == N_FALSE)					// 반환값 업데이트 확인. [FALSE]
+			{
+				P_Single_Run_Debug_SM = P_Single_Run_State_Machine;					// 현재 스텟 머신 저장.
+				P_Single_Run_State_Machine = N_Error_STMS;							// Error 스텟 머신으로 이동.
+			}
+		}
+	break;
+
+	case 6 : // 진행 전 인터락.
+		P_Single_Run_Status = F_Status_EXECUTE;										// 단동 상태 [ EXECUTE ]
+
+		P_Single_Run_Execution_Interlock_RTN = 0;
+		if( P_User_Dry_Run_Mode == 0 )
+		{
+			call Single_Dry_Run.Interlock(P_Single_Run_Unit,&P_Single_Run_Execution_Interlock_RTN)
+			if ( P_Single_Run_Execution_Interlock_RTN == N_FALSE )
+				P_Single_Run_State_Machine = 7;											// 다음 스텟 머신으로 이동.
+			else
+			{
+				P_Single_Run_Debug_SM = P_Single_Run_State_Machine;						// 현재 스텟 머신 저장.
+				P_Single_Run_State_Machine = N_Error_STMS;								// Error 스텟 머신으로 이동.
+			}
+		}
+		else
+			P_Single_Run_State_Machine = 7;
+	break;
+	
+	case 7 : // 모션준비.
+		P_Single_Run_Status = F_Status_EXECUTE;										// 단동 상태 [ EXECUTE ]
+
+		P_Single_Run_Motion_Ready_RTN = 0;											// 모션 준비 반환값 초기화.
+		call Single_Dry_Run.Motion_Ready ( &P_Single_Run_Motion_Ready_RTN )			// 모션 준비 함수 호출.
+		if ( P_Single_Run_Motion_Ready_RTN == N_TRUE )								// 반환값 업데이트 확인. [TRUE]
+		{
+			P_Single_Run_Motion_Ready_RTN=0;										// 모션 준비 반환값 초기화.
+			P_Single_Run_Motion_Ready_State_Machine = 0;							// 모션 준비 스텟머신 초기화.
+			P_Single_Run_State_Machine = 8;											// 다음 스텟 머신으로 이동.
+		}
+		else if ( P_Single_Run_Motion_Ready_RTN == N_FALSE )						// 반환값 업데이트 확인. [FALSE]
+		{
+			P_Single_Run_Debug_SM = P_Single_Run_State_Machine;						// 현재 스텟 머신 저장.
+			P_Single_Run_State_Machine = N_Error_STMS;								// Error 스텟 머신으로 이동.
+		}
+	break;
+
+	case 8 : // 좌표계 활성화
+		P_Single_Run_Status = F_Status_EXECUTE;										// 단동 상태 [ EXECUTE ]
+		
+		P_Single_Run_Coord_Activate_RTN = 0;										// 좌표계 활성화 반환값 초기화.
+		call Single_Dry_Run.Coord_Activate ( P_Single_Run_Unit, &P_Single_Run_Coord_Activate_RTN )	// 좌표계 활성화 함수 호출.
+		if ( P_Single_Run_Coord_Activate_RTN == N_TRUE )							// 반환값 업데이트 확인. [TRUE]
+		{
+			P_Single_Run_Coord_Activate_RTN = 0;									// 좌표계 활성화 반환값 초기화.
+			P_Single_Run_Timer= 0													// 타이머 초기화.
+			P_Single_Run_State_Machine = 9;											// 다음 스텟 머신으로 이동.
+		}
+		else if ( P_Single_Run_Coord_Activate_RTN == N_FALSE )						// 반환값 업데이트 확인. [FALSE]
+		{
+			P_Single_Run_Debug_SM = P_Single_Run_State_Machine;						// 현재 스텟 머신 저장.
+			P_Single_Run_State_Machine = 5;											// 회피 동작 확인 스텟 머신으로 이동.
+			//P_Single_Run_State_Machine = N_Error_STMS;
+		}
+	break;
+			
+	
+	case 9 : // 좌표계 활성화 확인
+		P_Single_Run_Status = F_Status_EXECUTE;										// 단동 상태 [ EXECUTE ]
+		if( P_Single_Run_Timer > 500 )												// 500ms 이후.
+		{
+			P_Single_Run_Coord_Activate_Check_RTN = 0;								// 좌표계 활성화 확인 반환값 초기화.
+			call Single_Dry_Run.Coord_Activate_Check ( P_Single_Run_Unit, &P_Single_Run_Coord_Activate_Check_RTN )	// 좌표계 활성화 확인 함수 호출.
+			if ( P_Single_Run_Coord_Activate_Check_RTN == N_TRUE )					// 반환값 업데이트 확인. [TRUE]
+			{
+				P_Single_Run_Coord_Activate_Check_RTN = 0;							// 좌표계 활성화 확인 반환값 초기화.
+				P_Single_Run_State_Machine = 10;									// 다음 스텟 머신으로 이동.
+			}
+			else if ( P_Single_Run_Coord_Activate_Check_RTN == N_FALSE )			// 반환값 업데이트 확인. [FALSE]
+			{
+				P_Single_Run_Debug_SM = P_Single_Run_State_Machine;					// 현재 스텟 머신 저장.
+				P_Single_Run_State_Machine = N_Error_STMS;							// Error 스텟 머신으로 이동.	
+			}
+		}
+	break;
+
+	case 10 : // 런모드 선택  
+		P_Single_Run_Status = F_Status_EXECUTE;										// 단동 상태 [ EXECUTE ]
+		
+		P_Single_Run_Select_Run_Mode_RTN = 0;										// 런모드 선택 반환값 초기화.
+		call Single_Dry_Run.Select_Run_Mode ( P_Single_Run_Unit, &P_Single_Run_Select_Run_Mode_RTN )	// 런모드 선택 함수 호출.
+		if ( P_Single_Run_Select_Run_Mode_RTN == N_TRUE )							// 반환값 업데이트 확인. [TRUE]
+		{
+			P_Single_Run_Select_Run_Mode_RTN = 0;									// 런모드 선택 반환값 초기화.
+			//P_Single_Run_Mode_Flag = 1;											// 런모드 실행 Flag On.
+			P_Single_Run_State_Machine = 11;										// 다음 스텟 머신으로 이동.
+		}
+	break;
+	
+	case 11 : // 런모드 실행  
+		/* __Flag
+
+			P_Single_Run_Mode_Flag = 1						런모드. (양,음극 1,2차 PNP, Clamp) [연동]
+			
+			P_Sheet_Paper_Motion_Flag = 1					시트페이퍼 연속 동작
+
+			P_Cathode_Align_Motion_State_Machine = 1		양극 얼라인 연속 동작
+
+			P_Anode_Align_Motion_State_Machine = 1			음극 얼라인 연속 동작
+
+			P_NG_PNP_Uint_State_Machine = 1					NG PNP 연속 동작
+
+		*/
+		P_Single_Run_Status = F_Status_EXECUTE;										// 단동 상태 [ EXECUTE ]
+		P_Single_Run_Execution_Run_RTN = 0;											// 반환값 초기화.
+		call Single_Dry_Run.Run_Execute(&P_Single_Run_Execution_Run_RTN);			// 구동 진행 함수 호출.
+		if ( P_Single_Run_Execution_Run_RTN == N_TRUE )								// 구동 진행 완료 확인.
+			P_Single_Run_State_Machine = N_Complete_STMS;							// 종료 스텟 머신으로 이동.
+	break;
+
+	case N_Complete_STMS : //모드 실행 완료 99
+		P_Single_Run_Status = F_Status_COMPLETE;									// 완료 상태.
+		P_Single_Run_Stop_Command = 1;												// 정지 Cmd On.
+		P_Single_Run_State_Machine = 0												// 스텟 머신 초기화.
+	break;
+	
+	case N_Error_STMS :	//44														// 에러 스텝
+		P_Single_Run_Stop_Command = 1;												// 정지 Cmd On.
+		P_Single_Run_State_Machine = 0;												// 스텟 머신 초기화.
+	break;
+}
+//=====================//
+// 인터락 [__Inter]
+//=====================//
+if ( P_Single_Run_State_Machine == 11 )										// 런모드 진행 중일 겨우.
+{
+	if ( P_User_Dry_Run_Mode != 1 )											// 사용자 단동, 연동 모드 미사용 일 경우.
+	{
+		// 인터락 함수 항시 Call (유닛에 따라)
+		P_Single_Run_Execution_Interlock_RTN = 0;							// 인터락 반환값 초기화.
+		call Single_Dry_Run.Interlock(P_Single_Run_Unit,&P_Single_Run_Execution_Interlock_RTN)	// 인터락 함수 호출.
+		if ( P_Single_Run_Execution_Interlock_RTN == N_TRUE )				// 인터락이 작용할 경우 [정지 필요]
+		{
+			P_Single_Run_Debug_SM = N_Error_STMS;							// 디버깅 변수 업데이트.
+			P_Single_Run_Stop_Command = 1;									// 정지 Cmd 실행.
+			P_Single_Run_State_Machine = N_Error_STMS;						// 에러 스텟 머신으로 이동.
+		}
+	}
+	else{}																	// 사용자 단동, 연동 모드 사용 일 경우.
+}
+//==============//
+// 정지 [__Stop]
+//==============//
+if ( P_Single_Run_Status != F_Status_IDLE )								// 단동 상태가 대기가 아닐 경우.
+{
+	If( (P_Single_Run_Stop_Command == 1 || M_X_BTN_CMD_Auto_Stop == 1) && P_Single_Run_Stop_State_Machine == 0 && ( P_PMAC_Status == F_Status_IDLE || P_PMAC_Status == F_Status_STOPPED || P_PMAC_Status == F_Status_ABORTED ))//|| M_X_BTN_CMD_Auto_Stop_From_PLC == 1 )	// 정지 커멘드 || 정지버튼
+	{
+		P_Single_Run_Stop_Command = 0;									// 정지 커멘드 초기화.
+		P_Single_Run_Stop_Btn_Chk = 0;									// 정지 버튼 확인 초기화.
+		P_Single_Run_Stop_State_Machine = 1;							// 스텟 머신으로 이동.
+	}
+}
+
+switch ( P_Single_Run_Stop_State_Machine )								// 정지 스텟 실행부
+{
+	case 0 : // 대기 상태.
+		P_Single_Run_Stop_Status = F_Status_IDLE;						// 정지 상태 [ IDLE ]
+	break;
+
+	case 1 : // 양,음극 얼라인 모드, 스텟 머신 초기화.
+		P_Single_Run_Stop_Status = F_Status_EXECUTE;					// 정지 상태 [ EXECUTE ]
+
+		P_Cathode_Align_Table_Move = 0;									// 양극 얼라인 모드 초기화
+		P_Anode_Align_Table_Move = 0;									// 음극 얼라인 모드 초기화
+		P_Cathode_Align_Motion_State_Machine = 0;						// 양극 얼라인 스텟 머신 초기화
+		P_Anode_Align_Motion_State_Machine = 0;							// 음극 얼라인 스텟 머신 초기화
+
+		P_Single_Run_Stop_State_Machine = 2;							// 다음 스텟 머신으로 이동.
+	break;
+
+	case 2 : // 마스터 트리거 종료.
+		P_Single_Run_Stop_Status = F_Status_EXECUTE;					// 정지 상태 [ EXECUTE ]
+
+		P_Master_Motion_CycleStop_Flag = 1
+		if( P_Master_Motion_CycleStop_Flag == 1 && Coord[1].ProgActive == 0 )	// 마스터 플래그 종료 확인.
+		{
+			P_Master_Motion_Program_Flag = 0
+			P_Master_Motion_CycleStop_Flag = 0
+			P_Single_Run_Stop_Timer = 0;								// 타이머 초기화.
+			P_Single_Run_Stop_State_Machine = 3 ;						// 다음 스텟 머신으로 이동.
+		}
+	break;
+
+	case 3 : // 딜레이 .
+		P_Single_Run_Stop_Status = F_Status_EXECUTE;					// 정지 상태 [ EXECUTE ]
+
+		if ( P_Single_Run_Stop_Timer > 1000)							// 딜레이 시간 확인.		
+		{
+			P_Single_Run_Stop_State_Machine = 4;						// 다음 스텟 머신으로 이동.
+		}
+	break;
+			
+	case 4 : // Cmd 초기화.
+		P_Single_Run_Stop_Status = F_Status_EXECUTE;					// 정지 상태 [ EXECUTE ]
+		
+		P_Single_Run_Stop_Init_RTN = 0;									// 초기화 반환값 초기화.
+		call Single_Dry_Run.Init(&P_Single_Run_Stop_Init_RTN)			// 초기화 함수 호출.
+		if ( P_Single_Run_Stop_Init_RTN == N_TRUE )						// 함수 호출 완료 확인.
+			P_Single_Run_Stop_State_Machine = 5;						// 다음 스텟 머신으로 이동.
+	break;			
+	
+	case 5 : //꺼진 PLC 활성화.																			
+		P_Single_Run_Stop_Status = F_Status_EXECUTE;					// 정지 상태 [ EXECUTE ]
+
+		//if ( Plc[4].Active == 0	)
+		//{
+		//	cmd"enable plc 4"; 
+		//}
+		//if ( Plc[12].Active == 0	)
+		//{
+		//	cmd"enable plc 12"; 
+		//}
+		//if ( Plc[27].Active == 0	)
+		//{
+		//	cmd"enable plc 27"; 
+		//}
+		if ( Plc[28].Active == 0	)
+		{
+			cmd"enable plc 28"; 
+		}
+				
+		P_Single_Run_Stop_State_Machine = 6;							// 다음 스텟 머신으로 이동.						
+	break;
+
+	case 6 : // 타임 베이스 종료.
+		P_Single_Run_Stop_Status = F_Status_EXECUTE;					// 정지 상태 [ EXECUTE ]
+
+		P_Single_Run_Timebase_Off_RTN = 0;								// 타임 베이스 종료 반환값 초기화.
+		call Sub_Common_Function.Timbase_OFF(&P_Single_Run_Timebase_Off_RTN);	// 타임 베이스 종료 함수 호출.
+		if( P_Single_Run_Timebase_Off_RTN == 1 )						// 반환값 확인.
+		{
+			Coord[1].DesTimeBase = Sys.ServoPeriod * ( 100 / 100 );		// DesTimeBase 업데이트.
+			P_PMAC_Commands = F_Command_Stop;							// Status IDLE → Stopped 변경.
+			P_Stop_Cmd_Origin = 39
+			P_Single_Run_Stop_State_Machine = N_Complete_STMS;			// 완료 스텟 머신으로 이동.
+		}			
+	break;
+
+	case N_Complete_STMS :												// 완료 스텟 머신.
+		P_Single_Run_Stop_Status = F_Status_COMPLETE;					// 정지 상태 [ COMPLETE ]
+
+		P_Single_Run_Unit = 0;											// 모터 유닛 초기화.
+		P_Single_Run_Stop_State_Machine = 0;							// 정지 스텟 머신 초기화.
+	break;	
+	
+	case N_Error_STMS :													// 에러 스텟 머신.
+		P_Single_Run_Stop_State_Machine = 0;							// 정지 스텟 머신 초기화.
+	break;						
+}
+P_MNTR_PLC29_Task_Time(1) = (Sys.Time - P_MNTR_PLC29_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC29_Task_Time(1) > P_MNTR_PLC29_Task_Max_Time )
+{
+	P_MNTR_PLC29_Task_Max_Time = P_MNTR_PLC29_Task_Time(1);
+}
+close

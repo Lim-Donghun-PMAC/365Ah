@@ -1,0 +1,144 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+open subprog Sub_Automation_Circular_Queue(void)
+
+	// 2. 원형 큐
+	// 2.1. 초기화
+	// 2.1.1. 클리어 _ 큐 메모리 초기화
+	sub:ClearQueue(&rtn)
+
+		P_Debug_CirQueue_Status		= N_CirQueue_Status_INITIAL;		// 디버그 코드 초기화	
+		P_CirQueue_Status_Value		= N_CirQueue_Status_EMPTY;			// 상태 및 인덱스 클리어			
+		P_Front_Index				= N_CirQueue_Status_INITIAL;		// 인덱스 초기화
+		P_Rear_Index				= N_CirQueue_Status_INITIAL;		// 인덱스 초기화
+		
+		P_CircularQueue_Command_array(0),N_Circluar_Queue_UseSize,1 = N_CirQueue_Status_INITIAL;	// 큐 초기화
+		rtn = N_CirQueue_TRUE;
+	return
+	
+	// 2.2. 데이터 체크
+	// 2.2.1. 엠티 _ 큐가 비어있는지 체크
+	sub:isEmpty(&rtn)
+		if ( P_Front_Index == P_Rear_Index )
+		{
+			rtn = N_CirQueue_TRUE;
+		}
+		else
+		{
+			rtn = N_CirQueue_FALSE;
+		}
+	return
+
+	// 2.2.2. 풀 _ 큐가 꽉차있는지 체크
+	sub:isFull(&rtn)
+		if ( P_Front_Index == (P_Rear_Index+1)%P_Index_Max )
+		{
+			rtn = N_CirQueue_TRUE;
+		}
+		else
+		{
+			rtn = N_CirQueue_FALSE;
+		}
+	return
+
+	// 2.2.3. 사이즈 _ 큐 배열 사이즈 정의
+	sub:SizeQueue(length,&rtn)
+		// 기존 : Local L_CirQueue_Length = length; 
+		P_CirQueue_Length = length;		// 일단 사이즈는 10으로
+		
+		// 사이즈 지정 시 큐버퍼 클리어
+		local L_SizeQueue_Select_Clear = 0;
+		call Sub_Automation_Circular_Queue.ClearQueue(&L_SizeQueue_Select_Clear)
+	
+		if ( P_CirQueue_Length <= N_Circluar_Queue_UseSize )				// 배열 사이즈 내로 들어오는지 체크
+		{
+			P_CircularQueue_Command_array(0),P_CirQueue_Length,1 = 0;	// 초기화
+
+			P_CirQueue_Status_Value	= N_CirQueue_Status_EMPTY;			// 큐 상태 - 엠티
+			P_Index_Max = P_CirQueue_Length;							// 인덱스 맥스값지정
+			rtn = N_CirQueue_TRUE;
+		}
+		else
+		{
+			rtn = N_CirQueue_FALSE;								
+			P_Debug_CirQueue_Status = P_Debug_CirQueue_Status | N_Bit << $0000	// 디버그 코드 - 큐 사이즈 초과
+		}
+	return
+
+	// 2.3. 인큐 _ 리어 인덱스 증가 후 데이터 삽입 (rear 인덱스 증가)
+	sub:Enqueue(data,&rtn)
+		// 변경 전 local P_Queue_Full = 0;
+		P_Queue_Full = 0;
+		call Sub_Automation_Circular_Queue.isFull(&P_Queue_Full);		// 큐가 가득 찼는지 확인
+		if ( P_Queue_Full != N_CirQueue_TRUE )
+		{
+			if ( P_Rear_Index < P_Index_Max-1 )
+			{ 
+				P_Rear_Index = (P_Rear_Index+1) % P_Index_Max;
+				P_CircularQueue_Command_array(P_Rear_Index) = data;		// 데이터 삽입
+			}
+			else
+			{
+				P_Rear_Index = N_CirQueue_Status_INITIAL;				// 인덱스 초기화
+				P_CircularQueue_Command_array(P_Rear_Index) = data;		// 데이터 삽입
+			}	
+			rtn = N_CirQueue_TRUE; 
+			P_CirQueue_Status_Value = N_CirQueue_Status_EXECUTE;
+		}
+		else
+		{
+			rtn = N_CirQueue_FALSE;	
+			P_CirQueue_Status_Value = N_CirQueue_Status_FULL;			// 큐 상태 - 꽉참							
+			P_Debug_CirQueue_Status = P_Debug_CirQueue_Status | N_Bit << $0001	// 디버그 코드 - 큐가 꽉참		
+		}
+	return
+
+	// 2.4. 디큐 _ 프론트 인덱스 증가 후 데이터 반환 후 제거 (front 인덱스 증가)
+	sub:Dequeue(&data,&rtn)
+		// 변경 전 : local P_Queue_Empty = 0;
+		P_Queue_Empty = 0;
+		call Sub_Automation_Circular_Queue.isEmpty(&P_Queue_Empty);
+
+		if ( P_Queue_Empty != N_CirQueue_TRUE )					// 큐가 비었는지 확인
+		{
+			P_Front_Index = (P_Front_Index+1)%P_Index_Max;		
+			data = P_CircularQueue_Command_array(P_Front_Index);
+			P_CircularQueue_Command_array(P_Front_Index) = 0;
+			rtn = N_CirQueue_TRUE; 
+		}
+		else
+		{
+			data = 0;
+			rtn = N_CirQueue_FALSE;								
+			P_Debug_CirQueue_Status = P_Debug_CirQueue_Status | N_Bit << $0002	// 디버그 코드 - 디큐에서 반환 할 데이터가 없음
+		}
+	return
+
+	// 2.5. 픽 _ 맨앞 데이터 체크
+	// -> 데이터가 안비어있어야 출력이 가능해서 True
+	sub:Peek(&data,&rtn)
+		// 변경 전 : local P_Queue_PeekEmpty = 0;
+		// 변경 전 : local P_Self_items = 0;
+
+		call Sub_Automation_Circular_Queue.isEmpty(&P_Queue_PeekEmpty);
+
+		if ( P_Queue_PeekEmpty != N_CirQueue_TRUE )
+		{
+			P_Self_items = (P_Front_Index+1)%P_Index_Max;
+			data = P_CircularQueue_Command_array(P_Self_items);
+			rtn = N_CirQueue_TRUE; 
+		}
+		else
+		{
+			data = 0;
+			rtn = N_CirQueue_FALSE;								
+			P_Debug_CirQueue_Status = P_Debug_CirQueue_Status | N_Bit << $0003	// 디버그 코드 - 픽에서 반환 할 데이터가 없음
+		}
+		
+	return
+
+close

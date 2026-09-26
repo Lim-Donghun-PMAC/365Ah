@@ -1,0 +1,514 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+#define N_NOT_EXIST_VALUE			444
+#define F_TRUE						1
+#define N_FALSE						2
+#define F_FLASE						2
+
+// 모터 정의
+#define	F_Anode_1st_PNP				1
+#define	F_Anode_2nd_PNP				3
+#define	F_Anode_Clamp				4
+#define	F_Final_Roll				5
+#define	F_Stack_Table				6
+#define	F_Cathode_Clamp				7
+#define	F_Cathode_2nd_PNP			8
+#define	F_Cathode_1st_PNP			10
+#define F_Anode_NG_PNP				11
+#define F_Cathode_NG_PNP			12
+#define F_1st_Unloader				13
+#define F_Sheet_Paper				14
+
+
+#define	N_Memory_1st_PNP 			1
+#define	N_Memory_2nd_PNP 			2
+#define	N_Memory_CLP 				3
+#define	N_Memory_StackTable 		4
+#define	N_Memory_FinalRoller 		5
+#define N_Memory_NG_PNP				6
+#define N_Memory_1st_Unloader		7
+#define N_Memory_Sheet_Paper		8
+
+
+
+// 모터 위치 변수화
+#define F_Anode_1st_T_Axis				int(Motor[N_1st_PnP_AN_T].ActPos-Motor[N_1st_PnP_AN_T].HomePos)/1000		//int((Motor[2].ActPos-Motor[2].HomePos)/Motor[2].PosSf)/1000
+#define F_Anode_1st_Z_Axis				int(Motor[N_1st_PnP_AN_Z].ActPos-Motor[N_1st_PnP_AN_Z].HomePos)/1000		//int((Motor[18].ActPos-Motor[18].HomePos)/Motor[18].PosSf)/1000
+#define F_Anode_2nd_T_Axis				int(Motor[N_2nd_PnP_AN_T].ActPos-Motor[N_2nd_PnP_AN_T].HomePos)/1000		//int((Motor[4].ActPos-Motor[4].HomePos)/Motor[4].PosSf)/1000
+#define F_Anode_2nd_Z_Axis				int(Motor[N_2nd_PnP_AN_Z].ActPos-Motor[N_2nd_PnP_AN_Z].HomePos)/1000		//int((Motor[22].ActPos-Motor[22].HomePos)/Motor[22].PosSf)/1000
+#define F_Anode_CLP_Y1_Axis				int(Motor[N_Clamp_AN_Y1].ActPos-Motor[N_Clamp_AN_Y1].HomePos)/1000			//int((Motor[6].ActPos-Motor[6].HomePos)/Motor[6].PosSf)/1000
+#define F_Anode_CLP_Y2_Axis				int(Motor[N_Clamp_AN_Y2].ActPos-Motor[N_Clamp_AN_Y2].HomePos)/1000			//int((Motor[8].ActPos-Motor[8].HomePos)/Motor[8].PosSf)/1000
+#define F_Anode_CLP_Z_Axis				int(Motor[N_Clamp_AN_Z1].ActPos-Motor[N_Clamp_AN_Z1].HomePos))/1000			//int((Motor[10].ActPos-Motor[10].HomePos)/Motor[10].PosSf)/1000
+#define F_Anode_CLP_Z2_Axis				int(Motor[N_Clamp_AN_Z2].ActPos-Motor[N_Clamp_AN_Z2].HomePos)/1000			//int((Motor[26].ActPos-Motor[26].HomePos)/Motor[26].PosSf)/1000
+#define F_FinalRoll_X_Axis				int(Motor[N_FINAL_ROLL_X].ActPos-Motor[N_FINAL_ROLL_X].HomePos)/1000		//int((Motor[12].ActPos-Motor[12].HomePos)/Motor[12].PosSf)/1000
+#define F_FinalRoll_Z_Axis				int(Motor[N_FINAL_ROLL_Z].ActPos-Motor[N_FINAL_ROLL_Z].HomePos)/1000		//int((Motor[13].ActPos-Motor[13].HomePos)/Motor[13].PosSf)/1000
+#define F_Main_ST_Z_Axis				int(Motor[N_MAIN_Z].ActPos-Motor[N_MAIN_Z].HomePos)/1000						//int((Motor[11].ActPos-Motor[11].HomePos)/Motor[11].PosSf)/1000
+#define F_Cathode_CLP_Y1_Axis			int(Motor[N_Clamp_CA_Y1].ActPos-Motor[N_Clamp_CA_Y1].HomePos)/1000			//int((Motor[5].ActPos-Motor[5].HomePos)/Motor[5].PosSf)/1000
+#define F_Cathode_CLP_Y2_Axis			int(Motor[N_Clamp_CA_Y2].ActPos-Motor[N_Clamp_CA_Y2].HomePos)/1000			//int((Motor[7].ActPos-Motor[7].HomePos)/Motor[7].PosSf)/1000
+#define F_Cathode_CLP_Z_Axis			int(Motor[N_Clamp_CA_Z1].ActPos-Motor[N_Clamp_CA_Z1].HomePos)/1000			//int((Motor[9].ActPos-Motor[9].HomePos)/Motor[9].PosSf)/1000
+#define F_Cathode_CLP_Z2_Axis			int(Motor[N_Clamp_CA_Z2].ActPos-Motor[N_Clamp_CA_Z2].HomePos)/1000			//int((Motor[25].ActPos-Motor[25].HomePos)/Motor[25].PosSf)/1000
+#define F_Cathode_2nd_T_Axis			int(Motor[N_2nd_PnP_CA_T].ActPos-Motor[N_2nd_PnP_CA_T].HomePos)/1000		//int((Motor[3].ActPos-Motor[3].HomePos)/Motor[3].PosSf)/1000
+#define F_Cathode_2nd_Z_Axis			int(Motor[N_2nd_PnP_CA_Z].ActPos-Motor[N_2nd_PnP_CA_Z].HomePos)/1000		//int((Motor[21].ActPos-Motor[21].HomePos)/Motor[21].PosSf)/1000
+#define F_Cathode_1st_T_Axis			int(Motor[N_1st_PnP_CA_T].ActPos-Motor[N_1st_PnP_CA_T].HomePos)/1000		//int((Motor[1].ActPos-Motor[1].HomePos)/Motor[1].PosSf)/1000
+#define F_Cathode_1st_Z_Axis			int(Motor[N_1st_PnP_CA_Z].ActPos-Motor[N_1st_PnP_CA_Z].HomePos)/1000		//int((Motor[17].ActPos-Motor[17].HomePos)/Motor[17].PosSf)/1000
+#define F_Anode_NG_T_Axis				int(Motor[N_NG_PnP_AN_T].ActPos-Motor[N_NG_PnP_AN_T].HomePos)/1000			//int((Motor[43].ActPos-Motor[43].HomePos)/Motor[43].PosSf)/1000
+#define F_Anode_NG_Z_Axis				int(Motor[N_NG_PnP_AN_Z].ActPos-Motor[N_NG_PnP_AN_Z].HomePos)/1000			//int((Motor[45].ActPos-Motor[45].HomePos)/Motor[45].PosSf)/1000
+#define	F_Cathode_NG_T_Axis				int(Motor[N_NG_PnP_CA_T].ActPos-Motor[N_NG_PnP_CA_T].HomePos)/1000			//int((Motor[42].ActPos-Motor[42].HomePos)/Motor[42].PosSf)/1000
+#define	F_Cathode_NG_Z_Axis				int(Motor[N_NG_PnP_CA_Z].ActPos-Motor[N_NG_PnP_CA_Z].HomePos)/1000			//int((Motor[44].ActPos-Motor[44].HomePos)/Motor[44].PosSf)/1000
+#define F_Cathode_1st_Unloader_X_Axis	int(Motor[N_UNLOADER_X].ActPos-Motor[N_UNLOADER_X].HomePos)/1000			//int((Motor[46].ActPos-Motor[46].HomePos)/Motor[46].PosSf)/1000
+#define	F_Cathode_1st_Unloader_Z_Axis	int(Motor[N_UNLOADER_Z].ActPos-Motor[N_UNLOADER_Z].HomePos)/1000			//int((Motor[47].ActPos-Motor[47].HomePos)/Motor[47].PosSf)/1000
+#define F_Cathode_1st_Unloader_T_Axis	int(Motor[N_UNLOADER_T].ActPos-Motor[N_UNLOADER_T].HomePos)/1000			//int((Motor[48].ActPos-Motor[48].HomePos)/Motor[48].PosSf)/1000
+#define F_Cathode_Sheet_Paper_X_Axis	int(Motor[N_SHEET_PAPER_X].ActPos-Motor[N_SHEET_PAPER_X].HomePos)/1000	//int((Motor[35].ActPos-Motor[35].HomePos)/Motor[35].PosSf)/1000
+
+
+
+//X
+#define P_bit1 				$1//0x01			// 0000 0000 0000 0001
+#define P_bit2 				$2//0x02			// 0000 0000 0000 0010
+#define P_bit3 				$4//0x04			// 0000 0000 0000 0100
+#define P_bit4				$8//0x08			// 0000 0000 0000 1000
+#define P_bit5				$10//0x10			// 0000 0000 0001 0000
+#define P_bit6 				$20//0x20			// 0000 0000 0010 0000
+#define P_bit7 				$40//0x40			// 0000 0000 0100 0000
+#define	P_bit8				$80//0x80			// 0000 0000 1000 0000
+//Z
+#define P_bit9 				$100//0x100			// 0000 0001 0000 0000
+#define P_bit10				$200//0x200			// 0000 0010 0000 0000
+#define	P_bit11 			$400//0x400			// 0000 0100 0000 0000
+#define P_bit12 			$800//0x800			// 0000 1000 0000 0000
+#define P_bit13 			$1000//0x1000		// 0001 0000 0000 0000
+#define P_bit14				$2000//0x2000		// 0010 0000 0000 0000
+#define	P_bit15 			$4000//0x4000		// 0100 0000 0000 0000
+#define P_bit16 			$8000//0x8000		// 1000 0000 0000 0000
+//Y
+#define P_bit17 			$10000//0x10000		// 0000 0001 0000 0000 0000 0000
+#define P_bit18				$20000//0x20000		// 0000 0010 0000 0000 0000 0000
+#define	P_bit19 			$40000//0x40000		// 0000 0100 0000 0000 0000 0000
+#define P_bit20 			$80000//0x80000		// 0000 1000 0000 0000 0000 0000
+#define P_bit21 			$100000//0x10000	// 0001 0000 0000 0000 0000 0000
+#define P_bit22				$200000//0x20000	// 0010 0000 0000 0000 0000 0000
+#define	P_bit23 			$400000//0x40000	// 0100 0000 0000 0000 0000 0000
+#define P_bit24 			$800000//0x80000	// 1000 0000 0000 0000 0000 0000
+
+#define P_bit25				$1000000
+#define P_bit26				$2000000
+#define	P_bit27				$4000000
+#define P_bit28				$8000000
+#define P_bit29				$10000000
+#define P_bit30				$20000000
+#define	P_bit31				$40000000
+#define P_bit32				$80000000
+
+
+
+// 1차 PNP 위치 비트 조합
+#define F_1st_PNP_Init_Up_Pos			$101			// 대기상승			0000 0001 0000 0001
+#define F_1st_PNP_Init_Down_Pos			$201			// 대기하강			0000 0010 0000 0001
+#define F_1st_PNP_Belt_Up_Pos			$102			// 벨트상승			0000 0001 0000 0010
+#define F_1st_PNP_Belt_Down_Pos			$202			// 벨트하강			0000 0010 0000 0010
+#define F_1st_PNP_Align_Up_Pos			$104			// 얼라인상승		0000 0001 0000 0100
+#define F_1st_PNP_Align_Down_Pos		$204			// 얼라인하강		0000 0010 0000 0100
+// 2차 PNP 위치 비트 조합
+#define F_2nd_PNP_Align_Up_Pos			$101			// 얼라인상승
+#define F_2nd_PNP_Align_Down_Pos		$201			// 얼라인하강
+#define F_2nd_PNP_Stack_Up_Pos			$102			// 스텍상승
+#define F_2nd_PNP_Stack_Down_Pos		$202			// 스텍하강
+#define F_2nd_PNP_NG_Avoid_Up_Pos		$402			// NG회피상승
+//#define F_2nd_PNP_Init_Up_Pos			$101			// NG회피상승
+//#define F_2nd_PNP_NG_Avoid_Down_Pos	$204			// NG회피하강
+// NG PNP
+#define F_NG_PNP_NgBox_Up_Pos			$101			// NG박스상승
+#define F_NG_PNP_NgBox_Down_Pos			$201			// NG박스하강
+#define F_NG_PNP_Align_Up_Pos			$102			// 얼라인상승
+#define F_NG_PNP_Align_Down_Pos			$202			// 얼라인하강
+// FR 위치 비트 조합
+// [참조 : 파이널롤러 레시피 변경에 따른 메모리 타워 수정]
+#define F_FR_Anode_Pos					$201			// 음극위치
+#define F_FR_Cathode_Pos				$202			// 양극위치
+#define F_FR_Discharge_Pos				$204			// 배출위치
+#define F_FR_Ready_And_Cutting_Pos		$104			// 대기/컷팅위치
+
+
+//#define F_FR_Anode_Pos					$201			// 음극위치
+//#define F_FR_Cathode_Pos				$202			// 양극위치
+//#define F_FR_Discharge_Pos				$204			// 배출위치
+//#define F_FR_Cutting_AND_Ready_Pos		$104			// 컷팅위치
+
+
+
+
+// Main Z 위치 비트 조합
+#define F_Main_Z_Init_Pos				$10				// 대기위치
+#define F_Main_Z_Discharge_Pos			$20				// 배출위치
+// Sheet Paper 위치 비트 조합
+#define F_Sheet_Paper_BWD_Pos			$1				// 후진
+#define F_Sheet_Paper_FWD_Pos			$2				// 전진
+#define F_Sheet_Paper_JR_Run_Pos		$4				// 적층위치
+
+// Clamp 위치 비트 조합	// [ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가]
+#define F_Clamp_Off_Pos					$11101			// 언클램프		// Z2 축 추가
+#define F_Clamp_On_Pos					$22202			// 클램프		// Z2 축 추가
+#define F_Clamp_Cell_Down_Pos			$28802			// 클램프 극판 다운 위치 
+
+// 1st Unloader 위치 비트 조합		
+// 1차 언로더 대기위치 레시피 1번으로 변경에 따라 비트 수정	26.03.23	
+#define F_1st_Unloader_Init_Pos			$10101			//$10201			// 대기위치
+#define F_Unloader_Discharge_Pos		$10202			// 배출중위치
+#define F_Unloader_to_2nd_Grip_Pos		$20108			// 언로더 T축 회전위치 
+#define F_Unloader_Wait_Avoid_Pos		$40104			// 언로더 T축 회피위치				// 배출 언로더 회피위치 추가 2025.04.22
+
+// Error 
+#define F_Individual_Error				444				// Error
+
+
+
+#define F_Init_Down_Pos			
+#define F_1st_Target_Up_Pos		3
+#define	F_1st_Target_Down_Pos	4
+#define	F_2nd_Target_Up_Pos		5
+#define	F_2nd_Target_Down_Pos	6
+#define F_Not_Applicable		99
+
+global P_Recipe_1st_MotorNo(50)
+P_Recipe_1st_MotorNo(0),50,1 = 0;
+global P_Recipe_2nd_MotorNo(50)
+P_Recipe_2nd_MotorNo(0),50,1 = 0;
+global P_Recipe_3rd_MotorNo(50)
+P_Recipe_3rd_MotorNo(0),50,1 = 0;
+global P_Recipe_4th_MotorNo(50)
+P_Recipe_4th_MotorNo(0),50,1 = 0;
+global P_Recipe_5th_MotorNo(50)
+P_Recipe_5th_MotorNo(0),50,1 = 0;
+global P_Recipe_6th_MotorNo(50)
+P_Recipe_6th_MotorNo(0),50,1 = 0;
+
+
+ global P_X_Axis_Num = 0;				// X축 모터번호
+ global P_Y_Axis_Num = 0;				// Y축 모터번호
+ global P_Z_Axis_Num = 0;				// Z축 모터번호
+ global P_ZZ_Axis_Num = 0;				// Clamp Z2 모터 번호
+
+ global P_X_Unit = 0;					// X축 유닛
+ global P_Y_Unit = 0;					// Y축 유닛
+ global P_Z_Unit = 0;					// Z축 유닛
+ global P_ZZ_Unit = 0;					// clamp Z2 유닛
+
+global P_Pos_Memory_Bit_Save = 0;		// 비트 변수
+global P_Total_Unit_Bit = 0;			// 통합 유닛 비트
+global P_Total_Unit_Pos = 0;			// 통합 유닛 위치
+
+global P_Anode_1st_Unit_Status;
+global P_Anode_2nd_Unit_Status;
+global P_Anode_CLP_Unit_Status;
+global P_FinalRoll_Unit_Status;
+global P_StackTable_Unit_Status;
+global P_Cathode_CLP_Unit_Status;
+global P_Cathode_2nd_Unit_Status;
+global P_Cathode_1st_Unit_Status;
+global P_1st_Unloader_Unit_Status;
+global P_Cathode_NG_PNP_Status;
+global P_Anode_NG_PNP_Status;
+global P_Unit_integrated_Status;
+global P_Unit_Status_Update_Flag = 0;
+
+// P_Totla_Status 위치 조합 명
+// FR / unloader / cathode clamp / anode clamp / cathode 2nd / cathode 1st / anode 2nd / anode 1st
+
+// FR							[0001 음극, 0010 양극, 0100 배출]
+// unloader						[0001 대기, 0010 배출, 0100 T축 회전, 1000 스텍 진입 전 위치]
+// cathode clamp anode clamp	[0001 off, 0010 on]
+// cathode 2nd anode 2nd		[0001 대기상승, 0010 스텍상승, 0100 NG 회피]
+// cathode 1st anode 1st		[0001 대기상승, 0010 벨트상승, 0100 얼라인 상승]
+
+// 1차 언로더의 움직임은 PMAC상태에 따라 움직이는것이 아님. PMAC <-> PLC 개별 시퀀스로 움직이므로, 통합 위치메모리를 돌렸을때 모터 위치가 안맞아 Error 뜰 상황이 발생함
+// Execute 및 Hold에선 언로더 위치메모리 판단 X 언로더 비트 0 
+
+// [ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가]
+//[ 참조 : 26.02.27 위치 메모리 개편 ]
+#define N_Equipment_Initial_Ready_Pos				$40111111	//	0100 0000 0001 0001 0001 0001 0001 0001		[FR:배출,C_Clamp:Off,A_Clamp:Off,P&P:대기상승]
+#define N_Equipment_Anode_Side_Pos					$20121111	//	0010 0000 0001 0100 0001 0001 0001 0001		[FR:양극,C_Clamp:Off,A_Clamp:극판하강위치,P&P:대기상승]
+#define N_Equipment_Cathode_Side_Pos 				$10211111	//	0001 0000 0100 0001 0001 0001 0001 0001 	[FR:음극,C_Clamp:극판하강위치,A_Clamp:Off,P&P:대기상승]
+#define	N_Equipment_Anode_Run_Pos					$10212412	//	0001 0000 0100 0001 0010 0100 0001 0010		[FR:음극,C_Clamp:극판하강위치,A_Clamp:Off,C_2_P&P:스텍상승,C_1_P&P:얼라인상승,A_2_P&P:대기상승,A_1_P&P:벨트상승]
+#define	N_Equipment_Cathode_Run_Pos					$20121224	//	0010 0000 0001 0100 0001 0010 0010 0100		[FR:양극,C_Clamp:Off,A_Clamp:극판하강위치,C_2_P&P:대기상승,C_1_P&P:벨트상승,A_2_P&P:스텍상승,A_1_P&P:얼라인상승]
+#define	N_Equipment_Frist_Sepa_Runing_Stop_Pos		$20111111	//	0010 0000 0001 0001 0001 0001 0001 0001		[FR:양극,C_Clamp:Off,A_Clamp:Off,P&P:대기상승]
+#define	N_Equipment_Anode_NG_Pos					$10212111	//	0001 0000 0100 0001 0010 0001 0001 0001 	[FR:음극,C_Clamp:극판하강위치,A_Clamp:Off,C_2_P&P:스텍상승,C_1_P&P:대기상승,A_2_P&P:대기상승,A_1_P&P:대기상승]
+#define	N_Equipment_Cathode_NG_Pos					$20121121	//	0010 0000 0001 0100 0001 0001 0010 0001		[FR:양극,C_Clamp:Off,A_Clamp:극판하강위치,C_2_P&P:대기상승,C_1_P&P:대기상승,A_2_P&P:벨트상승,A_1_P&P:대기상승]
+#define N_Equipment_Isenable_Discharge_Stop_Pos		$40211111	//	0100 0000 0100 0001 0001 0001 0001 0001		[FR:배출,C_Clamp:극판하강위치,A_Clamp:Off,P&P:대기상승]		[ 참조 : 25.07.10 Suspend 배출 위치 메모리 추가 ]
+// Suspend 위치 메모리 배출부.
+// 배출에서만 언로더 위치가 필요하므로, 1차 언로더 통합 위치메모리는 Suspend부에서만 확인 하는 용도로 사용.
+#define N_Equipment_Stack_Completed_Pos				$11211111	//	0001 0001 0100 0001 0001 0001 0001 0001		[FR:음극,1_Unloader:대기,C_Clamp:극판하강위치,A_Clamp:Off,P&P:대기상승]
+#define	N_Equipment_JR_Discharge_WaitPos			$14211111	//	0001 0100 0100 0001 0001 0001 0001 0001		[FR:음극,1_Unloader:스텍 진입 전,C_Clamp:극판하강위치,A_Clamp:Off,P&P:대기상승]
+#define N_Equipment_Discharge_Stop_Pos				$41211111	//  0100 0001 0100 0001 0001 0001 0001 0001		[FR:배출,1_Unloader:대기,C_Clamp:극판하강위치,A_Clamp:Off,P&P:대기상승]
+#define N_Equipment_JR_Discharge_Pos 				$42211111	//	0100 0010 0100 0001 0001 0001 0001 0001		[FR:배출,1_Unloader:배출,C_Clamp:극판하강위치,A_Clamp:Off,P&P:대기상승]
+
+// IDLE 상태에서 위치 확인 (위치가 벗어날 경우 Command Stop)														[ 참조 : 25.08.04 PackML 버튼 프로그램 수정 ]		
+#define N_Equipment_IDLE_Initial_Ready_Pos			$41111111	//	0100 0001 0001 0001 0001 0001 0001 0001		[FR:배출,1_Unloader:대기,C_Clamp:Off,A_Clamp:Off,P&P:대기상승]
+#define N_Equipment_IDLE_Anode_Side_Pos				$21121111	//	0010 0001 0001 0100 0001 0001 0001 0001		[FR:양극,1_Unloader:대기,C_Clamp:Off,A_Clamp:극판하강위치,P&P:대기상승]
+#define N_Equipment_IDLE_First_Sepa_On_Pos			$21121111	//	0010 0001 0001 0010 0001 0001 0001 0001		[FR:양극,1_Unloader:대기,C_Clamp:Off,A_Clamp:On,P&P:대기상승]		[ 참조 : 26.01.12 세파 첫장 모듈 수정 - 음극 클램프만 ON ]
+
+//// [ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가로 인한 드라이런 통합 위치 추가 ]
+//#define N_Equipment_DryRun_Anode_Side_Pos			$20121111	//  0010 0000 0001 0010 0001 0001 0001 0001		[FR : 양극, C_Clamp : OFF, A_Clamp: ON PNP 대기상승]
+//#define N_Equipment_DryRun_Cathode_Side_Pos			$10211111	//  0001 0000 0010 0001 0001 0001 0001 0001		[FR : 양극, C_Clamp : On, A_Clamp: OFF PNP 대기상승] 
+//#define N_Equipment_IDLE_DryRun_Anode_Side_Pos		$21121111	//  0010 0001 0001 0010 0001 0001 0001 0001		[FR : 양극, 언로더: 대기, C_Clamp : OFF, A_Clamp: ON PNP 대기상승]
+//#define N_Equipment_IDLE_DryRun_Cathode_Side_Pos	$11211111	//  0001 0001 0010 0001 0001 0001 0001 0001		[FR : 양극, 언로더: 대기, C_Clamp : On, A_Clamp: OFF PNP 대기상승] 
+
+//#define	N_Equipment_Anode_Sepa_Run_Pos			$10412111	//	0001 0000 0100 0001 0010 0001 0001 0001 	[FR:음극,C_Clamp:극판하강위치,A_Clamp:Off,C_2_P&P:스텍상승,C_1_P&P:대기상승,A_2_P&P:대기상승,A_1_P&P:대기상승]
+//#define	N_Equipment_Cathode_Sepa_Run_Pos		$20141121	//	0010 0000 0001 0100 0001 0001 0010 0001		[FR:양극,C_Clamp:Off,A_Clamp:극판하강위치,C_2_P&P:대기상승,C_1_P&P:대기상승,A_2_P&P:벨트상승,A_1_P&P:대기상승]
+//#define	N_Equipment_Anode_NG_Pos				$20141141	//	0010 0000 0001 0100 0001 0001 0100 0001		[FR:양극,C_Clamp:Off,A_Clamp:극판하강위치,C_2_P&P:대기상승,C_1_P&P:대기상승,A_2_P&P:NG회피,A_1_P&P:대기상승]
+//#define	N_Equipment_Cathode_NG_Pos				$10414111	//	0001 0000 0100 0001 0100 0001 0001 0001		[FR:음극,C_Clamp:극판하강위치,A_Clamp:Off,C_2_P&P:NG회피,C_1_P&P:대기상승,A_2_P&P:대기상승,A_1_P&P:대기상승]
+
+
+#define N_Error_Status							0
+
+
+
+// 통합 변수 
+#define F_Equipment_Initial_Ready_Pos				1
+#define F_Equipment_Anode_Side_Pos					2
+#define F_Equipment_Cathode_Side_Pos 				3
+#define F_Equipment_JR_Discharge_Pos 				4
+#define	F_Equipment_Anode_Run_Pos					5
+#define	F_Equipment_Cathode_Run_Pos					6
+#define	F_Equipment_Anode_NG_Pos					7
+#define	F_Equipment_Cathode_NG_Pos					8
+#define	F_Equipment_Frist_Sepa_Run_Pos				9
+//#define F_Equipment_DryRun_Anode_Side_Pos			10		// [ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가로 인한 드라이런 통합 위치 추가 ]
+//#define F_Equipment_DryRun_Cathode_Side_Pos			11		// [ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가로 인한 드라이런 통합 위치 추가 ]
+#define	F_Equipment_Frist_Sepa_Runing_Stop_Pos		12
+#define	F_Equipment_Anode_Sepa_Run_Pos				13
+#define	F_Equipment_Cathode_Sepa_Run_Pos			14
+#define	F_Equipment_JR_Discharge_WaitPos			15
+#define F_Equipment_Discharge_Stop_Pos				16
+#define F_Equipment_Stack_Completed_Pos				17
+// [참조 : 250620 수정 포인트]
+#define F_First_Sepa_On_Pos							18
+#define F_Equipment_Isenable_Discharge_Pos			19		// [ 참조 : 25.07.10 Suspend 배출 위치 메모리 추가 ]
+// IDLE 상태에서 위치 확인 (위치가 벗어날 경우 Command Stop)	[ 참조 : 25.08.04 PackML 버튼 프로그램 수정 ]
+#define F_Equipment_IDLE_Initial_Ready_Pos			20
+#define F_Equipment_IDLE_Anode_Side_Pos				21
+#define F_Equipment_IDLE_Cathode_Side_Pos			22
+#define F_Equipment_IDLE_First_Sepa_On_Pos			23
+#define F_Equipment_Frist_Sepa_Stop_Pos				24
+#define F_Equipment_IDLE_Frist_Sepa_Stop_Pos		25
+//#define F_Equipment_IDLE_DryRun_Anode_Side_Pos		24		// [ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가로 인한 드라이런 통합 위치 추가 ]
+//#define F_Equipment_IDLE_DryRun_Cathode_Side_Pos	25		// [ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가로 인한 드라이런 통합 위치 추가 ]
+
+#define F_Error_Status							444
+
+
+//#define N_Complete_Step				999	 //중복사용으로 주석
+#define N_Error_Step				444
+global P_Memory_Tower_Search_Flag = 0;
+global P_MemTow_integrated_return = 0;
+global P_Error_STMS_Memory_Tower_Status = 0;
+global P_STMS_Memory_Tower_Status = 0;			// 위치메모리 스텟머신
+
+
+
+// 레시피 변수 
+
+global P_Recipe_M01_POS(11);
+P_Recipe_M01_POS(0),10,1 = 0;
+
+global P_Recipe_M02_POS(11);
+P_Recipe_M02_POS(0),10,1 = 0;
+
+global P_Recipe_M03_POS(11);
+P_Recipe_M03_POS(0),10,1 = 0;
+
+global P_Recipe_M04_POS(11);
+P_Recipe_M04_POS(0),10,1 = 0;
+
+global P_Recipe_M05_POS(11);
+P_Recipe_M05_POS(0),10,1 = 0;
+
+global P_Recipe_M06_POS(11);
+P_Recipe_M06_POS(0),10,1 = 0;
+
+global P_Recipe_M07_POS(11);
+P_Recipe_M07_POS(0),10,1 = 0;
+
+global P_Recipe_M08_POS(11);
+P_Recipe_M08_POS(0),10,1 = 0;
+
+global P_Recipe_M09_POS(11);
+P_Recipe_M09_POS(0),10,1 = 0;
+
+global P_Recipe_M10_POS(11);
+P_Recipe_M10_POS(0),10,1 = 0;
+
+global P_Recipe_M11_POS(11);
+P_Recipe_M11_POS(0),10,1 = 0;
+
+global P_Recipe_M12_POS(11);
+P_Recipe_M12_POS(0),10,1 = 0;
+
+global P_Recipe_M13_POS(11);
+P_Recipe_M13_POS(0),10,1 = 0;
+
+global P_Recipe_M14_POS(11);
+P_Recipe_M14_POS(0),10,1 = 0;
+
+global P_Recipe_M15_POS(11);
+P_Recipe_M15_POS(0),10,1 = 0;
+
+global P_Recipe_M16_POS(11);
+P_Recipe_M16_POS(0),10,1 = 0;
+
+global P_Recipe_M17_POS(11);
+P_Recipe_M17_POS(0),10,1 = 0;
+
+global P_Recipe_M18_POS(11);
+P_Recipe_M18_POS(0),10,1 = 0;
+
+global P_Recipe_M19_POS(11);
+P_Recipe_M19_POS(0),10,1 = 0;
+
+global P_Recipe_M20_POS(11);
+P_Recipe_M20_POS(0),10,1 = 0;
+
+global P_Recipe_M21_POS(11);
+P_Recipe_M21_POS(0),10,1 = 0;
+
+global P_Recipe_M22_POS(11);
+P_Recipe_M22_POS(0),10,1 = 0;
+
+global P_Recipe_M23_POS(11);
+P_Recipe_M23_POS(0),10,1 = 0;
+
+global P_Recipe_M24_POS(11);
+P_Recipe_M24_POS(0),10,1 = 0;
+
+global P_Recipe_M25_POS(11);
+P_Recipe_M25_POS(0),10,1 = 0;
+
+global P_Recipe_M26_POS(11);
+P_Recipe_M26_POS(0),10,1 = 0;
+
+global P_Recipe_M27_POS(11);
+P_Recipe_M27_POS(0),10,1 = 0;
+
+global P_Recipe_M28_POS(11);
+P_Recipe_M28_POS(0),10,1 = 0;
+
+global P_Recipe_M29_POS(11);
+P_Recipe_M29_POS(0),10,1 = 0;
+
+global P_Recipe_M30_POS(11);
+P_Recipe_M30_POS(0),10,1 = 0;
+
+global P_Recipe_M31_POS(11);
+P_Recipe_M31_POS(0),10,1 = 0;
+
+global P_Recipe_M32_POS(11);
+P_Recipe_M32_POS(0),10,1 = 0;
+
+global P_Recipe_M33_POS(11);
+P_Recipe_M33_POS(0),10,1 = 0;
+
+global P_Recipe_M34_POS(11);
+P_Recipe_M34_POS(0),10,1 = 0;
+
+global P_Recipe_M35_POS(11);
+P_Recipe_M35_POS(0),10,1 = 0;
+
+global P_Recipe_M36_POS(11);
+P_Recipe_M36_POS(0),10,1 = 0;
+
+global P_Recipe_M37_POS(11);
+P_Recipe_M37_POS(0),10,1 = 0;
+
+global P_Recipe_M38_POS(11);
+P_Recipe_M38_POS(0),10,1 = 0;
+
+global P_Recipe_M39_POS(11);
+P_Recipe_M39_POS(0),10,1 = 0;
+
+global P_Recipe_M40_POS(11);
+P_Recipe_M40_POS(0),10,1 = 0;
+
+global P_Recipe_M41_POS(11);
+P_Recipe_M41_POS(0),10,1 = 0;
+
+global P_Recipe_M42_POS(11);
+P_Recipe_M42_POS(0),10,1 = 0;
+
+global P_Recipe_M43_POS(11);
+P_Recipe_M43_POS(0),10,1 = 0;
+
+global P_Recipe_M44_POS(11);
+P_Recipe_M44_POS(0),10,1 = 0;
+
+global P_Recipe_M45_POS(11);
+P_Recipe_M45_POS(0),10,1 = 0;
+
+global P_Recipe_M46_POS(11);
+P_Recipe_M46_POS(0),10,1 = 0;
+
+global P_Recipe_M47_POS(11);
+P_Recipe_M47_POS(0),10,1 = 0;
+
+global P_Recipe_M48_POS(11);
+P_Recipe_M48_POS(0),10,1 = 0;
+
+global P_Recipe_M49_POS(11);
+P_Recipe_M49_POS(0),10,1 = 0;
+
+global P_Recipe_M50_POS(11);
+P_Recipe_M50_POS(0),10,1 = 0;
+
+
+
+
+
+global P_Memory_Tower_X_Err_Flag = 0;
+global P_Memory_Tower_Y_Err_Flag = 0;
+global P_Memory_Tower_Z_Err_Flag = 0;
+global P_Memory_Tower_ZZ_Err_Flag = 0;
+
+global P_CA_Clamp_Cell_Down_Pos = 0;
+global P_AN_Clamp_Cell_Down_Pos = 0;
+
+
+global P_Error_X_Axis_Packml(6);
+P_Error_X_Axis_Packml(0),6 = 0;
+global P_Error_X_Axis_Dequeue(6);
+P_Error_X_Axis_Dequeue(0),6 = 0;
+global P_Error_X_Axis_Num(6);
+P_Error_X_Axis_Num(0),6 = 0;
+global P_Memory_Tower_Err_Pos_X_Save(6);
+P_Memory_Tower_Err_Pos_X_Save(0),6 = 0;
+
+global P_Error_Y_Axis_Packml(6);
+P_Error_Y_Axis_Packml(0),6 = 0;
+global P_Error_Y_Axis_Dequeue(6);
+P_Error_Y_Axis_Dequeue(0),6 = 0;
+global P_Error_Y_Axis_Num(6);
+P_Error_Y_Axis_Num(0),6 = 0;
+global P_Memory_Tower_Err_Pos_Y_Save(6);
+P_Memory_Tower_Err_Pos_Y_Save(0),6 = 0;
+
+global P_Error_Z_Axis_Packml(6);
+P_Error_Z_Axis_Packml(0),6 = 0;
+global P_Error_Z_Axis_Dequeue(6);
+P_Error_Z_Axis_Dequeue(0),6 = 0;
+global P_Error_Z_Axis_Num(6);
+P_Error_Z_Axis_Num(0),6 = 0;
+global P_Memory_Tower_Err_Pos_Z_Save(6);
+P_Memory_Tower_Err_Pos_Z_Save(0),6 = 0;
+
+global P_Error_ZZ_Axis_Packml(6);
+P_Error_ZZ_Axis_Packml(0),6 = 0;
+global P_Error_ZZ_Axis_Dequeue(6);
+P_Error_ZZ_Axis_Dequeue(0),6 = 0;
+global P_Error_ZZ_Axis_Num(6);
+P_Error_ZZ_Axis_Num(0),6 = 0;
+global P_Memory_Tower_Err_Pos_ZZ_Save(6);
+P_Memory_Tower_Err_Pos_ZZ_Save(0),6 = 0;
+
+
+

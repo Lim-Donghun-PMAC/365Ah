@@ -1,0 +1,197 @@
+open subprog Discharge_Sub_Prog(void)
+
+sub: Discharge_Cal_Prog(&rtn)
+
+local L_Discharge_Result_rtn = 0;
+// 극판 및 세파 두께 계산 프로그램
+
+// 젤리롤 두께 계산
+IF ( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )
+{
+	IF ( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence )				// 일반  모드 라면 ↓ PLC 07번 라이트 영역에 올려주는 두께 수식
+	{ 
+		P_Current_JR_Thickness_mm = ((P_Anode_Thickness + P_Sepa_Thickness ) * P_Anode_Count) + ((P_Cathode_Thickness + P_Sepa_Thickness ) * P_Cathode_Count);
+	}
+	Else IF( P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence )		// 세파 모드 라면 ↓ PLC 07번 라이트 영역에 올려주는 두께 수식
+	{ // 세파쌓기모드라면 세파두께
+		P_Current_JR_Thickness_mm = ( P_Sepa_Thickness * P_Anode_Count ) + ( P_Sepa_Thickness * P_Cathode_Count );	
+	}
+	P_Current_Jelly_Roll_Thinckness_mm_Send_Enable_Flag = 1;						// PLC 07번 - Write영역에 올려주는 Flag 				
+}
+
+
+// 젤리롤 결과 상태 업데이트
+call Discharge_Sub_Prog.JR_Result_Data( &L_Discharge_Result_rtn );
+
+if( L_Discharge_Result_rtn == N_TRUE )
+	rtn = N_TRUE;
+
+return;
+
+// 젤리롤 결과 상태 
+// 1) 노말런
+// -1. 정상배출
+// -2. 불량배출
+// 2) 세파런
+sub: JR_Result_Data(&rtn)
+	// 1) 노말런
+	if( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence )		
+	{
+		// 1-1.정상 상태 배출 ↓ 음,양 카운트 일치 및 Stack NG없을때
+		if( P_Anode_Count == P_Anode_Recipe_Count && P_Cathode_Count == P_Cathode_Recipe_Count && P_Stack_Table_NG_Flag == 0)  
+		{
+			if( P_Stack_Vision_To_NG_Code != 0 )	// 양품 판정인데 비전 NG코드가 남겨져 있다면, 불량배출로 
+			{
+				M_Y_Trigger_A_Stack_Cell_Good_To_PLC = 0; 					// 정상 배출 신호 OFF
+				M_Y_Trigger_A_Stack_Cell_No_Good_To_PLC = 1; 				// 불량 배출 ↓불량일때			
+				M_Y_Trigger_A_Stack_NG_Stack_Complete_To_PLC = 1;			// 1)불량-NG배출 정상 스텍 셀 배출
+				M_Y_Trigger_A_Stack_NG_Stack_Fail_To_PLC = 0;				// 2)블량-NG배출 폐기 배출
+				M_Y_Trigger_A_Sepa_Cell_To_PLC = 0;							// 3)세파 배출 신호 알림
+			}
+			else
+			{
+				M_Y_Trigger_A_Stack_Cell_Good_To_PLC = 1; 					// 정상 배출				
+				M_Y_Trigger_A_Stack_Cell_No_Good_To_PLC = 0; 				// 불량 배출 ↓불량일때				
+				M_Y_Trigger_A_Stack_NG_Stack_Complete_To_PLC = 0;			// 1)불량-NG배출 정상 스텍 셀 배출
+				M_Y_Trigger_A_Stack_NG_Stack_Fail_To_PLC = 0;				// 2)블량-NG배출 폐기 배출
+				M_Y_Trigger_A_Sepa_Cell_To_PLC = 0;							// 3)세파 배출 신호 알림
+			}
+			//P_Program_Monitoring_Lamp_Jelly_Roll_OK = 1;					// 양품 판정 시 JR - OK Lamp Bit ON	
+			if( P_Cell_Out_Restart != 1 )									// 배출 중, 멈췄다가 재시작했을때 
+			{	
+				P_Jelly_Roll_Count++;
+			}			
+		}
+		// 1-2.불량 상태 배출 ↓ 음,양 카운트 불일치 및 Stack NG있을때
+		else 
+		{
+			// 음,양 카운트는 일치하지만 Stack NG 있을때 [ 레시피 개수 맞게 스텍 ]
+			if( P_Anode_Count == P_Anode_Recipe_Count && P_Cathode_Count == P_Cathode_Recipe_Count && P_Stack_Table_NG_Flag != 0 )
+			{			
+				M_Y_Trigger_A_Stack_Cell_Good_To_PLC = 0; 					// 정상 배출			
+				M_Y_Trigger_A_Stack_Cell_No_Good_To_PLC = 1; 				// 불량 배출 ↓불량일때					
+				M_Y_Trigger_A_Stack_NG_Stack_Complete_To_PLC = 1;			// 1)불량-NG배출 정상 스텍 셀 배출
+				M_Y_Trigger_A_Stack_NG_Stack_Fail_To_PLC = 0;				// 2)블량-NG배출 폐기 배출
+				M_Y_Trigger_A_Sepa_Cell_To_PLC = 0;							// 3)세파 배출 신호 알림
+			}
+			// 음, 양 카운트가 일치하지 않을떄 [ 쌓던 도중 배출 ]
+			else
+			{
+				M_Y_Trigger_A_Stack_Cell_Good_To_PLC = 0; 					// 정상 배출				
+				M_Y_Trigger_A_Stack_Cell_No_Good_To_PLC = 1; 				// 불량 배출 ↓불량일때					
+				M_Y_Trigger_A_Stack_NG_Stack_Complete_To_PLC = 0;			// 1)불량-NG배출 정상 스텍 셀 배출
+				M_Y_Trigger_A_Stack_NG_Stack_Fail_To_PLC = 1;				// 2)블량-NG배출 폐기 배출
+				M_Y_Trigger_A_Sepa_Cell_To_PLC = 0;
+			}
+			//P_Program_Monitoring_Lamp_Jelly_Roll_NG = 1;					// 불량 판정 시 JR - NG Lamp Bit ON		
+			if( P_Cell_Out_Restart != 1 )									// 배출 중, 멈췄다가 재시작했을때 
+			{	
+				P_Jelly_Roll_NG_Count++;
+			}			
+		}
+	}
+	// 2) 세파런	
+	else if( P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence )
+	{
+			//P_Program_Monitoring_Lamp_Jelly_Roll_NG = 1;					// 불량 판정 시 JR - NG Lamp Bit ON
+			//P_Program_Monitoring_Lamp_Jelly_Roll_Sepa = 1;					// 불량 판정 시 Sepa - NG Lamp Bit ON
+	
+			M_Y_Trigger_A_Stack_Cell_Good_To_PLC = 0; 						// 정상 배출			
+			M_Y_Trigger_A_Stack_Cell_No_Good_To_PLC = 1; 					// 불량 배출 ↓불량일때	
+			M_Y_Trigger_A_Stack_NG_Stack_Complete_To_PLC = 0;				// 1)불량-NG배출 정상 스텍 셀 배출
+			M_Y_Trigger_A_Stack_NG_Stack_Fail_To_PLC = 0;					// 2)블량-NG배출 폐기 배출
+			M_Y_Trigger_A_Sepa_Cell_To_PLC = 1;								// 3)세파 배출 신호 알림
+	}
+
+	rtn = N_TRUE;
+return;
+
+sub: Discharge_After_Action(void)		// 추가 계속 하면 됌
+	// 카운트 초기화
+	P_Cathode_Count = 0;
+	P_Anode_Count = 0;
+	
+
+
+	// IO 및 변수 초기화 란
+	P_Current_Cell_Memory_Jelly_Roll = 0;							// 젤리롤 메모리 초기화
+	M_Y_Trigger_A_Stack_Cell_Good_To_PLC = 0;						// 3.1) 정상 Cell
+	M_Y_Trigger_A_Stack_Cell_No_Good_To_PLC	= 0;					// 3.2) 불량 Cell	
+	M_Y_Trigger_A_Stack_NG_Stack_Complete_To_PLC = 0;				// 3.3) NG 배출 정상 Cell 배출
+	M_Y_Trigger_A_Stack_NG_Stack_Fail_To_PLC = 0;					// 3.4) NG 배출 폐기 배출
+	M_Y_Trigger_A_Sepa_Cell_To_PLC = 0;								// 3.5) 세파 Cell
+	
+	P_Stack_Table_NG_Flag = 0;										// NG Flag 초기화
+
+	// 2025.04.22 추가
+	P_Stack_NG_Code = 0;											//  PLC 측에 전달하는 NG Code 초기화
+	P_Stack_PMAC_NG_Code = 0;										//  PMAC 내부 NG Code 초기화
+	P_Stack_Table_NG_Count = 0;										//	NG cnt 초기화
+	// 첫장 깔때 초기화 필요부분 추가
+return;
+
+sub: End_of_Process(void)
+
+return;
+
+
+sub: Discharge_Host_ID_Result( &rtn )
+	//if( M_Y_Trigger_A_Stack_Cell_Good_To_PLC == 1 )	
+	//{	
+	//	// 2.1 무조건 OK Out Host Sys.Udata 주소 추후 1틱 밀어야 함											
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(0) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(0);
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(1) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(1);
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(2) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(2);
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(3) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(3);
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(4) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(4);
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(5) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(5);
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(6) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(6);
+	//	
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(0) = 0;
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(1) = 0;
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(2) = 0;
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(3) = 0;
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(4) = 0;
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(5) = 0;
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(6) = 0;
+	//
+	//	P_Data_Parsing_Status_Machine = 1;				
+	//}
+	//else if( M_Y_Trigger_A_Stack_Cell_No_Good_To_PLC == 1 )
+	//{
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(0) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(0); 
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(1) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(1); 
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(2) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(2); 
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(3) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(3); 
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(4) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(4); 
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(5) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(5); 
+	//	M_ASCII_Stack_NG_Out_Host_ID_Buffer(6) = M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer(6); 
+	//
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(0) = 0;
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(1) = 0;
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(2) = 0;
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(3) = 0;
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(4) = 0;
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(5) = 0;
+	//	M_ASCII_Stack_OK_Out_Host_ID_Buffer(6) = 0;
+	//					
+	//	P_Data_Parsing_Status_Machine = 1;				
+	//}
+	rtn = N_TRUE;
+return;
+
+sub: Discharge_Vision_DIO(void)
+	M_Y_Vision_Stack_End_Sheet = 1;											// 스텍 마지막장을 쌓는다는것을 알리는 신호 ON
+	M_Y_Vision_Stack_Start_Sheet = 0;										// 스텍 첫장을 쌓는다는것을 알리는 신호 OFF ( 한번더 확인 위한 )
+	M_Y_Vision_Anode_JR_Start = 1;											//	음극 얼라인 비전 첫장 신호 ON ( PMAC -> Align Vision )
+	// 비전한테 알려주는 스타트 신호	
+	M_Y_Vision_Cathode_JR_Start = 1;										//	양극 얼라인 비전 첫장 신호 ON ( PMAC -> Align Vision )
+	P_VISION_PLC10_Anode_Align_Start = 1;									//	음극 얼라인 비전 첫장 신호 나갔다는 플래그 
+	P_VISION_PLC10_Cathode_Align_Start = 1;									//	양극 얼라인 비전 첫장 신호 나갔다는 플래그 
+return;
+
+
+close
+
+
+

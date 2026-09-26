@@ -1,0 +1,784 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.05
+// [ 참조 : 25.06.05 Suspend Module 수정 ]
+// 진공 파기 모듈 테스트용 코드 추가 [ 참조 : 25.07.02 옵저버 추가 ]
+// 25.08.07
+// ARC 테스트 추가 - [ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+//======================================================================================================
+
+open plc 25
+#define	L_System_Timer				Sys.Time			// 시스템 타이머
+Local	L_Time_Cycle_Up_Count_Start_Time;				// Plc[25].ldata.L[0]	시간 체크 시작 시간
+Local	L_Time_Cycle_Up_Count_End_Time;					// Plc[25].ldata.L[1]	시간 체크 종료 시간
+Local	L_Time_Cycle_Up_Count_Delta_Time;				// Plc[25].ldata.L[2]	시작과 종료 시간 사이의 시간
+Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[25].ldata.L[3]	타이머 초기화 플래그
+local	L_Reentry(8)									// Plc[25].ldata.L[4] ~ Plc[25].ldata.L[11]
+local	L_ARC_Test_Timer(10)							// Plc[25].ldata.L[12] ~ Plc[25].ldata.L[21]
+local	L_Start;										// Plc[25].ldata.L[22]
+local	L_Plate_Vac_SM;									// Plc[25].ldata.L[23]
+local	L_NipRoll_SM;									// Plc[25].ldata.L[24]
+local	L_PLATE_SM;										// Plc[25].ldata.L[25]
+local	L_PLATE_Clamp_SM;								// Plc[25].ldata.L[26]
+local	L_Cutter_SM;									// Plc[25].ldata.L[27]
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if( L_Flag_Cycle_Up_Count_Init_Flag == 0 )
+{	
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_PLC01_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_PLC01_System_Timer;
+}
+
+// 00.2) 시간 체크
+if( L_Flag_Cycle_Up_Count_Init_Flag == 1 )
+{	
+	L_Time_Cycle_Up_Count_End_Time = L_PLC01_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * N_Time_Scale;
+	if( L_Time_Cycle_Up_Count_Delta_Time < 0 )
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+
+// 00.3) 시간 업데이트
+if (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
+{
+	// [ 참조 : 25.07.02 옵저버 추가 ]
+	P_Test_Vacuum_Timer(0) = P_Test_Vacuum_Timer(0) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Vacuum_Timer(1) = P_Test_Vacuum_Timer(1) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Vacuum_Timer(2) = P_Test_Vacuum_Timer(2) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Vacuum_Timer(3) = P_Test_Vacuum_Timer(3) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Vacuum_Timer(4) = P_Test_Vacuum_Timer(4) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Vacuum_Timer(5) = P_Test_Vacuum_Timer(5) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Vacuum_Timer(6) = P_Test_Vacuum_Timer(6) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Vacuum_Timer(7) = P_Test_Vacuum_Timer(7) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Blow_Timer(0) = P_Test_Blow_Timer(0) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Blow_Timer(1) = P_Test_Blow_Timer(1) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Blow_Timer(2) = P_Test_Blow_Timer(2) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Blow_Timer(3) = P_Test_Blow_Timer(3) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Blow_Timer(4) = P_Test_Blow_Timer(4) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Blow_Timer(5) = P_Test_Blow_Timer(5) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Blow_Timer(6) = P_Test_Blow_Timer(6) + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Test_Blow_Timer(7) = P_Test_Blow_Timer(7) + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_ARC_Test_Timer(0) = L_ARC_Test_Timer(0) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_ARC_Test_Timer(1) = L_ARC_Test_Timer(1) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_ARC_Test_Timer(2) = L_ARC_Test_Timer(2) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_ARC_Test_Timer(3) = L_ARC_Test_Timer(3) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_ARC_Test_Timer(4) = L_ARC_Test_Timer(4) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_ARC_Test_Timer(5) = L_ARC_Test_Timer(5) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_ARC_Test_Timer(6) = L_ARC_Test_Timer(6) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_ARC_Test_Timer(7) = L_ARC_Test_Timer(7) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_ARC_Test_Timer(8) = L_ARC_Test_Timer(8) + L_Time_Cycle_Up_Count_Delta_Time;
+	L_ARC_Test_Timer(9) = L_ARC_Test_Timer(9) + L_Time_Cycle_Up_Count_Delta_Time;
+	
+	P_Vision_Align_Trigger_Timer = P_Vision_Align_Trigger_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Vision_Stack_Trigger_Timer = P_Vision_Stack_Trigger_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+//========================================================================================================================
+// 모니터링 UI Test
+// IO 출력에 따른 입력 변화.
+// 추후 삭제 예정
+
+// 파이널 롤러 클램프, 언클램프
+if( M_Y_FR_Sepa_Clamp_FWD_Sol == 1 && M_Y_FR_Sepa_Clamp_BWD_Sol == 0 )
+{
+	M_X_FR_Sepa_Clamp_Front_Sensor = 1 
+	M_X_FR_Sepa_Clamp_Rear_Sensor = 1
+	M_X_FR_Sepa_UnClamp_Front_Sensor = 0
+	M_X_FR_Sepa_UnClamp_Rear_Sensor = 0
+}
+else
+{
+	M_X_FR_Sepa_Clamp_Front_Sensor = 0 
+	M_X_FR_Sepa_Clamp_Rear_Sensor = 0
+	M_X_FR_Sepa_UnClamp_Front_Sensor = 1
+	M_X_FR_Sepa_UnClamp_Rear_Sensor = 1
+}
+// 1차 언로더 그립, 언그립
+if( M_Y_1st_Unloader_Grip_Sol == 1 && M_Y_1st_Unloader_UnGrip_Sol == 0 )
+{
+	M_X_1st_Unloader_Grip_Detect_Sensor = 1;
+	M_X_1st_Unloader_UnGrip_Detect_Sensor = 0;
+}
+else
+{
+	M_X_1st_Unloader_Grip_Detect_Sensor = 0;
+	M_X_1st_Unloader_UnGrip_Detect_Sensor = 1;
+}
+// 시트 페이퍼 진공 ON, OFF
+if( M_Y_First_Sheet_Paper_Plate_Ejector_Vac_On == 1 && M_Y_First_Sheet_Paper_Plate_Ejector_Vac_Off == 0 )
+{
+	M_X_First_Sheet_Paper_Plate_Vac_Sensor = 1;
+}
+else
+{
+	M_X_First_Sheet_Paper_Plate_Vac_Sensor = 0;
+}
+// 커터 전진, 후진
+if( M_Y_FR_Sepa_Cutter_Dn_Sol == 1 && M_Y_FR_Sepa_Cutter_Up_Sol == 0 )
+{
+	M_X_FR_Sepa_Cutter_Dn_Sensor = 1;
+	M_X_FR_Sepa_Cutter_Up_Sensor = 0;
+}
+else
+{
+	M_X_FR_Sepa_Cutter_Dn_Sensor = 0;
+	M_X_FR_Sepa_Cutter_Up_Sensor = 1;
+}
+// 스텍 테이블 상승, 하강
+if( M_Y_ST_Center_Cyl_Up_Sol == 1 && M_Y_ST_Center_Cyl_Dn_Sol == 0 )
+{
+	M_X_ST_Center_CYL_Up_Sensor = 1;
+	M_X_ST_Center_CYL_Dn_Sensor = 0;
+}
+else
+{
+	M_X_ST_Center_CYL_Up_Sensor = 0;
+	M_X_ST_Center_CYL_Dn_Sensor = 1;
+}
+
+if ( M_Y_Final_Roll_Heating == 1 )
+{
+	M_X_Final_Roll_Heating = 1;
+}
+else
+	M_X_Final_Roll_Heating = 0;
+
+
+if( M_Y_Discharge_Avoid_Complete == 1 )
+{
+	M_X_Discharge_Avoid_Complete_Ack = 1;
+	M_X_PLC_Unloader_Ready_Pos = 1;
+}
+else
+{
+	M_X_Discharge_Avoid_Complete_Ack = 0;
+	M_X_PLC_Unloader_Ready_Pos = 0;	
+}
+if( M_Y_PLC_Unloader_Grip_Request == 1 )
+{
+	M_X_PLC_Unloader_Grip = 1;
+	M_X_PLC_Unloader_Grip_Request_Ack = 1;
+}
+else if( M_Y_PLC_Unloader_Grip_Request == 0 && P_Module_Act_State_Machine_Array(N_Act_Unloader_Grip_ON) == N_Complete_Step )
+{
+	M_X_PLC_Unloader_Grip = 0;
+	M_X_PLC_Unloader_Grip_Request_Ack = 0;
+}
+
+if ( M_Y_1st_Unloader_UnGrip_Complete == 1 )
+{
+	M_X_1st_Unloader_UnGrip_Ack = 1;
+}
+else
+{
+	M_X_1st_Unloader_UnGrip_Ack = 0;
+}
+M_X_PLC_to_1st_Avoid_Request = 1;
+
+
+// [ 참조 : 25.07.02 옵저버 추가 ]
+// 양극 1차  흡착 , 블로우
+if( P_PLC12_Vacuum_MNTR(N_1st_Cathode) == 1 && L_Reentry(0) == 0 )
+{
+	L_Reentry(0) = 1;
+	P_Test_Vacuum_Timer(0) = 0;
+}
+else if( P_PLC12_Blow_MNTR(N_1st_Cathode) == 1 && L_Reentry(0) == 1 )
+{
+	L_Reentry(0) = 0;
+	P_Test_Blow_Timer(0) = 0;
+}
+// 양극 2차  흡착 , 블로우
+if( P_PLC12_Vacuum_MNTR(N_2nd_Cathode) == 1 && L_Reentry(1) == 0 )
+{
+	L_Reentry(1) = 1;
+	P_Test_Vacuum_Timer(1) = 0;
+}
+else if( P_PLC12_Blow_MNTR(N_2nd_Cathode) == 1 && L_Reentry(1) == 1 )
+{
+	L_Reentry(1) = 0;
+	P_Test_Blow_Timer(1) = 0;
+}
+// 양극 NG  흡착 , 블로우
+if( P_PLC12_Vacuum_MNTR(N_NG_Cathode) == 1 && L_Reentry(2) == 0 )
+{
+	L_Reentry(2) = 1;
+	P_Test_Vacuum_Timer(2) = 0;
+}
+else if( P_PLC12_Blow_MNTR(N_NG_Cathode) == 1 && L_Reentry(2) == 1 )
+{
+	L_Reentry(2) = 0;
+	P_Test_Blow_Timer(2) = 0;
+}
+// 양극 얼라인 흡착 , 블로우
+if( P_PLC12_Vacuum_MNTR(N_Align_Cathode) == 1 && L_Reentry(3) == 0 )
+{
+	L_Reentry(3) = 1;
+	P_Test_Vacuum_Timer(3) = 0;
+}
+else if( P_PLC12_Blow_MNTR(N_Align_Cathode) == 1 && L_Reentry(3) == 1 )
+{
+	L_Reentry(3) = 0;
+	P_Test_Blow_Timer(3) = 0;
+}
+// 음극 1차  흡착 , 블로우
+if( P_PLC12_Vacuum_MNTR(N_1st_Anode) == 1 && L_Reentry(4) == 0 )
+{
+	L_Reentry(4) = 1;
+	P_Test_Vacuum_Timer(4) = 0;
+}
+else if( P_PLC12_Blow_MNTR(N_1st_Anode) == 1 && L_Reentry(4) == 1 )
+{
+	L_Reentry(4) = 0;
+	P_Test_Blow_Timer(4) = 0;
+}
+// 음극 2차 흡착 , 블로우
+if( P_PLC12_Vacuum_MNTR(N_2nd_Anode) == 1 && L_Reentry(5) == 0 )
+{
+	L_Reentry(5) = 1;
+	P_Test_Vacuum_Timer(5) = 0;
+}
+else if( P_PLC12_Blow_MNTR(N_2nd_Anode) == 1 && L_Reentry(5) == 1 )
+{
+	L_Reentry(5) = 0;
+	P_Test_Blow_Timer(5) = 0;
+}
+// 음극 NG 흡착 , 블로우
+if( P_PLC12_Vacuum_MNTR(N_NG_Anode) == 1 && L_Reentry(6) == 0 )
+{
+	L_Reentry(6) = 1;
+	P_Test_Vacuum_Timer(6) = 0;
+}
+else if( P_PLC12_Blow_MNTR(N_NG_Anode) == 1 && L_Reentry(6) == 1 )
+{
+	L_Reentry(6) = 0;
+	P_Test_Blow_Timer(6) = 0;
+}
+// 움극 얼라인 흡착 , 블로우
+if( P_PLC12_Vacuum_MNTR(N_Align_Anode) == 1 && L_Reentry(7) == 0 )
+{
+	L_Reentry(7) = 1;
+	P_Test_Vacuum_Timer(7) = 0;
+}
+else if( P_PLC12_Blow_MNTR(N_Align_Anode) == 1 && L_Reentry(7) == 1 )
+{
+	L_Reentry(7) = 0;
+	P_Test_Blow_Timer(7) = 0;
+}
+
+
+// 양극 1차 흡착, 블로우 IO 
+if( L_Reentry(0) == 1 && P_Test_Vacuum_Timer(0) > P_Vac_Test_Set_Time(0) )
+{
+	M_X_Cathode_1st_PNP_Vac_Sensor = 1;
+}
+else if(  L_Reentry(0) == 0 && P_Test_Blow_Timer(0) > P_Blow_Test_Set_Time(0) )
+{
+	M_X_Cathode_1st_PNP_Vac_Sensor = 0;
+}
+// 양극 2차 흡착, 블로우 IO 
+if( L_Reentry(1) == 1 && P_Test_Vacuum_Timer(1) > P_Vac_Test_Set_Time(1) )
+{
+	M_X_Cathode_2nd_PNP_Vac_Sensor = 1;
+}
+else if(  L_Reentry(1) == 0 && P_Test_Blow_Timer(1) > P_Blow_Test_Set_Time(1) )
+{
+	M_X_Cathode_2nd_PNP_Vac_Sensor = 0;
+}
+// 양극 NG 흡착, 블로우 IO 
+if( L_Reentry(2) == 1 && P_Test_Vacuum_Timer(2) > P_Vac_Test_Set_Time(2) )
+{
+	M_X_Cathode_NG_PNP_Vac_Sensor = 1;
+}
+else if(  L_Reentry(2) == 0 && P_Test_Blow_Timer(2) > P_Blow_Test_Set_Time(2) )
+{
+	M_X_Cathode_NG_PNP_Vac_Sensor = 0;
+}
+// 양극 얼라인 흡착, 블로우 IO 
+if( L_Reentry(3) == 1 && P_Test_Vacuum_Timer(3) > P_Vac_Test_Set_Time(3) )
+{
+	M_X_Cathode_AT_Vac_Sensor = 1;
+}
+else if(  L_Reentry(3) == 0 && P_Test_Blow_Timer(3) > P_Blow_Test_Set_Time(3) )
+{
+	M_X_Cathode_AT_Vac_Sensor = 0;
+}
+// 음극 1차 흡착, 블로우 IO 
+if( L_Reentry(4) == 1 && P_Test_Vacuum_Timer(4) > P_Vac_Test_Set_Time(4) )
+{
+	M_X_Anode_1st_PNP_Vac_Sensor = 1;
+}
+else if(  L_Reentry(4) == 0 && P_Test_Blow_Timer(4) > P_Blow_Test_Set_Time(4) )
+{
+	M_X_Anode_1st_PNP_Vac_Sensor = 0;
+}
+// 음극 2차 흡착, 블로우 IO 
+if( L_Reentry(5) == 1 && P_Test_Vacuum_Timer(5) > P_Vac_Test_Set_Time(5) )
+{
+	M_X_Anode_2nd_PNP_Vac_Sensor = 1;
+}
+else if(  L_Reentry(5) == 0 && P_Test_Blow_Timer(5) > P_Blow_Test_Set_Time(5) )
+{
+	M_X_Anode_2nd_PNP_Vac_Sensor = 0;
+}
+// 음극 NG 흡착, 블로우 IO 
+if( L_Reentry(6) == 1 && P_Test_Vacuum_Timer(6) > P_Vac_Test_Set_Time(6) )
+{
+	M_X_Anode_NG_PNP_Vac_Sensor = 1;
+}
+else if(  L_Reentry(6) == 0 && P_Test_Blow_Timer(6) > P_Blow_Test_Set_Time(6) )
+{
+	M_X_Anode_NG_PNP_Vac_Sensor = 0;
+}
+// 음극 얼라인 흡착, 블로우 IO 
+if( L_Reentry(7) == 1 && P_Test_Vacuum_Timer(7) > P_Vac_Test_Set_Time(7) )
+{
+	M_X_Anode_AT_Vac_Sensor = 1;
+}
+else if(  L_Reentry(7) == 0 && P_Test_Blow_Timer(7) > P_Blow_Test_Set_Time(7) )
+{
+	M_X_Anode_AT_Vac_Sensor = 0;
+}
+
+// [ 2025.07.11 ARC TEST 추가 ]
+if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+{
+	// ARC DIO 테스트용 추가
+	if( M_Y_Sepa_Driving_Roll_Clamp_Sol == 1 && L_NipRoll_SM == 0 )						// 닙롤 전진
+	{
+		L_ARC_Test_Timer(N_NIPROLL) = 0;
+		L_NipRoll_SM = 1;
+	} 
+	if( L_NipRoll_SM == 1 && L_ARC_Test_Timer(N_NIPROLL) > 50 )
+	{
+		L_NipRoll_SM = 0;
+		M_X_Sepa_Driving_Roll_Clamp_Sensor = 1;
+		M_X_Sepa_Driving_Roll_UnClamp_Sensor = 0;
+	}
+	
+	if( M_Y_Sepa_Driving_Roll_Clamp_Sol == 0 && L_NipRoll_SM == 0 )						// 닙롤 후진
+	{
+		L_ARC_Test_Timer(N_NIPROLL) = 0;
+		L_NipRoll_SM = 2;
+	}
+	if( L_NipRoll_SM == 2 && L_ARC_Test_Timer(N_NIPROLL) > 50 )
+	{
+		L_NipRoll_SM = 0;
+		M_X_Sepa_Driving_Roll_Clamp_Sensor = 0;
+		M_X_Sepa_Driving_Roll_UnClamp_Sensor = 1;
+	}
+	
+	if( M_Y_Sepa_ARC_Lower_Up_Sol == 1 && M_Y_Sepa_ARC_Lower_Dn_Sol == 0 && L_PLATE_SM == 0)		// 플레이트 전진
+	{
+		L_ARC_Test_Timer(N_PLATE) = 0;
+		L_PLATE_SM = 1;
+	}
+	if( L_PLATE_SM == 1 && L_ARC_Test_Timer(N_PLATE) > 100 )
+	{
+		L_PLATE_SM = 0;
+		M_X_Sepa_Lower_ARC_Up_Sensor = 1;
+		M_X_Sepa_Lower_ARC_Dn_Sensor = 0;
+	}
+	if( M_Y_Sepa_ARC_Lower_Up_Sol == 0 && M_Y_Sepa_ARC_Lower_Dn_Sol == 1 && L_PLATE_SM == 0 )		// 플레이트 후진
+	{
+		L_ARC_Test_Timer(N_PLATE) = 0;
+		L_PLATE_SM = 2;
+	}
+	if( L_PLATE_SM == 2 && L_ARC_Test_Timer(N_PLATE) > 100 )
+	{
+		L_PLATE_SM = 0;
+		M_X_Sepa_Lower_ARC_Up_Sensor = 0;
+		M_X_Sepa_Lower_ARC_Dn_Sensor = 1;
+	}
+	
+	if( M_Y_Sepa_ARC_Lower_Stopper_Sol == 1  && L_PLATE_Clamp_SM == 0 && P_ARC_TEST_Flag == 1 )										// 플레이트 클램프
+	{
+		L_ARC_Test_Timer(N_PLATE_Clamp) = 0;
+		L_PLATE_Clamp_SM = 1;
+		P_ARC_TEST_Flag = 0;
+	}
+	if( L_PLATE_Clamp_SM == 1 && L_ARC_Test_Timer(N_PLATE_Clamp) > 150 )
+	{
+		L_PLATE_Clamp_SM = 0;
+		M_X_Sepa_Lower_ARC_UnStopper_Front_Sensor = 0;
+		M_X_Sepa_Lower_ARC_UnStopper_Rear_Sensor = 0;
+		M_X_Sepa_Lower_ARC_Stopper_Front_Sensor = 1;
+		M_X_Sepa_Lower_ARC_Stopper_Rear_Sensor = 1;
+	}
+	
+	if( M_Y_Sepa_ARC_Lower_Stopper_Sol == 0  && L_PLATE_Clamp_SM == 0)										// 플레이트 클램프
+	{
+		L_ARC_Test_Timer(N_PLATE_Clamp) = 0;
+		L_PLATE_Clamp_SM = 2;
+	}
+	if( L_PLATE_Clamp_SM == 2 && L_ARC_Test_Timer(N_PLATE_Clamp) > 150 )
+	{
+		L_PLATE_Clamp_SM = 0;
+		M_X_Sepa_Lower_ARC_UnStopper_Front_Sensor = 1;
+		M_X_Sepa_Lower_ARC_UnStopper_Rear_Sensor = 1;
+		M_X_Sepa_Lower_ARC_Stopper_Front_Sensor = 0;
+		M_X_Sepa_Lower_ARC_Stopper_Rear_Sensor = 0;
+	}
+	
+	if( M_Y_Sepa_ARC_Lower_Cutting_FWD_Sol == 1 && L_Cutter_SM == 0 )											// 커터 전진
+	{
+		L_ARC_Test_Timer(N_Cutter) = 0;
+		L_Cutter_SM = 1;
+	}
+	if( L_Cutter_SM == 1 && L_ARC_Test_Timer(N_Cutter) > 100 )
+	{
+		L_Cutter_SM = 0;
+		M_X_Sepa_Lower_ARC_Cutting_FWD_Sensor = 1;
+		M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor = 0;
+	}
+	
+	if( M_Y_Sepa_ARC_Lower_Cutting_FWD_Sol == 0 && L_Cutter_SM == 0 )											// 커터 후진
+	{
+		L_ARC_Test_Timer(N_Cutter) = 0;
+		L_Cutter_SM = 2;
+	}
+	if( L_Cutter_SM == 2 && L_ARC_Test_Timer(N_Cutter) > 100 )
+	{
+		L_Cutter_SM = 0;
+		M_X_Sepa_Lower_ARC_Cutting_FWD_Sensor = 0;
+		M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor = 1;
+	}
+	
+	if( M_Y_Sepa_Upper_ARC_Ejector_Vac_On == 0 && M_Y_Sepa_Upper_ARC_Ejector_Vac_Off == 1 && L_Plate_Vac_SM == 0 )			// 플레이트 블로우
+	{	
+		L_ARC_Test_Timer(N_Plate_Vac) = 0;
+		L_Plate_Vac_SM = 1;
+	}
+	if( L_Plate_Vac_SM == 1 && L_ARC_Test_Timer(N_Plate_Vac) > 100 )
+	{
+		L_Plate_Vac_SM = 0;
+		M_X_ARC_NP_Upper_Plate_Vac_On = 0;
+	}
+	
+	if( M_Y_Sepa_Upper_ARC_Ejector_Vac_On == 0 && M_Y_Sepa_Upper_ARC_Ejector_Vac_Off == 0 && L_Plate_Vac_SM == 0 )			// 플레이트 블로우 off
+	{	
+		L_ARC_Test_Timer(N_Plate_Vac) = 0;
+		L_Plate_Vac_SM = 2;
+	}
+	if( L_Plate_Vac_SM == 2 && L_ARC_Test_Timer(N_Plate_Vac) > 100 )
+	{
+		L_Plate_Vac_SM = 0;
+		M_X_ARC_NP_Upper_Plate_Vac_On = 0;
+	}
+}
+else if( P_Selected_Spool_Number == N_UNWINDER_LOWER  )
+{
+		// ARC DIO 테스트용 추가
+	if( M_Y_Sepa_Driving_Roll_Clamp_Sol == 1 && L_NipRoll_SM == 0 )						// 드라이빙 롤 전진
+	{
+		L_ARC_Test_Timer(N_NIPROLL) = 0;
+		L_NipRoll_SM = 1;
+	} 
+	if( L_NipRoll_SM == 1 && L_ARC_Test_Timer(N_NIPROLL) > 50 )
+	{
+		L_NipRoll_SM = 0;
+		M_X_Sepa_Driving_Roll_Clamp_Sensor = 1;
+		M_X_Sepa_Driving_Roll_UnClamp_Sensor = 0;
+	}
+	
+	if( M_Y_Sepa_Driving_Roll_Clamp_Sol == 0 && L_NipRoll_SM == 0)						// 드라이빙 롤 후진
+	{
+		L_ARC_Test_Timer(N_NIPROLL) = 0;
+		L_NipRoll_SM = 2;
+	}
+	if( L_NipRoll_SM == 2 && L_ARC_Test_Timer(N_NIPROLL) > 50 )
+	{
+		L_NipRoll_SM = 0;
+		M_X_Sepa_Driving_Roll_Clamp_Sensor = 0;
+		M_X_Sepa_Driving_Roll_UnClamp_Sensor = 1;
+	}
+	
+	if( M_Y_Sepa_ARC_Upper_Dn_Sol == 1 && M_Y_Sepa_ARC_Upper_Up_Sol == 0 && L_PLATE_SM == 0)		// 플레이트 전진
+	{
+		L_ARC_Test_Timer(N_PLATE) = 0;
+		L_PLATE_SM = 1;
+	}
+	if( L_PLATE_SM == 1 && L_ARC_Test_Timer(N_PLATE) > 100 )
+	{
+		L_PLATE_SM = 0;
+		M_X_Sepa_Upper_ARC_Dn_Sensor = 1;
+		M_X_Sepa_Upper_ARC_Up_Sensor = 0;
+	}
+	if( M_Y_Sepa_ARC_Upper_Dn_Sol == 0 && M_Y_Sepa_ARC_Upper_Up_Sol == 1 && L_PLATE_SM == 0 )		// 플레이트 후진
+	{
+		L_ARC_Test_Timer(N_PLATE) = 0;
+		L_PLATE_SM = 2;
+	}
+	if( L_PLATE_SM == 2 && L_ARC_Test_Timer(N_PLATE) > 100 )
+	{
+		L_PLATE_SM = 0;
+		M_X_Sepa_Upper_ARC_Dn_Sensor = 0;
+		M_X_Sepa_Upper_ARC_Up_Sensor = 1;
+	}
+	
+	if( M_Y_Sepa_ARC_Upper_Stopper_Sol == 1 && L_PLATE_Clamp_SM  == 0 && P_ARC_TEST_Flag == 1 )										// 플레이트 클램프
+	{
+		P_ARC_TEST_Flag = 0;
+		L_ARC_Test_Timer(N_PLATE_Clamp) = 0;
+		L_PLATE_Clamp_SM = 1;
+	}
+	if( L_PLATE_Clamp_SM == 1 && L_ARC_Test_Timer(N_PLATE_Clamp) > 150 )
+	{
+		L_PLATE_Clamp_SM = 0;
+		M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor = 0;
+		M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor = 0;
+		M_X_Sepa_Upper_ARC_Stopper_Front_Sensor = 1;
+		M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor = 1;
+	}
+	
+	if( M_Y_Sepa_ARC_Upper_Stopper_Sol == 0 && L_PLATE_Clamp_SM == 0 )										// 플레이트 클램프
+	{
+		L_ARC_Test_Timer(N_PLATE_Clamp) = 0;
+		L_PLATE_Clamp_SM = 2;
+	}
+	if( L_PLATE_Clamp_SM == 2 && L_ARC_Test_Timer(N_PLATE_Clamp) > 150 )
+	{
+		L_PLATE_Clamp_SM = 0;
+		M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor = 1;
+		M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor = 1;
+		M_X_Sepa_Upper_ARC_Stopper_Front_Sensor = 0;
+		M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor = 0;
+	}
+	
+	if( M_Y_Sepa_ARC_Upper_Cutting_FWD_Sol == 1 && L_Cutter_SM == 0 )											// 커터 전진
+	{
+		L_ARC_Test_Timer(N_Cutter) = 0;
+		L_Cutter_SM = 1;
+	}
+	if( L_Cutter_SM == 1 && L_ARC_Test_Timer(N_Cutter) > 100 )
+	{
+		L_Cutter_SM = 0;
+		M_X_Sepa_Upper_ARC_Cutting_FWD_Sensor = 1;
+		M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor = 0;
+	}
+	
+	if( M_Y_Sepa_ARC_Upper_Cutting_FWD_Sol == 0 && L_Cutter_SM == 0 )											// 커터 후진
+	{
+		L_ARC_Test_Timer(N_Cutter) = 0;
+		L_Cutter_SM = 2;
+	}
+	if( L_Cutter_SM == 2 && L_ARC_Test_Timer(N_Cutter) > 100 )
+	{
+		L_Cutter_SM = 0;
+		M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor = 1;
+		M_X_Sepa_Upper_ARC_Cutting_FWD_Sensor = 0;
+	}
+	
+	if( M_Y_Sepa_Lower_ARC_Ejector_Vac_On == 0 && M_Y_Sepa_Lower_ARC_Ejector_Vac_Off == 1 && L_Plate_Vac_SM == 0 )			// 플레이트 블로우
+	{	
+		L_ARC_Test_Timer(N_Plate_Vac) = 0;
+		L_Plate_Vac_SM = 1;
+	}
+	if( L_Plate_Vac_SM == 1 && L_ARC_Test_Timer(N_Plate_Vac) > 100 )
+	{
+		L_Plate_Vac_SM = 0;
+		M_X_ARC_NP_Lower_Plate_Vac_On = 0;
+	}
+	
+	if( M_Y_Sepa_Lower_ARC_Ejector_Vac_On == 0 && M_Y_Sepa_Lower_ARC_Ejector_Vac_Off == 0 && L_Plate_Vac_SM == 0)			// 플레이트 블로우 off
+	{	
+		L_ARC_Test_Timer(N_Plate_Vac) = 0;
+		L_Plate_Vac_SM = 2;
+	}
+	if( L_Plate_Vac_SM == 2 && L_ARC_Test_Timer(N_Plate_Vac) > 100 )
+	{
+		L_Plate_Vac_SM = 0;
+		M_X_ARC_NP_Lower_Plate_Vac_On = 0;
+	}
+}
+// [ 2025.07.11 ARC TEST 추가 ]
+if(P_ARC_Frist_Start == 0)												// 세파 ARC 작업자가 Manual Home 작업 했다 는 가정
+{
+	P_Suspend_ARC_Seq_Index = 0;
+	P_Suspend_ARC_Self_Index = 0;
+	M_Y_Sepa_Upper_ARC_Ejector_Vac_On   = 0;
+	M_Y_Sepa_Upper_ARC_Ejector_Vac_Off  = 0;
+	M_Y_Sepa_Lower_ARC_Ejector_Vac_On   = 0;
+	M_Y_Sepa_Lower_ARC_Ejector_Vac_Off  = 0;
+	M_Y_Sepa_ARC_Lower_Cutting_FWD_Sol = 0;
+	M_Y_Sepa_ARC_Lower_Stopper_Sol = 0;
+	M_Y_Sepa_Driving_Roll_Clamp_Sol = 0;
+	M_Y_Sepa_ARC_Upper_Dn_Sol				= 0;	
+	M_Y_Sepa_ARC_Upper_Up_Sol              	= 0;
+	M_Y_Sepa_ARC_Upper_UnTilting_Sol           	= 0;
+	M_Y_Sepa_ARC_Upper_Tilting_Sol              = 0;                                                                  
+	M_Y_Sepa_ARC_Upper_Stopper_Sol    = 0;                                 
+	M_Y_Sepa_ARC_Upper_Cutting_FWD_Sol      	= 0;                                     
+	M_Y_Sepa_ARC_Lower_Up_Sol              	= 0;
+	M_Y_Sepa_ARC_Lower_Dn_Sol            	= 0;
+	M_Y_Sepa_ARC_Lower_UnTilting_Sol           	= 0;
+	M_Y_Sepa_ARC_Lower_Tilting_Sol           	= 0;
+	P_ARC_Frist_Start = 1;
+	M_X_Sepa_Driving_Roll_UnClamp_Sensor = 1;
+	M_X_Sepa_Upper_ARC_Up_Sensor = 1; 
+	M_X_Sepa_Upper_ARC_UnTilting_Sensor_Front = 1; 
+	M_X_Sepa_Upper_ARC_UnTilting_Sensor_Rear = 1; 
+	M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor = 1;
+	M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor = 1; 
+	M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor = 1; 
+	M_X_Sepa_Lower_ARC_Dn_Sensor = 1; 
+	M_X_Sepa_Lower_ARC_UnTilting_Sensor_Front = 1;
+	M_X_Sepa_Lower_ARC_UnTilting_Sensor_Rear = 1; 
+	M_X_Sepa_Lower_ARC_UnStopper_Front_Sensor = 1; 
+	M_X_Sepa_Lower_ARC_UnStopper_Rear_Sensor = 1; 
+	M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor = 1; 	
+	P_Suspend_ARC_Request_Flag = 0;
+
+	if( P_Selected_Spool_Number == N_UNWINDER_UPPER )
+	{
+		P_Selected_Spool_Number = N_UNWINDER_LOWER;
+		P_PLC06_Reel_Upper_Change_Flag = 1;
+	}
+	else
+	{
+		P_Selected_Spool_Number = N_UNWINDER_UPPER;
+		P_PLC06_Reel_Lower_Change_Flag = 1;
+	}
+}	
+
+
+//if ( M_X_ARC_NP_Auto_Reel_Change_Upper == 1 )
+//{
+//	M_X_ARC_NP_Auto_Reel_Change_Lower = 0;
+//}
+//else
+//	M_X_ARC_NP_Auto_Reel_Change_Lower = 1;
+//
+////==================================================================================================================//
+//// 공통 [ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+//if ( M_Y_Sepa_Driving_Roll_Clamp_Sol )										// 드라이빙 롤 전진
+//{
+//	M_X_Sepa_Driving_Roll_Clamp_Sensor = 1;
+//	M_X_Sepa_Driving_Roll_UnClamp_Sensor = 0;
+//}
+//else																// 드라이빙 롤 후진
+//{
+//	M_X_Sepa_Driving_Roll_Clamp_Sensor = 0;
+//	M_X_Sepa_Driving_Roll_UnClamp_Sensor = 1;
+//}
+//
+//// ARC 출력에 따른 입력값 변화
+//// 상부 플레이트.
+//if ( M_Y_Sepa_ARC_Upper_Dn_Sol && M_Y_Sepa_ARC_Upper_Up_Sol^$1)			// 하강
+//{
+//	M_X_Sepa_Upper_ARC_Dn_Sensor = 1;
+//	M_X_Sepa_Upper_ARC_Up_Sensor = 0;
+//}
+//else if ( M_Y_Sepa_ARC_Upper_Dn_Sol^$1 && M_Y_Sepa_ARC_Upper_Up_Sol)	// 상승
+//{
+//	M_X_Sepa_Upper_ARC_Dn_Sensor = 0;
+//	M_X_Sepa_Upper_ARC_Up_Sensor = 1;
+//}
+//if ( M_Y_Sepa_ARC_Upper_UnTilting_Sol && M_Y_Sepa_ARC_Upper_Tilting_Sol^$1 )	// 0도
+//{
+//	M_X_Sepa_Upper_ARC_UnTilting_Sensor_Front = 1;
+//	M_X_Sepa_Upper_ARC_Tilting_Sensor_Front = 0;
+//	M_X_Sepa_Upper_ARC_UnTilting_Sensor_Rear = 1;
+//	M_X_Sepa_Upper_ARC_Tilting_Sensor_Rear = 0;
+//}
+//else if ( M_Y_Sepa_ARC_Upper_UnTilting_Sol^$1 && M_Y_Sepa_ARC_Upper_Tilting_Sol )	// 90도
+//{
+//	M_X_Sepa_Upper_ARC_UnTilting_Sensor_Front = 0;
+//	M_X_Sepa_Upper_ARC_Tilting_Sensor_Front = 1;
+//	M_X_Sepa_Upper_ARC_UnTilting_Sensor_Rear = 0;
+//	M_X_Sepa_Upper_ARC_Tilting_Sensor_Rear = 1;
+//}
+//if ( M_Y_Sepa_ARC_Upper_Stopper_Sol )								// 언클램프
+//{
+//	M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor = 1;
+//	M_X_Sepa_Upper_ARC_Stopper_Front_Sensor = 0;
+//	M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor = 1;
+//	M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor = 0;
+//}
+//else																	// 클램프
+//{
+//	M_X_Sepa_Upper_ARC_UnStopper_Front_Sensor = 0;
+//	M_X_Sepa_Upper_ARC_Stopper_Front_Sensor = 1;
+//	M_X_Sepa_Upper_ARC_UnStopper_Rear_Sensor = 0;
+//	M_X_Sepa_Upper_ARC_Stopper_Rear_Sensor = 1;
+//}
+//if ( M_Y_Sepa_ARC_Upper_Cutting_FWD_Sol )									// 커터 전진
+//{
+//	M_X_Sepa_Upper_ARC_Cutting_FWD_Sensor = 1;
+//	M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor = 0;
+//}
+//else																	// 커터 후진
+//{
+//	M_X_Sepa_Upper_ARC_Cutting_FWD_Sensor = 0;
+//	M_X_Sepa_Upper_ARC_Cutting_BWD_Sensor = 1;
+//}
+//if ( M_Y_Sepa_Upper_ARC_Ejector_Vac_On && M_Y_Sepa_Upper_ARC_Ejector_Vac_Off^$1 )		// 진공 ON
+//	M_X_ARC_NP_Upper_Plate_Vac_On = 1;
+//else																	// 진공 OFF
+//	M_X_ARC_NP_Upper_Plate_Vac_On = 0;
+//
+//
+//// 하부 플레이트.
+//if ( M_Y_Sepa_ARC_Lower_Up_Sol && M_Y_Sepa_ARC_Lower_Dn_Sol^$1 )			// 상승
+//{
+//	M_X_Sepa_Lower_ARC_Up_Sensor = 1;
+//	M_X_Sepa_Lower_ARC_Dn_Sensor = 0;
+//}
+//else if ( M_Y_Sepa_ARC_Lower_Up_Sol^$1 && M_Y_Sepa_ARC_Lower_Dn_Sol )		// 하강
+//{
+//	M_X_Sepa_Lower_ARC_Up_Sensor = 0;
+//	M_X_Sepa_Lower_ARC_Dn_Sensor = 1;
+//}
+//if ( M_Y_Sepa_ARC_Lower_UnTilting_Sol && M_Y_Sepa_ARC_Lower_Tilting_Sol^$1 )		// 0도
+//{
+//	M_X_Sepa_Lower_ARC_UnTilting_Sensor_Front = 1;
+//	M_X_Sepa_Lower_ARC_Tilting_Sensor_Front = 0;
+//	M_X_Sepa_Lower_ARC_UnTilting_Sensor_Rear = 1;
+//	M_X_Sepa_Lower_ARC_Tilting_Sensor_Rear = 0;
+//}
+//else if ( M_Y_Sepa_ARC_Lower_UnTilting_Sol^$1 && M_Y_Sepa_ARC_Lower_Tilting_Sol )	// 90도
+//{
+//	M_X_Sepa_Lower_ARC_UnTilting_Sensor_Front = 0;
+//	M_X_Sepa_Lower_ARC_Tilting_Sensor_Front = 1;
+//	M_X_Sepa_Lower_ARC_UnTilting_Sensor_Rear = 0;
+//	M_X_Sepa_Lower_ARC_Tilting_Sensor_Rear = 1;
+//}
+//if ( M_Y_Sepa_ARC_Lower_Stopper_Sol )								// 언클램프
+//{
+//	M_X_Sepa_Lower_ARC_UnStopper_Front_Sensor = 1;
+//	M_X_Sepa_Lower_ARC_Stopper_Front_Sensor = 0;
+//	M_X_Sepa_Lower_ARC_UnStopper_Rear_Sensor = 1;
+//	M_X_Sepa_Lower_ARC_Stopper_Rear_Sensor = 0;
+//}
+//else																	// 클램프
+//{
+//	M_X_Sepa_Lower_ARC_UnStopper_Front_Sensor = 0;
+//	M_X_Sepa_Lower_ARC_Stopper_Front_Sensor = 1;
+//	M_X_Sepa_Lower_ARC_UnStopper_Rear_Sensor = 0;
+//	M_X_Sepa_Lower_ARC_Stopper_Rear_Sensor = 1;
+//}
+//if ( M_Y_Sepa_ARC_Lower_Cutting_FWD_Sol )									// 커터 전진
+//{
+//	M_X_Sepa_Lower_ARC_Cutting_FWD_Sensor = 1;
+//	M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor = 0;
+//}
+//else																	// 커터 후진
+//{
+//	M_X_Sepa_Lower_ARC_Cutting_FWD_Sensor = 0;
+//	M_X_Sepa_Lower_ARC_Cutting_BWD_Sensor = 1;
+//}
+//if ( M_Y_Sepa_Lower_ARC_Ejector_Vac_On && M_Y_Sepa_Lower_ARC_Ejector_Vac_Off^$1 )		// 진공 ON
+//	M_X_ARC_NP_Lower_Plate_Vac_On = 1;
+//else																	// 진공 OFF
+//	M_X_ARC_NP_Lower_Plate_Vac_On = 0;
+
+close

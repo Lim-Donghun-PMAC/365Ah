@@ -1,0 +1,36 @@
+// Servo Dancer
+// 좌표계 &8
+// 가상축 #58
+
+/* 프로그램 설명
+서보 댄서 캠테이블 관련 프로그램
+커멘드값은 슬레이브 프로그램안에서만 초기화가 됨. 
+*/
+
+&8
+#58 -> X
+
+open prog 8
+INC
+LINEAR
+TA(0)TS(0)
+
+while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(5) == 1 && P_Slave_Motion_Program_Flag(5) == 1 )
+{	// 프로그램 허용 플래그
+
+	Switch ( P_Slave15_Motion_Command )
+	{	
+		// 커멘드별 모션
+		case 1 :
+
+		break;
+
+		default :
+
+		break;
+
+	}
+	
+}
+
+close

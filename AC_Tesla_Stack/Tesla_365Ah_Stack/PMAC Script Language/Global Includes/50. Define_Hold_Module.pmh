@@ -1,0 +1,116 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.12.02
+// 내용 - Hold 액팅 모듈 추가. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+//=======================================================================================
+// 액팅 동작 리스트 변수 정의
+//=======================================================================================
+#define N_Act_Module_Stop_Point					1			// [Hold 모듈 정지 포인트]
+#define N_Act_Module_Status_Clear				2			// [Hold 모듈 관련 상태값 초기화]
+#define N_Act_Cell_Data_Vision_Check			3			// [극판 유무에 따른 극판 유무 검사, 빈테이블 검사]
+#define N_Act_Cell_Data_Vision_Surface_Check	4			// [얼라인 극판 공급 후 극판 표면 검사]
+#define N_Act_First_PNP_Wait_Pos				5			// [1차 PNP]	[대기 위치 이동]
+#define N_Act_First_PNP_Belt_Pos				6			// [1차 PNP]	[벨트 이동]
+#define N_Act_First_PNP_Belt_Down_Pos			7			// [1차 PNP]	[벨트 하강]
+#define N_Act_First_PNP_Belt_Up_Pos				8			// [1차 PNP]	[벨트 상승]
+#define N_Act_First_PNP_Align_Pos				9			// [1차 PNP]	[얼라인 이동]
+#define N_Act_First_PNP_Align_Down_Pos			10			// [1차 PNP]	[얼라인 하강]
+#define N_Act_First_PNP_Align_Up_Pos			11			// [1차 PNP]	[얼라인 상승]
+#define N_Act_First_PNP_Vac_On					12			// [1차 PNP]	[벨트 흡착]
+#define N_Act_First_PNP_Blow_On					13			// [1차 PNP]	[얼라인 블로우]
+#define N_Act_Second_PNP_Stack_Pos				14			// [2차 PNP]	[얼라인 → 스택 이동]
+#define N_Act_Second_PNP_Align_Pos				15			// [2차 PNP]	[스택 → 얼라인 이동]
+#define N_Act_Second_PNP_Align_Down_Pos			16			// [2차 PNP]	[얼라인 하강]
+#define N_Act_Second_PNP_Align_Up_Pos			17			// [2차 PNP]	[얼라인 상승]
+#define N_Act_Second_PNP_Vac_On					18			// [2차 PNP]	[얼라인 흡착]
+#define N_Act_Second_PNP_Blow_On				19			// [2차 PNP]	[얼라인 블로우]
+#define N_Act_First_Second_PNP_Wait_Supply_Pos	20			// [1,2차 PNP]	[1차 PNP 대기 위치 → 벨트, 2차 PNP 스택 → 얼라인 이동]
+#define N_Act_First_Second_PNP_Supply_Pos		21			// [1,2차 PNP]	[1차 PNP 얼라인 → 벨트, 2차 PNP 스택 → 얼라인 이동]
+#define N_Act_First_Second_PNP_Stack_Pos		22			// [1,2차 PNP]	[1차 PNP 벨트 → 얼라인, 2차 PNP 얼라인 → 스택 이동]
+#define N_Act_Total_Down_Pos					23			// [1,2차 PNP]	[1,2차 PNP 동시 하강]
+#define N_Act_Total_Up_Pos						24			// [1,2차 PNP]	[1,2차 PNP 동시 상승]
+#define N_Act_Total_Vac_On						25			// [1,2차 PNP]	[1,2차 PNP 동시 흡착]
+#define N_Act_NG_PNP_NG_Box_Pos					26			// [NG PNP]		[NG 박스 이동]
+#define N_Act_NG_PNP_Align_Pos					27			// [NG PNP]		[얼라인 이동]
+#define N_Act_NG_PNP_Align_Down_Pos				28			// [NG PNP]		[얼라인 하강]
+#define N_Act_NG_PNP_Align_Up_Pos				29			// [NG PNP]		[얼라인 상승]
+#define N_Act_NG_PNP_Vac_On						30			// [NG PNP]		[흡착]
+#define N_Act_NG_PNP_Blow_On					31			// [NG PNP]		[블로우]
+#define N_Pasue_Check							32			// [ 퍼즈체크 ]	[ 참 조: GPIO 고장 시 예외처리 (26.01.08)]
+
+#define N_Act_Hold_Define_Limit					35			// 마지막 번호 ( Define 추가 시 번호 증가 필요 )
+//---------------------------------------------------------------------------------------
+// 마지막
+//---------------------------------------------------------------------------------------
+//#define N_Act_Hold_Define_Limit					41
+
+//---------------------------------------------------------------------------------------
+// sub_43) 액팅 모듈 배열값
+//---------------------------------------------------------------------------------------
+// 1) 액팅 모듈 완료 비트 배열
+global P_Act_Hold_Complete_Bit(N_Act_Hold_Define_Limit)
+P_Act_Hold_Complete_Bit(0),N_Act_Hold_Define_Limit,1 = 0;	
+
+// 2) 모듈 커맨드 감시 배열
+global P_Module_Act_Hold_Command_Array(N_Act_Hold_Define_Limit);
+P_Module_Act_Hold_Command_Array(0),N_Act_Hold_Define_Limit,1 = 0;
+
+// 3) 엣지 감지 변수 _ 모듈 커맨드 감시 배열 
+global P_OLD_Module_Act_Hold_Command_Array(N_Act_Hold_Define_Limit);
+P_OLD_Module_Act_Hold_Command_Array(0),N_Act_Hold_Define_Limit,1 = 0;
+
+// 4) 동작 시퀀스 스테이트 머신 배열
+global P_Module_Act_Hold_State_Machine_Array(N_Act_Hold_Define_Limit);
+P_Module_Act_Hold_State_Machine_Array(0),N_Act_Hold_Define_Limit,1 = 0;
+
+// 5) 액팅 모듈 타임 아웃 시간 저장 배열
+global P_Act_Hold_Old_Time(N_Act_Hold_Define_Limit);
+P_Act_Hold_Old_Time(0),N_Act_Hold_Define_Limit,1 = 0;
+
+// 6) 액팅 모듈 타임 아웃 시간 설정 배열
+global P_Act_Hold_Time_Out_Time = 20;					// 타임 아웃 시간 설정.
+global P_Act_Hold_Time_Out(N_Act_Hold_Define_Limit);
+P_Act_Hold_Time_Out(0),N_Act_Hold_Define_Limit,1 = 0;
+
+// 7) 모션 상태 변수.
+global P_First_PNP_T_Wait_Status = 0;					// [1차 PNP]	[대기 위치 이동]
+global P_First_PNP_Z_Wait_Status = 0;					// [1차 PNP]	[대기 위치 이동]
+global P_First_PNP_Picker_T_Turn_Status = 0;			// [1차 PNP]	[대기 위치 이동 시 회전]
+global P_First_PNP_T_Wait_To_Belt_Status = 0;			// [1차 PNP]	[대기 위치 → 벨트 이동]
+global P_First_PNP_Z_Wait_To_Belt_Status = 0;			// [1차 PNP]	[대기 위치 → 벨트 이동]
+global P_First_PNP_T_Align_To_Belt_Status = 0;			// [1차 PNP]	[얼라인 → 벨트 이동]
+global P_First_PNP_Z_Align_To_Belt_Status = 0;			// [1차 PNP]	[얼라인 → 벨트 이동]
+global P_First_PNP_Z_Belt_Down_Status = 0;				// [1차 PNP]	[벨트 하강]
+global P_First_PNP_Z_Belt_Up_Status = 0;				// [1차 PNP]	[벨트 상승]
+global P_First_PNP_T_Wait_To_Align_Status = 0;			// [1차 PNP]	[대기 위치 → 얼라인 이동]
+global P_First_PNP_Z_Wait_To_Align_Status = 0;			// [1차 PNP]	[대기 위치 → 얼라인 이동]
+global P_First_PNP_T_Belt_To_Align_Status = 0;			// [1차 PNP]	[벨트 → 얼라인 이동]
+global P_First_PNP_Z_Belt_To_Align_Status = 0;			// [1차 PNP]	[벨트 → 얼라인 이동]
+global P_First_PNP_Z_Align_Down_Status = 0;				// [1차 PNP]	[얼라인 하강]
+global P_First_PNP_Z_Align_Up_Status = 0;				// [1차 PNP]	[얼라인 상승]
+global P_First_PNP_Vac_On_Status = 0;					// [1차 PNP]	[벨트 흡착]			
+global P_First_PNP_Blow_On_Status = 0;					// [1차 PNP]	[얼라인 블로우]			
+global P_Second_PNP_T_Align_To_Stack_Status = 0;		// [2차 PNP]	[얼라인 → 스택 이동]	
+global P_Second_PNP_Z_Align_To_Stack_Status = 0;		// [2차 PNP]	[얼라인 → 스택 이동]
+global P_Second_PNP_T_Stack_To_Align_Status = 0;		// [2차 PNP]	[스택 → 얼라인 이동]
+global P_Second_PNP_Z_Stack_To_Align_Status = 0;		// [2차 PNP]	[스택 → 얼라인 이동]
+global P_Second_PNP_Z_Align_Down_Status = 0;			// [2차 PNP]	[얼라인 하강]
+global P_Second_PNP_Z_Align_Up_Status = 0;				// [2차 PNP]	[얼라인 상승]
+global P_Second_PNP_Vac_On_Status = 0;					// [2차 PNP]	[얼라인 흡착]			
+global P_Second_PNP_Blow_On_Status = 0;					// [2차 PNP]	[얼라인 블로우]		
+global P_NG_PNP_NG_Bos_Status = 0;						// [NG PNP]		[NG 박스 이동]
+global P_NG_PNP_Align_Status = 0;						// [NG PNP]		[얼라인 이동]
+global P_NG_PNP_Align_Down_Status = 0;					// [NG PNP]		[얼라인 하강]
+global P_NG_PNP_Align_Up_Status = 0;					// [NG PNP]		[얼라인 상승]
+global P_NG_PNP_Vac_On_Status = 0;						// [NG PNP]		[흡착]			
+global P_NG_PNP_Blow_On_Status = 0;						// [NG PNP]		[블로우]
+
+global P_Hold_1st_PNP_Position = 0;
+#define Wait_Pos	1
+#define Belt_Pos	2
+#define Align_Pos	3
+#define Init_up_Pos	4
+
+// 8) 모듈 Error 발생 시 확인 변수. Hold 모듈 진행 중 Error 발생했을 경우 모듈 종료. [ 참조 : 26.01.08 Hold 모듈 수정 ]
+global P_Hold_Module_Error = 0;			// 액팅 모듈 중 Time Out, Error 발생 시 Hold 모듈 정지.

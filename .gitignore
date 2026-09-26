@@ -1,6 +1,7 @@
 Bin/
-#Database/
-#Log/
+Log/
+!AC_Tesla_Stack\Tesla_365Ah_Stack\Log\keep_.txt
+C_Tesla_Stack\Tesla_365Ah_Stack\Database\*.xml
 obj/
 Temp/
 .vs/
@@ -17,6 +18,3 @@ Temp/
 *_ppError*
 *_ppErrorHist*
 *_ppProj*
-
-
-#pp_proj.h

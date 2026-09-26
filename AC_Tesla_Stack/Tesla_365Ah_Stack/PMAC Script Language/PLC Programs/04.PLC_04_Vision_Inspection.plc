@@ -1,0 +1,1102 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+
+//===============================================================================
+// 	00. 프로그램 설명                                                                     
+//===============================================================================
+// 비전 데이터 읽는 방법
+// 비전 결과 값 16진수 -> 10진수 변환값
+
+//		 << Exist >>
+// 128 => Existence
+// 130 => Existence, Maint NG
+
+//		 << Align NG >>
+// 132 => Align NG, Existence
+// 134 => Align NG, Existence, Maint NG
+
+//		 << Align OK >>
+// 136 => Align OK, Existence
+// 138 => Align OK, Existence, Maint NG
+
+//		 << Align OK, Surf Image Save >>
+// 200 => Align Ok, Save Surf Image, Existence
+
+//		 << Align OK, Surf Image Save, Surf NG >>
+// 216 => Align Ok, Save Surf Image, Surface NG, Existence
+// 218 => Align Ok, Save Surf Image, Surface NG, Existence, Maint NG
+
+//		 << Align OK, Surf Image Save, Surf OK >>
+// 232 => Align Ok, Save Surf Image, Surface OK, Existence
+// 234 => Align Ok, Save Surf Image, Surface OK, Existence, Maint NG
+
+//		 << Align OK, Surf Image Save, Surf OK, Stack OK>>
+// 744 => Align Ok, surface OK, Existence, Stack OK
+
+//		 << Align OK, Surf Image Save, Surf OK, Stack NG>>
+// 488 => Align Ok, surface OK, Existence, Stack NG
+
+//	1차 PNP 정상 극판 : 128
+//	얼라인 정상 극판 : 168
+//	2차 PNP 정상 극판 : 168
+//	얼라인, 2차 maint ng 극판 : 170
+// 얼라인 ng 극판 : 132
+
+
+
+
+
+//===============================================================================+
+open plc 4
+P_MNTR_PLC4_Task_Time(0) = Sys.Time;
+	#define L_System_Timer			Sys.Time			//시스템 타이머
+
+	local L_Time_Cycle_Up_Count_Start_Time;				// Plc[4].ldata.L[0]	시간 체크 시작 시간
+	local L_Time_Cycle_Up_Count_End_Time;				// Plc[4].ldata.L[1]	시간 체크 종료 시간
+	local L_Time_Cycle_Up_Count_Delta_Time;				// Plc[4].ldata.L[2]	시작과 종료 시간 사이의 시간
+	local L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[4].ldata.L[3]	타이머 초기화 플래그
+
+	local L_Vision_Anode_Heartbeat_Over_Timer;			// Plc[4].ldata.L[4]	음극 하트비트 체크 타이머
+	local L_Vision_Cathode_heartbeat_Over_Timer;		// Plc[4].ldata.L[5]	양극 하트비트 체크 타이머
+	local L_Vision_Stack_Heartbeat_Over_Timer;			// Plc[4].ldata.L[6]	스택 하트비트 체크 타이머
+
+	local L_Old_Anode_Heartbit;							// Plc[4].ldata.L[7]	음극 하트비트 상승 엣지 체크
+	local L_Old_Cathode_Heartbit;						// Plc[4].ldata.L[8]	양극 하트비트 상승 엣지 체크
+	local L_Old_Stack_Heartbit;							// Plc[4].ldata.L[9]	스택 하트비트 상승 엣지 체크
+	
+	local L_Align_Ret;									// Plc[4].ldata.L[10]	얼라인 검사 리턴 변수
+	local L_Surface_Ret;								// Plc[4].ldata.L[11]	표면검사 리턴 변수
+	local L_Existence_Ret;								// Plc[4].ldata.L[12]	유무검사 리턴 변수
+	local L_Stack_Ret;									// Plc[4].ldata.L[13]	스택 리턴 변수
+	local L_EmptyTable_Ret;								// Plc[4].ldata.L[14]	빈 테이블 리턴 변수
+	local L_FirstSepa_Ret;								// Plc[4].ldata.L[15]	세파 첫장 리턴 변수
+
+	local L_Align_Timer;								// Plc[4].ldata.L[16]	얼라인 타이머
+	local L_Surface_Timer;								// Plc[4].ldata.L[17]	표면검사 타이머
+	local L_Existence_Timer;							// Plc[4].ldata.L[18]	유무검사 타이머
+	local L_Stack_Timer;								// Plc[4].ldata.L[19]	스택 타이머
+	local L_EmptyTable_Timer;							// Plc[4].ldata.L[20]	빈 테이블 타이머
+	local L_FirstSepa_Timer;							// Plc[4].ldata.L[21]	세파 첫장 타이머
+
+	local L_EmptyTable_Inspection_Time;					// Plc[4].ldata.L[22]	빈 테이블 체크 타임
+
+	local L_Anode_Align_Zero_Pos_Ret;					// Plc[4].ldata.L[23]	얼라인 대기위치 리턴
+	local L_Cathode_Align_Zero_Pos_Ret;					// Plc[4].ldata.L[24]	얼라인 대기위치 리턴
+//========================================================================================================================
+// 00. 다이나믹 로컬 타이머 함수	
+//========================================================================================================================
+// 00.1) 시간 간격 초기화
+if(L_Flag_Cycle_Up_Count_Init_Flag == 0)
+{
+	L_Flag_Cycle_Up_Count_Init_Flag = 1;
+	L_Time_Cycle_Up_Count_Start_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+}
+// 00.2)  시간 체크
+if(L_Flag_Cycle_Up_Count_Init_Flag == 1)
+{
+	L_Time_Cycle_Up_Count_End_Time = L_System_Timer;
+	L_Time_Cycle_Up_Count_Delta_Time = (L_Time_Cycle_Up_Count_End_Time - L_Time_Cycle_Up_Count_Start_Time) * 1000
+	if(L_Time_Cycle_Up_Count_Delta_Time < 0)
+	{
+		L_Flag_Cycle_Up_Count_Init_Flag = 0;
+	}
+}
+// 00.3)  시간 업데이트
+if(L_Time_Cycle_Up_Count_Delta_Time > 0.1)
+{
+	L_Vision_Anode_Heartbeat_Over_Timer = L_Vision_Anode_Heartbeat_Over_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Vision_Cathode_heartbeat_Over_Timer = L_Vision_Cathode_heartbeat_Over_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Vision_Stack_Heartbeat_Over_Timer = L_Vision_Stack_Heartbeat_Over_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Align_Timer = L_Align_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Surface_Timer = L_Surface_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Existence_Timer = L_Existence_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_Stack_Timer = L_Stack_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_EmptyTable_Timer = L_EmptyTable_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	L_FirstSepa_Timer = L_FirstSepa_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Anode_Sepa_Mode_Timer = P_Anode_Sepa_Mode_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_Cathode_Sepa_Mode_Timer = P_Cathode_Sepa_Mode_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+
+	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
+	L_Time_Cycle_Up_Count_Delta_Time = 0;
+}
+//========================================================================================================================
+// 극판 전체 카운트
+// [ 참조 : 26.04.29 PMAC → Vision Total Recipe Count 계산 추가 ]
+P_VISION_Anode_Cathode_Total_Recipe_Count = P_Anode_Recipe_Count + P_Cathode_Recipe_Count;
+
+
+// Auto && Normal Mode 일때의 하트비트 체크
+if(P_PMAC_Current_Mode == F_Current_Automatic)
+{
+	// 오토모드 시 하트비트 체크
+	// Vision 통신 -> 0.1초 점멸
+	if(P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence)
+	{
+		if(M_X_Vision_Anode_Align_HeartBit != L_Old_Anode_Heartbit)	// 음극 비전 하트비트 상승 엣지 체크
+		{
+			L_Vision_Anode_Heartbeat_Over_Timer = 0;		// 하트비트 체크 타이머 초기화
+		}
+		
+		if(M_X_Vision_Cathode_Align_HeartBit != L_Old_Cathode_Heartbit)	// 양극 비전 하트비트 상승 엣지 체크
+		{
+			L_Vision_Cathode_heartbeat_Over_Timer = 0;		// 하트비트 체크 타이머 초기화
+		}
+		
+		if(M_X_Vision_Stack_HeartBit != L_Old_Stack_Heartbit)		// 스택 비전 하트비트 상승 엣지 체크
+		{
+			L_Vision_Stack_Heartbeat_Over_Timer = 0;		// 하트비트 체크 타이머 초기화
+		}
+	}
+	else
+	{
+		// 노멀 모드 아닐 시에는 초기화
+		L_Vision_Anode_Heartbeat_Over_Timer = 0;			
+		L_Vision_Cathode_heartbeat_Over_Timer = 0;
+		L_Vision_Stack_Heartbeat_Over_Timer = 0;
+	}
+
+	if(L_Vision_Anode_Heartbeat_Over_Timer > F_Heartbeat_Check_Time)		// 음극 체크 타이머가 400ms 넘어가면 알람
+	{
+		// 음극 비전 하트비트 알람
+		//call Alarm.Insert_Alarm(N_Alarm_Anode_Align_Vision_HeartBit, N_High_Alarm_Cycle_Stop);
+//		M(M_Anode_Align_Vision_HeartBit_Alarm) = 1;
+	}
+
+	if(L_Vision_Cathode_heartbeat_Over_Timer > F_Heartbeat_Check_Time)		// 양극 체크 타이머가 400ms 넘어가면 알람
+	{
+		// 양극 비전 하트비트 알람
+		//call Alarm.Insert_Alarm(N_Alarm_Cathode_Align_Vision_HeartBit, N_High_Alarm_Cycle_Stop);
+//		M(M_Cathode_Align_Vision_HeartBit_Alarm) = 1;
+	}
+
+	if(L_Vision_Stack_Heartbeat_Over_Timer > F_Heartbeat_Check_Time)		// 스택 체크 타이머가 400ms 넘어가면 알람
+	{
+		// 스택 비전 하트비트 알람
+		//call Alarm.Insert_Alarm(N_Alarm_Stack_Align_Vision_HeartBit, N_High_Alarm_Cycle_Stop);
+//		M(M_Stack_Align_Vision_HeartBit_Alarm) = 1;
+	}
+
+	// 빈테이블 검사 알람 입력
+}
+L_Old_Anode_Heartbit = M_X_Vision_Anode_Align_HeartBit;			// 음극 하트비트 엣지 갱신
+L_Old_Cathode_Heartbit = M_X_Vision_Cathode_Align_HeartBit;		// 양극 하트비트 엣지 갱신
+L_Old_Stack_Heartbit = M_X_Vision_Stack_HeartBit;				// 스택 하트비트 엣지 갱신
+
+// 비전 검사 커멘드 조건 -> Auto && 드라이런 제외 ( 세파 모드, 일반 모드 )
+if(P_PMAC_Current_Mode == F_Current_Automatic && P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence || (P_SM_Cathode_Stack_MSA > 0 || P_SM_Anode_Stack_MSA > 0 || P_SM_Cathode_Align_MSA > 0 || P_SM_Anode_Align_MSA > 0) || P_Dry_Run_Inspection == 1)
+{
+	
+	// N_Cathode_Unit = 1
+	// N_Anode_Unit = 2
+	// 커멘드에 양극, 음극 대입
+	
+	// 얼라인 커멘드
+	if(P_Vision_Align_Command == N_Cathode_Unit || P_Vision_Align_Command == N_Anode_Unit)
+	{
+		P_Selected_Align_Inspection_Unit = P_Vision_Align_Command;		// 커멘드에 입력된 양극 or 음극 저장
+		P_Vision_Align_Command = 0;										// 커멘드 재진입 방지 초기화
+
+		L_Align_Timer = 0;												// 얼라인 타이머 초기화
+		P_Vision_Align_State_Machine = 1;								// 얼라인 스테이트 머신 시작
+		L_Align_Timer = 0
+	}
+
+	// 표면 검사 커멘드
+	if(P_Vision_Surface_Command == N_Cathode_Unit || P_Vision_Surface_Command == N_Anode_Unit)
+	{
+		P_Selected_Surface_Inspection_Unit = P_Vision_Surface_Command;	// 커멘드에 입력된 양극 or 음극 저장
+		P_Vision_Surface_Command = 0;									// 커멘드 재진입 방지 초기화
+		
+		L_Surface_Timer = 0;											// 표면검사 타이머 초기화
+		P_Vision_Surface_State_Machine = 1;								// 표면검사 스테이트 머신 시작
+	}
+
+	// 스택 비전 검사 커멘드
+	if(P_Vision_Stack_Command == N_Cathode_Unit || P_Vision_Stack_Command == N_Anode_Unit)										
+	{
+		P_Selected_Stack_Inspection_Unit = P_Vision_Stack_Command;		// 커멘드에 입력된 양극 or 음극 저장
+		P_Vision_Stack_Command = 0;										// 커멘드 재진입 방지 초기화
+
+		L_Stack_Timer = 0;												// 스택 검사 타이머 초기화
+		P_Vision_Stack_State_Machine = 1;								// 스택검사 스테이트 머신 시작
+	}
+
+	// 유무검사 커멘드
+	if(P_Vision_Existence_Command == N_Cathode_Unit || P_Vision_Existence_Command == N_Anode_Unit)
+	{
+		P_Selected_Existence_Inspection_Unit = P_Vision_Existence_Command;	// 커멘드에 입력된 양극 or 음극 저장
+		P_Vision_Existence_Command = 0;										// 커멘드 재진입 방지 초기화
+
+		L_Existence_Timer = 0;												// 유무검사 타이머 초기화
+		P_Vision_Existence_State_Machine = 1;								// 유무검사 스테이트 머신 시작
+	}
+
+	// 빈테이블 커멘드
+	if(P_Vision_EmptyTable_Command == N_Cathode_Unit || P_Vision_EmptyTable_Command == N_Anode_Unit)
+	{														
+		P_Selected_EmptyTable_Inspection_Unit = P_Vision_EmptyTable_Command;	// 커멘드에 입력된 양극 or 음극 저장
+		P_Vision_EmptyTable_Command = 0;										// 커멘드 재진입 방지 초기화
+		
+		L_EmptyTable_Timer = 0;													// 빈테이블 검사 타이머 초기화
+		P_Vision_EmptyTable_State_Machine = 1;									// 빈테이블 스테이트 머신 시작
+	}
+
+	// 세파 첫장 커멘드
+	if(P_Vision_FirstSepa_Command != 0)
+	{
+		P_Vision_FirstSepa_Command = 0;											// 세파 첫장 커멘드 재진입 방지 초기화
+
+		L_FirstSepa_Timer = 0;													// 세파 첫장 타이머 초기화
+		P_Vision_FirstSepa_State_Machine = 1;									// 세파 첫장 스테이트 머신 시작
+	}
+}
+
+
+// 세파모드 시 음극 촬상 신호
+switch( P_Vision_Anode_Sepa_Mode_Stack_Command )
+{
+	case 1 :
+		M_Y_Vision_Stack_Sepa_Mode_Anode_Trigger = 1
+		P_Anode_Sepa_Mode_Timer = 0
+		P_Vision_Anode_Sepa_Mode_Stack_Command++
+	break;
+
+	case 2 :
+		if( P_Anode_Sepa_Mode_Timer > 100 )
+		{
+			M_Y_Vision_Stack_Sepa_Mode_Anode_Trigger = 0
+			P_Vision_Anode_Sepa_Mode_Stack_Command = 0
+		}
+	break;
+}
+
+
+// 세파모드 시 양극 촬상 신호
+switch( P_Vision_Cathode_Sepa_Mode_Stack_Command )
+{
+	case 1 :
+		M_Y_Vision_Stack_Sepa_Mode_Cathode_Trigger = 1
+		P_Cathode_Sepa_Mode_Timer = 0
+		P_Vision_Cathode_Sepa_Mode_Stack_Command++
+	break;
+
+	case 2 :
+		if( P_Cathode_Sepa_Mode_Timer > 100 )
+		{
+			M_Y_Vision_Stack_Sepa_Mode_Cathode_Trigger = 0
+			P_Vision_Cathode_Sepa_Mode_Stack_Command = 0
+		}
+	break;
+}
+
+
+
+// 얼라인 테이블 대기 위치 커멘드
+if(P_Set_Cathode_Align_Zero_Pos == 1)
+{
+	L_Anode_Align_Zero_Pos_Ret = 0;													// 음극 얼라인 동작 함수 리턴 변수 초기화
+	P_Cathode_Align_Table_Move = F_Start_Position_Move;								// 얼라인 동작 대기위치 모드
+
+	call Vision_Manager.Align_Move(N_Cathode_Unit, &L_Anode_Align_Zero_Pos_Ret);	// 얼라인 동작
+
+	if(L_Anode_Align_Zero_Pos_Ret == 1)
+	{
+		P_Set_Cathode_Align_Zero_Pos = 0;											// 음극 커멘드 초기화
+	}
+}
+
+if(P_Set_Anode_Align_Zero_Pos == 1)
+{
+	L_Cathode_Align_Zero_Pos_Ret = 0;												// 양극 얼라인 동작 함수 리턴 변수 초기화
+	P_Anode_Align_Table_Move = F_Start_Position_Move;								// 얼라인 동작 대기위치 모드
+	call Vision_Manager.Align_Move(N_Anode_Unit, &L_Cathode_Align_Zero_Pos_Ret);	// 얼라인 동작
+
+	if(L_Cathode_Align_Zero_Pos_Ret == 1)
+	{
+		P_Set_Anode_Align_Zero_Pos = 0;												// 양극 커멘드 초기화
+	}
+}
+
+// 얼라인 비전 시퀀스 스텟머신
+switch(P_Vision_Align_State_Machine)
+{
+	case 0 :
+		P_Vision_Align_Status = F_Status_IDLE;
+	break;
+
+	case 1 :
+		if( L_Align_Timer > P_Align_Inspection_Delay)
+		{
+			P_Vision_Align_Status = F_Status_STARTING;		// 얼라인 검사 시작
+			L_Align_Ret = 0;		// 함수 리턴 초기화
+			call Vision_Manager.Align_Trigger(P_Selected_Align_Inspection_Unit, &L_Align_Ret);		// 얼라인 검사 트리거 On
+
+			if(L_Align_Ret)
+			{
+				P_Vision_Align_State_Machine++;		// 비전 트리거 On 완료시 다음 스텝
+				L_Align_Timer = 0;					// 타이머 초기화
+			}
+			else
+			{
+				if(L_Align_Timer > P_Align_Inspection_Time)				// 100ms 동안 비전 Ready 신호가 들어오지 않을 경우
+				{
+					if(P_Selected_Align_Inspection_Unit == N_Anode_Unit)
+					{
+						Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_Time_Out;									// 타임아웃 데이터 저장
+						call Alarm.Insert_Alarm(N_Alarm_Anode_Align_Vision_TimeOut, N_High_Alarm_Cycle_Stop);
+						M_Y_VisioN_Align_AN_TimeOut_Flag = 1;														// 음극 얼라인 타임아웃 I/O On
+						P_Align_TimeOut5++
+					}
+					else if(P_Selected_Align_Inspection_Unit == N_Cathode_Unit)
+					{
+						Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_Time_Out;								// 타임아웃 데이터 저장
+						call Alarm.Insert_Alarm(N_Alarm_Cathode_Align_Vision_TimeOut, N_High_Alarm_Cycle_Stop);
+						M_Y_VisioN_Align_CA_TimeOut_Flag = 1;														// 양극 얼라인 타임아웃 I/O On
+						P_Align_TimeOut6++
+					}
+					L_Align_Timer = 0
+					P_Vision_Align_State_Machine = 8;																// 완료 스탭으로 이동
+				}
+			}
+		}
+	break;
+
+	case 2 :
+		if(L_Align_Timer > 50)		// 50ms 후 Trigger Off
+		{
+			M_Y_VisioN_Align_AN_Trigger = 0;		// 음극 얼라인 트리거 초기화
+			M_Y_VisioN_Align_CA_Trigger = 0;	// 양극 얼라인 트리거 초기화
+			if(P_Selected_Align_Inspection_Unit == N_Anode_Unit)
+			{
+				P_Anode_Trigger_IO_Test_Vision_PLC_Loop++;		// 모션, PLC 실제 Vision측 루프 카운트 측정 변수
+			}
+			else if(P_Selected_Align_Inspection_Unit == N_Cathode_Unit)
+			{
+				P_Cathode_Trigger_IO_Test_Vision_PLC_Loop++;	// 모션, PLC 실제 Vision측 루프 카운트 측정 변수
+			}
+			P_Vision_Align_State_Machine++;			// 다음 스텝
+		}
+	break;
+
+	case 3 :			// Inspection_Result
+		P_Vision_Align_Status = F_Status_EXECUTE;			// 얼라인 검사 실행중
+		if(L_Align_Timer > P_Align_Inspection_Time)			// 120ms 후 비전 Busy 검사, On 상태면 Time Out
+		{
+			L_Align_Ret = 0;
+			L_Align_Timer = 0;
+			call Vision_Manager.Align_Result(P_Selected_Align_Inspection_Unit, &L_Align_Ret);	// 얼라인 검사 결과 확인 
+
+			if(L_Align_Ret == N_Inspection_OK)		// 검사 결과 OK
+			{
+				if(P_Selected_Align_Inspection_Unit == N_Anode_Unit)
+				{
+					P_Anode_Align_OK++
+				}
+				else
+				{
+					P_Cathode_Align_OK++
+				}
+
+				P_Continuous_Call_Align_OK_Flag(P_Selected_Align_Inspection_Unit - 1) = 1;		// 연속 NG (OK) 체크
+				P_Vision_Align_State_Machine = 4;
+			}
+			else if(L_Align_Ret == N_Inspection_NG)	// 검사 결과 NG
+			{
+				if(P_Selected_Align_Inspection_Unit == N_Anode_Unit)
+				{
+					P_Anode_Align_NG++
+				}
+				else
+				{
+					P_Cathode_Align_NG++
+				}	
+							
+				P_Continuous_Call_Align_NG_Flag(P_Selected_Align_Inspection_Unit - 1) = 1;		// 연속 NG (NG) 체크
+				P_Vision_Align_State_Machine = 8;
+			}
+			else if(L_Align_Ret == N_Inspection_TimeOut)	// 타임아웃
+			{
+				if(P_Selected_Align_Inspection_Unit == N_Anode_Unit)
+				{
+					P_Anode_Align_TimeOut++
+					M_Y_VisioN_Align_AN_TimeOut_Flag = 1;		// 음극 얼라인 타임아웃 I/O On
+					call Alarm.Insert_Alarm(N_Alarm_Anode_Align_Vision_TimeOut, N_High_Alarm_Cycle_Stop);
+				}
+				else
+				{
+					P_Cathode_Align_TimeOut++
+					M_Y_VisioN_Align_CA_TimeOut_Flag = 1;		// 양극 얼라인 타임아웃 I/O On
+					call Alarm.Insert_Alarm(N_Alarm_Cathode_Align_Vision_TimeOut, N_High_Alarm_Cycle_Stop);
+				}
+
+				P_Continuous_Call_Align_TimeOut_Flag(P_Selected_Align_Inspection_Unit - 1) = 1;	// 연속 NG (Timeout) 체크
+				L_Align_Timer = 0
+				P_Vision_Align_State_Machine = 8;
+			}
+		}
+	break;
+
+	case 4 :	// Align OK
+		L_Align_Ret = 0;
+
+		call Vision_Manager.Align_Move(P_Selected_Align_Inspection_Unit, &L_Align_Ret);		// 얼라인 동작 
+
+		if(L_Align_Ret == 1)
+		{
+			
+			P_Vision_Align_State_Machine = 7;
+		}
+		else
+		{
+			P_Align_Move_Err++
+			P_Vision_Align_State_Machine = 8;
+		}
+	break;
+
+
+	case 7 :	// Align Move Inpos Check
+		if(L_Align_Timer > 50)
+		{
+			if(P_Selected_Align_Inspection_Unit == N_Anode_Unit)
+			{
+				if(Motor[39].InPos == 1 && Motor[40].InPos == 1 && Motor[41].InPos == 1)	// 음극 얼라인 테이블 모터 Inpos 확인
+				{
+					P_Vision_Align_State_Machine = 8;
+				}
+			}
+			else if(P_Selected_Align_Inspection_Unit == N_Cathode_Unit)
+			{
+				if(Motor[36].InPos == 1 && Motor[37].InPos == 1 && Motor[38].InPos == 1)	// 양극 얼라인 테이블 모터 Inpos 확인
+				{
+					P_Vision_Align_State_Machine = 8;
+				}
+			}
+			
+		}
+	break;
+
+	case 8 :	// complete
+		P_Vision_Align_Status = F_Status_COMPLETE;	// 얼라인 완료
+		if(L_Align_Timer > 100)
+		{
+			P_Vision_Align_State_Machine = 0;			// 스텟머신 초기화
+			P_Selected_Align_Inspection_Unit = 0;		// 선택된 극판 해제
+			M_Y_Vision_Cathode_Align_Result_Ack = 0;
+			M_Y_Vision_Anode_Align_Result_Ack = 0;
+			M_Y_VisioN_Align_AN_TimeOut_Flag = 0
+			M_Y_VisioN_Align_CA_TimeOut_Flag = 0
+		}
+
+	break;
+
+	case 9 :	// error
+		P_Vision_Align_State_Machine = 0;			// 스텟머신 초기화
+		P_Selected_Align_Inspection_Unit = 0;		// 선택된 극판 해제
+	break;
+}
+
+// 표면검사 스텟머신
+switch(P_Vision_Surface_State_Machine)
+{
+	case 0 :
+		P_Vision_Surface_Status = F_Status_IDLE;	
+	break;
+
+	case 1 :
+		P_Vision_Surface_Status = F_Status_STARTING;	// 표면검사 시작
+		L_Surface_Ret = 0;
+		call Vision_Manager.Surface_Trigger(P_Selected_Surface_Inspection_Unit, &L_Surface_Ret);		// 표면검사 트리거 
+
+		if(L_Surface_Ret)
+		{
+			L_Surface_Timer = 0;
+			P_Vision_Surface_State_Machine++;	
+		}
+		else
+		{
+			if(L_Surface_Timer > P_Front_Inspection_Time)														// 100ms 동안 비전 Ready 신호가 들어오지 않을 경우
+			{
+				if(P_Selected_Surface_Inspection_Unit == N_Anode_Unit)
+				{
+					Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_Time_Out;									// 표면검사 타임아웃 데이터 저장
+					P_Surf_TimeOut5++
+					M_Y_Vision_Anode_Surface_TimeOut_Flag = 1;													// 음극 표면 검사 타임아웃 I/O On
+					call Alarm.Insert_Alarm(N_Anode_Surface_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);		// 음극 표면검사 타임아웃 알람
+				}
+				else if(P_Selected_Surface_Inspection_Unit == N_Cathode_Unit)
+				{
+					Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_Time_Out;								// 표면검사 타임아웃 데이터 저장 -> 얼라인 테이블
+					P_Surf_TimeOut6++
+					M_Y_Vision_Cathode_Surface_TimeOut_Flag = 1;												// 양극 표면 검사 타임아웃 I/O On
+					call Alarm.Insert_Alarm(N_Cathode_Surface_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);	// 양극 표면검사 타임아웃 알람
+				}
+
+				L_Surface_Timer = 0;
+				P_Vision_Surface_State_Machine = 4;
+			}
+		}
+		
+	break;
+
+	case 2 :
+		if(L_Surface_Timer > 50)				// 50ms 후 Trigger Off
+		{
+			M_Y_Vision_Anode_Surface_Trigger = 0;		// 음극 표면검사 트리거 Off
+			M_Y_Vision_Cathode_Surface_Trigger = 0;		// 양극 표면검사 트리거 Off
+			P_Vision_Surface_State_Machine++;
+		}
+	break;
+
+	case 3 :
+		P_Vision_Surface_Status = F_Status_EXECUTE;
+		if(L_Surface_Timer > P_Front_Inspection_Time)
+		{
+			L_Surface_Ret = 0;
+			call Vision_Manager.Surface_Result(P_Selected_Surface_Inspection_Unit, &L_Surface_Ret);		// 표면검사 결과 확인
+			L_Surface_Timer = 0;
+			if(L_Surface_Ret == N_Inspection_OK)	// 검사 결과 OK
+			{
+				if(P_Selected_Surface_Inspection_Unit == N_Anode_Unit)
+				{
+					P_Anode_Surf_OK++
+				}
+				else
+				{
+					P_Cathode_Surf_OK++
+				}
+
+				P_Continuous_Call_Surface_OK_Flag(P_Selected_Surface_Inspection_Unit - 1) = 1;		// 연속 NG (OK) 체크
+			}
+			else if(L_Surface_Ret == N_Inspection_NG)	// 검사 결과 NG
+			{
+				if(P_Selected_Surface_Inspection_Unit == N_Anode_Unit)
+				{
+					P_Anode_Surf_NG++
+				}
+				else
+				{
+					P_Cathode_Surf_NG++
+				}
+
+				P_Continuous_Call_Surface_NG_Flag(P_Selected_Surface_Inspection_Unit - 1) = 1;		// 연속 NG (NG) 체크
+			}
+			else if(L_Surface_Ret == N_Inspection_TimeOut)		// 타임아웃
+			{
+				if(P_Selected_Surface_Inspection_Unit == N_Anode_Unit)
+				{
+					M_Y_Vision_Anode_Surface_TimeOut_Flag = 1;			// 음극 표면검사 타임아웃 I/O On
+					call Alarm.Insert_Alarm(N_Anode_Surface_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);		// 음극 표면검사 타임아웃 알람
+					P_Anode_Surf_TimeOut++
+				}
+				else
+				{
+					M_Y_Vision_Cathode_Surface_TimeOut_Flag = 1;										// 양극 표면검사 타임아웃 I/O On
+					call Alarm.Insert_Alarm(N_Cathode_Surface_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);	// 양극 표면검사 타임아웃 알람
+					P_Cathode_Surf_TimeOut++
+				}
+
+				P_Continuous_Call_Surface_TimeOut_Flag(P_Selected_Surface_Inspection_Unit - 1) = 1;		// 연속 NG (Timeout) 체크
+			}
+
+			P_Vision_Surface_State_Machine = 4;
+			P_Surface_Complete_To_Hold = 1;
+		}
+
+	break;
+
+
+	case 4 :		// Complete
+		P_Vision_Surface_Status = F_Status_COMPLETE;
+		if(L_Surface_Timer > 100)
+		{
+			P_Vision_Surface_State_Machine = 0;				// 표면검사 스테이트 머신 초기화
+			P_Selected_Surface_Inspection_Unit = 0;			// 선택된 극판 초기화
+			M_Y_Vision_Anode_Surface_Result_Ack = 0;
+			M_Y_Vision_Cathode_Surface_Result_Ack = 0;
+			M_Y_Vision_Anode_Surface_TimeOut_Flag = 0;		// 음극 타임아웃 I/O Off
+			M_Y_Vision_Cathode_Surface_TimeOut_Flag = 0;	// 양극 타임아웃 I/O Off
+		}
+
+	break;
+
+	case 9 :		// error
+		P_Vision_Surface_State_Machine = 0;				// 표면검사 스테이트 머신 초기화
+		P_Selected_Surface_Inspection_Unit = 0;			// 선택된 극판 초기화
+	break;
+}
+
+// 스택검사 스텟머신
+switch(P_Vision_Stack_State_Machine)
+{
+	case 0 :
+
+	break;
+
+	case 1 :
+		P_Vision_Stack_Status = F_Status_STARTING;		// 스택 검사 시작
+		call Vision_Manager.Stack_Trigger(P_Selected_Stack_Inspection_Unit, &L_Stack_Ret);		// 스택 검사 트리거 On
+
+		if(L_Stack_Ret)
+		{
+			L_Stack_Timer = 0;							// 타이머 초기화
+			P_Vision_Stack_State_Machine++;
+		}
+		else
+		{
+			if(L_Stack_Timer > P_Stack_Inspection_Time)
+			{
+				P_Stack_TimeOut3++
+				Sys_Stack_Sheet_LO_Vision_BYTE |= Hex_Stack_Time_Out;
+				M_Y_Vision_Stack_TimeOut_Flag = 1;		// 스택 타임아웃 I/O On
+				P_Vision_Stack_State_Machine = 4;
+				L_Stack_Timer = 0
+				call Alarm.Insert_Alarm(N_Stack_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);		// 스택 비전 타임아웃 알람
+			}
+		}
+		
+	break;
+
+	case 2 :
+		if(L_Stack_Timer > 50)			// 50ms 후 Trigger Off
+		{
+			M_Y_Vision_Stack_Anode_Trigger = 0;			// 스택 검사 트리거 Off ( 음극 적재 I/O )
+			M_Y_Vision_Stack_Cathode_Trigger = 0;		// 스택 검사 트리거 Off ( 양극 적재 I/O )
+			P_Stack_Trigger_IO_Test_Vision_PLC_Loop++;	// 모션, PLC 실제 Vision측 루프 카운트 측정 변수
+			P_Vision_Stack_State_Machine = 3;
+		}
+	break;
+
+	case 3 :
+		P_Vision_Stack_Status = F_Status_EXECUTE;					// 스택 검사 진행중
+		if(L_Stack_Timer > P_Stack_Inspection_Time)
+		{
+			L_Stack_Ret = 0;
+			call Vision_Manager.Stack_Result(&L_Stack_Ret);			// 스택 검사 결과 확인
+			L_Stack_Timer = 0;
+
+			if(L_Stack_Ret == N_Inspection_TimeOut)					// 결과 리턴 (Timeout)
+			{
+				if(P_Selected_Stack_Inspection_Unit == N_Anode_Unit)
+				{
+					P_Anode_Stack_TimeOut++
+				}
+				else
+				{
+					P_Cathode_Stack_TimeOut++
+				}
+
+				M_Y_Vision_Stack_TimeOut_Flag = 1
+				call Alarm.Insert_Alarm(N_Stack_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);		// 스택 비전 타임아웃 알람
+			}
+			else if(L_Stack_Ret == N_Inspection_OK)													// Ok, Ng 
+			{
+				if(P_Selected_Stack_Inspection_Unit == N_Anode_Unit)
+				{
+					P_Anode_Stack_OK++
+				}
+				else
+				{
+					P_Cathode_Stack_OK++
+				}
+
+			}
+			else if(L_Stack_Ret == N_Inspection_NG)													// Ok, Ng 
+			{
+				if(P_Selected_Stack_Inspection_Unit == N_Anode_Unit)
+				{
+					P_Anode_Stack_NG++
+				}
+				else
+				{
+					P_Cathode_Stack_NG++
+				}
+
+			}
+
+			P_Vision_Stack_State_Machine = 4;
+		}
+	break;
+
+	case 4 :	// Complete
+		P_Vision_Stack_Status = F_Status_COMPLETE;		// 스택 검사 완료
+		if(L_Stack_Timer > 100)
+		{
+			P_Vision_Stack_State_Machine = 0;				// 스택 검사 스테이트 머신 초기화
+			P_Selected_Stack_Inspection_Unit = 0;			// 선택된 극판 초기화
+			M_Y_Vision_Stack_Result_Ack = 0;
+			M_Y_Vision_Stack_TimeOut_Flag = 0;			// 스택 타임아웃 I/O Off
+		}
+
+	break;
+
+	case 6 :	// Error 
+		P_Vision_Stack_State_Machine = 0;				// 스택 검사 스테이트 머신 초기화
+		P_Selected_Stack_Inspection_Unit = 0;			// 선택된 극판 초기화
+	break;
+}
+
+// 유무검사 스텟머신
+switch(P_Vision_Existence_State_Machine)
+{
+	case 0 :
+		P_Vision_Existence_Status = F_Status_IDLE;
+	break;
+
+	case 1 :
+		P_Vision_Existence_Status = F_Status_STARTING;			// 유무검사 시작
+		L_Existence_Ret = 0;
+
+		call Vision_Manager.Sheet_Existence(P_Selected_Existence_Inspection_Unit, &L_Existence_Ret);	// 유무검사 트리거 On
+		if(L_Existence_Ret)
+		{
+			L_Existence_Timer = 0;
+			P_Vision_Existence_State_Machine++;
+		}
+		else
+		{
+			// Busy 신호 On으로 타임 아웃 체크
+			if(L_Existence_Timer > P_Existence_Inspection_Time)		// 100ms 동아 비전 Ready 신호가 안들어올 경우
+			{
+				P_Vision_Existence_State_Machine = 4;
+			}
+		}
+	break;
+
+	case 2 :
+		if(L_Existence_Timer > 50)		// 50ms 이후 Trigger off
+		{
+			M_Y_Vision_Anode_Exist_Trigger = 0;				// 음극 유무 검사 트리거 I/O Off
+			M_Y_Vision_Cathode_Exist_Trigger = 0;			// 양극 유무 검사 트리거 I/O Off
+			P_Vision_Existence_State_Machine++;
+		}
+	break;
+
+	case 3 :
+		P_Vision_Existence_Status = F_Status_EXECUTE;		// 유무검사 실행중
+		if(L_Existence_Timer > P_Existence_Inspection_Time)
+		{
+			L_Existence_Ret = 0;
+			call Vision_Manager.Existence_Result(P_Selected_Existence_Inspection_Unit, &L_Existence_Ret);	// 유무검사 결과 확인
+			L_Existence_Timer = 0;
+			if(L_Existence_Ret == N_Inspection_OK )		// OK, NG
+			{
+				P_Vision_Existence_State_Machine = 5;
+			}
+			else if( L_Existence_Ret == N_Inspection_NG)
+			{
+				if(P_Selected_Existence_Inspection_Unit == N_Anode_Unit)
+				{
+					call Alarm.Insert_Alarm(N_Alarm_Anode_AT_Cell_Data_Mismatch, N_High_Alarm_Cycle_Stop);
+					P_PMAC_Commands = F_Command_Stop;
+					P_Stop_Cmd_Origin = 48
+				}
+				else if(P_Selected_Existence_Inspection_Unit == N_Cathode_Unit)
+				{	
+					call Alarm.Insert_Alarm(N_Alarm_Cathode_AT_Cell_Data_Mismatch, N_High_Alarm_Cycle_Stop);
+					P_PMAC_Commands = F_Command_Stop;
+					P_Stop_Cmd_Origin = 49
+				}
+				P_Vision_Existence_State_Machine = 5;
+			}
+			else if(L_Existence_Ret == N_Inspection_TimeOut)			// Timeout
+			{
+				P_Vision_Existence_State_Machine = 4;
+			}
+		}
+	break;
+	
+	case 4 :	// timeout
+		if(P_Selected_Existence_Inspection_Unit == N_Anode_Unit)
+		{
+			// 260708 빈테이블 및 유무검사 알람 세분화, 타임아웃 알람 추가
+			call Alarm.Insert_Alarm(N_Alarm_Anode_AT_Cell_Data_Mismatch_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 50
+		}
+		else if(P_Selected_Existence_Inspection_Unit == N_Cathode_Unit)
+		{	
+			// 260708 빈테이블 및 유무검사 알람 세분화, 타임아웃 알람 추가
+			call Alarm.Insert_Alarm(N_Alarm_Cathode_AT_Cell_Data_Mismatch_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 51
+		}
+		P_Vision_Existence_State_Machine = 5;
+	break;
+
+	case 5 :	// complete
+		P_Vision_Existence_Status = F_Status_COMPLETE;			// 유무검사 완료
+		if(L_Existence_Timer > 100)
+		{
+			P_Vision_Existence_State_Machine = 0;					// 유무검사 스테이트 머신 초기화
+			M_Y_Vision_Anode_Exist_Result_Ack = 0;
+			M_Y_Vision_Cathode_Exist_Result_Ack = 0;
+			P_Hold_Align_Sheet_CHK = 1
+		}
+
+	break;
+
+	case 6 :	// error
+	break;
+}
+
+//[ 참조 : 25.07.04 EPC 프로그램 신규 추가 ]	
+// 빈테이블 스텟머신
+switch(P_Vision_EmptyTable_State_Machine)
+{
+	case 0 :
+		P_Vision_EmptyTable_Status = F_Status_IDLE;
+	break;
+
+	case 1 :
+		P_Vision_EmptyTable_Status = F_Status_STARTING;			// 빈테이블 검사 시작
+		L_EmptyTable_Ret = 0;
+		call Vision_Manager.EmptyTable_Trigger(P_Selected_EmptyTable_Inspection_Unit, &L_EmptyTable_Ret);		// 빈테이블 트리거 On
+
+		if(L_EmptyTable_Ret)
+		{
+			P_Vision_EmptyTable_State_Machine++;
+		}
+		else
+		{
+			// 타임 아웃 처리
+			if(L_EmptyTable_Timer > P_EmptyTable_Inspection_Time)			// 100ms 동안 비전 Ready 신호 안들어올 경우
+			{
+				P_Vision_EmptyTable_State_Machine = 4;
+			}
+		}
+	break;
+
+	case 2 :
+		if(L_EmptyTable_Timer > 50)
+		{
+			M_Y_Vision_Anode_Empty_Trigger = 0;		// 음극 빈테이블 트리거 I/O Off
+			M_Y_Vision_Cathode_Empty_Trigger = 0;	// 양극 빈테이블 트리거 I/O Off
+
+			P_Vision_EmptyTable_State_Machine++;
+		}
+	break;
+
+	case 3 :
+		L_EmptyTable_Ret = 0;
+		if(L_EmptyTable_Timer > P_EmptyTable_Inspection_Time)
+		{
+			call Vision_Manager.EmptyTable_Result(P_Selected_EmptyTable_Inspection_Unit, &L_EmptyTable_Ret);		// 빈테이블 검사 결과
+			L_EmptyTable_Timer = 0;
+			if(L_EmptyTable_Ret == N_Inspection_OK )		// Ok , NG
+			{
+				P_Vision_EmptyTable_State_Machine = 5;
+			}
+			else if (L_EmptyTable_Ret == N_Inspection_NG)
+			{
+				if(P_Selected_EmptyTable_Inspection_Unit == N_Anode_Unit)
+				{
+					// 260708 빈테이블 및 유무검사 알람 세분화, 타임아웃 알람 추가
+					call Alarm.Insert_Alarm(N_Anode_Align_Empty_Inspection_NG_Alarm, N_High_Alarm_Cycle_Stop);
+					P_PMAC_Commands = F_Command_Stop;
+					P_Stop_Cmd_Origin = 44
+					// 260702 빈테이블 검사 ng 시 다음 스텝으로 이동하지 못해 타임아웃도 같이 발생하여 수정
+					P_Vision_EmptyTable_State_Machine = 5
+				}	
+				else if(P_Selected_EmptyTable_Inspection_Unit == N_Cathode_Unit)
+				{
+					// 260708 빈테이블 및 유무검사 알람 세분화, 타임아웃 알람 추가
+					call Alarm.Insert_Alarm(N_Cathode_Align_Empty_Inspection_NG_Alarm, N_High_Alarm_Cycle_Stop);
+					P_PMAC_Commands = F_Command_Stop;
+					P_Stop_Cmd_Origin = 45
+					// 260702 빈테이블 검사 ng 시 다음 스텝으로 이동하지 못해 타임아웃도 같이 발생하여 수정
+					P_Vision_EmptyTable_State_Machine = 5
+				}
+
+			}
+			else if(L_EmptyTable_Ret == N_Inspection_TimeOut)		// Timeout
+			{
+				P_Vision_EmptyTable_State_Machine = 4;
+			}
+		}
+	break;
+
+	case 4 :		// TimeOut
+		if(P_Selected_EmptyTable_Inspection_Unit == N_Anode_Unit)
+		{
+			// 260708 빈테이블 및 유무검사 알람 세분화, 타임아웃 알람 추가
+			call Alarm.Insert_Alarm(N_Anode_Align_Empty_Inspection_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 46
+			P_Vision_EmptyTable_State_Machine = 5;
+		}
+		else if(P_Selected_EmptyTable_Inspection_Unit == N_Cathode_Unit)
+		{
+			// 260708 빈테이블 및 유무검사 알람 세분화, 타임아웃 알람 추가
+			call Alarm.Insert_Alarm(N_Cathode_Align_Empty_Inspection_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);
+			P_PMAC_Commands = F_Command_Stop;
+			P_Stop_Cmd_Origin = 47
+			P_Vision_EmptyTable_State_Machine = 5;
+		}
+		L_EmptyTable_Timer = 0
+	break;
+
+	case 5 :		// complete
+		P_Vision_EmptyTable_Status = F_Status_COMPLETE;		// 빈테이블 검사 완료
+		P_Hold_Align_Sheet_CHK = 1
+		if(L_EmptyTable_Timer > 100)
+		{
+			P_Vision_EmptyTable_State_Machine = 0;				// 빈테이블 검사 스테이트 머신 초기화
+			P_Selected_EmptyTable_Inspection_Unit = 0;			// 선택된 극판 초기화
+			M_Y_Vision_Anode_Empty_Result_Ack = 0;
+			M_Y_Vision_Cathode_Empty_Result_Ack = 0;
+		}
+	break;
+
+	case 7 :		// error
+		P_Vision_EmptyTable_State_Machine = 0;				// 빈테이블 검사 스테이트 머신 초기화
+		P_Selected_EmptyTable_Inspection_Unit = 0;			// 선택된 극판 초기화
+	break;
+}
+
+// 세파 첫장 스텟머신
+switch(P_Vision_FirstSepa_State_Machine)
+{
+	case 0 :
+		P_Vision_FirstSepa_Status = F_Status_IDLE;
+	break;
+
+	case 1 :
+		P_Vision_FirstSepa_Status = F_Status_STARTING;					// 세파 첫장 시작
+		P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag = 0;				// 세파 첫장 검사 플래그 초기화.	[ 참조 : 26.04.24 세파 첫장 Host ID 생성 수정 ]
+		L_FirstSepa_Ret = 0;
+		call Vision_Manager.FirstSepa_Trigger(&L_FirstSepa_Ret);		// 세파 첫장 트리거 On
+
+		if(L_FirstSepa_Ret)
+		{
+			L_FirstSepa_Timer = 0;				// 타이머 초기화
+			P_Vision_FirstSepa_State_Machine++;	
+		}
+		else
+		{
+			if(L_FirstSepa_Timer > P_FirstSepa_Inspection_Time)		// 120ms 동안 비전 Ready 신호가 안들어올 경우
+			{	
+				P_Vision_FirstSepa_State_Machine = 4;
+			}
+		}
+	break;
+
+	case 2 :
+		if(L_FirstSepa_Timer > 50)
+		{
+			M_Y_Vision_Stack_First_Sepa_Trigger = 0;			// 비전 트리거 I/O Off
+			P_Vision_FirstSepa_State_Machine++;
+		}
+	break;
+
+	case 3 :
+		P_Vision_FirstSepa_Status = F_Status_EXECUTE;			// 세파 첫장 실행중
+		if(L_FirstSepa_Timer < P_FirstSepa_Inspection_Time)
+		{
+			L_FirstSepa_Ret = 0;
+			call Vision_Manager.FirstSepa_Result(&L_FirstSepa_Ret);		// 세파 첫장 결과
+			
+			if(L_FirstSepa_Ret == N_Inspection_OK )		// Timeout
+			{
+				L_FirstSepa_Timer = 0;
+				M_Y_Vision_Stack_First_Sepa_Result_Ack = 1;
+				P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag = 1;					// 1.1.1) 세파 첫장 완료 HOST ID Flag 
+				P_PLC01_Execute_Retry_Sepa_Mode_Count = 0;							// 1.1.2) 리트라이 세파 보정 횟수 초기화	
+				
+				P_Vision_FirstSepa_State_Machine = 5;
+				L_FirstSepa_Timer = 0
+			}
+			else if( L_FirstSepa_Ret == N_Inspection_NG )
+			{
+				// NG 처리 부 이동
+				P_Vision_FirstSepa_State_Machine = 4;
+				L_FirstSepa_Timer = 0
+			}
+		}
+		else
+		{
+			// 세파 첫장 검사 타임아웃 카운트, 나중에 알람으로 바꿀수도 있음
+			P_First_Sepa_Time_Out_Count++
+			// NG 처리 부 이동
+			P_Vision_FirstSepa_State_Machine = 4;
+			L_FirstSepa_Timer = 0
+		}
+	break;
+
+
+	// 첫장 검사 NG 시 처리 부
+	case 4 :		// time out
+		P_Flag_Stack_Work_Host_ID = 0;
+		M_Y_Vision_Stack_First_Sepa_Result_Ack = 1;
+		
+		if( P_PLC01_Execute_Retry_Sepa_Mode_Count < P_PLC_Recipe_Revise_Sepa )		// 1) 리트라이 세파모드 카운트 확인, 설정된 리트라이 횟수 카운트보다 현재 리트라이 횟수가 적을경우 EPC 세파모드 진행
+		{
+			P_PLC01_Execute_Retry_Sepa_Mode_Count++;						// 2) 리트라이 세파 모드 진행 횟수 증가												
+			P_PLC18_EPC_Retry_Mode_Time_Use_Flag = F_Command_Start;			// 3) EPC 세파모드 진행 전, 엑츄에이터를 켜준다면, 엑츄에이터 ON -> 해당위치 이동까지의 텍시간 적용 / 실시간 보정 텍과 다르게 가져가기 위함.					
+			P_Com_EPC_Sepa_Consume_Mode_Flag = 1;							// 4) EPC 세파 모드 레시피 적용 Flag ON	 
+		}																						//--------NG 판정 경우-------리트라이 세파모드 횟수 초과----------//
+		else																// 1) 리트라이 세파모드 카운트 확인, 설정된 리트라이 횟수 카운트보다 현재 리트라이 횟수가 큰 경우 
+		{
+			// [ 참조 : 2025.07.25 Retry 알람 발생 시점 변경 ]
+			P_Com_EPC_Sepa_Consume_Mode_Flag = 1;							// 4) EPC 세파 모드 레시피 적용 Flag ON		
+			P_PLC01_Execute_Retry_Sepa_Mode_Count = 0;						// 3) 리트라이 세파 보정 횟수 초기화						
+			P_EPC_Retry_Over_Alarm_Flag = N_TRUE;							// 4) 정지 타이밍 -> 기구물 한계로 배출 이후 알람 발생 및 정지 하도록 수정	
+		}
+		P_Vision_FirstSepa_State_Machine++;
+	break;
+
+	case 5 :		// complete
+		// 첫장 판정 완료 신호 모듈로 보냄, ack 신호 초기화 하기위해 100ms 기다린 후 완료 주면 배출텍 늘어남, 최대한 빨리 완료 줌
+		P_Vision_FirstSepa_Complete = 1;
+		P_Vision_FirstSepa_State_Machine++;
+	break;
+
+	case 6 :
+		if( L_FirstSepa_Timer > 100 )
+		{
+			P_Vision_FirstSepa_Status = F_Status_COMPLETE;	// 세파 첫장 완료
+			M_Y_Vision_Stack_First_Sepa_Result_Ack = 0;		
+			P_Vision_FirstSepa_State_Machine = 0		
+		}
+	break;
+
+	case 7 :	// error
+		P_Vision_FirstSepa_State_Machine = 0;			// 세파 첫장 스테이트 머신 초기화
+	break;
+}
+
+
+
+If ( M_Y_Vision_Stack_Start_Sheet == 1 && M_X_Vision_Stack_Start_Sheet_Ack == 1 ) 
+{
+	M_Y_Vision_Stack_Start_Sheet = 0;		// 스텍 첫장을 쌓는다는것을 알리는 신호 OFF
+}
+
+If ( M_Y_Vision_Stack_End_Sheet == 1 && M_X_Vision_Stack_End_Sheet_Ack == 1 ) 
+{		
+	M_Y_Vision_Stack_End_Sheet = 0;		// 스텍 마지막장을 쌓는다는것을 알리는 신호 OFF
+}
+
+
+// [참조 : 260127 얼라인 스타트 io on/off 시점 추가]
+If ( M_Y_Vision_Anode_Align_Start == 1 && M_X_Vision_Anode_Align_Start_ACK == 1  )
+{
+	M_Y_Vision_Anode_Align_Start = 0;
+}
+
+If ( M_Y_Vision_Cathode_Align_Start == 1 && M_X_Vision_Cathode_Align_Start_ACK == 1 ) 
+{
+	M_Y_Vision_Cathode_Align_Start = 0;
+}
+
+
+P_MNTR_PLC4_Task_Time(1) = (Sys.Time - P_MNTR_PLC4_Task_Time(0))*N_Task_Scale;
+if ( P_MNTR_PLC4_Task_Time(1) > P_MNTR_PLC4_Task_Max_Time )
+{
+	P_MNTR_PLC4_Task_Max_Time = P_MNTR_PLC4_Task_Time(1);
+}
+close

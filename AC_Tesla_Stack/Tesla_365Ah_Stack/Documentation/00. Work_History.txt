@@ -1,0 +1,1703 @@
+
+// 작업내역 
+// Data 내림차순으로 정리 ↓	
+//------------------------------------------------------------------------------------------------------------------------------------------------------			
+Date : 25.05.29 - Ver.1 박성민 책임
+1. 내용 : 프로젝트 리뉴얼, 업데이트 시점 시작 구분
+   위치 : PLC, 라이브러리, Define 개정이력 추가
+			
+		  //====================================================================================
+		  // [Define] ↓ 라이브버리 항목 지정기준으로 적용
+		  //====================================================================================
+		  // [Define] 
+		  // 50번 모니터링 상태별로 지정해서 Exception Handiling 
+
+		  // [Labraries 항목 지정]
+		  // ex) 17. Subprog17_Prod_Sequnce_Automatic
+
+		  // 1) HOLD (30~39번)
+		  // 30. Sub_30_HOLD_xxxxxxxxx ~
+
+		  // 2) SUSPEND (40~49번) - 모듈화
+		  // 40. Sub_40_Suspend_Module_Act_Subprocess
+		  // 41. Sub_41_Suspend_Module_Act_Mainprocess
+		  // 42. Sub_42_Suspend_Module_Prod_Sequence_Automatic
+		  // 43. Sub_43_Suspend_Discharge
+		  // 44. Sub_44_Suspend_ARC
+
+		  // 3) STOPPING (50~55번) 
+		  
+		  // 4) ETC (1~30번 남는자리)	
+//------------------------------------------------------------------------------------------------------------------------------------------------------											
+Data : 25.06.04 Ver.1 - Suspend Module 추가.
+1. 내용 : Suspend(Discharge, ARC) Module Merge 진행.
+   위치 : [Global]
+		  03.Config_IO											[ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ]
+		  10. Define_Motion_Program								[ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ]
+		  01. Define_PLC01_Main_Process							[ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ]
+		  10. Define_PLC10										[ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ]
+		  24. Define_PLC24										[ 참조 : 25.06.04 모션 조정 신규 추가 ]  
+		  [Libraries]
+		  24. Subprog_PLC24_Motion_Coordination					[ 참조 : 25.06.04 모션 조정 신규 추가 ] 
+		  40. Sub_40_Suspend_Module_Act_Subprocess				[ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+		  41. Sub_41_Suspend_Module_Act_Mainprocess				[ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+		  42. Sub_42_Suspend_Module_Prod_Sequence_Automatic		[ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+		  [PLC]
+		  01.PLC_Auto_Main_Prod_Main_Process					[ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ]
+		  10.PLC_10_Suspend_Module_Process						[ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ]  
+		  11.PLC_11_Suspend_Acting_Module						[ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+		  24.PLC_24_Motion_Coordination							[ 참조 : 25.06.04 모션 조정 신규 추가 ]  
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.06.04 - Ver.2 박성민 책임 - [ 참조 : 25.06.04 프로그램 상세 주석 변경 및 부분 보완 ]
+1. 내용 : Queue 일원화 코드, 부분보완
+          → 주석 상세화작업
+		  → 자동화 상태 처리 변경 건
+		  → 실시간 보정 타이밍 수정 건 (일반, 세파, ARC후 세파)
+		  특이사항 : VISION, DataShift 코드 Merge후, HostID 내부 프로그램 변수명 일원화 필요
+   위치 : [Global]
+			01. Define_PLC01_Main_Process
+          [PLC]
+			01.PLC_Auto_Main_Prod_Main_Process	
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.06.18 - Ver.1 김형진 책임
+1.	내용 : 서스펜드 추가 및 스풀 외경 프로그램 추가
+	위치 :	01.PLC_Auto_Main_Prod_Main_Process
+			06.PLC_06_Name.plc
+			06. Define_PLC06.pmh
+	참고 : [ 2025.06.18 서스펜드 추가 ]	
+	참고 : [ 2025.06.18 외경프로그램 추가 ]
+
+Date : 25.06.19 - Ver.1 김형진 책임
+1.	내용 : 모션 좌표계 Define , Pasue Resume 머지 
+	위치 :	03.PLC_03_Memory_Tower_Pause_Resume.plc
+			10. Define_Motion_Program.pmh
+			03. Define_PLC03_Pause_Resume.pmh
+	참고 : [ 2025.06.19 추가 ]	
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Data : 25.06.20 Ver.1 - Tact Time, 세파 첫장 프로그램 추가.
+1. 내용 : Tact Time, 세파 첫장 프로그램 Merge 진행.
+   위치 : [Global]
+		  16. Define_PLC16										[ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+		  17. Define_PLC17										[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		  [Libraries]
+		  16. Subprog_PLC16_Execute_Module_Function				[ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+		  17. Subprog_PLC17_TactTime_Function					[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		  [Motion]
+		  21.Prog21_Slave_1_Motion_Anode_TR1					[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		  23.Prog23_Slave_3_Motion_Anode_TR2					[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		  24.Prog24_Slave_4_Motion_Anode_Clamp					[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		  25.Prog25_Slave_5_Final_Roll							[ 참조 : 25.06.20 세파 첫장 모듈 추가. ], [ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		  27.Prog27_Slave_7_Motion_Cathode_Clamp				[ 참조 : 25.06.20 세파 첫장 모듈 추가. ], [ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		  28.Prog28_Slave_8_Motion_Cathode_TR2					[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		  30.Prog30_Slave_10_Motion_Cathode_TR1					[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		  31.Prog31_Slave_11_Motion_1st_Sheet_Paper				[ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+		  02.Prog2.Cathode_Align_Stage							[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		  03.Prog3.Anode_Align_Stage							[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+		  [PLC]
+		  01.PLC_Auto_Main_Prod_Main_Process					[ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+		  16.PLC_16_Execute_Module								[ 참조 : 25.06.20 세파 첫장 모듈 추가. ]
+		  17.PLC_17_TactTime_Program							[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Data : 25.06.20 Ver.2 ~ 4 - 머지 프로그램 디버깅.
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Data : 25.06.20 Ver.5 - 배출 프로그램 수정. (Last Run 진행 시 확인 변수 ON → 변수 ON일 경우 배출 진행)
+1. 내용 : 배출 프로그램 수정. (Last Run 진행 시 확인 변수 ON → 변수 ON일 경우 배출 진행)
+   위치 : [Global]
+		  10. Define_PLC10										[ 참조 : 25.06.20 배출 프로그램 수정 ]
+		  [Libraries]
+		  40. Sub_40_Suspend_Module_Act_Subprocess				[ 참조 : 25.06.20 배출 프로그램 수정 ]
+		  [PLC]
+		  00.PLC_Prod_Mode_Mangement							[ 참조 : 25.06.20 배출 프로그램 수정 ]
+		  01.PLC_Auto_Main_Prod_Main_Process					[ 참조 : 25.06.20 배출 프로그램 수정 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.06.20 - Ver.6 김형진 책임
+1.	내용 : 배출 모듈 정지 및 재시작 시퀀스 추가 및 IsEnable ARC 조건 추가
+	위치 :	03.PLC_03_Memory_Tower_Pause_Resume.plc
+			40. Sub_40_Suspend_Module_Act_Subprocess.pmc
+			41. Sub_41_Suspend_Module_Act_Mainprocess.pmc
+			42. Sub_42_Suspend_Module_Prod_Sequence_Automatic.pmc
+	참고 : [ 2025.06.20 추가 ]	
+	참고 : [ 2025.06.20 조건 수정 ]	
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.06.24 - Ver.1 김형진 책임
+1.	내용 : PackML Sub Process 추가 및 좌표계 감시 프로그램 추가
+	위치 :	09.PLC_09_Sub_Process_Program.plc
+			03.PLC_03_Memory_Tower_Pause_Resume.pmc	(RTI PLC에 좌표계 감시 적용)
+			Subprog_Modbus_Interface.pmc	(비트마스킹 함수 추가)
+			
+	참고 : [ 2025.06.24 추가 ]	
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.02 - Ver.1 김형진 책임
+1.	내용 : Background Monitoring Observe Program 추가
+	위치 :	12.PLC_12_Monitoring.plc
+			12. Define_PLC12_Background_Monitoring.pmh	
+			12.Subprog_PLC12_Continuous_NG.pmc
+			21.Prog21_Slave_1_Motion_Anode_TR1.pmc
+			23.Prog23_Slave_3_Motion_Anode_TR2.pmc
+			28.Prog28_Slave_8_Motion_Cathode_TR2.pmc
+			30.Prog30_Slave_10_Motion_Cathode_TR1.pmc
+			32.Prog32_Slave_12_Motion_Cathode_NG_PNP.pmc	
+			33.Prog33_Slave_13_Motion_Anode_NG_PNP.pmc				
+	참고 : [ 참조 : 25.07.02 옵저버 추가 ]
+
+2.	내용 : Spool 모터 번호 변경으로 인한 수정 및 ARC 요구 조건 수정
+	위치 :	06.PLC_06_Name.plc
+			24. Subprog_PLC24_Motion_Coordination.pmc					
+	참고 : [ 참조 : 25.07.02 ARC 요구 플래그 조건 수정 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.04 - Ver.1 김준수 선임
+1. 내용 : ARC 세파모드, EPC 세파모드 , User 선택 세파모드 레시피 변수 코드 규칙 정리에 의거하여 변경, EPC 프로그램 추가.
+	위치 :	09. Subprog_PLC09_PACKML							[ 참조 : 25.07.04 모드 체크 함수 추가 ]
+			12.PLC_12_Monitoring								[ 참조 : 25.07.04 모드 체크 함수 추가 ], [ 참조 : 25.07.04 버튼 관리 추가 ]
+			12. Define_PLC12_Background_Monitoring				[ 참조 : 25.07.04 모드 체크 함수 추가 ]
+			01.PLC_Auto_Main_Prod_Main_Process					[ 참조 : 25.07.04 EPC 프로그램 신규 추가 ], [ 참조 : 25.07.04 ARC,Discharge 모듈 모드 확인 추가 ]
+			18.PLC18_EPC										[ 참조 : 25.07.04 EPC 프로그램 신규 추가 ]
+			18. Define_PLC18									[ 참조 : 25.07.04 EPC 프로그램 신규 추가 ]
+			BTN_Define											[ 참조 : 25.07.04 버튼 Define 수정 ]
+			02.PLC_02_Vision_Inspection							[ 참조 : 25.07.04 EPC 프로그램 신규 추가 ]
+			09.PLC_09_Sub_Process_Program						[ 참조 : 25.07.04 EPC 프로그램 신규 추가 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.04 - Ver.2 임동훈 선임
+1.	내용 : 배출 Tact Time 추가.
+	위치 : [Global]
+		   10. Define_PLC10										[ 참조 : 25.07.04 배출 Tact Time 추가 ]
+		   [PLC]
+		   10.PLC_10_Suspend_Module_Process						[ 참조 : 25.07.04 배출 Tact Time 추가 ]
+
+2.	내용 : 1차 언로더 그립 ON 시 Delay 시간 후 완료 할 수 있도록 수정. (JR 두께에 따라 1차 언로더 그립 ON 입력 센서가 들어오지 않을 수 있기 때문, 정확한 딜레이 시간은 추후 확인 후 변경 필요)
+	위치 : [Global]
+		   10. Define_PLC10										[ 참조 : 25.07.04 1차 언로더 그립 시퀀스 조건 수정 ]
+
+3.	내용 : 1,2차 P&P AbortTa,Ts 적용.	(모션 구동 중 Abort 발생 시 Limit 이전에 정지 할 수 있도록 적용)
+	위치 : [Global]
+		   03. Define_PLC03_Abort_Calc							[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+		   [Libraries]
+		   03. Subprog_PLC03_Abort_Calc							[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+		   [Motion]
+		   21.Prog21_Slave_1_Motion_Anode_TR1					[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+		   23.Prog23_Slave_3_Motion_Anode_TR2					[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]		
+		   28.Prog28_Slave_8_Motion_Cathode_TR2					[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+		   30.Prog30_Slave_10_Motion_Cathode_TR1				[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+		   [PLC]
+		   03.PLC_03_Memory_Tower_Pause_Resume					[ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.08 - Ver.1 구준영 책임
+1.	내용 : Execute Align 진공 감시 추가
+	위치 : [PLC]
+		   00.PLC_Prod_Mode_Mangement							[ 참조 : 25.07.08 Execute Align 진공 감시 추가 ]
+
+2.	내용 : Execute 모드 변환 시점 수정 
+	위치 : [PLC]
+		   00.PLC_Prod_Mode_Mangement							[ 참조 : 25.07.08 모드 변환 시점 수정 ex) Anode 42 ~ 43 -> 43 Cathode 87 ~ 88 -> 88 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.08 - Ver.2 임동훈 선임
+1.	내용 : Suspend 배출 재가동 진행 추가 (1차 언로더 45도 위치에서 2차 언로더 대기 → 대기 중 Stopping 시 배출 시퀀스 종료 → 재시작 시 배출 진행)
+	위치 : [Global]
+		   10. Define_PLC10										[ 참조 : 25.07.08 배출 재가동 진행 추가 ]
+		   [Libraries]
+		   40. Sub_40_Suspend_Module_Act_Subprocess				[ 참조 : 25.07.08 배출 재가동 진행 추가 ]
+		   [PLC]
+		   01.PLC_Auto_Main_Prod_Main_Process					[ 참조 : 25.07.08 배출 재가동 진행 추가 ]
+
+2.	내용 : Suspend 배출, ARC 프로그램 수정 (TimeOut, Error 발생 시 시퀀스 종료 변수 추가)
+	위치 : [Libraries]
+		   41. Sub_41_Suspend_Module_Act_Mainprocess			[ 참조 : 25.07.08 Suspend 프로그램 수정 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.10 - Ver.1 임동훈 선임
+1.	내용 : 세파 첫장 모듈 진행 중 타임아웃 시 정지 추가
+	위치 : [Global]
+		   16. Define_PLC16										[ 참조 : 25.07.10 세파 첫장 타임아웃 정지 추가. ]
+		   [Libraries]
+		   16. Subprog_PLC16_Execute_Module_Function			[ 참조 : 25.07.10 세파 첫장 타임아웃 정지 추가. ]
+		   [PLC]
+		   01.PLC_Auto_Main_Prod_Main_Process					[ 참조 : 25.07.10 세파 첫장 타임아웃 정지 추가. ]
+		   16.PLC_16_Execute_Module								[ 참조 : 25.07.10 세파 첫장 타임아웃 정지 추가. ]
+
+2.	내용 : 배출 재시작 시 위치 메모리 데이터 추가
+	위치 : [Global]
+		   03. Define_PLC03_Memory								[ 참조 : 25.07.10 Suspend 배출 위치 메모리 추가 ]
+		   [Libraries]
+		   03. Subprog_PLC03__MemoryTower						[ 참조 : 25.07.10 Suspend 배출 위치 메모리 추가 ]
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.11 - Ver.1 김형진 책임
+1.	내용 : ARC 자동화 Prog 추가
+	위치 :	 06.PLC_06_Name.plc										[ 2025.07.11 ARC TEST 추가 ]
+			 25.PLC_25_Suspend_IO_Test.plc							[ 2025.07.11 ARC TEST 추가 ]
+
+2.	내용 : 사이클 스탑 Prog 추가
+	위치 :	15.PLC_15_Sub_Fuction_Program.plc						[ 2025.07.11 Cycle Stop 추가 ]
+			21. Subprog_PLC15_Cycle_Stop_Function.pmc				[ 2025.07.11 Cycle Stop 추가 ]
+			15. Define_PLC15.pmh									[ 2025.07.11 Cycle Stop 추가 ]
+			01.PLC_Auto_Main_Prod_Main_Process.plc					[ 2025.07.11 Cycle Stop 추가 ]
+
+3.  내용 : UI 버튼 PackML prog 적용 
+	위치 :	30.PLC_30_Test.plc										[ 2025.07.11 버튼 PackML 적용 ]
+			13.PLC_13_Name.plc										[ 2025.07.11 버튼 PackML 적용 ]
+
+
+Date : 25.07.11 - Ver.2 김성중 선임
+4.  내용 : MSA 프로그램 추가											[ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+    위치 : [Global]
+		   21. Define_PLC21_Manual_Module
+	       Subprog_Manual_Module_Sequnce
+		   [Libraries]
+		   18.Subprog_Manual_Module_Act_Function
+		   19.Subprog_Manual_Module_Bit_Interlock_Function
+		   20.Subprog_Manual_Act_Module
+		   21.Subprog_Manual_Act_Module_Process
+		   22._Subprog_Manual_Sequnce_Module_Process
+		   [PLC]
+		   21.PLC_21_Manual_Act_Process
+		   22.PLC_22_Manual_Module_Process
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.15 - Ver.1 임동훈 선임
+1.	내용 : 세파 첫장 모듈 수정 (드라이 런 모드 시 Vision Skip, 타임아웃 발생 시 Command Stop)
+	위치 : [Libraries]
+		   16. Subprog_PLC16_Execute_Module_Function				[ 참조 : 25.07.15 세파 첫장 모듈 수정. ]	
+		   [PLC]
+		   16.PLC_16_Execute_Module									[ 참조 : 25.07.15 세파 첫장 타임아웃 정지 추가. ]
+
+2.	내용 : 드라이런 진행 경과 타이머 수정 (드라이런 진행 경과 타이머 초기화 [Starting])
+	위치 : [Global]
+		   00. Define_PLC00_Prod_Mode_Mangement						[ 참조 : 25.07.15 드라이런 진행 경과 타이머 수정 ]
+		   [PLC]
+		   09.PLC_09_Sub_Process_Program							[ 참조 : 25.07.15 드라이런 진행 경과 타이머 수정 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.16 - Ver.1 임동훈 선임
+1.	내용 : 2차 P&P Stack Blow 시 Stack Vision Command 추가
+	위치 : [Motion]
+		   23.Prog23_Slave_3_Motion_Anode_TR2						[ 참조 : 25.07.16 Stack Vision Command 추가 ]
+		   28.Prog28_Slave_8_Motion_Cathode_TR2						[ 참조 : 25.07.16 Stack Vision Command 추가 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.18 - Ver.1 임동훈 선임
+1.	내용 : Suspend 배출 프로그램 수정 (배출 진행 중 Manual 변경 시 배출 스탑 포인트 전까지 진행 후 시퀀스 종료)
+	위치 : [Global]
+		   10. Define_PLC10											[ 참조 : 25.07.18 배출 프로그램 타이머 추가 ]
+		   [PLC]
+		   09.PLC_09_Sub_Process_Program							[ 참조 : 25.07.18 배출 프로그램 조건 수정 ]
+
+2.	내용 : 세파 첫장 프로그램 수정 (세파 첫장 진행 시 Sheet Paper 진공 입력 확인)
+	위치 : [Libraries]
+		   16. Subprog_PLC16_Execute_Module_Function				[ 참조 : 25.07.18 세파 첫장 프로그램 수정 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.21 - Ver.1 김준수 선임
+1.	내용 : PMAC <-> PLC 인터페이스 프로그램 추가, Back Ground C프로그램 추가, 인터락 프로그램 추가  
+	위치 : // 버튼, 조그, 홈, mc프로토콜, 모터 상태, 모터 램프
+		   [C Language]
+			 Manual - btn, Home, Jog ,mc, Manual.C, unit_lamp.c, motor_get.c, Motor_Status.c,	mc_protocol.c					
+		   [C Language - Include]
+			 common.h 
+		   [Global] 
+			 07.Config_MC_Protocol_Mapping - mc 프로그램 맵핑
+			 io.pmh - 버튼 프로그램 I/O 맵핑
+
+		   // PMAC <-> PLC 인터페이스
+		   [Global] 
+			 07. Define_PLC07_Communication
+		   [Documentation]
+			사용,미사용 버튼 정의.txt
+		   [PLC] - 인터페이스 PLC
+			 07.PLC_07_PLC_Communication 
+		  
+		   //인터락 
+		   [PLC] - 인터락 PLC
+			 27.PLC_27_InterLock
+		   [Libraries]
+		     27. Subprog_PLC27_Interlock
+		   [Global]
+		     27. Define_InterLock_PLC
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.23 - Ver.2 구준영 책임
+1.	내용 : 모터 인터락 프로그램 - 홈 미스 시 해당 조건에 상관없이 인터락 on코드 추가.
+	위치 : 
+		   //인터락 
+		   [PLC] - 인터락 PLC
+			 27.PLC_27_InterLock
+		   [Libraries]
+		     27. Subprog_PLC27_Interlock
+		   [Global]
+		     27. Define_InterLock_PLC
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.23 - Ver.3 김형진 책임
+1.	내용 :	1) 전체 홈 시퀀스 추가			[ 참조 : 2025.07.23 홈 프로그램 추가 ] 
+			2) 홈 Background C 시퀀스 수정	[ 참조 : 2025.07.23 홈 프로그램 수정 ]
+			3) Observe Monitoring Prog 추가
+		  //====================================================================================
+		  // [Define] ↓ 라이브버리 항목 지정기준으로 적용
+		  //====================================================================================
+		  // [Define] 
+				13번 Define_PLC13_Home_Prog.pmh
+		  //	45번 All_Home_Module.pmh
+				46번 All_Home_Action_Module.pmh
+		  // [Labraries 항목 지정]
+		  //	45. Subprog45_Sub_All_Home_Module.pmc
+				46. Subprog46_Sub_All_Home_Action_Module.pmc
+				47. Subprog47_Sub_Action_CMD_Module.pmc
+				48. Subprog48_Sub_Action_CHK_Module.pmc
+				49. Subprog49_Sub_AH_Group_Check.pmc
+
+		 //	 [PLC Script]
+				13. PLC_13_Home_Sequence.plc
+		 //====================================================================================
+			
+Date : 25.07.24 - Ver.1 김형진 책임
+1.	내용 :	1) 모터 멤버 추가			[ 2025.07.24 멤버 누락 추가 ]	
+				46. Subprog46_Sub_All_Home_Action_Module.pmc	
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.25 - Ver.1 김형진 책임
+1.	내용 :	1) 적층 중 확인 변수명 변경 		
+				P_Stopping_Current_Cell_Memory_Jelly_Roll  --> P_Stack_Judgement_Memory
+			2) 마지막 젤리롤 적층 후 Cycle Stop 시 초기화 영역 추가		// [ 2025.07.25 마지막 공정 초기화 부분 추가 ]
+				 01.PLC_Auto_Main_Prod_Main_Process.plc
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.25 - Ver.1 김준수 선임
+1.	내용 :	1) Retry NG 횟수 초과시 배출 후 알람 발생하도록 수정	
+				01.PLC_Auto_Main_Prod_Main_Process			// [ 참조 : 2025.07.25 Retry 알람 발생 시점 변경 ]
+				10. Subprog_PLC10_Suspend					// [ 참조 : 2025.07.25 Retry 알람 발생 시점 변경 ]
+				40. Sub_40_Suspend_Module_Act_Subprocess	// [ 참조 : 2025.07.25 Retry 알람 발생 시점 변경 ]
+				18. Define_PLC18_EPC						// [ 참조 : 2025.07.25 Retry 알람 발생 시점 변경 ]
+
+			2) 세파 Stack blow 추가
+				05. Define_PLC05_Motion						// [ 참조 : 2025.07.25 Sepa Blow 모션 추가 ]
+				00. Subprog_PLC00_Execute_Manage			// [ 참조 : 2025.07.25 Sepa Blow 모션 추가 ]
+				23.Prog23_Slave_3_Motion_Anode_TR2			// [ 참조 : 2025.07.25 Sepa Blow 모션 추가 ]
+				28.Prog28_Slave_8_Motion_Cathode_TR2		// [ 참조 : 2025.07.25 Sepa Blow 모션 추가 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.29 - Ver.1 김성중 선임
+1.  내용 : Motion Cal, 2nd PNP 클리닝 위치 이동, 얼라인 테이블 탈착 모드 프로그램 추가	[ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ] 
+    위치 : [Global]
+		   21. Define_PLC21_Manual_Module
+	       Subprog_Manual_Module_Sequnce
+		   [Libraries]
+		   18.Subprog_Manual_Module_Act_Function
+		   19.Subprog_Manual_Module_Bit_Interlock_Function
+		   20.Subprog_Manual_Act_Module
+		   21.Subprog_Manual_Act_Module_Process
+		   22._Subprog_Manual_Sequnce_Module_Process
+		   02.Prog2.Cathode_Align_Stage
+		   02.Prog2.Anode_Align_Stage
+		   [PLC]
+		   21.PLC_21_Manual_Act_Process
+		   22.PLC_22_Manual_Module_Process
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.07.29 - Ver.2 임동훈 선임
+1.	내용 : Abort 프로그램 수정 (모션 진행 중 Abort 발생 → 정지 후 AbortTa,Ts 값 원복)
+	위치 : [Global]
+		   03. Define_PLC03_Abort_Calc								[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+		   [Motion]
+		   21.Prog21_Slave_1_Motion_Anode_TR1						[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+		   23.Prog23_Slave_3_Motion_Anode_TR2						[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+		   28.Prog28_Slave_8_Motion_Cathode_TR2						[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+		   30.Prog30_Slave_10_Motion_Cathode_TR1					[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+		   [PLC]
+		   03.PLC_03_Memory_Tower_Pause_Resume						[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+
+2.	내용 : 배출 프로그램 수정 (JR 카운트와 레시피 카운트가 같을 경우 배출 시퀀스 완료 후 종료)
+	위치 : [Libraries]
+		   40. Sub_40_Suspend_Module_Act_Subprocess					[ 참조 : 25.07.29 배출 프로그램 수정 ]
+
+3.	내용 : 알람 프로그램 표준화 작업 진행
+	위치 : [Global]
+		   26. Define_PLC26_Alarm									[ 참조 : 25.07.29 알람 프로그램 표준화 작업 진행 ]
+		   [Libraries]
+		   26.Subprog_PLC26_Alarm_Sort								[ 참조 : 25.07.29 알람 프로그램 표준화 작업 진행 ]
+		   [PLC]
+		   26.PLC_26_Alarm_To_PLC									[ 참조 : 25.07.29 알람 프로그램 표준화 작업 진행 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.08.01 - Ver.1 임동훈 선임
+1.	내용 : [배출] 1차 언로더 → 2차 언로더 인계 시간 표시 추가
+	위치 : [Global]
+		   10. Define_PLC10											[ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ]
+		   [Libraries]
+		   40. Sub_40_Suspend_Module_Act_Subprocess					[ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ]
+		   [PLC]
+		   07.PLC_07_PLC_Communication								[ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ]
+
+2.	내용 : [BTN] PackML 버튼 프로그램 수정 (버튼 동작, Lamp)
+	위치 : [Global]
+		   14. Define_ PLC,PLC_BTN_JOG								[ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+		   [Libraries]
+		   14.Subprog_PLC14_BTN_Program								[ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+		   [PLC]
+		   03.PLC_03_Memory_Tower_Pause_Resume						[ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+		   09.PLC_09_Sub_Process_Program							[ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+		   14.PLC_14_Button_Program									[ 참조 : 25.08.01 PackML 버튼 프로그램 추가 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.08.04 - Ver.1 임동훈 선임
+1.	내용 : [BTN] PackML 버튼 프로그램 수정 (메모리 타워 추가) [IDLE 상태에서 모터 위치값이 변경 될 경우 Commands Stop 발생]
+	위치 : [Global]
+		   03. Define_PLC03_Memory									[ 참조 : 25.08.04 PackML 버튼 프로그램 수정 ]
+		   [Libraries]
+		   03. Subprog_PLC03__MemoryTower							[ 참조 : 25.08.04 PackML 버튼 프로그램 수정 ]
+		   14.Subprog_PLC14_BTN_Program								[ 참조 : 25.08.04 PackML 버튼 프로그램 수정 ]
+
+2.	내용 : [세파 첫장] 세파 첫장 프로그램 수정 (모션 프로그램 조건 변경) [세파 첫장 진행 중 정지 시 시퀀스를 종료 후 정지, 세파 첫장 완료 후 재시작 시 홈 미진행]
+	위치 : [Motion]
+		   27.Prog27_Slave_7_Motion_Cathode_Clamp					[ 참조 : 25.08.04 세파 첫장 프로그램 수정. ]
+		   [PLC]
+		   16.PLC_16_Execute_Module									[ 참조 : 25.08.04 세파 첫장 프로그램 수정. ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.08.07 - Ver.1 김형진 책임
+1.	내용 : LogProgram 추가	참고 : [ LogProg 추가 2025.08.07 ]
+	위치 : Manual.c 
+		  LogProg_Define.pmh
+
+	사용틀 :		P_MNTR_End_Index = memset(Index,0, N_memset_size);
+				P_MNTR_End_Index = sprintf(Index,"[ Text ]\n");
+				P_Log_Start_Flag = 1;	→ 로그 Save Flag
+
+				P_Log_Document_Remove_Flag = 1;		→ 남겼던 로그 전체 Clear Flag
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.08.07 - Ver.1 김형진 책임, 최윤영 선임, 임동훈 선임
+1.	내용 : [BTN] 버튼 프로그램 수정 [ARC 버튼 인터락 추가] - 김형진 책임
+	위치 : [Global]
+		   06. Define_PLC06											[ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+		   14. Define_PLC14_BTN_JOG									[ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+		   [Libraries]
+		   10. Subprog_PLC10_Suspend								[ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+		   [PLC]
+		   14.PLC_14_Button_Program									[ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+		   25.PLC_25_Suspend_IO_Test								[ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+
+2.	내용 : [BTN] 버튼 프로그램 수정 [C 프로그램 버튼 수정] - 최윤영 선임
+	위치 : [BackGround]
+		   btn.c													ARC 버튼 관련 수정 진행.
+		   btn.h													ARC 버튼 관련 수정 진행.
+		   btn_Init.c												ARC 버튼 관련 수정 진행.
+		   btnAction.c												ARC 버튼 관련 수정 진행.
+		   [Global]
+		   BTN_Header												[ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+
+3.	내용 : [BTN] 버튼 프로그램 수정 [NP Plate 램프 추가] - 임동훈 선임
+	위치 : [Global]
+		   14. Define_PLC14_BTN_JOG									[ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+		   [Libraries]
+		   14. Subprog_PLC14_BTN_Program							[ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+		   [PLC]
+		   14.PLC_14_Button_Program									[ 참조 : 버튼 프로그램 추가 (ARC BTN 동작, 인터락, NP Plate Lamp) ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+ Date : 25.08.13 - Ver.1 
+ 1. 내용 : 1,2차 PNP 클랭크 Z축 수식 프로그램(Recipe to Count, Count to Recipe) 추가 - 김성중 선임
+	위치 : [Global]
+		   Define_Z_Axis_Cnt										[참조 : 1,2차 PNP 클랭크 Z축 수식 프로그램 추가 ]
+		   [Libraries]
+		   00. Subprog_Initialize									[참조 : 1,2차 PNP 클랭크 Z축 수식 프로그램 추가 ]
+		   [PLC]
+		   09.PLC_09_Sub_Process_Program							[참조 : 1,2차 PNP 클랭크 Z축 수식 프로그램 추가 ]
+
+2.  내용 : MSA, Motion Cal, Align 탈착모드 시 IDLE 상태에서 모터 위치값이 변경 될 경우 Commands Stop 미발생하도록 수정 -김성중 선임
+	위치 : [Global]
+
+	       14. Subprog_PLC14_BTN_Program							[ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 			
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.08.13 - Ver.2 김형진 책임	
+1.	내용 : 신규 Home Program 추가
+	위치 :	19.PLC_19_Home_Sequence.plc
+			19. Define_PLC_19_Home_Sequence.pmh
+			50. Subprog_PLC19_All_Home_Func.pmc
+			51. Subprog_PLC19_All_Home_Condition_Avoid.pmc
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+ Date : 25.08.13 - Ver.3 - 김성중 선임
+ 1. 내용 : PLC 프로그램 Define 정리 및 주석 통일화 작업 		[ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 			
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+ Date : 25.08.14 - Ver.1 김형진 책임	
+1.	내용 : 신규 Home Program 조건 수정
+	위치 :	19.PLC_19_Home_Sequence.plc
+			50. Subprog_PLC19_All_Home_Func.pmc
+			51. Subprog_PLC19_All_Home_Condition_Avoid.pmc
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+ Date : 25.08.14 - Ver.2 - 임동훈 선임
+ 1. 내용 : IDLE 상태에서 모터 위치 변경 시 Command Stop 발생 수정 (NG PNP 위치 추가)
+	위치 : [Global]
+		   15. Define_PLC15					[ 참조 : IDLE상태 위치 확인 NG PNP 추가 ]
+		   [Libraries]
+		   03. Subprog_PLC03_MemoryTower	[ 참조 : IDLE상태 위치 확인 NG PNP 추가 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+ Date : 25.08.14 - Ver.4 - 임동훈 선임
+ 1. 내용 : PackML 버튼 프로그램 수정 (Resetting 진행 중 Auto 로터리 스위치를 돌렸을 경우 Manual 상태 유지)
+	위치 : [PLC]
+		   14.PLC_14_Button_Program			[ 참조 : 25.08.14 PackML 버튼 프로그램 수정 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+ Date : 25.08.18 - Ver.1 김형진 책임	
+1.	내용 : 신규 Home Program Stop 보안		[ 참조 : 2025.08.18 홈 시퀀스 스탑 보안 ]
+	위치 :	19.PLC_19_Home_Sequence.plc
+			50. Subprog_PLC19_All_Home_Func.pmc
+			51. Subprog_PLC19_All_Home_Condition_Avoid.pmc
+2.  내용 : 모드버스 리커넥트 프로그램 추가		[ 참조 : 2025.08.18 Modbus Reconnecting ]
+	위치 :	30.30.PLC_30_Test.plc
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+ Date : 25.08.21 - Ver.1 김형진 책임	
+1.	내용 : Resetting Home A열,B열 상호 인터락 추가		[ 참조 : 2025.08.21 A열 B열 Home 인터락 ]
+	위치 :	09.PLC_09_Sub_Process_Program.plc
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.08.22 - Ver.1 김성중 선임 
+1.  내용 : 세파 첫장 모듈 프로그램 PLC16 → PLC5로 변경 
+	위치 : 05.PLC_05_Execute_Module
+
+2.  내용 : Global, Libraries, PLC Program 내림차순 프로그램 정리
+		  → Manual Act P/G 프로그램 정리 완료\
+	위치 : 21.PLC_21_Manual_Act_Process_1
+		   22.PLC_22_Manual_Act_Process_2
+		   23.PLC_23_Manual_Acting_Module
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.08.25 - Ver.1 김형진 책임	
+1.	내용 : 서보 및 알람 추가		[ 참조 : 2025.08.25 알람코드 추가 ]
+	위치 :	26.PLC_26_Alarm_To_PLC.plc
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.08.26 - Ver.1 김성중 선임 
+1.  내용 : 1) 자동 생산 상태 관리 프로그램 추가 [ 참조 : 2025.08.26 자동 생산 상태 관리 프로그램 추가]
+           2) MES PV 영역 보고 추가	 [ 참조 : 2025.08.26 MES PV 영역 보고 추가 ]
+
+    위치 : 1) 12.PLC_12_Monitoring
+		      26.PLC_26_Alarm_To_PLC.plc
+	          28.PLC_28_Sheet_Data_Flow
+
+		  2) 20. Define_PLC20_MES_PV_Upload
+		     20.PLC_20_MES_PV_Upload_Program
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.08.26 - Ver.2 이상준 선임	
+1.	내용 : 알람변수정의 추가		[ 참조 : 2025.08.26 알람변수정의 추가 ]
+	위치 :	26. Define_PLC26_Alarm
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.08.27 _Ver.1 김성중 선임
+1.	내용 : PNP Z축 레시피 관리 프로그램 추가 [ 참조 : 2025.08.27 PNP Z축 레시피 관리 프로그램 추가 ]
+	위치 :	44. Define_Z_Axis_Cnt
+			00. Subprog_Initialize
+	        12.PLC_12_Monitoring
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.09.01 _Ver.1 김형진 책임
+1.	내용 : PNP Z축 위치값 변환 mm -> cnt		cnt -> mm  프로그램 추가 [ 참조 : 2025.09.01 크랭크 Z축 위치값 변환 ]
+	→ 추가설명 : PLC UI 나타나는 위치값은 mm로 나타내야 하기 때문에 추가. 
+				PLC Recipe 값은 mm이지만 Z축은 각도로 변환해야하기 떄문에 추가.
+	위치 :	motor_get.c
+			Motor_Status.c
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.09.01 _Ver.3 이상준 선임 
+1.	내용 : 레시피 업데이트 프로그램 - [ 참조 : 25.09.01 레시피 업데이트 프로그램 신규 추가 ] 
+           레시피변수수정 - [ 참조 : 25.09.01 유닛별 위치값 레시피 변수 수정 ]
+
+	위치 :	10. Define_Motion_Program
+	        00. Subprog_Initialize
+			52. Subprog52_Sub_Receipe_Target_Position			
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Data : 25.09.02_Ver.1 김성중 선임 
+1.  내용 : 1차 PNP 대기 상승 위치, 2차 PNP 대기 상승 위치 수식 프로그램 추가 [ 참조 : 2025.09.01 1,2차 PNP 대기 상승 위치 크랭크 Z축 추가 ]
+
+	위치 : 00. Subprog_Initialize 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Data : 25.09.09_Ver.1 김형진 책임 
+1.  내용 : 셔터 추가 1차 PnP + 방향으로 홈 시퀀스 수정
+	위치 :	_home.h			[ 참조 : 플러스 방향 홈 시퀀스 추가 ]
+			home.c			[ 참조 : 플러스 방향 홈 시퀀스 추가 ]
+			home_act.c		[ 참조 : 플러스 방향 홈 시퀀스 추가 ] 
+			50. 50. Subprog_PLC19_All_Home_Func.pmc			[ 참조 : 홈 시퀀스 변경 ]
+			51. Subprog_PLC19_All_Home_Condition_Avoid.pmc	[ 참조 : 홈 시퀀스 변경 ]
+			52. Subprog_PLC19_All_Home_Modifier.pmc			[ 참조 : 홈 시퀀스 변경 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Data : 25.09.09_Ver.2 김형진 책임 
+1.  내용 : rtiCPLC 로그프로그램 수정 및 이동
+	위치 :	rticplc.c		[ 참조 : 로그프로그램 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------			
+Date : 25.09.12 - Ver.1 임동훈 선임
+1.	내용 : 정지 시 Motor, 좌표계, 좌표계 Flag 저장.		[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
+	위치 : [Global]
+		   05. Define_PLC05
+		   [PLC]
+		   05.PLC_05_Execute_Module
+		   09.PLC_09_Sub_Process_Program
+
+2.	내용 : Suspend 중 Error 발생 시 디버깅 함수 추가.		[ 참조 : 25.09.12 Suspend 디버깅 함수 추가 ]
+	위치 : [Libraries]
+		   10. Subprog_PLC10_Suspend
+		   [PLC]
+		   10.PLC_10_Suspend_Module_Process
+
+3.	내용 : Ecat Reconnecting Program 추가.				[ 참조 : 25.09.12 Ecat Reconnecting Program 추가 ]
+	위치 : [Global]
+		   30. Define_PLC30_Test
+		   [PLC]
+		   30.PLC_30_Test
+
+4.	내용 : 중간 배출 무시 버튼 조건 추가.					[ 참조 : 25.09.12 중간 배출 무시 조건 추가 ]
+	위치 : [Libraries]
+		   00. Subprog_PLC00_Execute_Manage
+		   [PLC]
+		   09.PLC_09_Sub_Process_Program
+
+5.	내용 : 단동, 연동 프로그램 주석 및 인터락 추가.			[ 참조 : 25.09.12 단동, 연동 프로그램 주석 및 인터락 추가 ]
+	위치 : [Global]
+		   29. Define_PLC29_Single_Dry_Run
+		   [Libraries]
+		   29. Subprog_PLC29_Single_Dry_Run
+		   [PLC]
+		   29.PLC_29_Single_Dry_Run
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Data : 25.09.12_Ver.2 김형진 책임 
+1.  내용 : rtiCPLC 로그프로그램 기능 추가 [ 참조 : 2025.09.12 Log 추가 ]
+	위치 :	rticplc.c				[ 참조 : 2025.09.12 Log 추가 ]
+	        31.PLC_31_Initialze.plc [ 참조 : 2025.09.12 Log 추가 ]
+			
+	테스트 진행 완료 추후 삭제 필요 →	검색 : Logging Test code 삭제 필요!!!
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.09.15 - Ver.1 임동훈 선임
+1.	내용 : Mode Array Picker T축 추가.					[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
+	위치 : [Libraries]
+		   00. Subprog_PLC00_Execute_Manage				
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.09.25	- Ver.1 임동훈 선임
+1.	내용 : Status Clear 버튼 추가.						[ 참조 : 25.09.25 Status Clear 버튼 추가 ]
+	위치 : [Global]
+		   14. Define_PLC14_BTN_JOG
+		   [Libraries]
+		   14. Subprog_PLC14_BTN_Program
+		   [PLC]
+		   14.PLC_14_Button_Program
+
+2.	내용 : DIO 강제 출력 버튼 추가.						[ 참조 : 25.09.25 DIO 강제 출력 버튼 추가 ]
+	위치 : [Global]
+		   14. Define_PLC14_BTN_JOG
+		   [Libraries]
+		   14.1. Subprog_PLC14_Force_BTN_Program
+		   [PLC]
+		   14.PLC_14_Button_Program
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Data : 25.09.26_Ver.1 김형진 책임 
+1.  내용 : ARC 후 자재 걸고 레디 피맥내부 확인		
+	위치 :	01.PLC_01_Auto_Main_Prod_Main_Process.plc	[ 참조 : 2025.09.26 PMAC 내부 세파 레디신호 처리 ]
+			06.PLC_06_Spool_Calculation.plc				[ 참조 : 2025.09.26 PMAC 내부 세파 레디신호 처리 ]
+	        14.PLC_14_Button_Program.plc				[ 참조 : 2025.09.26 PMAC 내부 세파 레디신호 처리 ]
+			10. Subprog_PLC10_Suspend.pmc				[ 참조 : 2025.09.26 PMAC 내부 세파 레디신호 처리 ]
+2.  내용 : Clamp Frax 이용한 Vector 이송 모션 
+	위치 :	24.Prog24_Slave_4_Motion_Anode_Clamp.pmc	[ 참조 : 2025.09.26 Frax(Vector) 모션 변경 ]
+			27.Prog27_Slave_7_Motion_Cathode_Clamp.pmc	[ 참조 : 2025.09.26 Frax(Vector) 모션 변경 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Data : 25.09.30_Ver.1 김형진 책임 
+1.  내용 : 좌표계 알람 변경 	
+	위치 :	03.PLC_03_Memory_Tower_Pause_Resume.plc		[ 참조 : 2025.09.30 모션 다운 체크 변경 ]
+			01. Define_PLC01_Main_Process.pmh			[ 참조 : 2025.09.30 모션 다운 체크 변경 ]	
+
+2.  내용 : 클램프 Z2 추가로 인한 위치 메모리 추가 및 Clamp Motion Cell Down Pos 추가 
+	위치 :	03. Define_PLC03_Memory.pmh					[ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가]
+			03. Subprog_PLC03_MemoryTower.pmc			[ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가]
+			01.PLC_01_Auto_Main_Prod_Main_Process.plc	[ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가]
+
+3.  내용 : 모터 번호 Define ( 모터 번호가 바뀔 시 Define 번호를 바꾸어 일괄 변경 ) 
+	위치 :	03. 04.Config_Motor_Name.pmh				[ 참조 : 2025.09.30 모터 번호 Define 추가 ]
+			03. Subprog_PLC03_MemoryTower.pmc			[ 참조 : 2025.09.30 모터 번호 Define 추가 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.10.01	- Ver.1 임동훈 선임
+1.	내용 : 시안向 통신문서 기반 IO 변수 선언.
+	위치 : [Global]
+		   03. New_Config_IO
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.10.13 - Ver.1 임동훈 선임
+1.	내용 : UI 선택에 따른 상부, 하부 언와인더 Number 설정
+	위치 : [Global]
+		   03. New_Config_IO							[ 참조 : 25.10.13 UI 선택에 따른 언와인더 Number 설정 ]
+		   [PLC]
+		   06.PLC_06_Spool_Calculation					[ 참조 : 25.10.13 UI 선택에 따른 언와인더 Number 설정 ]
+
+2.	내용 : ARC Tact Time 추가
+	위치 : [Global]
+		   10. Define_PLC10								[ 참조 : 25.10.13 ARC Tact Time 추가 ]
+		   [PLC]
+		   10.PLC_10_Suspend_Module_Process				[ 참조 : 25.10.13 ARC Tact Time 추가 ]
+		   
+3.	내용 : 클램프 Vector 모션 속도 수식 추가		
+	위치 : [Global]
+		   10. Define_Motion_Program					[ 참조 : 25.10.13 클램프 Vector 모션 속도 수식 추가 ]
+		   [PLC]
+		   06.PLC_06_Spool_Calculation					[ 참조 : 25.10.13 클램프 Vector 모션 속도 수식 추가 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.10.13	- Ver.2 김형진 책임
+1.	내용 : 시스템 셋업 프로그램 추가 ( 캠테이블 및 케스케이딩 )
+	위치 : 05.Config_Cascading.pmh						[ 참조 : 25.10.13 시스템 셋업 추가 ]
+		   06.Config_Camtable.pmh						[ 참조 : 25.10.13 시스템 셋업 추가 ]
+		   35.prog35_Slave_15_Motion_Camtable.pmc		[ 참조 : 25.10.13 시스템 셋업 추가 ]
+		   03.PLC_03_Memory_Tower_Pause_Resume.plc		[ 참조 : 25.10.13 시스템 셋업 추가 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.10.14	- Ver.1 김형진 책임
+1.	내용 : Current Pos 업데이트 변경
+	위치 : bgcplc.c										[ 참조 : 25.10.14 Script While Update X ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------		   
+Date : 25.10.14 - Ver.2 임동훈 선임
+1.	내용 : 모드에 따른 배출 진행 시퀀스 수정 (드라이런 모드)		
+	위치 : [Libraries]
+		   40. Sub_40_Suspend_Module_Act_Subprocess				[ 참조 : 25.10.14 모드에 따른 배출 진행 수정 ]
+		   42. Sub_42_Suspend_Module_Prod_Sequence_Automatic	[ 참조 : 25.10.14 모드에 따른 배출 진행 수정 ]
+2.	내용 : 세파, FR 드라이빙 캠테이블 스케일 변경 수식 추가		
+	위치 : [Global]
+		   06. Define_PLC06_ Spool_Calculation			[ 참조 : 25.10.14 드라이빙 캠테이블 스케일 변경 수식 추가 ]
+		   [PLC]
+		   06.PLC_06_Spool_Calculation					[ 참조 : 25.10.14 드라이빙 캠테이블 스케일 변경 수식 추가 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.10.15	- Ver.1 김형진 책임
+1.	내용 : 미비 사항 추가									[ 참고 : 2025.10.15 미비 사항 추가 건 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.10.16 - Ver.1 임동훈 선임
+1.	내용 : 드라이빙 롤 회전 시 언와인더 마스터 팔로잉 스케일 변경
+	위치 : [Global]
+		   06. Define_PLC06_ Spool_Calculation			[ 참조 : 25.10.16 드라이빙 롤 회전 시 언와인더 마스터 팔로잉 스케일 변경 추가 ]
+		   [PLC]
+		   06.PLC_06_Spool_Calculation					[ 참조 : 25.10.16 드라이빙 롤 회전 시 언와인더 마스터 팔로잉 스케일 변경 추가 ]
+		   
+2.	내용 : 드라이빙 롤 회전 시 언와인더 조그 이동
+	위치 : [Global]
+		   06. Define_PLC06_ Spool_Calculation			[ 참조 : 25.10.16 드라이빙 롤 회전 시 언와인더 조그 이동 수식 추가 ]
+		   [PLC]
+		   06.PLC_06_Spool_Calculation					[ 참조 : 25.10.16 드라이빙 롤 회전 시 언와인더 조그 이동 수식 추가 ]
+
+3.	내용 : 시안向 통신문서 기반 IO 수정
+	위치 : [Global]
+		   03. New_Config_IO							[ IO 위치 및 Spare 위치 변경으로 수정 진행 ]
+		   14. Define_PLC14_BTN_JOG						[ 출력부 Spare 부분 추가로 강제 출력 버튼 Ecat#105,106 추가 ]
+		   [Libraries]									  														 
+		   14.1. Subprog_PLC14_Force_BTN_Program		[ 출력부 Spare 부분 추가로 강제 출력 버튼 Ecat#105,106 추가 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.10.16	- Ver.2 김형진 책임
+1.	내용 : 클램프 Z축 모터번호 변경						[ 참조 : 클램프 Z1 모터 번호 변경 2025.10.16 ]
+
+Date : 25.10.17 - Ver.1 임동훈 선임
+1.	내용 : [PMAC ↔ PLC] 언와인더 Number 설정 조건 추가		
+	위치 : [Libraries]
+		   40. Sub_40_Suspend_Module_Act_Subprocess		[ 참조 : 25.10.17 언와인더 Number 설정 조건 추가 ]
+		   [PLC]
+		   06.PLC_06_Spool_Calculation					[ 참조 : 25.10.17 언와인더 Number 설정 조건 추가 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.10.20 - Ver.1 박성민 책임 - 공통 : [ 참조 : 25.10.20 배출, ARC, Host ID 부여 시 텍 단축을 위한 RTI BCG 교체 건]
+1.	내용 : 배출, ARC, Host ID 부여 TactTime 단축을 위한 RTI BCG 교체 건		
+		       [변경 전]
+			  -. PLC 2  VIsion 
+			  -. PLC 10 Module Process
+			  -. PLC 11 Module Acting
+			   [변경 후] 
+			  -. PLC 2 Module Process, Acting
+			  -. PLC 4  VIsion 
+			  -. PLC 10, 11 삭제 
+	위치 : [Define]
+		   01. Define_PLC01_Main_Process - 재가동을 위한 EH 디파인 변수 PLC 일원화 넘버링 교체			
+		   [PLC]
+		   02.PLC_02_Suspend_Module_Process,Act 
+		     -. 재가동을 위한 EH 변수 PLC 일원화 넘버링 교체
+		   04.PLC_04_Vision_Inspection			
+		     -  신규 PLC 추가  			
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.10.20	- Ver.1 김형진 책임
+1.	내용 : 세파 첫장 드라이빙 롤러 모션추가				[ 참조 : 2025.10.20 세파 첫장 드라이빙 구동 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.10.22	- Ver.1 김형진 책임
+1.	내용 : Clamp Damper AIO 추가						[ 참조 : 2025.10.22 AIO Cal Prog Add ] 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.10.22	- Ver.1 김형진 책임
+1.	내용 : Suspend 음극 1차 2차 공급 모듈 추가			[ 참조 : 2025.10.28 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.11.05	- Ver.1 김형진 책임
+1.	내용 : 최적화 진행									[ 참조 : CPU 최적화 진행 ]
+2.	내용 : 트랜스 IN OUT 추가							[ 참조 : Trans IN, OUT 시점 추가 ]
+3.	내용 : 통신 관련 PLC 10								[ 참조 : Protocol PLC ] 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.11.17 - Ver.1 박성민 책임 - 공통 : [ 참조 : 25.11.17 음,양극 Run Error 발생 시, 인포지션 밴드 삭제, 배열값 변경 함수 추가 ]
+1.	내용 : 음극, 양극 Vac Error 발생 시, Mode Inposition Trg 동기화 구문 삭제, 신규 함수 호출 구문 추가 
+	위치 : [Global]
+		   
+		   [Labraries]
+		   00. Subprog_PLC00_Execute_Manage		[ 참조 : 25.11.17 음,양극 Run Error 발생 시, 인포지션 밴드 삭제, 배열값 변경 함수 추가 ]
+		   
+		   [PLC]
+		   00.PLC_00_Prod_Mode_Mangement		[ 참조 : 25.11.17 음,양극 Run Error 발생 시, 인포지션 밴드 삭제, 배열값 변경 함수 추가 ]	
+		   
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.11.24 - Ver.1 박성민 책임 - 공통 : [ 참조 : 25.11.24 데이터 시프트 프로그램 보완 ]
+1.	내용 : Read, Write 영역별 주소값 매핑, 상태 변수 추가, 구조 보완
+	위치 : 28.PLC_28_Sheet_Data_Flow
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 25.11.27 - Ver.1 김형진 책임  : [ 참 조 : 2025.11.24 Z축 분리 ]
+1.	내용 : PNP T Axis Z Axis 분리
+	→ Nomal Run 및 Sepa Run 확인 완료 
+	→ Hold 공급,제거 및 Suspend 공급 확인 완료
+
+
+Date : 25.12.09 - Ver.1 김성중 선임  
+1.	내용 : MSA, 캘, 얼라인 탈착모드, Cycle Stop 모듈화 병합 진행 (PLC13, 14)
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------			
+Date : 25.12.11 - Ver.13 박성민 책임
+1. 내용 : 세파 첫장 모듈화
+   위치 : [Global]
+		  10. Define_PLC10
+		  [Libraries]
+		  47. Sub_47_Execute_Module_Act_Subprocess
+		  48. Sub_48_Execute_Module_Act_Mainprocess
+		  49. Sub_49_Execute_Module_Prod_Sequence_Automatic
+		  [PLC]
+		  01.PLC_01_Auto_Main_Prod_Main_Process
+		  02.PLC_02_Main_Status_Module_Process,Act
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------			
+Date : 25.12.12 - Ver.14 김형진 책임
+1. 내용 : 세파 첫장 세미런 추가			[ 참 조 : 2025.12.12 세파 첫장 세미런 추가 ]
+	→ 세파 첫장 음극 클램프 On 추가 
+	→ 음극 시트 첫장 넣고 양극 클램프 Off 추가 하여 음극 클램프 On 추가하였음 ( 클램프 ON 상태로 음극 시트가 들어오게 되므로 변경 )
+
+2. 내용 : 좌표계 서브 프로그램 처리		[ 참 조 : 2025.12.12 좌표계 ON Subprog 처리 ]
+	→ RTI PLC에서 Coord Enable ( background 에서 처리는 Phase, servo, rit 주기가 끝난 후에 시작되므로 혹여나 ms 밀릴수가 있으므로 )
+
+3. 내용 : 젤리롤 마지막 공정이 끝난 후 Cycle Stop 처리 [ 참 조 : 2025.12.12 마지막 공정 스탑 처리 ]
+	→ P_Suspend_Discharge_To_Execute_Flag 조건 수정 
+	→ 마지막 젤리롤 공정 후 Cycle Stop 들어가게 된다면, Jelly Roll PLC한테 인계 후 Stopped 빠지게 설계
+//------------------------------------------------------------------------------------------------------------------------------------------------------	
+Date : 25.12.23 - Ver.20 0 김형진 책임
+1. 내용 : 매뉴얼 상태 ARC 버튼 처리 추가			[ 참 조 : 2025.12.23 매뉴얼 ARC 버튼 추가 ] 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------	
+Date : 25.12.23 - Ver.20.1 박성민 책임             
+1.	내용 : Auto ARC, Manual ARC 실행 및 동작 부분 이원화 관리 -  [ 참조 : 25.12.23 매뉴얼 ARC 동작부 보완 ]
+	위치 : [Labraries]
+		   40.1 Sub_40 - Manual_ARC_Act_Process
+		   [PLC]
+		   12.PLC_12_Monitoring
+		   13.PLC_13_STOP_MSA Module_Process
+
+2.	내용 : 사이클 스탑, MSA Exception Handling  리턴변수 변경  [ 참조 : 25.12.23 사이클스탑, MSA 리턴변수 변경 ]
+           → Exception Handling 재가동 모듈 리턴함수 
+		   → Queue 혹은 Main Process 동작을 재가동 시켜주기위함, 일반 리턴값 적용 X   
+	위치 : [Global]
+			15. Define_PLC13 - 변수 선언 변경
+		   [Labraries]
+		   38. Subprog_Stop_Module_Act_Main_Process
+
+3.	내용 : BufferMode_모듈별 업데이트 구간 추가 - [ 참조 : 25.12.23 상태별 적용되는 모듈화의 Main Buffer Mode 업데이트 구간 추가 ]
+	위치 : HOLD 예외처리는 일반모드에서만 모듈일 진행되기에, 상시 모드 Normal Mode 대입
+		   [PLC]
+		   31.PLC_31_Initialze
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------	
+Date : 25.12.24 - Ver.20.2 김형진 책임
+1.	내용 : 케스케이딩 주소 매핑 추가
+	위치 : [Global]
+		   06.Config_Camtable
+		   [Libraries]
+		   24. Subprog_PLC24_Motion_Coordination
+
+2.	내용 : Spool Home 조건 변경
+	위치 : [BackGround]
+		   home.c
+		   30. Subprog_Main_Process_Init
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------	
+Date : 25.12.24 - Ver.20.3 임동훈 선임
+1.	내용 : Hold 극판 표면 검사 미비 사항 수정 - [ 참조 : 25.12.24 극판 표면 검사 초기화 구문 추가 ]
+	위치 : [Libraries]
+		   43. Sub_43_HOLD_Module_Act_Subprocess
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------	
+Date : 26.01.02 - Ver.20.6 박찬호 선임
+1.	내용 : 진공, 블로우 모듈 수정
+	위치 : 12.PLC_12_Monitoring - [ 260102 진공, 블로우 모듈 수정]
+//------------------------------------------------------------------------------------------------------------------------------------------------------	
+Date : 26.01.08 - Ver.20.7
+1. 내용 : 프로그램 기능 수정
+// [참조 : 260108 maint ng flag로 인덱스 불량 발생하는 부분 수정]
+// [참조 : 260108 1차 PNP 극판 데이터에 NG 심었을 경우 얼라인 공급 후 NG  PNP가 제거하는데 이때 비전 판정이 OK였으면 OK난 극판을 버려 인덱스 불량 발생하여 수정]
+// [참조 : 260108 극판데이터 값이 잘 못 들어가 있을 경우 존재 bit를 넣어 극판이 없는데 있다고 판단해서 동작할 수 있어 삭제]
+// [참조 : 260108 라스트런 완료 후 1차 언로더가 젤리롤 가져가기 전에 정지 후  Status clear 시 테이블에 젤리롤은 버려야하는데 해당 변수가 off되지 않아 원하지 않은 타이밍에 Suspend로 상태 변할 수 있어 수정]
+//[참조 : 모듈 실행 명령 전 완료 변수 초기화] 
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.01.08 - Ver.20.9 임동훈 선임
+1.	내용 : Execute 모듈 수정 (액팅 모듈 진행 중 타임아웃이 될 경우 모듈 정지할 수 있도록 수정) - [ 참조 : 26.01.08 Execute 모듈 수정 ]
+	위치 : [Global]
+		   51. Define_EXECUTE_Module
+		   [Libraries]
+		   47. Sub_47_Execute_Module_Act_Subprocess
+		   [PLC]
+		   02.PLC_02_Main_Status_Module_Process,Act
+		   09.PLC_09_Sub_Process_Program
+
+2.	내용 : Suspend 모듈 수정 (액팅 모듈 진행 중 타임아웃이 될 경우 모듈 정지할 수 있도록 수정) - [ 참조 : 26.01.08 Suspend 모듈 수정 ]
+	위치 : [Global]
+		   52. Define_Suspend_Module
+		   [Libraries]
+		   39. Sub_40_Suspend_Module_Act_Subprocess
+		   [PLC]
+		   02.PLC_02_Main_Status_Module_Process,Act
+		   09.PLC_09_Sub_Process_Program
+
+3.	내용 : Hold 모듈 수정 (액팅 모듈 진행 중 타임아웃, 스탑 포인트 Error가 될 경우 모듈 정지할 수 있도록 수정) - [ 참조 : 26.01.08 Hold 모듈 수정 ]
+           + 사이클 정지 시 Hold 모듈 완료 상태 확인 후 진행. (하나라도 진행 중일 경우 대기, 모두 완료 되었을 경우 진행)
+	위치 : [Global]
+		   50. Define_Hold_Module
+		   Define_Hold
+		   [Libraries]
+		   43. Sub_43_HOLD_Module_Act_Subprocess
+		   [PLC]
+		   02.PLC_02_Main_Status_Module_Process,Act
+		   09.PLC_09_Sub_Process_Program
+
+4.  내용 : Pasue GPIO 고장 시 예외처리→ HOLD 부분 [ 참 조: GPIO 고장 시 예외처리 (26.01.08)]
+	위치 :	43. Sub_43_HOLD_Module_Act_Subprocess
+			44. Sub_44_HOLD_Module_Act_Mainprocess.pmc
+			45. Sub_45_HOLD_Module_Prod_Sequence_Automatic.pmc
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.01.12 - Ver.20.13 임동훈 선임		
+1.	내용 : Suspend 모듈 수정 ( Stopping 시 1차 PNP 극판 공급 모듈 완료 확인, Hold, Execute 상황에서도 배출 모듈 진행할 수 있도록 수정 ) - [ 참조 : 26.01.12 Suspend 모듈 수정 ]
+	위치 : [PLC]
+		   01.PLC_01_Auto_Main_Prod_Main_Process
+		   02.PLC_02_Main_Status_Module_Process,Act
+
+2.	내용 : 세파 첫장 모듈 수정 ( 시퀀스 수정 (FR 하강 → 클램프 ON → 촬상) → (FR 하강 → 촬상 → 클램프 ON), 클램프 ON 동작 수정 (양,음극 클램프 ON → 음극 클램프 ON) ) - [ 참조 : 26.01.12 세파 첫장 모듈 수정 - 음극 클램프만 ON ]
+	위치 : [Global]
+		   03. Define_PLC03_Memory
+		   [Libraries]
+		   47. Sub_47_Execute_Module_Act_Subprocess
+		   [Motion]
+		   24.Prog24_Slave_4_Motion_Anode_Clamp
+		   27.Prog27_Slave_7_Motion_Cathode_Clamp
+
+3.	내용 : 얼라인 테이블에 극판이 없을 경우에만 극판 유무 검사(Hold) 진행하도록 수정 - [ 참조 : 26.01.12 Hold 극판 유무 검사 Flag 수정 ]
+	위치 : [PLC]
+		   01.PLC_01_Auto_Main_Prod_Main_Process
+
+4.	내용 : 음극 1차 PNP 극판 공급 모듈 초기화 구문 추가 - [ 참조 : 26.01.12 음극 1차 PNP 극판 공급 모듈 수정 ]
+	위치 : [Libraries]
+		   14. Subprog_PLC14_BTN_Program
+		   30. Subprog_Main_Process_Init
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.01.15 - Ver.20.16 김형진 책임
+1.	내용 : PWM DD MOTOR PHASING INTERLOCK 및 PHASING BTN 추가	// [ 참조: 26.01.15 페이징 버튼 추가 ]
+
+	위치 : [Jog.h, Jog.C, jog_act.c, Motor_Status.c]
+
+
+
+Date : 25.01.16 - Ver.20.17 최윤영 선임
+1.	내용 : 알람 구조 변경 ( 기존 3.5세대 방식으로 전체 M변수를 서치하여 알람 발생하도록 변경) [ 참조 : 26.01.12 알람 구조 변경 ]
+	위치 : 26.PLC_26_Alarm_To_PLC
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.01.19 - Ver.20.22 임동훈 선임		
+1.	내용 : 사이클 정지 모듈 수정 (사이클 정지 진행 중 Stopped 되는 현상 발생) - [ 참조 : 26.01.19 사이클 정지 모듈 수정 ]
+	위치 : [Libraries]
+		   42. Sub_42_Suspend_Module_Prod_Sequence_Automatic
+		   [PLC]
+		   09.PLC_09_Sub_Process_Program
+
+2.	내용 : 긴급 정지 프로그램 수정 (기존 : 가속 시간까지 미리 계산 값 이용, 이후 수식 이용 → 변경 : 목표 정지 위치까지 미리 계산 값 이용, 이후 수식 이용) - [ 참조 : 26.01.19 긴급 정지 프로그램 수정 ]
+	위치 : [Libraries]
+		   03. Subprog_PLC03_Abort_Calc
+
+3.	내용 : PMAC ↔ PLC 하트비트 점멸 프로그램 추가	- [ 참조 : 26.01.19 하트비트 점멸 추가 ]
+	위치 : [Global]
+		   12. Define_PLC12_Background_Monitoring
+		   [PLC]
+		   12.PLC_12_Monitoring
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.01.20 - Ver.20.21 김형진 책임
+1.	내용 : PWM DD MOTOR PHASING INTERLOCK 및 PHASING BTN 추가	// [ 참조: 26.01.20 PNP Z축 INC, ABS GUI 처리 ]
+
+	위치 : [Jog.h, Motor_Status.c]
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.01.21 - Ver.20.22 최윤영 선임
+1.	내용 : PLC <-> PMAC 극판인터페이스 추가	// [ 참조: 26.01.21 극판 인터페이스 추가 ]
+
+	위치 : 12.PLC_12_Monitoring
+		   37.prog37_Slave_16_Motion_Anode_TR1_Z
+		   40.prog40_Slave_19_Motion_Cathode_TR1_Z
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.01.26 - Ver.20.25 최윤영 선임
+1.	내용 : Vision NG 발생시 MES 보고 부분 및 I/O 수정	// [ 참조: 26.01.26 Vision 판정 MES 보고 수정 ]
+
+	위치 : 28.PLC_28_Sheet_Data_Flow
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.02.02 - Ver.20.26 김형진 책임
+1.	내용 : 드라이빙 모션 및 트리거 추가	// [ 참조 : 26.02.02 드라이빙 구동 모션 ]
+
+2.	내용 : 피드포워드 뼈대 코드 삽입		// [ 참조 : 26.02.02 댄서 피드포워드 뼈대 코드 ]
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.02.03 - Ver.20.29 김형진 책임
+1.	내용 : Spool Jog Code 추가			// [ 참조 : 2026.02.03 Sepa Jog Code ADD ]
+
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.02.03 - Ver.20.27 박성민 책임
+1.	내용 : 홈 모듈화 리뉴얼		 [ 참조 : 26.02.03 홈 모듈화 프로그램 리뉴얼 ]
+			[Global]
+			47. Define_PLC_19_New_Home_Sequence
+			[Libraries]
+			53. Sub_53_All_Home_Module_Act_Subprocess
+			54. Sub_54_All_Home_Module_Act_Mainprocess
+			55. Sub_55_All_Home_Module_Prod_Sequence_Automatic
+			[PLC]
+			19.PLC_19_Home_Sequence
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.02.05 - Ver.20.28 박성민 책임
+1.	내용 : Queue_Module_단계별 스텝오버 변수 추가 건 [ 참조 : 26.02.05 단계별 스텝 오버 변수 추가]
+			[Global]
+			999.Debug_Provisional_TobeDelete
+			[PLC]
+			01.PLC_01_Auto_Main_Prod_Main_Process
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.02.12 - 김형진 책임
+1.	내용 : HomeSequence 수정 및 인터락 조건 수정					// [ 참조 : 2026.02.12 홈 변경 ]
+			→ 1차 피커 조건 수정 ( 베큠센서에서 극판 시트로 변경)
+2.	내용 : ARC 중 Stop Command 들어 올 시 ARC 종료 후 Stop처리		// [ 참조 : 2026.02.12 ARC Stop처리 변경 ]
+3.	내용 : Sonic Tension Ready 방식 추가							// [ 참조 : 2026.02.12 텐션레디 추가 ]
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.02.13 - 이상준 선임 
+1.	내용 : AIO, Ecat IO 맵핑 변수 추가					        // [ 참조 : 26.02.13 ECAT I/O 맵핑 추가 ]
+																// [ 참조 : 26.02.13 AI/O 맵핑 추가 ]
+			[Global]
+			03.Config_IO
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.02.19 - 이상준 선임 
+1.	내용 : 이더캣 통신 서보주기 구조체 추가					        [ 참조 : 26.02.19 이더캣 통신 서보주기 8khz 절반 4khz 사용하기위해 1로 설정 ]
+		   EtherCAT SET UP 구조체 추가							    [ 참조 : 26.02.19 EtherCAT SET UP 구조체 변수 추가 ]													        
+			[Global]
+			02.Config_Motor
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.02.25 - 김형진 책임 
+1.	내용 : 닙롤 삭제로 인한 ARC 변경									[ 참조 : 26.02.25 ClosedLoop 변경 ]
+		   I/O 명칭 정리 및 BG.C 추가 수정 
+		   NamePlate Two BTN 추가									[ 참조 : 26.02.25 NamePlate Two BTN 추가 ]
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.02.25 - 구준영 책임 
+1.	내용 : 드라이빙 롤러 모션 추가												[ 참조 : 26.02.25 드라이빙 롤러 모션 추가	 ]
+		   클램프 모션 변경													[ 참조 : 26.02.25 클램프 모션 변경 ]
+		   케스케이딩 감도 변경 구문추가, 세파 수식 단순화(미사용 코드 삭제)		[ 참조 : 26.02.25 케스케이딩 감도 변경 구문추가, 세파 수식 단순화(미사용 코드 삭제) ]
+		   모션 배열 변경(타임테이블 일치화)									[ 참조 : 26.02.25 모션 배열 변경(타임테이블 일치화) ]
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.03.25 - 박성민 책임 
+1.	내용 : Suspend 배출 인덱스 동작 최적화 - [ 참조 : 26.03.25 동작 인덱스 최적화 ] 
+	위치 : [Global]
+		   52. Define_Suspend_Module : 정지 포인트 추가 								
+		   [Libraries]
+		   39. Sub_40_Suspend_Module_Act_Subprocess				- [ 참조 : 26.03.25 동작 인덱스 최적화 ] 		
+		   42. Sub_42_Suspend_Module_Prod_Sequence_Automatic    - [ 참조 : 26.03.25 동작 인덱스 최적화 ] 
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.03.26 - 박성민 책임 
+1.	내용 : PMAC PLC Memory 인터페이스 추가 								
+		   [Libraries]
+		   39. Sub_40_Suspend_Module_Act_Subprocess				- [ 참조 : 26.03.26 메모리 데이터 영역 인터페이스 추가 ] 		
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.03.27 - 박성민 책임 
+1.	내용 : Normal Mode 진행(극판 가상 공급)을 위한 리뉴얼 작업 진행 - [ 참조 : 26.03.27 일반모드 진행을 위한 리뉴얼 작업 진행] 								
+		   [Gloabal]
+		   52. Define_Suspend_Module - 인덱스 업데이트 (사용 유/무에 의거)
+		   [Libraries]
+		   39. Sub_40_Suspend_Module_Act_Subprocess	 : 인덱스 간소화 및 동작 업데이트, 타임아웃 역추적 업데이트 
+		   41. Sub_41_Suspend_Module_Act_Mainprocess : 인덱스 간소화 및 동작 업데이트 
+		   42. Sub_42_Suspend_Module_Prod_Sequence_Automatic : 인덱스 간소화 및 동작 업데이트 
+		   [PLC]
+		   02.PLC_02_Main_Status_Module_Process,Act	 : Set 모드 인자값 통일화 작업 진행 (Buffer Mode), 타임아웃 역추적 업데이트
+		   15.PLC_15_Button_Program					 : Status Clear Sheet Data 삭제 조건 추가 
+
+
+
+ //------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Date : 26.03.30 - 박성민 책임 
+1.	내용 : JR ID업데이트 및 증가조건(배출인덱스 1번 FR- OFF : HOST ID + NG Code + JR 업데이트), Trans IN 시점 조건부 변경 - [ 참조 : 26.03.30 젤리롤 ID 업데이트 조건 구조 변경]						
+		   [Gloabal]
+		   52. Define_Suspend_Module
+		   [Libraries]
+		   10. Subprog_PLC10_Suspend
+		   42. Sub_42_Suspend_Module_Prod_Sequence_Automatic
+		   [PLC]
+		   01.PLC_01_Auto_Main_Prod_Main_Process
+
+Date : 26.03.30 
+1.	내용 : 
+   1) HOLD 스탑포인트 수정
+     - 홀드 중 abort 발생 후 재가동 시 스탑포인트 변수가 초기화 되지 않아 재가동 후 스탑 시 Stopping이 풀리지 않음 - // [260330 리셋팅 시 스탑포인트 변수 초기화] - abort 발생 시 초기화가 되지 않아 재가동 후 stop 시 스탑 포인트가 풀리지 않아 stopping 무한대기 수정
+	 - 1차 언로더 45도 각도 변수명 회피 위치로 변경 - // [260330 45도 각도 변수명 회피 위치로 변경]
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.03.31 - 김형진
+1.	내용 : 
+   1) ABS 페이징 추가	[ 참조 : 2026.03.31 Phasing Found ABS Type ADD ]
+   
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.04.01 - 박성민 책임 
+1.	내용 : HOLD 이중화 스탑포인트 지정  - [참조 : HOLD Index 스탑포인트 + 메인모듈 스탑포인트 일원화 ]
+		  [Gloabal]
+		  52. Define_Suspend_Module
+
+		  [PLC]
+		  02.PLC_02_Main_Status_Module_Process,Act
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.04.06 - 이재욱 선임 
+1.	내용 : EMO ON 시 모터 Stop  - [ 참조 : 260406 EMO 눌렀을 때 모터 정지 ]
+		  [Gloabal]
+		  03. New_Config_IO
+		  05. Define_PLC05_Motion
+
+		  [PLC]
+		  00.PLC_00_Prod_Mode_Mangement
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.04.14 - 이재욱 선임 
+1.	내용 : 제어정보 변경으로 인한 IO 수정 - [ 참조 : 260414 통신문서 최신화에 따른 IO 변경 ]
+		  [Gloabal]
+		  03. New_Config_IO
+
+2.	내용 : Work Confirm 프로그램 및 IO, P번지 추가 - [ 참조 : 260414 Reel Work Confirm 관련 PMAC ↔ Vision,PLC I/F ]
+		  [Gloabal]
+		  03. New_Config_IO
+		  04. Define_PLC04_Vision
+
+		  [PLC]
+		  12.PLC_12_Monitoring
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.04.16 - 김형진 책임 
+1.	내용 : NG PNP 위치에 따른 홈 시퀀스 스위칭		- [참 조 : NG PNP 위치 센서 추가 하여 언로더 간섭 여부 회피 2026.04.16]
+	내용 : 서보 댄서 토크 on off 버튼 추가			- [ 참 조 : 서보댄서 on off 버튼 기능 추가 ]
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.04.17 - 임동훈 선임 
+1.	내용 : ARC 보완사항 수정 - [ 참조 : 26.04.17 ARC 보완사항 수정 ]
+		  [Global]
+		  52. Define_Suspend_Module
+		  BTN_Header
+
+		  [Libraries]
+		  14. Subprog_PLC14_BTN_Program
+
+		  [PLC]
+		  02.PLC_02_Main_Status_Module_Process,Act
+		  15.PLC_15_Button_Program
+		  21.PLC_21_Manual_ARC_NamePlate
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.04.20 - 이재욱 선임 
+1.	내용 : 배출 시 얼라인 재보정 기능 추가 - [ 참조 : 260420 SUSPEND 배출 시, 얼라인 재보정 기능 추가 ]
+		  [Global]
+		  04. Define_PLC04_Vision
+		  12. Define_PLC12_Background_Monitoring
+		  52. Define_Suspend_Module
+		 
+		  [Libraries]
+		  39. Sub_40_Suspend_Module_Act_Subprocess
+		  41. Sub_41_Suspend_Module_Act_Mainprocess
+		  42. Sub_42_Suspend_Module_Prod_Sequence_Automatic
+
+		  [Motion]
+		  02.Prog2.Cathode_Align_Stage
+		  03.Prog3.Anode_Align_Stage
+		  [PLC]
+		  01.PLC_01_Auto_Main_Prod_Main_Process
+		  02.PLC_02_Main_Status_Module_Process,Act
+		  15.PLC_15_Button_Program
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.04.24 - 이재욱 선임 
+1.	내용 : ARC 기능 수정
+
+		1. [ 참조 : 26.04.24 케스케이딩 진행 시 댄서 Closed Loop 시 OUT 지정 ]
+		  [Global]
+		  24. Define_PLC24
+		 
+		  [Libraries]
+		  24. Subprog_PLC24_Motion_Coordination
+
+		2. [ 참조 : 26.04.24 언와인더 좌표계 속도 상관없이 지정한 조그 속도 나오도록 수정 ]
+		  
+		  [Libraries]
+		  24. Subprog_PLC24_Motion_Coordination
+		  39. Sub_40_Suspend_Module_Act_Subprocess
+
+		3. [ 참조 : 26.04.24 ARC 후 안쓰는 스풀 감는량 수정 ]
+
+		[Libraries]
+		  39. Sub_40_Suspend_Module_Act_Subprocess
+
+		  [PLC]
+		  01.PLC_01_Auto_Main_Prod_Main_Process
+		  02.PLC_02_Main_Status_Module_Process,Act
+		  15.PLC_15_Button_Program
+
+2. 내용 : Manual 상태에서 조그 구종 중 Stop 버튼 눌렀을 시 조그 STOP - [ 참조 : 26.04.24 Manual 상태에서 조그 구종 중 Stop 버튼 눌렀을 시 조그 STOP ]
+
+		  [Libraries]
+		  14. Subprog_PLC14_BTN_Program
+
+		  [PLC]
+		  15.PLC_15_Button_Program
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.04.24 - 임동훈 선임 
+1.	내용 : ARC 모듈 수정 - [ 참조 : 26.04.24 ARC 모듈 수정 ]
+		  [Global]
+		  24. Define_PLC24
+
+		  [Libraries]
+		  24. Subprog_PLC24_Motion_Coordination
+		  39. Sub_40_Suspend_Module_Act_Subprocess
+		  42. Sub_42_Suspend_Module_Prod_Sequence_Automatic
+
+		  [PLC]
+		  02.PLC_02_Main_Status_Module_Process,Act
+
+2.	내용 : ARC 네임 플레이트 램프 수정 (상부,하부 변경 시 처음에 전체 Lamp OFF) - [ 참조 : 26.04.24 ARC 네임 플레이트 램프 수정 ]
+		  [Global]
+		  21. Define_PLC13_Manual_Module
+
+		  [PLC]
+		  21.PLC_21_Manual_ARC_NamePlate
+
+3.	내용 : 케스케이딩 진행 속도 수정 (언와인더 속도를 변수로 변경 가능하도록 수정) - [ 참조 : 26.04.24 케스케이딩 진행 시 속도 수정 ]
+		  [Global]
+		  24. Define_PLC24
+
+		  [PLC]
+		  24. Subprog_PLC24_Motion_Coordination
+
+4.	내용 : Host ID 수정 (Host ID Flag, 세파 첫장 판정 변수 초기화 시점을 추가 및 수정) - [ 참조 : 26.04.24 세파 첫장 Host ID 생성 수정 ]
+		  [Libraries]
+		  09. Subprog_PLC09_PACKML
+		  47. Sub_47_Execute_Module_Act_Subprocess
+
+		  [PLC]
+		  04.PLC_04_Vision_Inspection
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.04.24 - 김형진 책임 
+1.	내용 : 쌉 버그인지 모르겠지만 왜 자꾸 HomePos가 바뀌는건지... 참
+           DD Motor 개별 홈 ( Bg.C Prog ) Sonic 가져옴 [ 참조 : 2026.04.24 Sonic DD Home Seq 으로 변경 ]
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.04.28 - 이재욱 선임 
+1.	내용 : 연속 생산 시 ARC 레디 플래그로 인해 Stop 나는 상황 버그 수정 - [ 참조 : 26.04.28 연속 생산 시 ARC 레디 플래그로 인해 스탑나는 버그 수정 ]
+           [Libraries]
+		   10. Subprog_PLC10_Suspend
+
+2.	내용 : Suspend 모듈 팝업 - [ 참조 : 26.04.24 Suspend 모듈 팝업 추가 ]
+			[Global]
+			52. Define_Suspend_Module
+
+			[Libraries]
+			39. Sub_40_Suspend_Module_Act_Subprocess
+
+			[PLC]
+			01.PLC_01_Auto_Main_Prod_Main_Process
+			02.PLC_02_Main_Status_Module_Process,Act
+			07.PLC_07_PLC_Communication
+			15.PLC_15_Button_Program
+			21.PLC_21_Manual_ARC_NamePlate
+
+3. 내용 : Picker T축 탭방향에 따른 홈방식 변경 - [ 참조 : 26.04.28 Picker T축 탭방향에 따른 홈방식 변경 ]
+			[C Language]
+			home.h
+			home.c
+			home_act.c
+
+			[Global]
+			12. Define_PLC12_Background_Monitoring
+
+			[Motion]
+			37.prog37_Slave_16_Motion_Anode_TR1_Z
+			40.prog40_Slave_19_Motion_Cathode_TR1_Z
+
+			[PLC]
+			07.PLC_07_PLC_Communication
+			12.PLC_12_Monitoring
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.04.29 - 박성민 책임 
+1.	내용 : 격벽 파티션 I.O 추가로 인한 Config 업데이트 건  [참조 : 26.04.29 격벽 I.O 업데이트 추가 건]
+
+			[Global]
+			03. New_Config_IO
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.05.06 - 이재욱 선임 
+1.	내용 : 1,2차,NG PNP 및 얼라인 진공 해제 타이밍 수정 - 	[ 참조 : 26.05.06 1,2차,NG PNP 및 얼라인 흡착 해제 타이밍 수정 ]
+			[Motion]
+			21.Prog21_Slave_1_Motion_Anode_TR1
+			23.Prog23_Slave_3_Motion_Anode_TR2
+			28.Prog28_Slave_8_Motion_Cathode_TR2
+			30.Prog30_Slave_10_Motion_Cathode_TR1
+			32.Prog32_Slave_12_Motion_Cathode_NG_PNP
+			33.Prog33_Slave_13_Motion_Anode_NG_PNP
+			37.prog37_Slave_16_Motion_Anode_TR1_Z
+			38.prog38_Slave_17_Motion_Anode_TR2_Z
+			39.prog39_Slave_18_Motion_Cathode_TR2_Z
+			40.prog40_Slave_19_Motion_Cathode_TR1_Z
+
+
+		  [Global]
+		  03. New_Config_IO
+
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.05.06 - 최윤영 책임
+1. 내용 : 격벽 파티션 버튼 및 인터락 추가 [ 참조 : 260506 격벽 파티션 추가 ]
+		[C Program]
+		btn.h, btn_Init.c
+		09.PLC_09_Sub_Process_Program
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.05.08 - 임동훈 선임 
+1.	내용 : 2차 PNP 레시피 값에 따라 하강 중 얼라인 테이블 블로우 인터락 - [ 참조 : 26.05.08 2차 PNP 레시피 값에 따른 얼라인 블로우 타이밍 인터락 ]
+           [Libraries]
+		   00. Subprog_Initialize
+
+2.	내용 : Hold 진행 중 1차 PNP 벨트 극판 공급 진행 시 Pause 상태로 MasterTrigger가 되지 않아 벨트 상승 완료 후 진행 - [ 참조 : 26.05.08 Hold 중 벨트 극판 공급 인터페이스 조건 추가 ]
+		   [Global]
+		   12. Define_PLC12_Background_Monitoring
+		   [Motion]
+		   37.prog37_Slave_16_Motion_Anode_TR1_Z
+		   40.prog40_Slave_19_Motion_Cathode_TR1_Z
+		   [PLC]
+		   00.PLC_00_Prod_Mode_Mangement
+
+3.	내용 : ARC 진행 및 세파 소비 모드 1회 진행 후 ARC EPC값을 적용하기 위해 PMAC → PLC → Vision으로 IO를 전달하기 위한 코드 추가 - [ 참조 : 26.05.08 ARC 후 ARC EPC값 적용 인터페이스 추가 ]
+		  → ARC 시작 시 비트 1 → 배출 중 JR 커팅 이후 IO ON (1차 언로더 그립 후 후진 시) → 일정 시간 후 초기화.
+		   [Global]
+		   03. New_Config_IO
+		   18. Define_PLC18_EPC
+		   [Libraries]
+		   39. Sub_40_Suspend_Module_Act_Subprocess
+		   [PLC]
+		   15.PLC_15_Button_Program		   
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.05.12 - 김형진 책임
+1. 내용 : Jog InterLock Program 추가	
+		27.PLC_27_InterLock
+2. 내용 : PLC Script 번호 변경  (3.5세대 셧다운 PLC 스크립트 일치)
+		16.Shutdown Plc <-> 20.Shutdown Plc
+		20. MES Prog <-> 16. MES Prog
+3. 내용 : 전체 홈 시퀀스 변경 -> Main Z축 제일 마지막에 잡게 변경
+		19.PLC_19_Home_Sequence
+		55. Sub_55_All_Home_Module_Prod_Sequence_Automatic
+4. 내용 : 1차 2차 언로더 회피 시퀀스 추가
+			[ 참조: 1차,2차 언로더 회피 시퀀스 ]
+		   01.PLC_01_Auto_Main_Prod_Main_Process
+		   15.PLC_15_Button_Program
+		   18.PLC_18_EPC		   
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.05.13 - 임동훈 선임
+1	내용 : 중간 배출 무시 추가 - [ 참조 : 26.05.13 중간 배출 무시 추가 ]
+		   [Global]
+		   12. Define_PLC12_Background_Monitoring
+		   [Libraries]
+		   39. Sub_40_Suspend_Module_Act_Subprocess
+		   [PLC]
+		   07.PLC_07_PLC_Communication
+		   12.PLC_12_Monitoring
+		   15.PLC_15_Button_Program
+
+2.	내용 : 1호기 B열 음극 얼라인 테이블 추가 솔 임시 테스트 (추후 삭제 예정) - [ 참조 : 26.05.13 1호기 B열 음극 얼라인 테이블 추가 솔 임시 테스트 ]
+		   [Global]
+		   03. New_Config_IO
+		   30. Define_PLC30_Test
+		   [Libraries]
+		   00. Subprog_Initialize
+		   [Motion]
+		   38.prog38_Slave_17_Motion_Anode_TR2_Z
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.05.14 - 김형진 책임
+1	내용 : 홈 인터락 추가 및 홈 체크변수 홈 동작 변경 - [ 참조 : 26.05.14 Home InterLock & HomeCheck Func Change ]
+		   _home.h
+		   home.c
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.05.22 - 임동훈 선임
+1	내용 : ARC 후 첫 세파모드 신호 추가 (PMAC → PLC → Vision) [세파 모드 진행 중 특정 장수 EPC 보정 시 Skip하기 위함] - [ 참조 : 26.05.22 ARC 후 첫 세파모드 신호 추가 ]
+		   [Global]
+		   03. New_Config_IO
+		   [Libraries]
+		   39. Sub_40_Suspend_Module_Act_Subprocess
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.05.28 - 임동훈 선임
+1   내용 : 세파 첫장 시 클램프 미진행 - [ 참조 : 26.05.28 세파 첫장 시 클램프 미진행 ]
+		   [Libraries]
+		   00. Subprog_PLC00_Execute_Manage
+		   47. Sub_47_Execute_Module_Act_Subprocess
+		   [PLC]
+		   00.PLC_00_Prod_Mode_Mangement
+		   09.PLC_09_Sub_Process_Program
+		   15.PLC_15_Button_Program
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.05.29 - 김형진 책임
+1   내용 : PnP Z축 mm -> cnt 및 cur pos -> mm , homeoffset 식 코드 변경 [ 참조 : 2026.05.29 pnp Z 수식 정리 및 변경 ]
+2	내용 : 전체 홈 해도 세파 sheetpaper에 붙게 홈 수정  [ 참조 : 2026.05.29 Sheetpaper 마지막에 홈 처리 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.05.30 - 김성중 선임
+1   내용 : ARC 상하부 진공 감지 센서 IO 영역 수정  [ 참조 : 2026.05.30 ARC 상하부 진공 감지 센서 입력 IO 영역 수정 ]
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.06.01 - 김성중 선임
+1   내용 : 프로그램 빌드 후 PNP Z축 Zero Angle 최신화 안되는 현상 수정 [ 참조 : 2026.06.01 프로그램 빌드 후 PNP Z축 Zero Angle 최신화 안되는 현상 수정 ]
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.06.01 - 김성중 선임
+1   내용 : 양음극 릴컷부 도어 오픈 시 PNP와 작업자 위험 최소화를 위한 인터락 추가 - [ 참조 : 260513 : 양음극 릴컷부 도어 오픈 시 1차 PNP 인터락 ]
+		   [Global]
+		   03. New_Config_IO
+		   26. Define_PLC26_Alarm
+		   27. Define_PLC27_InterLock_PLC
+		   [Libraries]
+		   37. Subprog_Stop_Module_Act_Module
+		   [PLC]
+		   12.PLC_12_Monitoring
+		   27.PLC_27_InterLock
+
+2   내용 : 양음극 ng 도어 오픈 시 PNP와 작업자 위험 최소화를 위한 인터락 추가 - //[참조 : 260601 : 양음극 NG BOX 도어 오픈 시 조그 인터락 ]
+		   [Global]
+		   27. Define_PLC27_InterLock_PLC
+		   [PLC]
+		   27.PLC_27_InterLock
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.06.02 - 김성중 선임
+1   내용 : 프로그램 빌드 후 EPC 수동 홈 커맨드 발생 후 대기 위치 이동하도록 수정 - [참조: 260602 프로그램 빌드 후 EPC 수동 홈 커멘드 실행 추가 ]
+            [PLC]
+            09.PLC_09_Sub_Process_Program
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.06.02 - 임동훈 선임
+1   내용 : QCP 주소 영역 수정  [ 참조 : 26.06.02 QCP 주소 영역 수정 ]
+		   [PLC]
+		   07.PLC_07_PLC_Communication
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.06.04 - 임동훈 선임
+1   내용 : PACKML 램프 수정 (Manual - Stop 상태일 때 램프 미변경으로 수정) - [ 참조 : 26.06.04 PACKML 램프 수정 ]
+		   [PLC]
+		   15.PLC_15_Button_Program
+
+1   내용 : 카운트 업데이트 변수 수정 - [ 참조 : 26.06.04 카운트 업데이트 변수 수정 ]
+		   [PLC]
+		   07.PLC_07_PLC_Communication
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.06.08 - 박성민 책임
+1   내용 : 1,2차 공급모듈 변경 - [ 참조 : 26.06.08 1,2차 공급모듈 변경 ]
+		   일반모드 -> 세파모드 변경 시, 극판 데이터 인덱스 불일치로 인한 모듈 변경 , 배출텍은 타 구문 절감 예정
+		   [Labraries]
+		   39. Sub_40_Suspend_Module_Act_Subprocess				2차 공급 흡착 및 상승 해제.
+		   41. Sub_41_Suspend_Module_Act_Mainprocess			
+		   42. Sub_42_Suspend_Module_Prod_Sequence_Automatic	
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.06.10 - 임동훈 선임
+1   내용 : Stack Table 진공 On, Off 추가 - [ 참조 : 26.06.10 스택테이블 진공 on/off 추가 ]
+		   [Libraries]
+		   39. Sub_40_Suspend_Module_Act_Subprocess
+		   47. Sub_47_Execute_Module_Act_Subprocess
+		   [PLC]
+		   09.PLC_09_Sub_Process_Program
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.06.13 - 임동훈 선임
+1   내용 : ARC Tact Time 추가 - [ 참조 : 26.06.13 ARC Tact Time 추가 ]
+		   [PLC]
+		   01.PLC_01_Auto_Main_Prod_Main_Process
+		   17.PLC_17_TactTime_Program
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Date : 26.06.16 - 김성중 선임
+1   내용 : 연속 NG 변수 수정 및 버튼 진입 가능하도록 수정 - [ 참조 : 26.06.16 연속 NG 수정 ]
+          [Libraries]
+		  12. Subprog_PLC12_Continuous_NG
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.06.17 - 김성중 선임
+1   내용 : MES 보고 영역 추가  - //[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]
+                               //[참조 : 260617 Sepa feeding양 Spool MES 전달 ]
+							   //[참조 : 260617 커터 실린더 사용 횟수 갱신 ]
+
+          [Motion]
+		  35.prog35_Slave_15_Motion_Driving_Roller
+		  [PLC]
+		  06.PLC_06_Spool_Calculation
+		  07.PLC_07_PLC_Communication
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.06.17 - 김형진 책임
+1.  내용 : EtherCAT Motor 움직이지 않는 현상 처리				[ 참조: 2026.06.17 Ecat State Bit Check Prog ]
+2.  내용 : EtherCAT Motor PMAC 부하율 취득 프로그램			[ 참조: 2026.06.17 Ecat Ratio Check Prog ]
+3.	내용 : Dancer Dacout 값을 kgf 변환 프로그램				[ 참조 : 2026.06.18 현재 Dacout 값을 kgf 변환 프로그램 ]
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.06.19 - 임동훈 선임
+1	내용 : 모터 인터락 수정 - [ 참조 : 26.06.19 모터 인터락 수정 ]
+		   [Global]
+		   27. Define_PLC27_InterLock_PLC
+		   [Libraries]
+		   27. Subprog_PLC27_Interlock
+		   [PLC]
+		   27.PLC_27_InterLock
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.06.30 - 이재욱 선임
+1	내용 : 클램프 동작 횟수 PMAC ↔ PLC I/F 추가 - [ 참조 : 260630 클램프 동작 횟수 PMAC ↔ PLC I/F 추가 ]	
+		   [Global]
+		   07. Define_PLC07_Communication
+		   [Motion]
+		   24.Prog24_Slave_4_Motion_Anode_Clamp
+		   27.Prog27_Slave_7_Motion_Cathode_Clamp
+		   [PLC]
+		   07.PLC_07_PLC_Communication
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.07.02 - 김성중 선임
+1. 내용 : 릴컷 도어 또는 NG Box 미감지 시 1차, 2차, NG PNP Z축 레시피 이동 불가하도록 수정 //[참조 : 260702 릴컷 또는 NG box 도어 열릴 시 Z축 레시피 이동 불가하도록 수정]
+		   [PLC]
+		   27.PLC_27_InterLock
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.07.09 - 이재욱 선임
+1. 내용 : 양극 2차PNP T축이 대기위치 또는 스텍위치에서 P_Unloder_PNP_Home_IL_Pos 값 보다 벗어나있으면 충돌 위험으로 알림창 띄움 - [ 참조 : 260709 양극 2차PNP T축이 대기위치 또는 스텍위치에서 P_Unloder_PNP_Home_IL_Pos 값 보다 벗어나있으면 충돌 위험으로 알림창 띄움 ]
+		   [Global]
+		   09. Define_PLC09_PACK_ML
+		   [PLC]
+		   09.PLC_09_Sub_Process_Program
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.07.10 - 임동훈 선임
+1.	내용 : Ecat, MC 재연결 버튼 추가 (주소 매칭) - [ 참조 : 26.07.10 Ecat MC Reconnect 프로그램 수정 ]
+		   [Global]
+		   10. Define_PLC10
+		   [PLC]
+		   07.PLC_07_PLC_Communication	(Lamp 영역 추가)
+		   10.PLC_10_Protocol_Program	(주석)
+		   24.PLC_24_Coordination_AIO	(Lamp 추가)
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.07.27 - 김성중 선임 
+1. 내용 : 1차 PNP에 극판 존재 시 피커 T축 인터락 - [참조 : 20260716 1차 PNP에 극판 존재 시 피커 T축 인터락 ]
+		   [Global]
+		   27. Define_PLC27_InterLock_PLC
+		   [PLC]
+		   27.PLC_27_InterLock
+
+2. 내용 : 2차 PNP 클리닝 모드 컨셉 변경 - [참조 : 260724 2차 클리닝 위치 이동, 얼라인 탈착 모드 시퀀스 수정 ]
+		   [Global]
+		   21. Define_PLC13_Manual_Module
+		   [Libraries]
+		   33. Subprog_Manual_Module_Act_Function
+		   35. Subprog_MSA_Module_Act_Subprocess
+		   [PLC]
+		   09.PLC_09_Sub_Process_Program
+		   13.PLC_13_STOP_MSA Module_Process
+		   14.PLC_14_STOP_MSA_Acting
+
+3. 내용 : PLC 27 비활성화 시 2차 PNP 언로더 위에 있을 경우 전체 홈 인터락 팝업이 안뜨는 현상(PLC27 -> PLC12)  - [참조 : 260729 인터락 팝업 요청 창 구문 위치 변경 ]
+		  [PLC]
+		  12.PLC_12_Monitoring
+//------------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.07.31 - 임동훈 선임
+1	내용 : Pause_Resume 수정 (본인 열 세파모드 일 경우 Pause 걸리지 않도록 수정) - [ 참조 : 26.07.31 Pause_Resume 수정 ]
+		   [Global]
+		   03. Define_PLC03_Pause_Resume
+		   [Libraries]
+		   09. Subprog_PLC09_PACKML
+		   24. Subprog_PLC24_Motion_Coordination
+		   39. Sub_40_Suspend_Module_Act_Subprocess
+		   [PLC]
+		   01.PLC_01_Auto_Main_Prod_Main_Process
+		   03.PLC_03_Memory_Tower_Pause_Resume
+		   09.PLC_09_Sub_Process_Program
+		   15.PLC_15_Button_Program
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.07.29 - 김성중 선임 
+1. 내용 : 환경안전 검수용 인터락 활성화 버튼 추가 
+          프로그램 빌드 시 PLC 27 상시 활성화  - [참조 : 260730 환경안전검수용 인터락 활성화 버튼 추가]
+		   [Global]
+		   05. Define_PLC05_Motion
+		   [PLC]
+		   07.PLC_07_PLC_Communication
+		   12.PLC_12_Monitoring
+		   27.PLC_27_InterLock
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.08.06 - 김성중 선임 
+1. 내용 : MSA 활성화 램프 IDEL 아닌 경우 0으로 꺼지도록 수정 - [참조 : 260806 MSA 활성화 램프 IDEL 아닌 경우 초기화 ]
+		   [PLC]
+		   13.PLC_13_STOP_MSA Module_Process
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+// Date : 26.08.21 - 김준수 선임 
+1. 내용 : 파이널 롤러 Power Rack 풀림 현상 확인 및 Abort STOP을 하기 위해 F/R Detect Sensing 사용 - [ 참조 : 26.08.21 Power Rack 풀림 현상 개선 프로그램. ]
+		   [Global]
+		   00. Define_PLC00_Prod_Mode_Mangement
+		   [PLC]
+		   00.PLC_00_Prod_Mode_Mangement
+		   07.PLC_07_PLC_Communication
+
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.08.22 - 김령아 선임
+1. 내용 : PickerT축 모션 변경에 따른 주석처리 및 수정 - [ 참조 : 26.08.14 PickerT 모션 변경 ]
+   → 1차 PNP 좌표계에 PickerT축 종속
+   → PickerT 개별 모션.개별 좌표계 활성화 및 활성화 확인, 개별 모션 커맨드 모두 주석 처리 
+   → Stop 후 재가동 시 홈 잡는 부분 수정 : 사이클 스탑 시 무조건 대기위치로 맞춘 부분 주석 처리(ABS여서 불필요) 및 홈 진행 여부에 얼라인 위치도 확인 하도록 추가. 
+   → Mermory Tower 수정 : Abs로 변경되었기에 Picker T 위치 확인시 대기 위치 및 얼라인 위치 2가지로 가질 수 있어서 얼라인 위치인 경우도 확인하도록 추가. 
+     [Global]
+	 05. Define_PLC05_Motion
+	 [Libraries]
+	 00. Subprog_PLC00_Execute_Manage
+	 03. Subprog_PLC03_MemoryTower
+	 24. Subprog_PLC24_Motion_Coordination
+	 29. Subprog_PLC29_Single_Dry_Run
+	 33. Subprog_Manual_Module_Act_Function
+	 39. Sub_40_Suspend_Module_Act_Subprocess
+	 43. Sub_43_HOLD_Module_Act_Subprocess
+	 54. Sub_54_All_Home_Module_Act_Mainprocess
+	 31. Target_Position
+	 [Motion]
+	 21.Prog21_Slave_1_Motion_Anode_TR1
+	 22.Prog22_Slave_2_Motion_Anode_TR1_PICKER_AXIS_T
+	 29.Prog29_Slave_9_Motion_Cathode_TR1_PICKER_AXIS_T
+	 30.Prog30_Slave_10_Motion_Cathode_TR1
+	 [PLC]
+	 01.PLC_01_Auto_Main_Prod_Main_Process
+	 03.PLC_03_Memory_Tower_Pause_Resume
+	 13.PLC_13_STOP_MSA Module_Process
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.08.28 - 김성중 선임 
+1. 내용 : 메뉴얼에서 작업자가 1차 언로더 언그립 동작 시 젤리롤 데이터 삭제되도록 수정 - [참고 : 260828 1차 언로더 언그립 엣지 시 젤리롤 데이터 삭제 추가 ]
+		   [Global]
+		   05. Define_PLC05_Motion
+		   [PLC]
+		   02.PLC_02_Main_Status_Module_Process,Act
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.08.29 - 김성중 선임 
+1. 내용 : 파이널롤 백업롤 버튼 램프 안들어오는 현상 수정 - [참고 : 260829 파이널롤 백업롤 버튼 램프 안들어오는 현상 수정 ]
+		   [BackGround]
+		   btn_Init.c
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+// Date : 26.09.02 - 이재욱 선임 
+1. 내용 : 파이널 롤러 Power Rack 풀림 현상 확인 및 Abort STOP을 하기 위해 F/R Detect Sensing 사용프로그램 수정 - [ 참조 : 26.09.02 Power Rack 풀림 현상 프로그램 수정 ]
+		   [Global]
+		   00. Define_PLC00_Prod_Mode_Mangement
+		   [PLC]
+		   00.PLC_00_Prod_Mode_Mangement
+
+2. 내용 : 이더캣 축 부하율 취득 프로그램 상시 → 플래그 on시에만 수집하도록 변경 - [ 참조 : 260902 Ecat축 부하율 상시 → P_Ecat_Test = 1 일때만 취득하도록 수정 ]
+			[PLC]
+		   00.PLC_00_Prod_Mode_Mangement
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.09.04 - 김형진 책임 
+1. 내용 : 강제 사이클 스탑 기능 추가
+		 15.PLC_15_Button_Program.plc			
+
+		 1.1) status clear Auto 상태에서 버튼 감지 방지	[참조 : 260904 status clear 매뉴얼모드일때만 ]
+		 1.2) Stopping 무언정시 시, stop Queue 재 실행 시켜, 무언정지 되는 포인트를 찾고, 그 포인트를 해제 시켜주는 방식	[참조 : 260904 강제 사이클스탑 ]		
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+Date : 26.09.09 - 김형진 책임 
+1. 내용 : status clear Abort 시 바로 되게 수정			[참조 : 260909 Abort시 Auto 여도 status clear 되게 변경  ]

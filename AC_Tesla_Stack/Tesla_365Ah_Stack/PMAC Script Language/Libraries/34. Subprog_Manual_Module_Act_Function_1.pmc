@@ -1,0 +1,478 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.09 김성중 선임
+// MSA 모듈화 프로그래밍 진행 - [ 참조 : 25.07.09 MSA 프로그램 신규 추가 ] 
+// 25.07.28 김성중 선임 
+// Cal, Cleaning 위치 이동, Align 탈착 모드 프로그래밍 진행 - [ 참조 : 25.07.28 Cal 프로그램 및 얼라인 탈착 모드 신규 추가 ] 
+
+open subprog Manual_Module_Motor_Active(void)			
+	//음극 얼라인 MSA 모터 활성화 체크 
+	sub:Anode_Align_MSA_Motion_Check(&rtn)				
+	rtn = 0;
+				
+		if( motor[2].AmpEna == 0 )						// 음극 1차 PNP T축 모터 활성화 체크
+		{
+			cmd"#2j/";
+		}
+		if( motor[18].AmpEna == 0 )						// 음극 1차 PNP Z축 모터 활성화 체크
+		{
+			cmd"#18j/";
+		}
+		if( motor[4].AmpEna == 0 )						// 음극 2차 PNP T축 모터 활성화 체크
+		{
+			cmd"#4j/";
+		}
+		if( motor[22].AmpEna == 0 )						// 음극 2차 PNP Z축 모터 활성화 체크
+		{
+			cmd"#22j/";
+		}
+		if( motor[12].AmpEna == 0 )						// 파이널롤러 x축 모터 활성화 체크 
+		{												
+			cmd"#12j/";
+		}
+		if( motor[13].AmpEna == 0 )						// 파이널롤러 z축	 모터 활성화 체크
+		{
+			cmd"#13j/";
+		}
+		if( motor[43].AmpEna == 0 )						// 음극 NG PNP T축 모터 활성화 체크 
+		{
+			cmd"#43j/";
+		}
+		if( motor[45].AmpEna == 0 )						// 음극 NG PNP z축 모터 활성화 체크
+		{
+			cmd"#45j/";
+		}
+		if( motor[20].AmpEna == 0 )						// 음극 1차 PNP 피커 T축 모터 활성화 체크
+		{
+			cmd"#20j/";
+		}
+		rtn = 1;
+	return
+		
+	//양극 얼라인 MSA 모터 활성화 체크 
+	sub:Cathode_Align_MSA_Motion_Check(&rtn)
+	rtn = 0;
+		
+		if( motor[1].AmpEna == 0 )						// 양극 1차 PNP T축 모터 활성화 체크
+		{
+			cmd"#1j/";
+		}
+		if( motor[17].AmpEna == 0 )						// 양극 1차 PNP Z축 모터 활성화 체크
+		{
+			cmd"#17j/";
+		}												
+		if( motor[3].AmpEna == 0 )						// 양극 2차 PNP T축 모터 활성화 체크
+		{
+			cmd"#3j/";
+		}												
+		if( motor[21].AmpEna == 0 )						// 양극 2차 PNP Z축 모터 활성화 체크
+		{
+			cmd"#21j/";
+		}												
+		if( motor[12].AmpEna == 0 )						// 파이널롤러 x축 모터 활성화 체크 	
+		{
+			cmd"#12j/";									
+		}
+		if( motor[13].AmpEna == 0 )						// 파이널롤러 z축	 모터 활성화 체크
+		{
+			cmd"#13j/";									 
+		}
+		if( motor[42].AmpEna == 0 )						// 양극 NG PNP T축 모터 활성화 체크 
+		{												
+			cmd"#42j/";
+		}
+		if( motor[44].AmpEna == 0 )						// 양극 NG PNP z축 모터 활성화 체크
+		{												
+			cmd"#44j/";
+		}
+		if( motor[19].AmpEna == 0 )						// 양극 1차 PNP 피커 T축
+		{
+			cmd"#19j/";
+		}
+		rtn = 1;
+	return
+
+	//음극 Stack MSA 모터 활성화 체크 
+	sub:Anode_Stack_MSA_Motion_Check(&rtn)
+	rtn = 0;	
+		if( motor[4].AmpEna == 0 )						// 음극 2차 PNP T축 모터 활성화 체크
+		{
+			cmd"#4j/";
+		}
+		if( motor[22].AmpEna == 0 )						// 음극 2차 PNP Z축 모터 활성화 체크
+		{
+			cmd"#22j/";
+		}
+		if( motor[43].AmpEna == 0 )						// 음극 NG PNP T축 모터 활성화 체크 
+		{
+			cmd"#43j/";
+		}
+		if( motor[45].AmpEna == 0 )						// 음극 NG PNP z축 모터 활성화 체크
+		{
+			cmd"#45j/";
+		}
+		if( motor[12].AmpEna == 0 )						// 파이널롤러 x축 모터 활성화 체크 
+		{
+			cmd"#12j/";
+		}
+		if( motor[13].AmpEna == 0 )						// 파이널롤러 z축	 모터 활성화 체크
+		{
+			cmd"#13j/";
+		}
+		rtn = 1;
+	return
+
+	//양극 Stack MSA 모터 활성화 체크 
+	sub:Cathode_Stack_MSA_Motion_Check(&rtn)
+	rtn = 0;
+		if( motor[3].AmpEna == 0 )						// 양극 2차 PNP T축 모터 활성화 체크
+		{
+			cmd"#3j/";
+		}
+		if( motor[21].AmpEna == 0 )						// 양극 2차 PNP Z축 모터 활성화 체크
+		{
+			cmd"#21j/";
+		}
+		if( motor[42].AmpEna == 0 )						// 양극 NG PNP T축 모터 활성화 체크 
+		{
+			cmd"#42j/";
+		}
+		if( motor[44].AmpEna == 0 )						// 양극 NG PNP z축 모터 활성화 체크
+		{
+			cmd"#44j/";
+		}
+		if( motor[12].AmpEna == 0 )						// 파이널롤러 x축 모터 활성화 체크 
+		{
+			cmd"#12j/";
+		}
+		if( motor[13].AmpEna == 0 )						// 파이널롤러 z축	 모터 활성화 체크
+		{
+			cmd"#13j/";
+		}
+		rtn = 1;
+	return
+
+	//음극 Align MSA 모션 좌표계 활성화 체크
+	sub:Anode_Align_MSA_Motion_ProgActive(&rtn)
+		rtn = 0;
+		// 음극 2차 pnp 모션 프래그램 온 확인.
+		if( Coord[23].ProgActive == 0 )
+		{	// 음극 2차 pnp 모션 프로그램이 온이 아닐 경우 음극 2차 pnp 모션프로그램 실행 명령어 날림.
+			cmd"&23b23r"
+		}
+		// 음극 1차 pnp 모션 프래그램 온 확인.
+		if( Coord[21].ProgActive == 0 )
+		{	// 음극 1차 pnp 모션 프로그램이 온이 아닐 경우 음극 1차 pnp 모션프로그램 실행 명령어 날림.
+			cmd"&21b21r"
+		}
+		// 파이널롤 모션 프래그램 온 확인.
+		if( Coord[25].ProgActive == 0 )
+		{	//파이널롤 모션 프로그램이 온이 아닐 경우 파이널롤 모션프로그램 실행 명령어 날림.
+			cmd"&25b25r"
+		}
+		// NG PNP 모션 프래그램 온 확인.
+		if( Coord[33].ProgActive == 0 )
+		{	//파이널롤 모션 프로그램이 온이 아닐 경우 파이널롤 모션프로그램 실행 명령어 날림.
+			cmd"&33b33r"
+		}
+		// 음극 1차 Picker 모션 프로그램 온 
+		if( Coord[22].ProgActive == 0 )
+		{	//음극 1차 Picker 모션 프로그램이 온이 아닐 경우 파이널롤 모션프로그램 실행 명령어 날림.
+			cmd"&22b22r"
+		}
+		rtn = 1;
+	return
+
+	//양극 Align MSA 모션 좌표계 활성화 체크
+	sub:Cathode_Align_MSA_Motion_ProgActive(&rtn)
+		rtn = 0;
+		// 양극 2차 pnp 모션 프래그램 온 확인.
+		if( Coord[28].ProgActive == 0 )
+		{	// 양극 2차 pnp 모션 프로그램이 온이 아닐 경우 양극 2차 pnp 모션프로그램 실행 명령어 날림.
+			cmd"&28b28r"
+		}
+		// 양극 1차 pnp 모션 프래그램 온 확인.
+		if( Coord[30].ProgActive == 0 )
+		{	// 양극 1차 pnp 모션 프로그램이 온이 아닐 경우 양극 1차 pnp 모션프로그램 실행 명령어 날림.
+			cmd"&30b30r"
+		}
+		if( Coord[25].ProgActive == 0 )
+		{	//파이널롤 모션 프로그램이 온이 아닐 경우 파이널롤 모션프로그램 실행 명령어 날림.
+			cmd"&25b25r"
+		}
+		// NG PNP 모션 프래그램 온 확인.
+		if( Coord[32].ProgActive == 0 )
+		{	//파이널롤 모션 프로그램이 온이 아닐 경우 파이널롤 모션프로그램 실행 명령어 날림.
+			cmd"&32b32r"
+		}
+		//양극 1차 Picker 모션 프로그램 온 
+		if( Coord[29].ProgActive == 0 )
+		{	//음극 1차 Picker 모션 프로그램이 온이 아닐 경우 파이널롤 모션프로그램 실행 명령어 날림.
+			cmd"&29b29r"
+		}
+		rtn = 1;
+	return
+
+	//음극 Stack MSA 모션 좌표계 활성화 체크
+	sub:Anode_Stack_MSA_Motion_ProgActive(&rtn)
+		rtn = 0;
+		// 음극 2차 pnp 모션 프래그램 온 확인.
+		if( Coord[23].ProgActive == 0 )
+		{	// 음극 2차 pnp 모션 프로그램이 온이 아닐 경우 음극 2차 pnp 모션프로그램 실행 명령어 날림.
+			cmd"&23b23r";
+		}
+		// NG PNP 모션 프래그램 온 확인.
+		if( Coord[33].ProgActive == 0 )
+		{	//파이널롤 모션 프로그램이 온이 아닐 경우 파이널롤 모션프로그램 실행 명령어 날림.
+			cmd"&33b33r"
+		}
+		// 파이널롤 모션 프래그램 온 확인.
+		if( Coord[25].ProgActive == 0 )
+		{	//파이널롤 모션 프로그램이 온이 아닐 경우 파이널롤 모션프로그램 실행 명령어 날림.
+			cmd"&25b25r"
+		}
+		rtn =1;
+	return
+
+	//양극 Stack MSA 모션 좌표계 활성화 체크
+	sub:Cathode_Stack_MSA_Motion_ProgActive(&rtn)
+		rtn = 0;
+		// 양극 2차 pnp 모션 프래그램 온 확인.
+		if( Coord[28].ProgActive == 0 )
+		{	// 양극 2차 pnp 모션 프로그램이 온이 아닐 경우 양극 2차 pnp 모션프로그램 실행 명령어 날림.
+			cmd"&28b28r";
+		}
+		// NG PNP 모션 프래그램 온 확인.
+		if( Coord[32].ProgActive == 0 )
+		{	//파이널롤 모션 프로그램이 온이 아닐 경우 파이널롤 모션프로그램 실행 명령어 날림.
+			cmd"&32b32r"
+		}
+		// 파이널롤 모션 프래그램 온 확인.
+		if( Coord[25].ProgActive == 0 )
+		{	//파이널롤 모션 프로그램이 온이 아닐 경우 파이널롤 모션프로그램 실행 명령어 날림.
+			cmd"&25b25r"
+		}
+		rtn =1;
+	return
+	
+	//MSA 사이클 스탑 포인트-> 얼라인 MSA 도중 스탑 시 1차 PNP가 벨트 진입 상태 도중 스탑일 경우 반대편 열 충돌 방지를 위해 얼라인 테이블까지 이동하고 Stop
+	sub: MSA_Cycle_Stop_Point(Mode,&rtn);
+	rtn = 0;
+	switch( Mode )
+	{	//음극 얼라인 MSA 경우
+		case N_MSA_Anode_Align:											
+			P_VISION_MSA_Seq_Stopping_Point(1) = N_Cycle_Stop_OK;			//True
+			P_VISION_MSA_Seq_Stopping_Point(2) = N_Cycle_Stop_OK;			// 카운트 초기화 및 모터 서보 체크					
+			P_VISION_MSA_Seq_Stopping_Point(3) = N_Cycle_Stop_OK;			// Motor 위치 체크
+			P_VISION_MSA_Seq_Stopping_Point(4) = N_Cycle_Stop_NO;			// 1차 PNP Belt 위치 이동
+			P_VISION_MSA_Seq_Stopping_Point(5) = N_Cycle_Stop_NO;			// 1차 PNP Belt 하강, 2차 PNP 얼라인 하강
+			P_VISION_MSA_Seq_Stopping_Point(6) = N_Cycle_Stop_NO;			// 1차 PNP 벨트 베큠 ON, 2차 PNP 베큠 ON 
+			P_VISION_MSA_Seq_Stopping_Point(7) = N_Cycle_Stop_NO;			// 1차 PNP 벨트 상승, 2차 PNP 얼라인 상승
+			P_VISION_MSA_Seq_Stopping_Point(8) = N_Cycle_Stop_NO;			// 파이널롤러 위치 이동
+			P_VISION_MSA_Seq_Stopping_Point(9) = N_Cycle_Stop_NO;			// 2차 스텍 이동
+			P_VISION_MSA_Seq_Stopping_Point(10) = N_Cycle_Stop_NO;			// 1차 얼라인 이동
+			P_VISION_MSA_Seq_Stopping_Point(11) = N_Cycle_Stop_OK;			// 1차 얼라인 하강
+			P_VISION_MSA_Seq_Stopping_Point(12) = N_Cycle_Stop_OK;			// 1차 블로우 
+			P_VISION_MSA_Seq_Stopping_Point(13) = N_Cycle_Stop_OK;			// Align Vision Trigger ON
+			P_VISION_MSA_Seq_Stopping_Point(14) = N_Cycle_Stop_OK;			// 1차 얼라인 베큠 ON
+			P_VISION_MSA_Seq_Stopping_Point(15) = N_Cycle_Stop_OK;			// 1차 얼라인 상승
+			P_VISION_MSA_Seq_Stopping_Point(16) = N_Cycle_Stop_NO;			// 1차 벨트 이동
+			P_VISION_MSA_Seq_Stopping_Point(17) = N_Cycle_Stop_NO;			// 카운트 증가 및 종료 확인
+			P_VISION_MSA_Seq_Stopping_Point(18) = N_Cycle_Stop_NO;			// 1차 얼라인 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(19) = N_Cycle_Stop_OK;			// 1차 얼라인 하강(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(20) = N_Cycle_Stop_OK;			// 1차 얼라인 파기(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(21) = N_Cycle_Stop_OK;			// 1차 얼라인 상승(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(22) = N_Cycle_Stop_OK;			// 1차 대기 위치 이동(MSA 완료)
+			#ifdef F_MSA_Discharge_Use										//↓ MSA배출 모드 사용 시
+			P_VISION_MSA_Seq_Stopping_Point(23) = N_Cycle_Stop_OK;			// NG PNP 얼라인 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(24) = N_Cycle_Stop_OK;			// NG PNP 얼라인 하강(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(25) = N_Cycle_Stop_OK;			// NG PNP 얼라인 흡착(MSA 완료) 
+			P_VISION_MSA_Seq_Stopping_Point(26) = N_Cycle_Stop_OK;			// NG PNP 얼라인 상승(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(27) = N_Cycle_Stop_OK;			// NG PNP NGBox 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(28) = N_Cycle_Stop_OK;			// NG PNP NGBox 파기(MSA 완료) 
+			P_VISION_MSA_Seq_Stopping_Point(29) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(30) = N_Cycle_Stop_OK;			// 파이널롤러 대기 위치 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(31) = N_Cycle_Stop_OK;			// Completes
+			#else 															//↓ MSA배출 모드 미사용 시 
+			P_VISION_MSA_Seq_Stopping_Point(23) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(24) = N_Cycle_Stop_OK;			// 파이널롤러 대기 위치 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(25) = N_Cycle_Stop_OK;			// Complete
+			#endif
+			rtn = N_TRUE;
+		break;
+
+
+		//양극 얼라인 MSA 경우
+		case N_MSA_Cathode_Align:											
+			P_VISION_MSA_Seq_Stopping_Point(1) = N_Cycle_Stop_OK;			//True
+			P_VISION_MSA_Seq_Stopping_Point(2) = N_Cycle_Stop_OK;			// 카운트 초기화 및 모터 서보 체크					
+			P_VISION_MSA_Seq_Stopping_Point(3) = N_Cycle_Stop_OK;			// Motor 위치 체크
+			P_VISION_MSA_Seq_Stopping_Point(4) = N_Cycle_Stop_NO;			// 1차 PNP Belt 위치 이동
+			P_VISION_MSA_Seq_Stopping_Point(5) = N_Cycle_Stop_NO;			// 1차 PNP Belt 하강, 2차 PNP 얼라인 하강
+			P_VISION_MSA_Seq_Stopping_Point(6) = N_Cycle_Stop_NO;			// 1차 PNP 벨트 베큠 ON, 2차 PNP 베큠 ON 
+			P_VISION_MSA_Seq_Stopping_Point(7) = N_Cycle_Stop_NO;			// 1차 PNP 벨트 상승, 2차 PNP 얼라인 상승
+			P_VISION_MSA_Seq_Stopping_Point(8) = N_Cycle_Stop_NO;			// 파이널롤러 위치 이동
+			P_VISION_MSA_Seq_Stopping_Point(9) = N_Cycle_Stop_NO;			// 2차 스텍 이동
+			P_VISION_MSA_Seq_Stopping_Point(10) = N_Cycle_Stop_NO;			// 1차 얼라인 이동
+			P_VISION_MSA_Seq_Stopping_Point(11) = N_Cycle_Stop_OK;			// 1차 얼라인 하강
+			P_VISION_MSA_Seq_Stopping_Point(12) = N_Cycle_Stop_OK;			// 1차 블로우 
+			P_VISION_MSA_Seq_Stopping_Point(13) = N_Cycle_Stop_OK;			// Align Vision Trigger ON
+			P_VISION_MSA_Seq_Stopping_Point(14) = N_Cycle_Stop_OK;			// 1차 얼라인 베큠 ON
+			P_VISION_MSA_Seq_Stopping_Point(15) = N_Cycle_Stop_OK;			// 1차 얼라인 상승
+			P_VISION_MSA_Seq_Stopping_Point(16) = N_Cycle_Stop_NO;			// 1차 벨트 이동
+			P_VISION_MSA_Seq_Stopping_Point(17) = N_Cycle_Stop_NO;			// 카운트 증가 및 종료 확인
+			P_VISION_MSA_Seq_Stopping_Point(18) = N_Cycle_Stop_NO;			// 1차 얼라인 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(19) = N_Cycle_Stop_OK;			// 1차 얼라인 하강(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(20) = N_Cycle_Stop_OK;			// 1차 얼라인 파기(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(21) = N_Cycle_Stop_OK;			// 1차 얼라인 상승(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(22) = N_Cycle_Stop_OK;			// 1차 대기 위치 이동(MSA 완료)
+			#ifdef F_MSA_Discharge_Use										//↓ MSA배출 모드 사용 시
+			P_VISION_MSA_Seq_Stopping_Point(23) = N_Cycle_Stop_OK;			// NG PNP 얼라인 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(24) = N_Cycle_Stop_OK;			// NG PNP 얼라인 하강(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(25) = N_Cycle_Stop_OK;			// NG PNP 얼라인 흡착(MSA 완료) 
+			P_VISION_MSA_Seq_Stopping_Point(26) = N_Cycle_Stop_OK;			// NG PNP 얼라인 상승(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(27) = N_Cycle_Stop_OK;			// NG PNP NGBox 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(28) = N_Cycle_Stop_OK;			// NG PNP NGBox 파기(MSA 완료) 
+			P_VISION_MSA_Seq_Stopping_Point(29) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(30) = N_Cycle_Stop_OK;			// 파이널롤러 대기 위치 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(31) = N_Cycle_Stop_OK;			// Completes
+			#else 															//↓ MSA배출 모드 미사용 시 
+			P_VISION_MSA_Seq_Stopping_Point(23) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(24) = N_Cycle_Stop_OK;			// 파이널롤러 대기 위치 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(25) = N_Cycle_Stop_OK;			// Complete
+			#endif
+			rtn = N_TRUE;
+		break;
+
+		//음극 Stack MSA 경우
+		case N_MSA_Anode_Stack:											
+			P_VISION_MSA_Seq_Stopping_Point(1) = N_Cycle_Stop_OK			// True
+			P_VISION_MSA_Seq_Stopping_Point(2) = N_Cycle_Stop_OK;			// 카운트 초기화 및 모터 서보 체크 
+			P_VISION_MSA_Seq_Stopping_Point(3) = N_Cycle_Stop_OK;			// Motor 위치 체크
+			P_VISION_MSA_Seq_Stopping_Point(4) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 하강 
+			P_VISION_MSA_Seq_Stopping_Point(5) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 흡착
+			P_VISION_MSA_Seq_Stopping_Point(6) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 상승
+			P_VISION_MSA_Seq_Stopping_Point(7) = N_Cycle_Stop_OK;			// 2차 Stack Table 위치 이동
+			P_VISION_MSA_Seq_Stopping_Point(8) = N_Cycle_Stop_OK;			// 2차 Stack Down 
+			P_VISION_MSA_Seq_Stopping_Point(9) = N_Cycle_Stop_OK;			// Stack Vision Trigger ON
+			P_VISION_MSA_Seq_Stopping_Point(10) = N_Cycle_Stop_OK;			// 2차 Stack UP
+			P_VISION_MSA_Seq_Stopping_Point(11) = N_Cycle_Stop_OK			// 2차 Align 위치 이동
+			P_VISION_MSA_Seq_Stopping_Point(12) = N_Cycle_Stop_OK			// 카운트 증가 및 종료 확인
+			#ifdef F_MSA_Discharge_Use										//↓ MSA배출 모드 사용 시
+			P_VISION_MSA_Seq_Stopping_Point(13) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 하강(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(14) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 파기(MSA 완료) 
+			P_VISION_MSA_Seq_Stopping_Point(15) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 상승(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(16) = N_Cycle_Stop_OK;			// 2차 PNP 스텍 위치 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(17) = N_Cycle_Stop_OK;			// NG PNP 얼라인 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(18) = N_Cycle_Stop_OK;			// NG PNP 얼라인 하강(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(19) = N_Cycle_Stop_OK;			// NG PNP 얼라인 흡착(MSA 완료) 
+			P_VISION_MSA_Seq_Stopping_Point(20) = N_Cycle_Stop_OK;			// NG PNP 얼라인 상승(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(21) = N_Cycle_Stop_OK;			// NG PNP NGBox 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(22) = N_Cycle_Stop_OK;			// NG PNP NGBox 파기(MSA 완료) 
+			P_VISION_MSA_Seq_Stopping_Point(23) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(24) = N_Cycle_Stop_OK;			// COMPLETE
+			#else 															//↓ MSA배출 모드 미사용 시 
+			P_VISION_MSA_Seq_Stopping_Point(13) = N_Cycle_Stop_OK;			// COMPLETE
+			#endif
+			rtn = N_TRUE;
+		break;
+
+		//양극 Stack MSA 경우
+		case N_MSA_Cathode_Stack:										
+			P_VISION_MSA_Seq_Stopping_Point(1) = N_Cycle_Stop_OK			// True
+			P_VISION_MSA_Seq_Stopping_Point(2) = N_Cycle_Stop_OK;			// 카운트 초기화 및 모터 서보 체크 
+			P_VISION_MSA_Seq_Stopping_Point(3) = N_Cycle_Stop_OK;			// Motor 위치 체크
+			P_VISION_MSA_Seq_Stopping_Point(4) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 하강 
+			P_VISION_MSA_Seq_Stopping_Point(5) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 흡착
+			P_VISION_MSA_Seq_Stopping_Point(6) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 상승
+			P_VISION_MSA_Seq_Stopping_Point(7) = N_Cycle_Stop_OK;			// 2차 Stack Table 위치 이동
+			P_VISION_MSA_Seq_Stopping_Point(8) = N_Cycle_Stop_OK;			// 2차 Stack Down 
+			P_VISION_MSA_Seq_Stopping_Point(9) = N_Cycle_Stop_OK;			// Stack Vision Trigger ON
+			P_VISION_MSA_Seq_Stopping_Point(10) = N_Cycle_Stop_OK;			// 2차 Stack UP
+			P_VISION_MSA_Seq_Stopping_Point(11) = N_Cycle_Stop_OK			// 2차 Align 위치 이동
+			P_VISION_MSA_Seq_Stopping_Point(12) = N_Cycle_Stop_OK			// 카운트 증가 및 종료 확인
+			#ifdef F_MSA_Discharge_Use										//↓ MSA배출 모드 사용 시
+			P_VISION_MSA_Seq_Stopping_Point(13) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 하강(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(14) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 파기(MSA 완료) 
+			P_VISION_MSA_Seq_Stopping_Point(15) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 상승(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(16) = N_Cycle_Stop_OK;			// 2차 PNP 스텍 위치 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(17) = N_Cycle_Stop_OK;			// NG PNP 얼라인 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(18) = N_Cycle_Stop_OK;			// NG PNP 얼라인 하강(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(19) = N_Cycle_Stop_OK;			// NG PNP 얼라인 흡착(MSA 완료) 
+			P_VISION_MSA_Seq_Stopping_Point(20) = N_Cycle_Stop_OK;			// NG PNP 얼라인 상승(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(21) = N_Cycle_Stop_OK;			// NG PNP NGBox 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(22) = N_Cycle_Stop_OK;			// NG PNP NGBox 파기(MSA 완료) 
+			P_VISION_MSA_Seq_Stopping_Point(23) = N_Cycle_Stop_OK;			// 2차 PNP 얼라인 테이블 이동(MSA 완료)
+			P_VISION_MSA_Seq_Stopping_Point(24) = N_Cycle_Stop_OK;			// COMPLETE
+			#else 															//↓ MSA배출 모드 미사용 시 
+			P_VISION_MSA_Seq_Stopping_Point(13) = N_Cycle_Stop_OK;			// COMPLETE
+			#endif
+			rtn = N_TRUE;
+		break;
+
+		default:
+			rtn = N_FALSE;
+		break;
+	}
+	return
+
+	//MSA Complete 시 초기화 함수 
+	sub:MSA_Complete(&rtn)												
+	rtn = 0;
+		call Sub_Common_Function.Master_Motion_Program_OFF();				//모션 프로그램 OFF
+
+		P_Module_Act_State_Machine_Array(0),35 = 0							//모듈 Act 스텟 머신 초기화 
+		P_VISION_MSA_Status = 0;											// MSA 상태 초기화
+		rtn =1;
+	return;
+
+	// 양음극 얼라인 탈착 모드 --------------------------------------------------------------------------------------------------------------------------------
+	sub:Align_Take_Off_Motor_Check(&rtn)				
+	rtn = 0;
+		if ( P_Align_Take_Off_Mode == N_Align_AN_Take_Off || P_Align_Take_Off_Mode == N_Align_CA_Take_Off  )  //양극 또는 음극 얼라인 탈착 모드일 경우 
+		{
+			if( motor[3].AmpEna == 0 )			// 양극 2차 PNP T축  모터 활성화 체크
+			{
+				cmd"#3j/";
+			}
+			if( motor[21].AmpEna == 0 )			// 양극 2차 PNP Z축 모터 활성화 체크
+			{
+				cmd"#21j/";
+			}
+			if( motor[4].AmpEna == 0 )			// 음극 2차 PNP T축  모터 활성화 체크
+			{
+				cmd"#4j/";
+			}
+			if( motor[22].AmpEna == 0 )			// 음극 2차 PNP Z축 모터 활성화 체크
+			{
+				cmd"#22j/";
+			}
+			if( motor[12].AmpEna == 0 )			// 파이널롤러 X축	 모터 활성화 체크
+			{
+				cmd"#12j/";
+			}
+		}
+		rtn = 1;
+	return;
+
+	sub:Align_Take_Off_Speed_Return(&rtn)
+	rtn = 0;
+		if ( P_Align_Take_Off_Mode == N_Align_AN_Take_Off  )	//음극 얼라인 탈착 모드일 경우 
+		{
+			Motor[4].JogSpeed = 50;			// 음극 2차 PNP T축 이전 속도로 변경
+			Motor[22].JogSpeed = 50;		// 음극 2차 PNP Z축 이전 속도로 변경
+			Motor[12].JogSpeed = 50;		// 파이널롤러 X축 초전 속도로 변경			
+		}
+		else if (  P_Align_Take_Off_Mode == N_Align_CA_Take_Off )	//양극 얼라인 탈착 모드일 경우 
+		{
+			Motor[3].JogSpeed =	50;			// 양극 2차 PNP T축 이전 속도로 변경
+			Motor[21].JogSpeed = 50;	    // 양극 2차 PNP Z축 이전 속도로 변경
+			Motor[12].JogSpeed = 50;		// 파이널롤러 X축 초전 속도로 변경			
+		}
+	rtn = 1;
+	return;	
+close
+
+
+

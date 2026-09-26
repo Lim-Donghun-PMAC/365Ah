@@ -1,0 +1,1442 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.06.04 임동훈 선임
+// 모듈화 프로그래밍 진행 - [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ]  
+// 26.03.27 
+// 일반모드 진행을 위한 리뉴얼 작업 진행 - [ 참조 : 26.03.27 일반모드 진행을 위한 리뉴얼 작업 진행] 	
+// 배출 인덱스 간소화 건 
+// 26.04.01
+// HOLD 예외처리 메인 스탑모듈 추가 - [참조 : HOLD Index 스탑포인트 + 메인모듈 스탑포인트 일원화 ]
+
+// Discharge Sub_Prog========================================================================================================
+global P_Current_JR_Thickness_mm = 0;									// 젤리롤 두께
+global P_Current_Jelly_Roll_Thinckness_mm_Send_Enable_Flag = 0;			// 데이터 파싱
+global P_Stack_Table_NG_Flag = 0;										// 스텍비전 NG Flag
+global P_Suspend_Discharge_Cell_Out_Restart = 0 ;						// 정지 후 재시작 카운트 변경 x	[ 참조 : 25.06.05 배출 시 JR Cnt 관리 ]
+global P_Jelly_Roll_OK_Count = 0;										// 젤리롤 카운트
+global P_Jelly_Roll_NG_Count = 0;										// NG 젤리롤 카운트
+global P_Jelly_Roll_Total_Count = 0;									// 총 젤리롤 카운트				[ 참조 : 25.06.05 배출 시 JR Cnt 관리 ]
+global P_Jelly_Roll_ID = 0;												// 젤리롤 ID 값
+
+// 젤리롤 레시피 cnt
+global P_Jelly_Roll_Prod_Count = 0;										// 현재 젤리롤 생산 카운트
+global P_Jelly_Roll_Recipe_Count = 0;									// 젤리롤 레시피 카운트
+global P_Current_Cell_Memory_Jelly_Roll = 0;							// 젤리롤 메모리
+global P_Real_Stacking_Host_ID_Count = 0;								// 데이터 파싱 ( 이동 시 디스플레이 화면 일치 )
+
+// 비전 <-> PMAC
+global P_VISION_PLC10_Anode_Align_Start = 0;							// 음극 얼라인 비전 첫장 신호 플래그
+global P_VISION_PLC10_Cathode_Align_Start = 0;							// 양극 얼라인 비전 첫장 신호 플래그
+
+// NG Cnt 
+global P_Stack_Table_NG_Count = 0;										// Stack NG cnt
+global P_Stack_PMAC_NG_Code = 0;										// Stack PMAC NG Code
+global P_Stack_Vision_NG_Code_IN_Timer = 0;								// NG 코드 타이머
+//===========================================================================================================================
+
+//PLC 02 Discharge ==========================================================================================================
+global P_Discharge_Waiting_Flag = 0;									// 배출 대기 flag
+global P_ARC_Flag = 0													// 디버깅용
+global P_Discharge_Queue_Complete_Flag = 0;								// 배출 큐 완료 flag
+//===========================================================================================================================
+
+//PLC 10 Dishcarge Sequence =================================================================================================
+global P_Shared_Discharge_Cmd = 0;										// 배출 커맨드
+global P_Shared_Discharge_State_Machine = 0;							// 1차언로더 배출 스텟머신
+global P_Discharge_Dont_Stop_Point_Flag = 0;							// 배출 스탑 포인트 플래그
+global P_1st_Discharge_State = 0;										// 배출 상태 변수
+global P_Discharge_DIO_Trg = 0 ;										// 배출 DIO 트리거
+global P_Data_Parsing_Flag = 0;											// 데이터 파싱 플래그
+global P_Memory_Discharge_Data = 0;										// 배출 중 스탑 시 스텟머신 저장 변수
+global P_Prev_Sepa_Stack_Completed_Flag = 0;							// 세파 모드 배출 확인 플래그
+global P_First_Sepa_Mode_Status = 0;									// 세파 깔기 상태 확인 변수
+global P_First_Sepa_Mode_Flag = 0;										// 세파 깔기 시작 명령 변수
+// Discharge Variable
+global P_Discharge_Unloader_Handover_Timer = 0;							// 1차 언로더 → 2차 언로더 인계 시간 변수	[ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ]
+global P_Discharge_Unloader_Handover_Time = 0;							// 1차 언로더 → 2차 언로더 인계 시간 변수	[ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ]
+//===========================================================================================================================
+
+// PMAC <-> PLC 배출 간 변수 선언==============================================================================================
+#ifdef F_Def_Stack_A													// A열 배출
+global P_A_1st_to_2nd_Discharge_cmd = 0;								// 2차언로더 인계 커맨드  
+global P_A_1st_to_2nd_Discharge_State_Machine = 0;						// 1차 <-> 2차 언로더 스텟머신
+global P_2nd_Discharge_Status = 0;										// 시퀀스 상태
+#endif
+
+#ifdef F_Def_Stack_B													// B열 배출
+global P_B_1st_to_3rd_Discharge_cmd = 0;								// 3차언로더 인계 커맨드  
+global P_B_1st_to_3rd_Discharge_State_Machine = 0;						// 1차 <-> 3차 언로더 스텟머신
+global P_3rd_Discharge_Status = 0;										// 시퀀스 상태
+#endif
+
+// Suspend Define - [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
+#define N_NoValue						0
+#define	N_TRUE							1
+#define N_FALSE							2
+#define N_EXCEPT						3
+#define N_InterLock						555
+#define N_COMPLETE						999
+// Define 선언부 
+//=======================================================================================
+// Suspend
+#define	N_Discharge_Module				1
+#define	N_ARC_Module					2
+#define	N_Anode_1TR_Supply_Module		3
+// Hold
+#define	N_Hold_Exist_Insp_Module		4	// 극판 유무 검사	
+#define	N_Hold_Remove_NG_PNP			5	// NG PNP 제거	
+#define	N_Hold_Remove_Align				6	// Align 제거
+#define	N_Hold_Remove_2TR				7	// 2TR 극판 제거
+#define	N_Hold_Supply_1TR				8	// 1TR 극판 공급
+#define	N_Hold_Supply_Align				9	// Align 극판 공급
+#define	N_Hold_Supply_2TR				10	// 2TR 극판 공급
+#define	N_Hold_Semi_Run_Pos_Move		11	// 2TR 극판 공급
+//=======================================================================================
+// EXECUTE
+#define	N_Execute_Fisrt_Sepa_Mode		12	// 세파 첫장 모드 
+//=======================================================================================
+// All Home
+#define	N_All_Home_Module_Mode			13	// 전체 홈
+
+
+
+
+#define N_STEP_END						30
+//=======================================================================================
+#define N_Discharge_InterLock_EA		30							
+#define N_ARC_InterLock_EA				30
+#define F_ACT_STATUS_ENABLE				1
+#define F_ACT_STATUS_DISABLE			2	
+#define F_ACT_STATUS_ALARM				3
+#define F_ACT_STATUS_INITIAL			888
+
+//---------------------------------------------------------------------------------------
+// 액팅 모듈 배열값
+//---------------------------------------------------------------------------------------
+global	P_Buffer_Mode_Module_Status_Sequence(N_STEP_END);				// 시퀀스별 생산 모드
+P_Buffer_Mode_Module_Status_Sequence(0),N_STEP_END,1 = 0;
+global P_EXECUTE_Status_Prod_Sequence(N_STEP_END);						// 시퀀스별 상태 변수.
+P_EXECUTE_Status_Prod_Sequence(0),N_STEP_END,1 = 0;
+//=======================================================================================
+// 액팅 동작 리스트 변수 정의
+//=======================================================================================
+//---------------------------------------------------------------------------------------
+// 0) Execute - First_Sepa_Mode_Module
+//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+// 0.1) 시퀀스 Main 변수
+//--------------------------------------------------------------------------------------------------------------------------
+// 0.1.1) Execute-First_Sepa_Mode_S/T변수
+Global P_Execute_First_Sepa_Mode_Cmd = 0;							// Execute_세파 첫장 모듈 CMD 발생부
+Global P_Execute_First_Sepa_Mode_Status = 0;						// Execute_세파 첫장 모듈 메인 상태 
+Global P_Execute_First_Sepa_Mode_Module_Status = 0;					// Execute_세파 첫장 모듈 진행 상태.
+Global P_Execute_First_Sepa_Mode_State_Machine = 0;					// Execute_세파 첫장 모듈 메인 시퀀스 단계
+Global P_Execute_First_Sepa_Mode_Seq_Index = 0;						// Execute_세파 첫장 모듈 메인 인덱스
+Global P_Execute_First_Sepa_Mode_Self_Index = 0;					// Execute_세파 첫장 모듈 Pre 인덱스 
+Global P_Execute_First_Sepa_Mode_Debug_Edge = 0;
+// 0.1.2) Execute-First_Sepa_Mode 순차 시퀀스 배열값
+Global P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(N_STEP_END);	// Execute_세파 첫장 모듈 시퀀스 배열.
+P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(0),N_STEP_END = 0;	// Execute_세파 첫장 모듈 초기화.
+// 0.1.3) Execute-First_Sepa_Mode Tact Time							
+Global P_Execute_First_Sepa_Mode_Timer = 0;							// Execute_세파 첫장 시퀀스 타이머.
+Global P_Execute_First_Sepa_Mode_Tact_Time_Array(20);				// Execute_세파 첫장 시퀀스 Tact Time.
+P_Execute_First_Sepa_Mode_Tact_Time_Array(0),20 = 0;				// Execute_세파 첫장 초기화.
+Global P_Execute_First_Sepa_Mode_Tact_Time = 0;						// Execute_세파 첫장 시퀀스 총 Tact Time.
+global P_Execute_1st_Sepa_Status = 0;
+//--------------------------------------------------------------------------------------------------------------------------
+// 0.2) 세파 첫장모듈 - [일반 모드]
+//--------------------------------------------------------------------------------------------------------------------------
+#define N_SEQ_Execute_First_Sepa_Mode_No_1		1			// Execute_First_Sepa_Mode 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Execute_First_Sepa_Mode_No_2		2			// Execute_First_Sepa_Mode 일반 모드 || 1번째 시퀀스
+#define N_SEQ_Execute_First_Sepa_Mode_No_3		3			// Execute_First_Sepa_Mode 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_Execute_First_Sepa_Mode_No_4		4			// Execute_First_Sepa_Mode 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_Execute_First_Sepa_Mode_No_5		5			// Execute_First_Sepa_Mode 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_Execute_First_Sepa_Mode_No_6		6			// Execute_First_Sepa_Mode 일반 모드 || 5번째 시퀀스
+#define N_SEQ_Execute_First_Sepa_Mode_No_7		7			// Execute_First_Sepa_Mode 일반 모드 || 6번째 시퀀스
+#define N_SEQ_Execute_First_Sepa_Mode_No_8		8			// Execute_First_Sepa_Mode 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_Execute_First_Sepa_Mode_No_9		9			// Execute_First_Sepa_Mode 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_Execute_First_Sepa_Mode_No_10		10			// Execute_First_Sepa_Mode 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_Execute_First_Sepa_Mode_No_11		11			// Execute_First_Sepa_Mode 일반 모드 || 10번째 시퀀스
+#define N_SEQ_Execute_First_Sepa_Mode_No_12		12			// Execute_First_Sepa_Mode 일반 모드 || 11번째 시퀀스
+#define N_SEQ_Execute_First_Sepa_Mode_No_13		13			// Execute_First_Sepa_Mode 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_Execute_First_Sepa_Mode_No_14		14			// Execute_First_Sepa_Mode 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_Execute_First_Sepa_Mode_No_15		15			// Execute_First_Sepa_Mode 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_Execute_First_Sepa_Mode_No_16		16			// Execute_First_Sepa_Mode 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_Execute_First_Sepa_Mode_No_17		17			// Execute_First_Sepa_Mode 일반 모드 || 16번째 시퀀스  
+
+//---------------------------------------------------------------------------------------
+// Suspend - 배출
+//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+// 1.1) 시퀀스 Main 변수
+//--------------------------------------------------------------------------------------------------------------------------
+//=========================================================//
+//Discharge
+//=========================================================//
+Global P_Suspend_Discharge_Cmd = 0;										// 배출 모듈 CMD 발생부
+Global P_Suspend_Discharge_Status = 0;									// 배출 모듈 메인 상태 
+Global P_Suspend_Discharge_State_Machine = 0;							// 배출 모듈 메인 시퀀스 단계
+Global P_Suspend_Discharge_Seq_Index = 0;								// 배출 모듈 메인 인덱스
+Global P_Suspend_Discharge_Self_Index = 0;								// 배출 모듈 Pre 인덱스 
+/// 인터락
+global	P_Discharge_Seq_InterLock_Delay_Time(N_Discharge_InterLock_EA);	// 배출 시퀀스별 인터락 딜레이타임. 
+P_Discharge_Seq_InterLock_Delay_Time(0),N_Discharge_InterLock_EA = 0;	// 초기화.
+global	P_Discharge_Seq_InterLock_Flag(N_Discharge_InterLock_EA);		// 배출 시퀀스 시작전 인터락 플래그.	
+P_Discharge_Seq_InterLock_Flag(0),N_Discharge_InterLock_EA = 0;			// 초기화.
+global P_Buffer_Seqdata_Discharge_Array(N_STEP_END);					// 배출 시퀀스 배열.
+P_Buffer_Seqdata_Discharge_Array(0),N_STEP_END = 0;						// 초기화.
+// Tact Time		[ 참조 : 25.07.04 배출 Tact Time 추가 ]
+global P_Suspend_Discharge_Timer = 0;									// 배출 시퀀스 타이머.
+global P_Suspend_Discharge_Tact_Time_Array(20);							// 배출 시퀀스 Tact Time.
+P_Suspend_Discharge_Tact_Time_Array(0),20 = 0;							// 초기화.
+global P_Suspend_Discharge_Tact_Time = 0;								// 배출 시퀀스 총 Tact Time.
+// 1차 언로더 JR Data.	[ 참조 : 25.07.08 배출 재가동 진행 추가 ]
+global P_Suspend_Discharge_1st_Unloader_JR_Grip = 0;					// 1차 언로더 JR Grip 확인 변수. [0 : 2차 언로더 인계 후 | 언로더 Grip OFF, 1 : 커팅 후]
+//--------------------------------------------------------------------------------------------------------------------------
+// 1.2) 배출 모듈 명칭
+//--------------------------------------------------------------------------------------------------------------------------
+// [ 배출모듈 - 일반 생산 모드 ]
+#define N_SEQ_Normal_Discharge_No_1				1	// 배출 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Normal_Discharge_No_2				2	// 배출 일반 모드 || 1번째 시퀀스
+#define N_SEQ_Normal_Discharge_No_3				3	// 배출 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_Normal_Discharge_No_4				4	// 배출 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_Normal_Discharge_No_5				5	// 배출 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_Normal_Discharge_No_6				6	// 배출 일반 모드 || 5번째 시퀀스
+#define N_SEQ_Normal_Discharge_No_7				7	// 배출 일반 모드 || 6번째 시퀀스
+#define N_SEQ_Normal_Discharge_No_8				8	// 배출 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_Normal_Discharge_No_9				9	// 배출 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_Normal_Discharge_No_10			10	// 배출 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_Normal_Discharge_No_11			11	// 배출 일반 모드 || 10번째 시퀀스
+#define N_SEQ_Normal_Discharge_No_12			12	// 배출 일반 모드 || 11번째 시퀀스
+#define N_SEQ_Normal_Discharge_No_13			13	// 배출 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_Normal_Discharge_No_14			14	// 배출 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_Normal_Discharge_No_15			15	// 배출 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_Normal_Discharge_No_16			16	// 배출 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_Normal_Discharge_No_17			17	// 배출 일반 모드 || 16번째 시퀀스  
+					
+// [ 배출모듈 - 세파 모드 ]										
+#define N_SEQ_Sepa_Discharge_No_1				1	// 배출 세파 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Sepa_Discharge_No_2				2	// 배출 세파 모드 || 1번째 시퀀스
+#define N_SEQ_Sepa_Discharge_No_3				3	// 배출 세파 모드 || 2번째 시퀀스 
+#define N_SEQ_Sepa_Discharge_No_4				4	// 배출 세파 모드 || 3번째 시퀀스 
+#define N_SEQ_Sepa_Discharge_No_5				5	// 배출 세파 모드 || 4번째 시퀀스  
+#define N_SEQ_Sepa_Discharge_No_6				6	// 배출 세파 모드 || 5번째 시퀀스
+#define N_SEQ_Sepa_Discharge_No_7				7	// 배출 세파 모드 || 6번째 시퀀스
+#define N_SEQ_Sepa_Discharge_No_8				8	// 배출 세파 모드 || 7번째 시퀀스 
+#define N_SEQ_Sepa_Discharge_No_9				9	// 배출 세파 모드 || 8번째 시퀀스 
+#define N_SEQ_Sepa_Discharge_No_10				10	// 배출 세파 모드 || 9번째 시퀀스  
+#define N_SEQ_Sepa_Discharge_No_11				11	// 배출 세파 모드 || 10번째 시퀀스
+#define N_SEQ_Sepa_Discharge_No_12				12	// 배출 세파 모드 || 11번째 시퀀스
+#define N_SEQ_Sepa_Discharge_No_13				13	// 배출 세파 모드 || 12번째 시퀀스 
+#define N_SEQ_Sepa_Discharge_No_14				14	// 배출 세파 모드 || 13번째 시퀀스 
+#define N_SEQ_Sepa_Discharge_No_15				15	// 배출 세파 모드 || 14번째 시퀀스  
+#define N_SEQ_Sepa_Discharge_No_16				16	// 배출 세파 모드 || 15번째 시퀀스 
+#define N_SEQ_Sepa_Discharge_No_17				17	// 배출 세파 모드 || 16번째 시퀀스
+									
+//	[ 배출모듈 - 드라이런 모드 ]									  
+#define N_SEQ_DryRun_Discharge_No_1				1	// 배출 드라이런 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_DryRun_Discharge_No_2				2	// 배출 드라이런 모드 || 1번째 시퀀스
+#define N_SEQ_DryRun_Discharge_No_3				3	// 배출 드라이런 모드 || 2번째 시퀀스 
+#define N_SEQ_DryRun_Discharge_No_4				4	// 배출 드라이런 모드 || 3번째 시퀀스 
+#define N_SEQ_DryRun_Discharge_No_5				5	// 배출 드라이런 모드 || 4번째 시퀀스  
+#define N_SEQ_DryRun_Discharge_No_6				6	// 배출 드라이런 모드 || 5번째 시퀀스
+#define N_SEQ_DryRun_Discharge_No_7				7	// 배출 드라이런 모드 || 6번째 시퀀스								
+#define N_SEQ_DryRun_Discharge_No_8				8	// 배출 드라이런 모드 || 7번째 시퀀스 								
+#define N_SEQ_DryRun_Discharge_No_9				9	// 배출 드라이런 모드 || 8번째 시퀀스 								
+#define N_SEQ_DryRun_Discharge_No_10			10	// 배출 드라이런 모드 || 9번째 시퀀스  								
+#define N_SEQ_DryRun_Discharge_No_11			11	// 배출 드라이런 모드 || 10번째 시퀀스								
+#define N_SEQ_DryRun_Discharge_No_12			12	// 배출 드라이런 모드 || 11번째 시퀀스
+#define N_SEQ_DryRun_Discharge_No_13			13	// 배출 드라이런 모드 || 12번째 시퀀스 
+#define N_SEQ_DryRun_Discharge_No_14			14	// 배출 드라이런 모드 || 13번째 시퀀스 
+#define N_SEQ_DryRun_Discharge_No_15			15	// 배출 드라이런 모드 || 14번째 시퀀스 
+#define N_SEQ_DryRun_Discharge_No_16			16	// 배출 드라이런 모드 || 15번째 시퀀스 
+#define N_SEQ_DryRun_Discharge_No_17			17	// 배출 드라이런 모드 || 16번째 시퀀스 													
+//---------------------------------------------------------------------------------------
+// Suspend - ARC
+//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+// 2.1) 시퀀스 Main 변수
+//--------------------------------------------------------------------------------------------------------------------------
+//=========================================================//
+//ARC
+//=========================================================//
+// 메인시퀀스 
+Global P_Suspend_ARC_Cmd												// ARC 모듈 CMD 발생부
+Global P_Suspend_ARC_Status												// ARC 모듈 메인 상태 
+Global P_Suspend_ARC_State_Machine										// ARC 모듈 메인 시퀀스 단계
+Global P_Suspend_ARC_Seq_Index											// ARC 모듈 메인 인덱스
+Global P_Suspend_ARC_Self_Index											// ARC 모듈 Pre 인덱스 
+Global P_Suspend_ARC_Manual_Occur_Flag = 0;								// ARC 모듈 매뉴얼 발생 플래그
+// 인터락
+global	P_ARC_Seq_InterLock_Delay_Time(N_ARC_InterLock_EA);				// ARC 시퀀스별 인터락 딜레이타임. 
+P_ARC_Seq_InterLock_Delay_Time(0),N_ARC_InterLock_EA = 0;		
+global	P_ARC_Seq_InterLock_Flag(N_ARC_InterLock_EA);					// ARC 시퀀스 시작전 인터락 플래그.
+P_ARC_Seq_InterLock_Flag(0),N_ARC_InterLock_EA = 0;
+global P_Buffer_Seqdata_ARC_Array(N_STEP_END);
+// Tact Time		[ 참조 : 25.10.13 ARC Tact Time 추가 ]
+global P_Suspend_ARC_Timer = 0;											// ARC 시퀀스 타이머.
+global P_Suspend_ARC_Tact_Time_Array(20);								// ARC 시퀀스 Tact Time.
+P_Suspend_ARC_Tact_Time_Array(0),20 = 0;								// 초기화.
+global P_Suspend_ARC_Tact_Time = 0;										// ARC 시퀀스 총 Tact Time.
+//--------------------------------------------------------------------------------------------------------------------------
+// 2.2) 배출 모듈 명칭
+//--------------------------------------------------------------------------------------------------------------------------
+// [ 배출모듈 - 일반 생산 모드 ]
+#define N_SEQ_Normal_ARC_No_1					1	// ARC 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Normal_ARC_No_2					2	// ARC 일반 모드 || 1번째 시퀀스
+#define N_SEQ_Normal_ARC_No_3					3	// ARC 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_Normal_ARC_No_4					4	// ARC 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_Normal_ARC_No_5					5	// ARC 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_Normal_ARC_No_6					6	// ARC 일반 모드 || 5번째 시퀀스
+#define N_SEQ_Normal_ARC_No_7					7	// ARC 일반 모드 || 6번째 시퀀스
+#define N_SEQ_Normal_ARC_No_8					8	// ARC 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_Normal_ARC_No_9					9	// ARC 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_Normal_ARC_No_10					10	// ARC 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_Normal_ARC_No_11					11	// ARC 일반 모드 || 10번째 시퀀스
+#define N_SEQ_Normal_ARC_No_12					12	// ARC 일반 모드 || 11번째 시퀀스
+#define N_SEQ_Normal_ARC_No_13					13	// ARC 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_Normal_ARC_No_14					14	// ARC 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_Normal_ARC_No_15					15	// ARC 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_Normal_ARC_No_16					16	// ARC 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_Normal_ARC_No_17					17	// ARC 일반 모드 || 16번째 시퀀스  
+					
+// [ 배출모듈 - 세파 모드 ]										
+#define N_SEQ_Sepa_ARC_No_1						1	// ARC 세파 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Sepa_ARC_No_2						2	// ARC 세파 모드 || 1번째 시퀀스
+#define N_SEQ_Sepa_ARC_No_3						3	// ARC 세파 모드 || 2번째 시퀀스 
+#define N_SEQ_Sepa_ARC_No_4						4	// ARC 세파 모드 || 3번째 시퀀스 
+#define N_SEQ_Sepa_ARC_No_5						5	// ARC 세파 모드 || 4번째 시퀀스  
+#define N_SEQ_Sepa_ARC_No_6						6	// ARC 세파 모드 || 5번째 시퀀스
+#define N_SEQ_Sepa_ARC_No_7						7	// ARC 세파 모드 || 6번째 시퀀스
+#define N_SEQ_Sepa_ARC_No_8						8	// ARC 세파 모드 || 7번째 시퀀스 
+#define N_SEQ_Sepa_ARC_No_9						9	// ARC 세파 모드 || 8번째 시퀀스 
+#define N_SEQ_Sepa_ARC_No_10					10	// ARC 세파 모드 || 9번째 시퀀스  
+#define N_SEQ_Sepa_ARC_No_11					11	// ARC 세파 모드 || 10번째 시퀀스
+#define N_SEQ_Sepa_ARC_No_12					12	// ARC 세파 모드 || 11번째 시퀀스
+#define N_SEQ_Sepa_ARC_No_13					13	// ARC 세파 모드 || 12번째 시퀀스 
+#define N_SEQ_Sepa_ARC_No_14					14	// ARC 세파 모드 || 13번째 시퀀스 
+#define N_SEQ_Sepa_ARC_No_15					15	// ARC 세파 모드 || 14번째 시퀀스  
+#define N_SEQ_Sepa_ARC_No_16					16	// ARC 세파 모드 || 15번째 시퀀스 
+#define N_SEQ_Sepa_ARC_No_17					17	// ARC 세파 모드 || 16번째 시퀀스
+									
+//	[ 배출모듈 - 드라이런 모드 ]									  
+#define N_SEQ_DryRun_ARC_No_1					1	// ARC 드라이런 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_DryRun_ARC_No_2					2	// ARC 드라이런 모드 || 1번째 시퀀스
+#define N_SEQ_DryRun_ARC_No_3					3	// ARC 드라이런 모드 || 2번째 시퀀스 
+#define N_SEQ_DryRun_ARC_No_4					4	// ARC 드라이런 모드 || 3번째 시퀀스 
+#define N_SEQ_DryRun_ARC_No_5					5	// ARC 드라이런 모드 || 4번째 시퀀스  
+#define N_SEQ_DryRun_ARC_No_6					6	// ARC 드라이런 모드 || 5번째 시퀀스
+#define N_SEQ_DryRun_ARC_No_7					7	// ARC 드라이런 모드 || 6번째 시퀀스								
+#define N_SEQ_DryRun_ARC_No_8					8	// ARC 드라이런 모드 || 7번째 시퀀스 								
+#define N_SEQ_DryRun_ARC_No_9					9	// ARC 드라이런 모드 || 8번째 시퀀스 								
+#define N_SEQ_DryRun_ARC_No_10					10	// ARC 드라이런 모드 || 9번째 시퀀스  								
+#define N_SEQ_DryRun_ARC_No_11					11	// ARC 드라이런 모드 || 10번째 시퀀스								
+#define N_SEQ_DryRun_ARC_No_12					12	// ARC 드라이런 모드 || 11번째 시퀀스
+#define N_SEQ_DryRun_ARC_No_13					13	// ARC 드라이런 모드 || 12번째 시퀀스 
+#define N_SEQ_DryRun_ARC_No_14					14	// ARC 드라이런 모드 || 13번째 시퀀스 
+#define N_SEQ_DryRun_ARC_No_15					15	// ARC 드라이런 모드 || 14번째 시퀀스 
+#define N_SEQ_DryRun_ARC_No_16					16	// ARC 드라이런 모드 || 15번째 시퀀스 
+#define N_SEQ_DryRun_ARC_No_17					17	// ARC 드라이런 모드 || 16번째 시퀀스 
+//---------------------------------------------------------------------------------------
+// 3) Suspend - ARC
+//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+// 3.1) 시퀀스 Main 변수
+//--------------------------------------------------------------------------------------------------------------------------
+//===========================================================================================================//
+// Anode_1TR_Supply 모듈 - [ 참조 : 2025.10.24 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]
+//===========================================================================================================//
+Global P_Suspend_Anode_1TR_Cell_Supply_Cmd = 0;							// 음극 1TR 극판 공급 모듈 CMD 발생부
+Global P_Suspend_Anode_1TR_Cell_Supply_Status = 0;						// 음극 1TR 극판 공급 모듈 메인 상태 
+Global P_Suspend_Anode_1TR_Cell_Supply_State_Machine = 0;				// 음극 1TR 극판 공급 모듈 메인 시퀀스 단계
+Global P_Suspend_Anode_1TR_Cell_Supply_Seq_Index = 0;					// 음극 1TR 극판 공급 모듈 메인 인덱스
+Global P_Suspend_Anode_1TR_Cell_Supply_Self_Index = 0;					// 음극 1TR 극판 공급 모듈 Pre 인덱스 
+global P_Suspend_Anode_1TR_Cell_Supply_Module_Status = 0;				// ARC 진행 상태.
+
+
+/// 인터락
+global	P_Anode_1TR_Cell_Supply_Seq_InterLock_Delay_Time(N_Discharge_InterLock_EA);	// 음극 1TR 극판 공급 시퀀스별 인터락 딜레이타임. 
+P_Anode_1TR_Cell_Supply_Seq_InterLock_Delay_Time(0),N_Discharge_InterLock_EA = 0;	// 초기화.
+global	P_Anode_1TR_Cell_Supply_Seq_InterLock_Flag(N_Discharge_InterLock_EA);		// 음극 1TR 극판 공급 시작전 인터락 플래그.	
+P_Anode_1TR_Cell_Supply_Seq_InterLock_Flag(0),N_Discharge_InterLock_EA = 0;			// 초기화.
+global P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(N_STEP_END);					// 음극 1TR 극판 공급 시퀀스 배열.
+P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(0),N_STEP_END = 0;						// 초기화.
+// Tact Time		[ 참조 : 25.07.04 배출 Tact Time 추가 ]
+global P_Suspend_Anode_1TR_Cell_Supply_Timer = 0;									// 음극 1TR 극판 공급 시퀀스 타이머.
+global P_Suspend_Anode_1TR_Cell_Supply_Tact_Time_Array(20);							// 음극 1TR 극판 공급 시퀀스 Tact Time.
+P_Suspend_Anode_1TR_Cell_Supply_Tact_Time_Array(0),20 = 0;							// 초기화.
+global P_Suspend_Anode_1TR_Cell_Supply_Tact_Time = 0;								// 음극 1TR 극판 공급 시퀀스 총 Tact Time.
+
+//--------------------------------------------------------------------------------------------------------------------------
+// 3.2) 음극 1차 극판 공급 모듈 명칭
+//--------------------------------------------------------------------------------------------------------------------------
+// [ 음극 1차 극판 공급 모듈 - 일반 생산 모드 ]
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_1			1	// 음극1TR 셀 공급 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_2			2	// 음극1TR 셀 공급 일반 모드 || 1번째 시퀀스
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_3			3	// 음극1TR 셀 공급 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_4			4	// 음극1TR 셀 공급 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_5			5	// 음극1TR 셀 공급 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_6			6	// 음극1TR 셀 공급 일반 모드 || 5번째 시퀀스
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_7			7	// 음극1TR 셀 공급 일반 모드 || 6번째 시퀀스
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_8			8	// 음극1TR 셀 공급 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_9			9	// 음극1TR 셀 공급 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_10			10	// 음극1TR 셀 공급 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_11			11	// 음극1TR 셀 공급 일반 모드 || 10번째 시퀀스
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_12			12	// 음극1TR 셀 공급 일반 모드 || 11번째 시퀀스
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_13			13	// 음극1TR 셀 공급 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_14			14	// 음극1TR 셀 공급 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_15			15	// 음극1TR 셀 공급 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_16			16	// 음극1TR 셀 공급 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_Normal_AN_1TR_Supply_Cell_No_17			17	// 음극1TR 셀 공급 일반 모드 || 16번째 시퀀스  
+					
+// [ 음극 1차 극판 공급 모듈 - 세파 모드 ]										
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_1				1	// 음극1TR 셀 공급 세파 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_2				2	// 음극1TR 셀 공급 세파 모드 || 1번째 시퀀스
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_3				3	// 음극1TR 셀 공급 세파 모드 || 2번째 시퀀스 
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_4				4	// 음극1TR 셀 공급 세파 모드 || 3번째 시퀀스 
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_5				5	// 음극1TR 셀 공급 세파 모드 || 4번째 시퀀스  
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_6				6	// 음극1TR 셀 공급 세파 모드 || 5번째 시퀀스
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_7				7	// 음극1TR 셀 공급 세파 모드 || 6번째 시퀀스
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_8				8	// 음극1TR 셀 공급 세파 모드 || 7번째 시퀀스 
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_9				9	// 음극1TR 셀 공급 세파 모드 || 8번째 시퀀스 
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_10				10	// 음극1TR 셀 공급 세파 모드 || 9번째 시퀀스  
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_11				11	// 음극1TR 셀 공급 세파 모드 || 10번째 시퀀스
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_12				12	// 음극1TR 셀 공급 세파 모드 || 11번째 시퀀스
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_13				13	// 음극1TR 셀 공급 세파 모드 || 12번째 시퀀스 
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_14				14	// 음극1TR 셀 공급 세파 모드 || 13번째 시퀀스 
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_15				15	// 음극1TR 셀 공급 세파 모드 || 14번째 시퀀스  
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_16				16	// 음극1TR 셀 공급 세파 모드 || 15번째 시퀀스 
+#define N_SEQ_Sepa_AN_1TR_Supply_Cell_No_17				17	// 음극1TR 셀 공급 세파 모드 || 16번째 시퀀스
+									
+//	[ 음극 1차 극판 공급 모듈 - 드라이런 모드 ]									  
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_1			1	// 음극1TR 셀 공급 드라이런 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_2			2	// 음극1TR 셀 공급 드라이런 모드 || 1번째 시퀀스
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_3			3	// 음극1TR 셀 공급 드라이런 모드 || 2번째 시퀀스 
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_4			4	// 음극1TR 셀 공급 드라이런 모드 || 3번째 시퀀스 
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_5			5	// 음극1TR 셀 공급 드라이런 모드 || 4번째 시퀀스  
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_6			6	// 음극1TR 셀 공급 드라이런 모드 || 5번째 시퀀스
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_7			7	// 음극1TR 셀 공급 드라이런 모드 || 6번째 시퀀스								
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_8			8	// 음극1TR 셀 공급 드라이런 모드 || 7번째 시퀀스 								
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_9			9	// 음극1TR 셀 공급 드라이런 모드 || 8번째 시퀀스 								
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_10			10	// 음극1TR 셀 공급 드라이런 모드 || 9번째 시퀀스  								
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_11			11	// 음극1TR 셀 공급 드라이런 모드 || 10번째 시퀀스								
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_12			12	// 음극1TR 셀 공급 드라이런 모드 || 11번째 시퀀스
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_13			13	// 음극1TR 셀 공급 드라이런 모드 || 12번째 시퀀스 
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_14			14	// 음극1TR 셀 공급 드라이런 모드 || 13번째 시퀀스 
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_15			15	// 음극1TR 셀 공급 드라이런 모드 || 14번째 시퀀스 
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_16			16	// 음극1TR 셀 공급 드라이런 모드 || 15번째 시퀀스 
+#define N_SEQ_DryRun_AN_1TR_Supply_Cell_No_17			17	// 음극1TR 셀 공급 드라이런 모드 || 16번째 시퀀스 	
+
+
+//---------------------------------------------------------------------------------------
+// 4) HOLD - 극판 유무 검사 
+//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+// 4.1) 시퀀스 Main 변수
+//--------------------------------------------------------------------------------------------------------------------------
+// 4.1.1) HOLD-극판 유무검사 S/T변수
+Global P_Hold_Exist_Insp_Cmd = 0;						   	// HOLD_극판 유무검사 모듈 CMD 발생부
+Global P_Hold_Exist_Insp_Status = 0;					   	// HOLD_극판 유무검사 모듈 메인 상태 
+Global P_Hold_Exist_Insp_Module_Status = 0;				   	// HOLD_극판 유무검사 모듈 진행 상태.
+Global P_Hold_Exist_Insp_State_Machine = 0;				   	// HOLD_극판 유무검사 모듈 메인 시퀀스 단계
+Global P_Hold_Exist_Insp_Seq_Index = 0;					   	// HOLD_극판 유무검사 모듈 메인 인덱스
+Global P_Hold_Exist_Insp_Self_Index = 0;				   	// HOLD_극판 유무검사 모듈 Pre 인덱스 
+Global P_Hold_Exist_Insp_Debug_Edge = 0;
+// 4.1.2) HOLD-극판 유무검사 순차 시퀀스 배열값
+Global P_Buffer_Seqdata_Hold_Exist_Insp_Array(N_STEP_END);	// HOLD_극판 유무검사 시퀀스 배열.
+P_Buffer_Seqdata_Hold_Exist_Insp_Array(0),N_STEP_END = 0;	// HOLD_극판 유무검사	초기화.
+// 4.1.3) HOLD-극판유무검사 Tact Time		
+Global P_Hold_Exist_Insp_Timer = 0;							// HOLD_극판 유무검사 시퀀스 타이머.
+Global P_Hold_Exist_Insp_Tact_Time_Array(20);				// HOLD_극판 유무검사 시퀀스 Tact Time.
+P_Hold_Exist_Insp_Tact_Time_Array(0),20 = 0;				// HOLD_극판 유무검사 초기화.
+Global P_Hold_Exist_Insp_Tact_Time = 0;						// HOLD_극판 유무검사 시퀀스 총 Tact Time.
+//--------------------------------------------------------------------------------------------------------------------------
+// 4.2) Hold 극판 유무검사 명칭
+//--------------------------------------------------------------------------------------------------------------------------
+#define N_SEQ_Normal_Hold_Exist_Insp_No_1			1		// Hold_극판유무검사 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Normal_Hold_Exist_Insp_No_2			2		// Hold_극판유무검사 일반 모드 || 1번째 시퀀스
+#define N_SEQ_Normal_Hold_Exist_Insp_No_3			3		// Hold_극판유무검사 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_Normal_Hold_Exist_Insp_No_4			4		// Hold_극판유무검사 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_Normal_Hold_Exist_Insp_No_5			5		// Hold_극판유무검사 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_Normal_Hold_Exist_Insp_No_6			6		// Hold_극판유무검사 일반 모드 || 5번째 시퀀스
+#define N_SEQ_Normal_Hold_Exist_Insp_No_7			7		// Hold_극판유무검사 일반 모드 || 6번째 시퀀스
+#define N_SEQ_Normal_Hold_Exist_Insp_No_8			8		// Hold_극판유무검사 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_Normal_Hold_Exist_Insp_No_9			9		// Hold_극판유무검사 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_Normal_Hold_Exist_Insp_No_10			10		// Hold_극판유무검사 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_Normal_Hold_Exist_Insp_No_11			11		// Hold_극판유무검사 일반 모드 || 10번째 시퀀스
+#define N_SEQ_Normal_Hold_Exist_Insp_No_12			12		// Hold_극판유무검사 일반 모드 || 11번째 시퀀스
+#define N_SEQ_Normal_Hold_Exist_Insp_No_13			13		// Hold_극판유무검사 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_Normal_Hold_Exist_Insp_No_14			14		// Hold_극판유무검사 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_Normal_Hold_Exist_Insp_No_15			15		// Hold_극판유무검사 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_Normal_Hold_Exist_Insp_No_16			16		// Hold_극판유무검사 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_Normal_Hold_Exist_Insp_No_17			17		// Hold_극판유무검사 일반 모드 || 16번째 시퀀스  
+
+
+//---------------------------------------------------------------------------------------
+// 5) HOLD - NG PNP 제거
+//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+// 5.1) 시퀀스 Main 변수
+//--------------------------------------------------------------------------------------------------------------------------
+// 5.1.1) HOLD-NG PNP 제거 S/T변수
+Global P_Hold_Remove_NG_PNP_Cmd = 0;						   	// HOLD_NG PNP 제거 모듈 CMD 발생부
+Global P_Hold_Remove_NG_PNP_Status = 0;					   		// HOLD_NG PNP 제거 모듈 메인 상태 
+Global P_Hold_Remove_NG_PNP_Module_Status = 0;				   	// HOLD_NG PNP 제거 모듈 진행 상태.
+Global P_Hold_Remove_NG_PNP_State_Machine = 0;				   	// HOLD_NG PNP 제거 모듈 메인 시퀀스 단계
+Global P_Hold_Remove_NG_PNP_Seq_Index = 0;					   	// HOLD_NG PNP 제거 모듈 메인 인덱스
+Global P_Hold_Remove_NG_PNP_Self_Index = 0;						// HOLD_NG PNP 제거 모듈 Pre 인덱스 
+Global P_Hold_Remove_NG_PNP_Debug_Edge = 0;
+// 5.1.2) HOLD-극판NG PNP 순차 시퀀스 배열값
+Global P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(N_STEP_END);	// HOLD_NG PNP 제거 시퀀스 배열.
+P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(0),N_STEP_END = 0;	// HOLD_NG PNP 제거	초기화.
+// 5.1.3) HOLD-NG PNP Tact Time							
+Global P_Hold_Remove_NG_PNP_Timer = 0;							// HOLD_NG PNP 제거 시퀀스 타이머.
+Global P_Hold_Remove_NG_PNP_Tact_Time_Array(20);				// HOLD_NG PNP 제거 시퀀스 Tact Time.
+P_Hold_Remove_NG_PNP_Tact_Time_Array(0),20 = 0;					// HOLD_NG PNP 제거 초기화.
+Global P_Hold_Remove_NG_PNP_Tact_Time = 0;						// HOLD_NG PNP 제거 시퀀스 총 Tact Time.
+
+Global P_PLC01_Hold_Remove_NG_PNP_Sub_Flag = 0;					// HOLD NG PNP 제거 Sub 플래그 
+Global P_PLC01_Hold_Remove_NG_PNP_Sub_State_Machine = 0;		// HOLD NG PNP 제거 Sub 스텟머신
+Global P_PLC01_Hold_Remove_NG_PNP_Sub_Status = 0;				// HOLD NG PNP 제거 Sub 상태
+
+//--------------------------------------------------------------------------------------------------------------------------
+// 5.2) Hold NG PNP 제거 명칭
+//--------------------------------------------------------------------------------------------------------------------------
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_1			1		// Hold_NG PNP 제거 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_2			2		// Hold_NG PNP 제거 일반 모드 || 1번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_3			3		// Hold_NG PNP 제거 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_4			4		// Hold_NG PNP 제거 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_5			5		// Hold_NG PNP 제거 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_6			6		// Hold_NG PNP 제거 일반 모드 || 5번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_7			7		// Hold_NG PNP 제거 일반 모드 || 6번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_8			8		// Hold_NG PNP 제거 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_9			9		// Hold_NG PNP 제거 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_10			10		// Hold_NG PNP 제거 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_11			11		// Hold_NG PNP 제거 일반 모드 || 10번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_12			12		// Hold_NG PNP 제거 일반 모드 || 11번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_13			13		// Hold_NG PNP 제거 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_14			14		// Hold_NG PNP 제거 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_15			15		// Hold_NG PNP 제거 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_16			16		// Hold_NG PNP 제거 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_Normal_Hold_Remove_NG_PNP_No_17			17		// Hold_NG PNP 제거 일반 모드 || 16번째 시퀀스  
+
+
+//---------------------------------------------------------------------------------------
+// 6) HOLD - Align 제거
+//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+// 6.1) 시퀀스 Main 변수
+//--------------------------------------------------------------------------------------------------------------------------
+// 6.1.1) HOLD-Align 제거 S/T변수
+Global P_Hold_Remove_Align_Cmd = 0;								// HOLD_Align 제거 모듈 CMD 발생부
+Global P_Hold_Remove_Align_Status = 0;					   		// HOLD_Align 제거 모듈 메인 상태 
+Global P_Hold_Remove_Align_Module_Status = 0;				   	// HOLD_Align 제거 모듈 진행 상태.
+Global P_Hold_Remove_Align_State_Machine = 0;				   	// HOLD_Align 제거 모듈 메인 시퀀스 단계
+Global P_Hold_Remove_Align_Seq_Index = 0;					   	// HOLD_Align 제거 모듈 메인 인덱스
+Global P_Hold_Remove_Align_Self_Index = 0;						// HOLD_Align 제거 모듈 Pre 인덱스 
+Global P_Hold_Remove_Align_Debug_Edge = 0;
+// 6.1.2) HOLD-Align 제거 순차 시퀀스 배열값
+Global P_Buffer_Seqdata_Hold_Remove_Align_Array(N_STEP_END);	// HOLD_Align 제거 시퀀스 배열.
+P_Buffer_Seqdata_Hold_Remove_Align_Array(0),N_STEP_END = 0;		// HOLD_Align 제거	초기화.
+// 6.1.3) HOLD-Align 제거 Tact Time							
+Global P_Hold_Remove_Align_Timer = 0;							// HOLD_Align 제거 시퀀스 타이머.
+Global P_Hold_Remove_Align_Tact_Time_Array(20);					// HOLD_Align 제거 시퀀스 Tact Time.
+P_Hold_Remove_Align_Tact_Time_Array(0),20 = 0;					// HOLD_Align 제거 초기화.
+Global P_Hold_Remove_Align_Tact_Time = 0;						// HOLD_Align 제거 시퀀스 총 Tact Time.
+
+
+Global P_PLC01_Hold_Remove_Align_Sub_Flag = 0;						// HOLD Align 제거 Sub 플래그 
+Global P_PLC01_Hold_Remove_Align_Sub_State_Machine = 0;			// HOLD Align 제거 Sub 스텟머신
+Global P_PLC01_Hold_Remove_Align_Sub_Status = 0;					// HOLD Align 제거 Sub 상태
+//--------------------------------------------------------------------------------------------------------------------------
+// 6.2) Hold Align 제거 명칭
+//--------------------------------------------------------------------------------------------------------------------------
+#define N_SEQ_Normal_Hold_Remove_Align_No_1				1		// Hold_Align 제거 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Normal_Hold_Remove_Align_No_2				2		// Hold_Align 제거 일반 모드 || 1번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_Align_No_3				3		// Hold_Align 제거 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_Align_No_4				4		// Hold_Align 제거 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_Align_No_5				5		// Hold_Align 제거 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_Normal_Hold_Remove_Align_No_6				6		// Hold_Align 제거 일반 모드 || 5번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_Align_No_7				7		// Hold_Align 제거 일반 모드 || 6번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_Align_No_8				8		// Hold_Align 제거 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_Align_No_9				9		// Hold_Align 제거 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_Align_No_10			10		// Hold_Align 제거 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_Normal_Hold_Remove_Align_No_11			11		// Hold_Align 제거 일반 모드 || 10번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_Align_No_12			12		// Hold_Align 제거 일반 모드 || 11번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_Align_No_13			13		// Hold_Align 제거 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_Align_No_14			14		// Hold_Align 제거 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_Align_No_15			15		// Hold_Align 제거 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_Normal_Hold_Remove_Align_No_16			16		// Hold_Align 제거 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_Normal_Hold_Remove_Align_No_17			17		// Hold_Align 제거 일반 모드 || 16번째 시퀀스  
+
+//---------------------------------------------------------------------------------------
+// 7) HOLD - 2TR 제거
+//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+// 7.1) 시퀀스 Main 변수
+//--------------------------------------------------------------------------------------------------------------------------
+// 7.1.1) HOLD-2TR 제거 S/T변수
+Global P_Hold_Remove_2TR_Cmd = 0;								// HOLD_2TR 제거 모듈 CMD 발생부
+Global P_Hold_Remove_2TR_Status = 0;					   		// HOLD_2TR 제거 모듈 메인 상태 
+Global P_Hold_Remove_2TR_Module_Status = 0;						// HOLD_2TR 제거 모듈 진행 상태.
+Global P_Hold_Remove_2TR_State_Machine = 0;						// HOLD_2TR 제거 모듈 메인 시퀀스 단계
+Global P_Hold_Remove_2TR_Seq_Index = 0;							// HOLD_2TR 제거 모듈 메인 인덱스
+Global P_Hold_Remove_2TR_Self_Index = 0;						// HOLD_2TR 제거 모듈 Pre 인덱스 
+Global P_Hold_Remove_2TR_Debug_Edge = 0;
+// 7.1.2) HOLD- 2TR 제거 순차 시퀀스 배열값
+Global P_Buffer_Seqdata_Hold_Remove_2TR_Array(N_STEP_END);		// HOLD_Align 제거 시퀀스 배열.
+P_Buffer_Seqdata_Hold_Remove_2TR_Array(0),N_STEP_END = 0;		// HOLD_Align 제거	초기화.
+// 7.1.3) HOLD- 2TR 제거 Tact Time							
+Global P_Hold_Remove_2TR_Timer = 0;								// HOLD_Align 제거 시퀀스 타이머.
+Global P_Hold_Remove_2TR_Tact_Time_Array(20);					// HOLD_Align 제거 시퀀스 Tact Time.
+P_Hold_Remove_2TR_Tact_Time_Array(0),20 = 0;					// HOLD_Align 제거 초기화.
+Global P_Hold_Remove_2TR_Tact_Time = 0;							// HOLD_Align 제거 시퀀스 총 Tact Time.
+//--------------------------------------------------------------------------------------------------------------------------
+// 7.2) Hold 2TR 제거 명칭
+//--------------------------------------------------------------------------------------------------------------------------
+#define N_SEQ_Normal_Hold_Remove_2TR_No_1				1		// Hold_2TR 제거 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Normal_Hold_Remove_2TR_No_2				2		// Hold_2TR 제거 일반 모드 || 1번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_2TR_No_3				3		// Hold_2TR 제거 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_2TR_No_4				4		// Hold_2TR 제거 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_2TR_No_5				5		// Hold_2TR 제거 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_Normal_Hold_Remove_2TR_No_6				6		// Hold_2TR 제거 일반 모드 || 5번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_2TR_No_7				7		// Hold_2TR 제거 일반 모드 || 6번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_2TR_No_8				8		// Hold_2TR 제거 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_2TR_No_9				9		// Hold_2TR 제거 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_2TR_No_10				10		// Hold_2TR 제거 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_Normal_Hold_Remove_2TR_No_11				11		// Hold_2TR 제거 일반 모드 || 10번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_2TR_No_12				12		// Hold_2TR 제거 일반 모드 || 11번째 시퀀스
+#define N_SEQ_Normal_Hold_Remove_2TR_No_13				13		// Hold_2TR 제거 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_2TR_No_14				14		// Hold_2TR 제거 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_Normal_Hold_Remove_2TR_No_15				15		// Hold_2TR 제거 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_Normal_Hold_Remove_2TR_No_16				16		// Hold_2TR 제거 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_Normal_Hold_Remove_2TR_No_17				17		// Hold_2TR 제거 일반 모드 || 16번째 시퀀스  
+
+//---------------------------------------------------------------------------------------
+// 8) HOLD - 1TR 공급
+//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+// 8.1) 시퀀스 Main 변수
+//--------------------------------------------------------------------------------------------------------------------------
+// 8.1.1) HOLD-1TR 공급 S/T변수
+Global P_Hold_Supply_1TR_Cmd = 0;								// HOLD_1TR 공급 모듈 CMD 발생부
+Global P_Hold_Supply_1TR_Status = 0;					   		// HOLD_1TR 공급 모듈 메인 상태 
+Global P_Hold_Supply_1TR_Module_Status = 0;						// HOLD_1TR 공급 모듈 진행 상태.
+Global P_Hold_Supply_1TR_State_Machine = 0;						// HOLD_1TR 공급 모듈 메인 시퀀스 단계
+Global P_Hold_Supply_1TR_Seq_Index = 0;							// HOLD_1TR 공급 모듈 메인 인덱스
+Global P_Hold_Supply_1TR_Self_Index = 0;						// HOLD_1TR 공급 모듈 Pre 인덱스 
+Global P_Hold_Supply_1TR_Debug_Edge = 0;
+// 8.1.2) HOLD-1TR 공급 순차 시퀀스 배열값
+Global P_Buffer_Seqdata_Hold_Supply_1TR_Array(N_STEP_END);		// HOLD_1TR 공급 모듈 시퀀스 배열.
+P_Buffer_Seqdata_Hold_Supply_1TR_Array(0),N_STEP_END = 0;		// HOLD_1TR 공급 모듈 초기화.
+// 8.1.3) HOLD-1TR 공급 Tact Time							
+Global P_Hold_Supply_1TR_Timer = 0;								// HOLD_1TR 공급 시퀀스 타이머.
+Global P_Hold_Supply_1TR_Tact_Time_Array(20);					// HOLD_1TR 공급 시퀀스 Tact Time.
+P_Hold_Supply_1TR_Tact_Time_Array(0),20 = 0;					// HOLD_1TR 공급 초기화.
+Global P_Hold_Supply_1TR_Tact_Time = 0;							// HOLD_1TR 공급 시퀀스 총 Tact Time.
+
+Global P_PLC01_Hold_Supply_1TR_Memory_RTN = 0;					// HOLD 메모리타워 리턴값
+Global P_PLC01_Hold_Supply_1TR_Judge_Flag = 0;					// HOLD 1TR 공급 판단 플래그 
+Global P_PLC01_Hold_Supply_1TR_Judge_State_Machine = 0;			// HOLD 1TR 공급 판단 스텟머신
+Global P_PLC01_Hold_Supply_1TR_Judge_Status = 0;				// HOLD 1TR 공급 판단 상태
+
+Global P_Plate_1TR_Supply_Module_Judge_Bit = 0;					// HOLD 1TR 공급 음극 기준 - 판단 비트 
+#define N_Plate_1TR_Supply_1	1
+#define N_Plate_1TR_Supply_2	2
+#define N_Plate_1TR_Supply_3	3
+#define N_Plate_1TR_Supply_4	4
+#define N_Plate_1TR_Supply_5	5
+
+
+
+
+
+//--------------------------------------------------------------------------------------------------------------------------
+// 8.2) Hold 1TR 공급 명칭
+//--------------------------------------------------------------------------------------------------------------------------
+#define N_SEQ_Normal_Hold_Supply_1TR_No_1				1		// Hold_1TR 공급 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Normal_Hold_Supply_1TR_No_2				2		// Hold_1TR 공급 일반 모드 || 1번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_1TR_No_3				3		// Hold_1TR 공급 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_1TR_No_4				4		// Hold_1TR 공급 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_1TR_No_5				5		// Hold_1TR 공급 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_Normal_Hold_Supply_1TR_No_6				6		// Hold_1TR 공급 일반 모드 || 5번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_1TR_No_7				7		// Hold_1TR 공급 일반 모드 || 6번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_1TR_No_8				8		// Hold_1TR 공급 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_1TR_No_9				9		// Hold_1TR 공급 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_1TR_No_10				10		// Hold_1TR 공급 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_Normal_Hold_Supply_1TR_No_11				11		// Hold_1TR 공급 일반 모드 || 10번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_1TR_No_12				12		// Hold_1TR 공급 일반 모드 || 11번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_1TR_No_13				13		// Hold_1TR 공급 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_1TR_No_14				14		// Hold_1TR 공급 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_1TR_No_15				15		// Hold_1TR 공급 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_Normal_Hold_Supply_1TR_No_16				16		// Hold_1TR 공급 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_Normal_Hold_Supply_1TR_No_17				17		// Hold_1TR 공급 일반 모드 || 16번째 시퀀스  
+
+//---------------------------------------------------------------------------------------
+// 9) HOLD - Align 공급
+//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+// 9.1) 시퀀스 Main 변수
+//--------------------------------------------------------------------------------------------------------------------------
+// 9.1.1) HOLD-Align 공급 S/T변수
+Global P_Hold_Supply_Align_Cmd = 0;								// HOLD_Align 공급 모듈 CMD 발생부
+Global P_Hold_Supply_Align_Status = 0;					   		// HOLD_Align 공급 모듈 메인 상태 
+Global P_Hold_Supply_Align_Module_Status = 0;					// HOLD_Align 공급 모듈 진행 상태.
+Global P_Hold_Supply_Align_State_Machine = 0;					// HOLD_Align 공급 모듈 메인 시퀀스 단계
+Global P_Hold_Supply_Align_Seq_Index = 0;						// HOLD_Align 공급 모듈 메인 인덱스
+Global P_Hold_Supply_Align_Self_Index = 0;						// HOLD_Align 공급 모듈 Pre 인덱스 
+Global P_Hold_Supply_Align_Debug_Edge = 0;
+// 9.1.2) HOLD-Align 공급 순차 시퀀스 배열값
+Global P_Buffer_Seqdata_Hold_Supply_Align_Array(N_STEP_END);	// HOLD_Align 공급 모듈 시퀀스 배열.
+P_Buffer_Seqdata_Hold_Supply_Align_Array(0),N_STEP_END = 0;		// HOLD_Align 공급 모듈 초기화.
+// 9.1.3) HOLD-Align 공급 Tact Time							
+Global P_Hold_Supply_Align_Timer = 0;							// HOLD_Align 공급 시퀀스 타이머.
+Global P_Hold_Supply_Align_Tact_Time_Array(20);					// HOLD_Align 공급 시퀀스 Tact Time.
+P_Hold_Supply_Align_Tact_Time_Array(0),20 = 0;					// HOLD_Align 공급 초기화.
+Global P_Hold_Supply_Align_Tact_Time = 0;						// HOLD_Align 공급 시퀀스 총 Tact Time.
+
+
+//--------------------------------------------------------------------------------------------------------------------------
+// 9.2) Hold Align 공급 명칭
+//--------------------------------------------------------------------------------------------------------------------------
+#define N_SEQ_Normal_Hold_Supply_Align_No_1				1		// Hold_Align 공급 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Normal_Hold_Supply_Align_No_2				2		// Hold_Align 공급 일반 모드 || 1번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_Align_No_3				3		// Hold_Align 공급 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_Align_No_4				4		// Hold_Align 공급 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_Align_No_5				5		// Hold_Align 공급 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_Normal_Hold_Supply_Align_No_6				6		// Hold_Align 공급 일반 모드 || 5번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_Align_No_7				7		// Hold_Align 공급 일반 모드 || 6번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_Align_No_8				8		// Hold_Align 공급 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_Align_No_9				9		// Hold_Align 공급 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_Align_No_10			10		// Hold_Align 공급 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_Normal_Hold_Supply_Align_No_11			11		// Hold_Align 공급 일반 모드 || 10번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_Align_No_12			12		// Hold_Align 공급 일반 모드 || 11번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_Align_No_13			13		// Hold_Align 공급 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_Align_No_14			14		// Hold_Align 공급 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_Align_No_15			15		// Hold_Align 공급 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_Normal_Hold_Supply_Align_No_16			16		// Hold_Align 공급 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_Normal_Hold_Supply_Align_No_17			17		// Hold_Align 공급 일반 모드 || 16번째 시퀀스  
+
+//---------------------------------------------------------------------------------------
+// 10) HOLD - 2TR 공급
+//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+// 10.1) 시퀀스 Main 변수
+//--------------------------------------------------------------------------------------------------------------------------
+// 10.1.1) HOLD-2TR 공급 S/T변수
+Global P_Hold_Supply_2TR_Cmd = 0;								// HOLD_2TR 공급 모듈 CMD 발생부
+Global P_Hold_Supply_2TR_Status = 0;					   		// HOLD_2TR 공급 모듈 메인 상태 
+Global P_Hold_Supply_2TR_Module_Status = 0;						// HOLD_2TR 공급 모듈 진행 상태.
+Global P_Hold_Supply_2TR_State_Machine = 0;						// HOLD_2TR 공급 모듈 메인 시퀀스 단계
+Global P_Hold_Supply_2TR_Seq_Index = 0;							// HOLD_2TR 공급 모듈 메인 인덱스
+Global P_Hold_Supply_2TR_Self_Index = 0;						// HOLD_2TR 공급 모듈 Pre 인덱스 
+Global P_Hold_Supply_2TR_Debug_Edge = 0;
+// 10.1.2) HOLD-2TR공급 순차 시퀀스 배열값
+Global P_Buffer_Seqdata_Hold_Supply_2TR_Array(N_STEP_END);		// HOLD_2TR 공급 모듈 시퀀스 배열.
+P_Buffer_Seqdata_Hold_Supply_2TR_Array(0),N_STEP_END = 0;		// HOLD_2TR 공급 모듈 초기화.
+// 10.1.3) HOLD-2TR공급 Tact Time							
+Global P_Hold_Supply_2TR_Timer = 0;								// HOLD_2TR 공급 시퀀스 타이머.
+Global P_Hold_Supply_2TR_Tact_Time_Array(20);					// HOLD_2TR 공급 시퀀스 Tact Time.
+P_Hold_Supply_2TR_Tact_Time_Array(0),20 = 0;					// HOLD_2TR 공급 초기화.
+Global P_Hold_Supply_2TR_Tact_Time = 0;							// HOLD_2TR 공급 시퀀스 총 Tact Time.
+//--------------------------------------------------------------------------------------------------------------------------
+// 10.2) Hold 2TR 공급 명칭
+//--------------------------------------------------------------------------------------------------------------------------
+#define N_SEQ_Normal_Hold_Supply_2TR_No_1				1		// Hold_2TR 공급 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Normal_Hold_Supply_2TR_No_2				2		// Hold_2TR 공급 일반 모드 || 1번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_2TR_No_3				3		// Hold_2TR 공급 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_2TR_No_4				4		// Hold_2TR 공급 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_2TR_No_5				5		// Hold_2TR 공급 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_Normal_Hold_Supply_2TR_No_6				6		// Hold_2TR 공급 일반 모드 || 5번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_2TR_No_7				7		// Hold_2TR 공급 일반 모드 || 6번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_2TR_No_8				8		// Hold_2TR 공급 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_2TR_No_9				9		// Hold_2TR 공급 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_2TR_No_10				10		// Hold_2TR 공급 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_Normal_Hold_Supply_2TR_No_11				11		// Hold_2TR 공급 일반 모드 || 10번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_2TR_No_12				12		// Hold_2TR 공급 일반 모드 || 11번째 시퀀스
+#define N_SEQ_Normal_Hold_Supply_2TR_No_13				13		// Hold_2TR 공급 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_2TR_No_14				14		// Hold_2TR 공급 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_Normal_Hold_Supply_2TR_No_15				15		// Hold_2TR 공급 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_Normal_Hold_Supply_2TR_No_16				16		// Hold_2TR 공급 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_Normal_Hold_Supply_2TR_No_17				17		// Hold_2TR 공급 일반 모드 || 16번째 시퀀스  
+
+//---------------------------------------------------------------------------------------
+// 11) HOLD - Semi Run Pos Move
+//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+// 11.1) 시퀀스 Main 변수
+//--------------------------------------------------------------------------------------------------------------------------
+// 11.1.1) HOLD-Semi Run Pos Move S/T변수
+Global P_Hold_Semi_Run_Pos_Move_Cmd = 0;							// HOLD_Semi_Run_Pos_Move 공급 모듈 CMD 발생부
+Global P_Hold_Semi_Run_Pos_Move_Status = 0;					   		// HOLD_Semi_Run_Pos_Move 공급 모듈 메인 상태 
+Global P_Hold_Semi_Run_Pos_Move_Module_Status = 0;					// HOLD_Semi_Run_Pos_Move 공급 모듈 진행 상태.
+Global P_Hold_Semi_Run_Pos_Move_State_Machine = 0;					// HOLD_Semi_Run_Pos_Move 공급 모듈 메인 시퀀스 단계
+Global P_Hold_Semi_Run_Pos_Move_Seq_Index = 0;						// HOLD_Semi_Run_Pos_Move 공급 모듈 메인 인덱스
+Global P_Hold_Semi_Run_Pos_Move_Self_Index = 0;						// HOLD_Semi_Run_Pos_Move 공급 모듈 Pre 인덱스 
+Global P_Hold_Semi_Run_Pos_Move_Debug_Edge = 0;
+// 11.1.2) HOLD-Semi Run Pos Move 순차 시퀀스 배열값
+Global P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(N_STEP_END);	// HOLD_Semi_Run_Pos_Move 공급 모듈 시퀀스 배열.
+P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(0),N_STEP_END = 0;	// HOLD_Semi_Run_Pos_Move 공급 모듈 초기화.
+// 11.1.3) HOLD-Semi Run Pos Move Tact Time							
+Global P_Hold_Semi_Run_Pos_Move_Timer = 0;							// HOLD_Semi_Run_Pos_Move 공급 시퀀스 타이머.
+Global P_Hold_Semi_Run_Pos_Move_Tact_Time_Array(20);				// HOLD_Semi_Run_Pos_Move 공급 시퀀스 Tact Time.
+P_Hold_Semi_Run_Pos_Move_Tact_Time_Array(0),20 = 0;					// HOLD_Semi_Run_Pos_Move 공급 초기화.
+Global P_Hold_Semi_Run_Pos_Move_Tact_Time = 0;						// HOLD_Semi_Run_Pos_Move 공급 시퀀스 총 Tact Time.
+//--------------------------------------------------------------------------------------------------------------------------
+// 11.2) Hold - Semi Run Pos Move 공급 명칭
+//--------------------------------------------------------------------------------------------------------------------------
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_1		1			// Hold_Semi_Run_Pos_Move 일반 모드 || ↓첫번째 시퀀스의 대한 Preconditon Check 단계
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_2		2			// Hold_Semi_Run_Pos_Move 일반 모드 || 1번째 시퀀스
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_3		3			// Hold_Semi_Run_Pos_Move 일반 모드 || 2번째 시퀀스 
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_4		4			// Hold_Semi_Run_Pos_Move 일반 모드 || 3번째 시퀀스 
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_5		5			// Hold_Semi_Run_Pos_Move 일반 모드 || 4번째 시퀀스  
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_6		6			// Hold_Semi_Run_Pos_Move 일반 모드 || 5번째 시퀀스
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_7		7			// Hold_Semi_Run_Pos_Move 일반 모드 || 6번째 시퀀스
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_8		8			// Hold_Semi_Run_Pos_Move 일반 모드 || 7번째 시퀀스 
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_9		9			// Hold_Semi_Run_Pos_Move 일반 모드 || 8번째 시퀀스 
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_10		10			// Hold_Semi_Run_Pos_Move 일반 모드 || 9번째 시퀀스  
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_11		11			// Hold_Semi_Run_Pos_Move 일반 모드 || 10번째 시퀀스
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_12		12			// Hold_Semi_Run_Pos_Move 일반 모드 || 11번째 시퀀스
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_13		13			// Hold_Semi_Run_Pos_Move 일반 모드 || 12번째 시퀀스 
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_14		14			// Hold_Semi_Run_Pos_Move 일반 모드 || 13번째 시퀀스 
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_15		15			// Hold_Semi_Run_Pos_Move 일반 모드 || 14번째 시퀀스  
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_16		16			// Hold_Semi_Run_Pos_Move 일반 모드 || 15번째 시퀀스  
+#define N_SEQ_Normal_Hold_Semi_Rum_Pos_Move_No_17		17			// Hold_Semi_Run_Pos_Move 일반 모드 || 16번째 시퀀스  
+
+//=======================================================================================
+// 액팅 동작 리스트 변수 정의
+//=======================================================================================
+//---------------------------------------------------------------------------------------
+// Suspend - 배출
+//---------------------------------------------------------------------------------------
+// 배출 //
+#define N_Act_FR_Clamp_OFF									1	// [파이널 롤러 언클램프]
+#define N_Act_FR_Clamp_ON									2	// [파이널 롤러 클램프]
+#define N_Act_FR_Discharge_Pos								3	// [파이널 롤러 배출 위치]
+#define N_Act_FR_Stack_Pos									4	// [파이널 롤러 스텍 위치]
+#define N_Act_First_Unloader_UP								5	// [1차 언로더 상승 - 스텍 위치 이동]
+#define N_Act_First_Unloader_FWD							6	// [1차 언로더 전진 - 스텍 진입 이동]
+#define N_Act_First_Unloader_Grip_ON						7	// [1차 언로더 그립 ON]
+#define N_Act_First_Unloader_Grip_OFF						8	// [1차 언로더 그립 OFF]
+#define N_Act_First_Unloader_Grip_Cell_Pos					9	// [1차 언로더 셀 부착 위치 이동]
+#define N_Act_First_Unloader_BWD_Wait_Pos					10	// [1차 언로더 그립 후 후진을 위한 대기 위치 이동]
+#define N_Act_First_Unloader_BWD							11	// [1차 언로더 그립 후 후진 위치 이동]
+#define N_Act_First_Unloader_Stack_Down						12	// [1차 언로더 하강 위치 이동]
+#define N_Act_First_Unloader_Turn							13	// [1차 언로더 회피위치 이동 - 45도 회전]
+#define N_Act_First_Unloader_Handover_Pos					14	// [1차 언로더 인계위치 이동 - 90도 회전]
+#define N_Act_Cathode_Clamp_OFF								15	// [양극 클램프 OFF]
+#define N_Act_Sepa_Cutter_Heating							16	// [세파 커티 열선 ON]
+#define N_Act_Sepa_Cutter_Cylinder_FWD						17	// [세파 커터 전진]
+#define N_Act_Sepa_Cutter_Cylinder_BWD						18	// [세파 커터 후진]
+#define N_Act_After_Action_Init								19	// [배출 후 액션 함수 초기화]
+#define N_Act_Sheet_Paper_BWD								20	// [시트 페이퍼 후진]	
+#define N_Act_Sheet_Paper_Vacuum_ON							21	// [시트 페이퍼 진공 ON]
+#define N_Act_Discharge_Spare_1								22	// [스페어1]
+#define N_Act_Discharge_Spare_2								23	// [스페어2]
+#define N_Act_Discharge_Spare_3								24	// [스페어3]
+#define N_Act_Discharge_Spare_4								25	// [스페어4]
+#define N_Act_First_Unloader_Pos_Chk						26	// [1차 언로더 위치 확인]
+#define N_Act_Unloader_Grip_ON_to_Grip_Off					27	// [언로더 그립 요청] (A열 : 2차 언로더, B열 3차 언로더) + [1차 언로더 언그립] (A열 : 2차 언로더 확인, B열 : 3차 언로더 확인) -  [ 참조 : 26.03.25 동작 인덱스 최적화 ] 
+#define N_Act_First_Unloader_Wait_Pos						28	// [1차 언로더 대기 위치 이동 - 0도 회전]
+#define N_Act_Discharge_Master_Coord_Pause					29	// 배출 시 마스터 좌표계 정지 
+#define N_Act_Discharge_Master_Coord_Resume					30	// 배출 시 마스터 좌표계 재시작 
+#define N_Act_Discharge_A_Spare_1							31	// [스페어1]
+#define N_Act_Discharge_A_Spare_2							32	// [스페어2]
+#define N_Act_Discharge_A_Spare_3							33	// [스페어3]
+#define N_Act_Discharge_A_Spare_4							34	// [스페어4]
+#define N_Act_Discharge_A_Spare_5							35	// [스페어5]
+//---------------------------------------------------------------------------------------
+// Suspend - ARC
+//---------------------------------------------------------------------------------------
+// ARC //
+#define N_Act_ARC_Pre_Act									36	// [ARC 진행 전 사전 작업]
+#define N_Dancer_Closed										37	// N_Act_Nip_Roll_FWD // 2026.02.25 닙롤 삭제 확인하여 변경 [닙롤 전진]	
+#define N_Dancer_Open										38	// N_Act_Nip_Roll_BWD // 2026.02.25 닙롤 삭제 확인하여 변경 [닙롤 후진]
+#define N_Act_Use_Plate_FWD									39	// [사용 플레이트 전진]
+#define N_Act_Use_Plate_BWD									40	// [사용 플레이트 후진]
+#define N_Act_Use_Plate_Clamp_ON							41	// [사용 플레이트 클램프 ON]
+#define N_Act_Use_Plate_Clamp_OFF							42	// [사용 플레이트 클램프 OFF]
+#define N_Act_Use_Plate_Cutter_FWD							43	// [사용 플레이트 커터 전진]
+#define N_Act_Use_Plate_Cutter_BWD							44	// [사용 플레이트 커터 후진]
+#define N_Act_Replace_Plate_Blow_ON							45	// [교체 플레이트 블로우 ON]
+#define N_Act_Replace_Plate_Blow_OFF						46	// [교체 플레이트 블로우 OFF]
+#define N_Act_Spool_Change									47	// [ARC 완료 후 스풀 교체]
+#define N_Act_Previous_Spool_Remain_Winding					48	// [이전 스풀 잔량 감기]
+#define N_Act_ARC_Post_Act									49	// [ARC 진행 후 사후 작업]
+#define N_Act_ARC_Spare_1									50	// [스페어1]
+#define N_Act_ARC_Spare_2									51	// [스페어2]
+#define N_Act_ARC_Spare_3									52	// [스페어3]
+#define N_Act_ARC_Spare_4									53	// [스페어4]
+#define N_Act_ARC_Spare_5									54	// [스페어5]
+#define N_Act_ARC_Spare_6									55	// [스페어6] 
+//---------------------------------------------------------------------------------------
+// Suspend - Anode_1TR_Cell_Supply - 박성민 // [ 참조 : 2025.10.28 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]
+//---------------------------------------------------------------------------------------
+// Anode_1TR_Cell_Supply //
+#define N_Act_1st_Anode_Mem_Pos								56	// [위치메모리]
+#define N_Act_Motion_to_Belt   								57	// [벨트 진입 및 퍼즈]
+#define N_Act_Motion_to_PickUp 								58	// [극판레디신호 및 픽업]
+#define N_Act_Motion_to_PickUp_2nd							59	// [극판레디신호 및 픽업] 2차
+#define N_Act_Motion_to_Ready  								60	// [대기위치 및 리줌]
+
+#define N_Act_Supply_Spare_1   								60	// [스페어1]
+#define N_Act_Supply_Spare_2   								61	// [스페어2]
+#define N_Act_Supply_Spare_3   								62	// [스페어3]
+
+//---------------------------------------------------------------------------------------
+// Suspend - Cathode/Anode Align 재보정 // [ 참조 : 260420 SUSPEND 배출 시, 얼라인 재보정 기능 추가 ]
+//---------------------------------------------------------------------------------------
+#define N_Act_Ca_Align_Retry_Cal   							63	// [양극 얼라인 재보정]
+#define N_Act_An_Align_Retry_Cal							64	// [음극 얼라인 재보정]
+
+
+
+//---------------------------------------------------------------------------------------
+// 마지막
+//---------------------------------------------------------------------------------------
+#define N_Act_Define_Limit									66	// 동작 배열 리밋
+
+//---------------------------------------------------------------------------------------
+// 액팅 모듈 배열값
+//---------------------------------------------------------------------------------------
+// 액팅 모듈 완료 비트 배열
+global P_Act_Complete_Bit(N_Act_Define_Limit)		
+P_Act_Complete_Bit(0),N_Act_Define_Limit,1 = 0;
+// 액팅 모듈 딜레이 변수 설정
+global P_Act_Old_Time(N_Act_Define_Limit);							// 액팅 모듈 타이머.
+P_Act_Old_Time(0),N_Act_Define_Limit,1 = 0;							// Initialize.
+//---- 액팅모듈 딜레이 시간 ----//
+global P_Act_Delay_Time(N_Act_Define_Limit);						// 액션모듈 딜레이 시간. ( sec단위 )
+//===== 배출 모듈 ====//
+P_Act_Delay_Time(0),N_Act_Define_Limit,1 = 0;						// Initialize.
+P_Act_Delay_Time(N_Act_FR_Clamp_OFF) = 0;							// [파이널 롤러 언클램프]
+P_Act_Delay_Time(N_Act_FR_Clamp_ON) = 0;							// [파이널 롤러 클램프]
+P_Act_Delay_Time(N_Act_FR_Discharge_Pos) = 0;						// [파이널 롤러 배출 위치]
+P_Act_Delay_Time(N_Act_First_Unloader_UP) = 0;						// [1차 언로더 상승 - 스텍 위치 이동]
+P_Act_Delay_Time(N_Act_First_Unloader_FWD) = 0;						// [1차 언로더 전진 - 스텍 진입 이동]
+P_Act_Delay_Time(N_Act_First_Unloader_Grip_ON) = 0.1;				// [1차 언로더 배출 그립 ON]
+P_Act_Delay_Time(N_Act_First_Unloader_Grip_OFF) = 0;				// [1차 언로더 배출 그립 OFF]
+P_Act_Delay_Time(N_Act_First_Unloader_Grip_Cell_Pos) = 0;			// [1차 언로더 셀 부착 위치 이동]
+P_Act_Delay_Time(N_Act_First_Unloader_BWD_Wait_Pos) = 0;			// [1차 언로더 그립 후 후진을 위한 대기 위치 이동]
+P_Act_Delay_Time(N_Act_First_Unloader_BWD) = 0;						// [1차 언로더 그립 후 후진 위치 이동]
+P_Act_Delay_Time(N_Act_First_Unloader_Stack_Down) = 0;				// [1차 언로더 하강 위치 이동]
+P_Act_Delay_Time(N_Act_First_Unloader_Turn) = 0;					// [1차 언로더 회전]
+P_Act_Delay_Time(N_Act_First_Unloader_Handover_Pos) = 0;			// [1차 언로더 인계위치 이동 [90도 회전]]
+P_Act_Delay_Time(N_Act_Cathode_Clamp_OFF) = 0;						// [양극 클램프 OFF]
+P_Act_Delay_Time(N_Act_Sepa_Cutter_Heating) = 0;					// [세파 커티 열선 ON]
+P_Act_Delay_Time(N_Act_Sepa_Cutter_Cylinder_FWD) = 0;				// [세파 커터 전진]
+P_Act_Delay_Time(N_Act_Sepa_Cutter_Cylinder_BWD) = 0;				// [세파 커터 후진]
+P_Act_Delay_Time(N_Act_First_Unloader_Pos_Chk) = 0;					// [1차 언로더 위치 확인]
+P_Act_Delay_Time(N_Act_Unloader_Grip_ON_to_Grip_Off) = 0.5;						// [언로더 그립 요청] (A열 : 2차 언로더, B열 : 3차 언로더)
+P_Act_Delay_Time(N_Act_First_Unloader_Wait_Pos) = 0;				// [1차 언로더 대기 위치 이동]
+//===== ARC 모듈 ====//
+P_Act_Delay_Time(N_Act_ARC_Pre_Act) = 0.5;							// [ARC 진행 전 사전 작업]
+P_Act_Delay_Time(N_Dancer_Closed) = 0.5;							// [닙롤 전진]	
+P_Act_Delay_Time(N_Dancer_Open) = 0.5;								// [닙롤 후진]
+P_Act_Delay_Time(N_Act_Use_Plate_FWD) = 2;							// [교체 플레이트 전진]
+P_Act_Delay_Time(N_Act_Use_Plate_BWD) = 1;							// [교체 플레이트 후진]
+P_Act_Delay_Time(N_Act_Use_Plate_Clamp_ON) = 1;						// [교체 플레이트 클램프 ON]
+P_Act_Delay_Time(N_Act_Use_Plate_Clamp_OFF) = 1;					// [교체 플레이트 클램프 OFF]
+P_Act_Delay_Time(N_Act_Use_Plate_Cutter_FWD) = 1;					// [교체 플레이트 커터 전진]
+P_Act_Delay_Time(N_Act_Use_Plate_Cutter_BWD) = 1;					// [교체 플레이트 커터 후진]
+P_Act_Delay_Time(N_Act_Replace_Plate_Blow_ON) = 0.2;				// [플레이트 블로우 ON]
+P_Act_Delay_Time(N_Act_Replace_Plate_Blow_OFF) = 0.5;				// [플레이트 블로우 OFF]
+P_Act_Delay_Time(N_Act_Spool_Change) = 0.5;							// [ARC 완료 후 스풀 교체]
+P_Act_Delay_Time(N_Act_Previous_Spool_Remain_Winding) = 0.2;		// [이전 스풀 잔량 감기]
+P_Act_Delay_Time(N_Act_ARC_Post_Act) = 0.5;							// [ARC 진행 후 사후 작업]
+//===== Supply 모듈 ====// [ 참조 : 2025.10.24 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]	
+P_Act_Delay_Time(N_Act_1st_Anode_Mem_Pos) = 0.2;
+P_Act_Delay_Time(N_Act_Motion_to_Belt)	  =	0.3;
+P_Act_Delay_Time(N_Act_Motion_to_PickUp)  =	0.1;
+P_Act_Delay_Time(N_Act_Motion_to_PickUp_2nd)  =	0.1;
+P_Act_Delay_Time(N_Act_Motion_to_Ready)	  = 0.2;
+
+//---- 액팅모듈 타임 아웃 시간 ----//
+global P_Act_Suspend_Time_Out_Time = 30;
+global P_Act_Time_Out(N_Act_Define_Limit);							// 액션모듈 타임 아웃 시간. ( sec단위 )
+//P_Act_Time_Out(0),N_Act_Define_Limit,1 = 99999999;					// Initialize. 26.03.23
+//P_Act_Time_Out(N_Act_Sepa_Cutter_Cylinder_FWD)  = 5					// 26.03.24
+global P_Test_Sungmin_Flag = 0;
+//---- 중간 정지 가능 비트 ----//
+#define N_Enable_Cycle_Stop		1
+#define N_Disable_Cycle_Stop	2
+global P_Discharge_Possibility_Bit(N_Act_Define_Limit)				// 액션모듈 중간 정지 비트. ( 1 : 중간 정지 가능, 2 : 중간 정지 불가능 )
+P_Discharge_Possibility_Bit(0),N_Act_Define_Limit,1 = 0;			// Initialize.
+P_Discharge_Possibility_Bit(1)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.	
+P_Discharge_Possibility_Bit(2)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(3)	= N_Enable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(4)	= N_Disable_Cycle_Stop;				// [사이클 정지 가능]		언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(5)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(6)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(7)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(8)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(9)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(10)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(11)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(12)	= N_Enable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(13)	= N_Enable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(14)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(15)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+P_Discharge_Possibility_Bit(16)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	언로더 진입 전 정지 가능.
+
+// 극판 유무 검사 Main 정지 포인트 
+// N_Enable_Cycle_Stop	1
+// N_Disable_Cycle_Stop	2
+global P_HOLD_Exist_Possibility_Bit(N_Act_Define_Limit)					// 액션모듈 중간 정지 비트. ( 1 : 중간 정지 가능, 2 : 중간 정지 불가능 )
+P_HOLD_Exist_Possibility_Bit(0),N_Act_Define_Limit,1 = 0;					// Initialize.
+P_HOLD_Exist_Possibility_Bit(1)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]		
+P_HOLD_Exist_Possibility_Bit(2)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(3)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(4)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(5)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(6)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(7)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(8)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(9)	= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(10)= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(11)= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(12)= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(13)= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(14)= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(15)= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+P_HOLD_Exist_Possibility_Bit(16)= N_Disable_Cycle_Stop;				// [사이클 정지 불가능]	
+
+// NG_PNP 제거 Main 정지 포인트 
+// N_Enable_Cycle_Stop	1
+// N_Disable_Cycle_Stop	2
+global P_HOLD_NG_Remove_Possibility_Bit(N_Act_Define_Limit)					// 액션모듈 중간 정지 비트. ( 1 : 중간 정지 가능, 2 : 중간 정지 불가능 )
+P_HOLD_NG_Remove_Possibility_Bit(0),N_Act_Define_Limit,1 = 0;			// Initialize.
+P_HOLD_NG_Remove_Possibility_Bit(1)	 = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(2)	 = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(3)	 = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(4)	 = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]		
+P_HOLD_NG_Remove_Possibility_Bit(5)	 = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(6)	 = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(7)	 = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(8)	 = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(9)	 = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(10) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(11) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(12) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(13) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(14) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(15) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_NG_Remove_Possibility_Bit(16) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+// Align 제거 Main 정지 포인트 
+// N_Enable_Cycle_Stop	1
+// N_Disable_Cycle_Stop	2
+global P_HOLD_Align_Remove_Possibility_Bit(N_Act_Define_Limit)					// 액션모듈 중간 정지 비트. ( 1 : 중간 정지 가능, 2 : 중간 정지 불가능 )
+P_HOLD_Align_Remove_Possibility_Bit(0),N_Act_Define_Limit,1 = 0;			// Initialize.
+P_HOLD_Align_Remove_Possibility_Bit(1)	= N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(2)	= N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(3)	= N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(4)	= N_Disable_Cycle_Stop;			// [사이클 정지 불가능]		
+P_HOLD_Align_Remove_Possibility_Bit(5)	= N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(6)	= N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(7)	= N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(8)	= N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(9)	= N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(10) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(11) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(12) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(13) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(14) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(15) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Remove_Possibility_Bit(16) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+
+// 2TR 제거 Main 정지 포인트 
+// N_Enable_Cycle_Stop	1
+// N_Disable_Cycle_Stop	2
+global P_HOLD_2TR_Remove_Possibility_Bit(N_Act_Define_Limit)					// 액션모듈 중간 정지 비트. ( 1 : 중간 정지 가능, 2 : 중간 정지 불가능 )
+P_HOLD_2TR_Remove_Possibility_Bit(0),N_Act_Define_Limit,1 = 0;			// Initialize.
+P_HOLD_2TR_Remove_Possibility_Bit(1)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(2)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(3)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(4)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]		
+P_HOLD_2TR_Remove_Possibility_Bit(5)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(6)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(7)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(8)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(9)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(10) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(11) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(12) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(13) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(14) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(15) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Remove_Possibility_Bit(16) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+
+// 1TR 공급 Main 정지 포인트 
+// N_Enable_Cycle_Stop	1
+// N_Disable_Cycle_Stop	2
+global P_HOLD_1TR_Supply_Possibility_Bit(N_Act_Define_Limit)					// 액션모듈 중간 정지 비트. ( 1 : 중간 정지 가능, 2 : 중간 정지 불가능 )
+P_HOLD_1TR_Supply_Possibility_Bit(0),N_Act_Define_Limit,1 = 0;			// Initialize.
+P_HOLD_1TR_Supply_Possibility_Bit(1)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(2)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(3)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(4)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]		
+P_HOLD_1TR_Supply_Possibility_Bit(5)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(6)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(7)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(8)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(9)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(10) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(11) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(12) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(13) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(14) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(15) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_1TR_Supply_Possibility_Bit(16) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+
+// Align 공급 Main 정지 포인트 
+// N_Enable_Cycle_Stop	1
+// N_Disable_Cycle_Stop	2
+global P_HOLD_Align_Supply_Possibility_Bit(N_Act_Define_Limit)					// 액션모듈 중간 정지 비트. ( 1 : 중간 정지 가능, 2 : 중간 정지 불가능 )
+P_HOLD_Align_Supply_Possibility_Bit(0),N_Act_Define_Limit,1 = 0;		// Initialize.
+P_HOLD_Align_Supply_Possibility_Bit(1)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(2)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(3)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(4)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]		
+P_HOLD_Align_Supply_Possibility_Bit(5)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(6)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(7)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(8)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(9)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(10) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(11) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(12) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(13) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(14) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(15) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Align_Supply_Possibility_Bit(16) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+
+
+// 2TR 공급 Main 정지 포인트 
+// N_Enable_Cycle_Stop	1
+// N_Disable_Cycle_Stop	2
+global P_HOLD_2TR_Supply_Possibility_Bit(N_Act_Define_Limit)					// 액션모듈 중간 정지 비트. ( 1 : 중간 정지 가능, 2 : 중간 정지 불가능 )
+P_HOLD_2TR_Supply_Possibility_Bit(0),N_Act_Define_Limit,1 = 0;			// Initialize.
+P_HOLD_2TR_Supply_Possibility_Bit(1)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(2)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(3)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(4)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]		
+P_HOLD_2TR_Supply_Possibility_Bit(5)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(6)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(7)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(8)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(9)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(10) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(11) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(12) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(13) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(14) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(15) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_2TR_Supply_Possibility_Bit(16) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+
+// 세미런 위치이동 Main 정지 포인트 
+// N_Enable_Cycle_Stop	1
+// N_Disable_Cycle_Stop	2
+global P_HOLD_Semi_Run_Pos_Possibility_Bit(N_Act_Define_Limit)					// 액션모듈 중간 정지 비트. ( 1 : 중간 정지 가능, 2 : 중간 정지 불가능 )
+P_HOLD_Semi_Run_Pos_Possibility_Bit(0),N_Act_Define_Limit,1 = 0;		// Initialize.
+P_HOLD_Semi_Run_Pos_Possibility_Bit(1)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(2)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(3)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(4)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]		
+P_HOLD_Semi_Run_Pos_Possibility_Bit(5)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(6)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(7)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(8)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(9)  = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(10) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(11) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(12) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(13) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(14) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(15) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+P_HOLD_Semi_Run_Pos_Possibility_Bit(16) = N_Disable_Cycle_Stop;			// [사이클 정지 불가능]	
+
+// 3.1) 모듈 커맨드 감시 배열
+global P_Module_Act_Command_Array(N_Act_Define_Limit);
+P_Module_Act_Command_Array(0),N_Act_Define_Limit,1 = 0;
+
+// 3.2) 엣지 감지 변수 _ 모듈 커맨드 감시 배열 
+global P_OLD_Module_Act_Command_Array(N_Act_Define_Limit);
+P_OLD_Module_Act_Command_Array(0),N_Act_Define_Limit,1 = 0;
+
+// 3.3) 동작 시퀀스 스테이트 머신 배열
+global P_Module_Act_State_Machine_Array(N_Act_Define_Limit);
+P_Module_Act_State_Machine_Array(0),N_Act_Define_Limit,1 = 0;
+
+// 3.4) 동작 시퀀스 스테이트 머신 버퍼 배열
+global P_Module_Act_State_Machine_Error_Array(N_Act_Define_Limit);		// [ 참조 : 26.06.13 ARC Tact Time 추가 ]
+P_Module_Act_State_Machine_Error_Array(0),N_Act_Define_Limit,1 = 0;
+
+// 배출 진행 상태
+global P_Suspend_Discharge_Module_Status = 0;					// 배출 모듈 진행 상태.
+global P_Suspend_Discharge_To_Execute_Flag = 0;					// 배출 진행 중 Execute 진행 Flag.
+global P_Suspend_Discharge_Complete_Flag = 0;					// 배출 진행 완료 확인 Flag. [메모리 타워 확인용]
+// 모션 상태 변수.
+global P_First_Unloader_Stack_Up_Status = 0;					// [1차 언로더 상승 - 스텍 위치 이동] 
+global P_First_Unloader_Stack_FWD_Status = 0;					// [1차 언로더 전진 - 스텍 진입 이동] 
+global P_First_Unloader_Grip_Cell_Status = 0;					// [1차 언로더 셀 부착 위치 이동] 
+global P_First_Unloader_Stack_BWD_Wait_Status = 0;				// [1차 언로더 그립 후 후진을 위한 대기 위치 이동] 
+global P_First_Unloader_Stack_BWD_Status = 0;					// [1차 언로더 그립 후 후진 위치 이동] 
+global P_First_Unloader_Stack_Down_Status = 0;					// [1차 언로더 하강 위치 이동]
+global P_First_Unloader_Avoid_Status = 0;						// [1차 언로더 회피 위치 이동]
+global P_First_Unloader_Turn_Status = 0;						// [1차 언로더 회전]
+global P_First_Unloader_Handover_Status = 0;					// [1차 언로더 인계 위치 회전]
+global P_Cathode_Clamp_OFF_Status = 0;							// [양극 클램프 OFF]
+global P_Final_Roll_Discharge_Status = 0;						// [파이널 롤러 배출 위치 이동]
+global P_Final_Roll_Stack_Pos_Status = 0;						// [파이널 롤러 스텍 위치 이동]
+global P_Final_Roll_Stack_Up_Pos_Status = 0;					// [파이널 롤러 스텍 상승 위치]
+global P_Main_Z_Init_Pos_Status = 0;							// [메인Z축 대기 위치 이동]
+global P_Sheet_Paper_BWD_Status = 0;							// [시트 페이터 후진 이동]
+
+// Sub15 함수 반환값 선언.
+global P_Discharge_Vision_DIO_RTN = 0;							// 비전 인터페이스 신호 반환값.
+global P_Discharge_Sub_RTN = 0									// ID 전송 반환값.
+global P_Discharge_NG_Code_Report_RTN = 0;						// NG Code 보고 반환값.
+global P_Individual_RTN = 0;									// 1차 언로더 위치 확인 반환값.	
+global P_Suspend_Discharge_Last_Run_Bit = 0;					// 중간 배출 확인 변수.		[ 참조 : 25.06.20 배출 프로그램 수정 ]
+Global P_Suspend_Discharge_JR_Result_RTN = 0;					// 젤리롤 결과 업데이트 구문 리턴값- [ 참조 : 26.03.30 젤리롤 ID 업데이트 조건 구조 변경]				
+
+// ARC 변수.
+#define N_ARC_Upper_Spool						23				// ARC 상부 스풀.
+#define N_ARC_Lower_Spool						24				// ARC 하부 스풀.
+// [이전 스풀 잔량 감기]
+global P_ARC_Buffer_Jog_Speed = 0;								// 모터 스피드 저장 변수.
+global P_Selected_Spool_Number = N_UNWINDER_UPPER;				// 현재 선택된 스풀 번호 변수.
+// [ARC 완료 후 스풀 교체]
+global P_ARC_Home_Check_RTN = 0;								// ARC 홈 상태 확인 반환값.
+global P_Suspend_ARC_Module_Status = 0;							// ARC 진행 상태.	[ 참조 : 25.09.09 배출 프로그램 수정 ]
+
+// 변수 정리 필요.
+//global	P_PI = acos(-1)
+global	P_Not_Selected_Spool_Radius = 0;						// 선택되지 않은 스풀 반경
+global	P_Not_Selected_Spool_Circumference = 0;					// 선택되지 않은 스풀 둘레
+//global	P_Sensor_To_Unwinder_Core_Disatance_mm = 260;
+global	P_Sensor_To_Sepa_Curr_Distance_mm(25);					// 상,하부 변수가 23,24.
+P_Sensor_To_Sepa_Curr_Distance_mm(0),25 = 0;
+global P_Passive_D_One_Degree_AD_Value = 0;						// 패시브 댄서 아날로그 값
+//global	P_After_ARC_Rotate_Distance = 750;					// ARC 후 언와인더 감는량 750mm, 기존 Z-STACK에서 감는 량 가져옴.
+global	P_After_ARC_Rotate_Distance = 750;		// ARC 후 언와인더 감는량 (PLC에서 * 10000 값이 들어옴)	[ 참조 : 26.04.17 ARC 보완사항 수정 ]
+//================================================================================================================================================//
+// 참조 260601 비전 ng code 프로그램이 되어 있지 않아 임시로 시간 0으로 수정
+//global P_Stack_Vision_NG_Code_Time_Over = 3000;					// 스텍 비전 타임아웃
+global P_Stack_Vision_NG_Code_Time_Over = 0;					// 스텍 비전 타임아웃
+
+
+global P_Suspend_Discharge_Resume_Flag = 0;						// 배출모듈 리줌 플래그 
+global P_Suspend_Discharge_Resume_Complete = 0;					// 배출모듈 리줌 완료 
+global P_Suspend_Discharge_Pause_Flag = 0;
+
+//test 
+global P_Suspend_Monitor_(10)
+P_Suspend_Monitor_(0),10 = 0;
+#define ISENABLE		1
+#define PosMem			2
+#define MCommand		3
+#define MComplete		4 
+#define MARC			5
+
+
+// 호스트 ID 생성
+
+global P_Flag_Stack_Work_Host_ID = 0;					// 호스트 ID 생성 플래그
+global P_First_Sepa_Stack_Align_OK_PMAC_Flag = 0;		// 세파 첫장 OK 판정 플래그
+
+global P_Sepa_Run_Completed_Status_Machine = 0;			// 세파 호스트 ID 스텟머신
+
+//================================================================//
+// Suspend - Error 발생 시 디버깅 함수 실행.		[ 참조 : 25.09.12 Suspend 디버깅 함수 추가 ]
+//================================================================//
+//======//
+// 배출 //
+//======//
+global P_Discharge_Debug_Edge = 0;							// 디버깅 함수 Edge 값.
+global P_Suspend_Discharge_Debug_Address(5);				// 디버깅 함수 주소 값.
+P_Suspend_Discharge_Debug_Address(0),5 = 0;					// 초기화.
+global P_Suspend_Discharge_Debug_Value(5);					// 0 : Index, 1 ~ 4 : Index에 실행하는 Act의 State_Machine.
+P_Suspend_Discharge_Debug_Value(0),5 = 0;					// 초기화.
+global P_Discharge_Sepa_Cutter_Time_Out_State_Machine = 0;	// 커터 전진 후 처리 진행 스텟 머신.
+global P_Old_Suspend_Discharge_Seq_Index = 0;				// 배출 인덱스 Edge 값.
+global P_Discharge_Debug_Index_1 = 0;						// 배출 Act 값.
+global P_Discharge_Debug_Index_2 = 0;						// 배출 Act 값.
+global P_Discharge_Debug_Index_3 = 0;						// 배출 Act 값.
+global P_Discharge_Debug_Index_4 = 0;						// 배출 Act 값.
+//======//
+// ARC //
+//======//
+global P_ARC_Debug_Edge = 0;								// 디버깅 함수 Edge 값.
+global P_Suspend_ARC_Debug_Address(5);						// 디버깅 함수 주소 값.
+P_Suspend_ARC_Debug_Address(0),5 = 0;						// 초기화.
+global P_Suspend_ARC_Debug_Value(5);						// 0 : Index, 1 ~ 4 : Index에 실행하는 Act의 State_Machine.
+P_Suspend_ARC_Debug_Value(0),5 = 0;							// 초기화.
+global P_Old_Suspend_ARC_Seq_Index = 0;						// ARC 인덱스 Edge 값.
+global P_ARC_Debug_Index_1 = 0;								// ARC Act 값.
+global P_ARC_Debug_Index_2 = 0;								// ARC Act 값.
+global P_ARC_Debug_Index_3 = 0;								// ARC Act 값.
+global P_ARC_Debug_Index_4 = 0;								// ARC Act 값.
+
+global P_ARC_Ready_Flag(2)
+P_ARC_Ready_Flag(0),2 = 0;
+
+#define N_Upper_Complete		3
+#define N_Lower_Complete		5
+#define N_Upper 0
+#define N_Lower 1
+
+// 테스트로 인해 설정
+//M_Y_First_Sheet_Paper_Plate_Ejector_Vac_On = 1;
+
+
+global P_Suspend_Cutter_Heating_Time = 0;					// 열선 히팅 타임 겟 변수
+global P_Suspend_Cutter_Heating_Timer = 0;					// 열선 히팅 타이머 변수
+
+
+
+//==================================================================================================================================================//
+// 음극 1TR 극판 공급 // -  [ 참조 : 2025.10.28 SUSPEND 배출 시, 음극 1TR 극판 공급모듈 추가 ]
+//==================================================================================================================================================//
+global P_An_1TR_Supply_Debug_Edge = 0;						// 디버깅 함수 Edge 값.
+global P_Suspend_An_1TR_Supply_Debug_Address(5);			// 디버깅 함수 주소 값.
+P_Suspend_An_1TR_Supply_Debug_Address(0),5 = 0;				// 초기화.
+global P_Suspend_An_1TR_Supply_Debug_Value(5);				// 0 : Index, 1 ~ 4 : Index에 실행하는 Act의 State_Machine.
+P_Suspend_An_1TR_Supply_Debug_Value(0),5 = 0;				// 초기화.
+global P_Old_Suspend_An_1TR_Supply_Seq_Index = 0;			// ARC 인덱스 Edge 값.
+global P_An_1TR_Supply_Debug_Index_1 = 0;					// ARC Act 값.
+global P_An_1TR_Supply_Debug_Index_2 = 0;					// ARC Act 값.
+global P_An_1TR_Supply_Debug_Index_3 = 0;					// ARC Act 값.
+global P_An_1TR_Supply_Debug_Index_4 = 0;					// ARC Act 값.
+
+#define N_Suspend_Supply_Seq		8							// 확인 시퀀스 갯수
+
+#define N_Supply_to_Belt			0							// Index Num Define
+#define N_Supply_to_Down			1							// Index Num Define 
+#define N_Supply_to_Vac				2							// Index Num Define
+#define N_Supply_to_Up				3							// Index Num Define
+#define N_Supply_to_Ready			4							// Index Num Define
+#define N_2nd_Supply_to_Down		5							// Index Num Define
+#define N_2nd_Supply_to_Vac			6							// Index Num Define
+#define N_2nd_Supply_to_Up			7							// Index Num Define
+#define N_Supply_Verify				99							// State Machine Num 
+
+#define N_Suspend_Supply_Trg		67							// 벨트 진입 타이밍 
+#define N_Max_Wait_Trg				22							// 벨트 후진 타이밍
+
+#define N_Only_Discharge			8
+#define N_Both_Act					9
+// 260616 1차 언로더 데이터 있는 상태에서 유저 선택 세파모드로 재가동 시 1차 언로더 데이터를 2차 언로더까지 전달해야 execute로 넘어가는 부분 수정
+#define N_1st_ULD_Grip_Status		10
+
+global P_Suspend_Supply_Index = 0;								// Pick Up Sequence Index
+global P_Suspend_Supply_Index_2nd = 0;							// Pick Up Sequence Index
+global P_Anode_Suspend_Supply_Complete(N_Suspend_Supply_Seq)	// Motion Complete 동기화 변수
+P_Anode_Suspend_Supply_Complete(0),N_Suspend_Supply_Seq = 0;
+
+global P_Suspend_Supply_Pause_Flag  = 0;						// Suspend Pause Flag
+global P_Suspend_Supply_Resume_Flag = 0;						// Suspend Resume Flag
+global P_Supply_Module_Status = 0;								// → 모듈화 상태변수 ( 임시로 잡았음 )
+global P_Suspend_Anode_1TR_Supply_Complete_Flag = 0;			// 모듈 완료 변수
+//==================================================================================================================================================//
+
+#define Modbus_Enable				6
+
+// 모듈 Error 발생 시 확인 변수. Suspend 모듈 진행 중 Error 발생했을 경우 모듈 종료. [ 참조 : 26.01.08 Suspend 모듈 수정 ]
+global P_Suspend_Discharge_Module_Error = 0;// 액팅 모듈 중 Time Out, Error 발생 시 Suspend 모듈 정지.
+global P_Suspend_ARC_Module_Error = 0;		// 액팅 모듈 중 Time Out, Error 발생 시 Suspend ARC 모듈 정지.
+global P_Suspend_1st_Supply_Error = 0;		// 액팅 모듈 중 Time Out, Error 발생 시 Suspend 1차 PNP 극판 공급 모듈 정지.
+
+global P_Discharge_Seq_Data = 0
+
+//==================================================================================================================================================//
+// Suspend 모듈 진행 중 타임아웃으로 빠질 경우 팝업 진행	[ 참조 : 26.04.24 Suspend 모듈 팝업 추가 ]
+// ↓ 배출
+// 전체
+global P_Suspend_Discharging_Popup_Flag = 0;										// 1) 배출 모듈 진행 중 팝업 플래그.
+// Index 1
+global P_Suspend_Discharge_FR_Unclamp_Error_Popup_Flag = 0;							// 2) 파이널 롤 언클램프 오류 팝업 플래그.
+global P_Suspend_Discharge_Cathode_Align_Retry_Cal_Error_Popup_Flag = 0;			// 3) 양극 얼라인 재보정 오류 팝업 플래그.
+global P_Suspend_Discharge_Anode_Align_Retry_Cal_Error_Popup_Flag = 0;				// 4) 음극 얼라인 재보정 오류 팝업 플래그.
+// Index 2
+global P_Suspend_Discharge_FR_Discharge_Pos_Error_Popup_Flag = 0;					// 5) 파이널 롤 배출 위치 이동 오류 팝업 플래그.
+global P_Suspend_Discharge_1st_Unloader_Grip_OFF_Error_Popup_Flag = 0;				// 6) 1차 언로더 언그립 오류 팝업 플래그.
+global P_Suspend_Discharge_1st_Unloader_Up_Error_Popup_Flag = 0;					// 7) 1차 언로더 상승 오류 팝업 플래그.
+// Index 3
+global P_Suspend_Discharge_1st_Unloader_FWD_Error_Popup_Flag = 0;					// 8) 1차 언로더 전진 오류 팝업 플래그.
+global P_Suspend_Discharge_FR_Clamp_Error_Popup_Flag = 0;							// 9) 파이널 롤 클램프 오류 팝업 플래그.
+global P_Suspend_Discharge_Sepa_Cutter_Heating_Error_Popup_Flag = 0;				// 10) 세파 커터 열선 ON 오류 팝업 플래그.
+// Index 4
+global P_Suspend_Discharge_1st_Unloader_Grip_Cell_Pos_Error_Popup_Flag = 0;			// 11) 1차 언로더 셀 부착 위치 이동 오류 팝업 플래그.
+// Index 5
+global P_Suspend_Discharge_1st_Unloader_Grip_ON_Error_Popup_Flag = 0;				// 12) 1차 언로더 그립 오류 팝업 플래그.
+global P_Suspend_Discharge_Sheet_Paper_BWD_Error_Popup_Flag = 0;					// 13) 시트 페이퍼 후진 위치 이동 오류 팝업 플래그.
+// Index 6
+global P_Suspend_Discharge_Cathode_Clamp_OFF_Error_Popup_Flag = 0;					// 14) 양극 클램프 OFF 오류 팝업 플래그.
+// Index 7
+//global P_Suspend_Discharge_FR_Clamp_Error_Popup_Flag = 0;							// 중복, Index 3,7) 파이널 롤 클램프 오류 팝업 플래그.
+// Index 8
+global P_Suspend_Discharge_Sepa_Cutter_FWD_Error_Popup_Flag = 0;					// 15) 세파 커터 전진 오류 팝업 플래그.
+global P_Suspend_Discharge_Sheet_Paper_Vacuum_ON_Error_Popup_Flag = 0;				// 16) 시트 페이퍼 진공 ON 오류 팝업 플래그.
+// Index 9
+global P_Suspend_Discharge_Sepa_Cutter_BWD_Error_Popup_Flag = 0;					// 17) 세파 커터 후진 오류 팝업 플래그.
+global P_Suspend_Discharge_1st_Unloader_BWD_Wait_Pos_Error_Popup_Flag = 0;			// 18) 1차 언로더 그립 후 후진을 위한 대기 위치 이동 오류 팝업 플래그. 
+// Index 10
+global P_Suspend_Discharge_1st_Unloader_BWD_Error_Popup_Flag = 0;					// 19) 1차 언로더 그립 후 후진 위치 이동 오류 팝업 플래그.
+// Index 11
+global P_Suspend_Discharge_1st_Unloader_Stack_Down_Error_Popup_Flag = 0;			// 20) 1차 언로더 스택 하강 위치 이동 오류 팝업 플래그.
+global P_Suspend_Discharge_FR_Stack_Pos_Error_Popup_Flag = 0;						// 21) 파이널 롤 스택 위치 이동 오류 팝업 플래그.
+global P_Suspend_Discharge_After_Action_Init_Error_Popup_Flag = 0;					// 22) 배출 후 액션 함수 초기화 오류 팝업 플래그.
+// Index 12
+global P_Suspend_Discharge_1st_Unloader_Avoid_Pos_Error_Popup_Flag = 0;				// 23) 1차 언로더 회피 위치 이동 오류 팝업 플래그.
+// Index 13
+global P_Suspend_Discharge_1st_2nd_Unloader_Handover_Chk_Error_Popup_Flag = 0;		// 24) 1,2차 언로더 인계 위치 확인 오류 팝업 플래그.
+// Index 14
+global P_Suspend_Discharge_1st_Unloader_Handover_Pos_Error_Popup_Flag = 0;			// 25) 1차 언로더 인계 위치 이동 오류 팝업 플래그.
+// Index 15
+global P_Suspend_Discharge_2nd_3rd_Unloader_Grip_Request_Error_Popup_Flag = 0;		// 26) 2,3차 언로더 그립 요청 오류 팝업 플래그.
+// Index 16
+global P_Suspend_Discharge_1st_Unloader_Wait_Pos_Error_Popup_Flag = 0;				// 27) 1차 언로더 대기 위치 이동 오류 팝업 플래그.
+
+
+// ↓ ARC
+// Manual ARC
+global P_Suspend_ARC_Manual_ARC_Active_Popup_Flag = 0;								// 1) 매뉴얼 ARC 진행 중 팝업 플래그.
+// Auto ARC
+global P_Suspend_ARC_Auto_ARC_Active_Popup_Flag = 0;								// 2) 오토 ARC 진행 중 팝업 플래그.
+// Index 1
+global P_Suspend_ARC_Pre_Act_Popup_Flag = 0;										// 3) ARC 진행 전 사전 작업 오류 팝업 플래그.
+// Index 2
+global P_Suspend_ARC_Dancer_Close_Popup_Flag = 0;									// 4) 서보 댄서 CloseLoop 오류 팝업 플래그.
+// Index 3
+global P_Suspend_ARC_Use_Plate_FWD_Popup_Flag = 0;									// 5) 사용 플레이트 전진 오류 팝업 플래그.
+// Index 4
+global P_Suspend_ARC_Replace_Plate_Blow_ON_Popup_Flag = 0;							// 6) 교체 플레이트 블로우 ON 오류 팝업 플래그.
+// Index 5
+global P_Suspend_ARC_Use_Plate_Clamp_Popup_Flag = 0;								// 7) 사용 플레이트 클램프 오류 팝업 플래그.
+// Index 6
+global P_Suspend_ARC_Use_Plate_Cutter_FWD_Popup_Flag = 0;							// 8) 사용 플레이트 커터 전진 오류 팝업 플래그.
+// Index 7
+global P_Suspend_ARC_Use_Plate_Cutter_BWD_Popup_Flag = 0;							// 9) 사용 플레이트 커터 후진 오류 팝업 플래그.
+// Index 8
+global P_Suspend_ARC_Use_Plate_Unclamp_Popup_Flag = 0;								// 10) 사용 플레이트 언클램프 오류 팝업 플래그.
+// Index 9
+global P_Suspend_ARC_Use_Plate_BWD_Popup_Flag = 0;									// 11) 사용 플레이트 후진 오류 팝업 플래그.
+// Index 10
+global P_Suspend_ARC_Replace_Plate_Blow_OFF_Popup_Flag = 0;							// 12) 교체 플레이트 블로우 OFF 오류 팝업 플래그.
+global P_Suspend_ARC_Dancer_Open_Popup_Flag = 0;									// 13) 서보 댄서 OpenLoop 오류 팝업 플래그.
+// Index 11
+global P_Suspend_ARC_Spool_Change_Popup_Flag = 0;									// 14) 스풀 변경 오류 팝업 플래그.
+// Index 12
+global P_Suspend_ARC_Post_Act_Popup_Flag = 0;										// 15) ARC 진행 후 사후 작업 오류 팝업 플래그.
+// Index 13
+global P_Suspend_ARC_Previous_Spool_Remain_Winding_Popup_Flag = 0;					// 16) 이전 스풀 잔량 김기 오류 팝업 플래그.
+//===================================//
+// [↑ Popup Flag 추가 시 ↓ 카운트 변경 필요]
+// ↓ Reset 버튼 누를 시 Popup Clear 하기 위한 카운트
+#define Discharge_Popup_Cnt		27
+#define ARC_Popup_Cnt			16
+//===================================//
+global P_Suspend_Discharge_First_Address = 0;										// Reset 버튼 누를 시 배출 첫번째 주소
+global P_Suspend_ARC_First_Address = 0;												// Reset 버튼 누를 시 ARC 첫번째 주소

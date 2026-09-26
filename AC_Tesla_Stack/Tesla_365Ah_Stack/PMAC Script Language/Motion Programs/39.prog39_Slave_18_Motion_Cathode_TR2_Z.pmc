@@ -1,0 +1,194 @@
+// [ 참 조 : 2025.11.24 Z축 분리 ]
+&39
+#21-> 1000z		// 양극 2차 PNP Z축
+open prog 39
+ABS					// 절대좌표모드
+LINEAR
+
+while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(18) == 1 && P_Slave_Motion_Program_Flag(18) == 1 )
+{
+	switch( P_Slave18_Motion_Command )
+	{
+		case 0:		break;
+		// case 1
+		case N_2nd_PNP_Align_To_Stack_Motion :			// Stack 진입
+			P_Cathode_2nd_PNP_Align_To_Stack_Motion = P_Master_Motion_Trigger
+			P_Slave18_Motion_Command = 0;						// Command 초기화
+			P_Second_PNP_Z_Align_To_Stack_Status == F_Status_EXECUTE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+			linear
+			ta(80)ts(30)td(30)tsd(30)tm(0)							// 110 + 30	= 140					
+			z(P_Cathode_2nd_Fwd_Bwd_Rise)												
+			ta(30)ts(30)td(40)tsd(20)tm(0)							// 30 + 60 = 90				145 + 85 = 230			
+			//z(17.898)											// 0위치에서 10mm 하강위치
+			z(P_Cathode_2nd_Z_Ready_Up)
+			P_Second_PNP_Z_Align_To_Stack_Status == F_Status_COMPLETE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+			dwell(0)
+		break;
+		// case 2
+		case N_2nd_PNP_Stack_To_Align_Motion :					// Align 진입
+			P_Cathode_2nd_PNP_Stack_To_Align_Motion = P_Master_Motion_Trigger
+			P_Slave18_Motion_Command = 0;						// Command 초기화
+			P_Second_PNP_Z_Stack_To_Align_Status == F_Status_EXECUTE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+			linear
+			ta(80)ts(30)td(30)tsd(30)tm(0)							// 110 + 30	= 140					
+			z(P_Cathode_2nd_Fwd_Bwd_Rise)
+			ta(30)ts(30)td(40)tsd(20)tm(0)							// 30 + 60 = 90				145 + 85 = 230
+			//z(17.898)											// 0위치에서 10mm 하강위치 
+			z(P_Cathode_2nd_Z_Ready_Up)
+			P_Second_PNP_Z_Stack_To_Align_Status == F_Status_COMPLETE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+			dwell(0)
+		break;
+		// case 3
+		case N_2nd_PNP_Stack_Down_Motion :						// stack 하강
+			P_Cathode_2nd_PNP_Stack_Down_Motion = P_Master_Motion_Trigger
+			P_Slave18_Motion_Command = 0;						// Command 초기화
+			linear
+			ta(35)ts(5)tm(0)									//	80ms 리니어 테스트
+			//z(68.987)											//	68.987; ( 0위치에서 30mm 하강위치 )
+			z(P_Cathode_2nd_Z_Stack_Down)
+			dwell(0)
+			if ( P_SemiRun_Cathode_2th_ST_Z_Axis_Pos_Flag == 1 )		// PV 항목 : 위치 값 보고 (세미 런 진입 + 모터 이동 완료 후 위치 값 저장)	[ 참조 : 26.09.14 MES PV 수정 ]
+			{
+				P_Motion_Cathode_2th_ST_Z_Axis_Pos_Flag == 1;			// 위치 값 저장 Flag On.
+			}
+			P_Cathode_2nd_Motion_Complete == 1;
+			dwell(0)
+		break;
+		// case 4
+		case N_2nd_PNP_Stack_Up_Motion:							// stack 상승
+			P_Cathode_2nd_PNP_Stack_Up_Motion = P_Master_Motion_Trigger
+			P_Slave18_Motion_Command = 0;						// Command 초기화
+			linear
+			ta(30) ts(5) tm(0)									//	70ms
+			//z(38.542)											// 38.542; ( 하강위치에서 10mm 상승위치 )
+			Z(P_Cathode_2nd_Z_Stack_Up)
+			P_Cathode_2nd_Motion_Complete == 1
+			M_Y_Vision_Cathode_Save_Sheet_Data == 0;	// 극판 데이터 저장 I/O 해제 ( 기존 리트라이 신호 )			
+			dwell(0)
+		break;
+		// case 5
+		case N_2nd_PNP_Align_Down_Motion :						// Align 하강
+			P_Cathode_2nd_PNP_Align_Down_Motion = P_Master_Motion_Trigger
+			P_Slave18_Motion_Command = 0;						// Command 초기화
+			P_Second_PNP_Z_Align_Down_Status == F_Status_EXECUTE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+			if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )
+			{
+				M_Y_Cathode_2nd_Vac_Sol_On == 1;				// 흡착 ON
+				M_Y_Cathode_2nd_Vac_Sol_Off == 0;				// 흡착 OFF 
+			}
+			P_Cathode_Align_Blow == 1
+			dwell(0)
+			linear
+			ta(35)ts(5)tm(0)									//	80ms 리니어 테스트
+			//z(68.987)											//	68.987; ( 0위치에서 30mm 하강위치 )
+			Z(P_Cathode_2nd_Z_Align_Down)	
+			dwell(0)
+			if ( P_SemiRun_Cathode_2th_AT_Z_Axis_Pos_Flag == 1 )		// PV 항목 : 위치 값 보고 (세미 런 진입 + 모터 이동 완료 후 위치 값 저장)	[ 참조 : 26.09.14 MES PV 수정 ]
+			{
+				P_Motion_Cathode_2th_AT_Z_Axis_Pos_Flag == 1;			// 위치 값 저장 Flag On.
+			}
+			P_Cathode_2nd_Motion_Complete == 1;		
+			P_Second_PNP_Z_Align_Down_Status == F_Status_COMPLETE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+			P_Cathode_Align_Blow == 0
+			dwell(0)
+		break;
+		// case 6
+		case N_2nd_PNP_Align_Up_Motion :						// Align 상승
+			P_Cathode_2nd_PNP_Align_Up_Motion = P_Master_Motion_Trigger
+			P_Slave18_Motion_Command = 0;						// Command 초기화
+			P_Second_PNP_Z_Align_Up_Status == F_Status_EXECUTE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+			linear
+			ta(30) ts(5) tm(0)									//	70ms
+			//z(38.542)											// 38.542; ( 하강위치에서 10mm 상승위치 )
+			Z(P_Cathode_2nd_Z_Align_Up)
+			P_Cathode_2nd_Motion_Complete == 1;
+			P_Align_Zero_Move_Start_Flag(N_Cathode_Unit) == 1;
+			P_Set_Cathode_Align_Zero_Pos == 1
+			P_Second_PNP_Z_Align_Up_Status == F_Status_COMPLETE;// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+			dwell(0)
+		break;
+
+		// case 10
+		case N_2nd_PNP_Align_Vac :								// 얼라인 흡착
+			P_Cathode_2nd_PNP_Align_Vac = P_Master_Motion_Trigger
+			P_Slave18_Motion_Command = 0;
+			P_Tact_Time_Check(N_Cathode_2nd_PNP) == 1;		// Tact Time 측정 시작 및 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
+				P_Second_PNP_Vac_On_Status == F_Status_EXECUTE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+			dwell(0)
+			// 2026.02.24 DIO 추가
+			if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )
+			{
+				M_Y_Cathode_2nd_Vac_Sol_On == 1;				// 흡착 ON
+				M_Y_Cathode_2nd_Vac_Sol_Off == 0;				// 흡착 OFF 
+			}
+			P_PLC12_Vacuum_MNTR(N_2nd_Cathode) == 1;		// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+			// 얼라인 테이블 블로우
+			M_Y_Cathode_AT_Vac_Ejector_Vac_On == 0;			// 양극 얼라인 흡착 ON  
+			M_Y_Cathode_AT_Vac_Ejector_Vac_Off == 1;		// 양극 얼라인 흡착 OFF
+			P_PLC12_Blow_MNTR(N_Align_Cathode) == 1;		// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+			P_Cathode_2nd_TR_Align_Pick_Up_Flag == 1
+			M_Y_Vision_Cathode_Save_Sheet_Data == 1;	// 양극 극판 데이터 해당 젤리롤에 저장 ( 기존 리트라이 신호 )
+			dwell(65)
+			// [ 참조 : 26.05.06 1,2차,NG PNP 및 얼라인 흡착 해제 타이밍 수정 ]
+			M_Y_Cathode_AT_Vac_Ejector_Vac_On == 0;				// 양극 얼라인 흡착 ON
+			M_Y_Cathode_AT_Vac_Ejector_Vac_Off == 0;			// 양극 얼라인 흡착 OFF
+			P_Cathode_2nd_Motion_Complete == 1
+			P_Second_PNP_Vac_On_Status == F_Status_COMPLETE;// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]	
+			dwell(0)
+				
+		break;
+		// case 11
+		case N_2nd_PNP_Stack_Blow :								// 스택 블로우
+			P_Cathode_2nd_PNP_Stack_Blow = P_Master_Motion_Trigger
+			P_Slave18_Motion_Command = 0;
+			P_Cathode_2nd_TR_Stack_Down_Flag == 1
+			P_Vision_Stack_Command == N_Cathode_Unit;		// Stack Vision Command [ 참조 : 25.07.16 Stack Vision Command 추가 ]
+			// 2026.02.24 DIO 추가
+			M_Y_Cathode_2nd_Vac_Sol_On == 0;				// 흡착 ON
+			M_Y_Cathode_2nd_Vac_Sol_Off == 1;				// 흡착 OFF 
+
+			P_PLC12_Blow_MNTR(N_2nd_Cathode) == 1;			// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+			dwell(50)
+			P_Cathode_2nd_Motion_Complete == 1
+			P_Stack_Trigger_IO_Test_Motion_Loop++;		// 모션, PLC 실제 Vision측 루프 카운트 측정 변수
+			P_Cathode_Count++;
+			dwell(0)
+		break;
+
+		// case 12
+		case N_2nd_PNP_Align_Blow :							// 얼라인 블로우
+			P_Cathode_2nd_PNP_Align_Blow = P_Master_Motion_Trigger
+			P_Slave18_Motion_Command = 0;
+				P_Second_PNP_Blow_On_Status == F_Status_EXECUTE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+			P_Cathode_2nd_TR_Align_Down_Flag == 1
+
+			// 2026.02.24 DIO 추가
+			M_Y_Cathode_2nd_Vac_Sol_On == 0;				// 흡착 ON
+			M_Y_Cathode_2nd_Vac_Sol_Off == 1;				// 흡착 OFF
+			M_Y_Cathode_AT_Vac_Ejector_Vac_On == 1;			// 양극 얼라인 흡착 ON  
+			M_Y_Cathode_AT_Vac_Ejector_Vac_Off == 0;		// 양극 얼라인 흡착 OFF
+
+			P_PLC12_Blow_MNTR(N_2nd_Cathode) == 1;			// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+			P_PLC12_Vacuum_MNTR(N_Align_Cathode) == 1;		// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
+			dwell(50)
+			P_Cathode_2nd_Motion_Complete == 1
+				P_Second_PNP_Blow_On_Status == F_Status_COMPLETE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+			dwell(0)
+		break
+		// [ 참조 : 2025.07.25 Sepa Blow 모션 추가 ]
+			// case 13 // 세파모드 블로우
+		case N_2nd_PNP_Sepa_Blow :
+			P_Cathode_2nd_PNP_Sepa_Blow = P_Master_Motion_Trigger
+			P_Slave18_Motion_Command = 0;
+			P_Cathode_2nd_Motion_Complete == 1
+			P_Cathode_Count++;
+			P_Vision_Cathode_Sepa_Mode_Stack_Command == 1
+			dwell(0)
+		break;
+
+		default: 
+			P_Slave18_Motion_Command = 0;
+		break;
+	}
+}
+close

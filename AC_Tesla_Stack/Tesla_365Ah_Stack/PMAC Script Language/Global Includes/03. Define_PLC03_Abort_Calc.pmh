@@ -1,0 +1,476 @@
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.07.04
+// AbortTa,Ts 계산 변수 선언 - [ 참조 : 25.07.04 모션 중 P&P AbortTa,Ts 적용 ]
+
+/*	Search	[Abort Offset 배열 정리]
+	Find_Array
+	Find_1st_PNP_FWD
+	Find_1st_PNP_BWD
+	Find_2nd_PNP_FWD
+	Find_2nd_PNP_BWD	*/
+//=====================================================================//
+// P&P Offset 사용 유무 비트.
+//=====================================================================//
+global P_PNP_Abort_Use_Bit = 0;					// P&P Abort 사용 Bit. [ 0 : 미사용, 1 : 사용 ]
+global P_PNP_Abort_Use_Total_Bit = 0;			// P&P Abort 사용 전체 Bit.
+global P_C_1st_PNP_FWD_Abort_Use_Bit = 0;		// 양극 1차 P&P 전진 Abort 사용 개별 Bit.
+global P_C_1st_PNP_BWD_Abort_Use_Bit = 0;		// 양극 1차 P&P 후진	Abort 사용 개별 Bit.
+global P_C_2nd_PNP_FWD_Abort_Use_Bit = 0;		// 양극 2차 P&P 전진	Abort 사용 개별 Bit.
+global P_C_2nd_PNP_BWD_Abort_Use_Bit = 0;		// 양극 2차 P&P 후진	Abort 사용 개별 Bit.
+global P_A_1st_PNP_FWD_Abort_Use_Bit = 0;		// 음극 1차 P&P 전진	Abort 사용 개별 Bit.
+global P_A_1st_PNP_BWD_Abort_Use_Bit = 0;		// 음극 1차 P&P 후진	Abort 사용 개별 Bit.
+global P_A_2nd_PNP_FWD_Abort_Use_Bit = 0;		// 음극 2차 P&P 전진	Abort 사용 개별 Bit.
+global P_A_2nd_PNP_BWD_Abort_Use_Bit = 0;		// 음극 2차 P&P 후진	Abort 사용 개별 Bit.
+//=====================================================================//
+// P&P 좌표계 및 모터 번호 선언 //
+//=====================================================================//
+// 좌표계 번호 선언.
+#define		N_C_1st_PNP_C_Num	30				// 양극 1차 P&P 좌표계 번호 선언.
+#define		N_A_1st_PNP_C_Num	21				// 음극 1차 P&P 좌표계 번호 선언.
+#define		N_C_2nd_PNP_C_Num	28				// 양극 2차 P&P 좌표계 번호 선언.
+#define		N_A_2nd_PNP_C_Num	23				// 음극 2차 P&P 좌표계 번호 선언.
+// 모터 번호 선언.
+#define		N_C_1st_PNP_M_Num	1				// 양극 1차 P&P 모터 번호 선언.
+#define		N_A_1st_PNP_M_Num	2				// 음극 1차 P&P 모터 번호 선언.
+#define		N_C_2nd_PNP_M_Num	3				// 양극 2차 P&P 모터 번호 선언.
+#define		N_A_2nd_PNP_M_Num	4				// 음극 2차 P&P 모터 번호 선언.
+//=====================================================================//
+// 계산 변수 선언 //
+//=====================================================================//
+//---------------------------------------------------------------------//
+// 실행 변수 //
+//---------------------------------------------------------------------//
+global P_Single_Motor_Control_Bit = 0;			// Manual 모드 때 AbortTa,Ts 적용 변수. [ 0 : 미적용, 1 : 적용 ]
+//---------------------------------------------------------------------//
+// 모션 프로그램 진행 확인 변수 //
+//---------------------------------------------------------------------//
+global P_C_1st_PNP_FWD_Abort_Calc_Bit = 0;		// 양극 1차 P&P 전진 Abort 계산 Bit.
+global P_C_1st_PNP_BWD_Abort_Calc_Bit = 0;		// 양극 1차 P&P 후진 Abort 계산 Bit.
+global P_C_2nd_PNP_FWD_Abort_Calc_Bit = 0;		// 양극 2차 P&P 전진 Abort 계산 Bit.
+global P_C_2nd_PNP_BWD_Abort_Calc_Bit = 0;		// 양극 2차 P&P 후진 Abort 계산 Bit.
+global P_A_1st_PNP_FWD_Abort_Calc_Bit = 0;		// 음극 1차 P&P 전진 Abort 계산 Bit.
+global P_A_1st_PNP_BWD_Abort_Calc_Bit = 0;		// 음극 1차 P&P 후진 Abort 계산 Bit.
+global P_A_2nd_PNP_FWD_Abort_Calc_Bit = 0;		// 음극 2차 P&P 전진 Abort 계산 Bit.
+global P_A_2nd_PNP_BWD_Abort_Calc_Bit = 0;		// 음극 2차 P&P 후진 Abort 계산 Bit.
+//---------------------------------------------------------------------//
+// 모터 위치, 속도 변수 //
+//---------------------------------------------------------------------//
+global P_C_1st_PNP_FWD_Cur_Pos = 0;				// 양극 1차 P&P 전진 현재 위치.
+global P_C_1st_PNP_FWD_Cur_Vel = 0;				// 양극 1차 P&P 전진 현재 속도.
+global P_C_1st_PNP_BWD_Cur_Pos = 0;				// 양극 1차 P&P 후진 현재 위치.
+global P_C_1st_PNP_BWD_Cur_Vel = 0;				// 양극 1차 P&P 후진 현재 속도.
+global P_C_2nd_PNP_FWD_Cur_Pos = 0;				// 양극 2차 P&P 전진 현재 위치.
+global P_C_2nd_PNP_FWD_Cur_Vel = 0;				// 양극 2차 P&P 전진 현재 속도.
+global P_C_2nd_PNP_BWD_Cur_Pos = 0;				// 양극 2차 P&P 후진 현재 위치.
+global P_C_2nd_PNP_BWD_Cur_Vel = 0;				// 양극 2차 P&P 후진 현재 속도.
+global P_A_1st_PNP_FWD_Cur_Pos = 0;				// 음극 1차 P&P 전진 현재 위치.
+global P_A_1st_PNP_FWD_Cur_Vel = 0;				// 음극 1차 P&P 전진 현재 속도.
+global P_A_1st_PNP_BWD_Cur_Pos = 0;				// 음극 1차 P&P 후진 현재 위치.
+global P_A_1st_PNP_BWD_Cur_Vel = 0;				// 음극 1차 P&P 후진 현재 속도.
+global P_A_2nd_PNP_FWD_Cur_Pos = 0;				// 음극 2차 P&P 전진 현재 위치.
+global P_A_2nd_PNP_FWD_Cur_Vel = 0;				// 음극 2차 P&P 전진 현재 속도.
+global P_A_2nd_PNP_BWD_Cur_Pos = 0;				// 음극 2차 P&P 후진 현재 위치.
+global P_A_2nd_PNP_BWD_Cur_Vel = 0;				// 음극 2차 P&P 후진 현재 속도.
+//---------------------------------------------------------------------//
+// Limit 설정 변수 // [전진 : 1차(70mm) 2차(90mm), 후진 : 1차(20mm) 2차(0mm)] [1차 PNP 후진의 경우 Belt 간섭으로 인하여 1차(35mm)]
+//---------------------------------------------------------------------//
+global P_C_1st_PNP_FWD_Limit_Pos = 70;			// 양극 1차 P&P 전진 1차 Limit.
+global P_C_1st_PNP_BWD_Limit_Pos = 35;			// 양극 1차 P&P 후진 1차 Limit.
+global P_C_2nd_PNP_FWD_Limit_Pos = 70;			// 양극 2차 P&P 전진 1차 Limit.
+global P_C_2nd_PNP_BWD_Limit_Pos = 20;			// 양극 2차 P&P 후진 1차 Limit.
+global P_A_1st_PNP_FWD_Limit_Pos = 70;			// 음극 1차 P&P 전진 1차 Limit.
+global P_A_1st_PNP_BWD_Limit_Pos = 35;			// 음극 1차 P&P 후진 1차 Limit.
+global P_A_2nd_PNP_FWD_Limit_Pos = 70;			// 음극 2차 P&P 전진 1차 Limit.
+global P_A_2nd_PNP_BWD_Limit_Pos = 20;			// 음극 2차 P&P 후진 1차 Limit.
+global P_C_1st_PNP_FWD_Max_Limit_Pos = 90;		// 양극 1차 P&P 전진 2차 Limit.
+global P_C_1st_PNP_BWD_Max_Limit_Pos = 0;		// 양극 1차 P&P 후진 2차 Limit.
+global P_C_2nd_PNP_FWD_Max_Limit_Pos = 90;		// 양극 2차 P&P 전진 2차 Limit.
+global P_C_2nd_PNP_BWD_Max_Limit_Pos = 0;		// 양극 2차 P&P 후진 2차 Limit.
+global P_A_1st_PNP_FWD_Max_Limit_Pos = 90;		// 음극 1차 P&P 전진 2차 Limit.
+global P_A_1st_PNP_BWD_Max_Limit_Pos = 0;		// 음극 1차 P&P 후진 2차 Limit.
+global P_A_2nd_PNP_FWD_Max_Limit_Pos = 90;		// 음극 2차 P&P 전진 2차 Limit.
+global P_A_2nd_PNP_BWD_Max_Limit_Pos = 0;		// 음극 2차 P&P 후진 2차 Limit.
+//---------------------------------------------------------------------//
+// 리밋까지 남은 거리, 시간 변수 //
+//---------------------------------------------------------------------//
+global P_C_1st_PNP_FWD_Remain_Stroke = 0;		// 양극 1차 P&P 전진 남은 Stroke.
+global P_C_1st_PNP_BWD_Remain_Stroke = 0;		// 양극 1차 P&P 후진 남은 Stroke.
+global P_C_2nd_PNP_FWD_Remain_Stroke = 0;		// 양극 2차 P&P 전진 남은 Stroke.
+global P_C_2nd_PNP_BWD_Remain_Stroke = 0;		// 양극 2차 P&P 후진 남은 Stroke.
+global P_A_1st_PNP_FWD_Remain_Stroke = 0;		// 음극 1차 P&P 전진 남은 Stroke.
+global P_A_1st_PNP_BWD_Remain_Stroke = 0;		// 음극 1차 P&P 후진 남은 Stroke.
+global P_A_2nd_PNP_FWD_Remain_Stroke = 0;		// 음극 2차 P&P 전진 남은 Stroke.
+global P_A_2nd_PNP_BWD_Remain_Stroke = 0;		// 음극 2차 P&P 후진 남은 Stroke.
+global P_C_1st_PNP_FWD_Stroke_Time = 0;			// 양극 1차 P&P 전진 남은 시간.
+global P_C_1st_PNP_BWD_Stroke_Time = 0;			// 양극 1차 P&P 후진 남은 시간.
+global P_C_2nd_PNP_FWD_Stroke_Time = 0;			// 양극 2차 P&P 전진 남은 시간.
+global P_C_2nd_PNP_BWD_Stroke_Time = 0;			// 양극 2차 P&P 후진 남은 시간.
+global P_A_1st_PNP_FWD_Stroke_Time = 0;			// 음극 1차 P&P 전진 남은 시간.
+global P_A_1st_PNP_BWD_Stroke_Time = 0;			// 음극 1차 P&P 후진 남은 시간.
+global P_A_2nd_PNP_FWD_Stroke_Time = 0;			// 음극 2차 P&P 전진 남은 시간.
+global P_A_2nd_PNP_BWD_Stroke_Time = 0;			// 음극 2차 P&P 후진 남은 시간.
+//---------------------------------------------------------------------//
+// 모션 최대 속도, 가속 거리 변수 //
+//---------------------------------------------------------------------//
+global P_C_1st_PNP_FWD_Max_Speed = 0;			// 양극 1차 P&P 전진 최고 속도.
+global P_C_1st_PNP_BWD_Max_Speed = 0;			// 양극 1차 P&P 후진 최고 속도.
+global P_C_2nd_PNP_FWD_Max_Speed = 0;			// 양극 2차 P&P 전진 최고 속도.
+global P_C_2nd_PNP_BWD_Max_Speed = 0;			// 양극 2차 P&P 후진 최고 속도.
+global P_A_1st_PNP_FWD_Max_Speed = 0;			// 음극 1차 P&P 전진 최고 속도.
+global P_A_1st_PNP_BWD_Max_Speed = 0;			// 음극 1차 P&P 후진 최고 속도.
+global P_A_2nd_PNP_FWD_Max_Speed = 0;			// 음극 2차 P&P 전진 최고 속도.
+global P_A_2nd_PNP_BWD_Max_Speed = 0;			// 음극 2차 P&P 후진 최고 속도.
+global P_C_1st_PNP_FWD_ACC_Dis = 0;				// 양극 1차 P&P 전진 가속 거리.
+global P_C_1st_PNP_BWD_ACC_Dis = 0;				// 양극 1차 P&P 후진 가속 거리.
+global P_C_2nd_PNP_FWD_ACC_Dis = 0;				// 양극 2차 P&P 전진 가속 거리.
+global P_C_2nd_PNP_BWD_ACC_Dis = 0;				// 양극 2차 P&P 후진 가속 거리.
+global P_A_1st_PNP_FWD_ACC_Dis = 0;				// 음극 1차 P&P 전진 가속 거리.
+global P_A_1st_PNP_BWD_ACC_Dis = 0;				// 음극 1차 P&P 후진 가속 거리.
+global P_A_2nd_PNP_FWD_ACC_Dis = 0;				// 음극 2차 P&P 전진 가속 거리.
+global P_A_2nd_PNP_BWD_ACC_Dis = 0;				// 음극 2차 P&P 후진 가속 거리.
+//---------------------------------------------------------------------//
+// AbortTa,Ts 변수 및 Abort Offset 배열 변수 //
+//---------------------------------------------------------------------//
+#define Move_Dis	90
+global P_C_1st_PNP_FWD_AbortTa = 0;				// 양극 1차 P&P 전진 AbortTa.
+global P_C_1st_PNP_FWD_AbortTs = 0;				// 양극 1차 P&P 전진 AbortTs.
+global P_C_1st_PNP_BWD_AbortTa = 0;				// 양극 1차 P&P 후진 AbortTa. 
+global P_C_1st_PNP_BWD_AbortTs = 0;				// 양극 1차 P&P 후진 AbortTs. 
+global P_C_2nd_PNP_FWD_AbortTa = 0;				// 양극 2차 P&P 전진 AbortTa. 
+global P_C_2nd_PNP_FWD_AbortTs = 0;				// 양극 2차 P&P 전진 AbortTs. 
+global P_C_2nd_PNP_BWD_AbortTa = 0;				// 양극 2차 P&P 후진 AbortTa. 
+global P_C_2nd_PNP_BWD_AbortTs = 0;				// 양극 2차 P&P 후진 AbortTs. 
+global P_A_1st_PNP_FWD_AbortTa = 0;				// 음극 1차 P&P 전진 AbortTa. 
+global P_A_1st_PNP_FWD_AbortTs = 0;				// 음극 1차 P&P 전진 AbortTs. 
+global P_A_1st_PNP_BWD_AbortTa = 0;				// 음극 1차 P&P 후진 AbortTa. 
+global P_A_1st_PNP_BWD_AbortTs = 0;				// 음극 1차 P&P 후진 AbortTs. 
+global P_A_2nd_PNP_FWD_AbortTa = 0;				// 음극 2차 P&P 전진 AbortTa. 
+global P_A_2nd_PNP_FWD_AbortTs = 0;				// 음극 2차 P&P 전진 AbortTs. 
+global P_A_2nd_PNP_BWD_AbortTa = 0;				// 음극 2차 P&P 후진 AbortTa. 
+global P_A_2nd_PNP_BWD_AbortTs = 0;				// 음극 2차 P&P 후진 AbortTs. 
+global P_C_1st_PNP_FWD_Abort_Dec_Offset = 5;	// 양극 1차 P&P 전진 감속 중 Abort Offset.
+global P_C_1st_PNP_BWD_Abort_Dec_Offset = 5;	// 양극 1차 P&P 후진	감속 중 Abort Offset.
+global P_C_2nd_PNP_FWD_Abort_Dec_Offset = 5;	// 양극 2차 P&P 전진	감속 중 Abort Offset.
+global P_C_2nd_PNP_BWD_Abort_Dec_Offset = 5;	// 양극 2차 P&P 후진	감속 중 Abort Offset.
+global P_A_1st_PNP_FWD_Abort_Dec_Offset = 5;	// 음극 1차 P&P 전진	감속 중 Abort Offset.
+global P_A_1st_PNP_BWD_Abort_Dec_Offset = 5;	// 음극 1차 P&P 후진	감속 중 Abort Offset.
+global P_A_2nd_PNP_FWD_Abort_Dec_Offset = 5;	// 음극 2차 P&P 전진	감속 중 Abort Offset.
+global P_A_2nd_PNP_BWD_Abort_Dec_Offset = 5;	// 음극 2차 P&P 후진	감속 중 Abort Offset.
+global P_1st_PNP_FWD_Abort_Offset(Move_Dis);	// 1차 P&P 전진 Abort Offset 배열.
+global P_1st_PNP_BWD_Abort_Offset(Move_Dis);	// 1차 P&P 후진	Abort Offset 배열.
+global P_2nd_PNP_FWD_Abort_Offset(Move_Dis);	// 2차 P&P 전진	Abort Offset 배열.
+global P_2nd_PNP_BWD_Abort_Offset(Move_Dis);	// 2차 P&P 후진	Abort Offset 배열.
+P_1st_PNP_FWD_Abort_Offset(0),Move_Dis = 0;		// 1차 P&P 전진 Abort Offset 배열 초기화.
+P_1st_PNP_BWD_Abort_Offset(0),Move_Dis = 0;		// 1차 P&P 후진	Abort Offset 배열 초기화.
+P_2nd_PNP_FWD_Abort_Offset(0),Move_Dis = 0;		// 2차 P&P 전진	Abort Offset 배열 초기화.
+P_2nd_PNP_BWD_Abort_Offset(0),Move_Dis = 0;		// 2차 P&P 후진	Abort Offset 배열 초기화.
+//---------------------------------------------------------------------//
+// Abort 진행 시 AbortTa,Ts 값 저장 및 원복 //	[ 참조 : 25.07.29 Abort 프로그램 수정 ]
+//---------------------------------------------------------------------//
+global P_Abort_Init_Value = -2;					// AbortTa,Ts 원복 값.
+global P_C_1st_PNP_FWD_AbortTa_Buffer = 0;		// 양극 1차 P&P 전진 AbortTa Buffer.
+global P_C_1st_PNP_FWD_AbortTs_Buffer = 0;		// 양극 1차 P&P 전진 AbortTs Buffer.
+global P_C_1st_PNP_BWD_AbortTa_Buffer = 0;		// 양극 1차 P&P 후진 AbortTa Buffer.
+global P_C_1st_PNP_BWD_AbortTs_Buffer = 0;		// 양극 1차 P&P 후진 AbortTs Buffer.
+global P_C_2nd_PNP_FWD_AbortTa_Buffer = 0;		// 양극 2차 P&P 전진 AbortTa Buffer.
+global P_C_2nd_PNP_FWD_AbortTs_Buffer = 0;		// 양극 2차 P&P 전진 AbortTs Buffer.
+global P_C_2nd_PNP_BWD_AbortTa_Buffer = 0;		// 양극 2차 P&P 후진 AbortTa Buffer.
+global P_C_2nd_PNP_BWD_AbortTs_Buffer = 0;		// 양극 2차 P&P 후진 AbortTs Buffer.
+global P_A_1st_PNP_FWD_AbortTa_Buffer = 0;		// 음극 1차 P&P 전진 AbortTa Buffer.
+global P_A_1st_PNP_FWD_AbortTs_Buffer = 0;		// 음극 1차 P&P 전진 AbortTs Buffer.
+global P_A_1st_PNP_BWD_AbortTa_Buffer = 0;		// 음극 1차 P&P 후진 AbortTa Buffer.
+global P_A_1st_PNP_BWD_AbortTs_Buffer = 0;		// 음극 1차 P&P 후진 AbortTs Buffer.
+global P_A_2nd_PNP_FWD_AbortTa_Buffer = 0;		// 음극 2차 P&P 전진 AbortTa Buffer.
+global P_A_2nd_PNP_FWD_AbortTs_Buffer = 0;		// 음극 2차 P&P 전진 AbortTs Buffer.
+global P_A_2nd_PNP_BWD_AbortTa_Buffer = 0;		// 음극 2차 P&P 후진 AbortTa Buffer.
+global P_A_2nd_PNP_BWD_AbortTs_Buffer = 0;		// 음극 2차 P&P 후진 AbortTs Buffer.
+global P_C_1st_PNP_FWD_Restore_Bit = 0;			// 양극 1차 P&P 전진 원복 Bit.
+global P_C_1st_PNP_BWD_Restore_Bit = 0;			// 양극 1차 P&P 후진 원복 Bit.
+global P_C_2nd_PNP_FWD_Restore_Bit = 0;			// 양극 2차 P&P 전진 원복 Bit.
+global P_C_2nd_PNP_BWD_Restore_Bit = 0;			// 양극 2차 P&P 후진 원복 Bit.
+global P_A_1st_PNP_FWD_Restore_Bit = 0;			// 음극 1차 P&P 전진 원복 Bit.
+global P_A_1st_PNP_BWD_Restore_Bit = 0;			// 음극 1차 P&P 후진 원복 Bit.
+global P_A_2nd_PNP_FWD_Restore_Bit = 0;			// 음극 2차 P&P 전진 원복 Bit.
+global P_A_2nd_PNP_BWD_Restore_Bit = 0;			// 음극 2차 P&P 후진 원복 Bit.
+//---------------------------------------------------------------------//
+// Abort Offset 배열 선언 // Find_Array //
+//---------------------------------------------------------------------//
+// 1차 P&P 전진.	Find_1st_PNP_FWD
+P_1st_PNP_FWD_Abort_Offset(0)=135
+P_1st_PNP_FWD_Abort_Offset(1)=135
+P_1st_PNP_FWD_Abort_Offset(2)=126
+P_1st_PNP_FWD_Abort_Offset(3)=119
+P_1st_PNP_FWD_Abort_Offset(4)=113
+P_1st_PNP_FWD_Abort_Offset(5)=108
+P_1st_PNP_FWD_Abort_Offset(6)=104
+P_1st_PNP_FWD_Abort_Offset(7)=100
+P_1st_PNP_FWD_Abort_Offset(8)=96
+P_1st_PNP_FWD_Abort_Offset(9)=93
+P_1st_PNP_FWD_Abort_Offset(10)=89
+P_1st_PNP_FWD_Abort_Offset(11)=86
+P_1st_PNP_FWD_Abort_Offset(12)=83
+P_1st_PNP_FWD_Abort_Offset(13)=81
+P_1st_PNP_FWD_Abort_Offset(14)=78
+P_1st_PNP_FWD_Abort_Offset(15)=75
+P_1st_PNP_FWD_Abort_Offset(16)=73
+P_1st_PNP_FWD_Abort_Offset(17)=71
+P_1st_PNP_FWD_Abort_Offset(18)=68
+P_1st_PNP_FWD_Abort_Offset(19)=66
+P_1st_PNP_FWD_Abort_Offset(20)=64
+P_1st_PNP_FWD_Abort_Offset(21)=62
+P_1st_PNP_FWD_Abort_Offset(22)=60
+P_1st_PNP_FWD_Abort_Offset(23)=58
+P_1st_PNP_FWD_Abort_Offset(24)=56
+P_1st_PNP_FWD_Abort_Offset(25)=54
+P_1st_PNP_FWD_Abort_Offset(26)=52
+P_1st_PNP_FWD_Abort_Offset(27)=51
+P_1st_PNP_FWD_Abort_Offset(28)=49
+P_1st_PNP_FWD_Abort_Offset(29)=48
+P_1st_PNP_FWD_Abort_Offset(30)=46
+P_1st_PNP_FWD_Abort_Offset(31)=44
+P_1st_PNP_FWD_Abort_Offset(32)=43
+P_1st_PNP_FWD_Abort_Offset(33)=42
+P_1st_PNP_FWD_Abort_Offset(34)=41
+P_1st_PNP_FWD_Abort_Offset(35)=40
+P_1st_PNP_FWD_Abort_Offset(36)=39
+P_1st_PNP_FWD_Abort_Offset(37)=38
+P_1st_PNP_FWD_Abort_Offset(38)=37
+P_1st_PNP_FWD_Abort_Offset(39)=36
+P_1st_PNP_FWD_Abort_Offset(40)=35
+P_1st_PNP_FWD_Abort_Offset(41)=34
+P_1st_PNP_FWD_Abort_Offset(42)=33
+P_1st_PNP_FWD_Abort_Offset(43)=32
+P_1st_PNP_FWD_Abort_Offset(44)=31
+P_1st_PNP_FWD_Abort_Offset(45)=29
+P_1st_PNP_FWD_Abort_Offset(46)=28
+P_1st_PNP_FWD_Abort_Offset(47)=27
+P_1st_PNP_FWD_Abort_Offset(48)=26
+P_1st_PNP_FWD_Abort_Offset(49)=25
+P_1st_PNP_FWD_Abort_Offset(50)=24
+P_1st_PNP_FWD_Abort_Offset(51)=23
+P_1st_PNP_FWD_Abort_Offset(52)=22
+P_1st_PNP_FWD_Abort_Offset(53)=21
+P_1st_PNP_FWD_Abort_Offset(54)=20
+P_1st_PNP_FWD_Abort_Offset(55)=19
+P_1st_PNP_FWD_Abort_Offset(56)=17
+P_1st_PNP_FWD_Abort_Offset(57)=16
+P_1st_PNP_FWD_Abort_Offset(58)=15
+P_1st_PNP_FWD_Abort_Offset(59)=14
+P_1st_PNP_FWD_Abort_Offset(60)=12
+P_1st_PNP_FWD_Abort_Offset(61)=11
+P_1st_PNP_FWD_Abort_Offset(62)=10
+P_1st_PNP_FWD_Abort_Offset(63)=8
+P_1st_PNP_FWD_Abort_Offset(64)=7
+P_1st_PNP_FWD_Abort_Offset(65)=5
+P_1st_PNP_FWD_Abort_Offset(66)=4
+P_1st_PNP_FWD_Abort_Offset(67)=2
+P_1st_PNP_FWD_Abort_Offset(68)=1
+P_1st_PNP_FWD_Abort_Offset(69)=1
+P_1st_PNP_FWD_Abort_Offset(70)=1
+P_1st_PNP_FWD_Abort_Offset(71)=1
+// 1차 P&P 후진	Find_1st_PNP_BWD
+P_1st_PNP_BWD_Abort_Offset(0)=117
+P_1st_PNP_BWD_Abort_Offset(1)=108
+P_1st_PNP_BWD_Abort_Offset(2)=101
+P_1st_PNP_BWD_Abort_Offset(3)=95
+P_1st_PNP_BWD_Abort_Offset(4)=90
+P_1st_PNP_BWD_Abort_Offset(5)=86
+P_1st_PNP_BWD_Abort_Offset(6)=82
+P_1st_PNP_BWD_Abort_Offset(7)=78
+P_1st_PNP_BWD_Abort_Offset(8)=75
+P_1st_PNP_BWD_Abort_Offset(9)=72
+P_1st_PNP_BWD_Abort_Offset(10)=69
+P_1st_PNP_BWD_Abort_Offset(11)=66
+P_1st_PNP_BWD_Abort_Offset(12)=63
+P_1st_PNP_BWD_Abort_Offset(13)=60
+P_1st_PNP_BWD_Abort_Offset(14)=58
+P_1st_PNP_BWD_Abort_Offset(15)=56
+P_1st_PNP_BWD_Abort_Offset(16)=54
+P_1st_PNP_BWD_Abort_Offset(17)=51
+P_1st_PNP_BWD_Abort_Offset(18)=49
+P_1st_PNP_BWD_Abort_Offset(19)=47
+P_1st_PNP_BWD_Abort_Offset(20)=45
+P_1st_PNP_BWD_Abort_Offset(21)=43
+P_1st_PNP_BWD_Abort_Offset(22)=41
+P_1st_PNP_BWD_Abort_Offset(23)=39
+P_1st_PNP_BWD_Abort_Offset(24)=38
+P_1st_PNP_BWD_Abort_Offset(25)=36
+P_1st_PNP_BWD_Abort_Offset(26)=34
+P_1st_PNP_BWD_Abort_Offset(27)=33
+P_1st_PNP_BWD_Abort_Offset(28)=31
+P_1st_PNP_BWD_Abort_Offset(29)=29
+P_1st_PNP_BWD_Abort_Offset(30)=28
+P_1st_PNP_BWD_Abort_Offset(31)=27
+P_1st_PNP_BWD_Abort_Offset(32)=25
+P_1st_PNP_BWD_Abort_Offset(33)=24
+P_1st_PNP_BWD_Abort_Offset(34)=23
+P_1st_PNP_BWD_Abort_Offset(35)=22
+P_1st_PNP_BWD_Abort_Offset(36)=20
+P_1st_PNP_BWD_Abort_Offset(37)=19
+P_1st_PNP_BWD_Abort_Offset(38)=18
+P_1st_PNP_BWD_Abort_Offset(39)=17
+P_1st_PNP_BWD_Abort_Offset(40)=16
+P_1st_PNP_BWD_Abort_Offset(41)=14
+P_1st_PNP_BWD_Abort_Offset(42)=13
+P_1st_PNP_BWD_Abort_Offset(43)=12
+P_1st_PNP_BWD_Abort_Offset(44)=10
+P_1st_PNP_BWD_Abort_Offset(45)=9
+P_1st_PNP_BWD_Abort_Offset(46)=8
+P_1st_PNP_BWD_Abort_Offset(47)=7
+P_1st_PNP_BWD_Abort_Offset(48)=6
+P_1st_PNP_BWD_Abort_Offset(49)=4
+P_1st_PNP_BWD_Abort_Offset(50)=3
+P_1st_PNP_BWD_Abort_Offset(51)=2
+P_1st_PNP_BWD_Abort_Offset(52)=1
+P_1st_PNP_BWD_Abort_Offset(53)=1
+P_1st_PNP_BWD_Abort_Offset(54)=1
+P_1st_PNP_BWD_Abort_Offset(55)=1
+P_1st_PNP_BWD_Abort_Offset(56)=1
+// 2차 PNP 전진	Find_2nd_PNP_FWD
+P_2nd_PNP_FWD_Abort_Offset(0)=135
+P_2nd_PNP_FWD_Abort_Offset(1)=135
+P_2nd_PNP_FWD_Abort_Offset(2)=126
+P_2nd_PNP_FWD_Abort_Offset(3)=119
+P_2nd_PNP_FWD_Abort_Offset(4)=113
+P_2nd_PNP_FWD_Abort_Offset(5)=108
+P_2nd_PNP_FWD_Abort_Offset(6)=104
+P_2nd_PNP_FWD_Abort_Offset(7)=100
+P_2nd_PNP_FWD_Abort_Offset(8)=96
+P_2nd_PNP_FWD_Abort_Offset(9)=93
+P_2nd_PNP_FWD_Abort_Offset(10)=89
+P_2nd_PNP_FWD_Abort_Offset(11)=86
+P_2nd_PNP_FWD_Abort_Offset(12)=83
+P_2nd_PNP_FWD_Abort_Offset(13)=81
+P_2nd_PNP_FWD_Abort_Offset(14)=78
+P_2nd_PNP_FWD_Abort_Offset(15)=75
+P_2nd_PNP_FWD_Abort_Offset(16)=73
+P_2nd_PNP_FWD_Abort_Offset(17)=71
+P_2nd_PNP_FWD_Abort_Offset(18)=68
+P_2nd_PNP_FWD_Abort_Offset(19)=66
+P_2nd_PNP_FWD_Abort_Offset(20)=64
+P_2nd_PNP_FWD_Abort_Offset(21)=62
+P_2nd_PNP_FWD_Abort_Offset(22)=60
+P_2nd_PNP_FWD_Abort_Offset(23)=58
+P_2nd_PNP_FWD_Abort_Offset(24)=56
+P_2nd_PNP_FWD_Abort_Offset(25)=54
+P_2nd_PNP_FWD_Abort_Offset(26)=52
+P_2nd_PNP_FWD_Abort_Offset(27)=51
+P_2nd_PNP_FWD_Abort_Offset(28)=49
+P_2nd_PNP_FWD_Abort_Offset(29)=48
+P_2nd_PNP_FWD_Abort_Offset(30)=46
+P_2nd_PNP_FWD_Abort_Offset(31)=44
+P_2nd_PNP_FWD_Abort_Offset(32)=43
+P_2nd_PNP_FWD_Abort_Offset(33)=42
+P_2nd_PNP_FWD_Abort_Offset(34)=41
+P_2nd_PNP_FWD_Abort_Offset(35)=40
+P_2nd_PNP_FWD_Abort_Offset(36)=39
+P_2nd_PNP_FWD_Abort_Offset(37)=38
+P_2nd_PNP_FWD_Abort_Offset(38)=37
+P_2nd_PNP_FWD_Abort_Offset(39)=36
+P_2nd_PNP_FWD_Abort_Offset(40)=35
+P_2nd_PNP_FWD_Abort_Offset(41)=34
+P_2nd_PNP_FWD_Abort_Offset(42)=33
+P_2nd_PNP_FWD_Abort_Offset(43)=32
+P_2nd_PNP_FWD_Abort_Offset(44)=31
+P_2nd_PNP_FWD_Abort_Offset(45)=29
+P_2nd_PNP_FWD_Abort_Offset(46)=28
+P_2nd_PNP_FWD_Abort_Offset(47)=27
+P_2nd_PNP_FWD_Abort_Offset(48)=26
+P_2nd_PNP_FWD_Abort_Offset(49)=25
+P_2nd_PNP_FWD_Abort_Offset(50)=24
+P_2nd_PNP_FWD_Abort_Offset(51)=23
+P_2nd_PNP_FWD_Abort_Offset(52)=22
+P_2nd_PNP_FWD_Abort_Offset(53)=21
+P_2nd_PNP_FWD_Abort_Offset(54)=20
+P_2nd_PNP_FWD_Abort_Offset(55)=19
+P_2nd_PNP_FWD_Abort_Offset(56)=17
+P_2nd_PNP_FWD_Abort_Offset(57)=16
+P_2nd_PNP_FWD_Abort_Offset(58)=15
+P_2nd_PNP_FWD_Abort_Offset(59)=14
+P_2nd_PNP_FWD_Abort_Offset(60)=12
+P_2nd_PNP_FWD_Abort_Offset(61)=11
+P_2nd_PNP_FWD_Abort_Offset(62)=10
+P_2nd_PNP_FWD_Abort_Offset(63)=8
+P_2nd_PNP_FWD_Abort_Offset(64)=7
+P_2nd_PNP_FWD_Abort_Offset(65)=5
+P_2nd_PNP_FWD_Abort_Offset(66)=4
+P_2nd_PNP_FWD_Abort_Offset(67)=2
+P_2nd_PNP_FWD_Abort_Offset(68)=1
+P_2nd_PNP_FWD_Abort_Offset(69)=1
+P_2nd_PNP_FWD_Abort_Offset(70)=1
+P_2nd_PNP_FWD_Abort_Offset(71)=1
+// 2차 P&P 후진	Find_2nd_PNP_BWD
+P_2nd_PNP_BWD_Abort_Offset(0)=135
+P_2nd_PNP_BWD_Abort_Offset(1)=135
+P_2nd_PNP_BWD_Abort_Offset(2)=126
+P_2nd_PNP_BWD_Abort_Offset(3)=119
+P_2nd_PNP_BWD_Abort_Offset(4)=113
+P_2nd_PNP_BWD_Abort_Offset(5)=108
+P_2nd_PNP_BWD_Abort_Offset(6)=104
+P_2nd_PNP_BWD_Abort_Offset(7)=100
+P_2nd_PNP_BWD_Abort_Offset(8)=96
+P_2nd_PNP_BWD_Abort_Offset(9)=93
+P_2nd_PNP_BWD_Abort_Offset(10)=89
+P_2nd_PNP_BWD_Abort_Offset(11)=86
+P_2nd_PNP_BWD_Abort_Offset(12)=83
+P_2nd_PNP_BWD_Abort_Offset(13)=81
+P_2nd_PNP_BWD_Abort_Offset(14)=78
+P_2nd_PNP_BWD_Abort_Offset(15)=75
+P_2nd_PNP_BWD_Abort_Offset(16)=73
+P_2nd_PNP_BWD_Abort_Offset(17)=71
+P_2nd_PNP_BWD_Abort_Offset(18)=68
+P_2nd_PNP_BWD_Abort_Offset(19)=66
+P_2nd_PNP_BWD_Abort_Offset(20)=64
+P_2nd_PNP_BWD_Abort_Offset(21)=62
+P_2nd_PNP_BWD_Abort_Offset(22)=60
+P_2nd_PNP_BWD_Abort_Offset(23)=58
+P_2nd_PNP_BWD_Abort_Offset(24)=56
+P_2nd_PNP_BWD_Abort_Offset(25)=54
+P_2nd_PNP_BWD_Abort_Offset(26)=52
+P_2nd_PNP_BWD_Abort_Offset(27)=51
+P_2nd_PNP_BWD_Abort_Offset(28)=49
+P_2nd_PNP_BWD_Abort_Offset(29)=48
+P_2nd_PNP_BWD_Abort_Offset(30)=46
+P_2nd_PNP_BWD_Abort_Offset(31)=44
+P_2nd_PNP_BWD_Abort_Offset(32)=43
+P_2nd_PNP_BWD_Abort_Offset(33)=42
+P_2nd_PNP_BWD_Abort_Offset(34)=41
+P_2nd_PNP_BWD_Abort_Offset(35)=40
+P_2nd_PNP_BWD_Abort_Offset(36)=39
+P_2nd_PNP_BWD_Abort_Offset(37)=38
+P_2nd_PNP_BWD_Abort_Offset(38)=37
+P_2nd_PNP_BWD_Abort_Offset(39)=36
+P_2nd_PNP_BWD_Abort_Offset(40)=35
+P_2nd_PNP_BWD_Abort_Offset(41)=34
+P_2nd_PNP_BWD_Abort_Offset(42)=33
+P_2nd_PNP_BWD_Abort_Offset(43)=32
+P_2nd_PNP_BWD_Abort_Offset(44)=31
+P_2nd_PNP_BWD_Abort_Offset(45)=29
+P_2nd_PNP_BWD_Abort_Offset(46)=28
+P_2nd_PNP_BWD_Abort_Offset(47)=27
+P_2nd_PNP_BWD_Abort_Offset(48)=26
+P_2nd_PNP_BWD_Abort_Offset(49)=25
+P_2nd_PNP_BWD_Abort_Offset(50)=24
+P_2nd_PNP_BWD_Abort_Offset(51)=23
+P_2nd_PNP_BWD_Abort_Offset(52)=22
+P_2nd_PNP_BWD_Abort_Offset(53)=21
+P_2nd_PNP_BWD_Abort_Offset(54)=20
+P_2nd_PNP_BWD_Abort_Offset(55)=19
+P_2nd_PNP_BWD_Abort_Offset(56)=17
+P_2nd_PNP_BWD_Abort_Offset(57)=16
+P_2nd_PNP_BWD_Abort_Offset(58)=15
+P_2nd_PNP_BWD_Abort_Offset(59)=14
+P_2nd_PNP_BWD_Abort_Offset(60)=12
+P_2nd_PNP_BWD_Abort_Offset(61)=11
+P_2nd_PNP_BWD_Abort_Offset(62)=10
+P_2nd_PNP_BWD_Abort_Offset(63)=8
+P_2nd_PNP_BWD_Abort_Offset(64)=7
+P_2nd_PNP_BWD_Abort_Offset(65)=5
+P_2nd_PNP_BWD_Abort_Offset(66)=4
+P_2nd_PNP_BWD_Abort_Offset(67)=2
+P_2nd_PNP_BWD_Abort_Offset(68)=1
+P_2nd_PNP_BWD_Abort_Offset(69)=1
+P_2nd_PNP_BWD_Abort_Offset(70)=1
+P_2nd_PNP_BWD_Abort_Offset(71)=1

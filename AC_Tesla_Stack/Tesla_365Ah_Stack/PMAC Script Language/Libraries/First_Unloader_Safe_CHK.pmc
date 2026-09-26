@@ -1,0 +1,18 @@
+
+// [참조 : 260325 1차 언로더 안전 위치 파악]
+open subprog First_Unloader_Safe_CHK(&rtn)
+
+rtn = 0
+
+// 1차 언로더 z축 하강 위치 완료 확인
+if( Motor[N_UNLOADER_Z].DesVelZero == 1 )
+{
+	if ( P_Motor_Current_Pos(N_UNLOADER_Z) > P_1st_ULD_Z_Target_Down - 0.5 && P_Motor_Current_Pos(N_UNLOADER_Z) < P_1st_ULD_Z_Target_Down + 0.5 )
+	{			
+		rtn = 1
+	}
+}
+
+
+
+close

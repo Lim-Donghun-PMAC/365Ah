@@ -1,0 +1,259 @@
+
+
+#define N_JellyRoll_Enable			1
+#define N_JellyRoll_Disable			2
+#define N_New_Non_Homing_CHK		3
+#define N_New_Non_Homing_CHK2		4
+
+#define N_NRT_Dry_Enable			11	// NRT 용 드라이런 홈 -> 추후 삭제필요!!!
+
+// 전체 홈 변수 선언
+global P_AH_Home_Status	=	0;							// 1. 전체 홈 상태
+global P_Resetting_All_Home_Command = 0;				// 2. 홈 명령 
+global P_PnP_Init_Pos = 45;								// 3. PnP 대기위치 
+global P_NG_PnP_Warning_Pos = 80;						// 4. NG PnP 위험 위치	( 실제 장비에서 값이 변할 수 있으므로 변수로 선언 )
+global P_PnP_Stack_Pos = 80;							// 5. 2차 PnP Stack 위치 ( 실제 장비에서 값이 변할 수 있으므로 변수로 선언 )
+global P_PnP_Align_Pos = 10;							// 6. 얼라인 위치		( 실제 장비에서 값이 변할 수 있으므로 변수로 선언 )
+global P_Down_Pos = 30;									// 7. 하강 위치			( 실제 장비에서 값이 변할 수 있으므로 변수로 선언 )
+
+global P_Homing_Alarm_Time = 50;						// 13. Home Time Out 시간 ( 10 초 )
+global P_Home_Check_Arry(50);							// 16. P_PMAC_Homing_CHK 변수와 다르게 대기 위치로 이동하기 위하여 Home Cmd 사용했을때 확인 하는 변수
+P_Home_Check_Arry(0),50 = 0;
+global P_All_Home_Stop_Cmd = 0;
+							
+// 260917 - 1차 언로더의 엔코더를 잃었을 경우 홈을 한번이라도 잡은 상태 변수( 턴온, 프로그램 다운로드 )
+global P_Home_First_Move = 0;
+
+
+// 가상축 테스트를 위한 변수 선언
+
+global P_Test_HomeComplete(50);
+P_Test_HomeComplete(0),50 = 0;
+
+
+global P_Test_Motor_Ready_Pos(50); 
+P_Test_Motor_Ready_Pos(0),50 = 0;
+
+P_Test_Motor_Ready_Pos(N_1st_PnP_CA_T) = 45;
+P_Test_Motor_Ready_Pos(N_1st_PnP_AN_T)= 45;
+P_Test_Motor_Ready_Pos(N_Clamp_CA_Z1) = 0.5;
+P_Test_Motor_Ready_Pos(N_Clamp_AN_Z1) = 0.5;
+P_Test_Motor_Ready_Pos(N_FINAL_ROLL_X) = -197;
+P_Test_Motor_Ready_Pos(N_FINAL_ROLL_Z) = 58;
+P_Test_Motor_Ready_Pos(N_Clamp_CA_Z2) = 0.5;
+P_Test_Motor_Ready_Pos(N_Clamp_AN_Z2) = 0.5;
+P_Test_Motor_Ready_Pos(N_UNLOADER_X) = -5.4;
+P_Test_Motor_Ready_Pos(N_UNLOADER_Z) = 69;
+P_Test_Motor_Ready_Pos(N_UNLOADER_T) = -2.817;
+P_Test_Motor_Ready_Pos(N_1st_PnP_AN_Z) = 17.897;
+P_Test_Motor_Ready_Pos(N_2nd_PnP_AN_Z) = 17.897;
+P_Test_Motor_Ready_Pos(N_2nd_PnP_CA_Z) = 17.897;
+P_Test_Motor_Ready_Pos(N_1st_PnP_CA_Z) = 17.897;
+
+
+
+
+
+// 시퀀스 액션 디파인
+#define F_Home_Act					1			// Home Cmd
+#define F_Minus_Act					2			// Minus jog
+#define F_DIO_Act					3			// Dio Chk
+#define F_Jog_Act					4			// Jog mm
+#define F_Plus_Act					5			// Plus Jog
+
+
+// 모터 While문사용하여 홈체크 유무를 확인 하였는데.... 매크로 함수를 사용하여 최적화 시행 [ 참조 : CPU 최적화 진행 ]
+#define PnP_Home_Complete			P_PMAC_Homing_CHK(N_1st_PnP_CA_T)&P_PMAC_Homing_CHK(N_1st_PnP_AN_T)&P_PMAC_Homing_CHK(N_2nd_PnP_CA_T)&P_PMAC_Homing_CHK(N_2nd_PnP_AN_T)\
+									&P_PMAC_Homing_CHK(N_1st_PnP_CA_Z)&P_PMAC_Homing_CHK(N_1st_PnP_AN_Z)&P_PMAC_Homing_CHK(N_1st_Picker_CA_T)&P_PMAC_Homing_CHK(N_1st_Picker_AN_T)\
+									&P_PMAC_Homing_CHK(N_2nd_PnP_CA_Z)&P_PMAC_Homing_CHK(N_2nd_PnP_AN_Z)	
+
+
+#define Stak_Home_Complete			P_PMAC_Homing_CHK(N_Clamp_CA_Y1)&P_PMAC_Homing_CHK(N_Clamp_AN_Y1)&P_PMAC_Homing_CHK(N_Clamp_CA_Y2)&P_PMAC_Homing_CHK(N_Clamp_AN_Y2)\
+									&P_PMAC_Homing_CHK(N_MAIN_Z)&P_PMAC_Homing_CHK(N_FINAL_ROLL_X)&P_PMAC_Homing_CHK(N_FINAL_ROLL_Z)\
+									&P_PMAC_Homing_CHK(N_Clamp_CA_Z2)&P_PMAC_Homing_CHK(N_Clamp_AN_Z2)&P_PMAC_Homing_CHK(N_Clamp_CA_Z1)&P_PMAC_Homing_CHK(N_Clamp_AN_Z1)
+
+
+#define Align_Home_Complete			P_PMAC_Homing_CHK(N_Align_CA_X)&P_PMAC_Homing_CHK(N_Align_CA_Y)&P_PMAC_Homing_CHK(N_Align_CA_T)&P_PMAC_Homing_CHK(N_Align_AN_X)&P_PMAC_Homing_CHK(N_Align_AN_Y)&P_PMAC_Homing_CHK(N_Align_AN_T)
+
+#define Ecat_Other_Home_Complete	P_PMAC_Homing_CHK(N_SHEET_PAPER_X)&P_PMAC_Homing_CHK(N_NG_PnP_CA_T)&P_PMAC_Homing_CHK(N_NG_PnP_AN_T)&P_PMAC_Homing_CHK(N_NG_PnP_CA_Z)\
+									&P_PMAC_Homing_CHK(N_NG_PnP_AN_Z)&P_PMAC_Homing_CHK(N_UNLOADER_X)&P_PMAC_Homing_CHK(N_UNLOADER_Z)&P_PMAC_Homing_CHK(N_UNLOADER_T)
+
+
+// 임시 주석
+//#define ECAT_All_Chk_Complete		Align_Home_Complete & Ecat_Other_Home_Complete
+#define ECAT_All_Chk_Complete		Ecat_Other_Home_Complete
+
+#define Local_All_Chk_Complete		PnP_Home_Complete & Stak_Home_Complete
+
+
+// // [참조 : 26.01.09 PWM Home 추가 ]
+#define PNP_T_Axes		5		// 4번까지지만 0 ~ 4 하려면 5개의 인덱스를 넣어야함
+
+global P_PWM_Phasing_Start(PNP_T_Axes)			// Start Flag
+P_PWM_Phasing_Start(0),PNP_T_Axes = 0;
+
+global P_PWM_Status(PNP_T_Axes)					// Status 
+P_PWM_Status(0),PNP_T_Axes = 0;
+
+global P_PWM_State_Machine(PNP_T_Axes)			// State Machine
+P_PWM_State_Machine(0),PNP_T_Axes = 0;
+
+global P_PWM_Old_time(PNP_T_Axes)				// Old Time
+P_PWM_Old_time(0),PNP_T_Axes = 0;
+
+
+// 2026.02.03 새로운 홈 변수 정의
+#define N_WAIT					8282
+#define N_SEQ_AH_No_1			1
+#define N_SEQ_AH_No_2			2
+#define N_SEQ_AH_No_3			3
+#define N_SEQ_AH_No_4			4
+#define N_SEQ_AH_No_5			5
+#define N_SEQ_AH_No_6			6
+#define N_SEQ_AH_No_7			7
+#define N_SEQ_AH_No_8			8
+#define N_SEQ_AH_No_9			9
+#define N_SEQ_AH_No_10			10
+#define N_SEQ_AH_No_11			11
+#define N_SEQ_AH_No_12			12
+#define N_SEQ_AH_No_13			13
+#define N_SEQ_AH_No_14			14
+#define N_SEQ_AH_No_15			15					// 시퀀스 블록 갯수 넉넉하게 15
+
+global P_AH_Seq_arr(N_SEQ_AH_No_15)
+P_AH_Seq_arr(0),N_SEQ_AH_No_15 = 0;
+
+global P_Indiv_AH_Cmd(N_SEQ_AH_No_15)
+P_Indiv_AH_Cmd(0),N_SEQ_AH_No_15 = 0;
+
+global P_Indiv_AH_Status(N_SEQ_AH_No_15)
+P_Indiv_AH_Status(0),N_SEQ_AH_No_15 = 0;
+
+global P_Indiv_Avoid_Cmd(N_SEQ_AH_No_15)
+P_Indiv_Avoid_Cmd(0),N_SEQ_AH_No_15 = 0;
+
+
+global P_AH_CA_1st_Rtn = 0;
+global P_AH_CA_1st_Act_Rtn = 0;
+
+global P_AH_AN_1st_Rtn = 0;
+global P_AH_AN_1st_Act_Rtn = 0;
+
+global P_AH_CA_2nd_Rtn = 0;
+global P_AH_CA_2nd_Act_Rtn = 0;
+
+global P_AH_AN_2nd_Rtn = 0;
+global P_AH_AN_2nd_Act_Rtn = 0;
+
+global P_AH_CA_NG_Rtn = 0;
+global P_AH_CA_NG_Act_Rtn = 0;
+
+global P_AH_AN_NG_Rtn = 0;
+global P_AH_AN_NG_Act_Rtn = 0;
+
+global P_CA_1st_SM = 0;
+global P_AN_1st_SM = 0;
+
+global P_CA_2nd_SM = 0;
+global P_AN_2nd_SM = 0;
+
+global P_CA_NG_SM = 0;
+global P_AN_NG_SM = 0;
+
+global P_Unloader_Crush_Pos = 65;
+global P_DD_Motor_45Deg = 45;
+
+// ABS 생값 저장 변수 
+global P_DD_M_Home_ABS_Pos(5)
+P_DD_M_Home_ABS_Pos(0),5 = 0;
+
+
+#ifdef F_Def_Stack_A
+// 3번 벨트쪽으로 페이징 잡음 260314 17시 -> P_DD_M_Home_ABS_Pos(N_2nd_PnP_CA_T) = -196393; 이거 적용할 때
+// 턴온 후 생값 데이터를 꼭 넣어줘야한다.
+	P_DD_M_Home_ABS_Pos(N_1st_PnP_CA_T) = 43498;
+	//P_DD_M_Home_ABS_Pos(N_2nd_PnP_CA_T) = -196393  // 16으로 선택_260313
+	P_DD_M_Home_ABS_Pos(N_2nd_PnP_CA_T) = 163554.174983873963 // 260318 적ㅇㅇ
+	P_DD_M_Home_ABS_Pos(N_1st_PnP_AN_T) = -83702;	
+	P_DD_M_Home_ABS_Pos(N_2nd_PnP_AN_T) = -136264;
+
+//	P_DD_M_Home_ABS_Pos(N_1st_PnP_CA_T) = 43498;
+//	P_DD_M_Home_ABS_Pos(N_2nd_PnP_CA_T) = 163554.174983873963 // 260318 적ㅇㅇ
+//	P_DD_M_Home_ABS_Pos(N_1st_PnP_AN_T) = -443702;		
+//	P_DD_M_Home_ABS_Pos(N_2nd_PnP_AN_T) = -136264;
+
+
+
+
+
+
+
+	//P_DD_M_Home_ABS_Pos(N_2nd_PnP_CA_T) = 163554.174983873963.
+	//P_DD_M_Home_ABS_Pos(N_2nd_PnP_CA_T) = -196393;
+#else
+// 턴온 후 생값 데이터를 꼭 넣어줘야한다.
+	P_DD_M_Home_ABS_Pos(N_1st_PnP_CA_T) = -67060;
+	P_DD_M_Home_ABS_Pos(N_2nd_PnP_CA_T) = 42309;
+	P_DD_M_Home_ABS_Pos(N_1st_PnP_AN_T) = 42566;
+	P_DD_M_Home_ABS_Pos(N_2nd_PnP_AN_T) = -17165;
+
+#endif
+
+
+// Home DIO Define 란 
+// 1. 원하는 DIO가 있다면 Define 선정.
+// 번호는 50번 부터 시작! --> Motor Max Num 48이기 때문
+// DIO Define 추가 시 Last Num 번호 증가필수!
+
+#define N_Unloader_Grip					50
+#define N_DIO_Last_Num					51					
+
+global P_AH_Indvi_rtn(N_DIO_Last_Num)				// Act 확인 변수
+P_AH_Indvi_rtn(0),N_DIO_Last_Num = 0;			
+
+global P_DD_M_Home_Pos_Flag = 0;
+global P_WAIT_INDEX = 0;
+
+global P_Home_Check_Arry1(50)
+P_Home_Check_Arry1(0),50=0;
+
+global P_FR_Cmd_Check_Flag = 0;
+
+
+//[ 참조: 2026.06.17 Ecat State Bit Check Prog ]
+ptr M_Ecat_Motor_State(50)->*;
+//M_Ecat_Motor_State(33)->ECAT[0].IO[4105].Data;  // Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_6041_0_Statusword
+//M_Ecat_Motor_State(34)->ECAT[0].IO[4112].Data;  // Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_6041_0_Statusword
+//M_Ecat_Motor_State(35)->ECAT[0].IO[4119].Data;  // Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_6041_0_Statusword
+//M_Ecat_Motor_State(36)->ECAT[0].IO[4126].Data;  // Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_6041_0_Statusword
+//M_Ecat_Motor_State(37)->ECAT[0].IO[4133].Data;  // Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_6041_0_Statusword
+//M_Ecat_Motor_State(38)->ECAT[0].IO[4141].Data;  // Slave_1008_InoSV680I_1008_6041_0_Statusword
+//M_Ecat_Motor_State(39)->ECAT[0].IO[4149].Data;  // Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_6041_0_Statusword
+//M_Ecat_Motor_State(40)->ECAT[0].IO[4156].Data;  // Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_6041_0_Statusword
+//M_Ecat_Motor_State(41)->ECAT[0].IO[4164].Data;  // Slave_1011_InoSV680I_1011_6041_0_Statusword
+//M_Ecat_Motor_State(42)->ECAT[0].IO[4172].Data;  // Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_6041_0_Statusword
+//M_Ecat_Motor_State(43)->ECAT[0].IO[4179].Data;  // Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_6041_0_Statusword
+//M_Ecat_Motor_State(44)->ECAT[0].IO[4186].Data;  // Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_6041_0_Statusword
+//M_Ecat_Motor_State(45)->ECAT[0].IO[4193].Data;  // Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_6041_0_Statusword
+//M_Ecat_Motor_State(46)->ECAT[0].IO[4200].Data;  // Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_6041_0_Statusword
+//M_Ecat_Motor_State(47)->ECAT[0].IO[4207].Data;  // Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_6041_0_Statusword
+//M_Ecat_Motor_State(48)->ECAT[0].IO[4214].Data;  // Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_6041_0_Statusword
+
+
+
+M_Ecat_Motor_State(33)->Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_6041_0_Statusword;  // Slave_1003_SGD7S_xxxxA0x_CoE_Drive_1003_6041_0_Statusword
+M_Ecat_Motor_State(34)->Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_6041_0_Statusword;  // Slave_1004_SGD7S_xxxxA0x_CoE_Drive_1004_6041_0_Statusword
+M_Ecat_Motor_State(35)->Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_6041_0_Statusword;  // Slave_1005_SGD7S_xxxxA0x_CoE_Drive_1005_6041_0_Statusword
+M_Ecat_Motor_State(36)->Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_6041_0_Statusword;  // Slave_1006_SGD7S_xxxxA0x_CoE_Drive_1006_6041_0_Statusword
+M_Ecat_Motor_State(37)->Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_6041_0_Statusword;  // Slave_1007_SGD7S_xxxxA0x_CoE_Drive_1007_6041_0_Statusword
+M_Ecat_Motor_State(38)->Slave_1008_InoSV680I_1008_6041_0_Statusword;				// Slave_1008_InoSV680I_1008_6041_0_Statusword
+M_Ecat_Motor_State(39)->Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_6041_0_Statusword;  // Slave_1009_SGD7S_xxxxA0x_CoE_Drive_1009_6041_0_Statusword
+M_Ecat_Motor_State(40)->Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_6041_0_Statusword;  // Slave_1010_SGD7S_xxxxA0x_CoE_Drive_1010_6041_0_Statusword
+M_Ecat_Motor_State(41)->Slave_1011_InoSV680I_1011_6041_0_Statusword;				// Slave_1011_InoSV680I_1011_6041_0_Statusword
+M_Ecat_Motor_State(42)->Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_6041_0_Statusword;  // Slave_1012_SGD7S_xxxxA0x_CoE_Drive_1012_6041_0_Statusword
+M_Ecat_Motor_State(43)->Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_6041_0_Statusword;  // Slave_1013_SGD7S_xxxxA0x_CoE_Drive_1013_6041_0_Statusword
+M_Ecat_Motor_State(44)->Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_6041_0_Statusword;  // Slave_1014_SGD7S_xxxxA0x_CoE_Drive_1014_6041_0_Statusword
+M_Ecat_Motor_State(45)->Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_6041_0_Statusword;  // Slave_1015_SGD7S_xxxxA0x_CoE_Drive_1015_6041_0_Statusword
+M_Ecat_Motor_State(46)->Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_6041_0_Statusword;  // Slave_1016_SGD7S_xxxxA0x_CoE_Drive_1016_6041_0_Statusword
+M_Ecat_Motor_State(47)->Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_6041_0_Statusword;  // Slave_1017_SGD7S_xxxxA0x_CoE_Drive_1017_6041_0_Statusword
+M_Ecat_Motor_State(48)->Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_6041_0_Statusword;  // Slave_1018_SGD7S_xxxxA0x_CoE_Drive_1018_6041_0_Statusword

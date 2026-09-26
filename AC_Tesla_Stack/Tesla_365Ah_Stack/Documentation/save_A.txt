@@ -1,0 +1,87 @@
+7_Machine_A======================================================
+Motor[1].Kp = 13, Kd = 160, Ki = 0.00050, Kaff = 16000, phase = 2818010, Homeoffset = 46742
+Motor[2].Kp = 13, Kd = 160, Ki = 0.00050, Kaff = 16000, phase = 5233600, Homeoffset = -253444
+Motor[3].Kp = 13, Kd = 160, Ki = 0.00050, Kaff = 12000, phase = 4615160, Homeoffset = 165570
+Motor[4].Kp = 13, Kd = 160, Ki = 0.00050, Kaff = 12000, phase = 2821563, Homeoffset = -142089
+Motor[5].Kp = 38, Kd = 380, Ki = 0.00150, Kaff = 5000
+Motor[6].Kp = 38, Kd = 380, Ki = 0.00150, Kaff = 5000
+Motor[7].Kp = 38, Kd = 380, Ki = 0.00150, Kaff = 5000
+Motor[8].Kp = 38, Kd = 380, Ki = 0.00150, Kaff = 5000
+Motor[9].Kp = 0, Kd = 0, Ki = 0.00000, Kaff = 0
+Motor[10].Kp = 0, Kd = 0, Ki = 0.00000, Kaff = 0
+Motor[11].Kp = 12, Kd = 150, Ki = 0.00100, Kaff = 1000
+Motor[12].Kp = 18, Kd = 150, Ki = 0.00300, Kaff = 5000
+Motor[13].Kp = 28, Kd = 400, Ki = 0.00150, Kaff = 45000
+Motor[14].Kp = 0, Kd = 0, Ki = 0.00000, Kaff = 0
+Motor[15].Kp = 15, Kd = 180, Ki = 0.00050, Kaff = 2500
+Motor[16].Kp = 4, Kd = 40, Ki = 0.00100, Kaff = 0
+Motor[17].Kp = 25, Kd = 350, Ki = 0.00050, Kaff = 5000
+Motor[18].Kp = 25, Kd = 350, Ki = 0.00050, Kaff = 5000
+Motor[19].Kp = 23, Kd = 300, Ki = 0.00150, Kaff = 350
+Motor[20].Kp = 23, Kd = 300, Ki = 0.00150, Kaff = 350
+Motor[21].Kp = 35, Kd = 450, Ki = 0.00500, Kaff = 3500
+Motor[22].Kp = 35, Kd = 450, Ki = 0.00500, Kaff = 3500
+Motor[23].Kp = 15, Kd = 600, Ki = 0.00300, Kaff = 10000
+Motor[24].Kp = 10, Kd = 400, Ki = 0.00300, Kaff = 10000
+Motor[25].Kp = 17, Kd = 550, Ki = 0.00100, Kaff = 7000
+Motor[26].Kp = 17, Kd = 550, Ki = 0.00100, Kaff = 7000
+Motor[27].Kp = 17, Kd = 550, Ki = 0.00100, Kaff = 7000
+Motor[28].Kp = 17, Kd = 550, Ki = 0.00100, Kaff = 7000
+15_Machine_A======================================================
+Motor[1].Kp = 13, Kd = 160, Ki = 0.00050, Kaff = 16000, phase = 2822480, Homeoffset = 52248
+Motor[2].Kp = 13, Kd = 160, Ki = 0.00050, Kaff = 16000, phase = 4625299, Homeoffset = -249646
+Motor[3].Kp = 13, Kd = 160, Ki = 0.00050, Kaff = 12000, phase = 4626327, Homeoffset = 165157
+Motor[4].Kp = 13, Kd = 160, Ki = 0.00050, Kaff = 12000, phase = 2825223, Homeoffset = -135542
+Motor[5].Kp = 38, Kd = 380, Ki = 0.00150, Kaff = 5000
+Motor[6].Kp = 38, Kd = 380, Ki = 0.00150, Kaff = 5000
+Motor[7].Kp = 38, Kd = 380, Ki = 0.00150, Kaff = 5000
+Motor[8].Kp = 38, Kd = 380, Ki = 0.00150, Kaff = 5000
+Motor[9].Kp = 0, Kd = 0, Ki = 0.00000, Kaff = 0
+Motor[10].Kp = 0, Kd = 0, Ki = 0.00000, Kaff = 0
+Motor[11].Kp = 12, Kd = 150, Ki = 0.00100, Kaff = 1000
+Motor[12].Kp = 18, Kd = 150, Ki = 0.00300, Kaff = 5000
+Motor[13].Kp = 28, Kd = 400, Ki = 0.00150, Kaff = 45000
+Motor[14].Kp = 0, Kd = 0, Ki = 0.00000, Kaff = 0
+Motor[15].Kp = 15, Kd = 180, Ki = 0.00050, Kaff = 2500
+Motor[16].Kp = 4, Kd = 40, Ki = 0.00100, Kaff = 0
+Motor[17].Kp = 25, Kd = 350, Ki = 0.00050, Kaff = 5000
+Motor[18].Kp = 25, Kd = 350, Ki = 0.00050, Kaff = 5000
+Motor[19].Kp = 23, Kd = 300, Ki = 0.00150, Kaff = 350
+Motor[20].Kp = 23, Kd = 300, Ki = 0.00150, Kaff = 350
+Motor[21].Kp = 35, Kd = 450, Ki = 0.00500, Kaff = 3500
+Motor[22].Kp = 35, Kd = 450, Ki = 0.00500, Kaff = 3500
+Motor[23].Kp = 15, Kd = 600, Ki = 0.00300, Kaff = 10000
+Motor[24].Kp = 10, Kd = 400, Ki = 0.00300, Kaff = 10000
+Motor[25].Kp = 17, Kd = 550, Ki = 0.00100, Kaff = 7000
+Motor[26].Kp = 17, Kd = 550, Ki = 0.00100, Kaff = 7000
+Motor[27].Kp = 17, Kd = 550, Ki = 0.00100, Kaff = 7000
+Motor[28].Kp = 17, Kd = 550, Ki = 0.00100, Kaff = 7000
+16_Machine_A======================================================
+Motor[1].Kp = 13, Kd = 160, Ki = 0.00050, Kaff = 16000, phase = 2224453, Homeoffset = 52248
+Motor[2].Kp = 13, Kd = 160, Ki = 0.00050, Kaff = 16000, phase = 4618573, Homeoffset = -249646
+Motor[3].Kp = 13, Kd = 160, Ki = 0.00050, Kaff = 12000, phase = 4617955, Homeoffset = 165157
+Motor[4].Kp = 13, Kd = 160, Ki = 0.00050, Kaff = 12000, phase = 2815166, Homeoffset = -135542
+Motor[5].Kp = 38, Kd = 380, Ki = 0.00150, Kaff = 5000
+Motor[6].Kp = 38, Kd = 380, Ki = 0.00150, Kaff = 5000
+Motor[7].Kp = 38, Kd = 380, Ki = 0.00150, Kaff = 5000
+Motor[8].Kp = 38, Kd = 380, Ki = 0.00150, Kaff = 5000
+Motor[9].Kp = 0, Kd = 0, Ki = 0.00000, Kaff = 0
+Motor[10].Kp = 0, Kd = 0, Ki = 0.00000, Kaff = 0
+Motor[11].Kp = 12, Kd = 150, Ki = 0.00100, Kaff = 1000
+Motor[12].Kp = 18, Kd = 150, Ki = 0.00300, Kaff = 5000
+Motor[13].Kp = 28, Kd = 400, Ki = 0.00150, Kaff = 45000
+Motor[14].Kp = 0, Kd = 0, Ki = 0.00000, Kaff = 0
+Motor[15].Kp = 15, Kd = 180, Ki = 0.00050, Kaff = 2500
+Motor[16].Kp = 4, Kd = 40, Ki = 0.00100, Kaff = 0
+Motor[17].Kp = 25, Kd = 350, Ki = 0.00050, Kaff = 5000
+Motor[18].Kp = 25, Kd = 350, Ki = 0.00050, Kaff = 5000
+Motor[19].Kp = 23, Kd = 300, Ki = 0.00150, Kaff = 350
+Motor[20].Kp = 23, Kd = 300, Ki = 0.00150, Kaff = 350
+Motor[21].Kp = 35, Kd = 450, Ki = 0.00500, Kaff = 3500
+Motor[22].Kp = 35, Kd = 450, Ki = 0.00500, Kaff = 3500
+Motor[23].Kp = 15, Kd = 600, Ki = 0.00300, Kaff = 10000
+Motor[24].Kp = 10, Kd = 400, Ki = 0.00300, Kaff = 10000
+Motor[25].Kp = 17, Kd = 550, Ki = 0.00100, Kaff = 7000
+Motor[26].Kp = 17, Kd = 550, Ki = 0.00100, Kaff = 7000
+Motor[27].Kp = 17, Kd = 550, Ki = 0.00100, Kaff = 7000
+Motor[28].Kp = 17, Kd = 550, Ki = 0.00100, Kaff = 7000

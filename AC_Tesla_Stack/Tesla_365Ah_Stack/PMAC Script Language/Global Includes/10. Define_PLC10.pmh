@@ -1,0 +1,81 @@
+global P_ECAT_Slave_Err_Bit = 0; // ECAT Slave Error üũ
+
+
+
+global P_MC_Power_Down_Flag = 0;		// MC Trip 상태 변수
+global P_Old_MC_Power_Down_Flag = 1;	// MC Trip 상태 올드 변수
+
+
+
+
+
+
+//=========================================================
+//Modbus 상태 확인 변수
+//=========================================================
+#define P_Modbus_A_PMAC_Cur_Mode		P10
+#define	P_Modbus_A_PMAC_Cur_Status		P11
+#define P_Modbus_A_VISION_MSA_Status	P12
+#define P_Modbus_A_Anode_1st_Pos		P13
+#define P_Modbus_A_Cathode_1st_Pos		P14
+#define P_Modbus_A_Connect_State		P15
+#define P_Modbus_A_All_Home_Status		P16
+#define P_Modbus_HeartBit				P17
+#define P_Modbus_A_Anode_1st_HCK		P18
+#define P_Modbus_A_Cathode_1st_HCK		P19
+
+
+
+//P30-P39 Write
+#define P_Modbus_B_PMAC_Cur_Mode		P30
+#define	P_Modbus_B_PMAC_Cur_Status		P31
+#define P_Modbus_B_VISION_MSA_Status	P32
+#define P_Modbus_B_Anode_1st_Pos		P33
+#define P_Modbus_B_Cathode_1st_Pos		P34
+#define P_Modbus_B_Connect_State		P35
+#define P_Modbus_B_All_Home_Status		P36
+#define P_Modbus_B_Anode_1st_HCK		P37
+#define P_Modbus_B_Cathode_1st_HCK		P38
+
+
+global P_Modbus_Delay_Timer = 0;
+global P_Modbus_Connect_Status = 0;
+global P_Modbus_Reconnect_MNTR = 0;
+
+
+/*
+//=======================================================================================================//
+// Ecat_Reconnecting Program //	[ 참조 : 25.09.12 Ecat Reconnecting Program 추가 ]
+//=======================================================================================================//
+#define Slave_Max_Index		19							// 이더캣 모터 수.
+#define Slave_Buffer_Index	20							// 이더캣 버퍼 수. (Slave_Max_Index+1)
+global P_Ecat_Reconn_Bit = 0;							// 이더캣 활성화 비트 → 버튼으로 변경.
+global P_Old_Ecat_Reconn_Bit = 0;						// 이더캣 활성화 Edge.
+global P_Ecat_Reconn_Cmd_Flag = 0;						// 이더캣 활성화 커맨드.				
+global P_Ecat_Reconn_State_Machine = 0;					// 이더캣 활성화 스텟머신.
+global P_EtherCat_Active_Status = 0;					// 이더캣 활성화 상태.
+global P_Ecat_Active_Timer = 0;							// 이더캣 타이머.
+global P_Ecat_Disable_Delay_Time = 0;					// 이더캣 비활성화 시 딜레이 시간.
+global P_Delay_Time = 1;								// 이더캣 비활성화 시 딜레이 시간 업데이트.
+global P_Ecat_Reset_Delay_Time = 10;					// 이더캣 reset 후 딜레이 시간.
+global P_Ecat_Active_Delay_Time = 15;					// 이더캣 활성화 대기 시간.
+global P_Ecat_Reconn_Active_Complete_Bit = 0;			// 이더캣 활성화 완료 비트.
+global P_Ecat_Reconn_Active_Fail_Bit = 0;				// 이더캣 활성화 실패 비트.
+global P_Ecat_Reconn_Slave_Error_Bit = 0;				// 이더캣 Slave 활성화 애러 비트.
+global P_Ecat_Reconn_Time_Out_Timer = 0;				// 이더캣 활성화 타임 아웃 타이머.
+global P_Ecat_Reconn_Time_Out_Delay_Time = 180;			// 이더캣 활성화 타임 아웃 시간.
+global P_Ecat_Reconn_Time_Out_Bit = 0;					// 이더캣 활성화 타임 아웃 비트.
+global P_Ecat_ReTry_Cnt = 0;							// 이더캣 활성화 재시도 Cnt.
+global P_Ecat_ReTry_Limit = 5;							// 이더캣 활성화 재시도 수.
+global P_Ecat_Reconn_State_Machine_Buffer = 0;			// 이더캣 활성화 스텟머신 버퍼.
+global P_Ecat_Reconn_Bit_MNT = 0;						// 이더캣 활성화 비트 모니터 변수.
+global P_Ecat_Reconn_Record_Cnt = 0;					// 이더캣 Slave 기록 Cnt.
+global P_Ecat_Reconn_Error_Buffer(Slave_Buffer_Index);	// 이더캣 Slave 비활성화 Error 버퍼.
+P_Ecat_Reconn_Error_Buffer(0),Slave_Buffer_Index = 0;	// 초기화.
+global P_Ecat_Reconn_Error_Slave_Index = 0;				// 이더캣 Slave 비활성화 인덱스 저장.
+*/
+//=======================================================================================================//
+// Ecat_MC_Reconnect 버튼 램프 추가 //		[ 참조 : 26.07.10 Ecat MC Reconnect 프로그램 수정 ]
+//=======================================================================================================//
+global P_Ecat_Reconn_Chk_Lamp = 0;						// 이더캣 연결 중 확인 램프. [ 0 : 종료, 1 : 진행 중 ]
+global P_MC_Reconn_Chk_Lamp = 0;						// MC 연결 중 확인 램프. [ 0 : 종료, 1 : 진행 중 ]

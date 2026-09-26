@@ -1,0 +1,17 @@
+#define N_Unwinder_Unit_Lamp	0
+#define N_Anode_Unit_Lamp		1
+#define N_Cathode_Unit_Lamp		2
+#define N_Stack_Unit_Lamp		3
+#define N_ARC_Unit_Lamp			4
+#define N_1st_Unloader_Lamp		5
+
+
+global P_UI_Unit_Status(10);   // UI 유닛 상태
+P_UI_Unit_Status(0),10 = 0;
+
+
+global P_Motor_Unit_Status(50); // 모터 유닛 상태
+P_Motor_Unit_Status(0),50 = 0;
+
+global P_Current_Homming_Status_To_PLC(50);						// PLC 측에 전달해주는 홈 상태 확인용 변수
+P_Current_Homming_Status_To_PLC(0),50 = 0;

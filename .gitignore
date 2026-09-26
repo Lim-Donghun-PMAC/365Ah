@@ -1,5 +1,5 @@
 Bin/
-Log/
+#Log/
 !AC_Tesla_Stack\Tesla_365Ah_Stack\Log\keep_.txt
 C_Tesla_Stack\Tesla_365Ah_Stack\Database\*.xml
 obj/

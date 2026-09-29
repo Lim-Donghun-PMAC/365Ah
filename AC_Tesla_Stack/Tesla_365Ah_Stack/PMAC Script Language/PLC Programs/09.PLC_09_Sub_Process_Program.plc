@@ -964,6 +964,11 @@ IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_ST
 				// 260611 드라이빙 위치 값이 너무 커지면 터치에 표현되는 값을 넘어 hmz 추가
 				CMD"#%d homez",N_DRIVING_ROLL;
 
+				if(P_Buffer_Mode_Status_Sequence == N_Dryrun_Status_Sequence)
+				{
+					P_PLC15_Sub_Function_Dryrun_Active_Flag = 0;
+				}
+
 				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_10;											// 스텝 초기화
 			break; 
 
@@ -1139,6 +1144,11 @@ IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_AB
 					M_Y_FR_Sepa_Clamp = 1
 					M_Y_FR_Sepa_UnClamp	= 0
 					P_Sepa_To_Normal_Mode_Sync_Flag = 0;																	// [ 참조 : 26.07.31 Pause_Resume 수정 ]	
+
+					if(P_Buffer_Mode_Status_Sequence == N_Dryrun_Status_Sequence)
+					{
+						P_PLC15_Sub_Function_Dryrun_Active_Flag = 0;
+					}
 					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_9;													
 				}
 			break;

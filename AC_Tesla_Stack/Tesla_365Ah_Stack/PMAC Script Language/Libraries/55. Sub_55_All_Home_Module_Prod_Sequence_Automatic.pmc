@@ -1095,9 +1095,12 @@ open subprog Sub_Manual_All_Home_Prod_Sequnce(void)
 						{
 							if(P_AH_Indvi_rtn(N_Align_AN_X) & P_AH_Indvi_rtn(N_Align_AN_Y) & P_AH_Indvi_rtn(N_Align_AN_T) & P_AH_Indvi_rtn(N_Align_CA_X) & P_AH_Indvi_rtn(N_Align_CA_Y) & P_AH_Indvi_rtn(N_Align_CA_T))
 							{
-								if((P_Home_First_Move == 2 || P_Home_First_Move == 3) && P_AH_Indvi_rtn(N_UNLOADER_Z))
+								if((P_Home_First_Move == 2 || P_Home_First_Move == 3))
 								{
-									Precondition_All_Home_RTN = N_TRUE;
+									if(P_AH_Indvi_rtn(N_UNLOADER_Z))
+									{
+										Precondition_All_Home_RTN = N_TRUE;
+									}
 								}
 								else if(P_Home_First_Move == 1 && P_AH_Indvi_rtn(N_NG_PnP_CA_T))
 								{
@@ -1144,9 +1147,12 @@ open subprog Sub_Manual_All_Home_Prod_Sequnce(void)
 
 						if( P_AH_Indvi_rtn(N_Clamp_CA_Z1) & P_AH_Indvi_rtn(N_Clamp_AN_Z1) & P_AH_Indvi_rtn(N_Clamp_CA_Z2) & P_AH_Indvi_rtn(N_Clamp_AN_Z2) & P_AH_Indvi_rtn(N_Unloader_Grip) & P_AH_Indvi_rtn(N_UNLOADER_X))
 						{
-							if((P_Home_First_Move == 2 || P_Home_First_Move == 3) && P_AH_Indvi_rtn(N_2nd_PnP_AN_T) & P_AH_Indvi_rtn(N_2nd_PnP_CA_T))
+							if((P_Home_First_Move == 2 || P_Home_First_Move == 3))
 							{
-								Precondition_All_Home_RTN = N_TRUE;
+								if(P_AH_Indvi_rtn(N_2nd_PnP_AN_T) & P_AH_Indvi_rtn(N_2nd_PnP_CA_T))
+								{
+									Precondition_All_Home_RTN = N_TRUE;
+								}
 							}
 							else
 							{

@@ -132,6 +132,10 @@ If ( P_PMAC_Current_Mode == F_Current_Automatic )
 		P_PMAC_Commands = F_Command_Start;
 
 		P_Execute_DryRun_Stop_Timer = 0;			// 드라이런 타이머 초기화.
+		if(P_Buffer_Mode_Status_Sequence == N_Dryrun_Status_Sequence)
+		{
+			P_PLC15_Sub_Function_Dryrun_Active_Flag = 1;
+		}
 		P_Cathode_Cur_Mode = 0;						// 양극 현재 모드 초기화.
 		P_Anode_Cur_Mode = 0;						// 음극 현재 모드 초기화.
 	}

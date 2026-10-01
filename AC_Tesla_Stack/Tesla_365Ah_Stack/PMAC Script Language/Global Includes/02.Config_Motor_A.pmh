@@ -3,7 +3,7 @@
 //======================================================================================================
 //Motor[1].AbsPhasePosOffset= -(P_Ca_1st_PNP_ABSPhasing_Pos(P_Cur_Equip_No)*Motor[1].AbsPhasePosSf)%2048
 
-
+#ifdef F_Def_Tesla
 // 26.xx.xx 
 // 내용 - [ 참조 : 26.xx.xx 내용 ]
 Sys.WpKey = $AAAAAAAA;                                           // Permit write access
@@ -7445,8 +7445,9 @@ Sys.MaxRtPlc = 3;
 	Coord[9].SyncOps = 0
 	Coord[10].SyncOps = 0
 #endif
-Sys.WpKey = $0                                               // Write-protect 
 
+Sys.WpKey = $0                                               // Write-protect 
+#endif
 //Motor[1].PhaseFound=0
 //#1out0
 //Motor[1].IaBias=0

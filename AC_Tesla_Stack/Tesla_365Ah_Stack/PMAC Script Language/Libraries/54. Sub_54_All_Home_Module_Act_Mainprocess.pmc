@@ -68,7 +68,7 @@ sub: AH_Unit_Cmd(unit,act)
 	
 		case F_Jog_Act:
 			Motor[unit].JogSpeed = 30;
-				cmd"#%dj=%d",unit,P_DD_Motor_45Deg*1000;
+				cmd"#%dj=%d",unit,45*1000;
 		break;
 
 		case F_DIO_Act:
@@ -164,7 +164,7 @@ rtn = 0;
 		break;
 	
 		case F_Jog_Act:
-			if( P_Motor_Current_Pos(unit) ~ P_DD_Motor_45Deg )
+			if( P_Motor_Current_Pos(unit) ~ 45 )
 				rtn = N_TRUE;
 		break;
 
@@ -194,17 +194,8 @@ return;
 sub: Init(void)
 
 P_Execute_First_Sepa_Mode_Tact_Time_Array(0),20 = 0;					// Manual - All_Home  시퀀스 총 Tact Time 초기화.
-P_Indiv_AH_Status(0),15 = F_Status_IDLE;								// 간섭여부 모듈 상태 IDLE 
-P_Indiv_AH_Cmd(0),15 = 0;												// 간섭여부 커맨드 초기화
 P_AH_Indvi_rtn(0),50 = 0;												// 프리컨디션 rtn 데이터 초기화
 P_WAIT_INDEX = 0;
-
-P_CA_1st_SM = 0;														// 스텟머신 초기화
-P_AN_1st_SM = 0;														// 스텟머신 초기화
-P_AN_2nd_SM = 0;														// 스텟머신 초기화
-P_CA_2nd_SM = 0;														// 스텟머신 초기화
-P_CA_NG_SM = 0;															// 스텟머신 초기화
-P_AN_NG_SM = 0;															// 스텟머신 초기화
 
 return;
 

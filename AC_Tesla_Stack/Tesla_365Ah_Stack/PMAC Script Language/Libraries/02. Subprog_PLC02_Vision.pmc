@@ -131,15 +131,18 @@ sub: Align_Result(Selected_Unit, &rtn)
 
 					P_Anode_Align_Table_Move = F_Align_Move;		// 음극 얼라인 테이블 동작 모드 
 					M_Y_Vision_Anode_Align_Result_Ack = 1;
+					P_An_Align_DIO_Log = 1;												// 1. Ok  444. NG
 					rtn = F_Insepction_OK;
 				}
-				else if(M_X_Vision_Anode_Align_OK == 0 && M_X_Vision_Anode_Align_NG == 1)		// 검사 결과 NG
+				//else if(M_X_Vision_Anode_Align_OK == 0 && M_X_Vision_Anode_Align_NG == 1)		// 검사 결과 NG
+				else if( M_X_Vision_Anode_Align_NG == 1)		// 검사 결과 NG
 				{
 					if(Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)		// 극판이 존재할 경우
 					{
 						Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_NG;			// NG 데이터 저장
 					}
 					M_Y_Vision_Anode_Align_Result_Ack = 1;
+					P_An_Align_DIO_Log = 444;												// 1. Ok  444. NG
 					rtn = F_Insepction_NG;
 				}
 				else
@@ -176,17 +179,22 @@ sub: Align_Result(Selected_Unit, &rtn)
 					{
 						Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_OK;				// 얼라인 OK 데이터 저장
 					}
-					P_Cathode_Align_Table_Move = F_Align_Move;				// 양극 얼라인 테이블 동작 모드
+					P_Cathode_Align_Table_Move = F_Align_Move;								// 양극 얼라인 테이블 동작 모드
 					M_Y_Vision_Cathode_Align_Result_Ack = 1;
+					
+					P_Ca_Align_DIO_Log = 1;												// 1. Ok  444. NG	[ 26.09.21 Vision DIO OK, NG 담는 P변수 선언 ] 
+					
 					rtn = F_Insepction_OK;
 				}
-				else if(M_X_Vision_Cathode_Align_OK == 0 && M_X_Vision_Cathode_Align_NG == 1)	// 검사 결과 NG
+				//else if(M_X_Vision_Cathode_Align_OK == 0 && M_X_Vision_Cathode_Align_NG == 1)	// 검사 결과 NG
+				else if( M_X_Vision_Cathode_Align_NG == 1)	// 검사 결과 NG
 				{
 					if(Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)			// 극판이 존재 할 경우
 					{
 						Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_NG;				// 얼라인 NG 데이터 저장
 					}
 					M_Y_Vision_Cathode_Align_Result_Ack = 1;
+					P_Ca_Align_DIO_Log = 444;												// 1. Ok  444. NG	[ 26.09.21 Vision DIO OK, NG 담는 P변수 선언 ] 
 					rtn = F_Insepction_NG;
 				}
 				else
@@ -207,6 +215,7 @@ sub: Align_Result(Selected_Unit, &rtn)
 				{
 					Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_Time_Out;		// 얼라인 Timeout 데이터 저장
 				}
+				// P_Ca_Align_DIO_Result = 4444;	// 타임아웃은 어차피 Alarm 발생할테니.. 
 			}
 		}
 	}
@@ -331,15 +340,18 @@ sub: Surface_Result(Selected_Unit, &rtn)
 					{
 						Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_OK;				// 표면검사 OK 데이터 저장 -> 얼라인테이블 데이터
 					}
+					P_An_Surface_DIO_Log = 1;								// 1 ok 444 ng
 					M_Y_Vision_Anode_Surface_Result_Ack = 1;
 					rtn = F_Insepction_OK;		
 				}
-				else if(M_X_Vision_Anode_Surface_OK == 0 && M_X_Vision_Anode_Surface_NG == 1)		// 음극 표면검사 결과 NG
+				//else if(M_X_Vision_Anode_Surface_OK == 0 && M_X_Vision_Anode_Surface_NG == 1 )		// 음극 표면검사 결과 NG 
+				else if( M_X_Vision_Anode_Surface_NG == 1 )		// OK가 1이던, 0이던 NG DIO 들어오면 NG Bit 씌우기 
 				{
 					if(Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)			// 음극 얼라인 테이블에 극판 존재시
 					{
 						Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_NG;				// 표면검사 NG 데이터 저장
 					}
+					P_An_Surface_DIO_Log = 444;								// 1 ok 444 ng
 					M_Y_Vision_Anode_Surface_Result_Ack = 1;
 					rtn = F_Insepction_NG;
 				}
@@ -374,15 +386,18 @@ sub: Surface_Result(Selected_Unit, &rtn)
 					{
 						Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_OK;						// 표면 검사 OK 데이터 저장 -> 얼라인 테이블
 					}
+					P_Ca_Surface_DIO_Log = 1;								// 1 ok 444 ng
 					M_Y_Vision_Cathode_Surface_Result_Ack = 1;
 					rtn = F_Insepction_OK;
 				}
-				else if(M_X_Vision_Cathode_Surface_OK == 0 && M_X_Vision_Cathode_Surface_NG == 1)	// 표면검사 결과 NG
+				//else if(M_X_Vision_Cathode_Surface_OK == 0 && M_X_Vision_Cathode_Surface_NG == 1)	// 표면검사 결과 NG
+				else if( M_X_Vision_Cathode_Surface_NG == 1 )		// OK가 1이던, 0이던 NG DIO 들어오면 NG Bit 씌우기 
 				{
 					if(Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)					// 양극 얼라인 테이블에 극판 존재 시
 					{
 						Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_NG;						// 표면검사 NG 데이터 저장 -> 얼라인 테이블
 					}
+					P_Ca_Surface_DIO_Log = 444;								// 1 ok 444 ng
 					M_Y_Vision_Cathode_Surface_Result_Ack = 1;
 					rtn = F_Insepction_NG;
 				}
@@ -469,13 +484,17 @@ sub: Stack_Result(&rtn)
 			if(M_X_Vision_Stack_OK == 1 && M_X_Vision_Stack_NG == 0)			// 스택 검사 결과 OK
 			{
 				Sys_Stack_Sheet_LO_Vision_BYTE |= Hex_Stack_OK;					// 스택 Ok 데이터 저장 -> 스택 테이블
+				
+				P_Stack_DIO_Log = 1;							// 1 ok 444 ng
 				M_Y_Vision_Stack_Result_Ack = 1;
 				rtn = N_Inspection_OK;
 			}
-			else if(M_X_Vision_Stack_OK == 0 && M_X_Vision_Stack_NG == 1)		// 스택 검사 결과 NG
+			//else if(M_X_Vision_Stack_OK == 0 && M_X_Vision_Stack_NG == 1)		// 스택 검사 결과 NG
+			else if( M_X_Vision_Stack_NG == 1 )									// 스택 검사 결과 NG
 			{
 				// 스택 비전 중간배출 무시 기능 추가 필요
 				Sys_Stack_Sheet_LO_Vision_BYTE |= Hex_Stack_NG;					// 스택 NG 데이터 저장 -> 스택 테이블
+				P_Stack_DIO_Log = 444;										// 1 ok 444 ng
 				M_Y_Vision_Stack_Result_Ack = 1;
 				rtn = N_Inspection_NG;
 				P_Stack_Table_NG_Count++

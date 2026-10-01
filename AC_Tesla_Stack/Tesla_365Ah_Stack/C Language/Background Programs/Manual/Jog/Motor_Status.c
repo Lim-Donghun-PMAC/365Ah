@@ -161,81 +161,68 @@ void Update_Jog_Motor_Status(int nMotorNum)
 
 void Motor_Load_Ratio(int nMotorNum)
 {
-	// 20403.하위 피크 부하율				3
-	// 20403.상위 정격 부하율
-	int nEffectiveLoadRealValue[MotorCount] = {0};
-	//int nUdataIndex = g_Page_Num - 1;
-	// 부하율이 서보 페이지 선택시에만 변경되는 부분을 수정함.
-	// g_Page_Num = unsigned int Cur_Page_Num = Servo_Scene_Select();
-	// 조그 모터가 선택되어야 부하율이 업데이트 되는부분이므로 상시로 돌리는 구문으로 변경
-	int nLo_16Bit = 0;
-	int nHi_16Bit = 0;
-	int nUdataIndex = nMotorNum - 1;
-	int i_Ecat_ratio_data = 0;
+    int nEffectiveLoadRealValue[MotorCount] = {0};
+    int nLo_16Bit = 0;
+    int nHi_16Bit = 0;
+    int nUdataIndex = nMotorNum - 1;
+    int i_Ecat_ratio_data = 0;
 
-	// 피크 부하율
-	if(pshm->P[P_Jelly_Roll_Total_Count] != pshm->P[P_Jelly_Roll_Total_Count_Old])			// 완 젤리롤 갯수에 따른 
-	{
+    if(pshm->P[P_Jelly_Roll_Total_Count] != pshm->P[P_Jelly_Roll_Total_Count_Old])
+    {
+        // 젤리롤 완성 시 하위비트 초기화
+        for(nUdataIndex = 0; nUdataIndex < MotorCount; nUdataIndex++)
+        {
+            *Write_Udata[nUdataIndex][3].byte_4 = 0xffff0000;
+        }
+    }
+    else
+    {
+        // 현재 부하율 계산
+        if(nMotorNum >= 1 && nMotorNum <= 4)
+        {
+            nEffectiveLoadRealValue[nUdataIndex] = 
+                abs(pshm->Motor[nMotorNum].IqCmd / 
+                    pshm->Motor[nMotorNum].I2tSet * 100);
+        }
+        else if(nMotorNum >= 33)
+        {
+            i_Ecat_ratio_data = GetPtrArrayVar(M_Ecat_Load_Ratio, nMotorNum);
 
-		// 1개의 젤리롤을 완성 시키면, 하위비트 초기화 
-		for(nUdataIndex = 0; nUdataIndex < MotorCount ; nUdataIndex++ )
-		{
-			*Write_Udata[nUdataIndex][3].byte_4 = 0xffff0000;
-		}
-	}
-	else
-	{
-		if(nMotorNum >= 1 && nMotorNum <= 4)
-		{
-			nEffectiveLoadRealValue[nUdataIndex] = abs(pshm->Motor[nMotorNum].IqCmd / pshm->Motor[nMotorNum].I2tSet * 100); // 현재 부하율 업데이트
-		}
-		else if( nMotorNum >= 33 )	// ecat Motor 부하 측정		[ 참조: 2026.06.17 Ecat Ratio Check Prog ]
-		{
-			i_Ecat_ratio_data = GetPtrArrayVar(M_Ecat_Load_Ratio,nMotorNum);		// Ecat ActTorque pointer value 
+            if(i_Ecat_ratio_data >= 0 && i_Ecat_ratio_data <= 32767)
+            {
+                nEffectiveLoadRealValue[nUdataIndex] = 
+                    i_Ecat_ratio_data / 10;
+            }
+            else
+            {
+                nEffectiveLoadRealValue[nUdataIndex] = 
+                    (65536 - i_Ecat_ratio_data) / 10;
+            }
+        }
+        else
+        {
+            nEffectiveLoadRealValue[nUdataIndex] = 
+                abs(pshm->Motor[nMotorNum].IqCmd / 
+                    ((pshm->Motor[nMotorNum].MaxDac / 10) * 3) * 100);
+        }
+		//[ 참조 : 26.09.28 모터 부하율 계산 수식 순환평균 제거 ]
+        // 순환평균 제거 → 현재값 직접 사용
+        nHi_16Bit = nEffectiveLoadRealValue[nUdataIndex];   // 현재 실효치
 
-			if( i_Ecat_ratio_data >= 0 && i_Ecat_ratio_data <= 32767 )
-			{
-				nEffectiveLoadRealValue[nUdataIndex] = i_Ecat_ratio_data / 10;				// PLC에 올려주는 부하 ( GUI ) 절댓값
-				//pshm->P[P_Ecat_Load_Ratio + nMotorNum] = i_Ecat_ratio_data / 10;			// Plot Data로 찍을때 사용하는 P변수 음수도 있음
-			}
-			else
-			{
-				nEffectiveLoadRealValue[nUdataIndex] = (65536 - i_Ecat_ratio_data) / 10;	// PLC에 올려주는 부하 ( GUI )	절댓값
-				//pshm->P[P_Ecat_Load_Ratio + nMotorNum] = (i_Ecat_ratio_data-65536) / 10;	// Plot Data로 찍을때 사용하는 P변수	음수도 있음		
-			}
-		}
-		else
-		{
-			nEffectiveLoadRealValue[nUdataIndex] = abs(pshm->Motor[nMotorNum].IqCmd / ((pshm->Motor[nMotorNum].MaxDac/10)*3) * 100 ); // 현재 부하율 업데이트
-		}
+        nLo_16Bit = *Write_Udata[nUdataIndex][3].byte_4 
+                    & 0x0000ffff;                           // 기존 피크값 읽기
 
-//		if( nEffectiveLoadSumCount[nUdataIndex] >= 10 )		// 10번의 순환평균 cnt가 있을 시 
-//		{
-			nLo_16Bit = *Write_Udata[nUdataIndex][3].byte_4 & 0x0000ffff;									// 하위 비트 분리
-			nHi_16Bit = *Write_Udata[nUdataIndex][3].byte_4 & 0xffff0000;									// 상위 비트 분리
-			
-			//nHi_16Bit = (int)dEffectiveLoadSumValue[nUdataIndex];										// 현재까지의 실효 저장
-			nHi_16Bit = nEffectiveLoadRealValue[nUdataIndex];
-			if(nHi_16Bit > nLo_16Bit)																// 현재 부하율이 이전 피크 부하율 보다 높으면
-			{
-				nLo_16Bit = nHi_16Bit;																// 피크 부하율 갱신
-			}
-			else
-			{
-				nLo_16Bit = *Write_Udata[nUdataIndex][3].byte_4 & 0x0000ffff;	
-			}
+        if(nHi_16Bit > nLo_16Bit)                          // 현재값이 피크보다 높으면
+        {
+            nLo_16Bit = nHi_16Bit;                         // 피크 갱신
+        }
 
-			*Write_Udata[nUdataIndex][3].byte_4 = (nHi_16Bit << 16) | nLo_16Bit;
-//			nEffectiveLoadSumCount[nUdataIndex] = 0;
-//			dEffectiveLoadSumValue[nUdataIndex] = 0;
-//		}
-//		else
-//		{
-//			dEffectiveLoadSumValue[nUdataIndex] = ((dEffectiveLoadSumValue[nUdataIndex] * nEffectiveLoadSumCount[nUdataIndex]) + nEffectiveLoadRealValue[nUdataIndex]) / (nEffectiveLoadSumCount[nUdataIndex]+1);
-//			nEffectiveLoadSumCount[nUdataIndex]++;	
-//		}
-	}
-	pshm->P[P_Jelly_Roll_Total_Count_Old] = pshm->P[P_Jelly_Roll_Total_Count];
+        *Write_Udata[nUdataIndex][3].byte_4 = 
+            (nHi_16Bit << 16) | nLo_16Bit;                 // 상위: 현재값, 하위: 피크값
+    }
+
+    pshm->P[P_Jelly_Roll_Total_Count_Old] = 
+        pshm->P[P_Jelly_Roll_Total_Count];
 }
 
 // 피크 부하율

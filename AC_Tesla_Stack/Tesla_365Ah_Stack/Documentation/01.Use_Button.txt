@@ -18,6 +18,7 @@ Dry Run 모드 사용						 || M_Option_Function_BTN.BTN_Dryrun_Mode							|| u.user
 세파 보정 모드 사용						 || M_Option_Function_BTN.Sepa_Correction_Enable					|| u.user:$00A2B4.09.1 || D040826
 세파 실시간 보정 모드 사용				 || M_Option_Function_BTN.Sepa_Real_time_Correction_Enable			|| u.user:$00A2B4.10.1 || D040826
 Separartor Cutting 전류 확인 모드 사용	 || M_Option_Function_BTN.Separartor Cutting_Enable					|| u.user:$00A2B4.11.1 || D040826
+MSA 모드 사용							 || M_Option_Function_BTN.MSA_Use									|| u.user:$00A2B4.13.1 || D040826
 상부 200파이 사용	[0-> 200파이,1-> 90파이]	 || M_Func_BTN.Unwinder_Upper_200PI_Select							|| u.user:$00AE4C.00.1 || D042310
 하부 200파이 사용	[0-> 200파이,1-> 90파이]	 ||	M_Func_BTN.Unwinder_Lower_200PI_Select							|| u.user:$00AE4C.01.1 || D042310
 양극 클램프 동시 시작 사용				 || M_Func_BTN.Cathode_Clamp_Both_Action							|| u.user:$00AE4C.02.1 || D042310

@@ -253,6 +253,23 @@ global P_RECIPE_PLC27_Auto_Interval = 50;	  // 오토 상태에선 크게 볼게 없음
 global P_MNTR_PLC4_Vision_Result(201);
 P_MNTR_PLC4_Vision_Result(0),200,1 = 0;
 
+//===============================================================================
+//[참조 : 260813 PNP 흡착 텍 측정 모드 추가 ]
+global P_PNP_Vac_Mode_Run_Enable_Flag(5);
+P_PNP_Vac_Mode_Run_Enable_Flag(0),5 = 0;
+
+#define F_Anode_1st_PNP_Vac_Chk_Mode 	1			// 음극 1차 PNP 흡착 텍 모드 실행.
+#define F_Cathode_1st_PNP_Vac_Chk_Mode 	2			// 양극 1차 PNP 흡착 텍 모드 실행.
+#define F_Anode_2nd_PNP_Vac_Chk_Mode 	3			// 음극 2차 PNP 흡착 텍 모드 실행.
+#define F_Cathode_2nd_PNP_Vac_Chk_Mode 	4			// 양극 2차 PNP 흡착 텍 모드 실행.
+
+P_PNP_Vac_Mode_Run_Enable_Flag(F_Anode_1st_PNP_Vac_Chk_Mode) = 0;
+P_PNP_Vac_Mode_Run_Enable_Flag(F_Cathode_1st_PNP_Vac_Chk_Mode) = 0;
+P_PNP_Vac_Mode_Run_Enable_Flag(F_Anode_2nd_PNP_Vac_Chk_Mode) = 0;
+P_PNP_Vac_Mode_Run_Enable_Flag(F_Cathode_2nd_PNP_Vac_Chk_Mode) = 0;
+
+//===============================================================================
+
 // [메모리타워]
 //global P_Buffer_Motor_Position_Management = 0;
 

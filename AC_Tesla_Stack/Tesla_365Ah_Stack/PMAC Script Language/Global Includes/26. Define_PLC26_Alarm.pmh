@@ -1369,3 +1369,6 @@ M652->u.user:$0145F4.28.1
 M653->u.user:$0145F4.29.1	
 M654->u.user:$0145F4.30.1	
 M655->u.user:$0145F4.31.1	
+
+
+#define F_Vac_Blow_Alarm		(Sys.Udata[20854] & $1FFE00) >> 9 

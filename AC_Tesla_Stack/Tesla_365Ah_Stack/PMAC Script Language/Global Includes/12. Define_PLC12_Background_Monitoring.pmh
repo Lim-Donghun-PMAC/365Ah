@@ -525,3 +525,7 @@ P_Cal_Dif_Deg(0),5 = 0;
 
 #define N_Deg90_Length		63.245			// 90µµ¿œ∂ß length
 #define N_Deg90				90
+
+
+global P_Vac_Door_Open_Clear(13)
+P_Vac_Door_Open_Clear(0),13 = 0;

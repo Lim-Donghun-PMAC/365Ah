@@ -38,7 +38,7 @@
     <TemplateVersion>3.2</TemplateVersion>
     <ProjppRunAtOption>No</ProjppRunAtOption>
     <DownloadCSoruce>Yes</DownloadCSoruce>
-    <EncryptionOption>Encrypt All Project Files</EncryptionOption>
+    <EncryptionOption>Do Not Encrypt Any File</EncryptionOption>
     <ProjppTimeoutPeriod>300000</ProjppTimeoutPeriod>
     <ProjectExportLevel>0</ProjectExportLevel>
     <DownloadSystemSetupConfig>No</DownloadSystemSetupConfig>

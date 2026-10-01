@@ -411,6 +411,53 @@ global P_Sepa_ARC_TackTime_Array8 = 0;							// 세파 ARC 텍타임 버퍼 8
 global P_Sepa_ARC_TackTime_Array9 = 0;							// 세파 ARC 텍타임 버퍼 9
 global P_Sepa_ARC_TackTime_Array10 = 0;							// 세파 ARC 텍타임 버퍼 10
 
+//===========================================================================================================================================================
+//[참조 : 260813 PNP 흡착 텍 측정 모드 추가 ]
+global P_Cathode_1st_PNP_Vac_Chk_TackTime_Array1 = 0;			// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  1
+global P_Cathode_1st_PNP_Vac_Chk_TackTime_Array2 = 0;			// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  2
+global P_Cathode_1st_PNP_Vac_Chk_TackTime_Array3 = 0;			// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  3
+global P_Cathode_1st_PNP_Vac_Chk_TackTime_Array4 = 0;			// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  4
+global P_Cathode_1st_PNP_Vac_Chk_TackTime_Array5 = 0;			// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  5
+global P_Cathode_1st_PNP_Vac_Chk_TackTime_Array6 = 0;			// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  6
+global P_Cathode_1st_PNP_Vac_Chk_TackTime_Array7 = 0;			// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  7
+global P_Cathode_1st_PNP_Vac_Chk_TackTime_Array8 = 0;			// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  8
+global P_Cathode_1st_PNP_Vac_Chk_TackTime_Array9 = 0;			// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  9
+global P_Cathode_1st_PNP_Vac_Chk_TackTime_Array10 = 0;			// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  10
+
+global P_Anode_1st_PNP_Vac_Chk_TackTime_Array1 = 0;				// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  1
+global P_Anode_1st_PNP_Vac_Chk_TackTime_Array2 = 0;				// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  2
+global P_Anode_1st_PNP_Vac_Chk_TackTime_Array3 = 0;				// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  3
+global P_Anode_1st_PNP_Vac_Chk_TackTime_Array4 = 0;				// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  4
+global P_Anode_1st_PNP_Vac_Chk_TackTime_Array5 = 0;				// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  5
+global P_Anode_1st_PNP_Vac_Chk_TackTime_Array6 = 0;				// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  6
+global P_Anode_1st_PNP_Vac_Chk_TackTime_Array7 = 0;				// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  7
+global P_Anode_1st_PNP_Vac_Chk_TackTime_Array8 = 0;				// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  8
+global P_Anode_1st_PNP_Vac_Chk_TackTime_Array9 = 0;				// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  9
+global P_Anode_1st_PNP_Vac_Chk_TackTime_Array10 = 0;			// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  10
+
+global P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array1 = 0;			// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  1
+global P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array2 = 0;			// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  2
+global P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array3 = 0;			// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  3
+global P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array4 = 0;			// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  4
+global P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array5 = 0;			// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  5
+global P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array6 = 0;			// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  6
+global P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array7 = 0;			// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  7
+global P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array8 = 0;			// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  8
+global P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array9 = 0;			// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  9
+global P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array10 = 0;			// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  10
+
+global P_Anode_2nd_PNP_Vac_Chk_TackTime_Array1 = 0;				// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  1
+global P_Anode_2nd_PNP_Vac_Chk_TackTime_Array2 = 0;				// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  2
+global P_Anode_2nd_PNP_Vac_Chk_TackTime_Array3 = 0;				// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  3
+global P_Anode_2nd_PNP_Vac_Chk_TackTime_Array4 = 0;				// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  4
+global P_Anode_2nd_PNP_Vac_Chk_TackTime_Array5 = 0;				// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  5
+global P_Anode_2nd_PNP_Vac_Chk_TackTime_Array6 = 0;				// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  6
+global P_Anode_2nd_PNP_Vac_Chk_TackTime_Array7 = 0;				// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  7
+global P_Anode_2nd_PNP_Vac_Chk_TackTime_Array8 = 0;				// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  8
+global P_Anode_2nd_PNP_Vac_Chk_TackTime_Array9 = 0;				// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  9
+global P_Anode_2nd_PNP_Vac_Chk_TackTime_Array10 = 0;			// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  10
+//===========================================================================================================================================================
+
 //김준수
 global P_PACK_ML_Status_bit = 0;								// PackMl 정보 표시 비트 
 
@@ -430,10 +477,6 @@ global P_PV_Align_INPUT_Count = 0;								// 신규 추가 Align 투입 개수.
 global P_Unloader_Grip_Pressure = 0;							//1차 언로드 그립 압력
 global P_Unloader_Heatmeter = 0;								//히트미터 값
 
-global P_Project_Ver_A = 3;	//프로그램 구분(헝가리1, 미주향2, GM향3)
-global P_Project_Ver_B = 1;	// 기능 추가
-global P_Project_Ver_C = 1;	// 기능	변경
-global P_Project_Ver_D = 1;	// 미확정(버그 수정) _ 미확정이므로 PLC 터치 화면에서는 0으로 표시_PLC7에서 PLC맵핑 변수에 0값을 넣어줌
 
 // 인터락 팝업 메시지
 global P_Interlock_Messege(50)

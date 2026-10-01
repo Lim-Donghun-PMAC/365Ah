@@ -13,6 +13,10 @@
 //	2.1) Sub_Init_Wait_Mode_Array :	Wait모드의 인포지션을 변경해준다.
 //  2.2) Sub_Init_Run_Mode_Array : 음극런, 양극런 모드의 모션값과 인포지션을 변경해준다.
 //---------------------------------------------------------------------------------------------------------------//
+global P_Anode_Vision_MNTR = 0;
+global P_Cathode_Vision_MNTR = 0;
+global P_Vision_MNTR(5)
+P_Vision_MNTR(0),5 = 0;
 
 // 1. Sub_Vision_Result				-------------------------------------------------------------------------//
 open subprog Sub_Vision_Result( void )
@@ -46,7 +50,6 @@ open subprog Sub_Vision_Result( void )
 				P_Stack_Table_NG_Flag = 1;	// Stack NG 존재 시 플래그 On. -> 배출할때마다 플래그 Off하는것으로 하자.ㅠ
 			else if( M_Function_BTN_2.Stack_Vision_NG_Enable == 1 )
 				P_Buf_Stack_NG_Flag = 1;
-
 		}
 
 		if(P_Buf_Stack_NG_Flag == 1 && M_Function_BTN_2.Stack_Vision_NG_Enable == 0)
@@ -70,10 +73,6 @@ open subprog Sub_Vision_Result( void )
 		}
 		else	// 아무것도 없을 때.
 			Result = F_Vision_Result_OK;
-
-			p6000 = Sys_Cathode_Align_Sheet_LO_Vision_BYTE
-			p6001 = Sys_Cathode_2nd_Sheet_LO_Vision_BYTE
-			p6002++;
 	return	
 	
 	sub:Cathode_Run(&Result)	// 양극 런 중 감시해야할 Vision NG
@@ -118,86 +117,82 @@ open subprog Sub_Vision_Result( void )
 			Result = F_Vision_Result_OK;
 
 	return
-	
-	sub:Anode_Run_Start(&Result)	// 음극런 시작 전 감시해야할 Vision NG - 양극Align, 양극Surface.
-		// Stack Table NG Flag 존재 시 라스트런 진입가능하도록.
-		local L_Align_NG_Result=0;	// 얼라인 NG결과값.  1: 有 , 0 : 無
-		local L_Surface_NG_Result=0;	// 표면검사 NG결과값. 1: 有 , 0 : 無
-		// 양극얼라인결과. - 양극AlignTable 시트데이터.
-		if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Align_NG )
-			L_Align_NG_Result = 1;  // NG
-		else
-			L_Align_NG_Result = 0;	 // OK		
-		// 양극 표면검사결과. - 양극2차P&P 시트데이터.
-		if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Surf_NG )	
-			L_Surface_NG_Result = 1;	// NG		
-		else
-			L_Surface_NG_Result = 0;	// OK		
-		// Stack NG결과. - 스택테이블 시트데이터.
-		if( Sys_Stack_Sheet_LO_Vision_BYTE & Hex_Stack_NG ) // StackNG 또는 TimeOut이면
-		{
+
+	// [참조 : 26.09.21 Vision OK, NG 수정 ]
+	sub:Anode_Run_Start(&Result)	// 음극런 시작 전 감시해야할 Vision NG - 양극Align, 양극Surface.	
+		P_Vision_MNTR(0) = Sys_Cathode_Align_Sheet_LO_Vision_BYTE;
+		P_Vision_MNTR(1) = Sys_Stack_Sheet_LO_Vision_BYTE;
+		// 1. Stack NG 2.Surface Ng 3. Align Ng 4. OK 5. 둘다없을때 timeout
+		Result = 0;
+		if( Sys_Stack_Sheet_LO_Vision_BYTE & Hex_Stack_NG ){						// StackNG 또는 TimeOut이면
 			if( M_Function_BTN_2.Stack_Vision_NG_Enable == 0 )					// [ 참조 : 25.09.12 중간 배출 무시 조건 추가 ]
 				P_Stack_Table_NG_Flag = 1;	// Stack NG 존재 시 플래그 On. -> 배출할때마다 플래그 Off하는것으로 하자.ㅠ	
 			else if( M_Function_BTN_2.Stack_Vision_NG_Enable == 1 )
 				P_Buf_Stack_NG_Flag = 1;
+		
+			if(P_Buf_Stack_NG_Flag == 1 && M_Function_BTN_2.Stack_Vision_NG_Enable == 0){	// [ 참조 : 250811 Sepa모드 후 Stacking 시 중간배출 무시 기능 on/off 시점에 따라 중간배출이 되지않고 완적층 후 배출되는 현상 수정]															
+				P_Buf_Stack_NG_Flag = 0;
+				P_Stack_Table_NG_Flag = 1;
+			}
+
+			if( P_Stack_Table_NG_Flag == 1 )
+				Result = F_Vision_Result_Stack_NG;
+			else							// 중간배출 무시를 사용한다면 ok로 보내야함
+				Result = F_Vision_Result_OK;		
 		}
-
-		if(P_Buf_Stack_NG_Flag == 1 && M_Function_BTN_2.Stack_Vision_NG_Enable == 0)
-		{// [ 참조 : 250811 Sepa모드 후 Stacking 시 중간배출 무시 기능 on/off 시점에 따라 중간배출이 되지않고 완적층 후 배출되는 현상 수정]
-			P_Buf_Stack_NG_Flag = 0;
-			P_Stack_Table_NG_Flag = 1;
-		}
-
-
-		// 결과값 리턴.
-		if( P_Stack_Table_NG_Flag )		// 1순위 : 스택 NG.			
-			Result = F_Vision_Result_Stack_NG;
-		else if( L_Surface_NG_Result )	// 2순위 : 표면검사 NG 
+		else if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Surf_NG ){
 			Result = F_Vision_Result_Surface_NG;
-		else if( L_Align_NG_Result )	// 3순위 : 얼라인 NG
-			Result = F_Vision_Result_Align_NG;
-		else	// 아무것도 없을 때.
-			Result = F_Vision_Result_OK;		
+		}
+		else if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Align_NG ){
+			if( P_Cathode_Count < P_Cathode_Recipe_Count )
+				Result = F_Vision_Result_Align_NG;
+			else
+				Result = F_Vision_Result_OK;				// 마지막 얼라인 ng는 무시 후 젤리롤 배출 후 제거하기 위해
+		}
+		else if( ( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_OK_Masking ) == Hex_OK_Masking && Sys_Stack_Sheet_LO_Vision_BYTE & Hex_Stack_OK){	// [ 참조: 26.09.17 OK 신호를 보고 ok 넘겨주는 조건 추가 ( OK 신호 0, NG 신호 0 일때 쌓으면 안되는데 쌓아버렸음 ) ]
+			Result = F_Vision_Result_OK;
+		}
+		else{	
+				// 여길타면 문제가 생긴거임 Vision 에서 신호처리를 늦게 준거임 OK :  0 NG : 0 판정이 나타나지 않았음  
+				// Time out 나타나면, Surf_NG or Align_NG or Stack_NG 에서 걸림
+		 P_Anode_Vision_MNTR++;
+		 Result = F_Vision_Result_Timeout;
+		}	
 	return
 	
 	sub:Cathode_Run_Start(&Result)	// 양극런 시작 전 감시해야할 Vision NG - 음극Align, 음극Surface.
-		// Stack Table NG Flag 존재 시 라스트런 진입가능하도록.
-		local L_Align_NG_Result=0;	// 얼라인 NG결과값.  1: 有 , 0 : 無
-		local L_Surface_NG_Result=0;	// 표면검사 NG결과값. 1: 有 , 0 : 無
-		// 음극얼라인결과. - 음극AlignTable 시트데이터.
-		if( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Align_NG )
-			L_Align_NG_Result = 1;  // NG
-		else
-			L_Align_NG_Result = 0;	 // OK		
-		// 음극 표면검사결과. - 음극2차P&P 시트데이터.
-		if( Sys_Anode_2nd_Sheet_LO_Vision_BYTE & Hex_Surf_NG )	
-			L_Surface_NG_Result = 1;	// NG		
-		else
-			L_Surface_NG_Result = 0;	// OK	
-		// Stack NG결과. - 스택테이블 시트데이터.
-		if( Sys_Stack_Sheet_LO_Vision_BYTE & Hex_Stack_NG ) // StackNG 또는 TimeOut이면
-		{
+		P_Vision_MNTR(2) = Sys_Anode_Align_Sheet_LO_Vision_BYTE;
+		P_Vision_MNTR(3) = Sys_Stack_Sheet_LO_Vision_BYTE;
+		Result = 0;
+		if( Sys_Stack_Sheet_LO_Vision_BYTE & Hex_Stack_NG ){						// StackNG 또는 TimeOut이면
 			if( M_Function_BTN_2.Stack_Vision_NG_Enable == 0 )					// [ 참조 : 25.09.12 중간 배출 무시 조건 추가 ]
 				P_Stack_Table_NG_Flag = 1;	// Stack NG 존재 시 플래그 On. -> 배출할때마다 플래그 Off하는것으로 하자.ㅠ	
 			else if( M_Function_BTN_2.Stack_Vision_NG_Enable == 1 )
 				P_Buf_Stack_NG_Flag = 1;
-		}
+		
+			if(P_Buf_Stack_NG_Flag == 1 && M_Function_BTN_2.Stack_Vision_NG_Enable == 0){	// [ 참조 : 250811 Sepa모드 후 Stacking 시 중간배출 무시 기능 on/off 시점에 따라 중간배출이 되지않고 완적층 후 배출되는 현상 수정]															
+				P_Buf_Stack_NG_Flag = 0;
+				P_Stack_Table_NG_Flag = 1;
+			}
 
-		if(P_Buf_Stack_NG_Flag == 1 && M_Function_BTN_2.Stack_Vision_NG_Enable == 0)
-		{// [ 참조 : 250811 Sepa모드 후 Stacking 시 중간배출 무시 기능 on/off 시점에 따라 중간배출이 되지않고 완적층 후 배출되는 현상 수정]
-			P_Buf_Stack_NG_Flag = 0;
-			P_Stack_Table_NG_Flag = 1;
+			Result = F_Vision_Result_OK;
+			//if( P_Stack_Table_NG_Flag == 1 )				// 양극런일땐 Stack NG 확인 안함
+				//Result = F_Vision_Result_Stack_NG;
 		}
-
-		// 결과값 리턴.
-		if( P_Stack_Table_NG_Flag )		// 1순위 : 스택 NG.			
-			Result = F_Vision_Result_Stack_NG;
-		else if( L_Surface_NG_Result )	// 2순위 : 표면검사 NG 
+		else if( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Surf_NG ){
 			Result = F_Vision_Result_Surface_NG;
-		else if( L_Align_NG_Result )	// 3순위 : 얼라인 NG
+		}
+		else if( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Align_NG ){
 			Result = F_Vision_Result_Align_NG;
-		else	// 아무것도 없을 때.
-			Result = F_Vision_Result_OK;		
+		}
+		else if( ( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_OK_Masking ) == Hex_OK_Masking && Sys_Stack_Sheet_LO_Vision_BYTE & Hex_Stack_OK){	 // [ 참조: 26.09.17 OK 신호를 보고 ok 넘겨주는 조건 추가 ( OK 신호 0, NG 신호 0 일때 쌓으면 안되는데 쌓아버렸음 ) ]
+			Result = F_Vision_Result_OK;
+		}
+		else{	// 여길타면 문제가 생긴거임 Vision 에서 신호처리를 늦게 준거임 OK :  0 NG : 0 판정이 나타나지 않았음  
+				// Time out 나타나면, Surf_NG or Align_NG or Stack_NG 에서 걸림
+			P_Cathode_Vision_MNTR++;
+			Result = F_Vision_Result_Timeout;
+		}	
 	return	
 close
 //-----------------------------------------------------------------------------------------------------------//

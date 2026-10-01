@@ -352,7 +352,7 @@ M_Unit_Move_Function_BTN
 #define Sepa_Real_time_Correction_Enable					10		//세파 실시간 보정 모드 사용
 #define Separartor Cutting_Enable							11		//Separartor Cutting 전류 확인 모드 사용
 #define BTN_1st_UND_Unuse									12		//SPARE
-#define M_Option_Function_BTN_1_SPARE_1						13		//SPARE
+#define MSA_Use												13		//MSA 모드 사용 
 #define M_Option_Function_BTN_1_SPARE_2						14		//SPARE
 #define M_Option_Function_BTN_1_SPARE_3						15		//SPARE
 																

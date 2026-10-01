@@ -35,6 +35,9 @@ P_MNTR_PLC0_Task_Time(0) = Sys.Time
 	local	L_Old_Master_Motion_Trigger;					// Plc[0].ldata.L[14]
 	//local	L_DryRun_Timer;									// Plc[0].ldata.L[15]
 	local	L_Motor_Num;
+
+	local L_Cathode_Surface_MNTR_Flag;
+	local L_Anode_Surface_MNTR_Flag;
 //========================================================================================================================
 
 //========================================================================================================================
@@ -336,7 +339,8 @@ if( P_Execute_Manage_Mode )	// 값이 존재할 때만.
 										// 첫 사이클에는 vision data get -> 이후 사이클에도 결과가 없다면, wait모드로 진입.
 										if( P_Vision_Result_Get_First_Cycle(N_Vis_Anode_Run) == 0 )
 										{
-											call Sub_Vision_Result.Anode_Run(&P_Vision_Result(N_Vis_Anode_Run));		// 음극 런중에는 양극 Vision 결과 Get
+											//call Sub_Vision_Result.Anode_Run(&P_Vision_Result(N_Vis_Anode_Run));		// 음극 런중에는 양극 Vision 결과 Get
+											call Sub_Vision_Result.Anode_Run_Start(&P_Vision_Result(N_Vis_Anode_Run));	//[참조 : 26.09.21 Vision OK, NG 수정 ]
 											P_Vision_Result_Get_First_Cycle(N_Vis_Anode_Run)++;
 										}	
 										else
@@ -352,7 +356,7 @@ if( P_Execute_Manage_Mode )	// 값이 존재할 때만.
 										// Stack NG 시 ( Stack NG 우선 )
 										call Sub_Init_Run_Mode_Array.Cathode_Run(F_Last_Run,44,&P_Init_Result(N_Cathode_Run));	// 양극런모드 Array 초기화. ( 라스트런 )
 									}
-									else if(( P_Vision_Result(N_Vis_Anode_Run) == F_Vision_Result_Surface_NG || P_Vision_Result(N_Vis_Anode_Run) == F_Vision_Result_Align_NG ) || Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence == F_False )
+									else if(( P_Vision_Result(N_Vis_Anode_Run) == F_Vision_Result_Surface_NG || P_Vision_Result(N_Vis_Anode_Run) == F_Vision_Result_Align_NG ) || Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence == F_False || P_Vision_Result(N_Vis_Anode_Run) == F_Vision_Result_Timeout)
 									{
 										if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence == F_False )
 										{
@@ -496,7 +500,8 @@ if( P_Execute_Manage_Mode )	// 값이 존재할 때만.
 										// 첫 사이클에는 vision data get -> 이후 사이클에도 결과가 없다면, Stop모드로 진입.
 										if( P_Vision_Result_Get_First_Cycle(N_Vis_Cathode_Run) == 0 )
 										{
-											call Sub_Vision_Result.Cathode_Run(&P_Vision_Result(N_Vis_Cathode_Run));		// 양극 런중에는 음극 Vision 결과 Get
+											//call Sub_Vision_Result.Cathode_Run(&P_Vision_Result(N_Vis_Cathode_Run));		// 양극 런중에는 음극 Vision 결과 Get
+											call Sub_Vision_Result.Cathode_Run_Start(&P_Vision_Result(N_Vis_Cathode_Run));	// [참조 : 26.09.21 Vision OK, NG 수정 ]
 											P_Vision_Result_Get_First_Cycle(N_Vis_Cathode_Run)++;
 										}	
 										else
@@ -511,7 +516,7 @@ if( P_Execute_Manage_Mode )	// 값이 존재할 때만.
 										// 일반런.
 										call Sub_Init_Run_Mode_Array.Anode_Run(F_Normal_Run,89,&P_Init_Result(N_Anode_Run));	// 음극 런모드 Array 초기화.
 									}
-									else if(( P_Vision_Result(N_Vis_Cathode_Run) == F_Vision_Result_Surface_NG || P_Vision_Result(N_Vis_Cathode_Run) == F_Vision_Result_Align_NG) || Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence == F_False )
+									else if(( P_Vision_Result(N_Vis_Cathode_Run) == F_Vision_Result_Surface_NG || P_Vision_Result(N_Vis_Cathode_Run) == F_Vision_Result_Align_NG) || Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence == F_False || P_Vision_Result(N_Vis_Cathode_Run) == F_Vision_Result_Timeout)
 									{
 										if( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence == F_False )
 										{
@@ -1012,6 +1017,7 @@ if( P_PMAC_Status == F_Status_EXECUTE || P_PMAC_Status == F_Status_STOPPING )
 			{	// 음극의 경우, 노말 런 || NG || Vac err 표면검사 on
 				if( P_Master_Motion_Trigger == P_Cathode_Surf_Insp_Trigger && P_Master_Motion_Trigger != L_Old_Master_Motion_Trigger )
 				{
+					L_Cathode_Surface_MNTR_Flag = 1;
 					P_Vision_Surface_Command = N_Cathode_Unit;
 				}
 			}
@@ -1020,6 +1026,7 @@ if( P_PMAC_Status == F_Status_EXECUTE || P_PMAC_Status == F_Status_STOPPING )
 			{	// 양극의 경우, 노말 런 || NG || Vac err || 라스트 런 표면검사 on
 				if( P_Master_Motion_Trigger == P_Anode_Surf_Insp_Trigger && P_Master_Motion_Trigger != L_Old_Master_Motion_Trigger )
 				{
+					L_Anode_Surface_MNTR_Flag = 1;
 					P_Vision_Surface_Command = N_Anode_Unit;
 				}
 			}
@@ -1027,48 +1034,6 @@ if( P_PMAC_Status == F_Status_EXECUTE || P_PMAC_Status == F_Status_STOPPING )
 	}
 }
 L_Old_Master_Motion_Trigger = P_Master_Motion_Trigger;
-
-//// Date : 26.08.21 - 김준수 선임 - [ 참조 : 26.08.21 Power Rack 풀림 현상 개선 프로그램. ]
-//if( P_Power_Rack_Test == 1 )
-//{
-//	if( P_PMAC_Status == F_Status_EXECUTE )
-//	{
-//		// 음극의 경우
-//		if( P_Current_Mode == F_Half_Anode_Run_Mode )
-//		{	
-//			if( P_Anode_Cur_Mode == F_Normal_Run || P_Anode_Cur_Mode == F_Sepa_Run || P_Anode_Cur_Mode == F_Dry_Run || P_Anode_Cur_Mode == F_NG || P_Anode_Cur_Mode == F_Vac_Err )
-//			{	
-//				if( P_Master_Motion_Trigger == 25 || P_Master_Motion_Trigger == 26  )
-//				{
-//					if( M_AI_FR_Detect_Sensing < (P_Anode_Run_FR_Move_Check_AI - P_FR_Move_Check_AI_OffSet) ) // 음극런 시, AI값 증가.
-//					{
-//						// 임시 Test용 팝업 발생.
-//						nop(memset(F_IL_Cdata,0,N_IL_memset_size));						
-//						nop(sprintf(F_IL_Cdata," Power Rack Check "));																	
-//						P_Y_Interlock_Popup_On_Request = 1;
-//					}
-//				}
-//			}
-//		}
-//		else if( P_Current_Mode == F_Half_Cathode_Run_Mode )
-//		{
-//			// 양극의 경우
-//			if( P_Cathode_Cur_Mode == F_Normal_Run || P_Cathode_Cur_Mode == F_Sepa_Run || P_Cathode_Cur_Mode == F_Dry_Run || P_Cathode_Cur_Mode == F_NG || P_Cathode_Cur_Mode == F_Vac_Err || P_Cathode_Cur_Mode == F_Last_Run )
-//			{	
-//				if( P_Master_Motion_Trigger == 70 || P_Master_Motion_Trigger == 71 )
-//				{
-//					if( M_AI_FR_Detect_Sensing > (P_Cathode_Run_FR_Move_Check_AI + P_FR_Move_Check_AI_OffSet) ) // 양극런 시, AI값 감소
-//					{
-//						// 임시 Test용 팝업 발생.
-//						nop(memset(F_IL_Cdata,0,N_IL_memset_size));						
-//						nop(sprintf(F_IL_Cdata," Power Rack Check "));																	
-//						P_Y_Interlock_Popup_On_Request = 1;
-//					}
-//				}
-//			}
-//		}
-//	}
-//}
 
 // Date : 26.08.21 - 김준수 선임 - [ 참조 : 26.08.21 Power Rack 풀림 현상 개선 프로그램. ]
 // [ 참조 : 26.09.02 Power Rack 풀림 현상 프로그램 수정 ]
@@ -1391,8 +1356,8 @@ if( P_PMAC_Current_Mode == F_Current_Automatic )
 // [ 참조: 26.01.21 극판 인터페이스 추가 ]
 if(P_PMAC_Current_Mode == F_Current_Automatic)
 {
-	if(P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence)
-	{
+	//if(P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence)
+	//{
 		if(P_PLC12_Anode_Sheet_Pick_Up_Flag == 1)
 		{
 			//// 음극 1차 PNP 벨트 하강 위치에서 10mm 상승 후 sheet complete 신호 보냄(조건 모두 mm 단위)
@@ -1463,7 +1428,7 @@ if(P_PMAC_Current_Mode == F_Current_Automatic)
 			M_Y_PLC_A_Cathode_Sheet_Start = 0;												// 벨트 극판 공급 요청 초기화.
 			M_Y_PLC_A_Cathode_Sheet_Completed = 0;											// 벨트 극판 공급 요청 완료 초기화.
 		}
-	}
+	//}
 }
 
 

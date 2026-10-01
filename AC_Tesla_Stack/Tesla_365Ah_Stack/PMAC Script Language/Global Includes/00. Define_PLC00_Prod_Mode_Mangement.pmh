@@ -221,6 +221,7 @@ global P_Force_Stop_Flag = 0;
 	#define F_Vision_Result_Align_NG		2	// 얼라인 NG.
 	#define F_Vision_Result_Surface_NG		3	// 표면검사 NG.
 	#define F_Vision_Result_Stack_NG		4   // Stack NG.
+	#define F_Vision_Result_Timeout			5	// Time Out 
 	global P_Vision_Result(4);				// Vision 결과표시변수.
 	P_Vision_Result(0),4 = 0;
 	global P_Vision_Result_Get_First_Cycle(4); // Vision 데이터 get 사이클 표시 변수
@@ -447,7 +448,7 @@ M_Anode_2nd_MNTR->u.user:$1FAC.16.16
 
 /*			극판 정보 Bitwise 	1Byte로 나타냄.			*/
 
-//#define		Hex_Time_Out			$1
+#define		Hex_Time_Out				$1
 #define		Hex_Maint_NG				$2			// 0000 0000 0000 0010
 													   
 #define		Hex_Align_NG				$4			// 0000 0000 0000 0100

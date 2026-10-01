@@ -291,8 +291,11 @@ else	// 아날로그 데이터 순환평균 시작
 // [ 참조 : 25.07.02 ARC 요구 플래그 조건 수정 ]
 
 // Auto Reel Change 필요 여부 판단. ========================================================================================================================================================
-if( P_PMAC_Status == F_Status_SUSPENDED || ( P_Anode_Count == 0 &&  P_Cathode_Count == 0 ) )	// 서스펜드 or 적층중이 아니라면			// [ 2025.06.20 조건 수정 ]
+// 서스펜드 or 적층중이 아니고, 세파 첫장 동작이 실행이 안되어있어야 함 [ 참조 : 26.09.14 조건 추가 ]
+if( P_PMAC_Status == F_Status_SUSPENDED ||  (P_Anode_Count == 0 &&  P_Cathode_Count == 0 && P_Stack_Judgement_Memory == 0 && P_Execute_1st_Sepa_Status != F_Status_EXECUTE)  )	// 서스펜드 or 적층중이 아니라면			// [ 2025.06.20 조건 수정 ]
 {
+	// 세파 첫장을 깔았을 시, 잔량이 부족해졌다면 Flag ON 되어버린다.	[ 참조 : 26.09.14 조건 추가 ]
+	// 적층을 진행하며, NG 처리로 인한 HOLD 빠졌을 시, 다시 Execute 되는 Isenable 에서 Flag 보아 Suspend로 빠지게 되고, FR 음극 방향에 있게 되었을 시, 배출 Queue 에서 무언 정지가 걸리게 된다. 
 	call ARC_Motion_State_Function.Inspec_Sens(P_Selected_Spool_Number,P_AVRG_Upper_Sepa_Thickness_mm,P_AVRG_Lower_Sepa_Thickness_mm);
 }
 // Auto Reel Change 필요 여부 판단. ==========================================================================================================================================================

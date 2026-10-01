@@ -63,6 +63,7 @@ if( M_X_ARC_NP_Two_Btn_Signal == 1 && L_Old_Two_Btn_Signal == 0 && def_Name_Plat
 	P_ARC_UI_Push_BTN = N_FALSE;
 	L_Two_Btn_Interlock_Timer = 0;
 	P_Two_Btn_Active_Flag = 1;
+	M_Function_BTN_2.Sepa_ARC_Touch_Use = 0;		// Two 버튼으로 소유권 가져오기
 }
 else if( M_Function_BTN_2.Sepa_ARC_Touch_Use == 1 )		// Toggle 
 {
@@ -466,14 +467,24 @@ IF ( P_PMAC_Current_Mode == F_Current_Manual && M_Manual_ARC_BTN != P_M_Manual_A
 		case N_UNWINDER_UPPER:																	// 현재 선택 된 세파가 상단 언와인더라면 하단 언와인더로 스위칭 해야하는 것이니까
 			if( P_ARC_Ready_Flag(N_Lower) == N_TRUE && M_Y_Lower_Unwinder_Lock_Sol == N_TRUE )	// 레디 플래그와 언와인더 척이 되었다면	매뉴얼 ARC 가능하므로
 			{
-				P_Suspend_ARC_Cmd = F_Command_Start;
+				if( Motor[N_SERVO_DANCER].ClosedLoop == 1 ){
+					cmd"#%d out0",N_SERVO_DANCER;			//[ 참조 : 26.09.22 Manual ARC Dancer OpenLoop 변경 ]
+					P_Suspend_ARC_Cmd = F_Command_Start;
+				}
+				else
+					P_Suspend_ARC_Cmd = F_Command_Start;
 			}
 		break;
 
 		case N_UNWINDER_LOWER:																	// 현재 선택 된 세파가 하단 언와인더라면 상단 언와인더로 스위칭 해야하는 것이니까
 			if( P_ARC_Ready_Flag(N_Upper) == N_TRUE && M_Y_Upper_Unwinder_Lock_Sol == N_TRUE )	// 레디 플래그와 언와인더 척이 되었다면	매뉴얼 ARC 가능하므로
 			{
-				P_Suspend_ARC_Cmd = F_Command_Start;
+				if( Motor[N_SERVO_DANCER].ClosedLoop == 1 ){
+					cmd"#%d out0",N_SERVO_DANCER;			//[ 참조 : 26.09.22 Manual ARC Dancer OpenLoop 변경 ]
+					P_Suspend_ARC_Cmd = F_Command_Start;
+				}
+				else
+					P_Suspend_ARC_Cmd = F_Command_Start;
 			}
 		break;
 	}

@@ -51,7 +51,7 @@ local L_Use_FR_High_Pos(2);
 // 매뉴얼, 리셋팅 구간이 아닐때만 인터락 활성화.
 // P_IL_ON_OFF_Flag = 1 인터락 프로그램 실행, P_IL_ON_OFF_Flag = 0 인터락 프로그램 미실행
 //[참조 : 260730 환경안전검수용 인터락 활성화 버튼 추가]
-if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status == F_Status_STOPPED && P_X_Interlock_Enable_BTN == 1 )      // 매뉴얼 모드일때만 PLC Script 읽기
+if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTING && (P_X_PLC_Setup_Mode_Check == 0 || P_Interlock_On_Off_Flag == 1))      // 매뉴얼 모드일때만 PLC Script 읽기
 {
 	// 0. Motor Page Num 감지 ==================================================================================================================
 	if( P_IL_Motor_Page != L_Old_Motor_Page )					// 모터 페이지가 변경 될 경우.
@@ -68,7 +68,10 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status == F_Status_STOPPED
 	}
 	if( P_IL_Home_Chk_Motor_Update == N_IL_Moter_Update )		// 인터락 모터 선언.
 	{
-		call IL_Robot_Define.Home_Motor_Check(P_IL_Motor_Home_Chk_RTN, &P_IL_Motor_Home_Chk_RTN);	// 내부, 외부 관련 모터 HomeComplete 확인.
+		if(P_Current_Homming_Status(P_IL_Motor_Page) != F_Status_STARTING)
+		{
+			call IL_Robot_Define.Home_Motor_Check(P_IL_Motor_Home_Chk_RTN, &P_IL_Motor_Home_Chk_RTN);	// 내부, 외부 관련 모터 HomeComplete 확인.
+		}
 	}
 	else if( P_IL_Home_Chk_Motor_Update == N_IL_Motor_Skip )	// 인터락 모터 HomeComplete 확인 미필요.
 	{
@@ -1356,7 +1359,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status == F_Status_STOPPED
 						P_No1_Recipe_Pos_IL(N_2nd_PnP_AN_T) = 0;
 				//================================ 2번위치 - 스택 위치 ================================
 					// ↓ 음극 2차 PNP T축 스택 위치 || 음극 1차 PNP T축 > 50º || 파이널 롤러 X축 ≤ 양극 위치 || 음극 NG PNP T축 > 대기 위치 + 40º || 음극 2차 PNP Z축 ≥ 대기위치 + 0.5º
-					if(P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ P_Recipe_M03_POS(2) || P_Motor_Current_Pos(N_1st_PnP_AN_T) > 50 || P_Motor_Current_Pos(N_FINAL_ROLL_X) <= P_Recipe_M12_POS(3) || P_Motor_Current_Pos(N_NG_PnP_AN_T) > P_Recipe_M43_POS(1) + 40 || P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Ready_Up + 0.5 )
+					if(P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ P_Recipe_M03_POS(2) || P_Motor_Current_Pos(N_1st_PnP_AN_T) > 50 || P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Recipe_M12_POS(3) || P_Motor_Current_Pos(N_NG_PnP_AN_T) > P_Recipe_M43_POS(1) + 40 || P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Ready_Up + 0.5 )
 						P_No2_Recipe_Pos_IL(N_2nd_PnP_AN_T) = 1;
 					else
 						P_No2_Recipe_Pos_IL(N_2nd_PnP_AN_T) = 0;
@@ -2502,10 +2505,10 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status == F_Status_STOPPED
 					P_No3_Recipe_Pos_IL(N_UNLOADER_X) = 0;
 			//================================ 4번위치 - 후진 위치 ================================
 				// ↓ 언로더 X축 후진 위치 || 양극 2차 PNP T축 !~ 대기 위치 || 파이널 롤 X축 > 음극 위치 || 얼로더 T축 !~ 대기 위치 || 언로더 Z축 !~ 상승 위치 || 양극 NG PNP T축 !~ 대기 위치
-//				if(P_Motor_Current_Pos(N_UNLOADER_X) ~ P_Recipe_M46_POS(4) || !(P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ P_Recipe_M03_POS(1)) || !(P_Motor_Current_Pos(N_UNLOADER_T) ~ P_Recipe_M48_POS(2)) || !(P_Motor_Current_Pos(N_UNLOADER_Z) ~ P_Recipe_M47_POS(2)) || !(P_Motor_Current_Pos(N_NG_PnP_CA_T) ~ P_Recipe_M42_POS(1)))		
-//					P_No4_Recipe_Pos_IL(N_UNLOADER_X) = 1;
-//				else
-//					P_No4_Recipe_Pos_IL(N_UNLOADER_X) = 0;
+				if(P_Motor_Current_Pos(N_UNLOADER_X) ~ P_Recipe_M46_POS(4) || !(P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ P_Recipe_M03_POS(1)) || !(P_Motor_Current_Pos(N_UNLOADER_T) ~ P_Recipe_M48_POS(2)) || !(P_Motor_Current_Pos(N_UNLOADER_Z) ~ P_Recipe_M47_POS(2)) || !(P_Motor_Current_Pos(N_NG_PnP_CA_T) ~ P_Recipe_M42_POS(1)))		
+					P_No4_Recipe_Pos_IL(N_UNLOADER_X) = 1;
+				else
+					P_No4_Recipe_Pos_IL(N_UNLOADER_X) = 0;
 				//================================ 미사용 위치 인터락 ===========================================
 					P_No5_Recipe_Pos_IL(N_UNLOADER_X) = 1;
 					P_No6_Recipe_Pos_IL(N_UNLOADER_X) = 1;

@@ -49,6 +49,9 @@ global P_Anode_Sepa_Mode_Timer = 0
 #define Hex_Stack_OK				$200			// 0000 0010 0000 0000
 
 #define	Hex_NG_Masking				$117			// 0000 0001 0001 0111
+#define	Hex_OK_Masking				$28				// 0000 0000 0010 1000
+
+//#define	Hex_NG_Masking				$117			// 0000 0001 0001 0111
 /*										양극 데이터 관련 변수									*/
 //------------------- Belt 에 있는 Sheet Data 저장 영역 -------------------//
 #define	Sys_Cathode_Belt_Sheet_Data						Sys.Ddata[1000]			// On Belt Sheet 전체 데이터			8Byte
@@ -304,12 +307,12 @@ global P_Stack_NG_Code = 0;
 //	#define	spare											P5057
 //	#define	spare											P5058
 //	#define	spare											P5059
-//	#define	spare											P5060
-//	#define	spare											P5061
-//	#define	spare											P5062
-//	#define	spare											P5063
-//	#define	spare											P5064
-//	#define	spare											P5065
+	#define	P_Ca_Align_DIO_Log								P5060				// [ 26.09.21 Vision DIO OK, NG 담는 P변수 선언 ] 
+	#define	P_Ca_Surface_DIO_Log							P5061				// [ 26.09.21 Vision DIO OK, NG 담는 P변수 선언 ]
+//	#define	spare											P5062				
+	#define	P_An_Align_DIO_Log								P5063				// [ 26.09.21 Vision DIO OK, NG 담는 P변수 선언 ]
+	#define	P_An_Surface_DIO_Log							P5064				// [ 26.09.21 Vision DIO OK, NG 담는 P변수 선언 ]
+	#define	P_Stack_DIO_Log									P5065				// [ 26.09.21 Vision DIO OK, NG 담는 P변수 선언 ]
 //	#define	spare											P5066
 //	#define	spare											P5067
 //	#define	spare											P5068
@@ -323,9 +326,9 @@ global P_Stack_NG_Code = 0;
 //	#define	spare											P5076
 //	#define	spare											P5077
 //	#define	spare											P5078
-//	#define	spare											P5079
+//	#define	spare											P5079				
 //	#define	spare											P5080
-//	#define	spare											P5081
+	#define	P_Y_Vision_MSA_Use_Flag							P5081				//MSA 사용 중 신호 [ PMAC -> Vision ] //[참조 : 260928 MSA Vision 인터페이스 추가]
 //	#define	spare											P5082
 //	#define	spare											P5083
 //	#define	spare											P5084

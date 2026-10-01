@@ -271,8 +271,8 @@ if( M_Read_Sector_Scan_Complete(2) == 1 )			// QCP Data 구간. → 구간 맞는지 확�
 		
 		P_X_Ecat_Reconnection_BTN = u.user:$00A2AC.08.1
 
-		//[참조 : 260730 환경안전검수용 인터락 활성화 버튼 추가]
-		P_X_Interlock_Enable_BTN = u.user:$00A2AC.09.1;
+		// PLC 셋업 모드 상태
+		P_X_PLC_Setup_Mode_Check = u.user:$00A2AC.09.1;
 
 		//양극 vision 연속 불량 알람 발생 횟수
 		if( Sys.Idata[10444] > P_Cathode_Align_Continuous_NG_Check_range )
@@ -450,16 +450,19 @@ if( M_Read_Sector_Scan_Complete(3) == 1)
 	//Motor[17].Homeoffset = Sys.Idata[10917];
 	//Motor[18].Homeoffset = Sys.Idata[10924];
 
+	//PickerT 단방향위치로 변경으로 홈 오프셋 변경부 주석. [ 참조 : 26.09.11 PickerT 모션 변경에 따른 동작 횟수 감시 삭제 ]
 	// [ 참조 : 26.04.28 Picker T축 탭방향에 따른 홈방식 변경 ]
 //	#ifdef F_Def_Stack_A
-		if ( P_Ca_Picker_T_Home_Type == 0 )
-			Motor[19].Homeoffset = M_Motor_Home_Offset(19);				//Sys.Idata[10931];
-		else if ( P_Ca_Picker_T_Home_Type == 1 )
-			Motor[19].Homeoffset = M_Motor_Home_Offset(19) - 180000;	// Sys.Idata[10931] - 180000;
-		if ( P_An_Picker_T_Home_Type == 0 )
-			Motor[20].Homeoffset = M_Motor_Home_Offset(20);				//Sys.Idata[10938];
-		else if ( P_An_Picker_T_Home_Type == 1 )
-			Motor[20].Homeoffset = M_Motor_Home_Offset(20) - 180000;	//Sys.Idata[10938] - 180000;
+		//if ( P_Ca_Picker_T_Home_Type == 0 )
+		//	Motor[19].Homeoffset = M_Motor_Home_Offset(19);				//Sys.Idata[10931];
+		//else if ( P_Ca_Picker_T_Home_Type == 1 )
+		//	Motor[19].Homeoffset = M_Motor_Home_Offset(19) - 180000;	// Sys.Idata[10931] - 180000;
+		//if ( P_An_Picker_T_Home_Type == 0 )
+		//	Motor[20].Homeoffset = M_Motor_Home_Offset(20);				//Sys.Idata[10938];
+		//else if ( P_An_Picker_T_Home_Type == 1 )
+		//	Motor[20].Homeoffset = M_Motor_Home_Offset(20) - 180000;	//Sys.Idata[10938] - 180000;
+		Motor[19].Homeoffset = M_Motor_Home_Offset(19);				//Sys.Idata[10931];
+		Motor[20].Homeoffset = M_Motor_Home_Offset(20);				//Sys.Idata[10938];
 //	#endif
 //
 //	// [ 참조 : 26.04.28 Picker T축 탭방향에 따른 홈방식 변경 ]
@@ -598,6 +601,12 @@ if( M_Read_Sector_Scan_Complete(3) == 1)
 	P_MSA_Run_Repeat_Num(F_Anode_Stack_MSA)		= u.user:$00AE64.16.16			// 음극 스텍 msa 반복 횟수( gui로부터 입력 )
 	P_MSA_Run_Repeat_Num(F_Cathode_Align_MSA)	= u.user:$00AE68.00.16			// 양극 얼라인 msa 반복 횟수( gui로부터 입력 )
 	P_MSA_Run_Repeat_Num(F_Anode_Align_MSA)		= u.user:$00AE68.16.16			// 음극 얼라인 msa 반복 횟수( gui로부터 입력 )
+
+	//[참조 : 260813 PNP 흡착 텍 측정 모드 추가 ]
+	P_BTN_CA_1st_PNP_Vac_Chk_Mode = u.user:$00A3D8.00.1	//음극 1차 PNP 흡착 텍 측정 모드 버튼
+	P_BTN_AN_1st_PNP_Vac_Chk_Mode = u.user:$00A3D8.01.1	//양극 1차 PNP 흡착 텍 측정 모드 버튼
+	P_BTN_CA_2nd_PNP_Vac_Chk_Mode = u.user:$00A3D8.02.1	//음극 2차 PNP 흡착 텍 측정 모드 버튼
+	P_BTN_AN_2nd_PNP_Vac_Chk_Mode = u.user:$00A3D8.03.1	//양극 2차 PNP 흡착 텍 측정 모드 버튼 
 
 	// 레시피 자동 적용 
 	IF ( u.user:$00AE6C.00.16 != 0 )
@@ -1707,6 +1716,61 @@ if(M_Write_Sector_Scan_Complete(3) == 1)
 	u.user:$01478C.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Stack_Job_Change_UnLock)							// 공압 실린더, 진공 텍타임 측정 시간
 	u.user:$014790.00.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Final_Back_UP_Roll_Clamp)							// 공압 실린더, 진공 텍타임 측정 시간
 	u.user:$014790.16.16 = P_Pneumatic_Pressure_Unit_Tack_Time(N_Final_Back_UP_Roll_UnClamp)						// 공압 실린더, 진공 텍타임 측정 시간
+
+	//===========================================================================================================================================================
+	//[참조 : 260813 PNP 흡착 텍 측정 모드 추가 ]
+
+	//양극 1차 PNP 흡착 텍 모드 타임 버퍼
+	u.user:$014C0C.00.16 = P_Cathode_1st_PNP_Vac_Chk_TackTime_Array1 / 10				// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  1
+	u.user:$014C0C.16.16 = P_Cathode_1st_PNP_Vac_Chk_TackTime_Array2 / 10				// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  2
+	u.user:$014C10.00.16 = P_Cathode_1st_PNP_Vac_Chk_TackTime_Array3 / 10				// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  3
+	u.user:$014C10.16.16 = P_Cathode_1st_PNP_Vac_Chk_TackTime_Array4 / 10				// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  4
+	u.user:$014C14.00.16 = P_Cathode_1st_PNP_Vac_Chk_TackTime_Array5 / 10				// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  5
+	u.user:$014C14.16.16 = P_Cathode_1st_PNP_Vac_Chk_TackTime_Array6 / 10				// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  6
+	u.user:$014C18.00.16 = P_Cathode_1st_PNP_Vac_Chk_TackTime_Array7 / 10				// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  7
+	u.user:$014C18.16.16 = P_Cathode_1st_PNP_Vac_Chk_TackTime_Array8 / 10				// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  8
+	u.user:$014C1C.00.16 = P_Cathode_1st_PNP_Vac_Chk_TackTime_Array9 / 10				// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  9
+	u.user:$014C1C.16.16 = P_Cathode_1st_PNP_Vac_Chk_TackTime_Array10 / 10				// 양극 1차 PNP 흡착 텍 모드 타임 버퍼  10
+
+
+	//음극 1차 PNP 흡착 텍 모드 타임 버퍼
+	u.user:$014C20.00.16 = P_Anode_1st_PNP_Vac_Chk_TackTime_Array1 / 10					// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  1
+	u.user:$014C20.16.16 = P_Anode_1st_PNP_Vac_Chk_TackTime_Array2 / 10					// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  2
+	u.user:$014C24.00.16 = P_Anode_1st_PNP_Vac_Chk_TackTime_Array3 / 10					// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  3
+	u.user:$014C24.16.16 = P_Anode_1st_PNP_Vac_Chk_TackTime_Array4 / 10					// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  4
+	u.user:$014C28.00.16 = P_Anode_1st_PNP_Vac_Chk_TackTime_Array5 / 10					// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  5
+	u.user:$014C28.16.16 = P_Anode_1st_PNP_Vac_Chk_TackTime_Array6 / 10					// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  6
+	u.user:$014C2C.00.16 = P_Anode_1st_PNP_Vac_Chk_TackTime_Array7 / 10					// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  7
+	u.user:$014C2C.16.16 = P_Anode_1st_PNP_Vac_Chk_TackTime_Array8 / 10					// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  8
+	u.user:$014C30.00.16 = P_Anode_1st_PNP_Vac_Chk_TackTime_Array9 / 10					// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  9
+	u.user:$014C30.16.16 = P_Anode_1st_PNP_Vac_Chk_TackTime_Array10 / 10				// 음극 1차 PNP 흡착 텍 모드 타임 버퍼  10
+
+	//양극 2차 PNP 흡착 텍 모드 타임 버퍼
+	u.user:$014C34.00.16 = P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array1 / 10				// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  1
+	u.user:$014C34.16.16 = P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array2 / 10				// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  2
+	u.user:$014C38.00.16 = P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array3 / 10				// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  3
+	u.user:$014C38.16.16 = P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array4 / 10				// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  4
+	u.user:$014C3C.00.16 = P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array5 / 10				// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  5
+	u.user:$014C3C.16.16 = P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array6 / 10				// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  6
+	u.user:$014C40.00.16 = P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array7 / 10				// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  7
+	u.user:$014C40.16.16 = P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array8 / 10				// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  8
+	u.user:$014C44.00.16 = P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array9 / 10				// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  9
+	u.user:$014C44.16.16 = P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array10 / 10				// 양극 2차 PNP 흡착 텍 모드 타임 버퍼  10
+
+	//음극 2차 PNP 흡착 텍 모드 타임 버퍼
+	u.user:$014C48.00.16 = P_Anode_2nd_PNP_Vac_Chk_TackTime_Array1 / 10					// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  1
+	u.user:$014C48.16.16 = P_Anode_2nd_PNP_Vac_Chk_TackTime_Array2 / 10					// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  2
+	u.user:$014C4C.00.16 = P_Anode_2nd_PNP_Vac_Chk_TackTime_Array3 / 10					// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  3
+	u.user:$014C4C.16.16 = P_Anode_2nd_PNP_Vac_Chk_TackTime_Array4 / 10					// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  4
+	u.user:$014C50.00.16 = P_Anode_2nd_PNP_Vac_Chk_TackTime_Array5 / 10					// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  5
+	u.user:$014C50.16.16 = P_Anode_2nd_PNP_Vac_Chk_TackTime_Array6 / 10					// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  6
+	u.user:$014C54.00.16 = P_Anode_2nd_PNP_Vac_Chk_TackTime_Array7 / 10					// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  7
+	u.user:$014C54.16.16 = P_Anode_2nd_PNP_Vac_Chk_TackTime_Array8 / 10					// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  8
+	u.user:$014C58.00.16 = P_Anode_2nd_PNP_Vac_Chk_TackTime_Array9 / 10					// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  9
+	u.user:$014C58.16.16 = P_Anode_2nd_PNP_Vac_Chk_TackTime_Array10 / 10				// 음극 2차 PNP 흡착 텍 모드 타임 버퍼  10
+
+//===========================================================================================================================================================
+
 
 	//프로그램 버전 관리 변수 영역
 	u.user:$014794.00.16 = P_Project_Ver_A

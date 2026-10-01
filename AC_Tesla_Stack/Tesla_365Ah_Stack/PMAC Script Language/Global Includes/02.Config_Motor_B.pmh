@@ -5,7 +5,7 @@
 // 내용 - [ 참조 : 26.xx.xx 내용 ]
 
 
-
+#ifdef F_Def_Tesla
 Sys.WpKey = $AAAAAAAA;                                           // Permit write access
 
 
@@ -7393,7 +7393,7 @@ Sys.WpKey = $AAAAAAAA;                                           // Permit write
 	Coord[10].SyncOps = 0
 #endif
 Sys.WpKey = $0                                               // Write-protect 
-
+#endif
 //Motor[1].PhaseFound=0
 //#1out0
 //Motor[1].IaBias=0

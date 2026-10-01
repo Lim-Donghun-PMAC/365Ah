@@ -29,6 +29,8 @@ global P_FR_Clamp_Use_Test = 1;			// 배출 시 FR Clamp 사용 미사용
 
 global P_Door_Interlock_Use_Flag = 0;		// 릴컷 도어 오픈 인터락 사용 미사용
 
+global P_Vacuum_Door_Clear_Use = 0;			// 진공알람 도어 오픈 클리어 사용 미사용 
+global P_Align_Test_Pos = 1.5;
 //     M_X_PLC_Anode_Sheet_Ready->*		// 극판 포인팅 제거
 //     M_X_PLC_Cathode_Sheet_Ready->*   // 극판 포인팅 제거
 //     M_X_PLC_Anode_Sheet_Ready = 1    // 레디 신호 1

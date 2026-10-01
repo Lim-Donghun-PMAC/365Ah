@@ -1159,7 +1159,7 @@ open subprog Single_Dry_Run(void)
 					P_Single_Run_Align_Timer = 0;						// 타이머 초기화.
 					P_Cathode_Align_Stage_X_mm=5;						// 구동 위치 업데이트.
 					P_Cathode_Align_Stage_Y_mm=5;						// 구동 위치 업데이트.
-					P_Cathode_Align_Stage_T_mm=1.5;						// 구동 위치 업데이트.
+					P_Cathode_Align_Stage_T_mm= P_Align_Test_Pos; //1.5;						// 구동 위치 업데이트.
 		
 					P_Cathode_Align_Table_Move = F_Align_Move_Mode;		// 얼라인 무브 동작 플래그.
 					cmd"&2b2r";											// 좌표계 활성화.
@@ -1198,7 +1198,7 @@ open subprog Single_Dry_Run(void)
 					P_Single_Run_Align_Timer2 = 0;						// 타이머 초기화.
 					P_Anode_Align_Stage_X_mm=5;							// 구동 위치 업데이트.
 					P_Anode_Align_Stage_Y_mm=5;							// 구동 위치 업데이트.
-					P_Anode_Align_Stage_T_mm=1.5;						// 구동 위치 업데이트.
+					P_Anode_Align_Stage_T_mm=P_Align_Test_Pos;//1.5;						// 구동 위치 업데이트.
 					
 					P_Anode_Align_Table_Move = F_Align_Move_Mode;		//	얼라인 무브 동작 플래그.
 					cmd"&3b3r";											// 좌표계 활성화.

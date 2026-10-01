@@ -42,7 +42,7 @@ Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[12].ldata.L[3]	Å¸ÀÌ¸Ó ÃÊ±âÈ­ ÇÃ
  local L_Y_Anode_2nd_Vac_Sol_On;						// Plc[12].ldata.L[19]	¸Å´º¾ó ¶§ Áø°ø Ä¿¸Çµå ¿§Áö°ª
  local L_Y_Cathode_NG_PNP_Ejector_Vac_On;				// Plc[12].ldata.L[20]	¸Å´º¾ó ¶§ Áø°ø Ä¿¸Çµå ¿§Áö°ª
  local L_Y_Anode_NG_PNP_Ejector_Vac_On;					// Plc[12].ldata.L[21]	¸Å´º¾ó ¶§ Áø°ø Ä¿¸Çµå ¿§Áö°ª
- local L_Resetting_Vac_Delay_Timer = 0;					// Plc[12].ldata.L[22]
+ local L_Resetting_Vac_Delay_Timer;						// Plc[12].ldata.L[22]
  local L_Heart_Bit_Timer;								// PLC[12].ldata.L[23]	ÇÏÆ®ºñÆ® Á¡¸ê Å¸ÀÌ¸Ó	- [ ÂüÁ¶ : 26.01.19 ÇÏÆ®ºñÆ® Á¡¸ê Ãß°¡ ]
  local L_PMAC_Old_Mode;									// PLC[12].ldata.L[24]  ÀÌÀü ¸ğµå
  local L_Vac_Initialize_Timer;							// PLC[12].ldata.L[25]
@@ -54,6 +54,9 @@ Local	L_Flag_Cycle_Up_Count_Init_Flag;				// Plc[12].ldata.L[3]	Å¸ÀÌ¸Ó ÃÊ±âÈ­ ÇÃ
  Local L_Old_M_X_PLC_Anode_ReelCut_Door_Interlock;		// PLC[12].ldata.L[79]	//À½±Ø ¸±ÄÆ Å« µµ¾î ÀÌÀü°ª 
  local L_Old_M_X_PLC_Cathode_Small_Door_Close_Signal;	// PLC[12].ldata.L[80]	//¾ç±Ø ¸±ÄÆ ÀÛÀº µµ¾î ÀÌÀü°ª 
  Local L_Old_M_X_PLC_Anode_Small_Door_Close_Signal; 	// PLC[12].ldata.L[81]	//À½±Ø ¸±ÄÆ ÀÛÀº µµ¾î ÀÌÀü°ª 
+ local L_Vac_Door_Clear_Bit = F_Vac_Blow_Alarm;			// PLC[12].ldata.L[82]
+ local L_Vac_Bit_idx;									// PLC[12].ldata.L[83]
+ local L_Vac_Door_Rtn;									// PLC[12].ldata.L[84]
 //========================================================================================================================
 // 00. ´ÙÀÌ³ª¹Í ·ÎÄÃ Å¸ÀÌ¸Ó ÇÔ¼ö	
 //========================================================================================================================
@@ -1278,7 +1281,7 @@ if( P_Stop_Cmd_Origin != P_Stop_Origin_Save(0) && P_Stop_Cmd_Origin != 0 )
 
 // ng ¹Ú½º ¼¾¼­ off ½Ã NG PNP µ¿ÀÛ ¸ØÃã
 //[ÂüÁ¶ : 260730 È¯°æ¾ÈÀü°Ë¼ö¿ë ÀÎÅÍ¶ô È°¼ºÈ­ ¹öÆ° Ãß°¡]
-If ( P_PMAC_Current_Mode == F_Current_Automatic && P_X_Interlock_Enable_BTN == 1 )
+If ( P_PMAC_Current_Mode == F_Current_Automatic && P_X_PLC_Setup_Mode_Check == 0 )
 {
 	// ng pnp µ¿ÀÛÀº hold ¶§¸¸ ÀÖÀ½
 	if ( P_PMAC_Status == F_Status_HOLD )
@@ -1456,17 +1459,18 @@ if ( P_X_Vision_Work_Confirm_Operation_Ack == 1 )					// Reel Work Confirm¿¡ ´ëÇ
 }
 
 // [ ÂüÁ¶ : 26.04.28 Picker TÃà ÅÇ¹æÇâ¿¡ µû¸¥ È¨¹æ½Ä º¯°æ ]
-if ( P_Ca_Picker_T_Turn_Cnt_Flag == 1 )
-{
-	P_Ca_Picker_T_Turn_Cnt_Flag = 0;
-	P_Ca_Picker_T_Home_Type = P_Ca_Picker_T_Turn_Cnt % 2
-}
-
-if ( P_An_Picker_T_Turn_Cnt_Flag == 1 )
-{
-	P_An_Picker_T_Turn_Cnt_Flag = 0;
-	P_An_Picker_T_Home_Type = P_An_Picker_T_Turn_Cnt % 2
-}
+//PickerT ´Ü¹æÇâÀ§Ä¡·Î º¯°æÀ¸·Î È¨ ¿ÀÇÁ¼Â º¯°æºÎ ÁÖ¼®. [ ÂüÁ¶ : 26.09.11 PickerT ¸ğ¼Ç º¯°æ¿¡ µû¸¥ µ¿ÀÛ È½¼ö °¨½Ã »èÁ¦ ]
+//if ( P_Ca_Picker_T_Turn_Cnt_Flag == 1 )
+//{
+//	P_Ca_Picker_T_Turn_Cnt_Flag = 0;
+//	P_Ca_Picker_T_Home_Type = P_Ca_Picker_T_Turn_Cnt % 2
+//}
+//
+//if ( P_An_Picker_T_Turn_Cnt_Flag == 1 )
+//{
+//	P_An_Picker_T_Turn_Cnt_Flag = 0;
+//	P_An_Picker_T_Home_Type = P_An_Picker_T_Turn_Cnt % 2
+//}
 
 // [ ÂüÁ¶ : ±ØÆÇ µ¥ÀÌÅÍ¿¡ µû¸¥ ÈíÂø I/O »óÅÂ È®ÀÎ ]
 if( P_Flag_Vac_Status_Initialize == 1 )																				// ÈíÂø ÃÊ±âÈ­ ½ÅÈ£¸¦ ¹ŞÀ» °æ¿ì
@@ -1798,7 +1802,7 @@ if ( P_ARC_Middle_Discharge_Ignore_ON_Flag == 1 )			// ARC ÁøÇà ½Ã Áß°£ ¹èÃâ ¹«½
 //=========================================================================================================================================================//
 //[ ÂüÁ¶ : 260513 : ¾çÀ½±Ø ¸±ÄÆºÎ µµ¾î ¿ÀÇÂ ½Ã 1Â÷ PNP ÀÎÅÍ¶ô ]
 //[ÂüÁ¶ : 260730 È¯°æ¾ÈÀü°Ë¼ö¿ë ÀÎÅÍ¶ô È°¼ºÈ­ ¹öÆ° Ãß°¡]
-if ( P_X_Interlock_Enable_BTN == 1 )
+if ( P_X_PLC_Setup_Mode_Check == 0 )
 {
 	if( P_PMAC_Current_Mode == F_Current_Automatic )
 	{	//³ë¸Ö, ¼¼ÆÄ, µå¶óÀÌ·± ½Ã 
@@ -1842,6 +1846,79 @@ else
 {
 	M_Sample_Btn_Flag = 0;
 	M_Sample_JR_Prod_Count = 0;
+}
+//=========================================================================================================================================================//
+// [ ÂüÁ¶ : 26.09.22 Áø°ø ¾Ë¶÷ µµ¾î ¿ÀÇÂ ÇÏ¿© Å¬¸®¾î ]
+if( P_Vacuum_Door_Clear_Use ){
+	if( P_PMAC_Current_Mode == F_Current_Manual && M_X_Other_Door_Open_Signal == 1 )
+		P_Vac_Door_Open_Clear(0),13 = 0;
+	
+	// Áø°ø ¾Ë¶÷Àº 00¹ø or 12¹ø PLC¿¡¼­ ÁÖ±â¶§¹®¿¡  Mº¯¼ö ÀÚÃ¼¸¦ º¸°í Flag »ğÀÔÀ» ÇÏµµ·Ï ÇÏ°ÚÀ½
+	// Sys.Udata[20854] Mº¯¼ö°¡ °¡¸£Å°°í ÀÖ´Â ÁÖ¼Ò
+	// ¸ÅÅ©·Î ÇÔ¼ö·Î ¸¶½ºÅ· °É°í Vac Mº¯¼ö °¨Áö°¡ µÈ´Ù¸é ºñÆ®Á¶ÇÕÀ» °ËÃâÇÏ¿© Clear ¹è¿­ °ª on
+	if( L_Vac_Door_Clear_Bit ){	//PLC[12].ldata.L[82]
+	
+		if( L_Vac_Bit_idx <= 12 ){
+			call Bit_Masking_Function.Check(L_Vac_Door_Clear_Bit,L_Vac_Bit_idx,&L_Vac_Door_Rtn)
+			if( L_Vac_Door_Rtn == N_TRUE ) {		// PLC[12].ldata.L[84]
+				P_Vac_Door_Open_Clear(0)++;			// 0¹ø¹è¿­¿£ Ä«¿îÆÃ ÇÏÀÚ
+				P_Vac_Door_Open_Clear(L_Vac_Bit_idx) = 1;
+			}
+			L_Vac_Bit_idx++;						//PLC[12].ldata.L[83]
+		}
+	}
+	else
+		L_Vac_Bit_idx = 1;
+	
+	if( P_Vac_Door_Open_Clear(0) ){
+		if( P_Vac_Door_Open_Clear(1) == 1 ){
+			call Alarm.Insert_Alarm(N_Alarm_Cathode_1ST_PNP_Down_POS_Vaccume, N_High_Alarm_Cycle_Stop);
+		}
+		if( P_Vac_Door_Open_Clear(2) == 1 ){
+			call Alarm.Insert_Alarm(N_Alarm_Anode_1ST_PNP_Down_POS_Vaccume, N_High_Alarm_Cycle_Stop);
+		}
+		if( P_Vac_Door_Open_Clear(3) == 1 ){
+			call Alarm.Insert_Alarm(N_Alarm_Cathode_2ST_PNP_Down_POS_Vaccume, N_High_Alarm_Cycle_Stop);
+		}
+		if( P_Vac_Door_Open_Clear(4) == 1 ){
+			call Alarm.Insert_Alarm(N_Alarm_Anode_2ST_PNP_Down_POS_Vaccume, N_High_Alarm_Cycle_Stop);
+		}
+		if( P_Vac_Door_Open_Clear(5) == 1 ){
+			call Alarm.Insert_Alarm(N_Alarm_Cathode_NG_PNP_Down_POS_Vaccume, N_High_Alarm_Cycle_Stop);
+		}
+		if( P_Vac_Door_Open_Clear(6) == 1 ){
+			call Alarm.Insert_Alarm(N_Alarm_Anode_NG_PNP_Down_POS_Vaccume, N_High_Alarm_Cycle_Stop);
+		}
+		if( P_Vac_Door_Open_Clear(7) == 1 ){
+			call Alarm.Insert_Alarm(N_Alarm_Cathode_AT_Down_POS_Vaccume, N_High_Alarm_Cycle_Stop);
+		}
+		if( P_Vac_Door_Open_Clear(8) == 1 ){
+			call Alarm.Insert_Alarm(N_Alarm_Anode_AT_Down_POS_Vaccume, N_High_Alarm_Cycle_Stop);
+		}
+		if( P_Vac_Door_Open_Clear(9) == 1 ){
+			call Alarm.Insert_Alarm(N_Alarm_Main_Stack_Table_Down_POS_Vaccume, N_High_Alarm_Cycle_Stop);
+		}
+		if( P_Vac_Door_Open_Clear(10) == 1 ){
+			call Alarm.Insert_Alarm(N_Alarm_Main_Stack_T_Plate_Down_POS_Vaccume, N_High_Alarm_Cycle_Stop);
+		}
+		if( P_Vac_Door_Open_Clear(11) == 1 ){
+			call Alarm.Insert_Alarm(N_Alarm_Cathode_2ST_PNP_Blow_NG, N_High_Alarm_Cycle_Stop);
+		}
+		if( P_Vac_Door_Open_Clear(12) == 1 ){
+			call Alarm.Insert_Alarm(N_Alarm_Anode_2ST_PNP_Blow_NG, N_High_Alarm_Cycle_Stop);
+		}
+	
+		// ÆË¾÷Àº °³º° ÆË¾÷À¸·Î ¼öÁ¤ ¿¹Á¤!
+		// ÆË¾÷À» ¶ç¿ö¼­ ¹®¿­°í Å¬¸®¾î ÇÏ°Ô ÇÏÀÚ
+		//nop(memset(F_IL_Cdata, 0 ,N_IL_memset_size));
+		//nop(sprintf(F_IL_Cdata," Vacuum Error Door Open "));
+		//nop(sprintf(F_IL_Cdata2," Error Clear Door Open "));
+		
+		//if( L_Resetting_Vac_Delay_Timer > 1000 ){
+		//	L_Resetting_Vac_Delay_Timer = 0;
+		//	P_Y_Interlock_Popup_On_Request = 1;
+		//}
+	}
 }
 //=========================================================================================================================================================//
 //[ÂüÁ¶ : 260729 ÀÎÅÍ¶ô ÆË¾÷ ¿äÃ» Ã¢ ±¸¹® À§Ä¡ º¯°æ ]

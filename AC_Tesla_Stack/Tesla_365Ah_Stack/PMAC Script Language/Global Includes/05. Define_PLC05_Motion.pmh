@@ -828,7 +828,8 @@ global P_Y_Ecat_ReConnection_Complete = 0
 global P_X_Ecat_Reconnection_BTN = 0
 
 //[참조 : 260730 환경안전검수용 인터락 활성화 버튼 추가]
-global P_X_Interlock_Enable_BTN = 0;
+global P_X_PLC_Setup_Mode_Check = 0;	// [0 : 생산 모드, 1 : 셋업 모드] PLC 셋업모드 확인 변수
+global P_Interlock_On_Off_Flag = 0;		// [0 : PLC 셋업 모드 따라감, 1 : 셋업모드에서 인터락을 키고 싶을 때 1로 변경] 인터락 On, Off 플래그(PMAC에서 인터락을 조작할 수 있도록 하기 위함)
 
 #define	N_Ecat_Slave_Max_Index 19
 #define Ecat_Total_Slave_Online_Status	(ecat[0].slave[0].Online & ecat[0].slave[1].Online & ecat[0].slave[2].Online & ecat[0].slave[3].Online & ecat[0].slave[4].Online & ecat[0].slave[5].Online & ecat[0].slave[6].Online & ecat[0].slave[7].Online & ecat[0].slave[8].Online & ecat[0].slave[9].Online & ecat[0].slave[10].Online & ecat[0].slave[11].Online & ecat[0].slave[12].Online & ecat[0].slave[13].Online & ecat[0].slave[14].Online & ecat[0].slave[15].Online & ecat[0].slave[16].Online & ecat[0].slave[17].Online & ecat[0].slave[18].Online & ecat[0].slave[19].Online)

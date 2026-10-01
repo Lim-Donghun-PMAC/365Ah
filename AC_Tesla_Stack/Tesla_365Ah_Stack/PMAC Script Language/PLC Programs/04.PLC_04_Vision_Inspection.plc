@@ -490,6 +490,8 @@ switch(P_Vision_Align_State_Machine)
 			M_Y_Vision_Anode_Align_Result_Ack = 0;
 			M_Y_VisioN_Align_AN_TimeOut_Flag = 0
 			M_Y_VisioN_Align_CA_TimeOut_Flag = 0
+			P_An_Align_DIO_Log = 0;				//[ 26.09.21 Vision DIO OK, NG 담는 P변수 선언 ]
+			P_Ca_Align_DIO_Log = 0;				//[ 26.09.21 Vision DIO OK, NG 담는 P변수 선언 ] 
 		}
 
 	break;
@@ -620,6 +622,8 @@ switch(P_Vision_Surface_State_Machine)
 			M_Y_Vision_Cathode_Surface_Result_Ack = 0;
 			M_Y_Vision_Anode_Surface_TimeOut_Flag = 0;		// 음극 타임아웃 I/O Off
 			M_Y_Vision_Cathode_Surface_TimeOut_Flag = 0;	// 양극 타임아웃 I/O Off
+			P_Ca_Surface_DIO_Log = 0;
+			P_An_Surface_DIO_Log = 0;
 		}
 
 	break;
@@ -729,7 +733,8 @@ switch(P_Vision_Stack_State_Machine)
 			P_Vision_Stack_State_Machine = 0;				// 스택 검사 스테이트 머신 초기화
 			P_Selected_Stack_Inspection_Unit = 0;			// 선택된 극판 초기화
 			M_Y_Vision_Stack_Result_Ack = 0;
-			M_Y_Vision_Stack_TimeOut_Flag = 0;			// 스택 타임아웃 I/O Off
+			M_Y_Vision_Stack_TimeOut_Flag = 0;				// 스택 타임아웃 I/O Off
+			P_Stack_DIO_Log = 0;							// Vision Log Data Init 
 		}
 
 	break;

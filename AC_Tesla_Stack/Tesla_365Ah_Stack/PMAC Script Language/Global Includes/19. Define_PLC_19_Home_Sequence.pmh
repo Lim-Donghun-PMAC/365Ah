@@ -10,11 +10,8 @@
 // 전체 홈 변수 선언
 global P_AH_Home_Status	=	0;							// 1. 전체 홈 상태
 global P_Resetting_All_Home_Command = 0;				// 2. 홈 명령 
-global P_PnP_Init_Pos = 45;								// 3. PnP 대기위치 
-global P_NG_PnP_Warning_Pos = 80;						// 4. NG PnP 위험 위치	( 실제 장비에서 값이 변할 수 있으므로 변수로 선언 )
-global P_PnP_Stack_Pos = 80;							// 5. 2차 PnP Stack 위치 ( 실제 장비에서 값이 변할 수 있으므로 변수로 선언 )
-global P_PnP_Align_Pos = 10;							// 6. 얼라인 위치		( 실제 장비에서 값이 변할 수 있으므로 변수로 선언 )
-global P_Down_Pos = 30;									// 7. 하강 위치			( 실제 장비에서 값이 변할 수 있으므로 변수로 선언 )
+
+
 
 global P_Homing_Alarm_Time = 50;						// 13. Home Time Out 시간 ( 10 초 )
 global P_Home_Check_Arry(50);							// 16. P_PMAC_Homing_CHK 변수와 다르게 대기 위치로 이동하기 위하여 Home Cmd 사용했을때 확인 하는 변수
@@ -26,31 +23,31 @@ global P_Home_First_Move = 0;
 
 
 // 가상축 테스트를 위한 변수 선언
+#ifdef F_Virtual_Axis_Test	// 가상축
+	global P_Test_HomeComplete(50);
+	P_Test_HomeComplete(0),50 = 0;
+	
+	
+	global P_Test_Motor_Ready_Pos(50); 
+	P_Test_Motor_Ready_Pos(0),50 = 0;
+	
+	P_Test_Motor_Ready_Pos(N_1st_PnP_CA_T) = 45;
+	P_Test_Motor_Ready_Pos(N_1st_PnP_AN_T)= 45;
+	P_Test_Motor_Ready_Pos(N_Clamp_CA_Z1) = 0.5;
+	P_Test_Motor_Ready_Pos(N_Clamp_AN_Z1) = 0.5;
+	P_Test_Motor_Ready_Pos(N_FINAL_ROLL_X) = -197;
+	P_Test_Motor_Ready_Pos(N_FINAL_ROLL_Z) = 58;
+	P_Test_Motor_Ready_Pos(N_Clamp_CA_Z2) = 0.5;
+	P_Test_Motor_Ready_Pos(N_Clamp_AN_Z2) = 0.5;
+	P_Test_Motor_Ready_Pos(N_UNLOADER_X) = -5.4;
+	P_Test_Motor_Ready_Pos(N_UNLOADER_Z) = 69;
+	P_Test_Motor_Ready_Pos(N_UNLOADER_T) = -2.817;
+	P_Test_Motor_Ready_Pos(N_1st_PnP_AN_Z) = 17.897;
+	P_Test_Motor_Ready_Pos(N_2nd_PnP_AN_Z) = 17.897;
+	P_Test_Motor_Ready_Pos(N_2nd_PnP_CA_Z) = 17.897;
+	P_Test_Motor_Ready_Pos(N_1st_PnP_CA_Z) = 17.897;
 
-global P_Test_HomeComplete(50);
-P_Test_HomeComplete(0),50 = 0;
-
-
-global P_Test_Motor_Ready_Pos(50); 
-P_Test_Motor_Ready_Pos(0),50 = 0;
-
-P_Test_Motor_Ready_Pos(N_1st_PnP_CA_T) = 45;
-P_Test_Motor_Ready_Pos(N_1st_PnP_AN_T)= 45;
-P_Test_Motor_Ready_Pos(N_Clamp_CA_Z1) = 0.5;
-P_Test_Motor_Ready_Pos(N_Clamp_AN_Z1) = 0.5;
-P_Test_Motor_Ready_Pos(N_FINAL_ROLL_X) = -197;
-P_Test_Motor_Ready_Pos(N_FINAL_ROLL_Z) = 58;
-P_Test_Motor_Ready_Pos(N_Clamp_CA_Z2) = 0.5;
-P_Test_Motor_Ready_Pos(N_Clamp_AN_Z2) = 0.5;
-P_Test_Motor_Ready_Pos(N_UNLOADER_X) = -5.4;
-P_Test_Motor_Ready_Pos(N_UNLOADER_Z) = 69;
-P_Test_Motor_Ready_Pos(N_UNLOADER_T) = -2.817;
-P_Test_Motor_Ready_Pos(N_1st_PnP_AN_Z) = 17.897;
-P_Test_Motor_Ready_Pos(N_2nd_PnP_AN_Z) = 17.897;
-P_Test_Motor_Ready_Pos(N_2nd_PnP_CA_Z) = 17.897;
-P_Test_Motor_Ready_Pos(N_1st_PnP_CA_Z) = 17.897;
-
-
+#endif
 
 
 
@@ -98,8 +95,6 @@ P_PWM_Status(0),PNP_T_Axes = 0;
 global P_PWM_State_Machine(PNP_T_Axes)			// State Machine
 P_PWM_State_Machine(0),PNP_T_Axes = 0;
 
-global P_PWM_Old_time(PNP_T_Axes)				// Old Time
-P_PWM_Old_time(0),PNP_T_Axes = 0;
 
 
 // 2026.02.03 새로운 홈 변수 정의
@@ -122,46 +117,6 @@ P_PWM_Old_time(0),PNP_T_Axes = 0;
 
 global P_AH_Seq_arr(N_SEQ_AH_No_15)
 P_AH_Seq_arr(0),N_SEQ_AH_No_15 = 0;
-
-global P_Indiv_AH_Cmd(N_SEQ_AH_No_15)
-P_Indiv_AH_Cmd(0),N_SEQ_AH_No_15 = 0;
-
-global P_Indiv_AH_Status(N_SEQ_AH_No_15)
-P_Indiv_AH_Status(0),N_SEQ_AH_No_15 = 0;
-
-global P_Indiv_Avoid_Cmd(N_SEQ_AH_No_15)
-P_Indiv_Avoid_Cmd(0),N_SEQ_AH_No_15 = 0;
-
-
-global P_AH_CA_1st_Rtn = 0;
-global P_AH_CA_1st_Act_Rtn = 0;
-
-global P_AH_AN_1st_Rtn = 0;
-global P_AH_AN_1st_Act_Rtn = 0;
-
-global P_AH_CA_2nd_Rtn = 0;
-global P_AH_CA_2nd_Act_Rtn = 0;
-
-global P_AH_AN_2nd_Rtn = 0;
-global P_AH_AN_2nd_Act_Rtn = 0;
-
-global P_AH_CA_NG_Rtn = 0;
-global P_AH_CA_NG_Act_Rtn = 0;
-
-global P_AH_AN_NG_Rtn = 0;
-global P_AH_AN_NG_Act_Rtn = 0;
-
-global P_CA_1st_SM = 0;
-global P_AN_1st_SM = 0;
-
-global P_CA_2nd_SM = 0;
-global P_AN_2nd_SM = 0;
-
-global P_CA_NG_SM = 0;
-global P_AN_NG_SM = 0;
-
-global P_Unloader_Crush_Pos = 65;
-global P_DD_Motor_45Deg = 45;
 
 // ABS 생값 저장 변수 
 global P_DD_M_Home_ABS_Pos(5)

@@ -25,7 +25,6 @@ open subprog Sub_Manual_All_Home_Prod_Sequnce(void)
 		//=========================================//
 		// 1.0)Init
 		//=========================================//
-		P_Act_All_Home_Complete_Bit(0),(10) = 0;
 		
 		Set_Manual_All_Home_RTN = 0;	
 

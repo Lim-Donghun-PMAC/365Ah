@@ -230,7 +230,67 @@ global P_2nd_PNP_Cleaning_Mode_X_Jog_Speed = 25;			// 2차 PNP 클리닝 위치 이동 �
 global P_2nd_PNP_Cleaning_Mode_T_Jog_Speed = 10;			// 2차 PNP 클리닝 위치 이동 모터 조그 속도 10		
 global P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos = 45;				// 2차 PNP 클리닝 위치 회피 이동 45 위치
 
-			
+//============================================================
+//PNP 흡착 텍 측정 모드 버튼 커맨드 및 상태변수
+//============================================================			
+//[참조 : 260813 PNP 흡착 텍 측정 모드 추가 ]
+global P_PNP_Vac_Chk_Mode_Interlock = 0;				//PNP 흡착 텍 인터락 변수
+
+global P_Vac_Chk_Test = 1;								//극판 확인 패스
+
+global P_Anode_1st_PNP_Vac_Chk_Mode_Blocked = 0;		//음극 1차 PNP 흡착 텍 측정 모드 Block 
+global P_Cathode_1st_PNP_Vac_Chk_Mode_Blocked = 0;		//양극 1차 PNP 흡착 텍 측정 모드 Block 
+global P_Anode_2nd_PNP_Vac_Chk_Mode_Blocked = 0;		//음극 2차 PNP 흡착 텍 측정 모드 Block 
+global P_Cathode_2nd_PNP_Vac_Chk_Mode_Blocked = 0;		//양극 2차 PNP 흡착 텍 측정 모드 Block 
+
+global P_SM_Anode_1st_PNP_Vac_Chk_Mode = 0;				//음극 1차 PNP 흡착 텍 측정 모드 스텝 머신 
+global P_SM_Cathode_1st_PNP_Vac_Chk_Mode = 0;			//양극 1차 PNP 흡착 텍 측정 모드 스텝 머신
+global P_SM_Anode_2nd_PNP_Vac_Chk_Mode = 0;				//음극 2차 PNP 흡착 텍 측정 모드 스텝 머신
+global P_SM_Cathode_2nd_PNP_Vac_Chk_Mode = 0;			//양극 2차 PNP 흡착 텍 측정 모드 스텝 머신
+
+global P_Anode_1st_PNP_Vac_Chk_Execute_Timer = 0;		//음극 1차 PNP 흡착 텍 측정 모드 실행 타이머
+global P_Cathode_1st_PNP_Vac_Chk_Execute_Timer = 0;		//양극 1차 PNP 흡착 텍 측정 모드 실행 타이머
+global P_Anode_2nd_PNP_Vac_Chk_Execute_Timer = 0;		//음극 2차 PNP 흡착 텍 측정 모드 실행 타이머
+global P_Cathode_2nd_PNP_Vac_Chk_Execute_Timer = 0;		//양극 2차 PNP 흡착 텍 측정 모드 실행 타이머
+
+global P_Anode_1st_PNP_Vac_Check_Timer = 0;				//음극 1차 PNP 흡착 텍 측정 모드 타이머 (흡착 시간)
+global P_Cathode_1st_PNP_Vac_Check_Timer = 0;			//양극 1차 PNP 흡착 텍 측정 모드 타이머 (흡착 시간)
+global P_Anode_2nd_PNP_Vac_Check_Timer = 0;				//음극 2차 PNP 흡착 텍 측정 모드 타이머 (흡착 시간)
+global P_Cathode_2nd_PNP_Vac_Check_Timer = 0;			//양극 2차 PNP 흡착 텍 측정 모드 타이머 (흡착 시간)
+
+global P_Anode_1st_PNP_Vac_Chk_Status = 0;				//음극 1차 PNP 흡착 텍 측정 모드 상태 확인 
+global P_Cathode_1st_PNP_Vac_Chk_Status = 0;			//양극 1차 PNP 흡착 텍 측정 모드 상태 확인 
+global P_Anode_2nd_PNP_Vac_Chk_Status = 0;				//음극 2차 PNP 흡착 텍 측정 모드 상태 확인 
+global P_Cathode_2nd_PNP_Vac_Chk_Status = 0;			//양극 2차 PNP 흡착 텍 측정 모드 상태 확인 
+
+global P_Anode_1st_PNP_Vac_Chk_Mode_Stop_Blocked = 0
+global P_Cathode_1st_PNP_Vac_Chk_Mode_Stop_Blocked = 0
+global P_Anode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked = 0
+global P_Cathode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked = 0
+
+global P_Anode_1st_PnP_Vac_Chk_Mode_RTN = 0
+global P_Cathode_1st_PnP_Vac_Chk_Mode_RTN = 0
+global P_Anode_2nd_PnP_Vac_Chk_Mode_RTN = 0
+global P_Cathode_2nd_PnP_Vac_Chk_Mode_RTN = 0
+
+global P_PNP_Vac_Chk_Mode_TimeBase_Rtn = 0
+global P_PNP_Vac_Chk_Mode_Timer = 0
+
+global P_Anode_1st_PNP_Vac_Chk_Mode_Err = 0
+global P_Cathode_1st_PNP_Vac_Chk_Mode_Err = 0
+global P_Anode_2nd_PNP_Vac_Chk_Mode_Err = 0
+global P_Cathode_2nd_PNP_Vac_Chk_Mode_Err = 0
+
+global P_PNP_Vac_Chk_Mode_BTN_Err = 0
+
+//[참조 : 260813 PNP 흡착 텍 측정 모드 추가 ]
+global P_BTN_CA_1st_PNP_Vac_Chk_Mode = 0;		
+global P_BTN_AN_1st_PNP_Vac_Chk_Mode = 0;		
+global P_BTN_CA_2nd_PNP_Vac_Chk_Mode = 0;		
+global P_BTN_AN_2nd_PNP_Vac_Chk_Mode = 0;		
+
+
+//===========================================================================================================================================================			
 
 //#define Spare	P39
 

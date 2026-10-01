@@ -268,7 +268,7 @@ int Home_Func_No13(int motor_num)
 				pshm->P[P_An_Picker_T_Home_Type] = 0;
 			}
 		}
-		pshm->P[P_Test_HomeComplete + motor_num ] = 0;		// 함수 동작완료 비트 선언 및 초기화.
+		//pshm->P[P_Test_HomeComplete + motor_num ] = 0;		// 함수 동작완료 비트 선언 및 초기화.
 		pshm->P[P_PMAC_Homing_CHK + motor_num] = 1;			// PMAC Script P변수. ( User 모니터링 및 Script 코드활용을 위함 )
 		pshm-> P[P_Home_Check_Arry + motor_num ] = 1;		// Home Seq 완료 변수
 		pshm->P[P_Current_Homming_Status + motor_num] = F_Status_COMPLETE;

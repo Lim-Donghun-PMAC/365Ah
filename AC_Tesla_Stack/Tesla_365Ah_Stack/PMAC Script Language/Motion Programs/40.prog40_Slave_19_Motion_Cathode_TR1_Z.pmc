@@ -12,7 +12,7 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(19)
 	{
 		case 0:		break;
 		// case 1
-		case N_1st_PNP_Belt_To_Align_Motion :					// 음극 1차 PNP 벨트 -> 얼라인 이동
+		case N_1st_PNP_Belt_To_Align_Motion :					// 양극 1차 PNP 벨트 -> 얼라인 이동
 			P_Cathode_1TR_Z_Belt_To_Align = P_Master_Motion_Trigger
 			P_Slave19_Motion_Command = 0;						// Command 초기화
 			linear
@@ -25,7 +25,7 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(19)
 			dwell(0)
 		break;
 		// case 2
-		case N_1st_PNP_Align_To_Belt_Motion :					// 음극 1차 PNP 얼라인 -> 벨트 이동
+		case N_1st_PNP_Align_To_Belt_Motion :					// 양극 1차 PNP 얼라인 -> 벨트 이동
 			P_Cathode_1TR_Z_Align_To_Belt = P_Master_Motion_Trigger
 			P_Slave19_Motion_Command = 0;						// Command 초기화
 			linear
@@ -61,7 +61,7 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(19)
 			dwell(0)
 		break;
 		// case 4
-		case N_1st_PNP_Align_Up_Motion :						// 음극 1차 PNP 얼라인 상승
+		case N_1st_PNP_Align_Up_Motion :						// 양극 1차 PNP 얼라인 상승
 			P_Cathode_1TR_Z_Align_UP = P_Master_Motion_Trigger
 			P_Slave19_Motion_Command = 0;						// Command 초기화
 			dwell(0)
@@ -74,12 +74,12 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(19)
 			dwell(0)
 		break;
 		// case 5
-		case N_1st_PNP_Belt_Down_Motion :						// 음극 1차 PNP 벨트 하강
+		case N_1st_PNP_Belt_Down_Motion :						// 양극 1차 PNP 벨트 하강
 			P_Cathode_1TR_Z_Belt_Down = P_Master_Motion_Trigger
 			P_Slave19_Motion_Command = 0;						// Command 초기화
-			P_Cathode_1st_TR_Belt_Down_Flag == 1;
 			if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )
 			{
+				P_Cathode_1st_TR_Belt_Down_Flag == 1;
 				M_Y_Cathode_1st_Vac_Sol_On	== 1;				// 흡착 ON
 				M_Y_Cathode_1st_Vac_Sol_Off == 0;				// 흡착 OFF
 			}
@@ -92,15 +92,19 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(19)
 			{
 				P_Motion_Cathode_1th_CV_Z_Axis_Pos_Flag == 1;				// 위치 값 저장 Flag On.
 			}
-			// [ 참조: 26.01.21 극판 인터페이스 추가 ]	
-			M_Y_PLC_A_Cathode_Sheet_Start == 1;
-			M_Y_PLC_A_Cathode_Interlock == 0;
+			if( P_PMAC_Current_Mode != F_Current_Manual )//[참조 : 260813 PNP 흡착 텍 측정 모드 추가 ]
+			{
+				// [ 참조: 26.01.21 극판 인터페이스 추가 ]	
+				M_Y_PLC_A_Cathode_Sheet_Start == 1;
+				M_Y_PLC_A_Cathode_Interlock == 0;
+			}
+			
 			P_Cathode_1st_Motion_Complete == 1;
 			P_First_PNP_Z_Belt_Down_Status == F_Status_COMPLETE;
 			dwell(0)
 		break;
 		// case 6
-		case N_1st_PNP_Belt_Up_Motion :							// 음극 1차 PNP 벨트 상승
+		case N_1st_PNP_Belt_Up_Motion :							// 양극 1차 PNP 벨트 상승
 			P_Cathode_1TR_Z_Belt_UP = P_Master_Motion_Trigger
 			P_Slave19_Motion_Command = 0;						// Command 초기화
 			P_PLC12_Cathode_Sheet_Pick_Up_Flag == 1;				// 벨트 픽업 체크 플래그
@@ -126,7 +130,7 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(19)
 			dwell(0)
 		break;
 		// case 12
-		case N_1st_PNP_Align_Blow :								// 음극 1차 PNP 얼라인 블로우
+		case N_1st_PNP_Align_Blow :								// 양극 1차 PNP 얼라인 블로우
 			P_Cathode_1TR_Z_Align_Blow = P_Master_Motion_Trigger
 			P_Slave19_Motion_Command = 0
 			P_Cathode_1st_TR_Align_Down_Flag == 1
@@ -150,7 +154,7 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(19)
 			dwell(0)
 		break;
 		// case 13
-		case N_1st_PNP_Belt_Vac :								// 음극 1차 PNP 벨트 흡착
+		case N_1st_PNP_Belt_Vac :								// 양극 1차 PNP 벨트 흡착
 			P_Cathode_1TR_Z_Belt_Vac = P_Master_Motion_Trigger
 			P_Slave19_Motion_Command = 0
 			P_Tact_Time_Check(N_Cathode_1st_PNP) == 1;						// Tact Time 측정 시작 및 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
@@ -174,7 +178,7 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(19)
 			dwell(0)
 		break;
 		// case 14
-		case N_1st_PNP_Align_Vac :								// 음극 1차 PNP 얼라인 흡착
+		case N_1st_PNP_Align_Vac :								// 양극 1차 PNP 얼라인 흡착
 			P_Slave19_Motion_Command = 0
 			P_Cathode_1st_TR_Align_Pick_Up_Flag == 1
 			// 2026.02.24 DIO 추가

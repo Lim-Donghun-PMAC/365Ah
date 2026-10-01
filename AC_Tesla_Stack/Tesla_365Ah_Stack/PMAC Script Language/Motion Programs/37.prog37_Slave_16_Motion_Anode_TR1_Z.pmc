@@ -83,12 +83,12 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(16)
 		case N_1st_PNP_Belt_Down_Motion :						// 음극 1차 PNP 벨트 하강
 			P_Anode_1TR_Z_Belt_Down = P_Master_Motion_Trigger
 			P_Slave16_Motion_Command = 0;						// Command 초기화
-			P_Anode_1st_TR_Belt_Down_Flag == 1;
 			P_First_PNP_Z_Belt_Down_Status == F_Status_EXECUTE;	// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
 			if( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence )
 			{
-			M_Y_Anode_1st_Vac_Sol_On == 1;						// 흡착 ON
-			M_Y_Anode_1st_Vac_Sol_Off == 0;						// 흡착 OFF 
+				P_Anode_1st_TR_Belt_Down_Flag == 1;
+				M_Y_Anode_1st_Vac_Sol_On == 1;						// 흡착 ON
+				M_Y_Anode_1st_Vac_Sol_Off == 0;						// 흡착 OFF 
 			}
 			linear
 			ta(35)ts(5)tm(0)									//	80ms 리니어 테스트
@@ -100,8 +100,11 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(16)
 				P_Motion_Anode_1th_CV_Z_Axis_Pos_Flag == 1;					// 위치 값 저장 Flag On.
 			}
 			// [ 참조: 26.01.21 극판 인터페이스 추가 ]
-			M_Y_PLC_A_Anode_Sheet_Start == 1;					
-			M_Y_PLC_A_Anode_Interlock == 0;
+			if( P_PMAC_Current_Mode != F_Current_Manual )//[참조 : 260813 PNP 흡착 텍 측정 모드 추가 ]
+			{
+				M_Y_PLC_A_Anode_Sheet_Start == 1;					
+				M_Y_PLC_A_Anode_Interlock == 0;
+			}
 			P_Anode_1st_Motion_Complete == 1
 			P_Anode_Suspend_Supply_Complete(N_Supply_to_Down) == 1;		// Suspend Supply 완료 신호 
 			P_First_PNP_Z_Belt_Down_Status == F_Status_COMPLETE;// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
@@ -184,9 +187,10 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(16)
 			P_Anode_1st_TR_Belt_Pick_Up_Flag == 1;
 			// [ 참조 : 26.04.28 Picker T축 탭방향에 따른 홈방식 변경 ]
 			// 참조 260604 1차 피커 홈 버그로 인한 극판 뒤집힘 수정
-			P_An_Picker_T_Turn_Cnt++;							// 음극 피커 T 회전 카운트 증가
+			//PickerT 단방향위치로 변경으로 홈 오프셋 변경부 주석. [ 참조 : 26.09.11 PickerT 모션 변경에 따른 동작 횟수 감시 삭제 ]
+			//P_An_Picker_T_Turn_Cnt++;							// 음극 피커 T 회전 카운트 증가
 			dwell(5)
-			P_An_Picker_T_Turn_Cnt_Flag == 1;					// B/G PLC12 MNTR Start
+			//P_An_Picker_T_Turn_Cnt_Flag == 1;					// B/G PLC12 MNTR Start
 			dwell(45)
 			P_Anode_Suspend_Supply_Complete(N_Supply_to_Vac) == 1;
 			P_Anode_1st_Motion_Complete == 1

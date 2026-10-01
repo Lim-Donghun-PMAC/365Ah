@@ -32,7 +32,7 @@ global P_IL_Strcat = 0;
 global P_IL_Popup_Motor = 0;
 global P_IL_Motor_Page = 0;
 
-#define N_IL_memset_size	192
+#define N_IL_memset_size	188		// Sys.Udata[21200] ~ Sys.Udata[21247]
 
 #define F_IL_Cdata			84800	//21200 * 4
 #define F_IL_Cdata2			84828

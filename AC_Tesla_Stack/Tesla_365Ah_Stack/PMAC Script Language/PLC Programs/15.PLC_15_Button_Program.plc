@@ -182,6 +182,28 @@ if( ( M_X_BTN_CMD_Auto_Stop == 1 && L_Old_M_X_BTN_CMD_Auto_Stop == 0 ) || ( M_X_
 		P_SM_Anode_Stack_MSA = 44
 	}	
 
+	//[참조 : 260813 PNP 흡착 텍 측정 모드 추가 ]
+	if( P_SM_Anode_1st_PNP_Vac_Chk_Mode != 0 && P_Anode_1st_PNP_Vac_Chk_Mode_Stop_Blocked == 0  )
+	{
+		P_Anode_1st_PNP_Vac_Chk_Mode_Stop_Blocked = 1
+		P_SM_Anode_1st_PNP_Vac_Chk_Mode = 11
+	}	
+	if( P_SM_Cathode_1st_PNP_Vac_Chk_Mode != 0 && P_Cathode_1st_PNP_Vac_Chk_Mode_Stop_Blocked == 0  )
+	{
+		P_Cathode_1st_PNP_Vac_Chk_Mode_Stop_Blocked = 1
+		P_SM_Cathode_1st_PNP_Vac_Chk_Mode = 11
+	}	
+	if( P_SM_Anode_2nd_PNP_Vac_Chk_Mode != 0 && P_Anode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked == 0  )
+	{
+		P_Anode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked = 1
+		P_SM_Anode_2nd_PNP_Vac_Chk_Mode = 9
+	}	
+	if( P_SM_Cathode_2nd_PNP_Vac_Chk_Mode != 0 && P_Cathode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked == 0  )
+	{
+		P_Cathode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked = 1
+		P_SM_Cathode_2nd_PNP_Vac_Chk_Mode = 9
+	}	
+
 	// [ 참조 : 26.04.24 Manual 상태에서 조그 구종 중 Stop 버튼 눌렀을 시 조그 STOP ]
 	//[참조 : 260724 2차 클리닝 위치 이동, 얼라인 탈착 모드 시퀀스 수정 ]
 	if ( P_PMAC_Current_Mode == F_Current_Manual )
@@ -355,9 +377,10 @@ else
 
 //===========================================================================//
 // Manual 상태 시 메모리 타워 실행.
+//[참조 : 260813 PNP 흡착 텍 측정 모드 추가 ]
 if(P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status == F_Status_IDLE)
 {
-	if( P_SM_Anode_Align_MSA == 0 && P_SM_Cathode_Align_MSA == 0 && P_SM_Anode_Stack_MSA == 0 && P_SM_Cathode_Stack_MSA == 0 && P_Single_Run_State_Machine == 0 )
+	if( P_SM_Anode_Align_MSA == 0 && P_SM_Cathode_Align_MSA == 0 && P_SM_Anode_Stack_MSA == 0 && P_SM_Cathode_Stack_MSA == 0 && P_SM_Anode_1st_PNP_Vac_Chk_Mode == 0 && P_SM_Cathode_1st_PNP_Vac_Chk_Mode ==0 && P_SM_Anode_2nd_PNP_Vac_Chk_Mode == 0 && P_SM_Cathode_2nd_PNP_Vac_Chk_Mode == 0 && P_Single_Run_State_Machine == 0 )
 	{
 		if( P_Manual_Memory_Tower_Timer > P_Memory_Tower_Interval )
 		{

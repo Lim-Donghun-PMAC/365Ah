@@ -587,6 +587,7 @@ open subprog BTN_Program(void)
 			jog/N_UNLOADER_T;			// ¾ð·Î´õ T
 		}
 		
+		P_Home_Command(0),50 = 9;				// Command_Stop
 
 	return;
 

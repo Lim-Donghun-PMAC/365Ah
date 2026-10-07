@@ -10,7 +10,8 @@
 //===============================================================================================
 
 // 1. 도어 인터락 PLC 터치에서 애초에 막음
-
+global  P_InterLock_Motor_Num_Test = 0;
+global  P_Loop_Test = 12;
 global	P_Z_Var = 60;
 
 global	P_No1_Recipe_Pos_IL(53);
@@ -33,6 +34,7 @@ local L_Old_Motor_Page;
 local L_Old_Outer_IL_Status;
 local L_old_P;
 local L_old_M;
+local L_Motor_Num;
 local L_High_Pos(2);
 local L_Num(2);
 local L_Use_FR_High_Pos(2);
@@ -47,17 +49,62 @@ local L_Use_FR_High_Pos(2);
    P_OP_Side_An_PNP_Pos = P_Modbus_A_Anode_1st_Pos;
    P_OP_Side_PMAC_Cur_Mode = P_Modbus_A_PMAC_Cur_Mode;
 #endif
+/*=========================================================search===========================
+내부 인터락 [내 유닛에 관련된 부분 인터락]
+//===========================================================================================
+[1차 PNP] 		| N_IL_Robot_CA_1st_PNP		| N_IL_Robot_AN_1st_PNP		|
+[2차 PNP]		| N_IL_Robot_CA_2nd_PNP		| N_IL_Robot_AN_2nd_PNP		|
+[클램프 1]		| N_IL_Robot_CA_Clamp1		| N_IL_Robot_AN_Clamp1		|
+[클램프 2]		| N_IL_Robot_CA_Clamp2		| N_IL_Robot_AN_Clamp2		|
+[메인]			| N_IL_Robot_Main			| 							|
+[파이널 롤]		| N_IL_Robot_Final_Roller	| 							|
+[얼라인]			| N_IL_Robot_CA_Align		| N_IL_Robot_AN_Align		|
+[NG]			| N_IL_Robot_CA_NG_PNP		| N_IL_Robot_AN_NG_PNP		|
+[언로더]			| N_IL_Robot_1st_Unloader	|							|
+[시트]			| N_IL_Robot_Sheet_Paper	|							|
+//===========================================================================================
+외부 인터락 [다른 유닛과 관련된 부분 인터락]
+//===========================================================================================
+[1차 T]			| case N_1st_PnP_CA_T		| case N_1st_PnP_AN_T		| 						|
+[1차 Z]			| case N_1st_PnP_CA_Z		| case N_1st_PnP_AN_Z		| 						|
+[피커 T]			| case N_1st_Picker_CA_T	| case N_1st_Picker_AN_T	| 						|
+[2차 T]			| case N_2nd_PnP_CA_T		| case N_2nd_PnP_AN_T		| 						|
+[2차 Z]			| case N_2nd_PnP_CA_Z		| case N_2nd_PnP_AN_Z		| 						|
+[클램프 Y1]		| case N_Clamp_CA_Y1		| case N_Clamp_AN_Y1		| 						|
+[클램프 Z1]		| case N_Clamp_CA_Z1		| case N_Clamp_AN_Z1		| 						|
+[클램프 Y2]		| case N_Clamp_CA_Y2		| case N_Clamp_AN_Y2		| 						|
+[클램프 Z2]		| case N_Clamp_CA_Z2		| case N_Clamp_AN_Z2		| 						|
+[메인 Z]			| case N_MAIN_Z				| 							| 						|
+[파이널 롤러]	| case N_FINAL_ROLL_X		| case N_FINAL_ROLL_Z		| 						|
+[시트 페이퍼]	| case N_SHEET_PAPER_X		| 							| 						|
+[양극 얼라인]	| case N_Align_CA_X			| case N_Align_CA_Y			| case N_Align_CA_T		|
+[음극 얼라인]	| case N_Align_AN_X			| case N_Align_AN_Y			| case N_Align_AN_T		|
+[양극 NG]		| case N_NG_PnP_CA_T		| case N_NG_PnP_AN_T		| 						|
+[음극 NG]		| case N_NG_PnP_CA_Z		| case N_NG_PnP_AN_Z		| 						|
+[언로더]			| case N_UNLOADER_X			| case N_UNLOADER_Z			| case N_UNLOADER_T		|
+//===========================================================================================
+*/
 
 // 매뉴얼, 리셋팅 구간이 아닐때만 인터락 활성화.
 // P_IL_ON_OFF_Flag = 1 인터락 프로그램 실행, P_IL_ON_OFF_Flag = 0 인터락 프로그램 미실행
 //[참조 : 260730 환경안전검수용 인터락 활성화 버튼 추가]
-if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTING && (P_X_PLC_Setup_Mode_Check == 0 || P_Interlock_On_Off_Flag == 1))      // 매뉴얼 모드일때만 PLC Script 읽기
+if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTING && ( P_X_PLC_Setup_Mode_Check == 0 || P_Interlock_On_Off_Flag == 1 ))      // 매뉴얼 모드일때만 PLC Script 읽기
 {
 	// 0. Motor Page Num 감지 ==================================================================================================================
 	if( P_IL_Motor_Page != L_Old_Motor_Page )					// 모터 페이지가 변경 될 경우.
 	{
 		P_IL_Function_Cnt = 0;									// 함수 카운트 초기화.
 		P_IL_Motor_Home_Chk_RTN = 0;							// 함수 반환값 초기화.
+		// ↓ [ 참조 : 26.10.02 인터락 조건 추가 ]
+		P_IL_Home_Chk_Edge = 0;									// 내부, 외부 모터 홈 확인 변수 Edge	
+		P_Limit_PosData(Hex_IL_Plus) = N_Nan;
+		P_Limit_PosData(Hex_IL_Minus) = N_Nan;
+		P_Collision_Risk_Motor(Hex_IL_Plus) = 0;
+		P_Collision_Risk_Motor(Hex_IL_Minus) = 0;
+		P_Plus_IL_Offset = 0;
+		P_Minus_IL_Offset = 0;
+		P_IL_Robot_Bit = 0;
+		// ↑ 모터 페이지 변경 시 초기화 해주기 위함. (같은 유닛끼리 변경 시 아우터 상태가 변경되지 않을 경우 엉뚱한 리밋값이 들어가며 팝업이 나타나는 현상을 막기 위함)
 		L_Old_Motor_Page = P_IL_Motor_Page;						// Edge 변수.
 		call IL_Robot_Define.Home_Motor_Define(L_Old_Motor_Page,&P_IL_Home_Chk_Motor_Update);		// 내부, 외부 인터락 모터 선언.
 	}
@@ -68,10 +115,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 	}
 	if( P_IL_Home_Chk_Motor_Update == N_IL_Moter_Update )		// 인터락 모터 선언.
 	{
-		if(P_Current_Homming_Status(P_IL_Motor_Page) != F_Status_STARTING)
-		{
+		if( P_Current_Homming_Status(P_IL_Motor_Page) != F_Status_STARTING )							// 홈을 잡는 중일 경우. (개별 홈을 잡을 때 Motor[x].HomeComplete 변수가 꺼지기 때문)
 			call IL_Robot_Define.Home_Motor_Check(P_IL_Motor_Home_Chk_RTN, &P_IL_Motor_Home_Chk_RTN);	// 내부, 외부 관련 모터 HomeComplete 확인.
-		}
 	}
 	else if( P_IL_Home_Chk_Motor_Update == N_IL_Motor_Skip )	// 인터락 모터 HomeComplete 확인 미필요.
 	{
@@ -96,12 +141,14 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 			P_IL_Robot_Bit = 0;									// 로봇 인터락 초기화
 			P_IL_Outer_Status = 0;								// 외부 상태 초기화
 			P_IL_Recipe_Bit = 0;								// Recipe Pos InterLock Init
+			P_IL_Home_Chk_Edge = 0;								// 내부, 외부 모터 홈 확인 변수 Edge	// [ 참조 : 26.10.02 인터락 조건 추가 ]
 			P_IL_Popup_Motor = 0;								// 팝업모터 초기화            
 			P_IL_Home_Chk_Motor_Num(0),20 = 0;
 		}
 		else													// 모터 페이지가 0이 아닐 경우.
 		{
-			if( P_IL_Inside_Home_Chk_Complete == 1 && P_IL_Outside_Home_Chk_Complete == 1 )		// 내부, 외부 모터 홈 확인 변수 ON일 경우.
+			//if( P_IL_Inside_Home_Chk_Complete == 1 && P_IL_Outside_Home_Chk_Complete == 1 )		// 내부, 외부 모터 홈 확인 변수 ON일 경우.
+			if( P_IL_Inside_Home_Chk_Complete == 1 && P_IL_Outside_Home_Chk_Complete == 1 && P_IL_Home_Chk_Edge == 0 )		// 내부, 외부 모터 홈 확인 변수 ON일 경우.	// [ 참조 : 26.10.02 인터락 조건 추가 ]
 			{
 			   // Motor 번호에 따른 로봇 Setting
 			   P_IL_Coord_Robot = 0;							// 로봇 번호 초기화
@@ -109,16 +156,19 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 			   P_IL_Outer_Status = 0;							// 외부 상태 초기화
 			   P_IL_Recipe_Bit = 0;								// Recipe Pos InterLock Init
 			   P_IL_Popup_Motor = 0;							// 팝업모터 초기화            
-
+			   P_IL_Home_Chk_Edge = 1;							// 내부, 외부 모터 홈 확인 변수 Edge	// [ 참조 : 26.10.02 인터락 조건 추가 ]
+			   
 			   P_Robot_Unit_Serch_Flag = 1;						// 서치 플래그 온
 			}
-			else												// 내부, 외부 모터 홈 확인 변수가 하나라도 꺼져 있을 경우.
+			//else												// 내부, 외부 모터 홈 확인 변수가 하나라도 꺼져 있을 경우.
+			else if ( P_IL_Inside_Home_Chk_Complete != 1 || P_IL_Outside_Home_Chk_Complete != 1 )
 			{
 				P_IL_Coord_Robot = 0;							// 로봇 번호 초기화
 				P_IL_Popup_Motor = N_Home_Miss;                 // 홈 Miss 
 				P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;    // 플러스 마이너스 인터락
 				P_IL_Outer_Status = IL_Out_Close;				// 외부 상태 초기화
 				L_Old_Motor_Page = 0;							// Old Page Num 초기화 하여 계속 팝업 띄우기
+				P_IL_Home_Chk_Edge = 0;							// 내부, 외부 모터 홈 확인 변수 Edge	// [ 참조 : 26.10.02 인터락 조건 추가 ]
 				P_Interlock_Popup_On_Flag = 1;                  // 팝업 
 			}
 		}
@@ -175,38 +225,105 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				}
 				else if ( (Sys_Cathode_1st_Sheet_LO_Vision_BYTE & Hex_Cell_Existence) && P_IL_Motor_Page == N_1st_Picker_CA_T )			
 				{//[참조 : 20260716 1차 PNP에 극판 존재 시 피커 T축 인터락 ]
-					P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
-					P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
+					P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;								// 플러스, 마이너스 인터락
+					P_IL_Outer_Status = IL_Out_Close;											// 외부 인터락 닫기
 				}
+				//else
+				//{
+				//	if( P_Motor_Current_Pos(N_1st_PnP_CA_Z) >= P_Cathode_1st_Z_Align_Down + 0.01 )		// 얼라인 하강위치보다 하강일 경우.
+				//	{
+				//	   if( P_IL_Motor_Page == N_1st_PnP_CA_T || P_IL_Motor_Page == N_1st_Picker_CA_T )		// 1차 T, 피커 T  
+				//	      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
+				//	   else if( P_IL_Motor_Page == N_1st_PnP_CA_Z )								// 1차 Z 
+				//	      P_IL_Robot_Bit = Hex_IL_Plus;											// 플러스 인터락
+				//
+				//	   P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
+				//	   P_IL_Popup_Motor = N_1st_PnP_CA_Z;										// 인터락 팝업 모터 추가
+				//	}  
+				//	else if( P_Motor_Current_Pos(N_1st_PnP_CA_Z) >= P_Cathode_1st_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
+				//	{
+				//		if( P_IL_Motor_Page == N_1st_PnP_CA_T )									// 1차 T
+				//	      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
+				//	
+				//		  P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
+				//		  P_IL_Popup_Motor = N_1st_PnP_CA_Z;									// 인터락 팝업 모터 추가
+				//	}
+				//	else if( P_Motor_Current_Pos(N_1st_PnP_CA_T) < P_Axis_Ready_Pos(N_1st_PnP_CA_T) - 10 )   // 1st 벨트쪽
+				//	   P_IL_Outer_Status = N_IL_Belt_Pos;										// 벨트 포스 
+		   		//
+				//	else if( P_Motor_Current_Pos(N_1st_PnP_CA_T) >= P_Recipe_M01_POS(3) - 0.5 && P_Motor_Current_Pos(N_1st_PnP_CA_T) <= P_Recipe_M01_POS(3) + 0.5 )   // 1차 얼라인쪽
+				//	   P_IL_Outer_Status = N_IL_Align_Pos;										// 얼라인 포스
+		   		//
+				//	else																		// 벨트도 아니고 얼라인도 아니면
+				//	   P_IL_Outer_Status = N_IL_Normal_Pos;										// 노말 포스          
+				//}  
+				// [ 참조 : 26.10.02 인터락 조건 추가 ]
 				else
-				{
-					if( P_Motor_Current_Pos(N_1st_PnP_CA_Z) >= P_Cathode_1st_Z_Align_Down )		// 얼라인 하강위치보다 하강일 경우.
-					{
-					   if( P_IL_Motor_Page == N_1st_PnP_CA_T || P_IL_Motor_Page == N_1st_Picker_CA_T )		// 1차 T, 피커 T  
-					      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
-					   else if( P_IL_Motor_Page == N_1st_PnP_CA_Z )								// 1차 Z 
-					      P_IL_Robot_Bit = Hex_IL_Plus;											// 플러스 인터락
-
-					   P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
-					   P_IL_Popup_Motor = N_1st_PnP_CA_Z;										// 인터락 팝업 모터 추가
+				{ 
+					if( P_Motor_Current_Pos(N_1st_PnP_CA_T) < P_Axis_Ready_Pos(N_1st_PnP_CA_T) - 10 )   // 1st 벨트쪽
+					{ // 1차 PNP 벨트 위치.
+						if( P_Motor_Current_Pos(N_1st_PnP_CA_Z) >= P_Cathode_1st_Z_Belt_Down - 0.01 )	// 벨트 하강위치보다 하강일 경우.
+						{ // 1차 PNP 벨트 하강위치 일 경우.
+						   if( P_IL_Motor_Page == N_1st_PnP_CA_T || P_IL_Motor_Page == N_1st_Picker_CA_T )		// 1차 T, 피커 T  
+								P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;					// 플러스, 마이너스 인터락
+						   else if( P_IL_Motor_Page == N_1st_PnP_CA_Z )							// 1차 Z 
+						      P_IL_Robot_Bit = Hex_IL_Plus;										// 플러스 인터락
+						   
+						   P_IL_Outer_Status = N_IL_Belt_Down_Pos;								// 벨트 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+						   P_IL_Popup_Motor = N_1st_PnP_CA_Z;									// 인터락 팝업 모터 추가
+						} 	
+						else if( P_Motor_Current_Pos(N_1st_PnP_CA_Z) >= P_Cathode_1st_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
+						{ // 1차 PNP 대기 위치 상승보다 밑에 있을 경우.
+							if( P_IL_Motor_Page == N_1st_PnP_CA_T )								// 1차 T
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+							  
+							  P_IL_Outer_Status = N_IL_Belt_Down_Pos;							// 벨트 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+							  P_IL_Popup_Motor = N_1st_PnP_CA_Z;								// 인터락 팝업 모터 추가
+						}									
+						else
+						{		
+							P_IL_Outer_Status = N_IL_Belt_Pos;									// 벨트 포스 
+						}
 					}
-					else if( P_Motor_Current_Pos(N_1st_PnP_CA_Z) >= P_Cathode_1st_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
-					{
-						if( P_IL_Motor_Page == N_1st_PnP_CA_T )									// 1차 T
-					      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
-
-						  P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
-						  P_IL_Popup_Motor = N_1st_PnP_CA_Z;									// 인터락 팝업 모터 추가
-					}
-					else if( P_Motor_Current_Pos(N_1st_PnP_CA_T) < P_Axis_Ready_Pos(N_1st_PnP_CA_T) - 10 )   // 1st 벨트쪽
-					   P_IL_Outer_Status = N_IL_Belt_Pos;										// 벨트 포스 
-		   
 					else if( P_Motor_Current_Pos(N_1st_PnP_CA_T) >= P_Recipe_M01_POS(3) - 0.5 && P_Motor_Current_Pos(N_1st_PnP_CA_T) <= P_Recipe_M01_POS(3) + 0.5 )   // 1차 얼라인쪽
-					   P_IL_Outer_Status = N_IL_Align_Pos;										// 얼라인 포스
-		   
+					{ // 1차 PNP 얼라인 위치.
+						if( P_Motor_Current_Pos(N_1st_PnP_CA_Z) >= P_Cathode_1st_Z_Align_Down - 0.01 )		// 얼라인 하강위치보다 하강일 경우.
+						{
+						   if( P_IL_Motor_Page == N_1st_PnP_CA_T || P_IL_Motor_Page == N_1st_Picker_CA_T )	// 1차 T, 피커 T  
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+						   else if( P_IL_Motor_Page == N_1st_PnP_CA_Z )							// 1차 Z 
+						      P_IL_Robot_Bit = Hex_IL_Plus;										// 플러스 인터락
+
+						   P_IL_Outer_Status = N_IL_Align_Down_Pos;								// 얼라인 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+						   P_IL_Popup_Motor = N_1st_PnP_CA_Z;									// 인터락 팝업 모터 추가
+						}	
+						else if( P_Motor_Current_Pos(N_1st_PnP_CA_Z) >= P_Cathode_1st_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
+						{
+							if( P_IL_Motor_Page == N_1st_PnP_CA_T )								// 1차 T
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+							 
+							  P_IL_Outer_Status = N_IL_Align_Down_Pos;							// 얼라인 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+							  P_IL_Popup_Motor = N_1st_PnP_CA_Z;								// 인터락 팝업 모터 추가
+						}
+						else
+						{
+							 P_IL_Outer_Status = N_IL_Align_Pos;								// 얼라인 포스
+						}
+					} 					
 					else																		// 벨트도 아니고 얼라인도 아니면
-					   P_IL_Outer_Status = N_IL_Normal_Pos;										// 노말 포스          
-				}  
+					{	
+						if( P_Motor_Current_Pos(N_1st_PnP_CA_Z) >= P_Cathode_1st_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
+						{
+							if( P_IL_Motor_Page == N_1st_PnP_CA_T )								// 1차 T
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+							 
+							  P_IL_Outer_Status = IL_Out_Close;									// 외부 인터락 닫기
+							  P_IL_Popup_Motor = N_1st_PnP_CA_Z;								// 인터락 팝업 모터 추가
+						}
+						else
+							P_IL_Outer_Status = N_IL_Normal_Pos;								// 노말 포스 
+					}
+				}
 			break;
 		
 			case N_IL_Robot_AN_1st_PNP:      // 음극 1차 PnP 로봇 2,18,20
@@ -223,122 +340,323 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 						P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
 						P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
 				}
+				//else
+				//{
+				//	if( P_Motor_Current_Pos(N_1st_PnP_AN_Z) >= P_Anode_1st_Z_Align_Down + 0.01 )// 얼라인 하강위치보다 하강한다면
+				//	{
+				//	   if( P_IL_Motor_Page == N_1st_PnP_AN_T || P_IL_Motor_Page == N_1st_Picker_AN_T )      // 1차 T, 피커 T  
+				//	      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
+				//	   else if( P_IL_Motor_Page == N_1st_PnP_AN_Z )								// 1차 Z 
+				//	      P_IL_Robot_Bit = Hex_IL_Plus;											// 플러스 인터락
+				//
+				//	   P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
+				//	   P_IL_Popup_Motor = N_1st_PnP_AN_Z;										// 인터락 팝업 모터 추가
+				//	}
+				//	else if( P_Motor_Current_Pos(N_1st_PnP_AN_Z) >= P_Anode_1st_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강한다면
+				//	{
+				//		if( P_IL_Motor_Page == N_1st_PnP_AN_T )	// 1차 T
+				//	      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
+				//	
+				//		 P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
+				//		 P_IL_Popup_Motor = N_1st_PnP_AN_Z;										// 인터락 팝업 모터 추가
+				//	}
+				//	else if( P_Motor_Current_Pos(N_1st_PnP_AN_T) < P_Axis_Ready_Pos(N_1st_PnP_AN_T) - 10 )   // 1st 벨트쪽
+				//	   P_IL_Outer_Status = N_IL_Belt_Pos;										// 벨트 포스 
+				//
+				//	else if( P_Motor_Current_Pos(N_1st_PnP_AN_T) >= P_Recipe_M02_POS(3) - 0.5 && P_Motor_Current_Pos(N_1st_PnP_AN_T) <= P_Recipe_M02_POS(3) + 0.5 )   // 1차 얼라인쪽
+				//	   P_IL_Outer_Status = N_IL_Align_Pos;										// 얼라인 포스
+				//
+				//	else																		// 벨트도 아니고 얼라인도 아니면
+				//	   P_IL_Outer_Status = N_IL_Normal_Pos;										// 노말 포스                        
+				//}
+				// [ 참조 : 26.10.02 인터락 조건 추가 ]
 				else
-				{
-					if( P_Motor_Current_Pos(N_1st_PnP_AN_Z) >= P_Anode_1st_Z_Align_Down )		// 얼라인 하강위치보다 하강한다면
-					{
-					   if( P_IL_Motor_Page == N_1st_PnP_AN_T || P_IL_Motor_Page == N_1st_Picker_AN_T )      // 1차 T, 피커 T  
-					      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
-					   else if( P_IL_Motor_Page == N_1st_PnP_AN_Z )								// 1차 Z 
-					      P_IL_Robot_Bit = Hex_IL_Plus;											// 플러스 인터락
-
-					   P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
-					   P_IL_Popup_Motor = N_1st_PnP_AN_Z;										// 인터락 팝업 모터 추가
+				{ 
+					if( P_Motor_Current_Pos(N_1st_PnP_AN_T) < P_Axis_Ready_Pos(N_1st_PnP_AN_T) - 10 )   // 1st 벨트쪽
+					{ // 1차 PNP 벨트 위치.
+						if( P_Motor_Current_Pos(N_1st_PnP_AN_Z) >= P_Anode_1st_Z_Belt_Down - 0.01 )		// 벨트 하강위치보다 하강일 경우.
+						{ // 1차 PNP 벨트 하강위치 일 경우.
+						   if( P_IL_Motor_Page == N_1st_PnP_AN_T || P_IL_Motor_Page == N_1st_Picker_AN_T )		// 1차 T, 피커 T  
+								P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;					// 플러스, 마이너스 인터락
+						   else if( P_IL_Motor_Page == N_1st_PnP_AN_Z )							// 1차 Z 
+						      P_IL_Robot_Bit = Hex_IL_Plus;										// 플러스 인터락
+						   
+						   P_IL_Outer_Status = N_IL_Belt_Down_Pos;								// 벨트 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+						   P_IL_Popup_Motor = N_1st_PnP_AN_Z;									// 인터락 팝업 모터 추가
+						} 	
+						else if( P_Motor_Current_Pos(N_1st_PnP_AN_Z) >= P_Anode_1st_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
+						{ // 1차 PNP 대기 위치 상승보다 밑에 있을 경우.
+							if( P_IL_Motor_Page == N_1st_PnP_AN_T )								// 1차 T
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+							  
+							  P_IL_Outer_Status = N_IL_Belt_Down_Pos;							// 벨트 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+							  P_IL_Popup_Motor = N_1st_PnP_AN_Z;								// 인터락 팝업 모터 추가
+						}									
+						else
+						{		
+							P_IL_Outer_Status = N_IL_Belt_Pos;									// 벨트 포스 
+						}
 					}
-					else if( P_Motor_Current_Pos(N_1st_PnP_AN_Z) >= P_Anode_1st_Z_Ready_Up + 0.5 )			// 대기 위치 상승보다 하강한다면
-					{
-						if( P_IL_Motor_Page == N_1st_PnP_AN_T )	// 1차 T
-					      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
-
-						 P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
-						 P_IL_Popup_Motor = N_1st_PnP_AN_Z;										// 인터락 팝업 모터 추가
-					}
-					else if( P_Motor_Current_Pos(N_1st_PnP_AN_T) < P_Axis_Ready_Pos(N_1st_PnP_AN_T) - 10 )   // 1st 벨트쪽
-					   P_IL_Outer_Status = N_IL_Belt_Pos;										// 벨트 포스 
-
 					else if( P_Motor_Current_Pos(N_1st_PnP_AN_T) >= P_Recipe_M02_POS(3) - 0.5 && P_Motor_Current_Pos(N_1st_PnP_AN_T) <= P_Recipe_M02_POS(3) + 0.5 )   // 1차 얼라인쪽
-					   P_IL_Outer_Status = N_IL_Align_Pos;										// 얼라인 포스
+					{ // 1차 PNP 얼라인 위치.
+						if( P_Motor_Current_Pos(N_1st_PnP_AN_Z) >= P_Anode_1st_Z_Align_Down - 0.01 )	// 얼라인 하강위치보다 하강일 경우.
+						{
+						   if( P_IL_Motor_Page == N_1st_PnP_AN_T || P_IL_Motor_Page == N_1st_Picker_AN_T )	// 1차 T, 피커 T  
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+						   else if( P_IL_Motor_Page == N_1st_PnP_AN_Z )							// 1차 Z 
+						      P_IL_Robot_Bit = Hex_IL_Plus;										// 플러스 인터락
 
+						   P_IL_Outer_Status = N_IL_Align_Down_Pos;								// 얼라인 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+						   P_IL_Popup_Motor = N_1st_PnP_AN_Z;									// 인터락 팝업 모터 추가
+						}	
+						else if( P_Motor_Current_Pos(N_1st_PnP_AN_Z) >= P_Anode_1st_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
+						{
+							if( P_IL_Motor_Page == N_1st_PnP_AN_T )								// 1차 T
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+							 
+							  P_IL_Outer_Status = N_IL_Align_Down_Pos;							// 얼라인 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+							  P_IL_Popup_Motor = N_1st_PnP_AN_Z;								// 인터락 팝업 모터 추가
+						}
+						else
+						{
+							 P_IL_Outer_Status = N_IL_Align_Pos;								// 얼라인 포스
+						}
+					} 					
 					else																		// 벨트도 아니고 얼라인도 아니면
-					   P_IL_Outer_Status = N_IL_Normal_Pos;										// 노말 포스                        
+					{	
+						if( P_Motor_Current_Pos(N_1st_PnP_AN_Z) >= P_Anode_1st_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
+						{
+							if( P_IL_Motor_Page == N_1st_PnP_AN_T )								// 1차 T
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+							 
+							  P_IL_Outer_Status = IL_Out_Close;									// 외부 인터락 닫기
+							  P_IL_Popup_Motor = N_1st_PnP_AN_Z;								// 인터락 팝업 모터 추가
+						}
+						else
+							P_IL_Outer_Status = N_IL_Normal_Pos;								// 노말 포스 
+					}
 				}
 			break;
 		
 			case N_IL_Robot_CA_2nd_PNP:      // 양극 2차 pnp 로봇 3,21
 				If ( M_X_PLC_Cathode_ReelCut_Door_Interlock == 0 || M_X_PLC_Cathode_Small_Door_Close_Signal == 0)		// 릴컷 도어 || 작은 문이 열려 있을 경우. [ 0 : Open, 1 : Close ]
 				{
-					if( P_IL_Motor_Page == N_2nd_PnP_CA_T  || P_IL_Motor_Page == N_2nd_PnP_CA_Z  )			// 1차 T, 피커 T 
+					if( P_IL_Motor_Page == N_2nd_PnP_CA_T  || P_IL_Motor_Page == N_2nd_PnP_CA_Z  )	// 1차 T, 피커 T 
 					{
 						P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
 						P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
 					}
 				}
+				//else
+				//{
+				//	if( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) >= P_Cathode_2nd_Z_Align_Down + 0.01 )	// 얼라인 하강위치보다 하강한다면
+				//	{
+				//	   if( P_IL_Motor_Page == N_2nd_PnP_CA_T )									// 2차 T  
+				//	      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
+				//	   else if( P_IL_Motor_Page == N_2nd_PnP_CA_Z )								// 2차 Z 
+				//	      P_IL_Robot_Bit = Hex_IL_Plus;										    // 플러스 인터락
+				//
+				//	   P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
+				//	   P_IL_Popup_Motor = N_2nd_PnP_CA_Z;										// 인터락 팝업 모터 추가
+				//	}   
+				//	else if( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) >= P_Cathode_2nd_Z_Ready_Up + 0.5 )// 대기 위치 상승보다 하강한다면
+				//	{
+				//		if( P_IL_Motor_Page == N_2nd_PnP_CA_T )	// 2차 T
+				//	      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;			                // 플러스, 마이너스 인터락
+				//	
+				//	   P_IL_Outer_Status = IL_Out_Close;								        // 외부 인터락 닫기
+				//	   P_IL_Popup_Motor = N_2nd_PnP_CA_Z;										// 인터락 팝업 모터 추가
+				//	}
+				//	else if( P_Motor_Current_Pos(N_2nd_PnP_CA_T) >= P_Recipe_M03_POS(2) - 35 )	// 55도 이상에 있다면 Stack Pos
+				//	   P_IL_Outer_Status = N_IL_Stack_Pos;
+				//	   
+				//	else if( P_Motor_Current_Pos(N_2nd_PnP_CA_T) <= P_Recipe_M03_POS(1) + 15 )	// 10도 이하에 있다면 Normal Pos      
+				//	   P_IL_Outer_Status = N_IL_Normal_Pos;                                                         
+				//	                                             
+				//	else																		// 그외 위치라면
+				//	
+				//	   P_IL_Outer_Status = N_IL_Upper_Pos;                                                                  
+				//}
+				// [ 참조 : 26.10.02 인터락 조건 추가 ]
 				else
-				{
-					if(   P_Motor_Current_Pos(N_2nd_PnP_CA_Z) >= P_Cathode_2nd_Z_Align_Down )	// 얼라인 하강위치보다 하강한다면
-					{
-					   if( P_IL_Motor_Page == N_2nd_PnP_CA_T )									// 2차 T  
-					      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
-					   else if( P_IL_Motor_Page == N_2nd_PnP_CA_Z )								// 2차 Z 
-					      P_IL_Robot_Bit = Hex_IL_Plus;										    // 플러스 인터락
-
-					   P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
-					   P_IL_Popup_Motor = N_2nd_PnP_CA_Z;										// 인터락 팝업 모터 추가
-					}   
-					else if( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) >= P_Cathode_2nd_Z_Ready_Up + 0.5 )		// 대기 위치 상승보다 하강한다면
-					{
-						if( P_IL_Motor_Page == N_2nd_PnP_CA_T )	// 2차 T
-					      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;			                // 플러스, 마이너스 인터락
-
-					   P_IL_Outer_Status = IL_Out_Close;								        // 외부 인터락 닫기
-					   P_IL_Popup_Motor = N_2nd_PnP_CA_Z;										// 인터락 팝업 모터 추가
+				{ 
+					if( P_Motor_Current_Pos(N_2nd_PnP_CA_T) <= P_Recipe_M03_POS(1) + 15 )		// 2차 PNP가 대기위치 + 15도 이하일 경우.
+					{ // 2차 PNP 얼라인 위치.
+						if( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) >= P_Cathode_2nd_Z_Align_Down - 0.01 )		// 얼라인 하강위치보다 하강일 경우.
+						{ // 2차 PNP 얼라인 하강위치 일 경우.
+						   if( P_IL_Motor_Page == N_2nd_PnP_CA_T )								// 2차 T  
+								P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;					// 플러스, 마이너스 인터락
+						   else if( P_IL_Motor_Page == N_2nd_PnP_CA_Z )							// 2차 Z 
+						      P_IL_Robot_Bit = Hex_IL_Plus;										// 플러스 인터락
+						   
+						   P_IL_Outer_Status = N_IL_Align_Down_Pos;								// 얼라인 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+						   P_IL_Popup_Motor = N_2nd_PnP_CA_Z;									// 인터락 팝업 모터 추가
+						} 	
+						else if( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) >= P_Cathode_2nd_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
+						{ // 2차 PNP 대기 위치 상승보다 밑에 있을 경우.
+							if( P_IL_Motor_Page == N_2nd_PnP_CA_T )								// 2차 T
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+							  
+							  P_IL_Outer_Status = N_IL_Align_Down_Pos;							// 얼라인 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함) 
+							  P_IL_Popup_Motor = N_2nd_PnP_CA_Z;								// 인터락 팝업 모터 추가
+						}									
+						else
+						{		
+							P_IL_Outer_Status = N_IL_Normal_Pos;								// 노말 포스 
+						}
 					}
-					else if( P_Motor_Current_Pos(N_2nd_PnP_CA_T) >= P_Recipe_M03_POS(2) - 35 )	// 55도 이상에 있다면 Stack Pos
-					   P_IL_Outer_Status = N_IL_Stack_Pos;
-					   
-					else if( P_Motor_Current_Pos(N_2nd_PnP_CA_T) <= P_Recipe_M03_POS(1) + 15 )	// 10도 이하에 있다면 Normal Pos      
-					   P_IL_Outer_Status = N_IL_Normal_Pos;                                                         
-					                                             
-					else																		// 그외 위치라면
-					
-					   P_IL_Outer_Status = N_IL_Upper_Pos;                                                                  
+					else if( P_Motor_Current_Pos(N_2nd_PnP_CA_T) >= P_Recipe_M03_POS(2) - 35 )  // 2차 PNP가 스택 위치에서 -35도 보다 들어가 있을 경우.
+					{ // 2차 PNP 스택 위치.
+						if( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) >= P_Cathode_2nd_Z_Stack_Down - 0.01 )		// 스택 하강위치보다 하강일 경우.
+						{
+						   if( P_IL_Motor_Page == N_2nd_PnP_CA_T )								// 2차 T 
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+						   else if( P_IL_Motor_Page == N_2nd_PnP_CA_Z )							// 2차 Z 
+						      P_IL_Robot_Bit = Hex_IL_Plus;										// 플러스 인터락
+
+						   P_IL_Outer_Status = N_IL_Stack_Down_Pos;								// 스택 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+						   P_IL_Popup_Motor = N_2nd_PnP_CA_Z;									// 인터락 팝업 모터 추가
+						}	
+						else if( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) >= P_Cathode_2nd_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
+						{
+							if( P_IL_Motor_Page == N_2nd_PnP_CA_T )								// 1차 T
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+							 
+							P_IL_Outer_Status = N_IL_Stack_Down_Pos;							// 스택 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+							P_IL_Popup_Motor = N_2nd_PnP_CA_Z;									// 인터락 팝업 모터 추가
+						}
+						else
+						{
+							 P_IL_Outer_Status = N_IL_Stack_Pos;								// 스택 포스
+						}
+					} 					
+					else																		// 얼라인도 아니고 스택도 아니면
+					{	
+						if( P_Motor_Current_Pos(N_2nd_PnP_CA_Z) >= P_Cathode_2nd_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
+						{
+							if( P_IL_Motor_Page == N_2nd_PnP_CA_T )								// 2차 T
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+							 
+							  P_IL_Outer_Status = IL_Out_Close;									// 외부 인터락 닫기
+							  P_IL_Popup_Motor = N_2nd_PnP_CA_Z;								// 인터락 팝업 모터 추가
+						}
+						else
+							P_IL_Outer_Status = N_IL_Upper_Pos;									// 상승 포스 
+					}
 				}
 			break;
 		
 			case N_IL_Robot_AN_2nd_PNP:      // 음극 2차 PnP 로봇 4,22
 				If ( M_X_PLC_Anode_ReelCut_Door_Interlock == 0 || M_X_PLC_Anode_Small_Door_Close_Signal == 0)	// 음극 2차 PnP 로봇 4,22 
 				{	
-					if( P_IL_Motor_Page == N_2nd_PnP_AN_T || P_IL_Motor_Page == N_2nd_PnP_AN_Z  )		// 1차 T, 피커 T 
+					if( P_IL_Motor_Page == N_2nd_PnP_AN_T || P_IL_Motor_Page == N_2nd_PnP_AN_Z  )// 1차 T, 피커 T 
 					{
 						P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
 						P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
 					}
 				}
+				//else
+				//{
+				//	if( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Align_Down + 0.01 )// 얼라인 하강위치보다 하강한다면
+				//	{
+				//	   if( P_IL_Motor_Page == N_2nd_PnP_AN_T )									// 2차 T  
+				//	      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
+				//	   else if( P_IL_Motor_Page == N_2nd_PnP_AN_Z )								// 2차 Z 
+				//	      P_IL_Robot_Bit = Hex_IL_Plus;											// 플러스 인터락
+				//
+				//	   P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
+				//	   P_IL_Popup_Motor = N_2nd_PnP_AN_Z;										// 인터락 팝업 모터 추가
+				//	}
+				//	else if( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강한다면
+				//	{
+				//		if( P_IL_Motor_Page == N_2nd_PnP_AN_T )	// 2차 T
+				//	      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
+				//	
+				//	   P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
+				//	   P_IL_Popup_Motor = N_2nd_PnP_AN_Z;										// 인터락 팝업 모터 추가
+				//	}
+				//	else if( P_Motor_Current_Pos(N_2nd_PnP_AN_T) >= P_Recipe_M04_POS(2) - 35 )	// 55도 이상에 있다면 Stack Pos
+				//	   P_IL_Outer_Status = N_IL_Stack_Pos;
+				//	
+				//	else if( P_Motor_Current_Pos(N_2nd_PnP_AN_T) <= P_Recipe_M04_POS(1) + 15 )	// 10도 이하에 있다면 Normal Pos      
+				//	   P_IL_Outer_Status = N_IL_Normal_Pos;                                                         
+		   		//
+				//	else																		// 그 외 위치라면
+				//	   P_IL_Outer_Status = N_IL_Upper_Pos;                                                         
+				//}
+				// [ 참조 : 26.10.02 인터락 조건 추가 ]
 				else
-				{
-					if( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Align_Down )		// 얼라인 하강위치보다 하강한다면
-					{
-					   if( P_IL_Motor_Page == N_2nd_PnP_AN_T )									// 2차 T  
-					      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
-					   else if( P_IL_Motor_Page == N_2nd_PnP_AN_Z )								// 2차 Z 
-					      P_IL_Robot_Bit = Hex_IL_Plus;											// 플러스 인터락
-
-					   P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
-					   P_IL_Popup_Motor = N_2nd_PnP_AN_Z;										// 인터락 팝업 모터 추가
+				{ 
+					if( P_Motor_Current_Pos(N_2nd_PnP_AN_T) <= P_Recipe_M04_POS(1) + 15 )		// 2차 PNP가 대기위치 + 15도 이하일 경우.
+					{ // 2차 PNP 얼라인 위치.
+						if( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Align_Down - 0.01 )		// 얼라인 하강위치보다 하강일 경우.
+						{ // 2차 PNP 얼라인 하강위치 일 경우.
+						   if( P_IL_Motor_Page == N_2nd_PnP_AN_T )								// 2차 T  
+								P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;					// 플러스, 마이너스 인터락
+						   else if( P_IL_Motor_Page == N_2nd_PnP_AN_Z )							// 2차 Z 
+						      P_IL_Robot_Bit = Hex_IL_Plus;										// 플러스 인터락
+						   
+						   P_IL_Outer_Status = N_IL_Align_Down_Pos;								// 얼라인 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+						   P_IL_Popup_Motor = N_2nd_PnP_AN_Z;									// 인터락 팝업 모터 추가
+						} 	
+						else if( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
+						{ // 2차 PNP 대기 위치 상승보다 밑에 있을 경우.
+							if( P_IL_Motor_Page == N_2nd_PnP_AN_T )								// 2차 T
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+							  
+							  P_IL_Outer_Status = N_IL_Align_Down_Pos;							// 얼라인 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함) 
+							  P_IL_Popup_Motor = N_2nd_PnP_AN_Z;								// 인터락 팝업 모터 추가
+						}									
+						else
+						{		
+							P_IL_Outer_Status = N_IL_Normal_Pos;								// 노말 포스 
+						}
 					}
-					else if( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Ready_Up + 0.5 )				// 대기 위치 상승보다 하강한다면
-					{
-						if( P_IL_Motor_Page == N_2nd_PnP_AN_T )	// 2차 T
-					      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
+					else if( P_Motor_Current_Pos(N_2nd_PnP_AN_T) >= P_Recipe_M04_POS(2) - 35 )  // 2차 PNP가 스택 위치에서 -35도 보다 들어가 있을 경우.
+					{ // 2차 PNP 스택 위치.
+						if( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Stack_Down - 0.01 )		// 스택 하강위치보다 하강일 경우.
+						{
+						   if( P_IL_Motor_Page == N_2nd_PnP_AN_T )								// 2차 T 
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+						   else if( P_IL_Motor_Page == N_2nd_PnP_AN_Z )							// 2차 Z 
+						      P_IL_Robot_Bit = Hex_IL_Plus;										// 플러스 인터락
 
-					   P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
-					   P_IL_Popup_Motor = N_2nd_PnP_AN_Z;										// 인터락 팝업 모터 추가
+						   P_IL_Outer_Status = N_IL_Stack_Down_Pos;								// 스택 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+						   P_IL_Popup_Motor = N_2nd_PnP_AN_Z;									// 인터락 팝업 모터 추가
+						}	
+						else if( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
+						{
+							if( P_IL_Motor_Page == N_2nd_PnP_AN_T )								// 1차 T
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+							 
+							P_IL_Outer_Status = N_IL_Stack_Down_Pos;							// 스택 하강 위치 (T축은 움직이지 못하더라도 Z축은 레시피 이동을 하기 위함)
+							P_IL_Popup_Motor = N_2nd_PnP_AN_Z;									// 인터락 팝업 모터 추가
+						}
+						else
+						{
+							 P_IL_Outer_Status = N_IL_Stack_Pos;								// 스택 포스
+						}
+					} 					
+					else																		// 얼라인도 아니고 스택도 아니면
+					{	
+						if( P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Ready_Up + 0.5 )	// 대기 위치 상승보다 하강일 경우.
+						{
+							if( P_IL_Motor_Page == N_2nd_PnP_AN_T )								// 2차 T
+						      P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스, 마이너스 인터락
+							 
+							  P_IL_Outer_Status = IL_Out_Close;									// 외부 인터락 닫기
+							  P_IL_Popup_Motor = N_2nd_PnP_AN_Z;								// 인터락 팝업 모터 추가
+						}
+						else
+							P_IL_Outer_Status = N_IL_Upper_Pos;									// 상승 포스 
 					}
-					else if( P_Motor_Current_Pos(N_2nd_PnP_AN_T) >= P_Recipe_M04_POS(2) - 35 )	// 55도 이상에 있다면 Stack Pos
-					   P_IL_Outer_Status = N_IL_Stack_Pos;
-					
-					else if( P_Motor_Current_Pos(N_2nd_PnP_AN_T) <= P_Recipe_M04_POS(1) + 15 )	// 10도 이하에 있다면 Normal Pos      
-					   P_IL_Outer_Status = N_IL_Normal_Pos;                                                         
-		   
-					else																		// 그 외 위치라면
-					   P_IL_Outer_Status = N_IL_Upper_Pos;                                                         
 				}
 			break;
 		
 			case N_IL_Robot_CA_Clamp1:      // 양극 클램프 1 로봇 5,27
-			   if( P_Motor_Current_Pos(N_Clamp_CA_Z1) <= P_Motor_Current_Pos(N_MAIN_Z)- 0.5 )      // 스택테이블과 동일한 위치 또는 낮게 있으면
+			   if( P_Motor_Current_Pos(N_Clamp_CA_Z1) <= P_Motor_Current_Pos(N_MAIN_Z) - 0.5 )	// 스텍테이블 보다 클램프 Z축이 낮다면
 			   {
-			      if( P_Motor_Current_Pos(N_Clamp_CA_Y1) >= P_Axis_Ready_Pos(N_Clamp_CA_Y1) +1 )   // 대기위치를 벗어나게 된다면 
+			      if( P_Motor_Current_Pos(N_Clamp_CA_Y1) >= P_Axis_Ready_Pos(N_Clamp_CA_Y1) +1 )   // 클램프 Y축이 대기위치를 벗어나게 된다면 
 			      {
 			         if( P_IL_Motor_Page == N_Clamp_CA_Z1 )										// 양극 클램프 Z1축  
 			            P_IL_Robot_Bit = Hex_IL_Minus;											// 마이너스(하강) 인터락
@@ -356,9 +674,9 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 			break;
 		
 			case N_IL_Robot_AN_Clamp1:      // 음극 클램프 1  로봇 6,28
-			   if( P_Motor_Current_Pos(N_Clamp_AN_Z1) <= P_Motor_Current_Pos(N_MAIN_Z) - 0.5 )	// 스택테이블과 동일한 위치 또는 낮게 있으면
+			   if( P_Motor_Current_Pos(N_Clamp_AN_Z1) <= P_Motor_Current_Pos(N_MAIN_Z) - 0.5 )	// 스텍테이블 보다 클램프 Z축이 낮다면
 			   {
-			      if(   P_Motor_Current_Pos(N_Clamp_AN_Y1) >= P_Axis_Ready_Pos(N_Clamp_AN_Y1) +1 )   // 대기위치를 벗어나게 된다면 
+			      if(   P_Motor_Current_Pos(N_Clamp_AN_Y1) >= P_Axis_Ready_Pos(N_Clamp_AN_Y1) +1 )   // 클램프 Y축이 대기위치를 벗어나게 된다면
 			      {
 			         if( P_IL_Motor_Page == N_Clamp_AN_Z1 )										// 음극 클램프 Z1축  
 			            P_IL_Robot_Bit = Hex_IL_Minus;											// 마이너스(하강) 인터락
@@ -376,9 +694,9 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 			break;
 		
 			case N_IL_Robot_CA_Clamp2:      // 양극 클램프 2 로봇 7,25
-			   if( P_Motor_Current_Pos(N_Clamp_CA_Z2) <= P_Motor_Current_Pos(N_MAIN_Z) - 0.5 )	// 스택테이블과 동일한 위치 또는 낮게 있으면
+			   if( P_Motor_Current_Pos(N_Clamp_CA_Z2) <= P_Motor_Current_Pos(N_MAIN_Z) - 0.5 )	// 스텍테이블 보다 클램프 Z축이 낮다면
 			   {
-			      if(   P_Motor_Current_Pos(N_Clamp_CA_Y2) >= P_Axis_Ready_Pos(N_Clamp_CA_Y2) +1 )   // 대기위치를 벗어나게 된다면 
+			      if(   P_Motor_Current_Pos(N_Clamp_CA_Y2) >= P_Axis_Ready_Pos(N_Clamp_CA_Y2) +1 )   // 클램프 Y축이 대기위치를 벗어나게 된다면
 			      {
 			         if( P_IL_Motor_Page == N_Clamp_CA_Z2 )										// 양극 클램프 Z2축  
 			            P_IL_Robot_Bit = Hex_IL_Minus;											// 마이너스(하강) 인터락
@@ -396,9 +714,9 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 			break;
 		
 			case N_IL_Robot_AN_Clamp2:      // 음극 클램프 2 로봇 8,26
-			   if( P_Motor_Current_Pos(N_Clamp_AN_Z2) <= P_Motor_Current_Pos(N_MAIN_Z) - 0.5 )	// 스택테이블과 동일한 위치 또는 낮게 있으면
+			   if( P_Motor_Current_Pos(N_Clamp_AN_Z2) <= P_Motor_Current_Pos(N_MAIN_Z) - 0.5 )	// 스텍테이블 보다 클램프 Z축이 낮다면
 			   {
-			      if(   P_Motor_Current_Pos(N_Clamp_AN_Y2) >= P_Axis_Ready_Pos(N_Clamp_AN_Y2) +1 )   // 대기위치를 벗어나게 된다면 
+			      if(   P_Motor_Current_Pos(N_Clamp_AN_Y2) >= P_Axis_Ready_Pos(N_Clamp_AN_Y2) +1 )   // 클램프 Y축이 대기위치를 벗어나게 된다면
 			      {
 			         if( P_IL_Motor_Page == N_Clamp_AN_Z2 )										// 음극 클램프 Z2축  
 			            P_IL_Robot_Bit = Hex_IL_Minus;											// 마이너스(하강) 인터락
@@ -456,7 +774,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 			   }
 
 			   // 메인 Z 인터락 시작
-			   if( P_IL_Clamp_Pos >= P_Axis_Ready_Pos(P_IL_Clamp_Y) + 1 )      // 클램프 Y가 대기위치 보다 크다면, 스택 테이블 진입이라면
+			   if( P_IL_Clamp_Pos >= P_Axis_Ready_Pos(P_IL_Clamp_Y) + 1 )      // 4개의 클램프 Y축 중 하나라도 대기위치 보다 크다면, 스택 테이블 진입이라면
 			   {
 			      switch( P_IL_Clamp_Y )				// Z축 모터 넘버 정의 
 			      {
@@ -466,7 +784,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 			         case N_Clamp_AN_Y2:   P_IL_Clamp_Z = N_Clamp_AN_Z2   break;
 			      }
 
-			      if( P_Motor_Current_Pos(N_MAIN_Z) >= P_Motor_Current_Pos(P_IL_Clamp_Z) - 0.5 )      // 메인 Z축이 양극 클램프 Z1보다 높아 질때
+			      if( P_Motor_Current_Pos(N_MAIN_Z) >= P_Motor_Current_Pos(P_IL_Clamp_Z) - 0.5 )	// 메인 Z축이 클램프 Z축 보다 높아 질때
 			      {
 			         P_IL_Robot_Bit = Hex_IL_Plus;					// Z축 + 상승 인터락
 			         P_IL_Outer_Status = IL_Out_Close;				// 외부 인터락 닫기
@@ -488,7 +806,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			   if( P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Recipe_M12_POS(3) && P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Recipe_M12_POS(2) )   
 			   {   // 양극,음극 위치에 있고 Z축이 적층 위치보다 하강한다면
-			      if( P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(2))				// FR Z                                       
+			      //if( P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(2))				// FR Z      
+			      if( P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(2) + 0.1)			// FR Z   [ 참조 : 26.10.02 인터락 조건 추가 ]                                    
 			      {
 			         if( P_IL_Motor_Page == N_FINAL_ROLL_X )									// 파이널롤러 X축
 			         {  
@@ -516,9 +835,9 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 			case N_IL_Robot_CA_NG_PNP:   // 양극 NG PNP 로봇 42,44 //[참조 : 260601 : 양음극 NG BOX 도어 오픈 시 조그 인터락 ]
 			   if ( M_X_Cathode_NG_Box_Detect_Sensor == 0 )
 			   {
-			      if( P_IL_Motor_Page == N_NG_PnP_CA_T || P_IL_Motor_Page == N_NG_PnP_CA_Z )      // NG T, NG Z 
+			      if( P_IL_Motor_Page == N_NG_PnP_CA_T || P_IL_Motor_Page == N_NG_PnP_CA_Z )    // NG T, NG Z 
 				  {
-						P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;                           // 플러스, 마이너스 인터락
+						P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
 						P_IL_Outer_Status = IL_Out_Close;                                       // 외부 인터락 닫기
 				  }
 			   }
@@ -529,12 +848,12 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				    if( P_IL_Motor_Page == N_NG_PnP_CA_T )										// 양극 NG PNP T
 				       P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;								// 플러스,마이너스 인터락 
 				    else if( P_IL_Motor_Page == N_NG_PnP_CA_Z )
-				       P_IL_Robot_Bit = Hex_IL_Plus;												// 플러스 하강 인터락
+				       P_IL_Robot_Bit = Hex_IL_Plus;											// 플러스 하강 인터락
 				    
-				    P_IL_Outer_Status = IL_Out_Close;												// 외부 인터락 닫기
-				    P_IL_Popup_Motor = N_NG_PnP_CA_Z;												// 인터락 팝업 모터 추가
+				    P_IL_Outer_Status = IL_Out_Close;											// 외부 인터락 닫기
+				    P_IL_Popup_Motor = N_NG_PnP_CA_Z;											// 인터락 팝업 모터 추가
 				 }
-				 else if( P_Motor_Current_Pos(N_NG_PnP_CA_T) > P_Recipe_M42_POS(1) + 20 )			// NG PNP T축이 Box위치에서 20도 이상을 벗어났다면
+				 else if( P_Motor_Current_Pos(N_NG_PnP_CA_T) > P_Recipe_M42_POS(1) + 20 )		// NG PNP T축이 Box위치에서 20도 이상을 벗어났다면
 				    P_IL_Outer_Status = N_IL_Align_Pos;
 
 				 else   // NG 박스에 있다면
@@ -545,25 +864,25 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 			case N_IL_Robot_AN_NG_PNP:   // 음극 NG PNP 로봇 43,45 //[참조 : 260601 : 양음극 NG BOX 도어 오픈 시 조그 인터락 ]
 			   If ( M_X_Anode_NG_Box_Detect_Sensor == 0 )
 			   {
-			       if( P_IL_Motor_Page == N_NG_PnP_AN_T || P_IL_Motor_Page == N_NG_PnP_AN_Z )      // NG T, NG Z 
+			       if( P_IL_Motor_Page == N_NG_PnP_AN_T || P_IL_Motor_Page == N_NG_PnP_AN_Z )   // NG T, NG Z 
 			       {
 						 P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;                           // 플러스, 마이너스 인터락
-						 P_IL_Outer_Status = IL_Out_Close;                                       // 외부 인터락 닫기
+						 P_IL_Outer_Status = IL_Out_Close;                                      // 외부 인터락 닫기
 				   }
 			    }
 			    else
 			    {
-				  if( P_Motor_Current_Pos(N_NG_PnP_AN_Z) > P_Recipe_M45_POS(4) )					// NG PNP Z축이 하강되어 있다면
+				  if( P_Motor_Current_Pos(N_NG_PnP_AN_Z) > P_Recipe_M45_POS(4) )				// NG PNP Z축이 하강되어 있다면
 				  {
 				     if( P_IL_Motor_Page == N_NG_PnP_AN_T )										// 음극 NG PNP T
-				        P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;								// 플러스,마이너스 인터락 
+				        P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스,마이너스 인터락 
 				     else if( P_IL_Motor_Page == N_NG_PnP_AN_Z )
-				        P_IL_Robot_Bit = Hex_IL_Plus;												// 플러스 하강 인터락
+				        P_IL_Robot_Bit = Hex_IL_Plus;											// 플러스 하강 인터락
 				     
-				     P_IL_Outer_Status = IL_Out_Close;												// 외부 인터락 닫기
-				     P_IL_Popup_Motor = N_NG_PnP_AN_Z;												// 인터락 팝업 모터 추가
+				     P_IL_Outer_Status = IL_Out_Close;											// 외부 인터락 닫기
+				     P_IL_Popup_Motor = N_NG_PnP_AN_Z;											// 인터락 팝업 모터 추가
 				  }
-				  else if( P_Motor_Current_Pos(N_NG_PnP_AN_T) > P_Recipe_M43_POS(1) + 20 )			// NG PNP T축이 Box위치에서 20도 이상을 벗어났다면
+				  else if( P_Motor_Current_Pos(N_NG_PnP_AN_T) > P_Recipe_M43_POS(1) + 20 )		// NG PNP T축이 Box위치에서 20도 이상을 벗어났다면
 				     P_IL_Outer_Status = N_IL_Align_Pos;
 				  
 				  else   // NG 박스에 있다면
@@ -572,118 +891,149 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 			break;
 		
 			case N_IL_Robot_1st_Unloader:   // 언로더 로봇  46,47,48
-					// 1. 언로더 Z축이 대기위치일때  P_IL_In_Offset(15) = 0.5
-			  if( P_Motor_Current_Pos(N_UNLOADER_Z) >= P_Recipe_M47_POS(1) - P_IL_In_Offset(15) && P_Motor_Current_Pos(N_UNLOADER_Z) <= P_Recipe_M47_POS(1) + P_IL_In_Offset(15) )
-			{
-			   if( P_Motor_Current_Pos(N_UNLOADER_X) <= P_Recipe_M46_POS(1) + P_IL_In_Offset(16) )   // 1차 언로더 X가 대기위치일때      P_IL_In_Offset(16) = 5
-			   {
-			      if( P_IL_Motor_Page == N_UNLOADER_T )											// 언로더 T 선택되었을 경우
-			      {
-			         if( P_X_PLC_InterLock == 0 )												// PLC 2차언로더 인터락 되었을 경우 //if( M_X_PLC_InterLock == 0 )         0 인터락 1 인터락 해제
-			         {
-			            P_IL_Popup_Motor = N_2nd_UNLOADER;										// 인터락 팝업 모터 추가
-			            P_IL_Robot_Bit= Hex_IL_Plus;											// 플러스,마이너스 인터락 
-			            P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
-			         }
-			         else
-			         {
-			            P_IL_Popup_Motor = 0;													// 팝업모터 초기화
-			            P_IL_Robot_Bit = 0;														// 인터락 비트 초기화
-			            P_IL_Outer_Status = N_IL_Normal_Pos;									// Normal Pos 
-			         }    
-			      }
-			      if( P_IL_Motor_Page == N_UNLOADER_Z )   // 언로더 Z 선택되었을 경우
-			      {
-			         if( P_Motor_Current_Pos(N_UNLOADER_T) >= P_Recipe_M48_POS(3) - P_IL_In_Offset(17) )   // 언로더 X, Z가 대기위치인데 T가 회피위치를 넘어갔다면   P_IL_In_Offset(17) = 1
-			         {
-			            P_IL_Popup_Motor = N_2nd_UNLOADER;										// 인터락 팝업 모터 추가
-			            P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스,마이너스 인터락 
-			            P_IL_Outer_Status = IL_Out_Close;										// 외부 인터락 닫기
-			         }
-			         else
-			         {
-			            P_IL_Popup_Motor = 0;													// 팝업모터 초기화
-			            P_IL_Robot_Bit = 0;														// 인터락 비트 초기화
-			            P_IL_Outer_Status = N_IL_Normal_Pos;									// Normal Pos
-			         }
-			      }
-			   }
-			   else if( P_Motor_Current_Pos(N_UNLOADER_X) > P_Recipe_M46_POS(2) + P_IL_In_Offset(13) )      // 언로더 하강위치에서 1차진입 위치를 넘어간다면   P_IL_In_Offset(13) = 1
-			   {
-			      if( P_IL_Motor_Page == N_UNLOADER_X )											// 언로더 X 선택되었을 경우
-			      {
-			         P_IL_Popup_Motor = N_MAIN_Z;												// 인터락 팝업 모터 추가
-			         P_IL_Robot_Bit = Hex_IL_Plus;												// 플러스 인터락
-			         P_IL_Outer_Status = IL_Out_Close;											// 외부 인터락 닫기
-			      }
-			   }
-			   else
-			   {
-			      P_IL_Popup_Motor = 0;															// 팝업모터 초기화
-			      P_IL_Robot_Bit = 0;															// 인터락 비트 초기화
-			      P_IL_Outer_Status = N_IL_Normal_Pos;											// Normal Pos
-			   }
-			}
-			else if( P_Motor_Current_Pos(N_UNLOADER_Z) > P_Recipe_M47_POS(2) + P_IL_In_Offset(18) )			// 언로더 Z축이 스택 진입 상승 위치보다 적을때 ( 대기위치 ~ 상승위치 사이 ) P_IL_In_Offset(18) = 1
-			{
-			   if( P_Motor_Current_Pos(N_UNLOADER_X) <= P_Recipe_M46_POS(1) + P_IL_In_Offset(16) )			// 1차 언로더 X가 대기위치일때      P_IL_In_Offset(16) = 5
-			   {
-			      if( P_IL_Motor_Page == N_UNLOADER_T )   // 언로더 T 선택되었을 경우
-			      {
-			         P_IL_Popup_Motor = N_2nd_UNLOADER;											// 인터락 팝업 모터 추가
-			         P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;								// 플러스,마이너스 인터락 
-			         P_IL_Outer_Status = IL_Out_Close;											// 외부 인터락 닫기
-			      }      
-			   }
-			   else if( P_Motor_Current_Pos(N_UNLOADER_X) > P_Recipe_M46_POS(2) + P_IL_In_Offset(13) )		// 언로더 하강위치에서 1차진입 위치를 넘어간다면   P_IL_In_Offset(13) = 1
-			   {
-			      if( P_IL_Motor_Page == N_UNLOADER_X )   // 언로더 X 선택되었을 경우
-			      {
-			         P_IL_Popup_Motor = N_MAIN_Z;												// 인터락 팝업 모터 추가
-			         P_IL_Robot_Bit = Hex_IL_Plus;												// 플러스 인터락
-			         P_IL_Outer_Status = IL_Out_Close;											// 외부 인터락 닫기
-			      }
-			   }
-			   else
-			   {
-			      P_IL_Popup_Motor = 0;															// 팝업모터 초기화
-			      P_IL_Robot_Bit = 0;															// 인터락 비트 초기화
-			      P_IL_Outer_Status = N_IL_Upper_Pos;											// N_IL_Upper_Pos
-			   }
-			}
-			else   // 언로더 Z가 스택 위치이면서 더 높게 있다면
-			{
-			   if( P_Motor_Current_Pos(N_UNLOADER_X) <= P_Recipe_M46_POS(1) + P_IL_In_Offset(16) )         // 1차 언로더 X가 대기위치일때      P_IL_In_Offset(16) = 5
-			   {
-			      if( P_IL_Motor_Page == N_UNLOADER_T )   // 언로더 T 선택되었을 경우
-			      {
-			         P_IL_Popup_Motor = N_2nd_UNLOADER;											// 인터락 팝업 모터 추가
-			         P_IL_Robot_Bit = Hex_IL_Plus												// 플러스 인터락 
-			         P_IL_Outer_Status = IL_Out_Close;											// 외부 인터락 닫기
-			      }
-			      else
-			      {
-			         P_IL_Popup_Motor = 0;														// 팝업모터 초기화
-			         P_IL_Robot_Bit = 0;														// 인터락 비트 초기화
-			         P_IL_Outer_Status = N_IL_Upper_Pos;										// N_IL_Upper_Pos
-			      }
-			   }
-			   else if( P_Motor_Current_Pos(N_UNLOADER_X) > P_Recipe_M46_POS(2) + P_IL_In_Offset(13) )		// 언로더 하강위치에서 1차진입 위치를 넘어간다면   P_IL_In_Offset(13) = 1
-			   {
-			      if( P_IL_Motor_Page == N_UNLOADER_T )   // 언로더 T 선택되었을 경우
-			      {
-			         P_IL_Popup_Motor = N_MAIN_Z;												// 인터락 팝업 모터 추가
-			         P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;								// 플러스,마이너스 인터락 
-			         P_IL_Outer_Status = IL_Out_Close;											// 외부 인터락 닫기
-			      }
-			      else
-			      {
-			         P_IL_Popup_Motor = 0;														// 팝업모터 초기화
-			         P_IL_Robot_Bit = 0;														// 인터락 비트 초기화
-			         P_IL_Outer_Status = N_IL_Stack_Pos;										// N_IL_Upper_Pos
-			      }
-			   }
-			}
+				// 1. 언로더 Z축이 대기위치일때  P_IL_In_Offset(15) = 0.5
+				if( P_Motor_Current_Pos(N_UNLOADER_Z) >= P_Recipe_M47_POS(1) - P_IL_In_Offset(15) && P_Motor_Current_Pos(N_UNLOADER_Z) <= P_Recipe_M47_POS(1) + P_IL_In_Offset(15) )
+				{ // 1. 언로더 Z축이 대기위치에 있을 경우.
+					if( P_Motor_Current_Pos(N_UNLOADER_X) <= P_Recipe_M46_POS(1) + P_IL_In_Offset(16) )   // 1차 언로더 X가 대기위치일때      P_IL_In_Offset(16) = 5
+					{ // 1.1. 언로더가 X축이 대기 위치에 있을 경우.
+					   if( P_IL_Motor_Page == N_UNLOADER_T )									// 언로더 T 선택되었을 경우
+					   { // 1.1.1. 언로더 T축 선택.
+					      if( P_X_PLC_InterLock == 0 )											// PLC 2차언로더 인터락 되었을 경우 //if( M_X_PLC_InterLock == 0 )         0 인터락 1 인터락 해제
+					      { // 1.1.1.1. PLC 인터락 ON → 언로더 T축 구동 불가.
+					         P_IL_Popup_Motor = N_2nd_UNLOADER;									// 인터락 팝업 모터 추가
+					         P_IL_Robot_Bit= Hex_IL_Plus;										// 플러스,마이너스 인터락 
+					         P_IL_Outer_Status = IL_Out_Close;									// 외부 인터락 닫기
+					      }
+					      else
+					      { // 1.1.1.2. PLC 인터락 OFF → 언로더 T축 구동 가능.
+					         P_IL_Popup_Motor = 0;												// 팝업모터 초기화
+					         P_IL_Robot_Bit = 0;												// 인터락 비트 초기화
+					         P_IL_Outer_Status = N_IL_Normal_Pos;								// Normal Pos 
+					      }    
+					   }
+					   if( P_IL_Motor_Page == N_UNLOADER_Z )   // 언로더 Z 선택되었을 경우
+					   { // 1.1.2. 언로더 Z축 선택.
+					      if( P_Motor_Current_Pos(N_UNLOADER_T) >= P_Recipe_M48_POS(3) - P_IL_In_Offset(17) )   // 언로더 X, Z가 대기위치인데 T가 회피위치를 넘어갔다면   P_IL_In_Offset(17) = 1
+					      { // 1.1.2.1. 언로더 T축이 회피 위치를 넘어갈 경우 → 언로더 Z축 구동 불가.
+					         P_IL_Popup_Motor = N_2nd_UNLOADER;									// 인터락 팝업 모터 추가
+					         P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스,마이너스 인터락 
+					         P_IL_Outer_Status = IL_Out_Close;									// 외부 인터락 닫기
+					      }
+					      else
+					      { // 1.1.2.2. 언로더 T축이 회피 위치를 넘지 않았을 경우 → 언로더 Z축 구동 가능.
+					         P_IL_Popup_Motor = 0;												// 팝업모터 초기화
+					         P_IL_Robot_Bit = 0;												// 인터락 비트 초기화
+					         P_IL_Outer_Status = N_IL_Normal_Pos;								// Normal Pos
+					      }
+					   }
+					}
+					else if( P_Motor_Current_Pos(N_UNLOADER_X) >= P_Recipe_M46_POS(2) + P_IL_In_Offset(13) )      // 언로더 하강위치에서 1차진입 위치를 넘어간다면   P_IL_In_Offset(13) = 1
+					{ // 1.2. 언로더 X축이 스택 진입 전 위치를 넘었을 경우.
+						if( P_IL_Motor_Page == N_UNLOADER_X )									// 언로더 X 선택되었을 경우
+						{ // 1.2.1. 언로더 X축 선택 시 구동 불가.
+						   P_IL_Popup_Motor = N_MAIN_Z;											// 인터락 팝업 모터 추가
+						   P_IL_Robot_Bit = Hex_IL_Plus;										// 플러스 인터락
+						   P_IL_Outer_Status = IL_Out_Close;									// 외부 인터락 닫기
+						}
+						// [ 참조 : 26.10.02 인터락 조건 추가 ]
+						if( P_IL_Motor_Page == N_UNLOADER_T )
+						{ // 1.2.2. 언로더 T축 선택 시 구동 불가.
+						   P_IL_Popup_Motor = N_MAIN_Z;											// 인터락 팝업 모터 추가
+						   P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스, 마이너스 인터락
+						   P_IL_Outer_Status = IL_Out_Close;									// 외부 인터락 닫기
+						}
+						else
+						{ // 1.2.3. 언로더 Z축 선택.
+							P_IL_Popup_Motor = 0;												// 팝업모터 초기화
+							P_IL_Robot_Bit = 0;													// 인터락 비트 초기화
+							P_IL_Outer_Status = N_IL_Normal_Pos;								// Normal Pos
+						}
+					}
+					else
+					{ // 1.3. 언로더 X축이 대기위치와 스택 진입 전 위치 사이일 경우. 
+					   P_IL_Popup_Motor = 0;													// 팝업모터 초기화
+					   P_IL_Robot_Bit = 0;														// 인터락 비트 초기화
+					   P_IL_Outer_Status = N_IL_Normal_Pos;										// Normal Pos
+					}
+				}
+				else if( P_Motor_Current_Pos(N_UNLOADER_Z) > P_Recipe_M47_POS(2) + P_IL_In_Offset(18) )			// 언로더 Z축이 스택 진입 상승 위치보다 적을때 ( 대기위치 ~ 상승위치 사이 ) P_IL_In_Offset(18) = 1
+				{ // 2. 언로더 Z축이 스택진입상승 위치보다 밑에 있을 경우.
+					if( P_Motor_Current_Pos(N_UNLOADER_X) <= P_Recipe_M46_POS(1) + P_IL_In_Offset(16) )			// 1차 언로더 X가 대기위치일때      P_IL_In_Offset(16) = 5
+					{ // 2.1. 언로더 X축이 대기 위치 일 경우.
+						if( P_IL_Motor_Page == N_UNLOADER_T )									// 언로더 T 선택되었을 경우
+						{ // 2.1.1. 언로더 T축 선택 시 구동 불가.
+						   P_IL_Popup_Motor = N_2nd_UNLOADER;									// 인터락 팝업 모터 추가
+						   P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;							// 플러스,마이너스 인터락 
+						   P_IL_Outer_Status = IL_Out_Close;									// 외부 인터락 닫기
+						} 
+						else
+						{ // 2.1.2. 언로더 X축, Z축 선택.
+							P_IL_Popup_Motor = 0;												// 팝업모터 초기화
+							P_IL_Robot_Bit = 0;													// 인터락 비트 초기화
+							P_IL_Outer_Status = N_IL_Upper_Pos;									// N_IL_Upper_Pos
+						}
+					}
+					else if( P_Motor_Current_Pos(N_UNLOADER_X) > P_Recipe_M46_POS(2) + P_IL_In_Offset(13) )		// 언로더 하강위치에서 1차진입 위치를 넘어간다면   P_IL_In_Offset(13) = 1
+					{ // 2.2. 언로더 X축이 스택 진입 전 위치를 넘어갔을 경우.
+						if( P_IL_Motor_Page == N_UNLOADER_X )		// 언로더 X 선택되었을 경우
+						{ // 2.2.1. 언로더 X축 선택 시 구동 불가.
+						   P_IL_Popup_Motor = N_MAIN_Z;											// 인터락 팝업 모터 추가
+						   P_IL_Robot_Bit = Hex_IL_Plus;										// 플러스 인터락
+						   P_IL_Outer_Status = IL_Out_Close;									// 외부 인터락 닫기
+						}     
+						else if( P_IL_Motor_Page == N_UNLOADER_T ) // 언로더 T 선택되었을 경우		[ 참조 : 26.10.02 인터락 조건 추가 ]
+						{ // 2.2.2. 언로더 T축 선택 시 구동 불가.
+						   P_IL_Popup_Motor = N_MAIN_Z;										// 인터락 팝업 모터 추가
+						   P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스,마이너스 인터락 
+						   P_IL_Outer_Status = IL_Out_Close;								// 외부 인터락 닫기
+						}
+						else
+						{ // 2.2.3. 언로더 Z축 선택.
+							P_IL_Popup_Motor = 0;											// 팝업모터 초기화
+							P_IL_Robot_Bit = 0;												// 인터락 비트 초기화
+							P_IL_Outer_Status = N_IL_Upper_Pos;								// N_IL_Upper_Pos
+						}
+				   }
+				   else
+				   { // 2.3. 언로더 X축이 대기위치와 스택 진입 전 위치 사이일 경우.
+				      P_IL_Popup_Motor = 0;													// 팝업모터 초기화
+				      P_IL_Robot_Bit = 0;													// 인터락 비트 초기화
+				      P_IL_Outer_Status = N_IL_Upper_Pos;									// N_IL_Upper_Pos
+				   }
+				}
+				else   // 언로더 Z가 스택 위치이면서 더 높게 있다면
+				{ // 3. 언로더 Z축이 스택진입상승 위치보다 위에 있을 경우.
+				   if( P_Motor_Current_Pos(N_UNLOADER_X) <= P_Recipe_M46_POS(1) + P_IL_In_Offset(16) )         // 1차 언로더 X가 대기위치일때      P_IL_In_Offset(16) = 5
+				   { // 3.1. 언로더 X축이 대기위치 일 경우.
+				      if( P_IL_Motor_Page == N_UNLOADER_T )   // 언로더 T 선택되었을 경우
+				      { // 3.1.1. 언로더 T축 선택 시 구동 불가.
+				         P_IL_Popup_Motor = N_2nd_UNLOADER;									// 인터락 팝업 모터 추가
+				         P_IL_Robot_Bit = Hex_IL_Plus										// 플러스 인터락 
+				         P_IL_Outer_Status = IL_Out_Close;									// 외부 인터락 닫기
+				      }
+				      else
+				      { // 3.1.2. 언로더 X축, Z축 선택 시 구동 가능.
+				         P_IL_Popup_Motor = 0;												// 팝업모터 초기화
+				         P_IL_Robot_Bit = 0;												// 인터락 비트 초기화
+				         P_IL_Outer_Status = N_IL_Upper_Pos;								// N_IL_Upper_Pos
+				      }
+				   }
+				   else if( P_Motor_Current_Pos(N_UNLOADER_X) > P_Recipe_M46_POS(2) + P_IL_In_Offset(13) )		// 언로더 하강위치에서 1차진입 위치를 넘어간다면   P_IL_In_Offset(13) = 1
+				   { // 3.2. 언로더 X축이 스택 진입 전 위치를 넘어갔을 경우.
+				      if( P_IL_Motor_Page == N_UNLOADER_T )									// 언로더 T 선택되었을 경우
+				      { // 3.2.1. 언로더 T축 선택 시 구동 불가.
+				         P_IL_Popup_Motor = N_MAIN_Z;										// 인터락 팝업 모터 추가
+				         P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;						// 플러스,마이너스 인터락 
+				         P_IL_Outer_Status = IL_Out_Close;									// 외부 인터락 닫기
+				      }
+				      else
+				      { // 3.2.2. 언로더 X축, Z축 선택 시 구동 가능.
+				         P_IL_Popup_Motor = 0;												// 팝업모터 초기화
+				         P_IL_Robot_Bit = 0;												// 인터락 비트 초기화
+				         P_IL_Outer_Status = N_IL_Stack_Pos;								// N_IL_Upper_Pos
+				      }
+				   }
+				}
 		      //if( P_Motor_Current_Pos(N_UNLOADER_X) >= P_Recipe_M46_POS(1) - 0.5 && P_Motor_Current_Pos(N_UNLOADER_X) <= P_Recipe_M46_POS(1) + 0.5)      // 언로더 X가 대기위치라면
 		      //{   //  언로더가 X 대기위치, 언로더 Z축 상승 
 		      //   if( P_Motor_Current_Pos(N_UNLOADER_Z) <= P_Recipe_M47_POS(2) )           // 언로더 Z축이 상승해 있다면
@@ -752,11 +1102,11 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 		      //}
 			break;   
 			case N_IL_Robot_Sheet_Paper:   // 16번로봇 시트페이퍼 X 35
-				if(P_Motor_Current_Pos(N_SHEET_PAPER_X) > P_Recipe_M35_POS(2) )					// 티칭위치보다 넘어간다면
+				if(P_Motor_Current_Pos(N_SHEET_PAPER_X) > P_Recipe_M35_POS(2) )				// 티칭위치보다 넘어간다면
 				{
-				   P_IL_Robot_Bit = Hex_IL_Plus;												// 시트페이퍼 플러스 방향 인터락
+				   P_IL_Robot_Bit = Hex_IL_Plus;											// 시트페이퍼 플러스 방향 인터락
 				   P_IL_Outer_Status = IL_Out_Close;
-				   P_IL_Popup_Motor = N_SHEET_PAPER_X ;											// 인터락 팝업 모터 추가
+				   P_IL_Popup_Motor = N_SHEET_PAPER_X ;										// 인터락 팝업 모터 추가
 				}
 				else
 					P_IL_Outer_Status = N_IL_Normal_Pos;
@@ -800,7 +1150,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 			break;
 			case N_1st_PnP_CA_T:		// 양극 1차 PNP T축 외부 인터락
 				// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-				if(P_IL_Outer_Status != IL_Out_Close)
+				//if(P_IL_Outer_Status != IL_Out_Close)	
+				if(P_IL_Outer_Status != IL_Out_Close && P_IL_Outer_Status != N_IL_Belt_Down_Pos && P_IL_Outer_Status != N_IL_Align_Down_Pos )		// [ 참조 : 26.10.02 인터락 조건 추가 ]
 				{ 
 				//================================ 1번위치 - 대기위치 ( 45도 ) ================================
 					// ↓ 양극 1차 PNP T축 대기 위치 || 양극 1차 PNP Z축 ≥ 대기위치 + 0.5º
@@ -845,7 +1196,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				}
 				// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Jog, ABS, INC Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 				P_Abs_Trans_Cur_Pos = P_Motor_Current_Pos(P_IL_Motor_Page) - 90;		// 절대위치 변환 시 양극 얼라인이 0도가 되고 1차 PNP는 엔코더는 -90 Offset을 해줘서 기준 절대위치 셋팅 
-				if(P_IL_Outer_Status == N_IL_Normal_Pos || P_IL_Outer_Status == N_IL_Belt_Pos || P_IL_Outer_Status == N_IL_Align_Pos)
+				//if(P_IL_Outer_Status == N_IL_Normal_Pos || P_IL_Outer_Status == N_IL_Belt_Pos || P_IL_Outer_Status == N_IL_Align_Pos)
+				if(P_IL_Outer_Status == N_IL_Normal_Pos || P_IL_Outer_Status == N_IL_Belt_Pos || P_IL_Outer_Status == N_IL_Align_Pos || P_IL_Outer_Status == N_IL_Belt_Down_Pos || P_IL_Outer_Status == N_IL_Align_Down_Pos )	// [ 참조 : 26.10.02 인터락 조건 추가 ]
 				{
 					// ================================ 플러스 간섭 요인 : <<Ca 2nd PNP>> ==================================//
 					P_Plus_IL_Offset = P_Ca_1st_Plus_IL_Offset;							// 플러스 방향 오프셋 거리 -40
@@ -951,7 +1303,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_1st_PnP_AN_T:
 				// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-				if(P_IL_Outer_Status != IL_Out_Close)
+				//if(P_IL_Outer_Status != IL_Out_Close)
+				if(P_IL_Outer_Status != IL_Out_Close && P_IL_Outer_Status != N_IL_Belt_Down_Pos && P_IL_Outer_Status != N_IL_Align_Down_Pos )		// [ 참조 : 26.10.02 인터락 조건 추가 ]
 				{ 
 				//================================ 1번위치 - 대기위치 ( 45도 ) ================================
 					// ↓ 음극 1차 PNP T축 대기 위치 || 음극 1차 PNP Z축 ≥ 대기위치 + 0.5
@@ -996,7 +1349,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				}
 				// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Jog, ABS, INC Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 				P_Abs_Trans_Cur_Pos = P_Motor_Current_Pos(P_IL_Motor_Page) - 90 ;			// 절대위치 변환 시 양극 얼라인이 0도가 되고 1차 PNP는 엔코더는 -90 Offset을 해줘서 기준 절대위치 셋팅 
-				if(P_IL_Outer_Status == N_IL_Normal_Pos || P_IL_Outer_Status == N_IL_Belt_Pos || P_IL_Outer_Status ==N_IL_Align_Pos)
+				//if(P_IL_Outer_Status == N_IL_Normal_Pos || P_IL_Outer_Status == N_IL_Belt_Pos || P_IL_Outer_Status ==N_IL_Align_Pos)
+				if(P_IL_Outer_Status == N_IL_Normal_Pos || P_IL_Outer_Status == N_IL_Belt_Pos || P_IL_Outer_Status == N_IL_Align_Pos || P_IL_Outer_Status == N_IL_Belt_Down_Pos || P_IL_Outer_Status == N_IL_Align_Down_Pos )	// [ 참조 : 26.10.02 인터락 조건 추가 ]
 				{
 					// ================================ 플러스 간섭 요인 : <<An 2nd PNP>> ==================================//
 					P_Plus_IL_Offset = P_An_1st_Plus_IL_Offset;								// 플러스 방향 오프셋 거리 
@@ -1084,17 +1438,18 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_2nd_PnP_CA_T:
 				// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-				if(P_IL_Outer_Status != IL_Out_Close)
+				//if(P_IL_Outer_Status != IL_Out_Close)
+				if(P_IL_Outer_Status != IL_Out_Close && P_IL_Outer_Status != N_IL_Align_Down_Pos && P_IL_Outer_Status != N_IL_Stack_Down_Pos )		// [ 참조 : 26.10.02 인터락 조건 추가 ]
 				{ 
 				//================================ 1번위치 - 얼라인 위치  ================================
-					// ↓ 음극 2차 PNP T축 얼라인 위치 || 음극 1차 PNP T축 > 50º || 음극 NG PNP T축 > 대기 위치 + 40º || 음극 2차 PNP Z축 ≥ 대기위치 + 0.5º
+					// ↓ 양극 2차 PNP T축 얼라인 위치 || 양극 1차 PNP T축 > 50º || 양극 NG PNP T축 > 대기 위치 + 40º || 양극 2차 PNP Z축 ≥ 대기위치 + 0.5º
 					if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ P_Recipe_M03_POS(1) || P_Motor_Current_Pos(N_1st_PnP_CA_T) > 50 || P_Motor_Current_Pos(N_UNLOADER_Z) < P_Recipe_M47_POS(2) + 50 || P_Motor_Current_Pos(N_NG_PnP_CA_T) > P_Recipe_M42_POS(1) + 40 || P_Motor_Current_Pos(N_2nd_PnP_CA_Z) >= P_Cathode_2nd_Z_Ready_Up + 0.5 )
 						P_No1_Recipe_Pos_IL(N_2nd_PnP_CA_T) = 1;
 					else
 						P_No1_Recipe_Pos_IL(N_2nd_PnP_CA_T) = 0;
 				//================================ 2번위치 - 스택 위치 ================================
-					// ↓ 음극 2차 PNP T축 스택 위치 || 음극 1차 PNP T축 > 50º || 파이널 롤러 X축 ≤ 양극 위치 || 음극 NG PNP T축 > 대기 위치 + 40º || 	음극 2차 PNP Z축 ≥ 대기위치 + 0.5º
-					if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ P_Recipe_M03_POS(2) || P_Motor_Current_Pos(N_1st_PnP_CA_T) > 50 || P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Recipe_M12_POS(2) || P_Motor_Current_Pos(N_UNLOADER_Z) <= P_Recipe_M47_POS(2) + 50 || P_Motor_Current_Pos(N_NG_PnP_CA_T) > P_Recipe_M42_POS(1) + 40 || P_Motor_Current_Pos(N_2nd_PnP_CA_Z) >= P_Cathode_2nd_Z_Ready_Up + 0.5 )	
+					// ↓ 양극 2차 PNP T축 스택 위치 || 양극 1차 PNP T축 > 50º || 파이널 롤러 X축 ＞ 양극 위치 || 양극 NG PNP T축 > 대기 위치 + 40º || 	양극 2차 PNP Z축 ≥ 대기위치 + 0.5º
+					if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ P_Recipe_M03_POS(2) || P_Motor_Current_Pos(N_1st_PnP_CA_T) > 50 || P_Motor_Current_Pos(N_FINAL_ROLL_X) > (P_Recipe_M12_POS(2) + 0.1) || P_Motor_Current_Pos(N_UNLOADER_Z) <= P_Recipe_M47_POS(2) + 50 || P_Motor_Current_Pos(N_NG_PnP_CA_T) > P_Recipe_M42_POS(1) + 40 || P_Motor_Current_Pos(N_2nd_PnP_CA_Z) >= P_Cathode_2nd_Z_Ready_Up + 0.5 )	
 						P_No2_Recipe_Pos_IL(N_2nd_PnP_CA_T) = 1;
 					else
 						P_No2_Recipe_Pos_IL(N_2nd_PnP_CA_T) = 0;
@@ -1126,62 +1481,69 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				P_Abs_Trans_Cur_Pos = P_Motor_Current_Pos(P_IL_Motor_Page);							// 절대위치 변환 시 양극 얼라인이 0도가 되고 1차 PNP는 엔코더는 -90 Offset을 해줘서 기준 절대위치 셋팅 
 				switch(P_IL_Outer_Status)
 				{
-					case N_IL_Normal_Pos:		// << N_IL_Normal_Pos >> 10도 이하 일 경우
-
+					//case N_IL_Normal_Pos:		// << N_IL_Normal_Pos >> 10도 이하 일 경우
+					case N_IL_Normal_Pos:
+					case N_IL_Align_Down_Pos:		// << N_IL_Normal_Pos >> 대기 위치 + 15도 이하 일 경우	[ 참조 : 26.10.02 인터락 조건 추가 ]
 					// ================================ 플러스 간섭 요인 : <<Unloader,NG PNP>> ==================================//
-						P_Plus_IL_Offset = P_Ca_2nd_T_Plus_IL_Offset(0);			// Offset value : 0
-						if(P_Motor_Current_Pos(N_NG_PnP_CA_T) > P_Recipe_M43_POS(1) + 35 )
-						{// NG PNP가 2차 간섭위치까지 들어와있는 경우라면
-							P_Limit_PosData(Hex_IL_Plus) = 10 + P_Plus_IL_Offset;			// 
+						P_Plus_IL_Offset = P_Ca_2nd_T_Plus_IL_Offset(0);							// Offset value : 0, 2차 PNP가 얼라인 부근에서 플러스 이동 중 언로더와 NG PNP와의 간격 오프셋.
+						if(P_Motor_Current_Pos(N_NG_PnP_CA_T) > P_Recipe_M43_POS(1) + 35 )			// NG PNP가 2차 PNP 간섭 위치까지 들어올 경우.
+						{
+							//P_Limit_PosData(Hex_IL_Plus) = 10 + P_Plus_IL_Offset;					// 2차 PNP 위치가 이 값을 넘어갈 경우 정지.
+							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M03_POS(1) + 10 + P_Plus_IL_Offset;		// 2차 PNP 위치가 이 값을 넘어갈 경우 정지.	[ 참조 : 26.10.02 인터락 조건 추가 ]
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_NG_PnP_CA_T;
 						}
-						else if(P_Motor_Current_Pos(N_UNLOADER_Z) <= P_Recipe_M47_POS(2) + 50)		
-						{// 언로더 Z축이 스텍 진입 상승위치 + 50 만큼 올라와 있는경우면
-							P_Limit_PosData(Hex_IL_Plus) = 10 + P_Plus_IL_Offset;			// 
+						else if(P_Motor_Current_Pos(N_UNLOADER_Z) <= P_Recipe_M47_POS(2) + 50)		// 언로더 Z축이 스택 진입 상승 위치 + 50mm 하강보다 위에 있을 경우.
+						{
+							//P_Limit_PosData(Hex_IL_Plus) = 10 + P_Plus_IL_Offset;					// 2차 PNP 위치가 이 값을 넘어갈 경우 정지.
+							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M03_POS(1) + 10 + P_Plus_IL_Offset;		// 2차 PNP 위치가 이 값을 넘어갈 경우 정지.	[ 참조 : 26.10.02 인터락 조건 추가 ]
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_UNLOADER_Z;
 						}
 					// ================================ 마이너스 간섭 요인 : <<Ca 1st PNP>> =============================//
-						P_Minus_IL_Offset = P_Ca_2nd_T_Minus_IL_Offset(0);		// Offset value : 35
+						P_Minus_IL_Offset = P_Ca_2nd_T_Minus_IL_Offset(0);							// Offset value : 35, 2차 PNP가 얼라인 부근에서 마이너스 이동 중 1차 PNP와의 간격 오프셋.
 						P_Limit_PosData(Hex_IL_Minus) = P_Motor_Current_Pos(N_1st_PnP_CA_T) - 90 + P_Minus_IL_Offset;		// Ca 1st PNP 기준 왼쪽 물체 << 반대편 Ca 1st pnp >> 절대좌표 변환 
-						P_Collision_Risk_Motor(Hex_IL_Minus) = N_1st_PnP_CA_T;		//
+						P_Collision_Risk_Motor(Hex_IL_Minus) = N_1st_PnP_CA_T;
 						
 					break;
 
-					case N_IL_Upper_Pos:			// << N_IL_Upper_Pos >> 11도 ~ 69도 일 경우
+					case N_IL_Upper_Pos:			// << N_IL_Upper_Pos >> 대기 위치 + 15도 ~ 스택 위치 - 35도 일 경우
 					// ================================ 플러스 간섭 요인 : <<Final Roller>> ==================================//
-						if(P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Recipe_M12_POS(2)+0.1)
-						{// FR X가 음극 위치보다 살짝 스텍부 방향으로 더 들어와있는경우
-							P_Limit_PosData(Hex_IL_Plus) = 50 + P_Ca_2nd_T_Plus_IL_Offset(2);			// Offset value : 0
+						if(P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Recipe_M12_POS(2)+0.1)			// FR X가 음극 위치보다 살짝 스텍부 방향으로 더 들어와있는경우.
+						{
+							//P_Limit_PosData(Hex_IL_Plus) = 50 + P_Ca_2nd_T_Plus_IL_Offset(2);		// Offset value : 0, 2차 PNP가 얼라인과 스택 부근이 아닐 때 플러스 이동 중 파이널 롤러와의 간격 오프셋.
+							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M03_POS(1) + 50 + P_Ca_2nd_T_Plus_IL_Offset(2);		// Offset value : 0, 2차 PNP가 얼라인과 스택 부근이 아닐 때 플러스 이동 중 파이널 롤러와의 간격 오프셋.	[ 참조 : 26.10.02 인터락 조건 추가 ]
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_FINAL_ROLL_X;
 						}
 					// ================================ 마이너스 간섭 요인 : <<Ca NG PNP, Ca 1st PNP >> =============================//
-						P_Minus_IL_Offset = P_Ca_2nd_T_Minus_IL_Offset(1);							// Offset value : 40
-						if(P_Motor_Current_Pos(N_NG_PnP_CA_T) > P_Recipe_M42_POS(1) + 50)				 
-						{// NG PNP가 대기위치보다 50도 초과하면 
-							P_Limit_PosData(Hex_IL_Minus) = P_Minus_IL_Offset // Unloader Status 못벗어나게 해야함.
+						P_Minus_IL_Offset = P_Ca_2nd_T_Minus_IL_Offset(1);							// Offset value : 40, 2차 PNP가 얼라인과 스택 부근이 아닐 때 마이너스 이동 중 NG PNP, 1차 PNP와의 간격 오프셋.
+						if(P_Motor_Current_Pos(N_NG_PnP_CA_T) > P_Recipe_M42_POS(1) + 50)			// NG PNP가 대기위치보다 50도 초과할 경우.	 
+						{ 
+							P_Limit_PosData(Hex_IL_Minus) = P_Minus_IL_Offset						// Unloader Status 못벗어나게 해야함.
 							P_Collision_Risk_Motor(Hex_IL_Minus) = N_NG_PnP_CA_T;
 						}
 						//else if(P_Motor_Current_Pos(P_IL_Motor_Page) > 60)
-						else if(P_Motor_Current_Pos(P_IL_Motor_Page) > P_Recipe_M03_POS(1) + 60)
-						{// 2차pnp가 60도 초과라면,
-							if(P_Motor_Current_Pos(N_UNLOADER_Z) <= P_Recipe_M47_POS(2) + 50)
-							{// 언로더 Z축이 스텍 진입 상승위치 + 50 만큼 올라와 있는경우면
-								P_Limit_PosData(Hex_IL_Minus) = P_Abs_Trans_Cur_Pos;	 // Unloader Status 못벗어나게 해야함.
+						else if(P_Motor_Current_Pos(P_IL_Motor_Page) > P_Recipe_M03_POS(1) + 60)	// 2차 pnp가 60도 초과 일 경우.
+						{
+							if(P_Motor_Current_Pos(N_UNLOADER_Z) <= P_Recipe_M47_POS(2) + 50)		// 언로더 Z축이 스택 진입 상승 위치 + 50mm 하강보다 위에 있을 경우.
+							{
+								P_Limit_PosData(Hex_IL_Minus) = P_Abs_Trans_Cur_Pos;				// Unloader Status 못벗어나게 해야함.
 								P_Collision_Risk_Motor(Hex_IL_Minus) = N_UNLOADER_Z;
 							}
 						}
-						else
-						{// 1차 PNP 위치를 마이너스 리밋으로 설정
+						else																		// 1차 PNP 위치를 마이너스 리밋으로 설정
+						{
 							P_Limit_PosData(Hex_IL_Minus) = P_Motor_Current_Pos(N_1st_PnP_CA_T) - 90 + P_Minus_IL_Offset
 							P_Collision_Risk_Motor(Hex_IL_Minus) = N_1st_PnP_CA_T;
 						}
 					break;
 
-					case N_IL_Stack_Pos:		// << N_IL_Stack_Pos >> 70도 이상 일 경우
+					//case N_IL_Stack_Pos:		// << N_IL_Stack_Pos >> 70도 이상 일 경우
+					case N_IL_Stack_Pos:
+					case N_IL_Stack_Down_Pos:		// << N_IL_Stack_Pos >> 스택 위치 -35도 이상 일 경우		[ 참조 : 26.10.02 인터락 조건 추가 ]
 					// ================================ 플러스 간섭 요인 : <<Final Roller, Main Z, Clamp Z>> ==================================//	
-						if(P_Motor_Current_Pos(N_FINAL_ROLL_X) <= P_Recipe_M12_POS(2) + 0.1)
-						{// FR X가 음극 위치에 있을 경우 90도까지 가능.
-							P_Z_Pos_Data = P_Motor_Current_Pos(N_MAIN_Z) + 1;
+						if(P_Motor_Current_Pos(N_FINAL_ROLL_X) <= P_Recipe_M12_POS(2) + 0.1)		// FR X가 음극 위치에 있을 경우 90도까지 가능.
+						{
+							//P_Z_Pos_Data = P_Motor_Current_Pos(N_MAIN_Z) + 1;
+							P_Z_Pos_Data = P_Motor_Current_Pos(N_MAIN_Z);
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_MAIN_Z;
 							// 현재 모터들이 Z축 리밋이 설정값보다 높다면 갱신하기.
 							if(P_Z_Pos_Data < P_Motor_Current_Pos(N_Clamp_CA_Z2))
@@ -1205,31 +1567,33 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 								P_Z_Pos_Data = P_Motor_Current_Pos(N_Clamp_AN_Z1);
 								P_Collision_Risk_Motor(Hex_IL_Plus) = N_Clamp_AN_Z1;
 							}
-
 							// 최종 plus 값이 0보다 낮으면 2차 PNP 진입가능.
 							if(P_Z_Pos_Data < P_Recipe_M11_POS(1) + 0.5)
 							{// Main Z가 대기위치 + 1 값 보다 높은 값을 가진다면,
-								P_Limit_PosData(Hex_IL_Plus) = 90.5 + P_Ca_2nd_T_Plus_IL_Offset(1);			// Offset value : 0
+								//P_Limit_PosData(Hex_IL_Plus) = 90.5 + P_Ca_2nd_T_Plus_IL_Offset(1);			// Offset value : 0.5
+								P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M03_POS(2) + P_Ca_2nd_T_Plus_IL_Offset(1);			// Offset value : 0.5, 2차 PNP가 스택 부근에서 플러스 이동 중 파이널 롤러, 스택 테이블, 클램프와의 간격 오프셋.	// [ 참조 : 26.10.02 인터락 조건 추가 ]
 								P_Collision_Risk_Motor(Hex_IL_Plus) = N_FINAL_ROLL_X;
 							}
 							else
 							{
-								P_Limit_PosData(Hex_IL_Plus) = P_Z_Var;			// Offset value : 0
+								P_Limit_PosData(Hex_IL_Plus) = P_Z_Var;									// Offset value : 60
 							}
 						}
-						else
+						else																			// FR X가 음극 위치가 아닌 곳에 있을 경우.
 						{
-							P_Limit_PosData(Hex_IL_Plus) = 50 + P_Ca_2nd_T_Plus_IL_Offset(2);			// Offset value : 0
-							if(P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Recipe_M12_POS(2))
-							{// FR X가 음극 위치 외에 있는 경우에는
+							//P_Limit_PosData(Hex_IL_Plus) = 50 + P_Ca_2nd_T_Plus_IL_Offset(2);			// Offset value : 0, 2차 PNP가 얼라인과 스택 부근이 아닐 때 플러스 이동 중 파이널 롤러와의 간격 오프셋.
+							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M03_POS(1) + 50 + P_Ca_2nd_T_Plus_IL_Offset(2);			// Offset value : 0, 2차 PNP가 얼라인과 스택 부근이 아닐 때 플러스 이동 중 파이널 롤러와의 간격 오프셋.
+							if(P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Recipe_M12_POS(2))				// FR X가 음극 위치 외에 있는 경우에는		
+							{
 								P_Collision_Risk_Motor(Hex_IL_Plus) = N_FINAL_ROLL_X;
 							}
 						}
 					// ================================ 마이너스 간섭 요인 : <<Unloader>> =============================//
-						P_Minus_IL_Offset = P_Ca_2nd_T_Minus_IL_Offset(2);							// Offset value : 70
-						if(P_Motor_Current_Pos(N_UNLOADER_Z) <= 50 )	/*언로더가 2차 간섭위치만큼 올라와 있는경우면*/
+						P_Minus_IL_Offset = P_Ca_2nd_T_Minus_IL_Offset(2);								// Offset value : 80
+						//if(P_Motor_Current_Pos(N_UNLOADER_Z) <= 50 )									/*언로더가 2차 간섭위치만큼 올라와 있는경우면*/
+						if(P_Motor_Current_Pos(N_UNLOADER_Z) <= (P_Recipe_M47_POS(2) + 50) )				// 언로더 Z축이 스택 진입 상승 위치 + 50mm 하강보다 위에 있을 경우.
 						{
-							P_Limit_PosData(Hex_IL_Minus) = P_Minus_IL_Offset;			// 
+							P_Limit_PosData(Hex_IL_Minus) = P_Minus_IL_Offset;							// Offset값 이전에 인터락.
 							P_Collision_Risk_Motor(Hex_IL_Minus) = N_UNLOADER_Z;
 						}
 					break;
@@ -1300,21 +1664,22 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				P_Abs_Trans_Cur_Pos = P_Recipe_M21_POS(5) - P_Cathode_2nd_PNP_Z_Real_Move_Pos;		// Ca 2nd Z [#21] 하강 위치 - 현재 위치 시 절대위치 변환 가능
 				if(P_IL_Outer_Status == N_IL_Normal_Pos )
 				{}
-				else if(P_IL_Outer_Status == N_IL_Upper_Pos)
+				else if(P_IL_Outer_Status == N_IL_Upper_Pos)			// 대기 위치 + 15도 ~ 스택 위치 -35도. 
 				{
 				// ================================ 플러스 간섭 요인 : <<없음>> ==================================//
 				// ================================ 마이너스 간섭 요인 : <<Unloader>> =============================//
 					
 					P_Minus_IL_Offset = P_Ca_2nd_Z_Minus_IL_Offset(0);			// Offset value : 50
-					P_Limit_PosData(Hex_IL_Minus) = P_Motor_Current_Pos(N_UNLOADER_Z) - P_Recipe_M47_POS(2) + P_Minus_IL_Offset;		// 언로더 현재위치 - 언로더 상승위치 시 절대위치 변환 가능.
+					P_Limit_PosData(Hex_IL_Minus) = P_Motor_Current_Pos(N_UNLOADER_Z) - P_Recipe_M47_POS(2) + P_Minus_IL_Offset;		// 언로더 현재위치 - 언로더 상승위치 시 절대위치 변환 가능. 
 					P_Collision_Risk_Motor(Hex_IL_Minus) = N_UNLOADER_Z;
 		
 				}
-				else if(P_IL_Outer_Status == N_IL_Stack_Pos )
+				//else if(P_IL_Outer_Status == N_IL_Stack_Pos )			// 스택 위치 -35도 이상.
+				else if(P_IL_Outer_Status == N_IL_Stack_Pos || P_IL_Outer_Status == N_IL_Stack_Down_Pos )		// 스택 위치 -35도 이상.	[ 참조 : 26.10.02 인터락 조건 추가 ]
 				{
 				// ================================ 플러스 간섭 요인 : <<없음>> ==================================//
 				// ================================ 마이너스 간섭 요인 : <<Main Z, Clamp, >> =============================//
-					P_Minus_IL_Offset = P_Ca_2nd_Z_Minus_IL_Offset(1);			// Offset value : 5
+					P_Minus_IL_Offset = P_Ca_2nd_Z_Minus_IL_Offset(1);						// Offset value : 5
 					P_Limit_PosData(Hex_IL_Minus) = P_Motor_Current_Pos(N_MAIN_Z);			// Main Z 현재 위치 값에서 추가 offset mm보다 못내려가게 해놓음.
 					P_Collision_Risk_Motor(Hex_IL_Minus) = N_MAIN_Z;
 					// 현재 모터들이 Z축 리밋이 설정값보다 높다면 갱신하기.
@@ -1343,23 +1708,22 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					}
 					P_Limit_PosData(Hex_IL_Minus) = P_Limit_PosData(Hex_IL_Minus) + P_Minus_IL_Offset;
 				}
-
-
 			break;
 
 			case N_2nd_PnP_AN_T:
 				// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-				if(P_IL_Outer_Status != IL_Out_Close)
+				//if(P_IL_Outer_Status != IL_Out_Close)
+				if(P_IL_Outer_Status != IL_Out_Close && P_IL_Outer_Status != N_IL_Align_Down_Pos && P_IL_Outer_Status != N_IL_Stack_Down_Pos )		// [ 참조 : 26.10.02 인터락 조건 추가 ]
 				{ 
 				//================================ 1번위치 - 얼라인 위치  ================================
 					// ↓ 음극 2차 PNP T축 얼라인 위치 || 음극 1차 PNP T축 > 50º || 음극 NG PNP T축 > 대기 위치 + 40º || 음극 2차 PNP Z축 ≥ 대기위치 + 0.5º
-					if(P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ P_Recipe_M03_POS(1) || P_Motor_Current_Pos(N_1st_PnP_AN_T) > 50 || P_Motor_Current_Pos(N_NG_PnP_AN_T) > P_Recipe_M43_POS(1) + 40 || P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Ready_Up + 0.5 )	
+					if(P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ P_Recipe_M04_POS(1) || P_Motor_Current_Pos(N_1st_PnP_AN_T) > 50 || P_Motor_Current_Pos(N_NG_PnP_AN_T) > P_Recipe_M43_POS(1) + 40 || P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Ready_Up + 0.5 )	
 						P_No1_Recipe_Pos_IL(N_2nd_PnP_AN_T) = 1;
 					else
 						P_No1_Recipe_Pos_IL(N_2nd_PnP_AN_T) = 0;
 				//================================ 2번위치 - 스택 위치 ================================
-					// ↓ 음극 2차 PNP T축 스택 위치 || 음극 1차 PNP T축 > 50º || 파이널 롤러 X축 ≤ 양극 위치 || 음극 NG PNP T축 > 대기 위치 + 40º || 음극 2차 PNP Z축 ≥ 대기위치 + 0.5º
-					if(P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ P_Recipe_M03_POS(2) || P_Motor_Current_Pos(N_1st_PnP_AN_T) > 50 || P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Recipe_M12_POS(3) || P_Motor_Current_Pos(N_NG_PnP_AN_T) > P_Recipe_M43_POS(1) + 40 || P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Ready_Up + 0.5 )
+					// ↓ 음극 2차 PNP T축 스택 위치 || 음극 1차 PNP T축 > 50º || 파이널 롤러 X축 ＜ 양극 위치 || 음극 NG PNP T축 > 대기 위치 + 40º || 음극 2차 PNP Z축 ≥ 대기위치 + 0.5º
+					if(P_Motor_Current_Pos(N_2nd_PnP_AN_T) ~ P_Recipe_M04_POS(2) || P_Motor_Current_Pos(N_1st_PnP_AN_T) > 50 || P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Recipe_M12_POS(3) - 0.1 || P_Motor_Current_Pos(N_NG_PnP_AN_T) > P_Recipe_M43_POS(1) + 40 || P_Motor_Current_Pos(N_2nd_PnP_AN_Z) >= P_Anode_2nd_Z_Ready_Up + 0.5 )
 						P_No2_Recipe_Pos_IL(N_2nd_PnP_AN_T) = 1;
 					else
 						P_No2_Recipe_Pos_IL(N_2nd_PnP_AN_T) = 0;
@@ -1391,64 +1755,66 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 		
 				switch(P_IL_Outer_Status)
 				{
-					case N_IL_Normal_Pos:		// << N_IL_Normal_Pos >> 10도 이하 일 경우
-						
+					//case N_IL_Normal_Pos:		// << N_IL_Normal_Pos >> 10도 이하 일 경우
+					case N_IL_Normal_Pos: 
+					case N_IL_Align_Down_Pos:		// << N_IL_Normal_Pos >> 대기 위치 + 15도 이하 일 경우	[ 참조 : 26.10.02 인터락 조건 추가 ]
 					// ================================ 플러스 간섭 요인 : <<NG PNP>> ==================================//
-						P_Plus_IL_Offset = P_An_2nd_T_Plus_IL_Offset(0);
-						if(P_Motor_Current_Pos(N_NG_PnP_AN_T) > P_Recipe_M42_POS(1) + 35)
+						P_Plus_IL_Offset = P_An_2nd_T_Plus_IL_Offset(0);					// Offset value : 0
+						if(P_Motor_Current_Pos(N_NG_PnP_AN_T) > P_Recipe_M42_POS(1) + 35)	// NG PNP가 대기위치 + 35도 보다 앞에 있을 경우.
 						{
-							P_Limit_PosData(Hex_IL_Plus) = 10 + P_Plus_IL_Offset;			
+							//P_Limit_PosData(Hex_IL_Plus) = 10 + P_Plus_IL_Offset;			// 2차 PNP T축이 10도 + Offset 이상으로 움직이지 못함.
+							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M04_POS(1) + 10 + P_Plus_IL_Offset;			// 2차 PNP T축이 대기 위치 + 10도 + Offset 이상으로 움직이지 못함.
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_NG_PnP_AN_T;
 						}
 
 					// ================================ 마이너스 간섭 요인 : <<An 1st PNP>> =============================//
-						P_Minus_IL_Offset = P_An_2nd_T_Minus_IL_Offset(0);
-						P_Limit_PosData(Hex_IL_Minus) = P_Motor_Current_Pos(N_1st_PnP_AN_T) - 90 + P_Minus_IL_Offset;		// An 2nd PNP 기준 왼쪽 물체 << An 1st pnp >> 절대좌표 변환 
+						P_Minus_IL_Offset = P_An_2nd_T_Minus_IL_Offset(0);					// Offset value : 35
+						P_Limit_PosData(Hex_IL_Minus) = P_Motor_Current_Pos(N_1st_PnP_AN_T) - 90 + P_Minus_IL_Offset;		// An 2nd PNP 기준 왼쪽 물체 << An 1st pnp >> 절대좌표 변환. 2차 PNP T축이 Offset 이하로 움직이지 못함.
 						P_Collision_Risk_Motor(Hex_IL_Minus) = N_1st_PnP_AN_T;
 
 					break;
 
-					case N_IL_Upper_Pos:			// << N_IL_Upper_Pos >> 11도 ~ 69도 일 경우
+					case N_IL_Upper_Pos:			// << N_IL_Upper_Pos >> 대기 위치 +15도 ~ 스택 위치 - 35도 일 경우
 					// ================================ 플러스 간섭 요인 : <<Final Roller>> ==================================//
 						
-						if(P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Recipe_M12_POS(3)- 0.1)
-						{// FR X가 양극 위치 보다 더 작은 위치에 있는 경우에는
-							
-							if(P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Recipe_M12_POS(2) + 0.1)
-							{// 파이널롤이 마이너스 방향으로 크게 움직일수 잇으므로 간섭없도록 덜 가서 멈춰야함.
-								P_Limit_PosData(Hex_IL_Plus) = 30 + P_An_2nd_T_Plus_IL_Offset(2);			// Offset value : 0
-								P_Collision_Risk_Motor(Hex_IL_Plus) = N_FINAL_ROLL_X;
-							}
-							else
+						if(P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Recipe_M12_POS(3)- 0.1)	// FR X가 양극 위치 보다 음극 방향에 있을 경우.
+						{
+							if(P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Recipe_M12_POS(2) + 0.1)		// FR X가 음극 위치보다 음극 방향에 있을 경우.
 							{
-								P_Limit_PosData(Hex_IL_Plus) = 50 + P_An_2nd_T_Plus_IL_Offset(2);			// Offset value : 0
+								//P_Limit_PosData(Hex_IL_Plus) = 30 + P_An_2nd_T_Plus_IL_Offset(2);			// Offset value : 0
+								P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M04_POS(1) + 30 + P_An_2nd_T_Plus_IL_Offset(2);			// Offset value : 0, 대기 위치 + 30도 + Offset 이상으로 2차 PNP가 움직이지 못함.
 								P_Collision_Risk_Motor(Hex_IL_Plus) = N_FINAL_ROLL_X;
 							}
-						}
-						
+							else															// FR X가 양극 위치 ~ 음극 위치 일 경우.
+							{
+								//P_Limit_PosData(Hex_IL_Plus) = 50 + P_An_2nd_T_Plus_IL_Offset(2);			// Offset value : 0
+								P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M04_POS(1) + 50 + P_An_2nd_T_Plus_IL_Offset(2);			// Offset value : 0, 대기 위치 + 50도 + Offset 이상으로 2차 PNP가 움직이지 못함.
+								P_Collision_Risk_Motor(Hex_IL_Plus) = N_FINAL_ROLL_X;
+							}
+						}					
 					// ================================ 마이너스 간섭 요인 : <<An NG PNP, An 1st PNP>> =============================//
-						if(P_Motor_Current_Pos(N_NG_PnP_AN_T) > P_Recipe_M43_POS(1) + 50)				 /* NG PNP가 50도 초과면, */ 
-						{// NG PNP가 50도 초과면,
-							P_Minus_IL_Offset = P_An_2nd_T_Minus_IL_Offset(1)
-							P_Limit_PosData(Hex_IL_Minus) = P_Minus_IL_Offset	// 
+						if(P_Motor_Current_Pos(N_NG_PnP_AN_T) > P_Recipe_M43_POS(1) + 50)	// NG PNP가 대기 위치 + 50도 초과일 경우. 
+						{
+							P_Minus_IL_Offset = P_An_2nd_T_Minus_IL_Offset(1)				// Offset value : 35
+							P_Limit_PosData(Hex_IL_Minus) = P_Minus_IL_Offset				// Offset 밑으로 이동할 수 없음. 
 							P_Collision_Risk_Motor(Hex_IL_Minus) = N_NG_PnP_AN_T;
 						}
-						else
+						else																// NG PNP가 대기 위치 + 50도를 넘기지 않을 경우.
 						{// 1차 PNP 위치를 마이너스 리밋으로 설정
-							P_Minus_IL_Offset = P_An_2nd_T_Minus_IL_Offset(1);
-							P_Limit_PosData(Hex_IL_Minus) = P_Motor_Current_Pos(N_1st_PnP_AN_T) - 90 + P_Minus_IL_Offset;	
+							P_Minus_IL_Offset = P_An_2nd_T_Minus_IL_Offset(1);				// Offset value : 35
+							P_Limit_PosData(Hex_IL_Minus) = P_Motor_Current_Pos(N_1st_PnP_AN_T) - 90 + P_Minus_IL_Offset;	// Offset 밑으로 이동할 수 없음.
 							P_Collision_Risk_Motor(Hex_IL_Minus) = N_1st_PnP_AN_T;
 						}
-
-
 					break;
 
-
-					case N_IL_Stack_Pos:		// << N_IL_Stack_Pos >> 70도 이상 일 경우
+					//case N_IL_Stack_Pos:		// << N_IL_Stack_Pos >> 70도 이상 일 경우
+					case N_IL_Stack_Pos: 
+					case N_IL_Stack_Down_Pos:		// << N_IL_Stack_Pos >> 스택 위치 - 35도 이상 일 경우		[ 참조 : 26.10.02 인터락 조건 추가 ]
 					// ================================ 플러스 간섭 요인 : <<Final Roller, Main Z, Clamp Z>> ==================================//
 						if(P_Motor_Current_Pos(N_FINAL_ROLL_X) >= P_Recipe_M12_POS(3) - 0.1)
-						{// FR X가 음극 위치에 있을 경우 90도까지 가능.
-							P_Z_Pos_Data = P_Motor_Current_Pos(N_MAIN_Z) + 0.1;
+						{// FR X가 양극 위치에 있을 경우 90도까지 가능.
+							//P_Z_Pos_Data = P_Motor_Current_Pos(N_MAIN_Z) + 0.1;
+							P_Z_Pos_Data = P_Motor_Current_Pos(N_MAIN_Z);
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_MAIN_Z;
 							// 현재 모터들이 Z축 리밋이 설정값보다 높다면 갱신하기.
 							if(P_Z_Pos_Data < P_Motor_Current_Pos(N_Clamp_CA_Z2))
@@ -1474,19 +1840,21 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 							}
 
 							// 최종 plus 값이 0보다 낮으면 2차 PNP 진입가능.
-							if(P_Z_Pos_Data < P_Recipe_M11_POS(1) + 0.5)
+							if(P_Z_Pos_Data < P_Recipe_M11_POS(1) + 0.5)		// 스택 테이블 및 클램프 중 가장 높은 값보다 스택 테이블 대기위치 보다 낮을 경우.
 							{// Main Z가 대기위치 + 1 값 보다 높은 값을 가진다면,
-								P_Limit_PosData(Hex_IL_Plus) = 90.5 + P_An_2nd_T_Plus_IL_Offset(1);			// Offset value : 0
+								//P_Limit_PosData(Hex_IL_Plus) = 90.5 + P_An_2nd_T_Plus_IL_Offset(1);			// Offset value : 0
+								P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M04_POS(1) + P_An_2nd_T_Plus_IL_Offset(1);			// Offset value : 0.5, 스택 위치 + Offset 만큼 이동할 수 있음.
 								P_Collision_Risk_Motor(Hex_IL_Plus) = N_FINAL_ROLL_X;
 							}
-							else
+							else												// 스택 테이블 대기위치 + 0.5보다 위에 있을 경우.
 							{
-								P_Limit_PosData(Hex_IL_Plus) = P_Z_Var;			// Offset value : 0
+								P_Limit_PosData(Hex_IL_Plus) = P_Z_Var;			// Offset value : 60, 2차 PNP가 Offset 값을 넘기지 못함.
 							}
 						}
-						else
+						else													// FR X가 양극 위치에서 음극 방향에 있을 경우.
 						{
-							P_Limit_PosData(Hex_IL_Plus) = 50 + P_An_2nd_T_Plus_IL_Offset(2);			// Offset value : 0
+							//P_Limit_PosData(Hex_IL_Plus) = 50 + P_An_2nd_T_Plus_IL_Offset(2);			// Offset value : 0
+							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M04_POS(1) + 50 + P_An_2nd_T_Plus_IL_Offset(2);			// Offset value : 0, 2차 PNP가 대기 위치 + 50도 + Offset값을 넘기지 못함.
 							if(P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Recipe_M12_POS(3))
 							{// FR X가 양극 위치 외에 있는 경우에는
 								P_Collision_Risk_Motor(Hex_IL_Plus) = N_FINAL_ROLL_X;
@@ -1560,7 +1928,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				P_Abs_Trans_Cur_Pos = P_Recipe_M22_POS(5) - P_Anode_2nd_PNP_Z_Real_Move_Pos;		// An 2nd Z [#22] 하강 위치 - 현재 위치 시 절대위치 변환 가능
 				if(P_IL_Outer_Status == N_IL_Normal_Pos )
 				{}
-				else if(P_IL_Outer_Status == N_IL_Stack_Pos )
+				//else if(P_IL_Outer_Status == N_IL_Stack_Pos )
+				else if(P_IL_Outer_Status == N_IL_Stack_Pos || P_IL_Outer_Status == N_IL_Stack_Down_Pos )		// [ 참조 : 26.10.02 인터락 조건 추가 ]
 				{
 				// ================================ 플러스 간섭 요인 : <<없음>> ==================================//
 				// ================================ 마이너스 간섭 요인 : <<Main Z, Clamp>> =============================//
@@ -1607,8 +1976,11 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					else
 						P_No1_Recipe_Pos_IL(N_Clamp_CA_Y1) = 0;
 				//================================ 2번위치 - 클램프 위치 ================================
-					// ↓ 양극 클램프 Y축 클램프 위치 || 스택 테이블 Z축 > 대기 위치 + 0.2
-					if(P_Motor_Current_Pos(N_Clamp_CA_Y1) ~ P_Recipe_M05_POS(2)||P_Motor_Current_Pos(N_MAIN_Z)>P_Recipe_M11_POS(1)+0.2)
+					// ↓ 양극 클램프 Y축 클램프 위치 || 스택 테이블 Z축 > 대기 위치 + 0.2 
+					//if(P_Motor_Current_Pos(N_Clamp_CA_Y1) ~ P_Recipe_M05_POS(2)||P_Motor_Current_Pos(N_MAIN_Z)>P_Recipe_M11_POS(1)+0.2)
+					// [ 참조 : 26.10.02 인터락 조건 추가 ]
+					// ↓ 양극 클램프 Y축 클램프 위치 || 스택 테이블 Z축 > 대기 위치 + 0.2 || 스택 테이블 Z축 ≥ 클램프 Z축 + abs(클램프 레시피 값) ← 절대 좌표계를 맞춤 + abs(클램프 레시피 값)
+					if(P_Motor_Current_Pos(N_Clamp_CA_Y1) ~ P_Recipe_M05_POS(2)||P_Motor_Current_Pos(N_MAIN_Z)>P_Recipe_M11_POS(1)+0.2||P_Motor_Current_Pos(N_MAIN_Z)>=P_Motor_Current_Pos(N_Clamp_CA_Z1)+abs(P_Recipe_M27_POS(2))+abs(P_Recipe_M27_POS(2)))
 						P_No2_Recipe_Pos_IL(N_Clamp_CA_Y1) = 1;
 					else
 						P_No2_Recipe_Pos_IL(N_Clamp_CA_Y1) = 0;
@@ -1650,8 +2022,11 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					else
 						P_No1_Recipe_Pos_IL(N_Clamp_AN_Y1) = 0;
 				//================================ 2번위치 - 클램프 위치 ================================
-					// ↓ 양극 클램프 Y축 클램프 위치 || 스택 테이블 Z축 > 대기 위치 + 0.2
-					if(P_Motor_Current_Pos(N_Clamp_AN_Y1) ~ P_Recipe_M06_POS(2)||P_Motor_Current_Pos(N_MAIN_Z)>P_Recipe_M11_POS(1)+0.2)
+					// ↓ 음극 클램프 Y축 클램프 위치 || 스택 테이블 Z축 > 대기 위치 + 0.2
+					//if(P_Motor_Current_Pos(N_Clamp_AN_Y1) ~ P_Recipe_M06_POS(2)||P_Motor_Current_Pos(N_MAIN_Z)>P_Recipe_M11_POS(1)+0.2)
+					// [ 참조 : 26.10.02 인터락 조건 추가 ]
+					// ↓ 음극 클램프 Y축 클램프 위치 || 스택 테이블 Z축 > 대기 위치 + 0.2 || 스택 테이블 Z축 ≥ 클램프 Z축 + abs(클램프 레시피 값) ← 절대 좌표계를 맞춤 + abs(클램프 레시피 값)
+					if(P_Motor_Current_Pos(N_Clamp_AN_Y1) ~ P_Recipe_M06_POS(2)||P_Motor_Current_Pos(N_MAIN_Z)>P_Recipe_M11_POS(1)+0.2||P_Motor_Current_Pos(N_MAIN_Z)>=P_Motor_Current_Pos(N_Clamp_CA_Z1)+abs(P_Recipe_M28_POS(2))+abs(P_Recipe_M28_POS(2)))
 						P_No2_Recipe_Pos_IL(N_Clamp_AN_Y1) = 1;
 					else
 						P_No2_Recipe_Pos_IL(N_Clamp_AN_Y1) = 0;
@@ -1694,7 +2069,11 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 						P_No1_Recipe_Pos_IL(N_Clamp_CA_Y2) = 0;
 				//================================ 2번위치 - 클램프 위치 ================================
 					// ↓ 양극 클램프 Y축 클램프 위치 || 스택 테이블 Z축 > 대기 위치 + 0.2
-					if(P_Motor_Current_Pos(N_Clamp_CA_Y2) ~ P_Recipe_M07_POS(2)||P_Motor_Current_Pos(N_MAIN_Z)>P_Recipe_M11_POS(1)+0.2)
+					//if(P_Motor_Current_Pos(N_Clamp_CA_Y2) ~ P_Recipe_M07_POS(2)||P_Motor_Current_Pos(N_MAIN_Z)>P_Recipe_M11_POS(1)+0.2)
+					// [ 참조 : 26.10.02 인터락 조건 추가 ]
+					// ↓ 양극 클램프 Y축 클램프 위치 || 스택 테이블 Z축 > 대기 위치 + 0.2 || 스택 테이블 Z축 ≥ 클램프 Z축 + abs(클램프 레시피 값) ← 절대 좌표계를 맞춤 + abs(클램프 레시피 값)
+					if(P_Motor_Current_Pos(N_Clamp_CA_Y2) ~ P_Recipe_M07_POS(2)||P_Motor_Current_Pos(N_MAIN_Z)>P_Recipe_M11_POS(1)+0.2||P_Motor_Current_Pos(N_MAIN_Z)>=P_Motor_Current_Pos(N_Clamp_CA_Z2)+abs(P_Recipe_M25_POS(2))+abs(P_Recipe_M25_POS(2)))
+
 						P_No2_Recipe_Pos_IL(N_Clamp_CA_Y2) = 1;
 					else
 						P_No2_Recipe_Pos_IL(N_Clamp_CA_Y2) = 0;
@@ -1736,8 +2115,11 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					else
 						P_No1_Recipe_Pos_IL(N_Clamp_AN_Y2) = 0;
 				//================================ 2번위치 - 클램프 위치 ================================
-					// ↓ 양극 클램프 Y축 클램프 위치 || 스택 테이블 Z축 > 대기 위치 + 0.2
-					if(P_Motor_Current_Pos(N_Clamp_AN_Y2) ~ P_Recipe_M08_POS(2)||P_Motor_Current_Pos(N_MAIN_Z)>P_Recipe_M11_POS(1)+0.2)
+					// ↓ 음극 클램프 Y축 클램프 위치 || 스택 테이블 Z축 > 대기 위치 + 0.2
+					//if(P_Motor_Current_Pos(N_Clamp_AN_Y2) ~ P_Recipe_M08_POS(2)||P_Motor_Current_Pos(N_MAIN_Z)>P_Recipe_M11_POS(1)+0.2)
+					// [ 참조 : 26.10.02 인터락 조건 추가 ]
+					// ↓ 음극 클램프 Y축 클램프 위치 || 스택 테이블 Z축 > 대기 위치 + 0.2 || 스택 테이블 Z축 ≥ 클램프 Z축 + abs(클램프 레시피 값) ← 절대 좌표계를 맞춤 + abs(클램프 레시피 값)
+					if(P_Motor_Current_Pos(N_Clamp_AN_Y2) ~ P_Recipe_M08_POS(2)||P_Motor_Current_Pos(N_MAIN_Z)>P_Recipe_M11_POS(1)+0.2||P_Motor_Current_Pos(N_MAIN_Z)>=P_Motor_Current_Pos(N_Clamp_AN_Z2)+abs(P_Recipe_M26_POS(2))+abs(P_Recipe_M26_POS(2)))
 						P_No2_Recipe_Pos_IL(N_Clamp_AN_Y2) = 1;
 					else
 						P_No2_Recipe_Pos_IL(N_Clamp_AN_Y2) = 0;
@@ -1965,6 +2347,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 			break;
 
 			case N_MAIN_Z:
+				//================================ 1번위치 - 파이널롤러 대기 위치  ================================
+				P_No1_Recipe_Pos_IL(11) = 0;
 			break;
 
 			case N_FINAL_ROLL_X:
@@ -2065,7 +2449,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				// ================================ 플러스/마이너스 전체 간섭 요인 : <<Main z, Clamp>> ==================================//
 
 					// 위에 상황이 아니라면
-					if(P_Z_Pos_Data > P_Recipe_M11_POS(1) + 0.5 )
+					if(P_Z_Pos_Data > P_Recipe_M11_POS(1) + 0.5 )	
 					{
 						P_Plus_IL_Offset = 0;
 						P_Minus_IL_Offset = 0;
@@ -2075,15 +2459,16 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					else
 					{
 				// ================================ 플러스 간섭 요인 : <<Ca 2nd PNP, Unloader>> ==================================//
-						if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 45)
+						//if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 45)	
+						if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) > P_Recipe_M03_POS(1) + 45)			// 양극 2차 PNP가 대기위치 + 45도 넘을 경우.
 						{
-							P_Plus_IL_Offset = P_FR_X_Plus_IL_Offset(0);				// Offset value : -200
+							P_Plus_IL_Offset = P_FR_X_Plus_IL_Offset(0);							// Offset value : -200
 							P_Limit_PosData(Hex_IL_Plus) = P_2nd_PNP_Arm_Radius * cosd(P_Motor_Current_Pos(N_2nd_PnP_CA_T)) + P_Plus_IL_Offset;
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_2nd_PnP_CA_T;
 						}
 						else
 						{// 언로더 X축 스텍전진위치 - 언로더 X 현재 위치 - FR 음 이동방향 		
-							P_Plus_IL_Offset = P_FR_X_Plus_IL_Offset(1);				// Offset value : -10
+							P_Plus_IL_Offset = P_FR_X_Plus_IL_Offset(1);				// Offset value : -20
 							// 언로더 스텍 진입티칭 - 현재 언로더 위치 + 파이널롤 음극대기(음수임) + 플러스 오프셋 계산 -> Stack Center 기준 몇 mm 떨어져있는지 확인가능.
 							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M46_POS(3) - P_Motor_Current_Pos(N_UNLOADER_X) + P_Recipe_M12_POS(2) + P_Plus_IL_Offset;	
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_UNLOADER_X;
@@ -2091,7 +2476,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					// ================================ 마이너스 간섭 요인 : <<An 2nd PNP, >> ==================================//
 						if(P_Motor_Current_Pos(N_2nd_PnP_AN_T) > 45)
 						{
-							P_Minus_IL_Offset = P_FR_X_Minus_IL_Offset(0);
+							P_Minus_IL_Offset = P_FR_X_Minus_IL_Offset(0);							// Offset value : -200
 							P_Limit_PosData(Hex_IL_Minus) = P_2nd_PNP_Arm_Radius * cosd(P_Motor_Current_Pos(N_2nd_PnP_AN_T))*-1 + P_Minus_IL_Offset;
 							P_Collision_Risk_Motor(Hex_IL_Minus) = N_2nd_PnP_AN_T;
 						}
@@ -2229,15 +2614,16 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					// ================================ 플러스 간섭 요인 : <<Ca 1st PNP, 2nd pnp>> ==================================//
 						if(P_Motor_Current_Pos(N_1st_PnP_CA_T) > P_Recipe_M01_POS(3) - 10)	// 1nd pnp가 80도 초과 부근이라면
 						{
-							P_Plus_IL_Offset = P_Ca_NG_PNP_Plus_IL_Offset(0);
-							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M42_POS(2) + P_Plus_IL_Offset;
+							P_Plus_IL_Offset = P_Ca_NG_PNP_Plus_IL_Offset(0);						// Offset value : -40
+							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M42_POS(2) + P_Plus_IL_Offset;	// NG PNP T축 플러스 이동 시 얼라인 위치 + Offset을 넘길 수 없음.
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_1st_PnP_CA_T;
 						}
 					// ================================ 마이너스 간섭 요인 : <<Unloader>> ==================================//
 						if(P_Motor_Current_Pos(N_UNLOADER_X) < P_Recipe_M46_POS(1) + 30 && P_Motor_Current_Pos(N_UNLOADER_Z) < P_Recipe_M47_POS(2) + 45)		// 취출위치 Z축 상승이라면,
 						{
-							P_Minus_IL_Offset = P_Ca_NG_PNP_Minus_IL_Offset(0);
-							P_Limit_PosData(Hex_IL_Minus) = 70 + P_Minus_IL_Offset;
+							P_Minus_IL_Offset = P_Ca_NG_PNP_Minus_IL_Offset(0);						// Offset value : 0
+							//P_Limit_PosData(Hex_IL_Minus) = 70 + P_Minus_IL_Offset;
+							P_Limit_PosData(Hex_IL_Minus) = P_Recipe_M42_POS(2) - 20 + P_Minus_IL_Offset;	// NG PNP T축 마이너스 이동 시 얼라인 위치 - 20 + Offset을 넘길 수 없음.
 							P_Collision_Risk_Motor(Hex_IL_Minus) = N_UNLOADER_Z;
 						}
 					}
@@ -2248,8 +2634,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 						// ================================ 플러스 간섭 요인 : <<Ca 1st PNP>> ==================================//	
 							if(P_Motor_Current_Pos(N_1st_PnP_CA_T) > P_Recipe_M01_POS(3) - 10)	// 1nd pnp가 80도 초과 부근이라면
 							{
-								P_Plus_IL_Offset = P_Ca_NG_PNP_Plus_IL_Offset(1);
-								P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M42_POS(2) + P_Plus_IL_Offset;
+								P_Plus_IL_Offset = P_Ca_NG_PNP_Plus_IL_Offset(1);						// Offset value : -30
+								P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M42_POS(2) + P_Plus_IL_Offset;	// NG PNP T축 플러스 이동 시 얼라인 위치 + Offset을 넘길 수 없음.
 								P_Collision_Risk_Motor(Hex_IL_Plus) = N_1st_PnP_CA_T;
 							}
 							else
@@ -2262,28 +2648,32 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 						// ================================ 마이너스 간섭 요인 : <<Unloader, Ca 2nd PNP>> ==================================//
 							if(P_Motor_Current_Pos(N_UNLOADER_X) < P_Recipe_M46_POS(1) + 30 && P_Motor_Current_Pos(N_UNLOADER_Z) < P_Recipe_M47_POS(2) + 45)		// 취출위치 Z축 상승이라면,
 							{
-								P_Minus_IL_Offset = P_Ca_NG_PNP_Minus_IL_Offset(1);
-								P_Limit_PosData(Hex_IL_Minus) = 70 + P_Minus_IL_Offset;
+								P_Minus_IL_Offset = P_Ca_NG_PNP_Minus_IL_Offset(1);						// Offset value : 0
+								//P_Limit_PosData(Hex_IL_Minus) = 70 + P_Minus_IL_Offset;
+								P_Limit_PosData(Hex_IL_Minus) = P_Recipe_M42_POS(2) - 20 + P_Minus_IL_Offset;	// NG PNP T축 마이너스 이동 시 얼라인 위치 - 20 + Offset을 넘길 수 없음.
 								P_Collision_Risk_Motor(Hex_IL_Minus) = N_UNLOADER_Z;
 							}
 							else
 							{
-								P_Minus_IL_Offset = P_Ca_NG_PNP_Minus_IL_Offset(2);
-								P_Limit_PosData(Hex_IL_Minus) = 45 + P_Minus_IL_Offset;
+								P_Minus_IL_Offset = P_Ca_NG_PNP_Minus_IL_Offset(2);						// Offset value : 30
+								//P_Limit_PosData(Hex_IL_Minus) = 45 + P_Minus_IL_Offset;					
+								P_Limit_PosData(Hex_IL_Minus) = P_Recipe_M42_POS(2) - 45 + P_Minus_IL_Offset;	// NG PNP T축 마이너스 이동 시 얼라인 위치 - 45 + Offset을 넘길 수 없음.
 								P_Collision_Risk_Motor(Hex_IL_Minus) = N_2nd_PnP_CA_T;
 							}
 						}
 						else
 						{// 0 ~ 20 이면
 						// ================================ 플러스 간섭 요인 : <<Ca 2nd PNP>> ==================================//	
-							P_Plus_IL_Offset = P_Ca_NG_PNP_Plus_IL_Offset(3);
-							P_Limit_PosData(Hex_IL_Plus) = 60 + P_Plus_IL_Offset;
+							P_Plus_IL_Offset = P_Ca_NG_PNP_Plus_IL_Offset(3);							// Offset value : -10
+							//P_Limit_PosData(Hex_IL_Plus) = 60 + P_Plus_IL_Offset;						
+							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M42_POS(1) + 60 + P_Plus_IL_Offset;	// NG PNP T축 플러스 이동 시 대기 위치 + 60 + Offset을 넘길 수 없음.						
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_2nd_PnP_CA_T;
 						// ================================ 마이너스 간섭 요인 : <<Unloader>> ==================================//	
-							P_Minus_IL_Offset = P_Ca_NG_PNP_Minus_IL_Offset(3);
+							P_Minus_IL_Offset = P_Ca_NG_PNP_Minus_IL_Offset(3);							// Offset value : 0
 							if(P_Motor_Current_Pos(N_UNLOADER_X) < P_Recipe_M46_POS(1) + 30 && P_Motor_Current_Pos(N_UNLOADER_Z) < P_Recipe_M47_POS(2) + 45)		// 취출위치 Z축 상승이라면,
 							{
-								P_Limit_PosData(Hex_IL_Minus) = 70 + P_Minus_IL_Offset;
+								//P_Limit_PosData(Hex_IL_Minus) = 70 + P_Minus_IL_Offset;
+								P_Limit_PosData(Hex_IL_Minus) = P_Recipe_M42_POS(2) - 20 + P_Minus_IL_Offset;	// NG PNP T축 마이너스 이동 시 얼라인 위치 - 20 + Offset을 넘길 수 없음.
 								P_Collision_Risk_Motor(Hex_IL_Minus) = N_UNLOADER_Z;
 							}
 						}
@@ -2298,13 +2688,13 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				{
 				//================================ 1번위치 - NG 대기 위치  ================================
 					// ↓ 음극 NG PNP T축 대기 위치
-					if(P_Motor_Current_Pos(N_NG_PnP_AN_T) ~ P_Recipe_M42_POS(1))	
+					if(P_Motor_Current_Pos(N_NG_PnP_AN_T) ~ P_Recipe_M43_POS(1))	
 						P_No1_Recipe_Pos_IL(N_NG_PnP_AN_T) = 1;
 					else
 						P_No1_Recipe_Pos_IL(N_NG_PnP_AN_T) = 0;
 				//================================ 2번위치 - NG Align 위치 ================================
 					// ↓ 음극 NG PNP T축 얼라인 위치 || 음극 2차 PNP T축 < 대기 위치 + 45º || 음극 1차 PNP T축 > 대기 위치
-					if(P_Motor_Current_Pos(N_NG_PnP_AN_T) ~ P_Recipe_M42_POS(2) || P_Motor_Current_Pos(N_2nd_PnP_AN_T) < P_Recipe_M04_POS(1) + 45 || P_Motor_Current_Pos(N_1st_PnP_AN_T) > P_Recipe_M02_POS(1) + 0.2)	
+					if(P_Motor_Current_Pos(N_NG_PnP_AN_T) ~ P_Recipe_M43_POS(2) || P_Motor_Current_Pos(N_2nd_PnP_AN_T) < P_Recipe_M04_POS(1) + 45 || P_Motor_Current_Pos(N_1st_PnP_AN_T) > P_Recipe_M02_POS(1) + 0.2)	
 						P_No2_Recipe_Pos_IL(N_NG_PnP_AN_T) = 1;
 					else
 						P_No2_Recipe_Pos_IL(N_NG_PnP_AN_T) = 0;
@@ -2342,9 +2732,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				// ================================ 플러스 간섭 요인 : <<An 1st PNP>> ==================================//
 						if(P_Motor_Current_Pos(N_1st_PnP_AN_T) > P_Recipe_M02_POS(3) - 10)	// 1nd pnp가 70도 초과 부근이라면
 						{
-							P_Plus_IL_Offset = P_An_NG_PNP_Plus_IL_Offset(0);
-							//P_Plus_IL_Offset = -30;
-							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M43_POS(2) + P_Plus_IL_Offset;
+							P_Plus_IL_Offset = P_An_NG_PNP_Plus_IL_Offset(0);						// Offset value : -30
+							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M43_POS(2) + P_Plus_IL_Offset;	// NG PNP T축 플러스 이동 시 얼라인 위치 + Offset을 넘길 수 없음.
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_1st_PnP_AN_T;
 						}
 				// ================================ 마이너스 간섭 요인 : <<없음>> ==================================//
@@ -2356,24 +2745,22 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				// ================================ 플러스 간섭 요인 : <<An 1st PNP>> ==================================//	
 							if(P_Motor_Current_Pos(N_1st_PnP_AN_T) > P_Recipe_M02_POS(3) - 10)	// 1nd pnp가 70도 초과 부근이라면
 							{
-								P_Plus_IL_Offset = P_An_NG_PNP_Plus_IL_Offset(1);
-								//P_Plus_IL_Offset = -30;
-								P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M43_POS(2) + P_Plus_IL_Offset;
+								P_Plus_IL_Offset = P_An_NG_PNP_Plus_IL_Offset(1);							// Offset value : -30
+								P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M43_POS(2) + P_Plus_IL_Offset;		// NG PNP T축 플러스 이동 시 얼라인 위치 + Offset을 넘길 수 없음.
 								P_Collision_Risk_Motor(Hex_IL_Plus) = N_1st_PnP_AN_T;
 							}
 				// ================================ 마이너스 간섭 요인 : <<An 2nd PNP>> ==================================//
-							P_Minus_IL_Offset = P_An_NG_PNP_Minus_IL_Offset(0);
-							
-							//P_Minus_IL_Offset = P_An_NG_PNP_Plus_IL_Offset(0);
-							P_Limit_PosData(Hex_IL_Minus) = 45 + P_Minus_IL_Offset;
+							P_Minus_IL_Offset = P_An_NG_PNP_Minus_IL_Offset(0);							// Offset value : 30
+							//P_Limit_PosData(Hex_IL_Minus) = 45 + P_Minus_IL_Offset;
+							P_Limit_PosData(Hex_IL_Minus) = P_Recipe_M43_POS(2) - 45 + P_Minus_IL_Offset;	// NG PNP T축 마이너스 이동 시 얼라인 위치 - 45 + Offset을 넘길 수 없음.
 							P_Collision_Risk_Motor(Hex_IL_Minus) = N_2nd_PnP_AN_T;
 						}
 						else
 						{// 0 ~ 20 이면
 						// ================================ 플러스 간섭 요인 : <<An 2nd PNP>> ==================================//	
-							P_Plus_IL_Offset = P_An_NG_PNP_Plus_IL_Offset(2);
-							//P_Plus_IL_Offset = -20;
-							P_Limit_PosData(Hex_IL_Plus) = 60 + P_Plus_IL_Offset;
+							P_Plus_IL_Offset = P_An_NG_PNP_Plus_IL_Offset(2);							// Offset value : -10
+							//P_Limit_PosData(Hex_IL_Plus) = 60 + P_Plus_IL_Offset;
+							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M43_POS(1) + 60 + P_Plus_IL_Offset;	// NG PNP T축 플러스 이동 시 대기 위치 + 60 + Offset을 넘길 수 없음.
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_2nd_PnP_AN_T;
 						// ================================ 마이너스 간섭 요인 : <<없음>> ==================================//	
 						}
@@ -2505,17 +2892,17 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					P_No3_Recipe_Pos_IL(N_UNLOADER_X) = 0;
 			//================================ 4번위치 - 후진 위치 ================================
 				// ↓ 언로더 X축 후진 위치 || 양극 2차 PNP T축 !~ 대기 위치 || 파이널 롤 X축 > 음극 위치 || 얼로더 T축 !~ 대기 위치 || 언로더 Z축 !~ 상승 위치 || 양극 NG PNP T축 !~ 대기 위치
-				if(P_Motor_Current_Pos(N_UNLOADER_X) ~ P_Recipe_M46_POS(4) || !(P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ P_Recipe_M03_POS(1)) || !(P_Motor_Current_Pos(N_UNLOADER_T) ~ P_Recipe_M48_POS(2)) || !(P_Motor_Current_Pos(N_UNLOADER_Z) ~ P_Recipe_M47_POS(2)) || !(P_Motor_Current_Pos(N_NG_PnP_CA_T) ~ P_Recipe_M42_POS(1)))		
-					P_No4_Recipe_Pos_IL(N_UNLOADER_X) = 1;
-				else
-					P_No4_Recipe_Pos_IL(N_UNLOADER_X) = 0;
+//				if(P_Motor_Current_Pos(N_UNLOADER_X) ~ P_Recipe_M46_POS(4) || !(P_Motor_Current_Pos(N_2nd_PnP_CA_T) ~ P_Recipe_M03_POS(1)) || !(P_Motor_Current_Pos(N_UNLOADER_T) ~ P_Recipe_M48_POS(2)) || !(P_Motor_Current_Pos(N_UNLOADER_Z) ~ P_Recipe_M47_POS(2)) || !(P_Motor_Current_Pos(N_NG_PnP_CA_T) ~ P_Recipe_M42_POS(1)))		
+//					P_No4_Recipe_Pos_IL(N_UNLOADER_X) = 1;
+//				else
+//					P_No4_Recipe_Pos_IL(N_UNLOADER_X) = 0;
 				//================================ 미사용 위치 인터락 ===========================================
 					P_No5_Recipe_Pos_IL(N_UNLOADER_X) = 1;
 					P_No6_Recipe_Pos_IL(N_UNLOADER_X) = 1;
 					P_No7_Recipe_Pos_IL(N_UNLOADER_X) = 1;			// 인터락
 					P_No8_Recipe_Pos_IL(N_UNLOADER_X) = 1;			// 인터락
 					P_No9_Recipe_Pos_IL(N_UNLOADER_X) = 1;			// 인터락
-					P_No10_Recipe_Pos_IL(N_UNLOADER_X) = 1;		// 인터락
+					P_No10_Recipe_Pos_IL(N_UNLOADER_X) = 1;			// 인터락
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Jog, ABS, INC Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 				P_Abs_Trans_Cur_Pos = P_Motor_Current_Pos(P_IL_Motor_Page); // FR Z축이랑 확인. 
 				// << 중요!!! 절대 위치를 Stack Table로 맞추어서 마이너스 기준을 >>
@@ -2529,7 +2916,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				{
 				// ================================ 플러스 간섭 요인 : <<Ca 2nd PNP>> ==================================//	
 					P_Plus_IL_Offset = P_Unloader_X_Plus_IL_Offset(0);
-					if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 45 )
+					//if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 45 )
+					if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) > P_Recipe_M03_POS(0) + 45 )				// 양극 2차 PNP가 대기 위치 + 45도 이상에 있을 경우.
 					{
 						P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M46_POS(3) - P_Motor_Current_Pos(N_UNLOADER_X) + P_Recipe_M12_POS(2) - (P_2nd_PNP_Arm_Radius * cosd(P_Motor_Current_Pos(N_2nd_PnP_CA_T))) + P_Plus_IL_Offset;
 						//P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M46_POS(2) + P_Plus_IL_Offset;
@@ -2540,9 +2928,10 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				else if(P_IL_Outer_Status == N_IL_Stack_Pos)
 				{
 				// ================================ 플러스 간섭 요인 : <<Main Z, Final Roller, Ca 2nd PNP>> ==================================//	
-					if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 70 )
+					//if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 70 )
+					if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) > P_Recipe_M03_POS(0) + 70 )				// 양극 2차 PNP가 대기 위치 + 70도 이상에 있을 경우.
 					{// 2차가 70도 초과위치에 있으면 플러스 간섭요인에 2차 추가.
-						P_Plus_IL_Offset = P_Unloader_X_Plus_IL_Offset(0);
+						P_Plus_IL_Offset = P_Unloader_X_Plus_IL_Offset(0);							// Offset value : -50
 						P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M46_POS(3) - P_Motor_Current_Pos(N_UNLOADER_X) + P_Recipe_M12_POS(2) - (P_2nd_PNP_Arm_Radius * cosd(P_Motor_Current_Pos(N_2nd_PnP_CA_T))) + P_Plus_IL_Offset;
 						//P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M46_POS(3) + P_Plus_IL_Offset;			// 스텍 진입 티칭 위치가지 진입 가능.
 					}
@@ -2552,19 +2941,19 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 						{// Main Z가 애초에 높으면 못들어오게해야함. 스텍 실린더 io추가해야할수도
 							if(P_Motor_Current_Pos(N_FINAL_ROLL_X) <= P_Recipe_M12_POS(2) )
 							{// 파이널롤 음극 적층 위치
-								P_Plus_IL_Offset = P_Unloader_X_Plus_IL_Offset(1);
-								P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M46_POS(3) + P_Plus_IL_Offset;			// 스텍 진입 티칭 위치가지 진입 가능.
+								P_Plus_IL_Offset = P_Unloader_X_Plus_IL_Offset(1);					// Offset value : -5
+								P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M46_POS(3) + P_Plus_IL_Offset;	// 스텍 진입 티칭 위치가지 진입 가능.
 							}
 							else if(P_Motor_Current_Pos(N_FINAL_ROLL_X) > 0)
 							{
-								P_Plus_IL_Offset = P_Unloader_X_Plus_IL_Offset(2);
-								P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M46_POS(3) + P_Recipe_M12_POS(2) + P_Plus_IL_Offset;		// 
+								P_Plus_IL_Offset = P_Unloader_X_Plus_IL_Offset(2);					// Offset value : -200
+								P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M46_POS(3) + P_Recipe_M12_POS(2) + P_Plus_IL_Offset;
 							}
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_FINAL_ROLL_X;
 						}
 						else
 						{
-							P_Plus_IL_Offset = P_Unloader_X_Plus_IL_Offset(3);
+							P_Plus_IL_Offset = P_Unloader_X_Plus_IL_Offset(3);						// Offset value : 0
 							P_Limit_PosData(Hex_IL_Plus) = P_Recipe_M46_POS(2) + P_Plus_IL_Offset;
 							P_Collision_Risk_Motor(Hex_IL_Plus) = N_MAIN_Z;
 						}
@@ -2572,9 +2961,10 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				// ================================ 마이너스 간섭 요인 : <<Ca 2nd PNP, NG PNP>> ==================================//	
 					// 2차가 15도 미만 상태면, 마이너스 간섭요인으로 판단 
 					//if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 13 || P_Motor_Current_Pos(N_NG_PnP_CA_T) > 30 )		//2차, NG PNP가 30도 초과되어있으면
-					if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 20 && P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 13 || P_Motor_Current_Pos(N_NG_PnP_CA_T) > 20 )		//2차, NG PNP가 30도 초과되어있으면
+					//if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 20 && P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 13 || P_Motor_Current_Pos(N_NG_PnP_CA_T) > 20 )		//2차, NG PNP가 30도 초과되어있으면
+					if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) < P_Recipe_M03_POS(0) + 20 && P_Motor_Current_Pos(N_2nd_PnP_CA_T) > P_Recipe_M03_POS(0) + 13 || P_Motor_Current_Pos(N_NG_PnP_CA_T) >  P_Recipe_M42_POS(0) + 20 )		// 2차 PNP가 대기 위치 + 13 ~ 20이거나 NG PNP T축이 대기위치 + 20 일 경우.
 					{
-						P_Minus_IL_Offset = P_Unloader_X_Minus_IL_Offset(0);
+						P_Minus_IL_Offset = P_Unloader_X_Minus_IL_Offset(0);						// Offset value : 330
 						// 수정포인트 언로더 X축떄문에 마이너스 증가함.
 						//P_Limit_PosData(Hex_IL_Minus) = P_Motor_Current_Pos(N_UNLOADER_X) + P_Minus_IL_Offset;		// 아예 못나오게 우선 함.
 						P_Limit_PosData(Hex_IL_Minus) = P_Minus_IL_Offset;		// 아예 못나오게 우선 함.
@@ -2626,32 +3016,49 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				if(P_IL_Outer_Status == N_IL_Normal_Pos)
 				{
 				// ================================ 플러스 간섭 요인 : <<Ca 2nd pnp, Ca NG PNP>> ==================================//	
-					if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 30 && P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 70 )
-					{
-						P_Plus_IL_Offset = P_Unloader_Z_Plus_IL_Offset(0);
-						P_Limit_PosData(Hex_IL_Plus) = 0 + P_Plus_IL_Offset;
+					//if(P_Motor_Current_Pos(N_2nd_PnP_CA_T) > 30 && P_Motor_Current_Pos(N_2nd_PnP_CA_T) < 70 )
+					// [ 참조 : 26.10.02 인터락 조건 추가 ]
+					if( P_Recipe_M03_POS(1) + 20 < P_Motor_Current_Pos(N_2nd_PnP_CA_T) && P_Motor_Current_Pos(N_2nd_PnP_CA_T) < P_Recipe_M03_POS(2) - 10 )
+					{ // 양극 2차 PNP가 언로더 위에 있을 경우 → 언로더 Z축 구동 불가.
+						P_Plus_IL_Offset = P_Unloader_Z_Plus_IL_Offset(0);						// Offset value : -70
+						P_Limit_PosData(Hex_IL_Plus) = 0 + P_Plus_IL_Offset;					// 언로더 Z축이 Offset 이상으로 올라가지 못함 (절대 위치 변환을 위한 부호 반대)
 						P_Collision_Risk_Motor(Hex_IL_Plus) = N_2nd_PnP_CA_T;
 					}
-					else if( P_Motor_Current_Pos(N_NG_PnP_CA_T) > 30 &&P_Motor_Current_Pos(N_NG_PnP_CA_T) < 70 )
+					else if( P_Motor_Current_Pos(N_NG_PnP_CA_T) > P_Recipe_M42_POS(1) + 30 &&P_Motor_Current_Pos(N_NG_PnP_CA_T) < P_Recipe_M42_POS(1) + 70 )
 					{
-						P_Plus_IL_Offset = P_Unloader_Z_Plus_IL_Offset(1);
-						P_Limit_PosData(Hex_IL_Plus) = 0 + P_Plus_IL_Offset;
+						P_Plus_IL_Offset = P_Unloader_Z_Plus_IL_Offset(1);						// Offset value : -55
+						P_Limit_PosData(Hex_IL_Plus) = 0 + P_Plus_IL_Offset;					// 언로더 Z축이 Offset 이상으로 올라가지 못함 (절대 위치 변환을 위한 부호 반대)
 						P_Collision_Risk_Motor(Hex_IL_Plus) = N_NG_PnP_CA_T;
 					}
 				// ================================ 마이너스 간섭 요인 : <<없음>> ==================================//	
 				}
 				else if(P_IL_Outer_Status == N_IL_Upper_Pos)
 				{
+				// ================================ 플러스 간섭 요인 : <<Ca 2nd pnp, Ca NG PNP>> ==================================//	
+					// [ 참조 : 26.10.02 인터락 조건 추가 ]
+					if( P_Recipe_M03_POS(1) + 20 < P_Motor_Current_Pos(N_2nd_PnP_CA_T) && P_Motor_Current_Pos(N_2nd_PnP_CA_T) < P_Recipe_M03_POS(2) - 10 )
+					{ // 양극 2차 PNP가 언로더 위에 있을 경우 → 언로더 Z축 구동 불가.
+						P_Plus_IL_Offset = P_Unloader_Z_Plus_IL_Offset(0);						// Offset value : -70
+						P_Limit_PosData(Hex_IL_Plus) = 0 + P_Plus_IL_Offset;					// 언로더 Z축이 Offset 이상으로 올라가지 못함 (절대 위치 변환을 위한 부호 반대)
+						P_Collision_Risk_Motor(Hex_IL_Plus) = N_2nd_PnP_CA_T;
+					}
+					else if( P_Motor_Current_Pos(N_NG_PnP_CA_T) > P_Recipe_M42_POS(1) + 15 &&P_Motor_Current_Pos(N_NG_PnP_CA_T) < P_Recipe_M42_POS(1) + 70 )
+					{
+						P_Plus_IL_Offset = P_Unloader_Z_Plus_IL_Offset(1);						// Offset value : -55
+						P_Limit_PosData(Hex_IL_Plus) = 0 + P_Plus_IL_Offset;					// 언로더 Z축이 Offset 이상으로 올라가지 못함 (절대 위치 변환을 위한 부호 반대)
+						P_Collision_Risk_Motor(Hex_IL_Plus) = N_NG_PnP_CA_T;
+					}
+				// ================================ 마이너스 간섭 요인 : <<없음>> ==================================//	
 				}
 				else if(P_IL_Outer_Status == N_IL_Stack_Pos)
 				{
 				// ================================ 플러스 간섭 요인 : <<없음>> ==================================//	
 				// ================================ 마이너스 간섭 요인 : <<Main Z>> ==================================//	
-					if(P_Motor_Current_Pos(P_IL_Motor_Page) > 250 )
+					if(P_Motor_Current_Pos(P_IL_Motor_Page) > 250 )								// ← 조건 확인 필요.
 					{
-						P_Minus_IL_Offset = P_Unloader_Z_Minus_IL_Offset(0);
+						P_Minus_IL_Offset = P_Unloader_Z_Minus_IL_Offset(1);					// Offset value : 1
 						// 현재 위치랑 
-						P_Limit_PosData(Hex_IL_Minus) = P_Motor_Current_Pos(N_MAIN_Z) + P_Minus_IL_Offset;
+						P_Limit_PosData(Hex_IL_Minus) = P_Motor_Current_Pos(N_MAIN_Z) + P_Minus_IL_Offset;	// 언로더 Z축이 메인 테이블 Z툭 + Offset 밑으로 못 내려감.
 						P_Collision_Risk_Motor(Hex_IL_Minus) = N_MAIN_Z;
 					}
 				}
@@ -3005,15 +3412,17 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_SHEET_PAPER_X:
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+				P_Abs_Trans_Cur_Pos = P_Motor_Current_Pos(P_IL_Motor_Page);		// Sheet Paper X [#35] - 엔코더 위치가 곧 절대위치
 			//================================ 1번위치 -대기 위치 ================================
-				
-				if(P_Motor_Current_Pos(N_SHEET_PAPER_X) ~ P_Recipe_M35_POS(1) )		
+				//if(P_Motor_Current_Pos(N_SHEET_PAPER_X) ~ P_Recipe_M35_POS(1) && P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(1) + 1 )	
+				if(P_Motor_Current_Pos(N_SHEET_PAPER_X) ~ P_Recipe_M35_POS(1) && P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(1) + 0.5 )	// [ 참조 : 26.10.02 인터락 조건 추가 ]		
 					P_No1_Recipe_Pos_IL(N_SHEET_PAPER_X) = 1;
 				else
 					P_No1_Recipe_Pos_IL(N_SHEET_PAPER_X) = 0;
 			//================================ 2번위치 -전진 위치 ================================
 				
-				if(P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(1) + 1 )		
+				//if(P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(1) + 1 )		
+				if(P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(1) + 0.5 )		// [ 참조 : 26.10.02 인터락 조건 추가 ]
 					P_No2_Recipe_Pos_IL(N_SHEET_PAPER_X) = 1;
 				else
 					P_No2_Recipe_Pos_IL(N_SHEET_PAPER_X) = 0;
@@ -3028,7 +3437,16 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					P_No8_Recipe_Pos_IL(N_SHEET_PAPER_X) = 1;			// 인터락
 					P_No9_Recipe_Pos_IL(N_SHEET_PAPER_X) = 1;			// 인터락
 					P_No10_Recipe_Pos_IL(N_SHEET_PAPER_X) = 1;			// 인터락
-
+				// [ 참조 : 26.10.02 인터락 조건 추가 ]
+				if(P_IL_Outer_Status == N_IL_Normal_Pos)
+				{
+				// ================================ 플러스 간섭 요인 : <<Final Roll>> ==================================//	
+					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Recipe_M12_POS(2) + 0.5 && P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(1) + 0.5)
+					{ // 파이널 롤러 Z축이 대기 위치보다 낮게 있을 경우 → 구동 불가.
+						P_Limit_PosData(Hex_IL_Plus) = -150;			// 파이널 롤러 X축 -리밋 일 때 시트 페이퍼 X축 Enc
+						P_Collision_Risk_Motor(Hex_IL_Plus) = N_FINAL_ROLL_Z;					
+					}
+				}
 			break;
 		}
 	}
@@ -3050,77 +3468,82 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 	{
 		if(P_IL_Motor_Page == N_FINAL_ROLL_Z || P_IL_Motor_Page == N_1st_PnP_CA_Z || P_IL_Motor_Page == N_1st_PnP_AN_Z || P_IL_Motor_Page == N_2nd_PnP_CA_Z || P_IL_Motor_Page == N_2nd_PnP_AN_Z || P_IL_Motor_Page == N_UNLOADER_Z)
 		{
-			// 절대위치 기준은 위쪽방향이 플러스인데, 위쪽이 마이너스 아래쪽이 플러스로 보는 구조임.
-			if(P_Limit_PosData(Hex_IL_Plus) != N_Nan)
+			if(P_IL_Outer_Status != N_IL_Belt_Down_Pos && P_IL_Outer_Status != N_IL_Align_Down_Pos &&  P_IL_Outer_Status != N_IL_Stack_Down_Pos)	// 양,음극 1,2차 PNP Z축에서 P_IL_Robot_Bit 비트 연산이 계속 되어 조건 추가. [ 참조 : 26.10.02 인터락 조건 추가 ]
 			{
-				if(P_Limit_PosData(Hex_IL_Plus) < P_Abs_Trans_Cur_Pos)
+				// 절대위치 기준은 위쪽방향이 플러스인데, 위쪽이 마이너스 아래쪽이 플러스로 보는 구조임.
+				if(P_Limit_PosData(Hex_IL_Plus) != N_Nan)
 				{
-					P_IL_Popup_Motor = P_Collision_Risk_Motor(Hex_IL_Plus);
-					P_IL_Robot_Bit |= Hex_IL_Minus;
+					if(P_Limit_PosData(Hex_IL_Plus) < P_Abs_Trans_Cur_Pos)
+					{
+						P_IL_Popup_Motor = P_Collision_Risk_Motor(Hex_IL_Plus);
+						P_IL_Robot_Bit |= Hex_IL_Minus;
+					}
+					else
+					{
+						P_IL_Robot_Bit &= Hex_IL_Plus;			// 플러스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며  Minus Bit 0만들기 위함
+					}
 				}
 				else
 				{
-					P_IL_Robot_Bit &= Hex_IL_Plus;			// 플러스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며  Minus Bit 0만들기 위함
+					P_IL_Robot_Bit &= Hex_IL_Plus;				// 플러스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며  Minus Bit 0만들기 위함
 				}
-			}
-			else
-			{
-				P_IL_Robot_Bit &= Hex_IL_Plus;				// 플러스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며  Minus Bit 0만들기 위함
-			}
 
-			if(P_Limit_PosData(Hex_IL_Minus) != N_Nan)
-			{
-				if(P_Limit_PosData(Hex_IL_Minus) > P_Abs_Trans_Cur_Pos)
+				if(P_Limit_PosData(Hex_IL_Minus) != N_Nan)
 				{
-					P_IL_Popup_Motor = P_Collision_Risk_Motor(Hex_IL_Minus);
-					P_IL_Robot_Bit |= Hex_IL_Plus;
+					if(P_Limit_PosData(Hex_IL_Minus) > P_Abs_Trans_Cur_Pos)
+					{
+						P_IL_Popup_Motor = P_Collision_Risk_Motor(Hex_IL_Minus);
+						P_IL_Robot_Bit |= Hex_IL_Plus;
+					}
+					else
+					{
+						P_IL_Robot_Bit &= Hex_IL_Minus;			// 마이너스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며 Plus Bit 0만들기 위함
+					}
 				}
 				else
 				{
-					P_IL_Robot_Bit &= Hex_IL_Minus;			// 마이너스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며 Plus Bit 0만들기 위함
+					P_IL_Robot_Bit &= Hex_IL_Minus;				// 마이너스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며 Plus Bit 0만들기 위함
 				}
 			}
-			else
-			{
-				P_IL_Robot_Bit &= Hex_IL_Minus;				// 마이너스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며 Plus Bit 0만들기 위함
-			}
-
 		}
 		else
 		{
-			// 현재 위치보다 설정된 플러스 방향 인터락 위치가 커지면
-			if(P_Limit_PosData(Hex_IL_Plus) != N_Nan)
+			if(P_IL_Outer_Status != N_IL_Belt_Down_Pos && P_IL_Outer_Status != N_IL_Align_Down_Pos && P_IL_Outer_Status != N_IL_Stack_Down_Pos )	// 양,음극 1,2차 PNP Z축에서 P_IL_Robot_Bit 비트 연산이 계속 되어 조건 추가. [ 참조 : 26.10.02 인터락 조건 추가 ]
 			{
-				if(P_Limit_PosData(Hex_IL_Plus) <= P_Abs_Trans_Cur_Pos)
+				// 현재 위치보다 설정된 플러스 방향 인터락 위치가 커지면
+				if(P_Limit_PosData(Hex_IL_Plus) != N_Nan)
 				{
-					P_IL_Popup_Motor = P_Collision_Risk_Motor(Hex_IL_Plus);
-					P_IL_Robot_Bit |= Hex_IL_Plus;
+					if(P_Limit_PosData(Hex_IL_Plus) <= P_Abs_Trans_Cur_Pos)
+					{
+						P_IL_Popup_Motor = P_Collision_Risk_Motor(Hex_IL_Plus);
+						P_IL_Robot_Bit |= Hex_IL_Plus;
+					}
+					else
+					{
+						P_IL_Robot_Bit &= Hex_IL_Minus;			// 마이너스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며 Plus Bit 0만들기 위함
+					}
 				}
 				else
 				{
-					P_IL_Robot_Bit &= Hex_IL_Minus;			// 마이너스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며 Plus Bit 0만들기 위함
+					P_IL_Robot_Bit &= Hex_IL_Minus;				// 마이너스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며 Plus Bit 0만들기 위함
 				}
-			}
-			else
-			{
-				P_IL_Robot_Bit &= Hex_IL_Minus;				// 마이너스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며 Plus Bit 0만들기 위함
-			}
 
-			if(P_Limit_PosData(Hex_IL_Minus) != N_Nan)
-			{
-				if(P_Limit_PosData(Hex_IL_Minus) >= P_Abs_Trans_Cur_Pos)
+				if(P_Limit_PosData(Hex_IL_Minus) != N_Nan)
 				{
-					P_IL_Popup_Motor = P_Collision_Risk_Motor(Hex_IL_Minus);
-					P_IL_Robot_Bit |= Hex_IL_Minus;
+					if(P_Limit_PosData(Hex_IL_Minus) >= P_Abs_Trans_Cur_Pos)
+					{
+						P_IL_Popup_Motor = P_Collision_Risk_Motor(Hex_IL_Minus);
+						P_IL_Robot_Bit |= Hex_IL_Minus;
+					}
+					else
+					{
+						P_IL_Robot_Bit &= Hex_IL_Plus;			// 플러스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며  Minus Bit 0만들기 위함
+					}
 				}
 				else
 				{
-					P_IL_Robot_Bit &= Hex_IL_Plus;			// 플러스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며  Minus Bit 0만들기 위함
+					P_IL_Robot_Bit &= Hex_IL_Plus;				// 플러스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며  Minus Bit 0만들기 위함
 				}
-			}
-			else
-			{
-				P_IL_Robot_Bit &= Hex_IL_Plus;				// 플러스를 &처리 하는 이유는 Bit에 Plus 값이 있을 수 있으며  Minus Bit 0만들기 위함
 			}
 		}
 	}
@@ -3268,7 +3691,10 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 			P_Minus_IL_Offset = 0;
 			P_IL_Robot_Bit = 0;
 		}	
-		P_Y_Interlock_Popup_On_Request = 1;							// PLC 팝업 요청 
+		if ( P_X_Interlock_Popup_On_Request_Ack == 0 )			// 26.09.29 팝업이 꺼져있을 때 팝업을 띄울 수 있도록 수정.
+		{
+			P_Y_Interlock_Popup_On_Request = 1;							// PLC 팝업 요청 
+		}
 	}
 	// 인터락 PLC 전송 프로그램 ======================================================================================================================
 
@@ -3301,10 +3727,35 @@ else	// 인터락 프로그램 미실행일때 변수 초기화
 //}
 
 // Motor Page Num 대입
-if( Sys.Idata[11199] >= 0 && Sys.Idata[11199] <= 48 )
-	P_IL_Motor_Page = Sys.Idata[11199];
-else
-	P_IL_Motor_Page = 0;
 
+if(P_Loop_Test > 0)
+{
+	if(L_Motor_Num > 0 && L_Motor_Num < 48)
+	{
+		if(P_InterLock_Motor_Num_Test == P_Loop_Test)
+		{
+			L_Motor_Num++;
+			P_InterLock_Motor_Num_Test = 0;
+		}
+	}
+	else
+	{
+		L_Motor_Num = 1;
+	}
+	P_IL_Motor_Page = L_Motor_Num;
+	P_InterLock_Motor_Num_Test++;
+	
+	if( Sys.Idata[11199] == 0)
+	{
+		P_IL_Motor_Page = 0;
+	}
+}
+else if(P_Loop_Test == 0)
+{
+	if( Sys.Idata[11199] >= 0 && Sys.Idata[11199] <= 48 )
+		P_IL_Motor_Page = Sys.Idata[11199];
+	else
+		P_IL_Motor_Page = 0;
+}
 close
 

@@ -39,6 +39,8 @@ global P_PNP_45_Deg_TA = 95
 global P_PNP_45_Deg_TS = 15
 
 
+global P_Unloader_TM_Test = 320;
+global P_Unloader_TA_Test = 240;
 
 
 // P_Slave1_Motion_Command - À½±Ø 1Â÷ PNP

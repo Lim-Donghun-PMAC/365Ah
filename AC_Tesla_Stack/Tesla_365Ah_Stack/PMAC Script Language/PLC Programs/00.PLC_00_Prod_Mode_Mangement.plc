@@ -1059,8 +1059,11 @@ if( P_PMAC_Status == F_Status_EXECUTE )
 				{
 					// 임시 Test용 팝업 발생.
 					nop(memset(F_IL_Cdata,0,N_IL_memset_size));						
-					nop(sprintf(F_IL_Cdata," Power Rack Check "));																	
-					P_Y_Interlock_Popup_On_Request = 1;
+					nop(sprintf(F_IL_Cdata," Power Rack Check "));	
+					if ( P_X_Interlock_Popup_On_Request_Ack == 0 )			// 26.09.29 팝업이 꺼져있을 때 팝업을 띄울 수 있도록 수정.
+					{																						
+						P_Y_Interlock_Popup_On_Request = 1;
+					}
 					P_PMAC_Commands = F_Command_Abort;
 				}
 			}
@@ -1086,8 +1089,11 @@ if( P_PMAC_Status == F_Status_EXECUTE )
 				{
 					// 임시 Test용 팝업 발생.
 					nop(memset(F_IL_Cdata,0,N_IL_memset_size));						
-					nop(sprintf(F_IL_Cdata," Power Rack Check "));																	
-					P_Y_Interlock_Popup_On_Request = 1;
+					nop(sprintf(F_IL_Cdata," Power Rack Check "));						
+					if ( P_X_Interlock_Popup_On_Request_Ack == 0 )			// 26.09.29 팝업이 꺼져있을 때 팝업을 띄울 수 있도록 수정.
+					{																
+						P_Y_Interlock_Popup_On_Request = 1;
+					}
 					P_PMAC_Commands = F_Command_Abort;
 				}
 			}

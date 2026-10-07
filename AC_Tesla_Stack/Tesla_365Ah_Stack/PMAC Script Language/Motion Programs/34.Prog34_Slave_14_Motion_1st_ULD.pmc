@@ -26,7 +26,8 @@ open prog 34
 			case N_1st_UND_Stack_UP_Motion :				// [1] 언로더 스택위치 ( 상승 )
 				P_Slave14_Motion_Command == 0;
 				P_First_Unloader_Stack_Up_Status == F_Status_EXECUTE;
-				tm(280)ta(220)ts(50)		// 550ms
+				tm(P_Unloader_TM_Test)ta(P_Unloader_TA_Test)ts(50)
+				//tm(280)ta(220)ts(50)		// 550ms
 				//tm(255)ta(210)ts(35)		// 500ms
 				x(P_1st_ULD_X_Stack)		// 100mm ( 105.4 mm 이동 )		   리드 20mm   rps 5.27 * 1000 / 200 * 60 = 1581rpm
 				z(P_1st_ULD_Z_Stack + (((P_Anode_Thickness + P_Sepa_Thickness ) * P_Anode_Count) + ((P_Cathode_Thickness + P_Sepa_Thickness ) * P_Cathode_Count)))		// -9.79mm ( 78.79 mm 이동 )   리드 10mm	  rps 7.87 * 1000 / 200 * 60 = 2361 rpm

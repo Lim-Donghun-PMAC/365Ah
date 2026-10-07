@@ -107,13 +107,6 @@ if( P_Read_Timer_S(1) > P_Interval_Read_S(1))
 if( P_SV_Read_Enable_Flag == 0 && M_Read_Sector_Scan_Complete(1) == 1 ) // sv 읽기 허가 신호 on
 {	// Recipe에 있는 값을 Auto, Starting 시 1번 값을 읽어온다.
 	M_Read_Sector_Scan_Complete(1) = 0;
-	//삭제 해도 될 듯? 
-	// 김준수 삭제
-	// [ 참조 : MES APC 기반 MES -> PLC-> PMAC 보정값 영역 추가 ]
-	//P_Cathode_MES_X_Average_mm = Sys.Idata[41675] / 10000;
-	//P_Anode_MES_X_Average_mm = Sys.Idata[41676] / 10000;
-	// [ 참조 : MES APC 사용 미사용 버튼 추가 사용 : 1 미사용 : 0 ]
-	//P_MES_APC_Select_Btn = u.user:$028B34.00.1;
 
 }
 

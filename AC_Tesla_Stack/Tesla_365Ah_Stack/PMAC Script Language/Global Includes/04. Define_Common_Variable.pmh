@@ -72,9 +72,3 @@
 	
 	global	P_Home_Status(50);								// 홈 상태 변수(모터별)							PLC11
 	P_Home_Status(0),49 = 0;
-	
-	#define P_Status_PMAC_Alarm_Reset P5387					// 알람 리셋을 하위 프로그램에게 상태를 전달				Sub_Jog
-	P_Status_PMAC_Alarm_Reset=0;
-	
-
-

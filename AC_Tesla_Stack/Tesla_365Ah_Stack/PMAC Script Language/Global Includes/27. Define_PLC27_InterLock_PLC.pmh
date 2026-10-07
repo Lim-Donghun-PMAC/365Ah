@@ -4,6 +4,7 @@ global P_IL_Coord_Robot = 0;
 global  P_IL_Robot_Bit = 0;
 global P_IL_Outer_Status = 0;
 global P_Robot_Unit_Serch_Flag = 0;
+global P_IL_Home_Chk_Edge = 0;				// [ 참조 : 26.10.02 인터락 조건 추가 ]
 
 global P_Limit_PosData(3)
 P_Limit_PosData(0),3=0;
@@ -20,6 +21,9 @@ P_Limit_PosData(0),3=0;
 #define N_IL_Stack_Pos			44
 #define N_IL_Belt_Pos			55
 #define IL_Out_Close			99
+#define N_IL_Belt_Down_Pos		111			// [ 참조 : 26.10.02 인터락 조건 추가 ]
+#define N_IL_Align_Down_Pos		222			// [ 참조 : 26.10.02 인터락 조건 추가 ]
+#define N_IL_Stack_Down_Pos		333			// [ 참조 : 26.10.02 인터락 조건 추가 ]
 #define N_Home_Miss				444
 #define N_JR_Prod_Popup			445
 #define N_Door_Open				555			//[참조 : 260513 : 양음극 릴컷부 도어 오픈 시 1차 PNP 인터락 ]
@@ -271,22 +275,22 @@ global	P_M_IL_Align_Pos_Offset(50);
 global	P_P_IL_Stack_Pos_Offset(50);
 global	P_M_IL_Stack_Pos_Offset(50);
 // 양극 1차 pnp 인터락 오프셋 값
-global P_Ca_1st_Plus_IL_Offset = -40;
-global P_Ca_1st_Minus_IL_Offset = 40;
+global P_Ca_1st_Plus_IL_Offset = -40;			// 1차 PNP 플러스 이동 중 2차 PNP와의 간격 오프셋.
+global P_Ca_1st_Minus_IL_Offset = 40;			// 1차 PNP 마이너스 이동 중 반대열 1차 PNP와의 간격 오프셋.
 // 음극 1차 pnp 인터락 오프셋 값
-global P_An_1st_Plus_IL_Offset = -40;
-global P_An_1st_Minus_IL_Offset = 40;
+global P_An_1st_Plus_IL_Offset = -40;			// 1차 PNP 플러스 이동 중 2차 PNP와의 간격 오프셋.
+global P_An_1st_Minus_IL_Offset = 40;			// 1차 PNP 마이너스 이동 중 반대열 1차 PNP와의 간격 오프셋.
 
 // 양극 2차 pnp T 플러스 인터락 오프셋 값
 global P_Ca_2nd_T_Plus_IL_Offset(3); 
-P_Ca_2nd_T_Plus_IL_Offset(0) = 0;
-P_Ca_2nd_T_Plus_IL_Offset(1) = 0;
-P_Ca_2nd_T_Plus_IL_Offset(2) = 0;
+P_Ca_2nd_T_Plus_IL_Offset(0) = 0;				// 2차 PNP가 얼라인 부근에서 플러스 이동 중 언로더와 NG PNP와의 간격 오프셋.
+P_Ca_2nd_T_Plus_IL_Offset(1) = 0.5;				// 2차 PNP가 스택 부근에서 플러스 이동 중 파이널 롤러, 스택 테이블, 클램프와의 간격 오프셋. 
+P_Ca_2nd_T_Plus_IL_Offset(2) = 0;				// 2차 PNP가 얼라인과 스택 부근이 아닐 때 플러스 이동 중 파이널 롤러와의 간격 오프셋.
 // 양극 2차 pnp T 마이너스 인터락 오프셋 값
 global P_Ca_2nd_T_Minus_IL_Offset(3);
-P_Ca_2nd_T_Minus_IL_Offset(0) = 35;
-P_Ca_2nd_T_Minus_IL_Offset(1) = 40;
-P_Ca_2nd_T_Minus_IL_Offset(2) = 70;
+P_Ca_2nd_T_Minus_IL_Offset(0) = 35;				// 2차 PNP가 얼라인 부근에서 마이너스 이동 중 1차 PNP와의 간격 오프셋.
+P_Ca_2nd_T_Minus_IL_Offset(1) = 40;				// 2차 PNP가 얼라인과 스택 부근이 아닐 때 마이너스 이동 중 NG PNP, 1차 PNP와의 간격 오프셋.
+P_Ca_2nd_T_Minus_IL_Offset(2) = 80;				// 2차 PNP가 스택 부근에서 마이너스 이동 중 언로더와의 간격 오프셋.
 
 // 양극 2차 pnp Z 플러스 인터락 오프셋 값
 global P_Ca_2nd_Z_Plus_IL_Offset(2);
@@ -300,7 +304,7 @@ P_Ca_2nd_Z_Minus_IL_Offset(1) = 5;
 // 음극 2차 pnp T 플러스 인터락 오프셋 값
 global P_An_2nd_T_Plus_IL_Offset(3); 
 P_An_2nd_T_Plus_IL_Offset(0) = 0;
-P_An_2nd_T_Plus_IL_Offset(1) = 0;
+P_An_2nd_T_Plus_IL_Offset(1) = 0.5;
 P_An_2nd_T_Plus_IL_Offset(2) = 0;
 // 음극 2차 pnp T 마이너스 인터락 오프셋 값
 global P_An_2nd_T_Minus_IL_Offset(3);
@@ -335,7 +339,7 @@ global P_Ca_NG_PNP_Plus_IL_Offset(4);
 P_Ca_NG_PNP_Plus_IL_Offset(0) = -40;
 P_Ca_NG_PNP_Plus_IL_Offset(1) = -30;
 P_Ca_NG_PNP_Plus_IL_Offset(2) = -30;
-P_Ca_NG_PNP_Plus_IL_Offset(3) = -20;
+P_Ca_NG_PNP_Plus_IL_Offset(3) = -10;
 
 global P_Ca_NG_PNP_Minus_IL_Offset(4);
 P_Ca_NG_PNP_Minus_IL_Offset(0) = 0;
@@ -347,7 +351,7 @@ P_Ca_NG_PNP_Minus_IL_Offset(3) = 0;
 global P_An_NG_PNP_Plus_IL_Offset(4);
 P_An_NG_PNP_Plus_IL_Offset(0) = -30;
 P_An_NG_PNP_Plus_IL_Offset(1) = -30;
-P_An_NG_PNP_Plus_IL_Offset(2) = -20;
+P_An_NG_PNP_Plus_IL_Offset(2) = -10;
 P_An_NG_PNP_Plus_IL_Offset(3) = 0;
 
 global P_An_NG_PNP_Minus_IL_Offset(4);
@@ -369,12 +373,13 @@ P_Unloader_X_Minus_IL_Offset(0) = 330;
 P_Unloader_X_Minus_IL_Offset(1) = 0;
 
 global P_Unloader_Z_Plus_IL_Offset(3);
-P_Unloader_Z_Plus_IL_Offset(0) = -70;
-P_Unloader_Z_Plus_IL_Offset(1) = -55;
+P_Unloader_Z_Plus_IL_Offset(0) = -70;		// 2차 PNP가 언로더 위에 있을 때 언로더 Z축 위치값이 이 값을 넘지 못함.
+P_Unloader_Z_Plus_IL_Offset(1) = -55;		// NG PNP가 언로더 위에 있을 언로더 Z축 위치값이 이 값을 넘지 못함.
 P_Unloader_Z_Plus_IL_Offset(2) = 0;
 
 global P_Unloader_Z_Minus_IL_Offset(3);
 P_Unloader_Z_Minus_IL_Offset(0) = 1;
+P_Unloader_Z_Minus_IL_Offset(1) = 1;
 
 global P_IL_In_Offset(25)					// [ 참조 : 26.06.19 모터 인터락 수정 ]	
 P_IL_In_Offset(0) = 15;

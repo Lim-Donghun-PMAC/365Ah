@@ -1412,7 +1412,10 @@ if( P_Cathode_NG_PNP_Vel_Zero_Set != 0 || P_Anode_NG_PNP_Vel_Zero_Set != 0 )
 		}
 
 		nop(sprintf(F_IL_Cdata2," Sensor Check "));
-		P_Y_Interlock_Popup_On_Request = 1;
+		if ( P_X_Interlock_Popup_On_Request_Ack == 0 )			// 26.09.29 팝업이 꺼져있을 때 팝업을 띄울 수 있도록 수정.
+		{
+			P_Y_Interlock_Popup_On_Request = 1;
+		}
 	}
 }
 

@@ -636,6 +636,8 @@ if( M_Read_Sector_Scan_Complete(3) == 1)
 	P_Partition_Up_Flag = u.user:$00AEF8.00;
 	P_Partition_Down_Flag = u.user:$00AEF8.01;
 
+	P_Jog_Page_Flag = u.user:$00AEF8.16;
+
 	// ป๙วร น๖ฦฐ
 	P_BTN_QC_Sample_Flag = u.user:$00A3C0.00;	// QC ป๙วร น๖ฦฐ
 	P_BTN_Loss_Sample_Flag = u.user:$00A3C0.01; // LOSS ป๙วร น๖ฦฐ

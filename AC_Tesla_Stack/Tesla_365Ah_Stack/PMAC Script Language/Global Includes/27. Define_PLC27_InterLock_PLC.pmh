@@ -419,3 +419,5 @@ global P_IL_Outside_Home_Chk_Complete = 0;		// 외부 홈 확인 완료 변수.
 global P_IL_Motor_Home_Chk_RTN = 0;
 global P_IL_Function_Cnt = 0;
 global P_IL_Function_Motor_Num = 0;
+
+global P_Jog_Page_Flag = 0;

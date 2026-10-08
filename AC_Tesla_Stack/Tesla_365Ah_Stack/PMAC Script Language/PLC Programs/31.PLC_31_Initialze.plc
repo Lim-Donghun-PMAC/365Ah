@@ -335,10 +335,6 @@ if(P_Ecat_Connect_Result == 1)
 		M_Y_Vision_Cathode_Align_Ready = 1;																	// 양극 얼라인 비젼 레디 트리거 발생
 		M_Y_Vision_Stack_Ready = 1;																			// 스텍 테이블 비젼 레디 트리거 발생
 
-		// 임시로 다운로드 시 격벽 상승....
-		M_Y_An_Ca_Partition_Down_Sol = 0
-		M_Y_An_Ca_Partition_Up_Sol = 1
-
 		// [ 참조 : 2026.03.31 Phasing Found ABS Type ADD ]
 		P_PWM_Phasing_Start(N_1st_PnP_CA_T) = N_TRUE;
 		P_PWM_Phasing_Start(N_1st_PnP_AN_T) = N_TRUE;
@@ -348,10 +344,6 @@ if(P_Ecat_Connect_Result == 1)
 		enable plc 0,12,24;//,25;
 
 	#endif
-
-	// 임시로 다운로드 시 격벽 상승....
-	M_Y_An_Ca_Partition_Down_Sol = 0
-	M_Y_An_Ca_Partition_Up_Sol = 1
 
 	M_Y_Unwinder_Upper_Laser_Point = 1	
 	M_Y_Unwinder_Lower_Laser_Point = 1 

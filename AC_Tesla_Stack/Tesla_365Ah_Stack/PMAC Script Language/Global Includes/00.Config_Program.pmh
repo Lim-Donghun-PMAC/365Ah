@@ -43,8 +43,8 @@ global P_An_2nd_PNP_ABSPhasing_Pos(N_AC_Equip);
 //===========================================================
 global P_Sepa_Test = 0 // 1일 때 1차까지 0일 때 2차언로더까지 진행
 
-#define F_Def_Stack_A
-//#define F_Def_Stack_B
+//#define F_Def_Stack_A
+#define F_Def_Stack_B
 
 #ifdef F_Def_Stack_A
 	Sys.Cdata[400] = 'A';		// sys.idata[100] = sys.cdata[400]		-> sys.idata[100] 사용 금지

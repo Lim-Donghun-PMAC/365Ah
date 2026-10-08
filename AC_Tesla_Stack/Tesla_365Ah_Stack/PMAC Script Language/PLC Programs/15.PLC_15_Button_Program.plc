@@ -749,128 +749,11 @@ if( P_BTN_LED_LAMP == 1 && P_Old_BTN_LED_LAMP != P_BTN_LED_LAMP )
 }
 P_Old_BTN_LED_LAMP = P_BTN_LED_LAMP
 
-
-// [ 참조 : 26.05.08 격벽 실린더 동작시 임시로 1차 PNP 회피 동작 추가 ]
-
+// 격벽 회피 동작 수정
+// [참조 : 261007 - 격벽 구조물 변경으로 인해 1차 PNP 50도 회피 위치 이동]
 if(P_PMAC_Current_Mode == F_Current_Manual)
 {
-	if(P_Partition_Down_Flag == 1 && P_Partition_Avoid_Flag == 0 && M_Y_An_Ca_Partition_Up_Sol == 1)
-	{
-		// 1,2차 pnp Z + F/R Z 상승
-		// F/R X 가운데로 
-		// 1차 T 얼라인 위치로
-		// 2차는 45도
-		if(P_PMAC_Status == F_Status_IDLE && P_Stack_Judgement_Memory == 0)
-		{
-			P_Partition_Avoid_Flag = 1;
-		}
-	}
-	else if(P_Partition_Up_Flag == 1)
-	{
-		M_Y_An_Ca_Partition_Up_Sol = 1;
-		M_Y_An_Ca_Partition_Down_Sol = 0;
-	}
-	
-	if(P_Partition_Avoid_Flag == 1)
-	{
-		Motor[N_1st_PnP_CA_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
-		Motor[N_1st_PnP_AN_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
-		Motor[N_2nd_PnP_CA_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
-		Motor[N_2nd_PnP_AN_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
-		Motor[N_FINAL_ROLL_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
-
-		Motor[N_1st_PnP_CA_Z].ProgJogPos = 0;	//대기 상승위치
-		Motor[N_1st_PnP_AN_Z].ProgJogPos = 0;	//대기 상승위치
-		Motor[N_2nd_PnP_CA_Z].ProgJogPos = 0;	//대기 상승위치
-		Motor[N_2nd_PnP_AN_Z].ProgJogPos = 0;	//대기 상승위치
-		Motor[N_FINAL_ROLL_Z].ProgJogPos = P_Final_Roll_Z_Run_Pos * 1000;
-
-		jog17=*;
-		jog18=*;
-		jog21=*;
-		jog22=*;
-		jog13=*;
-
-		P_Partition_Avoid_Flag = 2;
-	}
-
-	if( P_Partition_Avoid_Flag == 2)
-	{
-		if((P_Motor_Current_Pos(N_1st_PnP_CA_Z) < 0 + 0.5 && P_Motor_Current_Pos(N_1st_PnP_CA_Z) > 0 - 0.5) && (P_Motor_Current_Pos(N_1st_PnP_AN_Z) < 0 + 0.5 && P_Motor_Current_Pos(N_1st_PnP_AN_Z) > 0 - 0.5) && (P_Motor_Current_Pos(N_FINAL_ROLL_Z) < P_Final_Roll_Z_Run_Pos + 0.5 && P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Final_Roll_Z_Run_Pos - 0.5))
-		{
-			P_Partition_Avoid_Flag = 3;
-		}
-	}
-
-	if(P_Partition_Avoid_Flag == 3)
-	{
-		Motor[N_FINAL_ROLL_X].JogSpeed = P_Partition_Avoid_X_Speed;
-
-		Motor[N_FINAL_ROLL_X].ProgJogPos = 0;	//대기 상승위치
-
-		jog12=*;
-
-		P_Partition_Avoid_Flag = 4;
-	}
-
-	if( P_Partition_Avoid_Flag == 4 )
-	{
-
-		if(P_Motor_Current_Pos(N_FINAL_ROLL_X) < 0 + 0.5 && P_Motor_Current_Pos(N_FINAL_ROLL_X) > 0 - 0.5)
-		{
-			P_Partition_Avoid_Flag = 5;
-		}
-	}
-
-	if(P_Partition_Avoid_Flag == 5)
-	{
-		Motor[N_1st_PnP_CA_T].JogSpeed = P_Partition_Avoid_T_Speed;
-		Motor[N_1st_PnP_AN_T].JogSpeed = P_Partition_Avoid_T_Speed;
-		Motor[N_2nd_PnP_CA_T].JogSpeed = P_Partition_Avoid_T_Speed;
-		Motor[N_2nd_PnP_AN_T].JogSpeed = P_Partition_Avoid_T_Speed;
-
-		Motor[N_1st_PnP_CA_T].ProgJogPos = P_Cathode_1TR_T_Align_POS * 1000;
-		Motor[N_1st_PnP_AN_T].ProgJogPos = P_Anode_1TR_T_Align_POS * 1000;
-		Motor[N_2nd_PnP_CA_T].ProgJogPos = P_Partition_Avoid_2nd_T_Pos * 1000;
-		Motor[N_2nd_PnP_AN_T].ProgJogPos = P_Partition_Avoid_2nd_T_Pos * 1000;
-
-		jog1=*;
-		jog2=*;
-		jog3=*;
-		jog4=*;
-
-		P_Partition_Avoid_Flag = 6;
-	}
-
-	if(P_Partition_Avoid_Flag == 6)
-	{
-		if((P_Motor_Current_Pos(N_1st_PnP_CA_T) < P_Cathode_1TR_T_Align_POS + 0.5 && P_Motor_Current_Pos(N_1st_PnP_CA_T) > P_Cathode_1TR_T_Align_POS - 0.5) && (P_Motor_Current_Pos(N_1st_PnP_AN_T) < P_Anode_1TR_T_Align_POS + 0.5 && P_Motor_Current_Pos(N_1st_PnP_AN_T) > P_Anode_1TR_T_Align_POS - 0.5))
-		{
-			if((P_Motor_Current_Pos(N_2nd_PnP_CA_T) < P_Partition_Avoid_2nd_T_Pos + 0.5 && P_Motor_Current_Pos(N_2nd_PnP_CA_T) > P_Partition_Avoid_2nd_T_Pos - 0.5) && (P_Motor_Current_Pos(N_2nd_PnP_AN_T) < P_Partition_Avoid_2nd_T_Pos + 0.5 && P_Motor_Current_Pos(N_2nd_PnP_AN_T) > P_Partition_Avoid_2nd_T_Pos - 0.5))
-			{
-				P_Partition_Avoid_Flag = 7;
-			}
-		}		
-	}
-
-	if(P_Partition_Avoid_Flag == 7)
-	{
-		M_Y_An_Ca_Partition_Up_Sol = 0;
-		M_Y_An_Ca_Partition_Down_Sol = 1;
-
-		P_Partition_Avoid_Flag = 0;
-	}
-}
-
-// 격벽 파티션 하강 모드 인터락
-if(P_PMAC_Current_Mode == F_Current_Automatic)
-{
-	Partition_Down_Mode_Interlock = 0;
-	Partition_Up_Mode_Interlock = 0;
-}
-else if(P_PMAC_Current_Mode == F_Current_Manual)
-{
-	if(P_PMAC_Status == F_Status_IDLE && P_Stack_Judgement_Memory == 0 && M_Y_An_Ca_Partition_Up_Sol == 1)
+	if(M_Y_An_Ca_Partition_Up_Sol == 1)
 	{
 		Partition_Down_Mode_Interlock = 1;
 		Partition_Up_Mode_Interlock = 0;
@@ -885,8 +768,255 @@ else if(P_PMAC_Current_Mode == F_Current_Manual)
 		Partition_Down_Mode_Interlock = 0;
 		Partition_Up_Mode_Interlock = 0;
 	}
+
+	if(P_Partition_Down_Flag == 1 && P_Partition_Avoid_Flag == 0 && M_Y_An_Ca_Partition_Up_Sol == 1)
+	{
+		P_Partition_Avoid_Flag = 1;
+	}
+	else if(P_Partition_Up_Flag == 1)
+	{
+		M_Y_An_Ca_Partition_Up_Sol = 1;
+		M_Y_An_Ca_Partition_Down_Sol = 0;
+	}
+
+
+	if(P_Partition_Avoid_Flag == 1)
+	{
+		if(P_Motor_Current_Pos(N_1st_PnP_CA_T) < (P_Recipe_M01_POS(1) + P_Partition_1st_Avoid_Offset))
+		{
+			Motor[N_1st_PnP_CA_T].JogSpeed = P_Partition_Avoid_T_Speed;
+			Motor[N_1st_PnP_CA_T].ProgJogPos = (P_Recipe_M01_POS(1) + P_Partition_1st_Avoid_Offset) * 1000;
+
+			Motor[N_1st_Picker_CA_T].JogSpeed = P_Partition_Avoid_T_Speed + 20;
+			Motor[N_1st_Picker_CA_T].ProgJogPos = (P_Recipe_M19_POS(1) - P_Partition_Picker_Avoid_Offset) * 1000;
+			//jog1=*;
+			jog19=*;
+			P_Partition_Avoid_Check |= $1;
+		}
+
+		if(P_Motor_Current_Pos(N_1st_PnP_AN_T) < (P_Recipe_M02_POS(1) + P_Partition_1st_Avoid_Offset))
+		{
+			Motor[N_1st_PnP_AN_T].JogSpeed = P_Partition_Avoid_T_Speed;
+			Motor[N_1st_PnP_AN_T].ProgJogPos = (P_Recipe_M02_POS(1) + P_Partition_1st_Avoid_Offset) * 1000;
+
+			Motor[N_1st_Picker_AN_T].JogSpeed = P_Partition_Avoid_T_Speed + 20;
+			Motor[N_1st_Picker_AN_T].ProgJogPos = (P_Recipe_M20_POS(1) - P_Partition_Picker_Avoid_Offset) * 1000;
+			//jog2=*;
+			jog20=*;
+			P_Partition_Avoid_Check |= $2;
+		}
+
+	
+		if(P_Partition_Avoid_Check & $1)
+		{
+			P_Partition_Avoid_Flag = 2;
+		}
+		else if(P_Partition_Avoid_Check & $2)
+		{
+			P_Partition_Avoid_Flag = 4;
+		}
+		else
+		{
+			P_Partition_Avoid_Flag = 6;
+		}
+		
+	}
+
+	if(P_Partition_Avoid_Flag == 2)
+	{
+		if(P_Motor_Current_Pos(N_1st_Picker_CA_T) > P_Recipe_M19_POS(1) - P_Partition_Picker_Avoid_Offset - 0.1 && P_Motor_Current_Pos(N_1st_Picker_CA_T) < P_Recipe_M19_POS(1) - P_Partition_Picker_Avoid_Offset + 0.1)
+		{
+			jog1=*;
+			P_Partition_Avoid_Flag = 3;
+		}
+	}
+
+	if(P_Partition_Avoid_Flag == 3)
+	{
+		if(P_Motor_Current_Pos(N_1st_PnP_CA_T) >= (P_Recipe_M01_POS(1) + P_Partition_1st_Avoid_Offset - 0.1))
+		{
+			if(P_Partition_Avoid_Check & $2)
+			{
+				P_Partition_Avoid_Flag = 4;
+			}
+			else
+			{
+				P_Partition_Avoid_Flag = 6;
+			}
+		}
+	}
+
+	if(P_Partition_Avoid_Flag == 4)
+	{
+		if(P_Motor_Current_Pos(N_1st_Picker_AN_T) > P_Recipe_M20_POS(1) - P_Partition_Picker_Avoid_Offset - 0.1 && P_Motor_Current_Pos(N_1st_Picker_AN_T) < P_Recipe_M20_POS(1) - P_Partition_Picker_Avoid_Offset + 0.1)
+		{
+			jog2=*;
+			P_Partition_Avoid_Flag = 5;
+		}
+	}
+
+	if(P_Partition_Avoid_Flag == 5)
+	{
+		if(P_Motor_Current_Pos(N_1st_PnP_AN_T) >= (P_Recipe_M02_POS(1) + P_Partition_1st_Avoid_Offset - 0.1))
+		{
+			P_Partition_Avoid_Flag = 6;
+		}
+	}
+
+	if(P_Partition_Avoid_Flag == 6)
+	{
+		M_Y_An_Ca_Partition_Up_Sol = 0;
+		M_Y_An_Ca_Partition_Down_Sol = 1;
+
+		P_Partition_Avoid_Check = 0;
+		P_Partition_Avoid_Flag = 0;
+	}
+}
+else if(P_PMAC_Current_Mode == F_Current_Automatic)
+{
+	Partition_Down_Mode_Interlock = 0;
+	Partition_Up_Mode_Interlock = 0;
 }
 
+
+
+// [ 참조 : 26.05.08 격벽 실린더 동작시 임시로 1차 PNP 회피 동작 추가 ]
+//#ifdef F_Def_Stack_B
+//if(P_PMAC_Current_Mode == F_Current_Manual)
+//{
+//	if(P_Partition_Down_Flag == 1 && P_Partition_Avoid_Flag == 0 && M_Y_An_Ca_Partition_Up_Sol == 1)
+//	{
+//		// 1,2차 pnp Z + F/R Z 상승
+//		// F/R X 가운데로 
+//		// 1차 T 얼라인 위치로
+//		// 2차는 45도
+//		if(P_PMAC_Status == F_Status_IDLE && P_Stack_Judgement_Memory == 0)
+//		{
+//			P_Partition_Avoid_Flag = 1;
+//		}
+//	}
+//	else if(P_Partition_Up_Flag == 1)
+//	{
+//		M_Y_An_Ca_Partition_Up_Sol = 1;
+//		M_Y_An_Ca_Partition_Down_Sol = 0;
+//	}
+//
+//	if(P_Partition_Avoid_Flag == 1)
+//	{
+//		Motor[N_1st_PnP_CA_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
+//		Motor[N_1st_PnP_AN_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
+//		Motor[N_2nd_PnP_CA_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
+//		Motor[N_2nd_PnP_AN_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
+//		Motor[N_FINAL_ROLL_Z].JogSpeed = P_Partition_Avoid_Z_Speed;
+//
+//		Motor[N_1st_PnP_CA_Z].ProgJogPos = 0;	//대기 상승위치
+//		Motor[N_1st_PnP_AN_Z].ProgJogPos = 0;	//대기 상승위치
+//		Motor[N_2nd_PnP_CA_Z].ProgJogPos = 0;	//대기 상승위치
+//		Motor[N_2nd_PnP_AN_Z].ProgJogPos = 0;	//대기 상승위치
+//		Motor[N_FINAL_ROLL_Z].ProgJogPos = P_Final_Roll_Z_Run_Pos * 1000;
+//
+//		jog17=*;
+//		jog18=*;
+//		jog21=*;
+//		jog22=*;
+//		jog13=*;
+//
+//		P_Partition_Avoid_Flag = 2;
+//	}
+//
+//	if( P_Partition_Avoid_Flag == 2)
+//	{
+//		if((P_Motor_Current_Pos(N_1st_PnP_CA_Z) < 0 + 0.5 && P_Motor_Current_Pos(N_1st_PnP_CA_Z) > 0 - 0.5) && (P_Motor_Current_Pos(N_1st_PnP_AN_Z) < 0 + 0.5 && P_Motor_Current_Pos(N_1st_PnP_AN_Z) > 0 - 0.5) && (P_Motor_Current_Pos(N_FINAL_ROLL_Z) < P_Final_Roll_Z_Run_Pos + 0.5 && P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Final_Roll_Z_Run_Pos - 0.5))
+//		{
+//			P_Partition_Avoid_Flag = 3;
+//		}
+//	}
+//
+//	if(P_Partition_Avoid_Flag == 3)
+//	{
+//		Motor[N_FINAL_ROLL_X].JogSpeed = P_Partition_Avoid_X_Speed;
+//
+//		Motor[N_FINAL_ROLL_X].ProgJogPos = 0;	//대기 상승위치
+//
+//		jog12=*;
+//
+//		P_Partition_Avoid_Flag = 4;
+//	}
+//
+//	if( P_Partition_Avoid_Flag == 4 )
+//	{
+//
+//		if(P_Motor_Current_Pos(N_FINAL_ROLL_X) < 0 + 0.5 && P_Motor_Current_Pos(N_FINAL_ROLL_X) > 0 - 0.5)
+//		{
+//			P_Partition_Avoid_Flag = 5;
+//		}
+//	}
+//
+//	if(P_Partition_Avoid_Flag == 5)
+//	{
+//		Motor[N_1st_PnP_CA_T].JogSpeed = P_Partition_Avoid_T_Speed;
+//		Motor[N_1st_PnP_AN_T].JogSpeed = P_Partition_Avoid_T_Speed;
+//		Motor[N_2nd_PnP_CA_T].JogSpeed = P_Partition_Avoid_T_Speed;
+//		Motor[N_2nd_PnP_AN_T].JogSpeed = P_Partition_Avoid_T_Speed;
+//
+//		Motor[N_1st_PnP_CA_T].ProgJogPos = P_Cathode_1TR_T_Align_POS * 1000;
+//		Motor[N_1st_PnP_AN_T].ProgJogPos = P_Anode_1TR_T_Align_POS * 1000;
+//		Motor[N_2nd_PnP_CA_T].ProgJogPos = P_Partition_Avoid_2nd_T_Pos * 1000;
+//		Motor[N_2nd_PnP_AN_T].ProgJogPos = P_Partition_Avoid_2nd_T_Pos * 1000;
+//
+//		jog1=*;
+//		jog2=*;
+//		jog3=*;
+//		jog4=*;
+//
+//		P_Partition_Avoid_Flag = 6;
+//	}
+//
+//	if(P_Partition_Avoid_Flag == 6)
+//	{
+//		if((P_Motor_Current_Pos(N_1st_PnP_CA_T) < P_Cathode_1TR_T_Align_POS + 0.5 && P_Motor_Current_Pos(N_1st_PnP_CA_T) > P_Cathode_1TR_T_Align_POS - 0.5) && (P_Motor_Current_Pos(N_1st_PnP_AN_T) < P_Anode_1TR_T_Align_POS + 0.5 && P_Motor_Current_Pos(N_1st_PnP_AN_T) > P_Anode_1TR_T_Align_POS - 0.5))
+//		{
+//			if((P_Motor_Current_Pos(N_2nd_PnP_CA_T) < P_Partition_Avoid_2nd_T_Pos + 0.5 && P_Motor_Current_Pos(N_2nd_PnP_CA_T) > P_Partition_Avoid_2nd_T_Pos - 0.5) && (P_Motor_Current_Pos(N_2nd_PnP_AN_T) < P_Partition_Avoid_2nd_T_Pos + 0.5 && P_Motor_Current_Pos(N_2nd_PnP_AN_T) > P_Partition_Avoid_2nd_T_Pos - 0.5))
+//			{
+//				P_Partition_Avoid_Flag = 7;
+//			}
+//		}		
+//	}
+//
+//	if(P_Partition_Avoid_Flag == 7)
+//	{
+//		M_Y_An_Ca_Partition_Up_Sol = 0;
+//		M_Y_An_Ca_Partition_Down_Sol = 1;
+//
+//		P_Partition_Avoid_Flag = 0;
+//	}
+//}
+//
+//// 격벽 파티션 하강 모드 인터락
+//if(P_PMAC_Current_Mode == F_Current_Automatic)
+//{
+//	Partition_Down_Mode_Interlock = 0;
+//	Partition_Up_Mode_Interlock = 0;
+//}
+//else if(P_PMAC_Current_Mode == F_Current_Manual)
+//{
+//	if(M_Y_An_Ca_Partition_Up_Sol == 1)
+//	{
+//		Partition_Down_Mode_Interlock = 1;
+//		Partition_Up_Mode_Interlock = 0;
+//	}
+//	else if(M_Y_An_Ca_Partition_Down_Sol == 1)
+//	{
+//		Partition_Down_Mode_Interlock = 0;
+//		Partition_Up_Mode_Interlock = 1;
+//	}
+//	else
+//	{
+//		Partition_Down_Mode_Interlock = 0;
+//		Partition_Up_Mode_Interlock = 0;
+//	}
+//}
+//#endif
 P_MNTR_PLC15_Task_Time(1) = (Sys.Time - P_MNTR_PLC15_Task_Time(0))*N_Task_Scale;
 if ( P_MNTR_PLC15_Task_Time(1) > P_MNTR_PLC15_Task_Max_Time )
 {

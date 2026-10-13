@@ -56,21 +56,20 @@ if (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
 //===========================================
 // M_X_ARC_Door_Signal 도어 신호를 보고 On 해야하나?
 
-if( M_X_ARC_NP_Two_Btn_Signal == 1 && L_Old_Two_Btn_Signal == 0 && def_Name_Plate_Btn_Input == 0)	// Push Btn												// NP Plate 우선권 버튼이 눌렸을 경우.
+if( M_Function_BTN_2.Sepa_ARC_Touch_Use == 1 )		// Toggle 
+{
+	M_Y_ARC_NP_Two_Btn_Signal = 0;		// NP Plate 버튼 누를 시 Lamp OFF.
+	P_ARC_NP_Push_BTN = N_FALSE;
+	P_ARC_UI_Push_BTN = N_TRUE;
+
+}
+else if( M_X_ARC_NP_Two_Btn_Signal == 1 && L_Old_Two_Btn_Signal == 0 && def_Name_Plate_Btn_Input == 0)	// Push Btn												// NP Plate 우선권 버튼이 눌렸을 경우.
 {
 	M_Y_ARC_NP_Two_Btn_Signal = 1;		// NP Plate 버튼 누를 시 Lamp ON.
 	P_ARC_NP_Push_BTN = N_TRUE;																	// 인터락 실행.
 	P_ARC_UI_Push_BTN = N_FALSE;
 	L_Two_Btn_Interlock_Timer = 0;
 	P_Two_Btn_Active_Flag = 1;
-	M_Function_BTN_2.Sepa_ARC_Touch_Use = 0;		// Two 버튼으로 소유권 가져오기
-}
-else if( M_Function_BTN_2.Sepa_ARC_Touch_Use == 1 )		// Toggle 
-{
-	M_Y_ARC_NP_Two_Btn_Signal = 0;		// NP Plate 버튼 누를 시 Lamp OFF.
-	P_ARC_NP_Push_BTN = N_FALSE;
-	P_ARC_UI_Push_BTN = N_TRUE;
-
 }
 else if((M_X_ARC_NP_BTN_Unwinder_Rotation == 1 || M_X_ARC_NP_BTN_Unwinder_Re_Rotation == 1) && M_X_ARC_NP_Two_Btn_Signal == 1)	// Hold (버튼 누르고 있음
 {

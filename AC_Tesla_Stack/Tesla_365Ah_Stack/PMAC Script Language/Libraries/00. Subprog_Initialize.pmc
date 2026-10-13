@@ -13,7 +13,6 @@ open subprog Initialize(void)
 		Ret_Num = 0;
 		local L_Index = 11;
 		local rtn_flag = 0;
-		//M_Y_Vision_Stack_EPC_Align_Vision_Trigger = 0;
 		//P_Suspend_Discharge_Cell_Out_Restart = 0;
 		if(P_Jelly_Roll_Total_Count == 0)
 		{

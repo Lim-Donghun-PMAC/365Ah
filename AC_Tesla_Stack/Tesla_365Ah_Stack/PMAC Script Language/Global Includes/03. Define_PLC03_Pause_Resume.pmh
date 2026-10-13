@@ -18,11 +18,6 @@
 //p8101 : P_Current_Mode
 //p8102 : P_Master_Motion_Trigger
 //p8110 ~ p8160 : P_POS_Data_M(0) ~ P_POS_Data_M(50)
-global P_Hold_Pause_Need_Flag = 0;
-global P_Pause_Ready_Flag = 0;
-global P_Pause_Running_Flag = 0 ;
-global P_Resume_Ready_Flag = 0;
-global P_Resume_Start_Flag = 0;
 global P_Hold_Resume_Need_Flag = 0;
 
 #ifdef F_Def_Stack_B

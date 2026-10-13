@@ -207,7 +207,7 @@ global P_Force_Stop_Flag = 0;
 	global	P_MNTR_PLC30_Task_Max_Time = 0;
 
 	// [ 참조 : 230103 좌표계 다운될경우 상태 체크 변수 추가 ]
-	global	P_Coord_Shutdown_Status_log = 0;
+	//global	P_Coord_Shutdown_Status_log = 0;
 	
 	global	P_In_Pos_Trg = 2;
 	global  P_Position_Calc_Status  = 0;
@@ -281,21 +281,12 @@ global P_Force_Stop_Flag = 0;
 //------------------------------------------------------------------------------------------//
 // plc 0 - Execute 생산관리모듈
 	global	P_Execute_Manage_Mode=0;			// Execute 생산관리 프로그램 모듈 1: 가동, 0 : 미가동.		 실행신호는 외부에서, 정지신호는 내부에서?
-	// 24.02.01 추가됨.
-	#define Slave8_Cathode_Motion_4Trg(a)	P_Slave8_Cathode_Run_Motion_Array(a) | P_Slave8_Cathode_Run_Motion_Array(a+1) | P_Slave8_Cathode_Run_Motion_Array(a+2) | P_Slave8_Cathode_Run_Motion_Array(a+3) 
-	#define Slave3_Anode_Motion_4Trg(a)		P_Slave3_Anode_Run_Motion_Array(a) | P_Slave3_Anode_Run_Motion_Array(a+1) | P_Slave3_Anode_Run_Motion_Array(a+2) | P_Slave3_Anode_Run_Motion_Array(a+3) 
 
 	#define Total_Inpos_Bit			Motor[5].InPos	& Motor[6].InPos & Motor[7].InPos	& Motor[8].InPos & Motor[9].InPos	& Motor[10].InPos & Motor[11].InPos & Motor[12].InPos & \
 									Motor[13].InPos & Motor[14].InPos & Motor[15].InPos & Motor[16].InPos & Motor[17].InPos & Motor[18].InPos & Motor[19].InPos & Motor[20].InPos 	
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-//--------------------------Test----------------------------------------------------------------------//
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 global P_Align_NG_Tack_Flag = 0;
-
-global P_2th_Ng_Front_Vision_Pos = 280;
 
 
 // 비전패스 모드 사용시 플래그
@@ -311,140 +302,9 @@ global P_Anode_Retry_NG_Flag = 0;                   	// 음극 얼라인 비젼 내부 NG
 global P_Cathode_Retry_OK_Flag = 0;                 	// 양극 얼라인 비젼 내부 OK 플래그
 global P_Cathode_Retry_NG_Flag = 0;                 	// 양극 얼라인 비젼 내부 NG 플래그
 
-// 비전 패스 관련 변수 모음
-#define	N_Vision_Pass_Off			0
-#define	N_Vision_Pass_On			1
-#define	N_Vision_Pass_TimeOut		99
-
-#define N_2nd_Empty_Table_Vision_Pos	290
-
-global P_Func_Anode_2TR_Avoid_X_Value = 290;
-global P_Func_Cathode_2TR_Avoid_X_Value = 290;
 
 global	P_Anode_Surf_Insp_Trigger = 77;		//74
 global	P_Cathode_Surf_Insp_Trigger = 32;	//29
-
-global	P_CMD_Cathode_Vision_Tigger = 0;
-global	P_CMD_Anode_Vision_Tigger = 0;
-global	P_CMD_Stack_Table_Vision_Trigger = 0;
-global	P_CMD_Cathode_Empty_Table_Vision = 0;
-global	P_CMD_Anode_Empty_Table_Vision = 0;
-
-global	P_CMD_Cathode_Existence_Vision = 0;
-global	P_CMD_Anode_Existence_Vision = 0;
-
-// Error 관련 변수 선언
-global	P_Align_Manager_Error_Cnt = 0;
-global	P_Surf_Manager_Error_Cnt = 0;
-global	P_Retry_Manager_Error_Cnt = 0;
-global	P_Stack_Manager_Error_Cnt = 0;
-global	P_Existence_Manager_Error_Cnt = 0;
-
-global	P_Where_To_Occur_Error_Retry_Status = 0;
-global	P_Which_Retry_Insp_Type = 0;
-
-global	P_Where_To_Occur_Error_Align_Status = 0;
-global	P_Which_Align_Insp_Type = 0;
-
-global	P_Where_To_Occur_Error_Surf_Status = 0;
-global	P_Which_Surf_Insp_Type = 0;
-////
-
-global	P_Where_To_Occur_Error_Existence_Status = 0;
-global	P_Which_Existence_Insp_Type = 0;
-
-global	P_Where_To_Occur_Error_Stack_Status = 0;
-
-// First Sepa On 
-global	P_Vision_Clamping_Flag = 0;
-
-
-// Exist Vision TIme Set
-global	P_Exist_Insp_Total_Time = 4000;
-global	P_Exist_Insp_Trg_Time = 2000;
-
-// Stack Vision TIme Set
-global	P_Stack_Insp_Total_Time = 150;
-global	P_Stack_Trg_Time = 50;
-
-
-// Front Vision TIme Set
-global	P_Surf_Insp_Total_Time = 200;
-
-global	P_Retry_Insp_Total_Time;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
-
-#ifdef F_04_Tack_Enable
-P_Retry_Insp_Total_Time = 250;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
-#endif
-
-#ifdef F_05_Tack_Enable
-P_Retry_Insp_Total_Time = 280;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
-#endif
-
-#ifdef F_045_Tack_Enable
-P_Retry_Insp_Total_Time = 280;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
-#endif
-
-#ifdef F_035_Tack_Enable
-P_Retry_Insp_Total_Time = 220;  // 0.4s 리트라이 진행시 타이밍 이슈로 수정 확인 필요
-#endif
-
-global	P_Surf_TimeOut_Cnt = 0;
-global	P_Align_TimeOut_Cnt = 0;
-global	P_Retry_TimeOut_Cnt = 0;
-global	P_Stack_TimeOut_Cnt = 0;
-
-
-// Align Vision TIme Set
-// [ 참조 : 241205 035s, 0.4s얼라인 모션 변경, 0.35s 얼라인 검사 타이밍 수정 및 극판 데이터 타이밍 수정 ]
-#ifdef F_035_Tack_Enable
-global	P_Align_Insp_Total_Time = 180;//210;
-#else
-global	P_Align_Insp_Total_Time = 210;
-#endif
-
-global	P_Align_Trg_Time = 50
-global	P_Aligning_Time = 50
-
-
-// EmptyTable
-
-global	P_Cathode_Empty_Table_Vision_Flag = 0;
-global	P_Anode_Empty_Table_Vision_Flag = 0;
-
-
-
-#define	Sys_Descent_Align_Timer							Sys.CdTimer[0]
-#define	Sys_Descent_Stack_Timer							Sys.CdTimer[1]
-
-#define	Sys_Descent_Surface_Timer						Sys.CdTimer[2]
-#define	Sys_Descent_Existence_Timer						Sys.CdTimer[3]
-
-#define	Sys_Descent_Empty_Table_Timer					Sys.CdTimer[4]
-#define Sys_Descent_Sepa_Edge_Insp_Timer				Sys.CdTimer[5]
-
-#define	Sys_Descent_Retry_Timer							Sys.CdTimer[7]
-
-ptr M_Cathode_Belt_MNTR->*
-ptr M_Cathode_1st_MNTR->*
-ptr M_Cathode_Align_MNTR->*
-ptr M_Cathode_2nd_MNTR->*
-ptr M_Anode_Belt_MNTR->*
-ptr M_Anode_1st_MNTR->*
-ptr M_Anode_Align_MNTR->*
-ptr M_Anode_2nd_MNTR->*
-
-M_Cathode_Belt_MNTR->u.user:$1F44.16.16;
-M_Cathode_1st_MNTR->u.user:$1F4C.16.16;
-M_Cathode_Align_MNTR->u.user:$1F54.16.16;
-M_Cathode_2nd_MNTR->u.user:$1F5C.16.16;
-
-M_Anode_Belt_MNTR->u.user:$1F94.16.16
-M_Anode_1st_MNTR->u.user:$1F9C.16.16
-M_Anode_Align_MNTR->u.user:$1FA4.16.16
-M_Anode_2nd_MNTR->u.user:$1FAC.16.16
-
-
 
 /*			극판 정보 Bitwise 	1Byte로 나타냄.			*/
 
@@ -505,87 +365,12 @@ M_Anode_2nd_MNTR->u.user:$1FAC.16.16
 #define	F_Insepction_TimeOut	3
 #define	F_Insepction_Abnormal	4
 
-/*			함수 관련 정보			*/
-
-#define	F_Function_Error		99
-
-
-global	P_Selected_Surf_Insp_Type = 0;
-global	P_Selected_Align_Insp_Type = 0;
-global	P_Selected_Retry_Insp_Type = 0;
-global	P_Selected_Exist_Insp_Type = 0;
-
-global	P_VISION_RECIPE_PLC4_Surface_TrgOff = 40;
-global	P_VISION_RECIPE_PLC4_Surface_Ins_Time = 210;
-
-
-global	P_CMD_Cathode_Vision_Retry = 0;
-global	P_CMD_Anode_Vision_Retry = 0;
-
-global	P_Prev_Align_Manager_Status = 0;
-global	P_Prev_Surf_Manager_Status = 0;
-global	P_Prev_Exist_Manager_Status = 0;
-
-global	P_Prev_Selected_Align_Type = 0;
-global	P_Prev_Selected_Surf_Type = 0;
-global	P_Prev_Selected_Exist_Type = 0;
-
-
-
-global	P_Status_Align_Vision_Manager = 0;
-global	P_Status_Surface_Vision_Manager = 0;
-global	P_Status_Sheet_Existence_Vision_Manager = 0;
-global	P_Status_Stack_Vision_Manager = 0;
-global	P_Status_Retry_Vision_Manager = 0;
-
-global	P_Vision_All_Status_Manager_Init_Flag = 0;
-
-global	P_Cycle_Stop_Command = 0;
-global	P_Surface_Inspection_Complete_Error = 0;
-
-// [ 참조 : 20220823 음/양극 사이클 스탑 후 작업자가 반대편 Align Cell 제거 시 공급하기 위한 Position Switching ]
-global	P_Switching_From_Cathode_To_Anode_Flag = 0;
-global	P_Switching_From_Anode_To_Cathode_Flag = 0;
-global	P_Switching_Mode_Complete_Flag = 0;
-
-global	P_Surf_Cathode_Error_Count = 0;
-global	P_Surf_Anode_Error_Count = 0;
-
 global	P_First_Anode_Sheet_Supply_Flag = 0;
 global	P_First_Cathode_Sheet_Supply_Flag = 0;
-
-global	P_Set_Cathode_Align_Pos_Zero = 0;
-global	P_Set_Anode_Align_Pos_Zero = 0;
 
 
 global P_Cathode_Cur_Mode = 0;
 global P_Anode_Cur_Mode = 0;
-
-// 디버깅용 변수
-#define M_X_Vision_Stack_Align_Ok	                               M4228	//스텍 얼라인 비전 양품 표시
-#define M_X_Vision_Stack_Align_Ng	                               M4227	//스텍 얼라인 비전 불량 표시
-#define M_Y_PLC_EPCAlignMode_Complete_Return					   M5195	
-#define M_Y_Vision_Stack_EPC_Align_Vision_Trigger				   M5234	// EPC 보정 기능 _ 스텍 촬상 신호
-
-
-
-#define N_Tension_Acc	0
-#define N_Tension_Dec	1
-#define N_Zero			0
-// 2026.01.30 추가 
-// 추가 : // [ 참조 : 26.02.02 드라이빙 구동 모션 ]
-global P_AN_to_CA_DR_Trig = 26;		// 양극방향으로 이동할때 
-global P_CA_to_AN_DR_Trig = 71;		// 음극방향으로 이동할때
-
-global P_Tension_FF(2)
-P_Tension_FF(0),2 = 0.01;
-
-global P_Sepa_CompDac_Value = 0;
-
-global P_FR_Move_Command = 0;
-
-global P_FF_Enable = 0;				// FF 사용 여부 변수
-
 
 // [ 참조 : 26.08.21 Power Rack 풀림 현상 개선 프로그램. ]
 

@@ -1460,8 +1460,8 @@ if(M_Write_Sector_Scan_Complete(3) == 1)
 	u.user:$014594.00.16 = P_Anode_Align_MSA_Count					    //msa 진행 횟수
 
 	//  현재 선택된 젤리 롤 기종 plc에 송신
-	u.user:$014594.16.16 = P_Current_Selected_Sheet_Value;
-
+	//u.user:$014594.16.16 = P_Current_Selected_Sheet_Value;
+	u.user:$014594.16.16 = P_Select_Sheet_Value;	// 임시로 바로 리턴
 	u.user:$014598.00.16 = P_Status_Config_Mode_Select;					//PMAC 현재모드 PLC 전달
 	u.user:$014598.16.16 = P_Sepa_Thickness_Jig_Value;					//현재 세파 최대 두께 설정 값
 

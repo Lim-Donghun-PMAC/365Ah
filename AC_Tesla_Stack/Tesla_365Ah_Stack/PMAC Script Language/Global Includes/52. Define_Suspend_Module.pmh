@@ -17,13 +17,11 @@ global P_Suspend_Discharge_Cell_Out_Restart = 0 ;						// 정지 후 재시작 카운트 
 global P_Jelly_Roll_OK_Count = 0;										// 젤리롤 카운트
 global P_Jelly_Roll_NG_Count = 0;										// NG 젤리롤 카운트
 global P_Jelly_Roll_Total_Count = 0;									// 총 젤리롤 카운트				[ 참조 : 25.06.05 배출 시 JR Cnt 관리 ]
-global P_Jelly_Roll_ID = 0;												// 젤리롤 ID 값
 
 // 젤리롤 레시피 cnt
 global P_Jelly_Roll_Prod_Count = 0;										// 현재 젤리롤 생산 카운트
 global P_Jelly_Roll_Recipe_Count = 0;									// 젤리롤 레시피 카운트
 global P_Current_Cell_Memory_Jelly_Roll = 0;							// 젤리롤 메모리
-global P_Real_Stacking_Host_ID_Count = 0;								// 데이터 파싱 ( 이동 시 디스플레이 화면 일치 )
 
 // 비전 <-> PMAC
 global P_VISION_PLC10_Anode_Align_Start = 0;							// 음극 얼라인 비전 첫장 신호 플래그
@@ -35,40 +33,14 @@ global P_Stack_PMAC_NG_Code = 0;										// Stack PMAC NG Code
 global P_Stack_Vision_NG_Code_IN_Timer = 0;								// NG 코드 타이머
 //===========================================================================================================================
 
-//PLC 02 Discharge ==========================================================================================================
-global P_Discharge_Waiting_Flag = 0;									// 배출 대기 flag
-global P_ARC_Flag = 0													// 디버깅용
-global P_Discharge_Queue_Complete_Flag = 0;								// 배출 큐 완료 flag
-//===========================================================================================================================
-
 //PLC 10 Dishcarge Sequence =================================================================================================
-global P_Shared_Discharge_Cmd = 0;										// 배출 커맨드
-global P_Shared_Discharge_State_Machine = 0;							// 1차언로더 배출 스텟머신
-global P_Discharge_Dont_Stop_Point_Flag = 0;							// 배출 스탑 포인트 플래그
 global P_1st_Discharge_State = 0;										// 배출 상태 변수
-global P_Discharge_DIO_Trg = 0 ;										// 배출 DIO 트리거
-global P_Data_Parsing_Flag = 0;											// 데이터 파싱 플래그
-global P_Memory_Discharge_Data = 0;										// 배출 중 스탑 시 스텟머신 저장 변수
 global P_Prev_Sepa_Stack_Completed_Flag = 0;							// 세파 모드 배출 확인 플래그
-global P_First_Sepa_Mode_Status = 0;									// 세파 깔기 상태 확인 변수
-global P_First_Sepa_Mode_Flag = 0;										// 세파 깔기 시작 명령 변수
 // Discharge Variable
 global P_Discharge_Unloader_Handover_Timer = 0;							// 1차 언로더 → 2차 언로더 인계 시간 변수	[ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ]
 global P_Discharge_Unloader_Handover_Time = 0;							// 1차 언로더 → 2차 언로더 인계 시간 변수	[ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ]
 //===========================================================================================================================
 
-// PMAC <-> PLC 배출 간 변수 선언==============================================================================================
-#ifdef F_Def_Stack_A													// A열 배출
-global P_A_1st_to_2nd_Discharge_cmd = 0;								// 2차언로더 인계 커맨드  
-global P_A_1st_to_2nd_Discharge_State_Machine = 0;						// 1차 <-> 2차 언로더 스텟머신
-global P_2nd_Discharge_Status = 0;										// 시퀀스 상태
-#endif
-
-#ifdef F_Def_Stack_B													// B열 배출
-global P_B_1st_to_3rd_Discharge_cmd = 0;								// 3차언로더 인계 커맨드  
-global P_B_1st_to_3rd_Discharge_State_Machine = 0;						// 1차 <-> 3차 언로더 스텟머신
-global P_3rd_Discharge_Status = 0;										// 시퀀스 상태
-#endif
 
 // Suspend Define - [ 참조 : 25.06.04 모듈화 프로그램 신규 추가 ] 
 #define N_NoValue						0

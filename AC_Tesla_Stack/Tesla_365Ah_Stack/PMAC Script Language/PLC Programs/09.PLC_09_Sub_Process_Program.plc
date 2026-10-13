@@ -879,8 +879,7 @@ IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_ST
 				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;											// 다음 스텝으로 이동
 			break;
 
-			case N_PLC09_PackML_Num_2:			// EPC 보정 필요 사항?
-				//M_Y_Vision_Stack_EPC_Align_Vision_Trigger = 0;													// EPC 보정 스텍 촬상 신호 초기화
+			case N_PLC09_PackML_Num_2:			// EPC 보정 필요 사항?												// EPC 보정 스텍 촬상 신호 초기화
 				//P_Virtical_EPC_Saved_Pos = P_Motor_Current_Pos(27);												// EPC 위치값 저장
 				//if ( P_Stop_Save_Total_RTN )	// 디버깅 프로그램 실행 확인.	[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
 				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_3;											// 다음 스텝으로 이동

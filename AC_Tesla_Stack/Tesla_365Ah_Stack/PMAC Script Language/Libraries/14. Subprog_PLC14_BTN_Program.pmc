@@ -332,55 +332,63 @@ open subprog BTN_Program(void)
 	sub:Motor_Stop(void)
 
 		P_Servo_ON_MNTR17++
-		if ( Motor[N_1st_PnP_CA_T].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_1st_PnP_CA_T].DesVelZero == 0 && Motor[N_1st_PnP_CA_T].Inpos == 0 ||  P_Current_Homming_Status(N_1st_PnP_CA_T) == F_Status_STARTING)	// 모터 Servo ON 일 경우.
 		{
 			if ( Motor[N_1st_PnP_CA_T].phasefound == 1 )
 			{
+				P_Home_Command(N_1st_PnP_CA_T) = 9;
 				jog/N_1st_PnP_CA_T;		// 양극 1차 PNP T
 			}
 		}
 
-		if ( Motor[N_1st_PnP_AN_T].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_1st_PnP_AN_T].DesVelZero == 0 && Motor[N_1st_PnP_AN_T].Inpos == 0 ||  P_Current_Homming_Status(N_1st_PnP_AN_T) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
 			if ( Motor[N_1st_PnP_AN_T].phasefound == 1 )
 			{
+				P_Home_Command(N_1st_PnP_AN_T) = 9;
 				jog/N_1st_PnP_AN_T;		// 음극 1차 PNP T
 			}
 		}
 
-		if ( Motor[N_2nd_PnP_CA_T].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_2nd_PnP_CA_T].DesVelZero == 0 && Motor[N_2nd_PnP_CA_T].Inpos == 0 ||  P_Current_Homming_Status(N_2nd_PnP_CA_T) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
 			if ( Motor[N_2nd_PnP_CA_T].phasefound == 1 )
 			{
+				P_Home_Command(N_2nd_PnP_CA_T) = 9;
 				jog/N_2nd_PnP_CA_T;		// 양극 2차 PNP T
 			}
 		}
 
-		if ( Motor[N_2nd_PnP_AN_T].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_2nd_PnP_AN_T].DesVelZero == 0 && Motor[N_2nd_PnP_AN_T].Inpos == 0 ||  P_Current_Homming_Status(N_2nd_PnP_AN_T) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
 			if ( Motor[N_2nd_PnP_AN_T].phasefound == 1 )
 			{
+				P_Home_Command(N_2nd_PnP_AN_T) = 9;
 				jog/N_2nd_PnP_AN_T;		// 양극 2차 PNP T
 			}
 		}
 
-		if ( Motor[N_Clamp_CA_Y1].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Clamp_CA_Y1].DesVelZero == 0 && Motor[N_Clamp_CA_Y1].Inpos == 0 ||  P_Current_Homming_Status(N_Clamp_CA_Y1) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Clamp_CA_Y1) = 9;
 			jog/N_Clamp_CA_Y1;			// 양극 클램프 Y1
 		}
 
-		if ( Motor[N_Clamp_AN_Y1].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Clamp_AN_Y1].DesVelZero == 0 && Motor[N_Clamp_AN_Y1].Inpos == 0 ||  P_Current_Homming_Status(N_Clamp_AN_Y1) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Clamp_AN_Y1) = 9;
 			jog/N_Clamp_AN_Y1;			// 음극 클램프 Y1
 		}
 
-		if ( Motor[N_Clamp_CA_Y2].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Clamp_CA_Y2].DesVelZero == 0 && Motor[N_Clamp_CA_Y2].Inpos == 0 ||  P_Current_Homming_Status(N_Clamp_CA_Y2) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Clamp_CA_Y2) = 9;
 			jog/N_Clamp_CA_Y2;			// 양극 클램프 Y2
 		}
 
-		if ( Motor[N_Clamp_AN_Y2].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Clamp_AN_Y2].DesVelZero == 0 && Motor[N_Clamp_AN_Y2].Inpos == 0 ||  P_Current_Homming_Status(N_Clamp_AN_Y2) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Clamp_AN_Y2) = 9;
 			jog/N_Clamp_AN_Y2;			// 음극 클램프 Y2
 		}
 
@@ -394,18 +402,21 @@ open subprog BTN_Program(void)
 	//		jog/N_Motor_Spare_2;		// N_Motor_Spare_2
 	//	}
 
-		if ( Motor[N_MAIN_Z].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_MAIN_Z].DesVelZero == 0 && Motor[N_MAIN_Z].Inpos == 0 ||  P_Current_Homming_Status(N_MAIN_Z) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_MAIN_Z) = 9;
 			jog/N_MAIN_Z;			// Main Z
 		}
 
-		if ( Motor[N_FINAL_ROLL_X].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_FINAL_ROLL_X].DesVelZero == 0 && Motor[N_FINAL_ROLL_X].Inpos == 0 ||  P_Current_Homming_Status(N_FINAL_ROLL_X) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_FINAL_ROLL_X) = 9;
 			jog/N_FINAL_ROLL_X;			// Final Roll X
 		}
 
-		if ( Motor[N_FINAL_ROLL_Z].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_FINAL_ROLL_Z].DesVelZero == 0 && Motor[N_FINAL_ROLL_Z].Inpos == 0 ||  P_Current_Homming_Status(N_FINAL_ROLL_Z) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_FINAL_ROLL_Z) = 9;
 			jog/N_FINAL_ROLL_Z;			// Final Roll Z
 		}
 
@@ -414,76 +425,90 @@ open subprog BTN_Program(void)
 	//		jog/N_SUB_FEEDING_ROLL;		// N_SUB_FEEDING_ROLL
 	//	}
 
-		if ( Motor[N_DRIVING_ROLL].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_DRIVING_ROLL].DesVelZero == 0 && Motor[N_DRIVING_ROLL].Inpos == 0 ||  P_Current_Homming_Status(N_DRIVING_ROLL) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_DRIVING_ROLL) = 9;
 			jog/N_DRIVING_ROLL;			// Driving Roll
 		}
 
-		if ( Motor[N_SERVO_DANCER].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_SERVO_DANCER].DesVelZero == 0 && Motor[N_SERVO_DANCER].Inpos == 0 ||  P_Current_Homming_Status(N_SERVO_DANCER) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_SERVO_DANCER) = 9;
 			jog/N_SERVO_DANCER;			// Servo Dancer
 		}
 
-		if ( Motor[N_1st_PnP_CA_Z].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_1st_PnP_CA_Z].DesVelZero == 0 && Motor[N_1st_PnP_CA_Z].Inpos == 0 ||  P_Current_Homming_Status(N_1st_PnP_CA_Z) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_1st_PnP_CA_Z) = 9;
 			jog/N_1st_PnP_CA_Z;			// 양극 1차 PNP Z
 		}
 
-		if ( Motor[N_1st_PnP_AN_Z].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_1st_PnP_AN_Z].DesVelZero == 0 && Motor[N_1st_PnP_AN_Z].Inpos == 0 ||  P_Current_Homming_Status(N_1st_PnP_AN_Z) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_1st_PnP_AN_Z) = 9;
 			jog/N_1st_PnP_AN_Z;			// 음극 1차 PNP Z
 		}
 
-		if ( Motor[N_1st_Picker_CA_T].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_1st_Picker_CA_T].DesVelZero == 0 && Motor[N_1st_Picker_CA_T].Inpos == 0 ||  P_Current_Homming_Status(N_1st_Picker_CA_T) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_1st_Picker_CA_T) = 9;
 			jog/N_1st_Picker_CA_T;			// 양극 1차 PNP Picker T
 		}
 
-		if ( Motor[N_1st_Picker_AN_T].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_1st_Picker_AN_T].DesVelZero == 0 && Motor[N_1st_Picker_AN_T].Inpos == 0 ||  P_Current_Homming_Status(N_1st_Picker_AN_T) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_1st_Picker_AN_T) = 9;
 			jog/N_1st_Picker_AN_T;			// 음극 1차 PNP Picker T
 		}
 
-		if ( Motor[N_2nd_PnP_CA_Z].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_2nd_PnP_CA_Z].DesVelZero == 0 && Motor[N_2nd_PnP_CA_Z].Inpos == 0 ||  P_Current_Homming_Status(N_2nd_PnP_CA_Z) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_2nd_PnP_CA_Z) = 9;
 			jog/N_2nd_PnP_CA_Z;			// 양극 2차 PNP Z
 		}
 
-		if ( Motor[N_2nd_PnP_AN_Z].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_2nd_PnP_AN_Z].DesVelZero == 0 && Motor[N_2nd_PnP_AN_Z].Inpos == 0 ||  P_Current_Homming_Status(N_2nd_PnP_AN_Z) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_2nd_PnP_AN_Z) = 9;
 			jog/N_2nd_PnP_AN_Z;			// 음극 2차 PNP Z
 		}
 
 		if ( P_EXECUTE_Status_Prod_Sequence(N_ARC_Module) != F_Status_STARTING )
 		{
-			if ( Motor[N_UNWINDER_UPPER].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+			P_Home_Command(N_UNWINDER_UPPER) = 9;
+			if ( Motor[N_UNWINDER_UPPER].DesVelZero == 0 && Motor[N_UNWINDER_UPPER].Inpos == 0 ||  P_Current_Homming_Status(N_UNWINDER_UPPER) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 			{
 				jog/N_UNWINDER_UPPER;			// 상부 언와인더
 			}
 
-			if ( Motor[N_UNWINDER_LOWER].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+			if ( Motor[N_UNWINDER_LOWER].DesVelZero == 0 && Motor[N_UNWINDER_LOWER].Inpos == 0 ||  P_Current_Homming_Status(N_UNWINDER_LOWER) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 			{
+				P_Home_Command(N_UNWINDER_LOWER) = 9;
 				jog/N_UNWINDER_LOWER;			// 하부 언와인더
 			}
 		}
 
-		if ( Motor[N_Clamp_CA_Z2].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Clamp_CA_Z2].DesVelZero == 0 && Motor[N_Clamp_CA_Z2].Inpos == 0 ||  P_Current_Homming_Status(N_Clamp_CA_Z2) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Clamp_CA_Z2) = 9;
 			jog/N_Clamp_CA_Z2;			// 양극 클램프 Z1
 		}
 
-		if ( Motor[N_Clamp_AN_Z2].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Clamp_AN_Z2].DesVelZero == 0 && Motor[N_Clamp_AN_Z2].Inpos == 0 ||  P_Current_Homming_Status(N_Clamp_AN_Z2) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Clamp_AN_Z2) = 9;
 			jog/N_Clamp_AN_Z2;			// 음극 클램프 Z1
 		}
 
-		if ( Motor[N_Clamp_CA_Z1].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Clamp_CA_Z1].DesVelZero == 0 && Motor[N_Clamp_CA_Z1].Inpos == 0 ||  P_Current_Homming_Status(N_Clamp_CA_Z1) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Clamp_CA_Z1) = 9;
 			jog/N_Clamp_CA_Z1;			// 양극 클램프 Z2
 		}
 
-		if ( Motor[N_Clamp_AN_Z1].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Clamp_AN_Z1].DesVelZero == 0 && Motor[N_Clamp_AN_Z1].Inpos == 0 ||  P_Current_Homming_Status(N_Clamp_AN_Z1) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Clamp_AN_Z1) = 9;
 			jog/N_Clamp_AN_Z1;			// 음극 클램프 Z2
 		}
 
@@ -507,87 +532,101 @@ open subprog BTN_Program(void)
 	//		jog/N_Motor_Spare_6;		// N_Motor_Spare_6
 	//	}
 
-		if ( Motor[N_EPC_SENSOR].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_EPC_SENSOR].DesVelZero == 0 && Motor[N_EPC_SENSOR].Inpos == 0 ||  P_Current_Homming_Status(N_EPC_SENSOR) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_EPC_SENSOR) = 9;
 			jog/N_EPC_SENSOR;			// EPC Sensor
 		}
 
-		if ( Motor[N_STACK_VISION].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_STACK_VISION].DesVelZero == 0 && Motor[N_STACK_VISION].Inpos == 0 ||  P_Current_Homming_Status(N_STACK_VISION) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_STACK_VISION) = 9;
 			jog/N_STACK_VISION;			// Stack Vision
 		}
 
-		if ( Motor[N_SHEET_PAPER_X].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_SHEET_PAPER_X].DesVelZero == 0 && Motor[N_SHEET_PAPER_X].Inpos == 0 ||  P_Current_Homming_Status(N_SHEET_PAPER_X) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_SHEET_PAPER_X) = 9;
 			jog/N_SHEET_PAPER_X;			// 시트페이퍼
 		}
 
-		if ( Motor[N_Align_CA_X].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Align_CA_X].DesVelZero == 0 && Motor[N_Align_CA_X].Inpos == 0 ||  P_Current_Homming_Status(N_Align_CA_X) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Align_CA_X) = 9;
 			jog/N_Align_CA_X;			// 양극 얼라인 X
 		}
 
-		if ( Motor[N_Align_CA_Y].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Align_CA_Y].DesVelZero == 0 && Motor[N_Align_CA_Y].Inpos == 0 ||  P_Current_Homming_Status(N_Align_CA_Y) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Align_CA_Y) = 9;
 			jog/N_Align_CA_Y;			// 양극 얼라인 Y
 		}
 
-		if ( Motor[N_Align_CA_T].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Align_CA_T].DesVelZero == 0 && Motor[N_Align_CA_T].Inpos == 0 ||  P_Current_Homming_Status(N_Align_CA_T) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Align_CA_T) = 9;
 			jog/N_Align_CA_T;			// 양극 얼라인 T
 		}
 
-		if ( Motor[N_Align_AN_X].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Align_AN_X].DesVelZero == 0 && Motor[N_Align_AN_X].Inpos == 0 ||  P_Current_Homming_Status(N_Align_AN_X) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Align_AN_X) = 9;
 			jog/N_Align_AN_X;			// 음극 얼라인 X
 		}
 
-		if ( Motor[N_Align_AN_Y].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Align_AN_Y].DesVelZero == 0 && Motor[N_Align_AN_Y].Inpos == 0 ||  P_Current_Homming_Status(N_Align_AN_Y) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Align_AN_Y) = 9;
 			jog/N_Align_AN_Y;			// 음극 얼라인 Y
 		}
 
-		if ( Motor[N_Align_AN_T].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_Align_AN_T].DesVelZero == 0 && Motor[N_Align_AN_T].Inpos == 0 ||  P_Current_Homming_Status(N_Align_AN_T) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_Align_AN_T) = 9;
 			jog/N_Align_AN_T;			// 음극 얼라인 T
 		}
 
-		if ( Motor[N_NG_PnP_CA_T].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_NG_PnP_CA_T].DesVelZero == 0 && Motor[N_NG_PnP_CA_T].Inpos == 0 ||  P_Current_Homming_Status(N_NG_PnP_CA_T) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_NG_PnP_CA_T) = 9;
 			jog/N_NG_PnP_CA_T;			// 양극 NG PNP T
 		}
 
-		if ( Motor[N_NG_PnP_AN_T].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_NG_PnP_AN_T].DesVelZero == 0 && Motor[N_NG_PnP_AN_T].Inpos == 0 ||  P_Current_Homming_Status(N_NG_PnP_AN_T) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_NG_PnP_AN_T) = 9;
 			jog/N_NG_PnP_AN_T;			// 음극 NG PNP T
 		}
 
-		if ( Motor[N_NG_PnP_CA_Z].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_NG_PnP_CA_Z].DesVelZero == 0 && Motor[N_NG_PnP_CA_Z].Inpos == 0 ||  P_Current_Homming_Status(N_NG_PnP_CA_Z) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_NG_PnP_CA_Z) = 9;
 			jog/N_NG_PnP_CA_Z;			// 양극 NG PNP Z
 		}
 
-		if ( Motor[N_NG_PnP_AN_Z].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_NG_PnP_AN_Z].DesVelZero == 0 && Motor[N_NG_PnP_AN_Z].Inpos == 0 ||  P_Current_Homming_Status(N_NG_PnP_AN_Z) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_NG_PnP_AN_Z) = 9;
 			jog/N_NG_PnP_AN_Z;			// 음극 NG PNP Z
 		}
 
-		if ( Motor[N_UNLOADER_X].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_UNLOADER_X].DesVelZero == 0 && Motor[N_UNLOADER_X].Inpos == 0 ||  P_Current_Homming_Status(N_UNLOADER_X) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_UNLOADER_X) = 9;
 			jog/N_UNLOADER_X;			// 언로더 X
 		}
 
-		if ( Motor[N_UNLOADER_Z].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_UNLOADER_Z].DesVelZero == 0 && Motor[N_UNLOADER_Z].Inpos == 0 ||  P_Current_Homming_Status(N_UNLOADER_Z) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_UNLOADER_Z) = 9;
 			jog/N_UNLOADER_Z;			// 언로더 Y
 		}
 
-		if ( Motor[N_UNLOADER_T].AmpEna == 1 )	// 모터 Servo ON 일 경우.
+		if ( Motor[N_UNLOADER_T].DesVelZero == 0 && Motor[N_UNLOADER_T].Inpos == 0 ||  P_Current_Homming_Status(N_UNLOADER_T) == F_Status_STARTING )	// 모터 Servo ON 일 경우.
 		{
+			P_Home_Command(N_UNLOADER_T) = 9;
 			jog/N_UNLOADER_T;			// 언로더 T
 		}
-		
-		P_Home_Command(0),50 = 9;				// Command_Stop
 
 	return;
 

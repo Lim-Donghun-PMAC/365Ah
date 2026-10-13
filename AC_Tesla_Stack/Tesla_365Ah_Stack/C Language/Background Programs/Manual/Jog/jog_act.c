@@ -117,7 +117,7 @@ void Recipe_Pos_Run(JOG_LIST* ptr, int nBtn_name)
 				{
 					Set_Motor_Num(g_Page_Num);
 					Command("jog=*");
-					g_Move_Check = 1;
+					//g_Move_Check = 1;
 				}
 			}
 			else if(dMove_Distance < Get_Current_Motor_Pos(g_Page_Num))
@@ -132,7 +132,7 @@ void Recipe_Pos_Run(JOG_LIST* ptr, int nBtn_name)
 				{
 					Set_Motor_Num(g_Page_Num);
 					Command("jog=*");
-					g_Move_Check = 1;
+					//g_Move_Check = 1;
 				}
 			}
 		}

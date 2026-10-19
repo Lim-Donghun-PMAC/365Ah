@@ -46,29 +46,29 @@ Sys.WpKey = $AAAAAAAA;                                           // Permit write
 		P_An_2nd_PNP_ABSPhasing_Pos(5) = 4638210;//4019413;
 
 		// 6호기 AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(6) = 4616200;
-		P_An_1st_PNP_ABSPhasing_Pos(6) = 2203175;
-		P_Ca_2nd_PNP_ABSPhasing_Pos(6) = 2235753;
-		P_An_2nd_PNP_ABSPhasing_Pos(6) = 4043972;
+		P_Ca_1st_PNP_ABSPhasing_Pos(6) = 4634405;//4616200;
+		P_An_1st_PNP_ABSPhasing_Pos(6) = 2229440;//2203175;
+		P_Ca_2nd_PNP_ABSPhasing_Pos(6) = 2231755;//2235753;
+		P_An_2nd_PNP_ABSPhasing_Pos(6) = 4615648;//4043972;
 
 		// 7호기 - b AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(7) = 4019470;
-		P_An_1st_PNP_ABSPhasing_Pos(7) = 2831670;
-		P_Ca_2nd_PNP_ABSPhasing_Pos(7) = 2236287;
-		P_An_2nd_PNP_ABSPhasing_Pos(7) = 4625086;
+		P_Ca_1st_PNP_ABSPhasing_Pos(7) = 4623177;//4019470;
+		P_An_1st_PNP_ABSPhasing_Pos(7) = 2816530;//2831670;
+		P_Ca_2nd_PNP_ABSPhasing_Pos(7) = 2231553;//2236287;
+		P_An_2nd_PNP_ABSPhasing_Pos(7) = 4623372;//4625086;
 
 
 		// 8호기 - b AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(8) = 5827722;
-		P_An_1st_PNP_ABSPhasing_Pos(8) = 2230412;
-		P_Ca_2nd_PNP_ABSPhasing_Pos(8) = 2818575;
-		P_An_2nd_PNP_ABSPhasing_Pos(8) = 4017026;
+		P_Ca_1st_PNP_ABSPhasing_Pos(8) = 4619990;//5827722;
+		P_An_1st_PNP_ABSPhasing_Pos(8) = 2826675;//2230412;
+		P_Ca_2nd_PNP_ABSPhasing_Pos(8) = 2236264;//2818575;
+		P_An_2nd_PNP_ABSPhasing_Pos(8) = 4636847;//4017026;
 
 		// 9호기 - b AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(9) = 4621330
-		P_An_1st_PNP_ABSPhasing_Pos(9) = 2823890
-		P_Ca_2nd_PNP_ABSPhasing_Pos(9) = 2236486
-		P_An_2nd_PNP_ABSPhasing_Pos(9) = 4636879
+		P_Ca_1st_PNP_ABSPhasing_Pos(9) = 4629804;//4621330
+		P_An_1st_PNP_ABSPhasing_Pos(9) = 2231932;//2823890
+		P_Ca_2nd_PNP_ABSPhasing_Pos(9) = 2223758;//2236486
+		P_An_2nd_PNP_ABSPhasing_Pos(9) = 4621090;//4636879
 
 
 		// 10호기 - b AbsPos 값
@@ -558,7 +558,8 @@ Sys.WpKey = $AAAAAAAA;                                           // Permit write
 		// 모터 방향 관여 변수
 		Motor[1].PhaseOffset=683
 		Motor[1].PwmSf=15564
-		Motor[1].PhasePosSf=-6.67572021484693315e-06
+		//Motor[1].PhasePosSf=-6.67572021484693315e-06
+		Motor[1].PhasePosSf=-0.00000667572021484375
 		EncTable[1].ScaleFactor=-0.001953125
 		
 		Motor[1].InvAmax =0;
@@ -845,7 +846,8 @@ Sys.WpKey = $AAAAAAAA;                                           // Permit write
 
 		Motor[2].PhaseOffset=-683
 		Motor[2].PwmSf=-15564
-		Motor[2].PhasePosSf=6.56167979002624697e-06
+		//Motor[2].PhasePosSf=6.56167979002624697e-06
+		Motor[2].PhasePosSf=0.00000667572021484375
 		EncTable[2].ScaleFactor=0.001953125
 		
 		Motor[2].InvAmax =0;
@@ -1131,7 +1133,8 @@ Sys.WpKey = $AAAAAAAA;                                           // Permit write
 		// 모터 방향 관여 변수
 		Motor[3].PhaseOffset=683
 		Motor[3].PwmSf=15564
-		Motor[3].PhasePosSf=-6.66666666666666665e-06
+		//Motor[3].PhasePosSf=-6.66666666666666665e-06
+		Motor[3].PhasePosSf=-0.00000667572021484375
 		EncTable[3].ScaleFactor=-0.001953125
 		
 		Motor[3].InvAmax =0;
@@ -1413,7 +1416,8 @@ Sys.WpKey = $AAAAAAAA;                                           // Permit write
 		
 		Motor[4].PhaseOffset=-683
 		Motor[4].PwmSf=-15564
-		Motor[4].PhasePosSf=6.66666666666666665e-06
+		//Motor[4].PhasePosSf=6.66666666666666665e-06
+		Motor[4].PhasePosSf=0.00000667572021484375
 		EncTable[4].ScaleFactor=0.001953125
 		
 		Motor[4].InvAmax =0;
@@ -7406,7 +7410,7 @@ Sys.WpKey = $0                                               // Write-protect
 //Motor[2].PhaseFound=0
 //#2out0
 //Motor[2].IaBias=0
-//Motor[2].IbBias=500		
+//Motor[2].IbBias=Motor[2].IbBias+500
 //Motor[2].PhasePos=0
 //Motor[2].IbBias=0
 //#2k
@@ -7415,7 +7419,7 @@ Sys.WpKey = $0                                               // Write-protect
 //Motor[3].PhaseFound=0
 //#3out0
 //Motor[3].IaBias=0
-//Motor[3].IbBias=500
+//Motor[3].IbBias=Motor[3].IbBias+500
 //Motor[3].PhasePos=0
 //Motor[3].IbBias=0
 //#3k
@@ -7424,7 +7428,7 @@ Sys.WpKey = $0                                               // Write-protect
 //Motor[4].PhaseFound=0
 //#4out0
 //Motor[4].IaBias=0
-//Motor[4].IbBias=500
+//Motor[4].IbBias=Motor[4].IbBias+500
 //Motor[4].PhasePos=0
 //Motor[4].IbBias=0
 //#4k

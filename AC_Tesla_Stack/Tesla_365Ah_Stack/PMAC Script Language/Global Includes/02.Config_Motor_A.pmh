@@ -85,28 +85,28 @@ Sys.MaxRtPlc = 3;
 		P_An_2nd_PNP_ABSPhasing_Pos(5) = 2829431;
 
 		// 6호기 AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(6) = 1617951;
-		P_An_1st_PNP_ABSPhasing_Pos(6) = 4611117;
-		P_Ca_2nd_PNP_ABSPhasing_Pos(6) = 4012782;
-		P_An_2nd_PNP_ABSPhasing_Pos(6) = 2832520;
+		P_Ca_1st_PNP_ABSPhasing_Pos(6) = 2221999;//1617951;
+		P_An_1st_PNP_ABSPhasing_Pos(6) = 4610094;//4611117;
+		P_Ca_2nd_PNP_ABSPhasing_Pos(6) = 4623415;//4012782;
+		P_An_2nd_PNP_ABSPhasing_Pos(6) = 2215267;//2832520;
 
 		// 7호기 - a AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(7) = 2818010;
-		P_An_1st_PNP_ABSPhasing_Pos(7) = 5233600;
-		P_Ca_2nd_PNP_ABSPhasing_Pos(7) = 4615160;
-		P_An_2nd_PNP_ABSPhasing_Pos(7) = 2821563;
+		P_Ca_1st_PNP_ABSPhasing_Pos(7) = 2216813;//2818010;
+		P_An_1st_PNP_ABSPhasing_Pos(7) = 4630800;//5233600;
+		P_Ca_2nd_PNP_ABSPhasing_Pos(7) = 4616643;//4615160;
+		P_An_2nd_PNP_ABSPhasing_Pos(7) = 2223714;//2821563;
 		
 		// 8호기 AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(8) = 2826314
-		P_An_1st_PNP_ABSPhasing_Pos(8) = 4608257
-		P_Ca_2nd_PNP_ABSPhasing_Pos(8) = 4633285
-		P_An_2nd_PNP_ABSPhasing_Pos(8) = 2820814
+		P_Ca_1st_PNP_ABSPhasing_Pos(8) = 2229786;//2826314
+		P_An_1st_PNP_ABSPhasing_Pos(8) = 4623367;//4608257
+		P_Ca_2nd_PNP_ABSPhasing_Pos(8) = 4629603;//4633285
+		P_An_2nd_PNP_ABSPhasing_Pos(8) = 2216935;//2820814
 
 		// 9호기 - a AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(9) = 2233540
-		P_An_1st_PNP_ABSPhasing_Pos(9) = 4623599
-		P_Ca_2nd_PNP_ABSPhasing_Pos(9) = 4029668
-		P_An_2nd_PNP_ABSPhasing_Pos(9) = 2817186
+		P_Ca_1st_PNP_ABSPhasing_Pos(9) = 2227176;//2233540
+		P_An_1st_PNP_ABSPhasing_Pos(9) = 4603079;//4623599
+		P_Ca_2nd_PNP_ABSPhasing_Pos(9) = 4607991;//4029668
+		P_An_2nd_PNP_ABSPhasing_Pos(9) = 2230033;//2817186
 
 		// 10호기 - a AbsPos 값
 		P_Ca_1st_PNP_ABSPhasing_Pos(10) = 1632793;
@@ -601,7 +601,8 @@ Sys.MaxRtPlc = 3;
 		// 모터 방향 관여 변수
 		Motor[1].PhaseOffset=-683
 		Motor[1].PwmSf=-15564
-		Motor[1].PhasePosSf=6.83593749999833064e-06
+		//Motor[1].PhasePosSf=6.83593749999833064e-06
+		Motor[1].PhasePosSf=0.00000667572021484375
 		EncTable[1].ScaleFactor=0.001953125
 		
 		Motor[1].InvAmax =0;
@@ -890,7 +891,8 @@ Sys.MaxRtPlc = 3;
 		//모터 방향 관여변수
 		Motor[2].PhaseOffset=683
 		Motor[2].PwmSf=15564
-		Motor[2].PhasePosSf=-6.67572021484693315e-06
+		//Motor[2].PhasePosSf=-6.67572021484693315e-06
+		Motor[2].PhasePosSf=-0.00000667572021484375
 		EncTable[2].ScaleFactor=-0.001953125
 		
 		Motor[2].InvAmax =0;
@@ -1178,7 +1180,9 @@ Sys.MaxRtPlc = 3;
 
 		Motor[3].PhaseOffset=-683
 		Motor[3].PwmSf=-15564
-		Motor[3].PhasePosSf=6.66666666666666665e-06
+		//Motor[3].PhasePosSf=6.66666666666666665e-06
+		Motor[3].PhasePosSf=0.00000667572021484375
+		
 		EncTable[3].ScaleFactor=0.001953125
 		
 		Motor[3].InvAmax =0;
@@ -1462,7 +1466,8 @@ Sys.MaxRtPlc = 3;
 		
 		Motor[4].PhaseOffset=683
 		Motor[4].PwmSf=15564
-		Motor[4].PhasePosSf=-6.67572021484693315e-06
+		//Motor[4].PhasePosSf=-6.67572021484693315e-06
+		Motor[4].PhasePosSf=-0.00000667572021484375
 		EncTable[4].ScaleFactor=-0.001953125
 		
 		Motor[4].InvAmax =0;

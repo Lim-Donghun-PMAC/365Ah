@@ -1235,7 +1235,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				{ 
 				//================================ 1번위치 - 대기 상승 ================================
 					// ↓ 
-					if(P_Cathode_1st_PNP_Z_Real_Move_Pos ~ P_Recipe_M17_POS(2))
+					if(P_Cathode_1st_PNP_Z_Real_Move_Pos ~ P_Recipe_M17_POS(1))
 						P_No1_Recipe_Pos_IL(N_1st_PnP_CA_Z) = 1;
 					else
 						P_No1_Recipe_Pos_IL(N_1st_PnP_CA_Z) = 0;

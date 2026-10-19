@@ -9869,31 +9869,15 @@
 				</ParameterSection>
 				</ParameterSection>
 				<ParameterSection>
-				<Name name="local:ps1">M_Y_A_Site_Heart_Bit</Name>
-				<Description name="local:ps1.Desc">ptr(M) M_Y_A_Site_Heart_Bit</Description>
-				<Parameter ParameterId="40113" type="std:LREAL">
-				<Attributes channel="input" download="true" functional="false" offlineaccess="readwrite" onlineaccess="readwrite" driverSpecific="1"/>
-				<Default>0</Default>
-				<Name name="local:in">INPUT</Name>
-				<Unit name="local:ps1.Unit">User-determined</Unit>
-				</Parameter>
-				<Parameter ParameterId="40117" type="std:LREAL">
-				<Attributes channel="output" download="true" functional="false" offlineaccess="readwrite" onlineaccess="readwrite" driverSpecific="1"/>
-				<Default>0</Default>
-				<Name name="local:out">OUTPUT</Name>
-				<Unit name="local:ps1.Unit">User-determined</Unit>
-				</Parameter>
-				</ParameterSection>
-				<ParameterSection>
 				<Name name="local:ps1">M_X_PLC_Anode_Sheet_Ready2</Name>
 				<Description name="local:ps1.Desc">ptr(M) M_X_PLC_Anode_Sheet_Ready2</Description>
-				<Parameter ParameterId="32081" type="std:LREAL">
+				<Parameter ParameterId="40081" type="std:LREAL">
 				<Attributes channel="input" download="true" functional="false" offlineaccess="readwrite" onlineaccess="readwrite" driverSpecific="1"/>
 				<Default>0</Default>
 				<Name name="local:in">INPUT</Name>
 				<Unit name="local:ps1.Unit">User-determined</Unit>
 				</Parameter>
-				<Parameter ParameterId="32085" type="std:LREAL">
+				<Parameter ParameterId="40085" type="std:LREAL">
 				<Attributes channel="output" download="true" functional="false" offlineaccess="readwrite" onlineaccess="readwrite" driverSpecific="1"/>
 				<Default>0</Default>
 				<Name name="local:out">OUTPUT</Name>
@@ -9903,13 +9887,13 @@
 				<ParameterSection>
 				<Name name="local:ps1">M_X_PLC_Cathode_Sheet_Ready2</Name>
 				<Description name="local:ps1.Desc">ptr(M) M_X_PLC_Cathode_Sheet_Ready2</Description>
-				<Parameter ParameterId="32089" type="std:LREAL">
+				<Parameter ParameterId="40089" type="std:LREAL">
 				<Attributes channel="input" download="true" functional="false" offlineaccess="readwrite" onlineaccess="readwrite" driverSpecific="1"/>
 				<Default>0</Default>
 				<Name name="local:in">INPUT</Name>
 				<Unit name="local:ps1.Unit">User-determined</Unit>
 				</Parameter>
-				<Parameter ParameterId="32093" type="std:LREAL">
+				<Parameter ParameterId="40093" type="std:LREAL">
 				<Attributes channel="output" download="true" functional="false" offlineaccess="readwrite" onlineaccess="readwrite" driverSpecific="1"/>
 				<Default>0</Default>
 				<Name name="local:out">OUTPUT</Name>
@@ -9917,15 +9901,15 @@
 				</Parameter>
 				</ParameterSection>
 				<ParameterSection>
-				<Name name="local:ps1">M_X_B_Site_Heart_Bit</Name>
-				<Description name="local:ps1.Desc">ptr(M) M_X_B_Site_Heart_Bit</Description>
-				<Parameter ParameterId="32113" type="std:LREAL">
+				<Name name="local:ps1">M_Y_A_Site_Heart_Bit</Name>
+				<Description name="local:ps1.Desc">ptr(M) M_Y_A_Site_Heart_Bit</Description>
+				<Parameter ParameterId="40113" type="std:LREAL">
 				<Attributes channel="input" download="true" functional="false" offlineaccess="readwrite" onlineaccess="readwrite" driverSpecific="1"/>
 				<Default>0</Default>
 				<Name name="local:in">INPUT</Name>
 				<Unit name="local:ps1.Unit">User-determined</Unit>
 				</Parameter>
-				<Parameter ParameterId="32117" type="std:LREAL">
+				<Parameter ParameterId="40117" type="std:LREAL">
 				<Attributes channel="output" download="true" functional="false" offlineaccess="readwrite" onlineaccess="readwrite" driverSpecific="1"/>
 				<Default>0</Default>
 				<Name name="local:out">OUTPUT</Name>

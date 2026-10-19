@@ -477,10 +477,9 @@ enum ptrM {_ptrM_=-1
 ,M_AO_Anode_Clamp_Regulator=5413
 ,M_AO_Dancer_Regulator=5414
 ,M_Sys_Time=8296
+,M_X_PLC_Anode_Sheet_Ready2=5010
+,M_X_PLC_Cathode_Sheet_Ready2=5011
 ,M_Y_A_Site_Heart_Bit=5014
-,M_X_PLC_Anode_Sheet_Ready2=4010
-,M_X_PLC_Cathode_Sheet_Ready2=4011
-,M_X_B_Site_Heart_Bit=4014
 ,M_PLC_HeartBit_Flag=4223
 ,M_X_BTN_Press_Jog_Left_From_PLC=4160
 ,M_X_BTN_Press_Jog_Right_From_PLC=4107
@@ -9001,10 +9000,9 @@ enum ptrM {_ptrM_=-1
 ,M_AO_Anode_Clamp_Regulator=5413
 ,M_AO_Dancer_Regulator=5414
 ,M_Sys_Time=8296
+,M_X_PLC_Anode_Sheet_Ready2=5010
+,M_X_PLC_Cathode_Sheet_Ready2=5011
 ,M_Y_A_Site_Heart_Bit=5014
-,M_X_PLC_Anode_Sheet_Ready2=4010
-,M_X_PLC_Cathode_Sheet_Ready2=4011
-,M_X_B_Site_Heart_Bit=4014
 ,M_PLC_HeartBit_Flag=4223
 ,M_X_BTN_Press_Jog_Left_From_PLC=4160
 ,M_X_BTN_Press_Jog_Right_From_PLC=4107
@@ -10033,10 +10031,9 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_Queue_PeekEmpty 9209
 #define P_Self_items 9210
 #define P_Hold_Resume_Need_Flag 9211
+#define M_X_PLC_Anode_Sheet_Ready2 5010
+#define M_X_PLC_Cathode_Sheet_Ready2 5011
 #define M_Y_A_Site_Heart_Bit 5014
-#define M_X_PLC_Anode_Sheet_Ready2 4010
-#define M_X_PLC_Cathode_Sheet_Ready2 4011
-#define M_X_B_Site_Heart_Bit 4014
 #define P_Stack_Heart_Bit_Timer 9212
 #define P_Stack_Heart_Bit_Calc 9213
 #define P_Stack_Heart_Bit_Sync_State_Machine 9214

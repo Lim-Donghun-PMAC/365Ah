@@ -211,6 +211,7 @@ Sys.WpKey = $AAAAAAAA;                                           // Permit write
 
 // ================================== ABS HomeOffset 셋팅 파라미터 ===================================
 		//B열 HomeOffset 값
+		// [ 참조 : 26.09.24 홈 오프셋 통일 ]
 		P_Ca_1st_PNP_HomeOffset = -251272;
 		P_An_1st_PNP_HomeOffset = 47505; 
 		P_Ca_2nd_PNP_HomeOffset = -141044;

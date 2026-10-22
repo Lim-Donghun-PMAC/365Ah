@@ -995,7 +995,7 @@ sub:First_Unloader_BWD_Wait_Pos(&First_Unloader_BWD_Wait_RTN)
 
 			if(P_MSA_Sample_Flag == 1)
 			{
-				P_MSA_Sample_Flag = 0;
+				P_MSA_Sample_Flag = 0;	// MSA 플래그 해제
 			}
 			//260528 라스트런 버그로 인한 수정	
 			Sys_Stack_Sheet_Data = 0;

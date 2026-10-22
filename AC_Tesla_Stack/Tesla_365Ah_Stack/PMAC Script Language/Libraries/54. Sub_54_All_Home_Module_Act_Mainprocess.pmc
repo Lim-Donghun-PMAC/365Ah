@@ -144,6 +144,8 @@ rtn = 0;
 				if( P_Motor_Current_Pos(unit) <= Motor[unit].minpos/1000 )
 					rtn = N_TRUE;
 			#else
+				// 파이널롤러, 시트페이퍼 X가 대기위치 일경우 패스
+				// [ 참조 : 260910 전체 홈 진행시 파이널롤러 X,Z축 시트페이퍼 X축 대기위치 확인 ]
 				if( unit == N_FINAL_ROLL_X || unit == N_FINAL_ROLL_Z || unit == N_SHEET_PAPER_X )
 				{
 					if(P_FR_Sheet_Paper_Home_Chk != 7 && Motor[unit].MinusLimit == 1)

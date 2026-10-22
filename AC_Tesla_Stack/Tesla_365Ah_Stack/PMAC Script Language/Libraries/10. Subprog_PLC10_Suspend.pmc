@@ -225,15 +225,15 @@ sub: Discharge_Host_ID_Result( &rtn )
 		// 샘플 여부
 		if(P_BTN_Loss_Sample_Flag == 1 && P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence)
 		{
-			M_Stack_Host_ID_Sample_Type = 1;
+			M_Stack_Host_ID_Sample_Type = 1;	// Loss 샘플
 		}
 		else if(P_BTN_QC_Sample_Flag == 1 && P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence)
 		{
-			M_Stack_Host_ID_Sample_Type = 2;
+			M_Stack_Host_ID_Sample_Type = 2;	// QC 샘플
 		}
 		else if(P_MSA_Sample_Flag == 1 && P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence)
 		{
-			M_Stack_Host_ID_Sample_Type = 3;
+			M_Stack_Host_ID_Sample_Type = 3;	// [참조 : 26.09.15 MSA 진행후 젤리롤 배출 시 NG 3으로 배출]
 		}
 		else
 		{

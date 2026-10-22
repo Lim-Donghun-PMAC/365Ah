@@ -1339,6 +1339,7 @@ if( P_PMAC_Current_Mode == F_Current_Automatic )
 	{
 		if( Total_DesVelZero_Bit && P_Seq_Abort_Timer > 1000 )
 		{
+			call Alarm.Insert_Alarm(N_Alarm_Opposite_Lane_Abort_Alram, N_High_Alarm_Emergency_Stop);	// #k 로인해서 26번 Motor Alarm 먼저 들어감
 			cmd"#*k"
 			P_Seq_Abort++
 		}
@@ -1349,7 +1350,7 @@ if( P_PMAC_Current_Mode == F_Current_Automatic )
 		if( P_Opposite_Lane_Abort_Alram_Flag == 1 )
 		{
 			P_Opposite_Lane_Abort_Alram_Flag = 0;
-			call Alarm.Insert_Alarm(N_Alarm_Opposite_Lane_Abort_Alram, N_High_Alarm_Emergency_Stop);
+			//call Alarm.Insert_Alarm(N_Alarm_Opposite_Lane_Abort_Alram, N_High_Alarm_Emergency_Stop);
 		}
 		P_Seq_Abort = 0
 		

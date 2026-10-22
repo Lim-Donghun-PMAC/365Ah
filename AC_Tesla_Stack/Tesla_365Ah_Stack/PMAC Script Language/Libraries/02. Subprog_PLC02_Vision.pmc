@@ -82,10 +82,7 @@ sub: Align_Result(Selected_Unit, &rtn)
 				P_Anode_Align_Stage_Y_mm = 0;
 				P_Anode_Align_Stage_T_mm = 0;
 				P_Anode_Align_Table_Move = F_Align_Move_Mode;	// 얼라인 테이블 동작 모드
-				if(Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
-				{
-					Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_OK;	// 얼라인 OK 데이터 저장
-				}
+				Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_OK;	// 얼라인 OK 데이터 저장
 			}
 		}
 		else if(Selected_Unit == N_Cathode_Unit)
@@ -107,10 +104,7 @@ sub: Align_Result(Selected_Unit, &rtn)
 				P_Cathode_Align_Stage_Y_mm = 0;
 				P_Cathode_Align_Stage_T_mm = 0;
 				P_Cathode_Align_Table_Move = F_Align_Move_Mode;		// 얼라인 테이블 동작 모드
-				if(Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence)
-				{
-					Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_OK;		// OK 데이터 저장
-				}
+				Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_OK;		// OK 데이터 저장
 			}
 		}
 		
@@ -227,20 +221,24 @@ sub: Align_Move(Selected_Unit, &rtn)
 	rtn = 0;
 	if(Selected_Unit == N_Anode_Unit)
 	{
-		Ldata.CmdStatus = 1 // 커맨드 상태 초기화
-		CMD"&3b3r";	//Anode Align Stage 모션 커멘드 발생
-		sendallcmds // 모든 커맨드문 버퍼를 비워냄
-		while (Ldata.CmdStatus == 1) {} // 모든 커맨드문 버퍼가 비워질 때 까지 대기
+		START N_Anode_Align_Motion_Slave : N_Anode_Align_Motion_Slave_Program;		//[ 참조 : 26.10.07 얼라인테이블 모션 커맨드 구문 수정 ]
+		//Ldata.CmdStatus = 1 // 커맨드 상태 초기화
+		//CMD"&3b3r";	//Anode Align Stage 모션 커멘드 발생
+		//sendallcmds // 모든 커맨드문 버퍼를 비워냄
+		//while (Ldata.CmdStatus == 1) {} // 모든 커맨드문 버퍼가 비워질 때 까지 대기
 		M_Y_Vision_Anode_Align_Heartbit = 1;
+		//P_Anode_Align_Start_Bit = 0;
 		rtn = 1;
 	}
 	else if(Selected_Unit == N_Cathode_Unit)
 	{	
-		Ldata.CmdStatus = 1 // 커맨드 상태 초기화
-		CMD"&2b2r";	//Anode Align Stage 모션 커멘드 발생
-		sendallcmds // 모든 커맨드문 버퍼를 비워냄
-		while (Ldata.CmdStatus == 1) {} // 모든 커맨드문 버퍼가 비워질 때 까지 대기
+		START N_Cathode_Align_Motion_Slave : N_Cathode_Align_Motion_Slave_Program;		//[ 참조 : 26.10.07 얼라인테이블 모션 커맨드 구문 수정 ]
+		//Ldata.CmdStatus = 1 // 커맨드 상태 초기화
+		//CMD"&2b2r";	//Anode Align Stage 모션 커멘드 발생
+		//sendallcmds // 모든 커맨드문 버퍼를 비워냄
+		//while (Ldata.CmdStatus == 1) {} // 모든 커맨드문 버퍼가 비워질 때 까지 대기
 		M_Y_Vision_Cathode_Align_Heartbit = 1
+		//P_Cathode_Align_Start_Bit = 0;
 		rtn = 1;	
 	}
 

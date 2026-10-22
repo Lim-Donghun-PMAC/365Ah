@@ -185,7 +185,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 	{
 		P_IL_Popup_Motor = N_NG_Box_Open;
 	}
-	if ( Sys_Cathode_1st_Sheet_LO_Vision_BYTE & Hex_Cell_Existence || Sys_Anode_1st_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )
+	else if ( Sys_Cathode_1st_Sheet_LO_Vision_BYTE & Hex_Cell_Existence || Sys_Anode_1st_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )
 	{//[참조 : 20260716 1차 PNP에 극판 존재 시 피커 T축 인터락 ]
 		P_IL_Popup_Motor = N_1st_Cell_Existence;
 	}
@@ -3739,7 +3739,8 @@ else	// 인터락 프로그램 미실행일때 변수 초기화
 //}
 
 // Motor Page Num 대입
-
+//[ 참조 : 26.10.07 위치 이동 버튼 관련 수정 ]
+//  실린더 페이지의 위치 이동 시 PLC 27번 인터락부분의 모터 번호를 순환시킴
 if(P_Jog_Page_Flag == 0)
 {
 	if(L_Motor_Num > 0 && L_Motor_Num < 48)

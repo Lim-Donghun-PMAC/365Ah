@@ -965,7 +965,7 @@ IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_ST
 
 				if(P_Buffer_Mode_Status_Sequence == N_Dryrun_Status_Sequence)
 				{
-					P_PLC15_Sub_Function_Dryrun_Active_Flag = 0;
+					P_PLC15_Sub_Function_Dryrun_Active_Flag = 0;	// 드라이런 경과 시간 플래그 해제
 				}
 
 				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_10;											// 스텝 초기화
@@ -1146,7 +1146,7 @@ IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_AB
 
 					if(P_Buffer_Mode_Status_Sequence == N_Dryrun_Status_Sequence)
 					{
-						P_PLC15_Sub_Function_Dryrun_Active_Flag = 0;
+						P_PLC15_Sub_Function_Dryrun_Active_Flag = 0;		// 드라이런 경과 시간 플래그 해제
 					}
 					P_array_CF_Function_State_Number = N_PLC09_PackML_Num_9;													
 				}

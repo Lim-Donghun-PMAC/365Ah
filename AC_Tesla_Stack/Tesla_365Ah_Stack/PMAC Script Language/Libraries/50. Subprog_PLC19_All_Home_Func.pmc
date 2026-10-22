@@ -34,6 +34,8 @@ else
 		//else												// 양극 ng pnp가 얼라인 또는 ng 박스에 있다는 말이므로 언로더 z축이 상승해있을 가능성이 있음
 			AH_Motor_State_Chk_RTN = N_New_Non_Homing_CHK2;		// 홈체크 == 4
 		
+		// [참조 26.09.24 : 전체 홈 시퀀스 수정]
+		// 언로더, 양극 2차 PNP, NG PNP 위치에 따라 홈 순서 변경
 		// 언로더 X가 스택 진입전 기준으로 앞/뒤
 		if( P_Motor_Current_Pos(N_UNLOADER_X) > P_Recipe_M46_POS(2) + 30) // 언로더 X축이 스택 위치쪽
 		{
@@ -60,7 +62,7 @@ else
 			}
 		}
 
-		// 세파에 영향이 있는 F/R X,Z, Sheet_Paper X의 대기위치 및 홈체크 확인
+		// [ 참조 : 260910 전체 홈 진행시 파이널롤러 X,Z축 시트페이퍼 X축 대기위치 확인 ]
 		if(P_PMAC_Homing_CHK(N_FINAL_ROLL_X) == 1 && (P_Motor_Current_Pos(N_FINAL_ROLL_X) > P_Recipe_M12_POS(1) - 0.2 && P_Motor_Current_Pos(N_FINAL_ROLL_X) < P_Recipe_M12_POS(1) + 0.2))
 		{
 			P_FR_Sheet_Paper_Home_Chk |= $1;

@@ -2624,11 +2624,16 @@ switch( P_SM_Anode_1st_PNP_Vac_Chk_Mode )
 		P_Slave11_Motion_Command = 0;	// 슬레이브축 커멘드
 		P_Slave12_Motion_Command = 0;	// 슬레이브축 커멘드
 		P_Slave13_Motion_Command = 0;	// 슬레이브축 커멘드
-		P_Slave14_Motion_Command = 0;	// 슬레이브축 커멘드		
+		P_Slave14_Motion_Command = 0;	// 슬레이브축 커멘드	
+		P_Slave16_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave17_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave18_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave19_Motion_Command = 0;	// 슬레이브축 커멘드	
 		cmd"&1..60a"
 		call Sub_Common_Function.Master_Motion_Program_OFF(&P_Anode_1st_PnP_Vac_Chk_Mode_RTN);
 		P_SM_Anode_1st_PNP_Vac_Chk_Mode = 0
-		P_Status_Clear_Flag = 1
+		P_PMAC_Commands = F_Command_Stop
+		P_Stop_Cmd_Origin = 120
 	break;
 
 	default :
@@ -2839,11 +2844,16 @@ switch( P_SM_Cathode_1st_PNP_Vac_Chk_Mode )
 		P_Slave11_Motion_Command = 0;	// 슬레이브축 커멘드
 		P_Slave12_Motion_Command = 0;	// 슬레이브축 커멘드
 		P_Slave13_Motion_Command = 0;	// 슬레이브축 커멘드
-		P_Slave14_Motion_Command = 0;	// 슬레이브축 커멘드		
+		P_Slave14_Motion_Command = 0;	// 슬레이브축 커멘드	
+		P_Slave16_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave17_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave18_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave19_Motion_Command = 0;	// 슬레이브축 커멘드	
 		cmd"&1..60a"
 		call Sub_Common_Function.Master_Motion_Program_OFF(&P_Cathode_1st_PnP_Vac_Chk_Mode_RTN);
 		P_SM_Cathode_1st_PNP_Vac_Chk_Mode = 0
-		P_Status_Clear_Flag = 1
+		P_PMAC_Commands = F_Command_Stop
+		P_Stop_Cmd_Origin = 121
 	break;
 
 	default :
@@ -3012,10 +3022,15 @@ switch( P_SM_Anode_2nd_PNP_Vac_Chk_Mode )
 		P_Slave12_Motion_Command = 0;	// 슬레이브축 커멘드
 		P_Slave13_Motion_Command = 0;	// 슬레이브축 커멘드
 		P_Slave14_Motion_Command = 0;	// 슬레이브축 커멘드		
+		P_Slave16_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave17_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave18_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave19_Motion_Command = 0;	// 슬레이브축 커멘드
 		cmd"&1..60a"
 		call Sub_Common_Function.Master_Motion_Program_OFF(&P_Anode_2nd_PnP_Vac_Chk_Mode_RTN);
 		P_SM_Anode_2nd_PNP_Vac_Chk_Mode = 0
-		P_Status_Clear_Flag = 1
+		P_PMAC_Commands = F_Command_Stop
+		P_Stop_Cmd_Origin = 122
 	break;
 
 	default :
@@ -3184,11 +3199,16 @@ switch( P_SM_Cathode_2nd_PNP_Vac_Chk_Mode )
 		P_Slave11_Motion_Command = 0;	// 슬레이브축 커멘드
 		P_Slave12_Motion_Command = 0;	// 슬레이브축 커멘드
 		P_Slave13_Motion_Command = 0;	// 슬레이브축 커멘드
-		P_Slave14_Motion_Command = 0;	// 슬레이브축 커멘드		
+		P_Slave14_Motion_Command = 0;	// 슬레이브축 커멘드	
+		P_Slave16_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave17_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave18_Motion_Command = 0;	// 슬레이브축 커멘드
+		P_Slave19_Motion_Command = 0;	// 슬레이브축 커멘드	
 		cmd"&1..60a"
 		call Sub_Common_Function.Master_Motion_Program_OFF(&P_Cathode_2nd_PnP_Vac_Chk_Mode_RTN);
 		P_SM_Cathode_2nd_PNP_Vac_Chk_Mode = 0
-		P_Status_Clear_Flag = 1
+		P_PMAC_Commands = F_Command_Stop
+		P_Stop_Cmd_Origin = 123
 	break;
 
 	default :

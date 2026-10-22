@@ -529,3 +529,9 @@ P_Cal_Dif_Deg(0),5 = 0;
 
 global P_Vac_Door_Open_Clear(13)
 P_Vac_Door_Open_Clear(0),13 = 0;
+
+ptr M_Y_Vacuum_Popup_On_Request -> u.user:$014C60.00;			// P_Y_Vacuum_Popup_On_Request
+ptr	M_X_Vacuum_Popup_On_Request_Ack -> u.user:$00AE8C.16;		// P_X_Vacuum_Popup_On_Request_Ack
+
+#define N_Door_Cidx_f			85092
+#define N_Door_Cidx_s			85120

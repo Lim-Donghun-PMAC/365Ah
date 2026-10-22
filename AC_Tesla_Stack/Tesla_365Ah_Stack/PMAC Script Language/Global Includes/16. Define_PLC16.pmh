@@ -20,8 +20,8 @@ global P_Partition_Avoid_2nd_T_Pos = 45;
 global P_Partition_Step_Flag = 0;
 
 global P_Partition_1st_Avoid_Offset = 5;				// 격벽 회피 위치 -> 1차 PNP 대기위치 + n
-global P_Partition_Picker_Avoid_Offset = 50;
-global P_Partition_Avoid_Check = 0;
+global P_Partition_Picker_Avoid_Offset = 50;			// 격벽 회피 위치 -> 1차 picker 50도 
+global P_Partition_Avoid_Check = 0;						// 회피 위치 체크
 
 #define Partition_Down_Mode_Interlock u.user:$0147EC.27.01
 #define Partition_Up_Mode_Interlock u.user:$0147EC.28.01

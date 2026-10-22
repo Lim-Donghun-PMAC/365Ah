@@ -329,6 +329,13 @@
 #define N_Coord_Cathode_TR2_Z_Slave					39
 #define N_Coord_Cathode_TR1_Z_Slave					40
 
+//[ 참조 : 26.10.07 얼라인테이블 모션 커맨드 구문 수정 ]
+#define N_Cathode_Align_Motion_Slave				2
+#define N_Anode_Align_Motion_Slave					3
+#define N_Cathode_Align_Motion_Slave_Program		2
+#define N_Anode_Align_Motion_Slave_Program			3
+
+
 global P_2nd_PNP_Stack_Down_Pos	= 59.7;
 global P_2nd_PNP_Stack_Up_Pos = 42.023;
 
@@ -346,4 +353,3 @@ global P_Cathode_Clamp_Down_MNTR = 0;
 global P_FR_Ta = 67;
 global P_FR_Ts = 8;
 global P_FR_Tm = 165;
-

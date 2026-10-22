@@ -249,6 +249,7 @@ Sys.MaxRtPlc = 3;
 // ================================== ABS HomeOffset 셋팅 파라미터 ===================================
 		
 		//A열 HomeOffset 값
+		// [ 참조 : 26.09.24 홈 오프셋 통일 ]
 		P_Ca_1st_PNP_HomeOffset = 52248;
 		P_An_1st_PNP_HomeOffset = -249646;
 		P_Ca_2nd_PNP_HomeOffset = 165157;

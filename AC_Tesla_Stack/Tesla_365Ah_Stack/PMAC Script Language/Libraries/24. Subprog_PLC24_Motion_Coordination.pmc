@@ -606,7 +606,7 @@ if( P_System_Cascading_OFF_Status == F_Status_EXECUTE )
 			}
 			else if(P_PMAC_Status == F_Status_SUSPENDED)
 			{
-				// 260911 적층 후 사이클 스탑 시 텐션이 풀려버려서 ServoOut을 Suspend 일때만 0으로 수정
+				// [ 참조 : 26.09.11 적층 후 사이클 스탑 시 텐션이 풀려버려서 ServoOut을 Suspend 일때만 0으로 수정 ]
 				Motor[N_SERVO_DANCER].ServoOut = 0;//P_OutValue *100;						// 베이스 토크
 				P_System_Cascading_OFF_State_Machine++;
 				P_Servo_Dancer_Cascading_Off_Timer = 0;										// 타이머 초기화

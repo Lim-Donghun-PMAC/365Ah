@@ -330,7 +330,7 @@ open subprog BTN_Program(void)
 	// 모터 Stop //			- // [ 참조 : 26.04.24 Manual 상태에서 조그 구종 중 Stop 버튼 눌렀을 시 조그 STOP ]
 	//===============//
 	sub:Motor_Stop(void)
-
+		// 스탑 조건 3.5세대와 동일하게 변경
 		P_Servo_ON_MNTR17++
 		if ( Motor[N_1st_PnP_CA_T].DesVelZero == 0 && Motor[N_1st_PnP_CA_T].Inpos == 0 ||  P_Current_Homming_Status(N_1st_PnP_CA_T) == F_Status_STARTING)	// 모터 Servo ON 일 경우.
 		{

@@ -477,19 +477,22 @@ enum ptrM {_ptrM_=-1
 ,M_AO_Anode_Clamp_Regulator=5413
 ,M_AO_Dancer_Regulator=5414
 ,M_Sys_Time=8296
-,M_X_PLC_Anode_Sheet_Ready2=5010
-,M_X_PLC_Cathode_Sheet_Ready2=5011
 ,M_Y_A_Site_Heart_Bit=5014
+,M_X_PLC_Anode_Sheet_Ready2=4010
+,M_X_PLC_Cathode_Sheet_Ready2=4011
+,M_X_B_Site_Heart_Bit=4014
 ,M_PLC_HeartBit_Flag=4223
 ,M_X_BTN_Press_Jog_Left_From_PLC=4160
 ,M_X_BTN_Press_Jog_Right_From_PLC=4107
 ,M_Sample_JR_Prod_Count=8351
 ,M_Sample_Btn_Flag=8352
-,M_Stack_Host_ID_Buffer_Mode=8561
-,M_Stack_Host_ID_Sample_Type=8562
-,M_Stack_Host_ID_JR_Result=8563
-,M_Stack_Host_ID_NG_Type=8564
-,M_Manual_ARC_BTN=9126
+,M_Y_Vacuum_Popup_On_Request=8353
+,M_X_Vacuum_Popup_On_Request_Ack=8354
+,M_Stack_Host_ID_Buffer_Mode=8563
+,M_Stack_Host_ID_Sample_Type=8564
+,M_Stack_Host_ID_JR_Result=8565
+,M_Stack_Host_ID_NG_Type=8566
+,M_Manual_ARC_BTN=9128
 ,M_EPC_SENSOR_Load_Ratio=6033
 ,M_STACK_VISION_Load_Ratio=6034
 ,M_SHEET_PAPER_X_Load_Ratio=6035
@@ -516,45 +519,45 @@ enum ptrMarray {_ptrMarray_=-1
 ,M_Write_Sector_Scan_Time=8287
 ,M_Gate3_MinusLimit=8297
 ,M_Gate3_HomeLimit=8324
-,M_Touchprobefunction=8353
-,M_Touchprobestatus=8402
-,M_Ecat_Motor_State=8451
-,M_Motor_BTN_Info=8501
-,M_ASCII_Stack_Work_Host_Sepa_ID_Buffer=8551
-,M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer=8565
-,M_ASCII_Uloader_1st_Host_ID_Buffer=8572
-,M_ASCII_Anode_Sheet_Belt_Buffer=8582
-,M_ASCII_Anode_Sheet_Buffer=8589
-,M_ASCII_Cathode_Sheet_Belt_Buffer=8645
-,M_ASCII_Cathode_Sheet_Buffer=8652
-,M_ASCII_First_Sheet_Buffer=8708
-,M_ASCII_Last_Sheet_Buffer=8715
-,P_BTN_Jog_BWD_M=8722
-,P_BTN_Jog_FWD_M=8772
-,M_UnWinder_BTN_Lamp=8822
-,M_Cathode_BTN_Lamp=8838
-,M_Anode_BTN_Lamp=8870
-,M_Stack_BTN_Lamp=8902
-,M_ARC_BTN_Lamp=8934
-,M_UnWinder_BTN_Interlock=8966
-,M_Cathode_BTN_Interlock=8982
-,M_Anode_BTN_Interlock=9014
-,M_Stack_BTN_Interlock=9046
-,M_ARC_BTN_Interlock=9078
-,M_NP_BTN_Interlock=9110
-,M_Motor_Vel=9127
-,M_Motor_TA=9177
-,M_Motor_TD=9227
-,M_Motor_BTN=9277
-,M_Motor_RecipePos=9327
-,M_Motor_Move_Distance=9377
-,M_Motor_Home_Offset=9427
-,M_Motor_Pos_Data=9477
-,M_Motor_Status_Data=9527
-,M_Motor_Recipe_Pos_Interlock=9577
-,M_Motor_Peak_Load_Ratio=9627
-,M_Motor_Effective_Load_Ratio=9677
-,M_Motor_Check_Current_Recipe_Pos=9727};
+,M_Touchprobefunction=8355
+,M_Touchprobestatus=8404
+,M_Ecat_Motor_State=8453
+,M_Motor_BTN_Info=8503
+,M_ASCII_Stack_Work_Host_Sepa_ID_Buffer=8553
+,M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer=8567
+,M_ASCII_Uloader_1st_Host_ID_Buffer=8574
+,M_ASCII_Anode_Sheet_Belt_Buffer=8584
+,M_ASCII_Anode_Sheet_Buffer=8591
+,M_ASCII_Cathode_Sheet_Belt_Buffer=8647
+,M_ASCII_Cathode_Sheet_Buffer=8654
+,M_ASCII_First_Sheet_Buffer=8710
+,M_ASCII_Last_Sheet_Buffer=8717
+,P_BTN_Jog_BWD_M=8724
+,P_BTN_Jog_FWD_M=8774
+,M_UnWinder_BTN_Lamp=8824
+,M_Cathode_BTN_Lamp=8840
+,M_Anode_BTN_Lamp=8872
+,M_Stack_BTN_Lamp=8904
+,M_ARC_BTN_Lamp=8936
+,M_UnWinder_BTN_Interlock=8968
+,M_Cathode_BTN_Interlock=8984
+,M_Anode_BTN_Interlock=9016
+,M_Stack_BTN_Interlock=9048
+,M_ARC_BTN_Interlock=9080
+,M_NP_BTN_Interlock=9112
+,M_Motor_Vel=9129
+,M_Motor_TA=9179
+,M_Motor_TD=9229
+,M_Motor_BTN=9279
+,M_Motor_RecipePos=9329
+,M_Motor_Move_Distance=9379
+,M_Motor_Home_Offset=9429
+,M_Motor_Pos_Data=9479
+,M_Motor_Status_Data=9529
+,M_Motor_Recipe_Pos_Interlock=9579
+,M_Motor_Peak_Load_Ratio=9629
+,M_Motor_Effective_Load_Ratio=9679
+,M_Motor_Check_Current_Recipe_Pos=9729};
 #define	P_Ca_1st_PNP_HomeOffset	pshm->P[8192]
 #define	P_An_1st_PNP_HomeOffset	pshm->P[8193]
 #define	P_Ca_2nd_PNP_HomeOffset	pshm->P[8194]
@@ -4457,42 +4460,39 @@ enum ptrMarray {_ptrMarray_=-1
 #define	P_UNLOADER_X_Load_Ratio	pshm->P[146]
 #define	P_UNLOADER_Z_Load_Ratio	pshm->P[147]
 #define	P_UNLOADER_T_Load_Ratio	pshm->P[148]
-#define	P_Anode_Vision_MNTR	pshm->P[27923]
-#define	P_Cathode_Vision_MNTR	pshm->P[27924]
-#define	P_Vision_MNTR(i)	pshm->P[(27925+i)%MAX_P]
-#define	P_Error_Index_Number	pshm->P[27930]
-#define	P_ECAT_MNTR_Bit	pshm->P[27931]
-#define	P_Local_MNTR_Bit	pshm->P[27932]
-#define	P_Clamp_Motion_VER1	pshm->P[27933]
-#define	P_CA_DR_Ta	pshm->P[27934]
-#define	P_CA_DR_Ts	pshm->P[27935]
-#define	P_CA_DR_Tm	pshm->P[27936]
-#define	P_CA_DR_Td	pshm->P[27937]
-#define	P_CA_DR_Tsd	pshm->P[27938]
-#define	P_AN_DR_Ta	pshm->P[27939]
-#define	P_AN_DR_Ts	pshm->P[27940]
-#define	P_AN_DR_Tm	pshm->P[27941]
-#define	P_AN_DR_Td	pshm->P[27942]
-#define	P_AN_DR_Tsd	pshm->P[27943]
-#define	P_First_Sepa_1st_Driving_Move	pshm->P[27944]
-#define	P_AN_Cam_Total_Time	pshm->P[27945]
-#define	P_CA_Cam_Total_Time	pshm->P[27946]
-#define	P_Dry_Run_BTN	pshm->P[27947]
-#define	P_Home_Angle_Offset_change_Bit	pshm->P[27948]
-#define	P_InterLock_Motor_Num	pshm->P[27949]
-#define	P_Recipe_Move_IL_Loop	pshm->P[27950]
-#define	P_Z_Var	pshm->P[27951]
-#define	P_No1_Recipe_Pos_IL(i)	pshm->P[(27952+i)%MAX_P]
-#define	P_No2_Recipe_Pos_IL(i)	pshm->P[(28005+i)%MAX_P]
-#define	P_No3_Recipe_Pos_IL(i)	pshm->P[(28058+i)%MAX_P]
-#define	P_No4_Recipe_Pos_IL(i)	pshm->P[(28111+i)%MAX_P]
-#define	P_No5_Recipe_Pos_IL(i)	pshm->P[(28164+i)%MAX_P]
-#define	P_No6_Recipe_Pos_IL(i)	pshm->P[(28217+i)%MAX_P]
-#define	P_No7_Recipe_Pos_IL(i)	pshm->P[(28270+i)%MAX_P]
-#define	P_No8_Recipe_Pos_IL(i)	pshm->P[(28323+i)%MAX_P]
-#define	P_No9_Recipe_Pos_IL(i)	pshm->P[(28376+i)%MAX_P]
-#define	P_No10_Recipe_Pos_IL(i)	pshm->P[(28429+i)%MAX_P]
-#define	P_Recipe_POS_Interock_M(i)	pshm->P[(28482+i)%MAX_P]
+#define	P_Error_Index_Number	pshm->P[27923]
+#define	P_ECAT_MNTR_Bit	pshm->P[27924]
+#define	P_Local_MNTR_Bit	pshm->P[27925]
+#define	P_Clamp_Motion_VER1	pshm->P[27926]
+#define	P_CA_DR_Ta	pshm->P[27927]
+#define	P_CA_DR_Ts	pshm->P[27928]
+#define	P_CA_DR_Tm	pshm->P[27929]
+#define	P_CA_DR_Td	pshm->P[27930]
+#define	P_CA_DR_Tsd	pshm->P[27931]
+#define	P_AN_DR_Ta	pshm->P[27932]
+#define	P_AN_DR_Ts	pshm->P[27933]
+#define	P_AN_DR_Tm	pshm->P[27934]
+#define	P_AN_DR_Td	pshm->P[27935]
+#define	P_AN_DR_Tsd	pshm->P[27936]
+#define	P_First_Sepa_1st_Driving_Move	pshm->P[27937]
+#define	P_AN_Cam_Total_Time	pshm->P[27938]
+#define	P_CA_Cam_Total_Time	pshm->P[27939]
+#define	P_Dry_Run_BTN	pshm->P[27940]
+#define	P_Home_Angle_Offset_change_Bit	pshm->P[27941]
+#define	P_InterLock_Motor_Num	pshm->P[27942]
+#define	P_Recipe_Move_IL_Loop	pshm->P[27943]
+#define	P_Z_Var	pshm->P[27944]
+#define	P_No1_Recipe_Pos_IL(i)	pshm->P[(27945+i)%MAX_P]
+#define	P_No2_Recipe_Pos_IL(i)	pshm->P[(27998+i)%MAX_P]
+#define	P_No3_Recipe_Pos_IL(i)	pshm->P[(28051+i)%MAX_P]
+#define	P_No4_Recipe_Pos_IL(i)	pshm->P[(28104+i)%MAX_P]
+#define	P_No5_Recipe_Pos_IL(i)	pshm->P[(28157+i)%MAX_P]
+#define	P_No6_Recipe_Pos_IL(i)	pshm->P[(28210+i)%MAX_P]
+#define	P_No7_Recipe_Pos_IL(i)	pshm->P[(28263+i)%MAX_P]
+#define	P_No8_Recipe_Pos_IL(i)	pshm->P[(28316+i)%MAX_P]
+#define	P_No9_Recipe_Pos_IL(i)	pshm->P[(28369+i)%MAX_P]
+#define	P_No10_Recipe_Pos_IL(i)	pshm->P[(28422+i)%MAX_P]
+#define	P_Recipe_POS_Interock_M(i)	pshm->P[(28475+i)%MAX_P]
 #ifndef _PP_PROJ_HDR_
   void SetEnumGlobalVar(enum globalP var, double data)
   {
@@ -7918,30 +7918,28 @@ enum globalP {_globalP_=-1
 ,P_UNLOADER_X_Load_Ratio=146
 ,P_UNLOADER_Z_Load_Ratio=147
 ,P_UNLOADER_T_Load_Ratio=148
-,P_Anode_Vision_MNTR=27923
-,P_Cathode_Vision_MNTR=27924
-,P_Error_Index_Number=27930
-,P_ECAT_MNTR_Bit=27931
-,P_Local_MNTR_Bit=27932
-,P_Clamp_Motion_VER1=27933
-,P_CA_DR_Ta=27934
-,P_CA_DR_Ts=27935
-,P_CA_DR_Tm=27936
-,P_CA_DR_Td=27937
-,P_CA_DR_Tsd=27938
-,P_AN_DR_Ta=27939
-,P_AN_DR_Ts=27940
-,P_AN_DR_Tm=27941
-,P_AN_DR_Td=27942
-,P_AN_DR_Tsd=27943
-,P_First_Sepa_1st_Driving_Move=27944
-,P_AN_Cam_Total_Time=27945
-,P_CA_Cam_Total_Time=27946
-,P_Dry_Run_BTN=27947
-,P_Home_Angle_Offset_change_Bit=27948
-,P_InterLock_Motor_Num=27949
-,P_Recipe_Move_IL_Loop=27950
-,P_Z_Var=27951};
+,P_Error_Index_Number=27923
+,P_ECAT_MNTR_Bit=27924
+,P_Local_MNTR_Bit=27925
+,P_Clamp_Motion_VER1=27926
+,P_CA_DR_Ta=27927
+,P_CA_DR_Ts=27928
+,P_CA_DR_Tm=27929
+,P_CA_DR_Td=27930
+,P_CA_DR_Tsd=27931
+,P_AN_DR_Ta=27932
+,P_AN_DR_Ts=27933
+,P_AN_DR_Tm=27934
+,P_AN_DR_Td=27935
+,P_AN_DR_Tsd=27936
+,P_First_Sepa_1st_Driving_Move=27937
+,P_AN_Cam_Total_Time=27938
+,P_CA_Cam_Total_Time=27939
+,P_Dry_Run_BTN=27940
+,P_Home_Angle_Offset_change_Bit=27941
+,P_InterLock_Motor_Num=27942
+,P_Recipe_Move_IL_Loop=27943
+,P_Z_Var=27944};
 enum globalParray {_globalParray_=-1
 ,P_Ca_1st_PNP_ABSPhasing_Pos=8196
 ,P_An_1st_PNP_ABSPhasing_Pos=8236
@@ -8531,18 +8529,17 @@ enum globalParray {_globalParray_=-1
 ,P_PLC01_Sus_ARC_Step_Flag=27874
 ,P_PLC01_STOP_Init_Step_Flag=27884
 ,P_PLC01_STOP_Cycle_ST_Step_Flag=27894
-,P_Vision_MNTR=27925
-,P_No1_Recipe_Pos_IL=27952
-,P_No2_Recipe_Pos_IL=28005
-,P_No3_Recipe_Pos_IL=28058
-,P_No4_Recipe_Pos_IL=28111
-,P_No5_Recipe_Pos_IL=28164
-,P_No6_Recipe_Pos_IL=28217
-,P_No7_Recipe_Pos_IL=28270
-,P_No8_Recipe_Pos_IL=28323
-,P_No9_Recipe_Pos_IL=28376
-,P_No10_Recipe_Pos_IL=28429
-,P_Recipe_POS_Interock_M=28482};
+,P_No1_Recipe_Pos_IL=27945
+,P_No2_Recipe_Pos_IL=27998
+,P_No3_Recipe_Pos_IL=28051
+,P_No4_Recipe_Pos_IL=28104
+,P_No5_Recipe_Pos_IL=28157
+,P_No6_Recipe_Pos_IL=28210
+,P_No7_Recipe_Pos_IL=28263
+,P_No8_Recipe_Pos_IL=28316
+,P_No9_Recipe_Pos_IL=28369
+,P_No10_Recipe_Pos_IL=28422
+,P_Recipe_POS_Interock_M=28475};
 enum csglobalQ {_csglobalQ_=-1};
 enum csglobalQarray {_csglobalQarray_=-1};
 enum ptrM {_ptrM_=-1
@@ -9000,19 +8997,22 @@ enum ptrM {_ptrM_=-1
 ,M_AO_Anode_Clamp_Regulator=5413
 ,M_AO_Dancer_Regulator=5414
 ,M_Sys_Time=8296
-,M_X_PLC_Anode_Sheet_Ready2=5010
-,M_X_PLC_Cathode_Sheet_Ready2=5011
 ,M_Y_A_Site_Heart_Bit=5014
+,M_X_PLC_Anode_Sheet_Ready2=4010
+,M_X_PLC_Cathode_Sheet_Ready2=4011
+,M_X_B_Site_Heart_Bit=4014
 ,M_PLC_HeartBit_Flag=4223
 ,M_X_BTN_Press_Jog_Left_From_PLC=4160
 ,M_X_BTN_Press_Jog_Right_From_PLC=4107
 ,M_Sample_JR_Prod_Count=8351
 ,M_Sample_Btn_Flag=8352
-,M_Stack_Host_ID_Buffer_Mode=8561
-,M_Stack_Host_ID_Sample_Type=8562
-,M_Stack_Host_ID_JR_Result=8563
-,M_Stack_Host_ID_NG_Type=8564
-,M_Manual_ARC_BTN=9126
+,M_Y_Vacuum_Popup_On_Request=8353
+,M_X_Vacuum_Popup_On_Request_Ack=8354
+,M_Stack_Host_ID_Buffer_Mode=8563
+,M_Stack_Host_ID_Sample_Type=8564
+,M_Stack_Host_ID_JR_Result=8565
+,M_Stack_Host_ID_NG_Type=8566
+,M_Manual_ARC_BTN=9128
 ,M_EPC_SENSOR_Load_Ratio=6033
 ,M_STACK_VISION_Load_Ratio=6034
 ,M_SHEET_PAPER_X_Load_Ratio=6035
@@ -9039,45 +9039,45 @@ enum ptrMarray {_ptrMarray_=-1
 ,M_Write_Sector_Scan_Time=8287
 ,M_Gate3_MinusLimit=8297
 ,M_Gate3_HomeLimit=8324
-,M_Touchprobefunction=8353
-,M_Touchprobestatus=8402
-,M_Ecat_Motor_State=8451
-,M_Motor_BTN_Info=8501
-,M_ASCII_Stack_Work_Host_Sepa_ID_Buffer=8551
-,M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer=8565
-,M_ASCII_Uloader_1st_Host_ID_Buffer=8572
-,M_ASCII_Anode_Sheet_Belt_Buffer=8582
-,M_ASCII_Anode_Sheet_Buffer=8589
-,M_ASCII_Cathode_Sheet_Belt_Buffer=8645
-,M_ASCII_Cathode_Sheet_Buffer=8652
-,M_ASCII_First_Sheet_Buffer=8708
-,M_ASCII_Last_Sheet_Buffer=8715
-,P_BTN_Jog_BWD_M=8722
-,P_BTN_Jog_FWD_M=8772
-,M_UnWinder_BTN_Lamp=8822
-,M_Cathode_BTN_Lamp=8838
-,M_Anode_BTN_Lamp=8870
-,M_Stack_BTN_Lamp=8902
-,M_ARC_BTN_Lamp=8934
-,M_UnWinder_BTN_Interlock=8966
-,M_Cathode_BTN_Interlock=8982
-,M_Anode_BTN_Interlock=9014
-,M_Stack_BTN_Interlock=9046
-,M_ARC_BTN_Interlock=9078
-,M_NP_BTN_Interlock=9110
-,M_Motor_Vel=9127
-,M_Motor_TA=9177
-,M_Motor_TD=9227
-,M_Motor_BTN=9277
-,M_Motor_RecipePos=9327
-,M_Motor_Move_Distance=9377
-,M_Motor_Home_Offset=9427
-,M_Motor_Pos_Data=9477
-,M_Motor_Status_Data=9527
-,M_Motor_Recipe_Pos_Interlock=9577
-,M_Motor_Peak_Load_Ratio=9627
-,M_Motor_Effective_Load_Ratio=9677
-,M_Motor_Check_Current_Recipe_Pos=9727};
+,M_Touchprobefunction=8355
+,M_Touchprobestatus=8404
+,M_Ecat_Motor_State=8453
+,M_Motor_BTN_Info=8503
+,M_ASCII_Stack_Work_Host_Sepa_ID_Buffer=8553
+,M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer=8567
+,M_ASCII_Uloader_1st_Host_ID_Buffer=8574
+,M_ASCII_Anode_Sheet_Belt_Buffer=8584
+,M_ASCII_Anode_Sheet_Buffer=8591
+,M_ASCII_Cathode_Sheet_Belt_Buffer=8647
+,M_ASCII_Cathode_Sheet_Buffer=8654
+,M_ASCII_First_Sheet_Buffer=8710
+,M_ASCII_Last_Sheet_Buffer=8717
+,P_BTN_Jog_BWD_M=8724
+,P_BTN_Jog_FWD_M=8774
+,M_UnWinder_BTN_Lamp=8824
+,M_Cathode_BTN_Lamp=8840
+,M_Anode_BTN_Lamp=8872
+,M_Stack_BTN_Lamp=8904
+,M_ARC_BTN_Lamp=8936
+,M_UnWinder_BTN_Interlock=8968
+,M_Cathode_BTN_Interlock=8984
+,M_Anode_BTN_Interlock=9016
+,M_Stack_BTN_Interlock=9048
+,M_ARC_BTN_Interlock=9080
+,M_NP_BTN_Interlock=9112
+,M_Motor_Vel=9129
+,M_Motor_TA=9179
+,M_Motor_TD=9229
+,M_Motor_BTN=9279
+,M_Motor_RecipePos=9329
+,M_Motor_Move_Distance=9379
+,M_Motor_Home_Offset=9429
+,M_Motor_Pos_Data=9479
+,M_Motor_Status_Data=9529
+,M_Motor_Recipe_Pos_Interlock=9579
+,M_Motor_Peak_Load_Ratio=9629
+,M_Motor_Effective_Load_Ratio=9679
+,M_Motor_Check_Current_Recipe_Pos=9729};
 #ifndef _PP_PROJ_HDR_
   void SetEnumGlobalVar(enum globalP var, double data)
   {
@@ -10031,9 +10031,10 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_Queue_PeekEmpty 9209
 #define P_Self_items 9210
 #define P_Hold_Resume_Need_Flag 9211
-#define M_X_PLC_Anode_Sheet_Ready2 5010
-#define M_X_PLC_Cathode_Sheet_Ready2 5011
 #define M_Y_A_Site_Heart_Bit 5014
+#define M_X_PLC_Anode_Sheet_Ready2 4010
+#define M_X_PLC_Cathode_Sheet_Ready2 4011
+#define M_X_B_Site_Heart_Bit 4014
 #define P_Stack_Heart_Bit_Timer 9212
 #define P_Stack_Heart_Bit_Calc 9213
 #define P_Stack_Heart_Bit_Sync_State_Machine 9214
@@ -11775,8 +11776,10 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_Cal_Numerator 13766
 #define P_Cal_Dif_Deg 13771
 #define P_Vac_Door_Open_Clear 13776
-#define M_Touchprobefunction 8353
-#define M_Touchprobestatus 8402
+#define M_Y_Vacuum_Popup_On_Request 8353
+#define M_X_Vacuum_Popup_On_Request_Ack 8354
+#define M_Touchprobefunction 8355
+#define M_Touchprobestatus 8404
 #define P_Flag_Sepa_Stack_Mode_CHK 13789
 #define P_Read_Timer_S 13790
 #define P_Write_Timer_S 13799
@@ -12072,7 +12075,7 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_WAIT_INDEX 17102
 #define P_Home_Check_Arry1 17103
 #define P_FR_Cmd_Check_Flag 17153
-#define M_Ecat_Motor_State 8451
+#define M_Ecat_Motor_State 8453
 #define P_PV_Separator_Dancer_Pressure 17154
 #define P_PV_Cathode_Clamp_Pressure 17155
 #define P_PV_Anoode_Clamp_Pressure 17156
@@ -12422,7 +12425,7 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_IL_Recipe_Bit 19217
 #define P_Interlock_Popup_On_Flag 19218
 #define P_Motor_Page 19219
-#define M_Motor_BTN_Info 8501
+#define M_Motor_BTN_Info 8503
 #define P_OP_Side_Ca_PNP_Pos 19220
 #define P_OP_Side_An_PNP_Pos 19221
 #define P_OP_Side_PMAC_Cur_Mode 19222
@@ -12581,19 +12584,19 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_Anode_Vision_NG_To_PLC_Flag 19846
 #define P_Cathode_Vision_NG_To_PLC_Flag 19847
 #define P_Status_Clear_Sheet_Maint_Check 19848
-#define M_ASCII_Stack_Work_Host_Sepa_ID_Buffer 8551
-#define M_Stack_Host_ID_Buffer_Mode 8561
-#define M_Stack_Host_ID_Sample_Type 8562
-#define M_Stack_Host_ID_JR_Result 8563
-#define M_Stack_Host_ID_NG_Type 8564
-#define M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer 8565
-#define M_ASCII_Uloader_1st_Host_ID_Buffer 8572
-#define M_ASCII_Anode_Sheet_Belt_Buffer 8582
-#define M_ASCII_Anode_Sheet_Buffer 8589
-#define M_ASCII_Cathode_Sheet_Belt_Buffer 8645
-#define M_ASCII_Cathode_Sheet_Buffer 8652
-#define M_ASCII_First_Sheet_Buffer 8708
-#define M_ASCII_Last_Sheet_Buffer 8715
+#define M_ASCII_Stack_Work_Host_Sepa_ID_Buffer 8553
+#define M_Stack_Host_ID_Buffer_Mode 8563
+#define M_Stack_Host_ID_Sample_Type 8564
+#define M_Stack_Host_ID_JR_Result 8565
+#define M_Stack_Host_ID_NG_Type 8566
+#define M_ASCII_Read_Stack_Work_Host_Sepa_ID_Buffer 8567
+#define M_ASCII_Uloader_1st_Host_ID_Buffer 8574
+#define M_ASCII_Anode_Sheet_Belt_Buffer 8584
+#define M_ASCII_Anode_Sheet_Buffer 8591
+#define M_ASCII_Cathode_Sheet_Belt_Buffer 8647
+#define M_ASCII_Cathode_Sheet_Buffer 8654
+#define M_ASCII_First_Sheet_Buffer 8710
+#define M_ASCII_Last_Sheet_Buffer 8717
 #define P_Single_Run_Start_Flag 19849
 #define P_Single_Run_Control_State_Machine 19850
 #define P_Single_Run_Control_Status 19851
@@ -13343,20 +13346,20 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_Slave17_Cathode_Run_Motion_Array 26308
 #define P_Slave18_Cathode_Run_Motion_Array 26408
 #define P_Slave19_Cathode_Run_Motion_Array 26508
-#define P_BTN_Jog_BWD_M 8722
-#define P_BTN_Jog_FWD_M 8772
-#define M_UnWinder_BTN_Lamp 8822
-#define M_Cathode_BTN_Lamp 8838
-#define M_Anode_BTN_Lamp 8870
-#define M_Stack_BTN_Lamp 8902
-#define M_ARC_BTN_Lamp 8934
-#define M_UnWinder_BTN_Interlock 8966
-#define M_Cathode_BTN_Interlock 8982
-#define M_Anode_BTN_Interlock 9014
-#define M_Stack_BTN_Interlock 9046
-#define M_ARC_BTN_Interlock 9078
-#define M_NP_BTN_Interlock 9110
-#define M_Manual_ARC_BTN 9126
+#define P_BTN_Jog_BWD_M 8724
+#define P_BTN_Jog_FWD_M 8774
+#define M_UnWinder_BTN_Lamp 8824
+#define M_Cathode_BTN_Lamp 8840
+#define M_Anode_BTN_Lamp 8872
+#define M_Stack_BTN_Lamp 8904
+#define M_ARC_BTN_Lamp 8936
+#define M_UnWinder_BTN_Interlock 8968
+#define M_Cathode_BTN_Interlock 8984
+#define M_Anode_BTN_Interlock 9016
+#define M_Stack_BTN_Interlock 9048
+#define M_ARC_BTN_Interlock 9080
+#define M_NP_BTN_Interlock 9112
+#define M_Manual_ARC_BTN 9128
 #define P_Anode_NG_Unit_Status 26608
 #define P_Cathode_NG_Unit_Status 26609
 #define P_ParsingRtn 26610
@@ -13509,19 +13512,19 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_HOLD_Err_Set_Data 26830
 #define P_HOLD_Err_Save 26831
 #define P_Sepa_Run_Completed_Flag 26832
-#define M_Motor_Vel 9127
-#define M_Motor_TA 9177
-#define M_Motor_TD 9227
-#define M_Motor_BTN 9277
-#define M_Motor_RecipePos 9327
-#define M_Motor_Move_Distance 9377
-#define M_Motor_Home_Offset 9427
-#define M_Motor_Pos_Data 9477
-#define M_Motor_Status_Data 9527
-#define M_Motor_Recipe_Pos_Interlock 9577
-#define M_Motor_Peak_Load_Ratio 9627
-#define M_Motor_Effective_Load_Ratio 9677
-#define M_Motor_Check_Current_Recipe_Pos 9727
+#define M_Motor_Vel 9129
+#define M_Motor_TA 9179
+#define M_Motor_TD 9229
+#define M_Motor_BTN 9279
+#define M_Motor_RecipePos 9329
+#define M_Motor_Move_Distance 9379
+#define M_Motor_Home_Offset 9429
+#define M_Motor_Pos_Data 9479
+#define M_Motor_Status_Data 9529
+#define M_Motor_Recipe_Pos_Interlock 9579
+#define M_Motor_Peak_Load_Ratio 9629
+#define M_Motor_Effective_Load_Ratio 9679
+#define M_Motor_Check_Current_Recipe_Pos 9729
 #define P_Buffer_Seqdata_MSA_Array 26833
 #define P_Buffer_Seqdata_Align_Take_Off_Array 26883
 #define P_VISION_MSA_Align_Module_Complete_Bit 26933
@@ -13621,42 +13624,39 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_UNLOADER_X_Load_Ratio 146
 #define P_UNLOADER_Z_Load_Ratio 147
 #define P_UNLOADER_T_Load_Ratio 148
-#define P_Anode_Vision_MNTR 27923
-#define P_Cathode_Vision_MNTR 27924
-#define P_Vision_MNTR 27925
-#define P_Error_Index_Number 27930
-#define P_ECAT_MNTR_Bit 27931
-#define P_Local_MNTR_Bit 27932
-#define P_Clamp_Motion_VER1 27933
-#define P_CA_DR_Ta 27934
-#define P_CA_DR_Ts 27935
-#define P_CA_DR_Tm 27936
-#define P_CA_DR_Td 27937
-#define P_CA_DR_Tsd 27938
-#define P_AN_DR_Ta 27939
-#define P_AN_DR_Ts 27940
-#define P_AN_DR_Tm 27941
-#define P_AN_DR_Td 27942
-#define P_AN_DR_Tsd 27943
-#define P_First_Sepa_1st_Driving_Move 27944
-#define P_AN_Cam_Total_Time 27945
-#define P_CA_Cam_Total_Time 27946
-#define P_Dry_Run_BTN 27947
-#define P_Home_Angle_Offset_change_Bit 27948
-#define P_InterLock_Motor_Num 27949
-#define P_Recipe_Move_IL_Loop 27950
-#define P_Z_Var 27951
-#define P_No1_Recipe_Pos_IL 27952
-#define P_No2_Recipe_Pos_IL 28005
-#define P_No3_Recipe_Pos_IL 28058
-#define P_No4_Recipe_Pos_IL 28111
-#define P_No5_Recipe_Pos_IL 28164
-#define P_No6_Recipe_Pos_IL 28217
-#define P_No7_Recipe_Pos_IL 28270
-#define P_No8_Recipe_Pos_IL 28323
-#define P_No9_Recipe_Pos_IL 28376
-#define P_No10_Recipe_Pos_IL 28429
-#define P_Recipe_POS_Interock_M 28482
+#define P_Error_Index_Number 27923
+#define P_ECAT_MNTR_Bit 27924
+#define P_Local_MNTR_Bit 27925
+#define P_Clamp_Motion_VER1 27926
+#define P_CA_DR_Ta 27927
+#define P_CA_DR_Ts 27928
+#define P_CA_DR_Tm 27929
+#define P_CA_DR_Td 27930
+#define P_CA_DR_Tsd 27931
+#define P_AN_DR_Ta 27932
+#define P_AN_DR_Ts 27933
+#define P_AN_DR_Tm 27934
+#define P_AN_DR_Td 27935
+#define P_AN_DR_Tsd 27936
+#define P_First_Sepa_1st_Driving_Move 27937
+#define P_AN_Cam_Total_Time 27938
+#define P_CA_Cam_Total_Time 27939
+#define P_Dry_Run_BTN 27940
+#define P_Home_Angle_Offset_change_Bit 27941
+#define P_InterLock_Motor_Num 27942
+#define P_Recipe_Move_IL_Loop 27943
+#define P_Z_Var 27944
+#define P_No1_Recipe_Pos_IL 27945
+#define P_No2_Recipe_Pos_IL 27998
+#define P_No3_Recipe_Pos_IL 28051
+#define P_No4_Recipe_Pos_IL 28104
+#define P_No5_Recipe_Pos_IL 28157
+#define P_No6_Recipe_Pos_IL 28210
+#define P_No7_Recipe_Pos_IL 28263
+#define P_No8_Recipe_Pos_IL 28316
+#define P_No9_Recipe_Pos_IL 28369
+#define P_No10_Recipe_Pos_IL 28422
+#define P_Recipe_POS_Interock_M 28475
 #endif
 #endif
 #endif //_PP_PROJ_H_

@@ -495,86 +495,24 @@ if(P_2nd_PNP_Cleaning_Mode_Cmd == 0)
 if( P_2nd_PNP_Cleaning_Mode_Cmd == 1 )
 {
 	P_2nd_PNP_Cleaning_Mode_Status = F_Status_STARTING;					
-	Motor[N_1st_PnP_CA_Z].JogSpeed = P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed;	// 양극 1차 PNP Z축 조그 스피드 설정
-	Motor[N_1st_PnP_AN_Z].JogSpeed = P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed;	// 음극 1차 PNP Z축 조그 스피드 설정
-	Motor[N_2nd_PnP_CA_Z].JogSpeed = P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed;	// 양극 1차 PNP Z축 조그 스피드 설정
-	Motor[N_2nd_PnP_AN_Z].JogSpeed = P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed;	// 음극 1차 PNP Z축 조그 스피드 설정
-	Motor[N_FINAL_ROLL_Z].JogSpeed = P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed; // 파이널롤러 Z축 조그 스피드 설정
-
-	Motor[N_1st_PnP_CA_Z].ProgJogPos = 0;	//대기 상승위치
-	Motor[N_1st_PnP_AN_Z].ProgJogPos = 0;	//대기 상승위치
-	Motor[N_2nd_PnP_CA_Z].ProgJogPos = 0;	//대기 상승위치
-	Motor[N_2nd_PnP_AN_Z].ProgJogPos = 0;	//대기 상승위치
+	Motor[N_2nd_PnP_CA_Z].JogSpeed = P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed;	// 양극 2차 PNP Z축 조그 스피드 설정
+	Motor[N_2nd_PnP_AN_Z].JogSpeed = P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed;	// 음극 2차 PNP Z축 조그 스피드 설정
 	Motor[N_FINAL_ROLL_Z].ProgJogPos = P_Final_Roll_Z_Run_Pos * 1000;
 
-	jog17=*;
-	jog18=*;
-	jog21=*;
-	jog22=*;
-	jog13=*;								
+	cmd"#21j-";
+	cmd"#22j-";
 	P_2nd_PNP_Cleaning_Mode_Cmd++;				
 }
 
 if( P_2nd_PNP_Cleaning_Mode_Cmd == 2 )
 {
-	if((P_Motor_Current_Pos(N_1st_PnP_CA_Z) < 0 + 0.5 && P_Motor_Current_Pos(N_1st_PnP_CA_Z) > 0 - 0.5) && (P_Motor_Current_Pos(N_1st_PnP_AN_Z) < 0 + 0.5 && P_Motor_Current_Pos(N_1st_PnP_AN_Z) > 0 - 0.5) && (P_Motor_Current_Pos(N_FINAL_ROLL_Z) < P_Final_Roll_Z_Run_Pos + 0.5 && P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Final_Roll_Z_Run_Pos - 0.5))
+	if(Motor[N_2nd_PnP_CA_Z].MinusLimit == 1 && Motor[N_2nd_PnP_AN_Z].MinusLimit == 1)
 	{
-		P_2nd_PNP_Cleaning_Mode_Cmd++;
-	}
-	
-}
-
-if( P_2nd_PNP_Cleaning_Mode_Cmd == 3 )						
-{
-	Motor[N_FINAL_ROLL_X].JogSpeed = P_2nd_PNP_Cleaning_Mode_X_Jog_Speed;
-	Motor[N_FINAL_ROLL_X].ProgJogPos = 0;	//대기 상승위치
-	jog12=*;
-	P_2nd_PNP_Cleaning_Mode_Cmd++;
-}
-if( P_2nd_PNP_Cleaning_Mode_Cmd == 4 )
-{
-	if(P_Motor_Current_Pos(N_FINAL_ROLL_X) < 0 + 0.5 && P_Motor_Current_Pos(N_FINAL_ROLL_X) > 0 - 0.5)
-	{
-		P_2nd_PNP_Cleaning_Mode_Cmd++;
+		P_PMAC_Homing_CHK(N_2nd_PnP_CA_Z) = 0;
+		P_PMAC_Homing_CHK(N_2nd_PnP_AN_Z) = 0;
+		P_2nd_PNP_Cleaning_Mode_Cmd = 0;
 	}
 }
-if(P_2nd_PNP_Cleaning_Mode_Cmd == 5)
-{
-	Motor[N_1st_PnP_CA_T].JogSpeed = P_2nd_PNP_Cleaning_Mode_T_Jog_Speed;
-	Motor[N_1st_PnP_AN_T].JogSpeed = P_2nd_PNP_Cleaning_Mode_T_Jog_Speed;
-	Motor[N_2nd_PnP_CA_T].JogSpeed = P_2nd_PNP_Cleaning_Mode_T_Jog_Speed;
-	Motor[N_2nd_PnP_AN_T].JogSpeed = P_2nd_PNP_Cleaning_Mode_T_Jog_Speed;
-
-	Motor[N_1st_PnP_CA_T].ProgJogPos = P_Cathode_1TR_T_Ready_POS * 1000;
-	Motor[N_1st_PnP_AN_T].ProgJogPos = P_Anode_1TR_T_Ready_POS * 1000;
-	Motor[N_2nd_PnP_CA_T].ProgJogPos = P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos * 1000;
-	Motor[N_2nd_PnP_AN_T].ProgJogPos = P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos * 1000;
-
-	jog1=*;
-	jog2=*;
-	jog3=*;
-	jog4=*;
-
-	P_2nd_PNP_Cleaning_Mode_Cmd++;
-}
-if(P_2nd_PNP_Cleaning_Mode_Cmd == 6)
-{
-	if((P_Motor_Current_Pos(N_1st_PnP_CA_T) < P_Cathode_1TR_T_Ready_POS + 0.5 && P_Motor_Current_Pos(N_1st_PnP_CA_T) > P_Cathode_1TR_T_Ready_POS - 0.5) && (P_Motor_Current_Pos(N_1st_PnP_AN_T) < P_Anode_1TR_T_Ready_POS + 0.5 && P_Motor_Current_Pos(N_1st_PnP_AN_T) > P_Anode_1TR_T_Ready_POS - 0.5))
-	{
-		if((P_Motor_Current_Pos(N_2nd_PnP_CA_T) < P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos + 0.5 && P_Motor_Current_Pos(N_2nd_PnP_CA_T) > P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos - 0.5) && (P_Motor_Current_Pos(N_2nd_PnP_AN_T) < P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos + 0.5 && P_Motor_Current_Pos(N_2nd_PnP_AN_T) > P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos - 0.5))
-		{
-			P_2nd_PNP_Cleaning_Mode_Cmd++;
-		}
-	}		
-}
-if(P_2nd_PNP_Cleaning_Mode_Cmd == 7)
-{
-	P_2nd_PNP_Cleaning_Mode_Status = F_Status_COMPLETE;	// 2차 PNP 클리닝 위치 이동 상태 Complete
-	P_2nd_PNP_Cleaning_Mode_Cmd = 0;					//스텟 머신 증가
-}
-
-
-
 
 P_MNTR_PLC14_Task_Time(1) = (Sys.Time - P_MNTR_PLC14_Task_Time(0))*N_Task_Scale;
 if ( P_MNTR_PLC14_Task_Time(1) > P_MNTR_PLC14_Task_Max_Time )

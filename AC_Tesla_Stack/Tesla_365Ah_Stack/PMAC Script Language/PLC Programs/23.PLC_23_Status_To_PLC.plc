@@ -113,21 +113,30 @@ if( P_PMAC_Current_Mode == F_Current_Automatic )
 }
 else if(P_PMAC_Current_Mode == F_Current_Manual)
 {
-	if((P_Current_Homming_Status(L_Motor_Num) == F_Status_COMPLETE) || P_PMAC_Homing_CHK(L_Motor_Num) == 1 && ((P_Motor_Current_Pos(L_Motor_Num) >= P_Axis_Ready_Pos(L_Motor_Num) - 0.02) && (P_Motor_Current_Pos(L_Motor_Num) <= P_Axis_Ready_Pos(L_Motor_Num) + 0.02)))
+	if(L_Motor_Num == N_DRIVING_ROLL || L_Motor_Num == N_SERVO_DANCER || L_Motor_Num == N_UNWINDER_UPPER || L_Motor_Num == N_UNWINDER_LOWER)
 	{
-	    // 홈동작 완료
+		// 드라이빙 롤러, 서보 댄서, 언와인더는 개별적인 홈 시퀀스가 없어서 항상 홈 상태로 고정
 		P_Motor_Unit_Status(L_Motor_Num) = $02;
 	}
-	else if( ( ( P_PMAC_Homing_CHK(L_Motor_Num) == 0 || ( P_Motor_Current_Pos(L_Motor_Num) < P_Axis_Ready_Pos(L_Motor_Num) - 0.02 ) ||( P_Motor_Current_Pos(L_Motor_Num) > P_Axis_Ready_Pos(L_Motor_Num) + 0.02 ) ) && Motor[L_Motor_Num].DesVelZero == 1 ) )
-	{	
-	    // 홈동작 미완료
-	    P_Motor_Unit_Status(L_Motor_Num) = $01;		
-	}
-	else if( P_Current_Homming_Status(L_Motor_Num) == F_Status_STARTING )
+	else
 	{
-	    // 홈동작 중
-		P_Motor_Unit_Status(L_Motor_Num) = $08;
+		if((P_Current_Homming_Status(L_Motor_Num) == F_Status_COMPLETE) || P_PMAC_Homing_CHK(L_Motor_Num) == 1 && ((P_Motor_Current_Pos(L_Motor_Num) >= P_Axis_Ready_Pos(L_Motor_Num) - 0.02) && (P_Motor_Current_Pos(L_Motor_Num) <= P_Axis_Ready_Pos(L_Motor_Num) + 0.02)))
+		{
+		    // 홈동작 완료
+			P_Motor_Unit_Status(L_Motor_Num) = $02;
+		}
+		else if( ( ( P_PMAC_Homing_CHK(L_Motor_Num) == 0 || ( P_Motor_Current_Pos(L_Motor_Num) < P_Axis_Ready_Pos(L_Motor_Num) - 0.02 ) ||( P_Motor_Current_Pos(L_Motor_Num) > P_Axis_Ready_Pos(L_Motor_Num) + 0.02 ) ) && Motor[L_Motor_Num].DesVelZero == 1 ) )
+		{	
+		    // 홈동작 미완료
+		    P_Motor_Unit_Status(L_Motor_Num) = $01;		
+		}
+		else if( P_Current_Homming_Status(L_Motor_Num) == F_Status_STARTING )
+		{
+		    // 홈동작 중
+			P_Motor_Unit_Status(L_Motor_Num) = $08;
+		}
 	}
+
 }
 
 

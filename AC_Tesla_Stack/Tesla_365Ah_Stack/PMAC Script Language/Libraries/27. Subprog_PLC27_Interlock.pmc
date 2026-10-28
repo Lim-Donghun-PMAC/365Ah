@@ -447,6 +447,8 @@ rtn = 0;
 		break;
 	}
 
+	// 적층중 스택부의 모터 움직임을 막으려면 동작을 막거나 버튼을 막거나 해야함
+	// 팝업을 띄워서 막으려니 실린더 페이지에서 팝업이 떠버려서 실린더 동작하기 어려움
 	if( P_Stack_Judgement_Memory == N_TRUE )	// 적층 중이면서
 	{	// 양음극 클램프, 메인 스텍, 파이널롤러 로봇이라면 멈춰
 		if( rtn == N_IL_Robot_CA_Clamp1 || rtn == N_IL_Robot_AN_Clamp1 || rtn == N_IL_Robot_CA_Clamp2 || rtn == N_IL_Robot_AN_Clamp2 || rtn == N_IL_Robot_Main ||  rtn == N_IL_Robot_Final_Roller )

@@ -281,7 +281,7 @@ double Get_Move_Distance()
 
 double Get_Recipe_Move_Distance(JOG_LIST* ptr, int nPageNum)
 {
-	printf("gnum = %d\n", nPageNum);
+	//printf("gnum = %d\n", nPageNum);
 	if(nPageNum == 0)
 	{
 		return;
@@ -368,7 +368,7 @@ double Get_Recipe_Move_Distance(JOG_LIST* ptr, int nPageNum)
 			else
 				dRet_Distance = -999;
 		break;
-		default:			break;
+		default: dRet_Distance = -999;	break;
 	}
 
 	//if(dRet_Distance == 0)

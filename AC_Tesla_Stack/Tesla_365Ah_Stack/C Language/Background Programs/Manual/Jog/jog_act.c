@@ -45,6 +45,10 @@ void Motor_Home(JOG_LIST* ptr, int nBtn_name)
 				pshm->P[P_PMAC_Homing_CHK + g_Page_Num] = 0;
 				pshm->P[P_Home_Command + g_Page_Num] = 1;
 			}
+			else
+			{
+				pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
+			}
 		break;
 
 		case HOLD :			break;
@@ -93,7 +97,6 @@ void Recipe_Pos_Run(JOG_LIST* ptr, int nBtn_name)
 //				Clamp_Gantry(ptr);
 //				return;
 //			}
-
 			dMove_Distance = Get_Recipe_Move_Distance(ptr, g_Page_Num);
 			printf("Recipe_distance :%f\n",dMove_Distance);
 			if(dMove_Distance == - 999)
@@ -112,6 +115,7 @@ void Recipe_Pos_Run(JOG_LIST* ptr, int nBtn_name)
 				{
 					Set_Plus_Alarm(g_Page_Num);
 					pshm->P[P_PMAC_Homing_CHK + g_Page_Num] = 0;
+					pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 				}
 				else
 				{
@@ -127,6 +131,7 @@ void Recipe_Pos_Run(JOG_LIST* ptr, int nBtn_name)
 				{
 					Set_Minus_Alarm(g_Page_Num);
 					pshm->P[P_PMAC_Homing_CHK + g_Page_Num] = 0;
+					pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 				}
 				else
 				{
@@ -157,12 +162,14 @@ void Jog_Move_INC(JOG_LIST* ptr, int nBtn_name)
 			// Plus 방향으로 이동 할 경우 상대이동 플러스 방향 인터락 확인
 			if(dMove_Distance > 0 && (int)pshm->P[P_IL_Robot_Bit] & Hex_IL_Plus )
 			{
+				pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 				pshm->P[P_Interlock_Popup_On_Flag] = 1;					// 팝업 플래그 ON
 				return;
 			}
 			// Minus 방향으로 이동 할 경우 상대이동 마이너스 방향 인터락 확인
 			else if(dMove_Distance < 0 && (int)pshm->P[P_IL_Robot_Bit] & Hex_IL_Minus )
 			{
+				pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 				pshm->P[P_Interlock_Popup_On_Flag] = 1;					// 팝업 플래그 ON
 				return;
 			}
@@ -181,6 +188,7 @@ void Jog_Move_INC(JOG_LIST* ptr, int nBtn_name)
 					{
 						Set_Plus_Alarm(g_Page_Num);
 						pshm->P[P_PMAC_Homing_CHK + g_Page_Num] = 0;
+						pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 					}
 					
 					else	// 여기서 가면서 +리밋을 감지해버리면 어떡하지? → Jog_Cur_Status_Check 함수를 계속 호출하여 드라이브 상태 확인할 테니 상관 없다.
@@ -199,6 +207,7 @@ void Jog_Move_INC(JOG_LIST* ptr, int nBtn_name)
 					{
 						Set_Minus_Alarm(g_Page_Num);
 						pshm->P[P_PMAC_Homing_CHK + g_Page_Num] = 0;
+						pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 					}
 					
 					else // 여기서 가면서 -리밋을 감지해버리면 어떡하지? → Jog_Cur_Status_Check 함수를 계속 호출하여 드라이브 상태 확인할 테니 상관 없다.
@@ -226,17 +235,18 @@ void Jog_Move_ABS(JOG_LIST* ptr, int nBtn_name)
 	switch(ptr->servo_page_arr[g_Page_Num].btn[nBtn_name].status)
 	{
 		case RISING_EDGE : 
-				
 			dMove_Distance = Get_Move_Distance();
 			// Plus 방향으로 이동 할 경우 절대이동 플러스 방향 인터락 확인
 			if(dMove_Distance > 0 && (int)pshm->P[P_IL_Robot_Bit] & Hex_IL_Plus )
 			{
+				pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 				pshm->P[P_Interlock_Popup_On_Flag] = 1;					// 팝업 플래그 ON
 				return;
 			}
 			// Minus 방향으로 이동 할 경우 절대이동 마이너스 방향 인터락 확인
 			else if(dMove_Distance < 0 && (int)pshm->P[P_IL_Robot_Bit] & Hex_IL_Minus )
 			{
+				pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 				pshm->P[P_Interlock_Popup_On_Flag] = 1;					// 팝업 플래그 ON
 				return;
 			}
@@ -255,6 +265,7 @@ void Jog_Move_ABS(JOG_LIST* ptr, int nBtn_name)
 					{
 						Set_Plus_Alarm(g_Page_Num);
 						pshm->P[P_PMAC_Homing_CHK + g_Page_Num] = 0;
+						pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 					}
 					else	// 여기서 가면서 +리밋을 감지해버리면 어떡하지? → Jog_Cur_Status_Check 함수를 계속 호출하여 드라이브 상태 확인할 테니 상관 없다.
 					{
@@ -272,6 +283,7 @@ void Jog_Move_ABS(JOG_LIST* ptr, int nBtn_name)
 					{
 						Set_Minus_Alarm(g_Page_Num);
 						pshm->P[P_PMAC_Homing_CHK + g_Page_Num] = 0;
+						pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 					}
 					else	// 여기서 가면서 -리밋을 감지해버리면 어떡하지? → Jog_Cur_Status_Check 함수를 계속 호출하여 드라이브 상태 확인할 테니 상관 없다.
 					{
@@ -308,6 +320,7 @@ void Jog_Move_Plus(JOG_LIST* ptr, int nBtn_name)
 				{
 					Set_Plus_Alarm(g_Page_Num);
 					pshm->P[P_PMAC_Homing_CHK + g_Page_Num] = 0;
+					pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 				}
 				else
 				{
@@ -319,6 +332,7 @@ void Jog_Move_Plus(JOG_LIST* ptr, int nBtn_name)
 			else
 			{
 				Set_Move_Error_Alarm(g_Page_Num);
+				pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 				pshm->P[P_Interlock_Popup_On_Flag] = 1;					// 팝업 플래그 ON
 			}
 		break;
@@ -327,6 +341,7 @@ void Jog_Move_Plus(JOG_LIST* ptr, int nBtn_name)
 			if(Get_Motor_Status(g_Page_Num, def_PlusLimit) == 1)
 			{
 				Set_Plus_Alarm(g_Page_Num);
+				pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 			}
 			//else if((int)pshm->P[P_IL_Robot_Bit] & Hex_IL_Plus)
 			//{
@@ -363,6 +378,7 @@ void Jog_Move_Minus(JOG_LIST* ptr, int nBtn_name)
 				{
 					Set_Minus_Alarm(g_Page_Num);
 					pshm->P[P_PMAC_Homing_CHK + g_Page_Num] = 0;
+					pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 				}
 				else
 				{
@@ -375,6 +391,7 @@ void Jog_Move_Minus(JOG_LIST* ptr, int nBtn_name)
 			{
 				Set_Move_Error_Alarm(g_Page_Num);
 				pshm->P[P_Interlock_Popup_On_Flag] = 1;					// 팝업 플래그 ON
+				pshm->P[P_Jog_Btn_Flag] = 1;	// 조그 버튼 플래그(팝업 체크)
 			}
 		break;
 

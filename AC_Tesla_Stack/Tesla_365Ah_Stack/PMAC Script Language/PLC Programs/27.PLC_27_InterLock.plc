@@ -167,7 +167,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 				P_IL_Popup_Motor = N_Home_Miss;                 // 홈 Miss 
 				P_IL_Robot_Bit = Hex_IL_Plus | Hex_IL_Minus;    // 플러스 마이너스 인터락
 				P_IL_Outer_Status = IL_Out_Close;				// 외부 상태 초기화
-				L_Old_Motor_Page = 0;							// Old Page Num 초기화 하여 계속 팝업 띄우기
+				//L_Old_Motor_Page = 0;							// Old Page Num 초기화 하여 계속 팝업 띄우기 -> 지속적인 팝업으로 버튼 눌렀을 경우만 띄우기 위해 주석
 				P_IL_Home_Chk_Edge = 0;							// 내부, 외부 모터 홈 확인 변수 Edge	// [ 참조 : 26.10.02 인터락 조건 추가 ]
 				P_Interlock_Popup_On_Flag = 1;                  // 팝업 
 			}
@@ -2162,20 +2162,34 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_Clamp_CA_Z1:
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-			//================================ 1번위치 - 대기 위치  ================================
-				// ↓ 양극 클램프 Z축 대기 위치
-				if(P_Motor_Current_Pos(N_Clamp_CA_Z1) ~ P_Recipe_M27_POS(1))	
+				if(P_IL_Outer_Status != IL_Out_Close) // 적층중 동작 방지 인터락
+				{
+				//================================ 1번위치 - 대기 위치  ================================
+					// ↓ 양극 클램프 Z축 대기 위치
+					if(P_Motor_Current_Pos(N_Clamp_CA_Z1) ~ P_Recipe_M27_POS(1))	
+						P_No1_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;
+					else
+						P_No1_Recipe_Pos_IL(N_Clamp_CA_Z1) = 0;
+				//================================ 2번위치 - 클램프 위치 ================================
+					// ↓ 양극 클램프 Z축 클램프 위치
+					if(P_Motor_Current_Pos(N_Clamp_CA_Z1) ~ P_Recipe_M27_POS(2))
+						P_No2_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;
+					else
+						P_No2_Recipe_Pos_IL(N_Clamp_CA_Z1) = 0;
+					//================================ 미사용 위치 인터락 ===========================================
+						P_No3_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;
+						P_No4_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;
+						P_No5_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;
+						P_No6_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;
+						P_No7_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;			// 인터락
+						P_No8_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;			// 인터락
+						P_No9_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;			// 인터락
+						P_No10_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;		// 인터락
+				}
+				else
+				{
 					P_No1_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;
-				else
-					P_No1_Recipe_Pos_IL(N_Clamp_CA_Z1) = 0;
-			//================================ 2번위치 - 클램프 위치 ================================
-				// ↓ 양극 클램프 Z축 클램프 위치
-				if(P_Motor_Current_Pos(N_Clamp_CA_Z1) ~ P_Recipe_M27_POS(2))
 					P_No2_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;
-				else
-					P_No2_Recipe_Pos_IL(N_Clamp_CA_Z1) = 0;
-				//================================ 미사용 위치 인터락 ===========================================
 					P_No3_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;
 					P_No4_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;
 					P_No5_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;
@@ -2184,6 +2198,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					P_No8_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;			// 인터락
 					P_No9_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;			// 인터락
 					P_No10_Recipe_Pos_IL(N_Clamp_CA_Z1) = 1;		// 인터락
+				}
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Jog, ABS, INC Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 				P_Abs_Trans_Cur_Pos = P_Motor_Current_Pos(P_IL_Motor_Page);		// An 2nd Z [#22] 하강 위치 - 현재 위치 시 절대위치 변환 가능
 				if(P_IL_Outer_Status == N_IL_Normal_Pos)
@@ -2212,19 +2227,35 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_Clamp_CA_Z2:
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-			//================================ 1번위치 - 대기 위치  ================================
-				// ↓ 양극 클램프 Z축 대기 위치
-				if(P_Motor_Current_Pos(N_Clamp_CA_Z2) ~ P_Recipe_M25_POS(1))	
+				if(P_IL_Outer_Status != IL_Out_Close) // 적층중 동작 방지 인터락
+				{
+				//================================ 1번위치 - 대기 위치  ================================
+					// ↓ 양극 클램프 Z축 대기 위치
+					if(P_Motor_Current_Pos(N_Clamp_CA_Z2) ~ P_Recipe_M25_POS(1))	
+						P_No1_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;
+					else
+						P_No1_Recipe_Pos_IL(N_Clamp_CA_Z2) = 0;
+				//================================ 2번위치 - 클램프 위치 ================================
+					// ↓ 양극 클램프 Z축 클램프 위치
+					if(P_Motor_Current_Pos(N_Clamp_CA_Z1) ~ P_Recipe_M25_POS(2))
+						P_No2_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;
+					else
+						P_No2_Recipe_Pos_IL(N_Clamp_CA_Z2) = 0;
+					//================================ 미사용 위치 인터락 ===========================================
+						P_No3_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;
+						P_No4_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;
+						P_No5_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;
+						P_No6_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;
+						P_No7_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;			// 인터락
+						P_No8_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;			// 인터락
+						P_No9_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;			// 인터락
+						P_No10_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;		// 인터락
+				// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Jog, ABS, INC Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+				}
+				else
+				{
 					P_No1_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;
-				else
-					P_No1_Recipe_Pos_IL(N_Clamp_CA_Z2) = 0;
-			//================================ 2번위치 - 클램프 위치 ================================
-				// ↓ 양극 클램프 Z축 클램프 위치
-				if(P_Motor_Current_Pos(N_Clamp_CA_Z1) ~ P_Recipe_M25_POS(2))
 					P_No2_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;
-				else
-					P_No2_Recipe_Pos_IL(N_Clamp_CA_Z2) = 0;
-				//================================ 미사용 위치 인터락 ===========================================
 					P_No3_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;
 					P_No4_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;
 					P_No5_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;
@@ -2232,9 +2263,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					P_No7_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;			// 인터락
 					P_No8_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;			// 인터락
 					P_No9_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;			// 인터락
-					P_No10_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;		// 인터락
-			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Jog, ABS, INC Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
+					P_No10_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;		// 인터락					
+				}
 				P_Abs_Trans_Cur_Pos = P_Motor_Current_Pos(P_IL_Motor_Page);		// An 2nd Z [#22] 하강 위치 - 현재 위치 시 절대위치 변환 가능
 				if(P_IL_Outer_Status == N_IL_Normal_Pos)
 				{
@@ -2262,19 +2292,34 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_Clamp_AN_Z1:
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-			//================================ 1번위치 - 대기 위치  ================================
-				// ↓ 음극 클램프 Z축 대기 위치
-				if(P_Motor_Current_Pos(N_Clamp_AN_Z1) ~ P_Recipe_M28_POS(1))	
+				if(P_IL_Outer_Status != IL_Out_Close) // 적층중 동작 방지 인터락
+				{
+				//================================ 1번위치 - 대기 위치  ================================
+					// ↓ 음극 클램프 Z축 대기 위치
+					if(P_Motor_Current_Pos(N_Clamp_AN_Z1) ~ P_Recipe_M28_POS(1))	
+						P_No1_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;
+					else
+						P_No1_Recipe_Pos_IL(N_Clamp_AN_Z1) = 0;
+				//================================ 2번위치 - 클램프 위치 ================================
+					// ↓ 음극 클램프 Z축 클램프 위치
+					if(P_Motor_Current_Pos(N_Clamp_AN_Z1) ~ P_Recipe_M28_POS(2))
+						P_No2_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;
+					else
+						P_No2_Recipe_Pos_IL(N_Clamp_AN_Z1) = 0;
+					//================================ 미사용 위치 인터락 ===========================================
+						P_No3_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;
+						P_No4_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;
+						P_No5_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;
+						P_No6_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;
+						P_No7_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;			// 인터락
+						P_No8_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;			// 인터락
+						P_No9_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;			// 인터락
+						P_No10_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;		// 인터락
+				}
+				else 
+				{
 					P_No1_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;
-				else
-					P_No1_Recipe_Pos_IL(N_Clamp_AN_Z1) = 0;
-			//================================ 2번위치 - 클램프 위치 ================================
-				// ↓ 음극 클램프 Z축 클램프 위치
-				if(P_Motor_Current_Pos(N_Clamp_AN_Z1) ~ P_Recipe_M28_POS(2))
 					P_No2_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;
-				else
-					P_No2_Recipe_Pos_IL(N_Clamp_AN_Z1) = 0;
-				//================================ 미사용 위치 인터락 ===========================================
 					P_No3_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;
 					P_No4_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;
 					P_No5_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;
@@ -2283,6 +2328,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					P_No8_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;			// 인터락
 					P_No9_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;			// 인터락
 					P_No10_Recipe_Pos_IL(N_Clamp_AN_Z1) = 1;		// 인터락
+				}
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Jog, ABS, INC Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 				P_Abs_Trans_Cur_Pos = P_Motor_Current_Pos(P_IL_Motor_Page);		// An 2nd Z [#22] 하강 위치 - 현재 위치 시 절대위치 변환 가능
 				if(P_IL_Outer_Status == N_IL_Normal_Pos)
@@ -2311,19 +2357,34 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_Clamp_AN_Z2:
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-			//================================ 1번위치 - 대기 위치  ================================
-				// ↓ 음극 클램프 Z축 대기 위치
-				if(P_Motor_Current_Pos(N_Clamp_AN_Z2) ~ P_Recipe_M26_POS(1))	
+				if(P_IL_Outer_Status != IL_Out_Close) // 적층중 동작 방지 인터락
+				{
+				//================================ 1번위치 - 대기 위치  ================================
+					// ↓ 음극 클램프 Z축 대기 위치
+					if(P_Motor_Current_Pos(N_Clamp_AN_Z2) ~ P_Recipe_M26_POS(1))	
+						P_No1_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;
+					else
+						P_No1_Recipe_Pos_IL(N_Clamp_AN_Z2) = 0;
+				//================================ 2번위치 - 클램프 위치 ================================
+					// ↓ 음극 클램프 Z축 클램프 위치
+					if(P_Motor_Current_Pos(N_Clamp_AN_Z2) ~ P_Recipe_M26_POS(2))
+						P_No2_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;
+					else
+						P_No2_Recipe_Pos_IL(N_Clamp_AN_Z2) = 0;
+					//================================ 미사용 위치 인터락 ===========================================
+						P_No3_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;
+						P_No4_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;
+						P_No5_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;
+						P_No6_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;
+						P_No7_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;			// 인터락
+						P_No8_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;			// 인터락
+						P_No9_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;			// 인터락
+						P_No10_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;		// 인터락
+				}
+				else
+				{
 					P_No1_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;
-				else
-					P_No1_Recipe_Pos_IL(N_Clamp_AN_Z2) = 0;
-			//================================ 2번위치 - 클램프 위치 ================================
-				// ↓ 음극 클램프 Z축 클램프 위치
-				if(P_Motor_Current_Pos(N_Clamp_AN_Z2) ~ P_Recipe_M26_POS(2))
 					P_No2_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;
-				else
-					P_No2_Recipe_Pos_IL(N_Clamp_AN_Z2) = 0;
-				//================================ 미사용 위치 인터락 ===========================================
 					P_No3_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;
 					P_No4_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;
 					P_No5_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;
@@ -2331,7 +2392,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					P_No7_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;			// 인터락
 					P_No8_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;			// 인터락
 					P_No9_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;			// 인터락
-					P_No10_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;		// 인터락
+					P_No10_Recipe_Pos_IL(N_Clamp_AN_Z2) = 1;		// 인터락				
+				}
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Jog, ABS, INC Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 				P_Abs_Trans_Cur_Pos = P_Motor_Current_Pos(P_IL_Motor_Page);		// An 2nd Z [#22] 하강 위치 - 현재 위치 시 절대위치 변환 가능
 				if(P_IL_Outer_Status == N_IL_Normal_Pos)
@@ -2360,7 +2422,15 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_MAIN_Z:
 				//================================ 1번위치 - 파이널롤러 대기 위치  ================================
-				P_No1_Recipe_Pos_IL(11) = 0;
+				if(P_IL_Outer_Status != IL_Out_Close) // 적층중 동작 방지 인터락
+				{
+					P_No1_Recipe_Pos_IL(11) = 0;
+				}
+				else
+				{
+					P_No1_Recipe_Pos_IL(11) = 1;
+				}
+				
 			break;
 
 			case N_FINAL_ROLL_X:
@@ -2385,19 +2455,19 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					   P_IL_Use_FR_Clamp_Pos = L_Use_FR_High_Pos(1);		// 클램프 Z 현재 위치
 				//================================ 1번위치 - 파이널롤러 대기 위치  ================================
 					// ↓ 파이널 롤 X축 대기 위치 || 파이널 롤 Z축 !~ 적층 위치 || 음극 2차 PNP T축 > 대기 위치 + 30º || 파이널 롤 Z축,클램프 Z축 사이 > 3mm
-					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(1) || !(P_Motor_Current_Pos(N_FINAL_ROLL_Z) ~ P_Recipe_M13_POS(2)) || P_Motor_Current_Pos(N_2nd_PnP_AN_T) > P_Recipe_M04_POS(1) + 30 || (P_Motor_Current_Pos(N_FINAL_ROLL_Z) + P_IL_Use_FR_Clamp_Pos) > -3 )	
+					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(1) || !(P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(2)) || P_Motor_Current_Pos(N_2nd_PnP_AN_T) > P_Recipe_M04_POS(1) + 30 || (P_Motor_Current_Pos(N_FINAL_ROLL_Z) + P_IL_Use_FR_Clamp_Pos) > -3 )	
 						P_No1_Recipe_Pos_IL(N_FINAL_ROLL_X) = 1;
 					else
 						P_No1_Recipe_Pos_IL(N_FINAL_ROLL_X) = 0;
 				//================================ 2번위치 - 파이널롤러 음극 위치  ================================
 					// ↓ 파이널 롤 X축 음극 위치 || 파이널 롤 Z축 !~ 적층 위치 || 음극 2차 PNP T축 > 대기 위치 + 45º || 파이널 롤 Z축, 클램프 Z축 사이 > 3mm
-					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(2) || !(P_Motor_Current_Pos(N_FINAL_ROLL_Z) ~ P_Recipe_M13_POS(2)) || P_Motor_Current_Pos(N_2nd_PnP_AN_T) > P_Recipe_M04_POS(1) + 45 || (P_Motor_Current_Pos(N_FINAL_ROLL_Z) + P_IL_Use_FR_Clamp_Pos) > -3 )	
+					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(2) || !(P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(2)) || P_Motor_Current_Pos(N_2nd_PnP_AN_T) > P_Recipe_M04_POS(1) + 45 || (P_Motor_Current_Pos(N_FINAL_ROLL_Z) + P_IL_Use_FR_Clamp_Pos) > -3 )	
 						P_No2_Recipe_Pos_IL(N_FINAL_ROLL_X) = 1;
 					else
 						P_No2_Recipe_Pos_IL(N_FINAL_ROLL_X) = 0;
 				//================================ 3번위치 - 파이널롤러 양극 위치 ================================
 					// ↓ 파이널 롤 X축 양극 위치 || 파이널 롤 Z축 !~ 적층 위치 || 양극 2차 PNP T축 > 대기 위치 + 45º || 파이널 롤 Z축, 클램프 Z축 사이 > 3mm
-					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) || !(P_Motor_Current_Pos(N_FINAL_ROLL_Z) ~ P_Recipe_M13_POS(2)) || P_Motor_Current_Pos(N_2nd_PnP_CA_T) > P_Recipe_M03_POS(1) + 45 || (P_Motor_Current_Pos(N_FINAL_ROLL_Z) + P_IL_Use_FR_Clamp_Pos) > -3 )
+					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) || !(P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(2)) || P_Motor_Current_Pos(N_2nd_PnP_CA_T) > P_Recipe_M03_POS(1) + 45 || (P_Motor_Current_Pos(N_FINAL_ROLL_Z) + P_IL_Use_FR_Clamp_Pos) > -3 )
 						P_No3_Recipe_Pos_IL(N_FINAL_ROLL_X) = 1;
 					else
 						P_No3_Recipe_Pos_IL(N_FINAL_ROLL_X) = 0;
@@ -2499,6 +2569,8 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_FINAL_ROLL_Z:
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+			if(P_IL_Outer_Status != IL_Out_Close)	// 적층중 동작 방지 인터락
+			{
 			//================================ 1번위치 - 파이널롤러 대기,커팅 위치  ================================
 				// ↓ 파이널 롤 대기, 커팅 위치 || 파이널 롤 X축 양,음극 위치 사이 || 양,음극 클램프 Z축 > 대기 위치 || 스택 테이블 Z축 > 대기 위치
 				if(P_Motor_Current_Pos(N_FINAL_ROLL_Z) ~ P_Recipe_M13_POS(1))	
@@ -2530,6 +2602,20 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					P_No8_Recipe_Pos_IL(N_FINAL_ROLL_Z) = 1;			// 인터락
 					P_No9_Recipe_Pos_IL(N_FINAL_ROLL_Z) = 1;			// 인터락
 					P_No10_Recipe_Pos_IL(N_FINAL_ROLL_Z) = 1;			// 인터락
+			}
+			else
+			{
+				P_No1_Recipe_Pos_IL(N_FINAL_ROLL_Z) = 1;
+				P_No2_Recipe_Pos_IL(N_FINAL_ROLL_Z) = 1;
+				P_No3_Recipe_Pos_IL(N_FINAL_ROLL_Z) = 1;
+				P_No4_Recipe_Pos_IL(N_FINAL_ROLL_Z) = 1;
+				P_No5_Recipe_Pos_IL(N_FINAL_ROLL_Z) = 1;
+				P_No6_Recipe_Pos_IL(N_FINAL_ROLL_Z) = 1;
+				P_No7_Recipe_Pos_IL(N_FINAL_ROLL_Z) = 1;			// 인터락
+				P_No8_Recipe_Pos_IL(N_FINAL_ROLL_Z) = 1;			// 인터락
+				P_No9_Recipe_Pos_IL(N_FINAL_ROLL_Z) = 1;			// 인터락
+				P_No10_Recipe_Pos_IL(N_FINAL_ROLL_Z) = 1;			// 인터락
+			}
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Jog, ABS, INC Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 				P_Abs_Trans_Cur_Pos = P_Motor_Current_Pos(P_IL_Motor_Page) * -1;		// FR Z [#13] - 엔코더 위치가 곧 절대위치이지만 반전해야함.
 				if(P_IL_Outer_Status == N_IL_Anode_Pos || P_IL_Outer_Status == N_IL_Cathode_Pos)
@@ -3660,52 +3746,55 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 	M_Motor_Recipe_Pos_Interlock(P_IL_Motor_Page) = ( P_Recipe_POS_Interock_M(P_IL_Motor_Page) & N_Hex_Pos_All_InterLock_On );
 
 	// 7. 인터락 팝업 처리 ======================================================================================================================
-	if( P_Interlock_Popup_On_Flag == N_TRUE )
+	if(P_Jog_Btn_Flag == 1 && P_Jog_Btn_Flag != P_Old_Jog_Btn_Flag)
 	{
-		P_Interlock_Popup_On_Flag = 0;								// Flag 초기화
-		P_IL_Sprint = memset(F_IL_Cdata,0,N_IL_memset_size);		// Data 초기화
-		P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 초기화
-		
-		if( P_IL_Popup_Motor == N_Home_Miss )						// 홈 미스로 들어왔다면
+		if( P_Interlock_Popup_On_Flag == N_TRUE )
 		{
-			nop(sprintf(F_IL_Cdata," Must Do Ready "));				// 홈 필요 문구 출력
-			nop (sprintf(F_IL_Cdata2," Please PUSH Ready BTN  "));	// 홈 필요 문구 출력
-		}
-		else if( P_IL_Popup_Motor == N_JR_Prod_Popup )
-		{
-			nop (sprintf(F_IL_Cdata," Stack Unit "));				// 적층중이라 움직일수없다.
-			nop(sprintf(F_IL_Cdata2," Cant Move While Stacking "));	// 적층중이라 움직일수없다.
-		}
-		else if(P_IL_Popup_Motor == N_Door_Open )					//[ 참조 : 260522 : 양음극 릴컷부 도어 오픈 시 1차 PNP 인터락 ]
-		{
-			nop (sprintf(F_IL_Cdata," Door Close "));				// 적층중이라 움직일수없다.
-			nop(sprintf(F_IL_Cdata2," Please Close The Door "));	// 적층중이라 움직일수없다.
-		}
-		else if(P_IL_Popup_Motor == N_NG_Box_Open )					//[참조 : 260601 : 양음극 NG BOX 도어 오픈 시 조그 인터락 ]
-		{
-			nop(sprintf(F_IL_Cdata," Ng Box Open "));				// NG Box 감지 확인 알람
-		}
-		else if(P_IL_Popup_Motor == N_1st_Cell_Existence )			//[참조 : 20260716 1차 PNP에 극판 존재 시 피커 T축 인터락 ]
-		{
-			nop(sprintf(F_IL_Cdata," 1st Sheet Cell Check "));		// 1차 PNP 시트 확인 알람 
-		}
-		else														// 홈 미스로 들어오지 않았다면
-		{
-			call Popup.UI(M_Motor_BTN_Info(P_IL_Motor_Page));		// 문자열 대입 시작
-			P_IL_Popup_Motor = 0;									// 팝업 모터 초기화
-		
-			P_IL_Recipe_Bit = 0;										// 레시피포스 초기화
-			P_Limit_PosData(Hex_IL_Plus) = N_Nan;
-			P_Limit_PosData(Hex_IL_Minus) = N_Nan;
-			P_Collision_Risk_Motor(Hex_IL_Plus) = 0;
-			P_Collision_Risk_Motor(Hex_IL_Minus) = 0;
-			P_Plus_IL_Offset = 0;
-			P_Minus_IL_Offset = 0;
-			P_IL_Robot_Bit = 0;
-		}	
-		if ( P_X_Interlock_Popup_On_Request_Ack == 0 )			// 26.09.29 팝업이 꺼져있을 때 팝업을 띄울 수 있도록 수정.
-		{
-			P_Y_Interlock_Popup_On_Request = 1;							// PLC 팝업 요청 
+			P_Interlock_Popup_On_Flag = 0;								// Flag 초기화
+			P_IL_Sprint = memset(F_IL_Cdata,0,N_IL_memset_size);		// Data 초기화
+			P_IL_length = strlen(F_IL_Cdata);							// 문자열 길이 초기화
+			
+			if( P_IL_Popup_Motor == N_Home_Miss )						// 홈 미스로 들어왔다면
+			{
+				nop(sprintf(F_IL_Cdata," Must Do Ready "));				// 홈 필요 문구 출력
+				nop (sprintf(F_IL_Cdata2," Please PUSH Ready BTN  "));	// 홈 필요 문구 출력
+			}
+			else if( P_IL_Popup_Motor == N_JR_Prod_Popup )
+			{
+				nop (sprintf(F_IL_Cdata," Stack Unit "));				// 적층중이라 움직일수없다.
+				nop(sprintf(F_IL_Cdata2," Cant Move While Stacking "));	// 적층중이라 움직일수없다.
+			}
+			else if(P_IL_Popup_Motor == N_Door_Open )					//[ 참조 : 260522 : 양음극 릴컷부 도어 오픈 시 1차 PNP 인터락 ]
+			{
+				nop (sprintf(F_IL_Cdata," Door Close "));				// 적층중이라 움직일수없다.
+				nop(sprintf(F_IL_Cdata2," Please Close The Door "));	// 적층중이라 움직일수없다.
+			}
+			else if(P_IL_Popup_Motor == N_NG_Box_Open )					//[참조 : 260601 : 양음극 NG BOX 도어 오픈 시 조그 인터락 ]
+			{
+				nop(sprintf(F_IL_Cdata," Ng Box Open "));				// NG Box 감지 확인 알람
+			}
+			else if(P_IL_Popup_Motor == N_1st_Cell_Existence )			//[참조 : 20260716 1차 PNP에 극판 존재 시 피커 T축 인터락 ]
+			{
+				nop(sprintf(F_IL_Cdata," 1st Sheet Cell Check "));		// 1차 PNP 시트 확인 알람 
+			}
+			else if(P_IL_Popup_Motor != 0)								// 홈 미스로 들어오지 않았다면 ( 메세지가 없는 팝업창이 뜨는경우 발생하여 조건 추가 )
+			{
+				call Popup.UI(M_Motor_BTN_Info(P_IL_Motor_Page));		// 문자열 대입 시작
+				P_IL_Popup_Motor = 0;									// 팝업 모터 초기화
+			
+				P_IL_Recipe_Bit = 0;										// 레시피포스 초기화
+				P_Limit_PosData(Hex_IL_Plus) = N_Nan;
+				P_Limit_PosData(Hex_IL_Minus) = N_Nan;
+				P_Collision_Risk_Motor(Hex_IL_Plus) = 0;
+				P_Collision_Risk_Motor(Hex_IL_Minus) = 0;
+				P_Plus_IL_Offset = 0;
+				P_Minus_IL_Offset = 0;
+				P_IL_Robot_Bit = 0;
+			}	
+			if ( P_X_Interlock_Popup_On_Request_Ack == 0 )			// 26.09.29 팝업이 꺼져있을 때 팝업을 띄울 수 있도록 수정.
+			{
+				P_Y_Interlock_Popup_On_Request = 1;							// PLC 팝업 요청 
+			}
 		}
 	}
 	// 인터락 PLC 전송 프로그램 ======================================================================================================================
@@ -3770,5 +3859,7 @@ else if(P_Jog_Page_Flag == 1)
 	else
 		P_IL_Motor_Page = 0;
 }
+
+P_Jog_Btn_Flag = P_Old_Jog_Btn_Flag;
 close
 

@@ -310,7 +310,7 @@ global  P_Sepa_Unwinder_Flow_Chart_Bit_Flag = 0;
 // 1020.Define_Cell_Out_And_Sepa_Motion_PLC
 //------------------------------------------------------------------------------------------------------
 
-global	P_Slave5_Target_Z_For_Cutting=0;	// F/R Z축 컷팅시 살짝 내리기. - 배출시퀀스에서 계산됨.
+//global	P_Slave5_Target_Z_For_Cutting=0;	// F/R Z축 컷팅시 살짝 내리기. - 배출시퀀스에서 계산됨.
 
 
 
@@ -318,7 +318,7 @@ global	P_Slave5_Target_Z_For_Cutting=0;	// F/R Z축 컷팅시 살짝 내리기. - 배출시�
 // Header File1
 //------------------------------------------------------------------------------------------------------
 //global P_Slave20_Motion_Command = 0;
-global P_Slave31_Motion_Command = 0;
+//global P_Slave31_Motion_Command = 0;
 
 
 //------------------------------------------------------------------------------------------------------
@@ -337,8 +337,8 @@ global P_Pause_Err_Use2 = 1
 global P_Anode_Pause_Signal_Err = 0
 global P_Cathode_Pause_Signal_Err = 0
 
-global P_Anode_Pause_Err = 0
-global P_Anode_Pause_Err_Count = 0
+//global P_Anode_Pause_Err = 0
+//global P_Anode_Pause_Err_Count = 0
 
 
 global P_Phasing_Err(5)

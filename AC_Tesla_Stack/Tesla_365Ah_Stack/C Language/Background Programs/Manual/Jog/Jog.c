@@ -112,6 +112,7 @@ void Jog_Execute(JOG_LIST* ptr)
 				if(ptr->servo_page_arr[g_Page_Num].btn[i].b_prev)
 				{
 					ptr->servo_page_arr[g_Page_Num].btn[i].status = FALLING_EDGE; // ÇÏ°­ ¿§Áö
+					pshm->P[P_Jog_Btn_Flag] = 0;
 				}
 				else
 				{

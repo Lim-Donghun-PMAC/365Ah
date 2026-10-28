@@ -225,7 +225,7 @@ global P_Vision_Cal_Reset_Count = 0;							//얼라인 오토 캘 리셋 변수
 global P_2nd_PNP_Cleaning_Mode_Cmd = 0;					//2차 PNP 클리닝 위치 이동 커맨드
 global P_2nd_PNP_Cleaning_Mode_Status = 0;				//2차 PNP 클리닝 위치 이동 상태
 
-global P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed = 10;			// 2차 PNP 클리닝 위치 이동 모터 조그 속도 10
+global P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed = 15;			// 2차 PNP 클리닝 위치 이동 모터 조그 속도 10
 global P_2nd_PNP_Cleaning_Mode_X_Jog_Speed = 25;			// 2차 PNP 클리닝 위치 이동 모터 조그 속도 25
 global P_2nd_PNP_Cleaning_Mode_T_Jog_Speed = 10;			// 2차 PNP 클리닝 위치 이동 모터 조그 속도 10		
 global P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos = 45;				// 2차 PNP 클리닝 위치 회피 이동 45 위치

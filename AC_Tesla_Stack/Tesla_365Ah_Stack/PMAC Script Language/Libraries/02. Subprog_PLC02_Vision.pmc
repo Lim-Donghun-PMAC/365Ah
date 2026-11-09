@@ -486,7 +486,7 @@ sub: Stack_Result(&rtn)
 				rtn = N_Inspection_OK;
 			}
 			//else if(M_X_Vision_Stack_OK == 0 && M_X_Vision_Stack_NG == 1)		// 스택 검사 결과 NG
-			else if( M_X_Vision_Stack_NG == 1 )									// 스택 검사 결과 NG
+			else if(M_X_Vision_Stack_OK == 0 && M_X_Vision_Stack_NG == 1 )									// 스택 검사 결과 NG
 			{
 				// 스택 비전 중간배출 무시 기능 추가 필요
 				Sys_Stack_Sheet_LO_Vision_BYTE |= Hex_Stack_NG;					// 스택 NG 데이터 저장 -> 스택 테이블
@@ -495,25 +495,26 @@ sub: Stack_Result(&rtn)
 				rtn = N_Inspection_NG;
 				P_Stack_Table_NG_Count++
 			}
-			else
-			{
-				P_Stack_TimeOut1++
-				// 중간배출 무시 기능 추가필요
-				rtn = N_Inspection_TimeOut;
-			}
+			// [26.11.07 Stack 타임아웃 -> 스택 연속 NG 처리 하도록 수정]
+//			else
+//			{
+//				P_Stack_TimeOut1++
+//				// 중간배출 무시 기능 추가필요
+//				rtn = N_Inspection_TimeOut;
+//			}
 		}
-		else 
-		{
-			P_Stack_TimeOut2++
-			rtn = N_Inspection_TimeOut
-		}
+//		else 
+//		{
+//			P_Stack_TimeOut2++
+//			rtn = N_Inspection_TimeOut
+//		}
 
-		if(rtn == N_Inspection_TimeOut)
-		{
-			Sys_Stack_Sheet_LO_Vision_BYTE |= Hex_Stack_Time_Out;
-			P_Stack_Table_NG_Count++
-//			P_Stack_PMAC_NG_Code = 256;
-		}
+//		if(rtn == N_Inspection_TimeOut)
+//		{
+//			Sys_Stack_Sheet_LO_Vision_BYTE |= Hex_Stack_Time_Out;
+//			P_Stack_Table_NG_Count++
+////			P_Stack_PMAC_NG_Code = 256;
+//		}
 	}
 
 

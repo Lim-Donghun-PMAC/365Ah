@@ -72,3 +72,6 @@
 	
 	global	P_Home_Status(50);								// 홈 상태 변수(모터별)							PLC11
 	P_Home_Status(0),49 = 0;
+
+
+

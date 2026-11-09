@@ -37,6 +37,8 @@ global P_PV_Cathode_NG_AT_T_Axis_Pos = 0;				// 양극 NG PNP T축 Align 위치
 global P_PV_Cathode_NG_Box_T_Axis_Pos = 0;				// 양극 NG PNP T축 NG BOX 위치
 global P_PV_Anode_NG_AT_T_Axis_Pos = 0;					// 음극 NG PNP T축 Align 위치
 global P_PV_Anode_NG_Box_T_Axis_Pos = 0;				// 음극 NG PNP T축 NG BOX 위치
+global P_PV_1st_Unloader_X_Axis_Pos = 0;				// 1차 언로더 X축 전진 위치
+global P_PV_1st_Unloader_Z_Axis_Pos = 0;				// 1차 언로더 Z축 전진 위치
 
 
 // PV 항목 캡쳐 위한 플래그 ( Semi_Run에서 전체 플래그 =  1 )
@@ -75,6 +77,7 @@ global P_SemiRun_Cathode_NG_AT_T_Axis_Pos_Flag = 0;				// 양극 NG PNP T축 Align 
 global P_SemiRun_Cathode_NG_Box_T_Axis_Pos_Flag = 0;			// 양극 NG PNP T축 NG BOX 위치 캡쳐 플래그
 global P_SemiRun_Anode_NG_AT_T_Axis_Pos_Flag = 0;				// 음극 NG PNP T축 Align 위치 캡쳐 플래그
 global P_SemiRun_Anode_NG_Box_T_Axis_Pos_Flag = 0;				// 음극 NG PNP T축 NG BOX 위치 캡쳐 플래그
+global P_SemiRun_1st_Unloader_Forward_Pos_Flag = 0;				// 1차 언로더 Z축 전진 위치 캡쳐 플래그
 
 // PV 항목 캡쳐 위한 플래그 ( 각각 모션 위치 완료 후 Flag = 1 )
 // 압력 부분
@@ -108,10 +111,11 @@ global P_Motion_Anode_1th_AT_T_Axis_Pos_Flag = 0;				// 음극 1차 PNP T축 Align �
 global P_Motion_Anode_1th_Ready_Z_Axis_Pos_Flag = 0;			// 음극 1차 PNP Z축 대기 위치 캡쳐 플래그
 global P_Motion_Anode_1th_CV_Z_Axis_Pos_Flag = 0;				// 음극 1차 PNP Z축 컨베이어 위치 캡쳐 플래그
 global P_Motion_Anode_1th_AT_Z_Axis_Pos_Flag = 0;				// 음극 1차 PNP Z축 Align 위치 캡쳐 플래그
-global P_Motion_Cathode_NG_AT_T_Axis_Pos_Flag = 0;					// 양극 NG PNP T축 Align 위치 캡쳐 플래그
-global P_Motion_Cathode_NG_Box_T_Axis_Pos_Flag = 0;					// 양극 NG PNP T축 NG BOX 위치 캡쳐 플래그
-global P_Motion_Anode_NG_AT_T_Axis_Pos_Flag = 0;						// 음극 NG PNP T축 Align 위치 캡쳐 플래그
-global P_Motion_Anode_NG_Box_T_Axis_Pos_Flag = 0;					// 음극 NG PNP T축 NG BOX 위치 캡쳐 플래그
+global P_Motion_Cathode_NG_AT_T_Axis_Pos_Flag = 0;				// 양극 NG PNP T축 Align 위치 캡쳐 플래그
+global P_Motion_Cathode_NG_Box_T_Axis_Pos_Flag = 0;				// 양극 NG PNP T축 NG BOX 위치 캡쳐 플래그
+global P_Motion_Anode_NG_AT_T_Axis_Pos_Flag = 0;				// 음극 NG PNP T축 Align 위치 캡쳐 플래그
+global P_Motion_Anode_NG_Box_T_Axis_Pos_Flag = 0;				// 음극 NG PNP T축 NG BOX 위치 캡쳐 플래그
+global P_Motion_1st_Unloader_Forward_Pos_Flag = 0;				// 1차 언로더 위치 캡쳐 플래그
 
 //1차 및 2차 PNO 실시간 PV값 계산 스케일값 정의
 global	P_Cathode_1PNP_Sacle_Value = 0.1;

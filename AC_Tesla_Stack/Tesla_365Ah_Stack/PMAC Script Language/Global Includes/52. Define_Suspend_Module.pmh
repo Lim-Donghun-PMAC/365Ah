@@ -36,6 +36,7 @@ global P_Stack_Vision_NG_Code_IN_Timer = 0;								// NG 코드 타이머
 //PLC 10 Dishcarge Sequence =================================================================================================
 global P_1st_Discharge_State = 0;										// 배출 상태 변수
 global P_Prev_Sepa_Stack_Completed_Flag = 0;							// 세파 모드 배출 확인 플래그
+global P_First_Sepa_Vision_Skip_Flag = 0;							// 세파 첫장 비전 검사 생략 플래그 (1: 연속 J/R 적층 → 검사 X, 0: 검사 O)	//[ 참조 20261026 세파 첫장 검사 실행 결정 조건 추가 (연속 J/R적층 시에는 실행 X, 그 외에는 실행O) ]
 // Discharge Variable
 global P_Discharge_Unloader_Handover_Timer = 0;							// 1차 언로더 → 2차 언로더 인계 시간 변수	[ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ]
 global P_Discharge_Unloader_Handover_Time = 0;							// 1차 언로더 → 2차 언로더 인계 시간 변수	[ 참조 : 25.08.01 배출 프로그램 수정 - 1차 → 2차 언로더 JR 인계 시간 표시 ]

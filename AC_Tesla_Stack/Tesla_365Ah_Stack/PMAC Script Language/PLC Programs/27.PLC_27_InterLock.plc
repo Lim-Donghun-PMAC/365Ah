@@ -2162,7 +2162,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_Clamp_CA_Z1:
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-				if(P_IL_Outer_Status != IL_Out_Close) // 적층중 동작 방지 인터락
+				if(P_Stack_Judgement_Memory == 0) // 적층중 동작 방지 인터락
 				{
 				//================================ 1번위치 - 대기 위치  ================================
 					// ↓ 양극 클램프 Z축 대기 위치
@@ -2227,7 +2227,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_Clamp_CA_Z2:
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-				if(P_IL_Outer_Status != IL_Out_Close) // 적층중 동작 방지 인터락
+				if(P_Stack_Judgement_Memory == 0) // 적층중 동작 방지 인터락
 				{
 				//================================ 1번위치 - 대기 위치  ================================
 					// ↓ 양극 클램프 Z축 대기 위치
@@ -2237,7 +2237,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 						P_No1_Recipe_Pos_IL(N_Clamp_CA_Z2) = 0;
 				//================================ 2번위치 - 클램프 위치 ================================
 					// ↓ 양극 클램프 Z축 클램프 위치
-					if(P_Motor_Current_Pos(N_Clamp_CA_Z1) ~ P_Recipe_M25_POS(2))
+					if(P_Motor_Current_Pos(N_Clamp_CA_Z2) ~ P_Recipe_M25_POS(2))
 						P_No2_Recipe_Pos_IL(N_Clamp_CA_Z2) = 1;
 					else
 						P_No2_Recipe_Pos_IL(N_Clamp_CA_Z2) = 0;
@@ -2292,7 +2292,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_Clamp_AN_Z1:
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-				if(P_IL_Outer_Status != IL_Out_Close) // 적층중 동작 방지 인터락
+				if(P_Stack_Judgement_Memory == 0) // 적층중 동작 방지 인터락
 				{
 				//================================ 1번위치 - 대기 위치  ================================
 					// ↓ 음극 클램프 Z축 대기 위치
@@ -2357,7 +2357,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_Clamp_AN_Z2:
 			// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Recipe Pos Run 인터락 부분>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-				if(P_IL_Outer_Status != IL_Out_Close) // 적층중 동작 방지 인터락
+				if(P_Stack_Judgement_Memory == 0) // 적층중 동작 방지 인터락
 				{
 				//================================ 1번위치 - 대기 위치  ================================
 					// ↓ 음극 클램프 Z축 대기 위치
@@ -2422,7 +2422,7 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 
 			case N_MAIN_Z:
 				//================================ 1번위치 - 파이널롤러 대기 위치  ================================
-				if(P_IL_Outer_Status != IL_Out_Close) // 적층중 동작 방지 인터락
+				if(P_Stack_Judgement_Memory == 0) // 적층중 동작 방지 인터락
 				{
 					P_No1_Recipe_Pos_IL(11) = 0;
 				}
@@ -2455,19 +2455,19 @@ if( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status != F_Status_RESETTI
 					   P_IL_Use_FR_Clamp_Pos = L_Use_FR_High_Pos(1);		// 클램프 Z 현재 위치
 				//================================ 1번위치 - 파이널롤러 대기 위치  ================================
 					// ↓ 파이널 롤 X축 대기 위치 || 파이널 롤 Z축 !~ 적층 위치 || 음극 2차 PNP T축 > 대기 위치 + 30º || 파이널 롤 Z축,클램프 Z축 사이 > 3mm
-					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(1) || !(P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(2)) || P_Motor_Current_Pos(N_2nd_PnP_AN_T) > P_Recipe_M04_POS(1) + 30 || (P_Motor_Current_Pos(N_FINAL_ROLL_Z) + P_IL_Use_FR_Clamp_Pos) > -3 )	
+					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(1) || P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(2) || P_Motor_Current_Pos(N_2nd_PnP_AN_T) > P_Recipe_M04_POS(1) + 30 || (P_Motor_Current_Pos(N_FINAL_ROLL_Z) + P_IL_Use_FR_Clamp_Pos) > -3 )	
 						P_No1_Recipe_Pos_IL(N_FINAL_ROLL_X) = 1;
 					else
 						P_No1_Recipe_Pos_IL(N_FINAL_ROLL_X) = 0;
 				//================================ 2번위치 - 파이널롤러 음극 위치  ================================
 					// ↓ 파이널 롤 X축 음극 위치 || 파이널 롤 Z축 !~ 적층 위치 || 음극 2차 PNP T축 > 대기 위치 + 45º || 파이널 롤 Z축, 클램프 Z축 사이 > 3mm
-					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(2) || !(P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(2)) || P_Motor_Current_Pos(N_2nd_PnP_AN_T) > P_Recipe_M04_POS(1) + 45 || (P_Motor_Current_Pos(N_FINAL_ROLL_Z) + P_IL_Use_FR_Clamp_Pos) > -3 )	
+					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(2) || P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(2) || P_Motor_Current_Pos(N_2nd_PnP_AN_T) > P_Recipe_M04_POS(1) + 45 || (P_Motor_Current_Pos(N_FINAL_ROLL_Z) + P_IL_Use_FR_Clamp_Pos) > -3 )	
 						P_No2_Recipe_Pos_IL(N_FINAL_ROLL_X) = 1;
 					else
 						P_No2_Recipe_Pos_IL(N_FINAL_ROLL_X) = 0;
 				//================================ 3번위치 - 파이널롤러 양극 위치 ================================
 					// ↓ 파이널 롤 X축 양극 위치 || 파이널 롤 Z축 !~ 적층 위치 || 양극 2차 PNP T축 > 대기 위치 + 45º || 파이널 롤 Z축, 클램프 Z축 사이 > 3mm
-					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) || !(P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(2)) || P_Motor_Current_Pos(N_2nd_PnP_CA_T) > P_Recipe_M03_POS(1) + 45 || (P_Motor_Current_Pos(N_FINAL_ROLL_Z) + P_IL_Use_FR_Clamp_Pos) > -3 )
+					if(P_Motor_Current_Pos(N_FINAL_ROLL_X) ~ P_Recipe_M12_POS(3) || P_Motor_Current_Pos(N_FINAL_ROLL_Z) > P_Recipe_M13_POS(2) || P_Motor_Current_Pos(N_2nd_PnP_CA_T) > P_Recipe_M03_POS(1) + 45 || (P_Motor_Current_Pos(N_FINAL_ROLL_Z) + P_IL_Use_FR_Clamp_Pos) > -3 )
 						P_No3_Recipe_Pos_IL(N_FINAL_ROLL_X) = 1;
 					else
 						P_No3_Recipe_Pos_IL(N_FINAL_ROLL_X) = 0;

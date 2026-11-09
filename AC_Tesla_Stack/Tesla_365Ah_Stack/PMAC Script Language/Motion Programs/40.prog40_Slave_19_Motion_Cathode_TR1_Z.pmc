@@ -197,7 +197,7 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(19)
 			M_Y_Cathode_AT_Vac_Ejector_Vac_On == 0;				// 양극 얼라인 흡착 ON
 			M_Y_Cathode_AT_Vac_Ejector_Vac_Off == 0;			// 양극 얼라인 흡착 OFF
 			dwell(0)
-			P_Anode_1st_Motion_Complete == 1;
+			P_Cathode_1st_Motion_Complete == 1;				// [ 참조 : 26.10.22 오타 수정 ]
 			dwell(0)
 		break;
 

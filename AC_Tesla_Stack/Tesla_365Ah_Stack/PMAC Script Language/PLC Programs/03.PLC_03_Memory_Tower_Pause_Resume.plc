@@ -718,6 +718,12 @@ IF ( P_PLC03_Seq_Pause_Start_State_Machine== 2 )			// [2] 스텟머신 2단계
 	P_PLC03_Seq_Pause_Start_Status = F_Status_STARTING		//   - 상태 : STARTING
 	if( Coord[1].ProgRunning == 0 && Coord[1].ProgActive == 1 &&( M_X_Pause_Status_Complete_Signal == 1 || M_X_Opposite_Resume_Not_Free == 0) )
 	{
+		if( M_X_Pause_Status_Complete_Signal == 1 )
+		{
+			P_Puase_Resume_Time_Check = Sys.Time;	// Pause 시간 저장
+			P_Pause_Time_Flag = 1;
+		}
+			// 둘다 퍼즈 확인 완료
 		P_Starting_Pause_IO_OFF_Flag = 1
 		P_Sepa_To_Normal_Mode_Sync_Flag = 0;				// [ 참조 : 26.07.31 Pause_Resume 수정 ]
 		P_PLC03_Seq_Pause_Start_State_Machine = 3;
@@ -730,6 +736,13 @@ IF ( P_PLC03_Seq_Pause_Start_State_Machine== 3 ) 			// [3] 스텟머신 3단계 (Pause
 	
 	if( Coord[1].ProgRunning == 1 && Coord[1].ProgActive == 1  && M_X_Pause_Status_Complete_Signal == 0 )
 	{
+		// 둘다 리쥼 확인 완료
+		if(P_Pause_Time_Flag == 1)
+		{
+			P_Pause_Time_Flag = 0;
+			P_Pause_To_Resume_Time = Sys.Time - P_Puase_Resume_Time_Check;	// Resume 까지의 시간 확인
+		}
+
 		P_PLC03_Seq_Pause_Start_State_Machine = 4
 	}
 }

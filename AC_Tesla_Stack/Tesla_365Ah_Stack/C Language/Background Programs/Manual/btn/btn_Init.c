@@ -1670,7 +1670,7 @@ void BTN_init(IBtn** _BTN)
 	Serovo_Dancer_On->IFBtn.iInterlock_Lamp = M_UnWinder_BTN_Interlock + 4;
 	Serovo_Dancer_On->Lamp	= M_UnWinder_BTN_Lamp + 4;
 	Serovo_Dancer_On->Lamp_1 = M_UnWinder_BTN_Lamp + 5;
-	Serovo_Dancer_On->MoveCmd = "#16j/";
+	Serovo_Dancer_On->MoveCmd = 0;//"#16j/";
 	Serovo_Dancer_On->MotorNum = 16;
 
 // **********		Serovo Dancer Off	**********		//
@@ -1680,7 +1680,7 @@ void BTN_init(IBtn** _BTN)
 	Serovo_Dancer_Off->IFBtn.iInterlock_Lamp = M_UnWinder_BTN_Interlock + 5;
 	Serovo_Dancer_Off->Lamp	= M_UnWinder_BTN_Lamp + 4;
 	Serovo_Dancer_Off->Lamp_1	= M_UnWinder_BTN_Lamp + 5;
-	Serovo_Dancer_Off->MoveCmd = "#16out0";
+	Serovo_Dancer_Off->MoveCmd = 0;//"#16out0";
 	Serovo_Dancer_Off->MotorNum = 16;
 
 // **********	파티션 하강 		**********	[ 참조 : 26.05.06 격벽 파티션 추가 ]		//	o

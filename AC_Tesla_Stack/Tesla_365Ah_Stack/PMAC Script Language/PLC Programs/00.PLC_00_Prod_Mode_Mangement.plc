@@ -1250,8 +1250,19 @@ if( P_PMAC_Status == F_Status_EXECUTE )
 // NG, 세파 배출이 아닐때 -> 정상 젤리롤 생산
 if( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence)
 {
+	//[ 참조 20261026 세파 첫장 검사 실행 결정 조건 추가 (연속 J/R적층 시에는 실행 X, 그 외에는 실행O) ]
+	// 연속 J/R 적층으로 세파 첫장 비전 검사를 생략한 경우 → 비전 결과와 무관하게 젤리롤 ID 생성
+	if( P_First_Sepa_Vision_Skip_Flag == 1 )
+	{
+		if(P_Flag_Stack_Work_Host_ID == 1)
+		{
+			P_Flag_Stack_Work_Host_ID = 0;
+			P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag = 0;
+			P_Sepa_Run_Completed_Flag = 1
+		}
+	}
 	// 세파 첫장 검사 OK 시에만 젤리롤 ID 생성
-	if(P_Flag_Stack_Work_Host_ID == 1 && P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag == 1)
+	else if(P_Flag_Stack_Work_Host_ID == 1 && P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag == 1)
 	{
 		P_Flag_Stack_Work_Host_ID = 0;
 		P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag = 0;
@@ -1339,7 +1350,11 @@ if( P_PMAC_Current_Mode == F_Current_Automatic )
 	{
 		if( Total_DesVelZero_Bit && P_Seq_Abort_Timer > 1000 )
 		{
-			call Alarm.Insert_Alarm(N_Alarm_Opposite_Lane_Abort_Alram, N_High_Alarm_Emergency_Stop);	// #k 로인해서 26번 Motor Alarm 먼저 들어감
+			if( P_Opposite_Lane_Abort_Alram_Flag == 1 )            //[Ver 2.1.7.3]  
+			{
+				P_Opposite_Lane_Abort_Alram_Flag = 0;
+				call Alarm.Insert_Alarm(N_Alarm_Opposite_Lane_Abort_Alram, N_High_Alarm_Emergency_Stop);  
+			}
 			cmd"#*k"
 			P_Seq_Abort++
 		}
@@ -1347,11 +1362,11 @@ if( P_PMAC_Current_Mode == F_Current_Automatic )
 	
 	if( P_Seq_Abort == 3 )
 	{
-		if( P_Opposite_Lane_Abort_Alram_Flag == 1 )
-		{
-			P_Opposite_Lane_Abort_Alram_Flag = 0;
-			//call Alarm.Insert_Alarm(N_Alarm_Opposite_Lane_Abort_Alram, N_High_Alarm_Emergency_Stop);
-		}
+		//if( P_Opposite_Lane_Abort_Alram_Flag == 1 )
+		//{
+		//	P_Opposite_Lane_Abort_Alram_Flag = 0;
+		//	//call Alarm.Insert_Alarm(N_Alarm_Opposite_Lane_Abort_Alram, N_High_Alarm_Emergency_Stop);
+		//}
 		P_Seq_Abort = 0
 		
 	}

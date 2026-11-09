@@ -47,6 +47,10 @@ open prog 34
 				x(P_1st_ULD_X_FWD)						// 487.8mm ( 387.8mm 이동 )      리드 20mm  rps 19.5 * 1000 / 500 * 60 = 2340 rpm
 				dwell(0);												
 				P_First_Unloader_Stack_FWD_Status == F_Status_COMPLETE;
+				if(P_SemiRun_1st_Unloader_Forward_Pos_Flag == 1)	// PV 항목 : 위치 값 보고 (세미 런 진입 + 모터 이동 완료 후 위치 값 저장)	[ 참조 : 26.11.02 MES PV 수정 ]
+				{
+					P_Motion_1st_Unloader_Forward_Pos_Flag == 1;	// 위치 값 저장 Flag On.
+				}
 				dwell(0);
 			break;
 			

@@ -507,5 +507,28 @@ IF ( P_PMAC_Current_Mode == F_Current_Manual )
 }
 
 
+// 틸팅 후 세파 걸고 언틸팅 동작 시 언와인더 풀어주도록 추가
+if(P_Selected_Spool_Number == N_UNWINDER_LOWER)
+{
+	if( M_Y_Sepa_ARC_Upper_UnTilting_Sol == 1 && P_Old_ARC_Upper_Tilting_Status == 1)
+	{
+		Motor[N_UNWINDER_UPPER].jogspeed = 50;
+		Motor[N_UNWINDER_UPPER].ProgJogPos = P_ARC_Tilting_Unwinder_Move_Dis * 1000;
+		Jog23:*;
+		//cmd"#23j: %f",P_ARC_Tilting_Unwinder_Move_Dis
+	}
+}
+else if(P_Selected_Spool_Number == N_UNWINDER_UPPER)
+{
+	if( M_Y_Sepa_ARC_Lower_UnTilting_Sol == 1 && P_Old_ARC_Lower_Tilting_Status == 1)
+	{
+		Motor[N_UNWINDER_LOWER].jogspeed = 50;
+		Motor[N_UNWINDER_LOWER].ProgJogPos = P_ARC_Tilting_Unwinder_Move_Dis * 1000;
+		Jog24:*;
+		//cmd"#24j: %f",P_ARC_Tilting_Unwinder_Move_Dis
+	}
+}
 
+P_Old_ARC_Upper_Tilting_Status = M_Y_Sepa_ARC_Upper_Tilting_Sol;
+P_Old_ARC_Lower_Tilting_Status = M_Y_Sepa_ARC_Lower_Tilting_Sol;
 close

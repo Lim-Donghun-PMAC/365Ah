@@ -929,6 +929,13 @@ sub:First_Unloader_BWD_Wait_Pos(&First_Unloader_BWD_Wait_RTN)
 			if ( P_Buffer_Mode_Status_Sequence == N_Sepa_Consume_Status_Sequence )								// 현재 세파 모드 일 경우	[ 참조 : 26.07.31 Pause_Resume 수정 ] 
 			{
 				P_Sepa_To_Normal_Mode_Sync_Flag = 1;															// 세파 모드 후 일반 모드가 가능한 세파 모드 일 경우 Execute에서 싱크 맞추기 위한 플래그 변수 ON.
+				//[ 참조 20261026 세파 첫장 검사 실행 결정 조건 추가 (연속 J/R적층 시에는 실행 X, 그 외에는 실행O) ]
+				P_Prev_Sepa_Stack_Completed_Flag = 1;														// 세파모드 배출 → 다음 세파 첫장 비전 검사 O
+			}
+			else
+			{
+				//[ 참조 20261026 세파 첫장 검사 실행 결정 조건 추가 (연속 J/R적층 시에는 실행 X, 그 외에는 실행O) ]
+				P_Prev_Sepa_Stack_Completed_Flag = 0;														// 일반모드(J/R) 배출 → 연속 J/R 적층
 			}
 			P_Com_EPC_Sepa_Consume_Mode_Flag = 0;																// EPC 세파모드 플레그 초기화(JR 커팅 후 초기화)	[ 참조 : 26.05.13 ARC 모듈 수정 ]
 			P_Com_ARC_Sepa_Consume_Mode_Flag = 0;																// ARC 세파모드 플레그 초기화(JR 커팅 후 초기화)

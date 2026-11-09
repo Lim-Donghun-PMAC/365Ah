@@ -197,7 +197,7 @@ if(P_PMAC_Current_Mode == F_Current_Automatic)
 		//P_Continuous_Call_Stack_Flag(N_Inspection_NG - 1) = 0
 		//P_Continuous_Call_Stack_Flag(N_Inspection_TimeOut - 1) = 0
 		//if( P_Stack_Table_NG_Flag == 0 && P_Buf_Stack_NG_Flag == 0 )
-			call Continuous_NG.Stack_Table_NG(N_Inspection_NG, P_Stack_Align_Continuous_NG_Check_range);
+		call Continuous_NG.Stack_Table_NG(N_Inspection_NG, P_Stack_Align_Continuous_NG_Check_range);
 	}
 
 	// [참조 : 260507 1차 언로더 대기 위치 시 2차 언로더 대기 위치로 내려올 수 있게 안전 위치 라는 IO 추가] - 여유있게 1mm로 설정
@@ -1951,10 +1951,10 @@ if( P_Vacuum_Door_Clear_Use ){
 		//nop(sprintf(N_Door_Cidx_f," Vacuum Error Door Open "));
 		//nop(sprintf(N_Door_Cidx_s," Error Clear Door Open "));
 		
-		if( L_Resetting_Vac_Delay_Timer > 2000 ){
-			L_Resetting_Vac_Delay_Timer = 0;
-			M_Y_Vacuum_Popup_On_Request = 1;
-		}
+		//if( L_Resetting_Vac_Delay_Timer > 2000 ){
+		//	L_Resetting_Vac_Delay_Timer = 0;
+		//	M_Y_Vacuum_Popup_On_Request = 1;
+		//}
 	}
 }
 //=========================================================================================================================================================//

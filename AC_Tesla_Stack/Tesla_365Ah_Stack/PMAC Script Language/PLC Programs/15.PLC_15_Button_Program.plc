@@ -244,18 +244,27 @@ L_Old_M_X_BTN_CMD_Ready = M_X_BTN_CMD_Ready;
 if ( M_X_BTN_CMD_Reset == 1 )					// Reset 버튼을 누를 경우.
 {
 	// 1. 전체 모터 서보 ON
-	call BTN_Program.Motor_Servo_On();				// 모터 Servo On.
+	call BTN_Program.Motor_Servo_On();							// 모터 Servo On.
 
 	// 2. 모드 변수 초기화
-	//P_Current_Mode = 0;								// 현재 모드 초기화. 
-	//P_Master_Motion_Trigger = 0;					// 마스터 트리거 초기화.
+	//P_Current_Mode = 0;										// 현재 모드 초기화. 
+	//P_Master_Motion_Trigger = 0;								// 마스터 트리거 초기화.
 
 	// 3. 알람 상태초기화
 	P_Compare_Priority = 4
-	M0,680 = 0;										// 알람 초기화
-	P_Alarm_Occur_Index_Flag(0), 4 = 0;				// 
+	M0,N_Alarm_Num_Max = 0;										// 알람 초기화
+	P_Alarm_Occur_Index_Flag(0), N_Priority_None = 0;			// 
 	P_First_Alarm_Flag = 0;
-	P_Alarm_duplicate_Check_Arr(0), 670 = 0;
+	P_Alarm_duplicate_Check_Arr(0), N_Alarm_Num_Max = 0;
+
+	if( P_NEW_Alarm_USE_Flag == 1 )								// [ 참조 : 26.10.26 알람 리팩토링 추가 ] 
+	{
+		P_Alarm_Get_Flag = 0;
+		P_Alarm_Frist_Flag = 0;
+		P_Alarm_Count = 0; 
+		nop(memset(Sys.Udata[2500].a-Sys.pushm,0,N_Queue_Byte*N_Alarm_Max_Buf));	// Sys.Udata[2500] ~ Sys.Udata[2599] memset
+	}
+
 	// [참조 : 26.04.21 드라이브 알람 수정 ]	
 	P_Old_Drive_Alarm(0), 50 = 0;					// 드라이브 알람 올드 변수 초기화
 	call Alarm.Drive_Alarm_Reset();					// 드라이브 알람 리셋 I/O 출력

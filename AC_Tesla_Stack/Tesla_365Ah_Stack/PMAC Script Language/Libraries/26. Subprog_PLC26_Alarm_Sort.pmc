@@ -7,8 +7,10 @@
 
 open subprog Alarm(void)
 
-	sub: Insert_Alarm(Alarm_Num, Alarm_Type)
-		
+sub: Insert_Alarm(Alarm_Num, Alarm_Type)
+	
+	if( P_NEW_Alarm_USE_Flag == 0 )		// [ 참조 : 26.10.26 알람 리팩토링 추가 ]
+	{
 		if(P_Alarm_duplicate_Check_Arr(Alarm_Num) == 0)
 		{
 			P_Alarm_duplicate_Check_Arr(Alarm_Num) = 1;
@@ -21,8 +23,33 @@ open subprog Alarm(void)
 				P_Compare_Priority = Alarm_Type;
 			}
 		}
+	}
+	else if( P_NEW_Alarm_USE_Flag == 1 )		// [ 참조 : 26.10.26 알람 리팩토링 추가 ]
+	{
+		// us 단위를 32bit 4byte에 넣고 계속 지켜보기 위하여 가공하여 사용
+		// ↓ us - ( 범위를 벗어난 횟수 * 2^32 ) = 0 ~ 4,294,967,296 값이 나옴
+		// Ex) 5,000,000,000 이란 가정 4,294,967,296 넘어버릴때 
+		//		5,000,000,000 - (int(5,000,000,000/4,294,967,296) * 4,294,967,296 ) 
+		//      5,000,000,000 - ( 1 * 4,294,967,296 )
+		// RTI PLC(0~3)가 Background PLC의 Insert_Alarm 도중에 선점하면 P_Alarm_Count 기반 큐 슬롯이 덮어써지는 문제 가능성 有
+		// → 여기서는 알람 번호별 독립 칸( 발생 시간, Type )만 기록하고, 큐 삽입/카운트는 bgcplc01 에서만 수행
+		// → 호출 위치( RTI / Background ) 상관없이 동일하게 사용 가능
+		if( Alarm_Num >= 0 && Alarm_Type >= N_High_Alarm_Emergency_Stop && Alarm_Type <= N_Low_Alarm )
+		{
+			if(P_Alarm_duplicate_Check_Arr(Alarm_Num) == 0 )				// 알람 중복 방지
+			{	
+				local L_Cur_time = Sys.RunTime * 1000000;					// 현재 시간 삽입 ( 1us 단위 ) [Ver 2.1.7.3]
+				L_Cur_time = L_Cur_time - ( int(L_Cur_time / def_uint32_max) * def_uint32_max);
+				// ↓ 이전엔 P_Alarm_Count 하여 처리했지만, 큐 슬롯이 덮어써지는 문제로 인해 Idx에 넣고, CPLC에서 카운팅하도록 수정
+				// Alarm 최대번호가 670이라서 P_arr(670) 선언하기가 싫으므로 빈 유저 데이터 영역을 사용 sys.Udata[3000] ~ 
+				local L_idx = N_Alarm_Req_Time_Udata + Alarm_Num;
+				Sys.Udata[L_idx] = L_Cur_time;								// 발생 시간 기록
+				P_Alarm_duplicate_Check_Arr(Alarm_Num) = Alarm_Type;		// Type 기록 = 발생 요청 
+			}
+		}
+	}
 
-	return;
+return;
 
 	// [참조 : 26.04.21 드라이브 알람 수정 ]	
 	sub: Drive_Alarm_Reset(void)

@@ -50,180 +50,218 @@ if(L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
 //==========================================================================================================================================================================================================================================
 // Alarm Program
 //===========================================================//
-// 
-if(P_Alarm_Arr(0) > 0)
+//
+if( P_NEW_Alarm_USE_Flag == 0 )	// [ 참조 : 26.10.26 알람 리팩토링 추가 ]
 {
-	// 알람 갯수에서 알람갯수 -1
-
-	if(P_First_Alarm_Flag == 0 || (P_Alarm_Delay_Timer > P_Alarm_Wait_Time))
+	if(P_Alarm_Arr(0) > 0)
 	{
-		P_Alarm_Index++;									
-		P_Alarm_Num = P_Alarm_Arr(P_Alarm_Index);			// 다음 순서 알람 
-		P_Alarm_Arr(P_Alarm_Index) = 0;						// 알람 제거
-
-		P_Alarm_Log(99) = P_Alarm_Log(98);
-		P_Alarm_Log(98) = P_Alarm_Log(97);
-		P_Alarm_Log(97) = P_Alarm_Log(96);
-		P_Alarm_Log(96) = P_Alarm_Log(95);
-		P_Alarm_Log(95) = P_Alarm_Log(94);
-		P_Alarm_Log(94) = P_Alarm_Log(93);
-		P_Alarm_Log(93) = P_Alarm_Log(92);
-		P_Alarm_Log(92) = P_Alarm_Log(91);
-		P_Alarm_Log(91) = P_Alarm_Log(90);
-		P_Alarm_Log(90) = P_Alarm_Log(89);
-		P_Alarm_Log(89) = P_Alarm_Log(88);
-		P_Alarm_Log(88) = P_Alarm_Log(87);
-		P_Alarm_Log(87) = P_Alarm_Log(86);
-		P_Alarm_Log(86) = P_Alarm_Log(85);
-		P_Alarm_Log(85) = P_Alarm_Log(84);
-		P_Alarm_Log(84) = P_Alarm_Log(83);
-		P_Alarm_Log(83) = P_Alarm_Log(82);
-		P_Alarm_Log(82) = P_Alarm_Log(81);
-		P_Alarm_Log(81) = P_Alarm_Log(80);
-		P_Alarm_Log(80) = P_Alarm_Log(79);
-		P_Alarm_Log(79) = P_Alarm_Log(78);
-		P_Alarm_Log(78) = P_Alarm_Log(77);
-		P_Alarm_Log(77) = P_Alarm_Log(76);
-		P_Alarm_Log(76) = P_Alarm_Log(75);
-		P_Alarm_Log(75) = P_Alarm_Log(74);
-		P_Alarm_Log(74) = P_Alarm_Log(73);
-		P_Alarm_Log(73) = P_Alarm_Log(72);
-		P_Alarm_Log(72) = P_Alarm_Log(71);
-		P_Alarm_Log(71) = P_Alarm_Log(70);
-		P_Alarm_Log(70) = P_Alarm_Log(69);
-		P_Alarm_Log(69) = P_Alarm_Log(68);
-		P_Alarm_Log(68) = P_Alarm_Log(67);
-		P_Alarm_Log(67) = P_Alarm_Log(66);
-		P_Alarm_Log(66) = P_Alarm_Log(65);
-		P_Alarm_Log(65) = P_Alarm_Log(64);
-		P_Alarm_Log(64) = P_Alarm_Log(63);
-		P_Alarm_Log(63) = P_Alarm_Log(62);
-		P_Alarm_Log(62) = P_Alarm_Log(61);
-		P_Alarm_Log(61) = P_Alarm_Log(60);
-		P_Alarm_Log(60) = P_Alarm_Log(59);
-		P_Alarm_Log(59) = P_Alarm_Log(58);
-		P_Alarm_Log(58) = P_Alarm_Log(57);
-		P_Alarm_Log(57) = P_Alarm_Log(56);
-		P_Alarm_Log(56) = P_Alarm_Log(55);
-		P_Alarm_Log(55) = P_Alarm_Log(54);
-		P_Alarm_Log(54) = P_Alarm_Log(53);
-		P_Alarm_Log(53) = P_Alarm_Log(52);
-		P_Alarm_Log(52) = P_Alarm_Log(51);
-		P_Alarm_Log(51) = P_Alarm_Log(50);
-		P_Alarm_Log(50) = P_Alarm_Log(49);
-		P_Alarm_Log(49) = P_Alarm_Log(48);
-		P_Alarm_Log(48) = P_Alarm_Log(47);
-		P_Alarm_Log(47) = P_Alarm_Log(46);
-		P_Alarm_Log(46) = P_Alarm_Log(45);
-		P_Alarm_Log(45) = P_Alarm_Log(44);
-		P_Alarm_Log(44) = P_Alarm_Log(43);
-		P_Alarm_Log(43) = P_Alarm_Log(42);
-		P_Alarm_Log(42) = P_Alarm_Log(41);
-		P_Alarm_Log(41) = P_Alarm_Log(40);
-		P_Alarm_Log(40) = P_Alarm_Log(39);
-		P_Alarm_Log(39) = P_Alarm_Log(38);
-		P_Alarm_Log(38) = P_Alarm_Log(37);
-		P_Alarm_Log(37) = P_Alarm_Log(36);
-		P_Alarm_Log(36) = P_Alarm_Log(35);
-		P_Alarm_Log(35) = P_Alarm_Log(34);
-		P_Alarm_Log(34) = P_Alarm_Log(33);
-		P_Alarm_Log(33) = P_Alarm_Log(32);
-		P_Alarm_Log(32) = P_Alarm_Log(31);
-		P_Alarm_Log(31) = P_Alarm_Log(30);
-		P_Alarm_Log(30) = P_Alarm_Log(29);
-		P_Alarm_Log(29) = P_Alarm_Log(28);
-		P_Alarm_Log(28) = P_Alarm_Log(27);
-		P_Alarm_Log(27) = P_Alarm_Log(26);
-		P_Alarm_Log(26) = P_Alarm_Log(25);
-		P_Alarm_Log(25) = P_Alarm_Log(24);
-		P_Alarm_Log(24) = P_Alarm_Log(23);
-		P_Alarm_Log(23) = P_Alarm_Log(22);
-		P_Alarm_Log(22) = P_Alarm_Log(21);
-		P_Alarm_Log(21) = P_Alarm_Log(20);
-		P_Alarm_Log(20) = P_Alarm_Log(19);
-		P_Alarm_Log(19) = P_Alarm_Log(18);
-		P_Alarm_Log(18) = P_Alarm_Log(17);
-		P_Alarm_Log(17) = P_Alarm_Log(16);
-		P_Alarm_Log(16) = P_Alarm_Log(15);
-		P_Alarm_Log(15) = P_Alarm_Log(14);
-		P_Alarm_Log(14) = P_Alarm_Log(13);
-		P_Alarm_Log(13) = P_Alarm_Log(12);
-		P_Alarm_Log(12) = P_Alarm_Log(11);
-		P_Alarm_Log(11) = P_Alarm_Log(10);
-		P_Alarm_Log(10) = P_Alarm_Log(9);
-		P_Alarm_Log(9) = P_Alarm_Log(8);
-		P_Alarm_Log(8) = P_Alarm_Log(7);
-		P_Alarm_Log(7) = P_Alarm_Log(6);
-		P_Alarm_Log(6) = P_Alarm_Log(5);
-		P_Alarm_Log(5) = P_Alarm_Log(4);
-		P_Alarm_Log(4) = P_Alarm_Log(3);
-		P_Alarm_Log(3) = P_Alarm_Log(2);
-		P_Alarm_Log(2) = P_Alarm_Log(1);
-		P_Alarm_Log(1) = P_Alarm_Log(0);
-		P_Alarm_Log(0) = P_Alarm_Num;
-
-	}
-
-	if(P_Alarm_Index == P_Alarm_Arr(0))						// 알람처리 완료 후 초기화
-	{
-		P_Alarm_Index = 0;
-		P_Alarm_Arr(0) = 0;
-	}
-
-	// 첫번째 알람이후 2초 뒤 나머지 발생시켜야함
-	// 첫번째 알람 플래그 상승
-	if(P_First_Alarm_Flag == 0)
-	{
-		P_First_Alarm_Flag = 1;
-		P_Alarm_Delay_Timer = 0;						// 첫번째 알람 발생 이후 다음 알람 처리를 위한 타이머 초기화
-		M(P_Alarm_Num) = 1;								// PLC에 알람 송신
-
-		// 260715 첫번째 발생한 알람 로그 추가
-		P_First_Alarm_Log(29) = P_First_Alarm_Log(28);
-		P_First_Alarm_Log(28) = P_First_Alarm_Log(27);
-		P_First_Alarm_Log(27) = P_First_Alarm_Log(26);
-		P_First_Alarm_Log(26) = P_First_Alarm_Log(25);
-		P_First_Alarm_Log(25) = P_First_Alarm_Log(24);
-		P_First_Alarm_Log(24) = P_First_Alarm_Log(23);
-		P_First_Alarm_Log(23) = P_First_Alarm_Log(22);
-		P_First_Alarm_Log(22) = P_First_Alarm_Log(21);
-		P_First_Alarm_Log(21) = P_First_Alarm_Log(20);
-		P_First_Alarm_Log(20) = P_First_Alarm_Log(19);
-		P_First_Alarm_Log(19) = P_First_Alarm_Log(18);
-		P_First_Alarm_Log(18) = P_First_Alarm_Log(17);
-		P_First_Alarm_Log(17) = P_First_Alarm_Log(16);
-		P_First_Alarm_Log(16) = P_First_Alarm_Log(15);
-		P_First_Alarm_Log(15) = P_First_Alarm_Log(14);
-		P_First_Alarm_Log(14) = P_First_Alarm_Log(13);
-		P_First_Alarm_Log(13) = P_First_Alarm_Log(12);
-		P_First_Alarm_Log(12) = P_First_Alarm_Log(11);
-		P_First_Alarm_Log(11) = P_First_Alarm_Log(10);
-		P_First_Alarm_Log(10) = P_First_Alarm_Log(9);
-		P_First_Alarm_Log(9) = P_First_Alarm_Log(8);
-		P_First_Alarm_Log(8) = P_First_Alarm_Log(7);
-		P_First_Alarm_Log(7) = P_First_Alarm_Log(6);
-		P_First_Alarm_Log(6) = P_First_Alarm_Log(5);
-		P_First_Alarm_Log(5) = P_First_Alarm_Log(4);
-		P_First_Alarm_Log(4) = P_First_Alarm_Log(3);
-		P_First_Alarm_Log(3) = P_First_Alarm_Log(2);
-		P_First_Alarm_Log(2) = P_First_Alarm_Log(1);
-		P_First_Alarm_Log(1) = P_First_Alarm_Log(0);
-		P_First_Alarm_Log(0) = P_Alarm_Num;
-
-	}
-	else
-	{
-		if(P_Alarm_Delay_Timer > P_Alarm_Wait_Time)
+		// 알람 갯수에서 알람갯수 -1
+	
+		if(P_First_Alarm_Flag == 0 || (P_Alarm_Delay_Timer > P_Alarm_Wait_Time))
 		{
-			M(P_Alarm_Num) = 1;							// PLC에 알람 송신
+			P_Alarm_Index++;									
+			P_Alarm_Num = P_Alarm_Arr(P_Alarm_Index);			// 다음 순서 알람 
+			P_Alarm_Arr(P_Alarm_Index) = 0;						// 알람 제거
+	
+			P_Alarm_Log(99) = P_Alarm_Log(98);
+			P_Alarm_Log(98) = P_Alarm_Log(97);
+			P_Alarm_Log(97) = P_Alarm_Log(96);
+			P_Alarm_Log(96) = P_Alarm_Log(95);
+			P_Alarm_Log(95) = P_Alarm_Log(94);
+			P_Alarm_Log(94) = P_Alarm_Log(93);
+			P_Alarm_Log(93) = P_Alarm_Log(92);
+			P_Alarm_Log(92) = P_Alarm_Log(91);
+			P_Alarm_Log(91) = P_Alarm_Log(90);
+			P_Alarm_Log(90) = P_Alarm_Log(89);
+			P_Alarm_Log(89) = P_Alarm_Log(88);
+			P_Alarm_Log(88) = P_Alarm_Log(87);
+			P_Alarm_Log(87) = P_Alarm_Log(86);
+			P_Alarm_Log(86) = P_Alarm_Log(85);
+			P_Alarm_Log(85) = P_Alarm_Log(84);
+			P_Alarm_Log(84) = P_Alarm_Log(83);
+			P_Alarm_Log(83) = P_Alarm_Log(82);
+			P_Alarm_Log(82) = P_Alarm_Log(81);
+			P_Alarm_Log(81) = P_Alarm_Log(80);
+			P_Alarm_Log(80) = P_Alarm_Log(79);
+			P_Alarm_Log(79) = P_Alarm_Log(78);
+			P_Alarm_Log(78) = P_Alarm_Log(77);
+			P_Alarm_Log(77) = P_Alarm_Log(76);
+			P_Alarm_Log(76) = P_Alarm_Log(75);
+			P_Alarm_Log(75) = P_Alarm_Log(74);
+			P_Alarm_Log(74) = P_Alarm_Log(73);
+			P_Alarm_Log(73) = P_Alarm_Log(72);
+			P_Alarm_Log(72) = P_Alarm_Log(71);
+			P_Alarm_Log(71) = P_Alarm_Log(70);
+			P_Alarm_Log(70) = P_Alarm_Log(69);
+			P_Alarm_Log(69) = P_Alarm_Log(68);
+			P_Alarm_Log(68) = P_Alarm_Log(67);
+			P_Alarm_Log(67) = P_Alarm_Log(66);
+			P_Alarm_Log(66) = P_Alarm_Log(65);
+			P_Alarm_Log(65) = P_Alarm_Log(64);
+			P_Alarm_Log(64) = P_Alarm_Log(63);
+			P_Alarm_Log(63) = P_Alarm_Log(62);
+			P_Alarm_Log(62) = P_Alarm_Log(61);
+			P_Alarm_Log(61) = P_Alarm_Log(60);
+			P_Alarm_Log(60) = P_Alarm_Log(59);
+			P_Alarm_Log(59) = P_Alarm_Log(58);
+			P_Alarm_Log(58) = P_Alarm_Log(57);
+			P_Alarm_Log(57) = P_Alarm_Log(56);
+			P_Alarm_Log(56) = P_Alarm_Log(55);
+			P_Alarm_Log(55) = P_Alarm_Log(54);
+			P_Alarm_Log(54) = P_Alarm_Log(53);
+			P_Alarm_Log(53) = P_Alarm_Log(52);
+			P_Alarm_Log(52) = P_Alarm_Log(51);
+			P_Alarm_Log(51) = P_Alarm_Log(50);
+			P_Alarm_Log(50) = P_Alarm_Log(49);
+			P_Alarm_Log(49) = P_Alarm_Log(48);
+			P_Alarm_Log(48) = P_Alarm_Log(47);
+			P_Alarm_Log(47) = P_Alarm_Log(46);
+			P_Alarm_Log(46) = P_Alarm_Log(45);
+			P_Alarm_Log(45) = P_Alarm_Log(44);
+			P_Alarm_Log(44) = P_Alarm_Log(43);
+			P_Alarm_Log(43) = P_Alarm_Log(42);
+			P_Alarm_Log(42) = P_Alarm_Log(41);
+			P_Alarm_Log(41) = P_Alarm_Log(40);
+			P_Alarm_Log(40) = P_Alarm_Log(39);
+			P_Alarm_Log(39) = P_Alarm_Log(38);
+			P_Alarm_Log(38) = P_Alarm_Log(37);
+			P_Alarm_Log(37) = P_Alarm_Log(36);
+			P_Alarm_Log(36) = P_Alarm_Log(35);
+			P_Alarm_Log(35) = P_Alarm_Log(34);
+			P_Alarm_Log(34) = P_Alarm_Log(33);
+			P_Alarm_Log(33) = P_Alarm_Log(32);
+			P_Alarm_Log(32) = P_Alarm_Log(31);
+			P_Alarm_Log(31) = P_Alarm_Log(30);
+			P_Alarm_Log(30) = P_Alarm_Log(29);
+			P_Alarm_Log(29) = P_Alarm_Log(28);
+			P_Alarm_Log(28) = P_Alarm_Log(27);
+			P_Alarm_Log(27) = P_Alarm_Log(26);
+			P_Alarm_Log(26) = P_Alarm_Log(25);
+			P_Alarm_Log(25) = P_Alarm_Log(24);
+			P_Alarm_Log(24) = P_Alarm_Log(23);
+			P_Alarm_Log(23) = P_Alarm_Log(22);
+			P_Alarm_Log(22) = P_Alarm_Log(21);
+			P_Alarm_Log(21) = P_Alarm_Log(20);
+			P_Alarm_Log(20) = P_Alarm_Log(19);
+			P_Alarm_Log(19) = P_Alarm_Log(18);
+			P_Alarm_Log(18) = P_Alarm_Log(17);
+			P_Alarm_Log(17) = P_Alarm_Log(16);
+			P_Alarm_Log(16) = P_Alarm_Log(15);
+			P_Alarm_Log(15) = P_Alarm_Log(14);
+			P_Alarm_Log(14) = P_Alarm_Log(13);
+			P_Alarm_Log(13) = P_Alarm_Log(12);
+			P_Alarm_Log(12) = P_Alarm_Log(11);
+			P_Alarm_Log(11) = P_Alarm_Log(10);
+			P_Alarm_Log(10) = P_Alarm_Log(9);
+			P_Alarm_Log(9) = P_Alarm_Log(8);
+			P_Alarm_Log(8) = P_Alarm_Log(7);
+			P_Alarm_Log(7) = P_Alarm_Log(6);
+			P_Alarm_Log(6) = P_Alarm_Log(5);
+			P_Alarm_Log(5) = P_Alarm_Log(4);
+			P_Alarm_Log(4) = P_Alarm_Log(3);
+			P_Alarm_Log(3) = P_Alarm_Log(2);
+			P_Alarm_Log(2) = P_Alarm_Log(1);
+			P_Alarm_Log(1) = P_Alarm_Log(0);
+			P_Alarm_Log(0) = P_Alarm_Num;
+	
+		}
+	
+		if(P_Alarm_Index == P_Alarm_Arr(0))						// 알람처리 완료 후 초기화
+		{
+			P_Alarm_Index = 0;
+			P_Alarm_Arr(0) = 0;
+		}
+	
+		// 첫번째 알람이후 2초 뒤 나머지 발생시켜야함
+		// 첫번째 알람 플래그 상승
+		if(P_First_Alarm_Flag == 0)
+		{
+			P_First_Alarm_Flag = 1;
+			P_Alarm_Delay_Timer = 0;						// 첫번째 알람 발생 이후 다음 알람 처리를 위한 타이머 초기화
+			M(P_Alarm_Num) = 1;								// PLC에 알람 송신
+	
+			// 260715 첫번째 발생한 알람 로그 추가
+			P_First_Alarm_Log(29) = P_First_Alarm_Log(28);
+			P_First_Alarm_Log(28) = P_First_Alarm_Log(27);
+			P_First_Alarm_Log(27) = P_First_Alarm_Log(26);
+			P_First_Alarm_Log(26) = P_First_Alarm_Log(25);
+			P_First_Alarm_Log(25) = P_First_Alarm_Log(24);
+			P_First_Alarm_Log(24) = P_First_Alarm_Log(23);
+			P_First_Alarm_Log(23) = P_First_Alarm_Log(22);
+			P_First_Alarm_Log(22) = P_First_Alarm_Log(21);
+			P_First_Alarm_Log(21) = P_First_Alarm_Log(20);
+			P_First_Alarm_Log(20) = P_First_Alarm_Log(19);
+			P_First_Alarm_Log(19) = P_First_Alarm_Log(18);
+			P_First_Alarm_Log(18) = P_First_Alarm_Log(17);
+			P_First_Alarm_Log(17) = P_First_Alarm_Log(16);
+			P_First_Alarm_Log(16) = P_First_Alarm_Log(15);
+			P_First_Alarm_Log(15) = P_First_Alarm_Log(14);
+			P_First_Alarm_Log(14) = P_First_Alarm_Log(13);
+			P_First_Alarm_Log(13) = P_First_Alarm_Log(12);
+			P_First_Alarm_Log(12) = P_First_Alarm_Log(11);
+			P_First_Alarm_Log(11) = P_First_Alarm_Log(10);
+			P_First_Alarm_Log(10) = P_First_Alarm_Log(9);
+			P_First_Alarm_Log(9) = P_First_Alarm_Log(8);
+			P_First_Alarm_Log(8) = P_First_Alarm_Log(7);
+			P_First_Alarm_Log(7) = P_First_Alarm_Log(6);
+			P_First_Alarm_Log(6) = P_First_Alarm_Log(5);
+			P_First_Alarm_Log(5) = P_First_Alarm_Log(4);
+			P_First_Alarm_Log(4) = P_First_Alarm_Log(3);
+			P_First_Alarm_Log(3) = P_First_Alarm_Log(2);
+			P_First_Alarm_Log(2) = P_First_Alarm_Log(1);
+			P_First_Alarm_Log(1) = P_First_Alarm_Log(0);
+			P_First_Alarm_Log(0) = P_Alarm_Num;
+	
+		}
+		else
+		{
+			if(P_Alarm_Delay_Timer > P_Alarm_Wait_Time)
+			{
+				M(P_Alarm_Num) = 1;							// PLC에 알람 송신
+			}
+		}
+	
+		P_Alarm_Num = 0;
+		P_Alarm_Occur_Index_Flag(P_Compare_Priority) = 1;	// 발생한 알람중 가장 높은 순위의 커멘드 발생
+	}
+}
+else if( P_NEW_Alarm_USE_Flag == 1 )		// [ 참조 : 26.10.26 알람 리팩토링 추가 ]
+{
+	//===========================================================//
+	local L_Alarm_Index;			//Plc[26].Ldata.L[108]
+	local L_Alarm_Logging_Index;	//Plc[26].Ldata.L[109]
+	
+	if( P_Alarm_Get_Flag == 1 )
+	{
+		if( P_Alarm_Frist_Flag == 0 ||  P_Alarm_Delay_time + 2 < Sys.RunTime )		// delay 2sec
+		{
+			if( P_Alarm_Frist_Flag == 0 )
+			{
+				P_Alarm_Frist_Flag = 1;
+				P_Alarm_Delay_time = Sys.RunTime;
+				L_Alarm_Index = 2500;
+				L_Alarm_Logging_Index = 0;
+				P_Alarm_Log(0),N_Alarm_Max_Cnt = 0;
+				P_Alarm_Time_Log(0),N_Alarm_Max_Cnt = 0;
+			}
+	
+			if( L_Alarm_Logging_Index < N_Alarm_Max_Cnt && Sys.Udata[L_Alarm_Index] )
+			{
+				M(Sys.Udata[L_Alarm_Index]) = 1;
+	
+				P_Alarm_Log(L_Alarm_Logging_Index) = Sys.Udata[L_Alarm_Index];
+				L_Alarm_Index++;
+				P_Alarm_Time_Log(L_Alarm_Logging_Index) = Sys.Udata[L_Alarm_Index];
+				L_Alarm_Logging_Index++;
+				L_Alarm_Index++;
+			}	
 		}
 	}
-
-	P_Alarm_Num = 0;
-	P_Alarm_Occur_Index_Flag(P_Compare_Priority) = 1;	// 발생한 알람중 가장 높은 순위의 커멘드 발생
+	if( P_Compare_Priority >= N_High_Alarm_Emergency_Stop && P_Compare_Priority <= N_Low_Alarm )
+	{
+		P_Alarm_Occur_Index_Flag(P_Compare_Priority) = 1;	// 발생한 알람중 가장 높은 순위의 커멘드 발생
+	}
 }
-
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------//
 // 알람 우선 순위에 따른 알람 발생 Flag 구분 [ [1] N_High_Alarm_Emergency_Stop : 즉시 정지, [2] N_High_Alarm_Cycle_Stop : 사이클 정지, [3] N_Low_Alarm : 경고 ]
 //----------------------------------------------------------------------------------------------------------------------------------------------------------//

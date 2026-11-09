@@ -230,13 +230,15 @@ if( M_Read_Sector_Scan_Complete(2) == 1 )			// QCP Data 구간. → 구간 맞는지 확�
 		P_Sepa_Thickness_PLC = P_SV_Sepa_Reference_Thickness;						// 분리막 두께_기준 값
 		
 		// 드라이빙 롤러 옵셋 값 (임시로 1호기만 적용해서 테스트)
+
+		P_SV_Read_Enable_Flag = 1;
+	}
+
 		P_CA_DR_Offset = Sys.Idata[10473]/1000;
 		P_AN_DR_Offset = Sys.Idata[10474]/1000;
 		P_First_DR_Offset = Sys.Idata[10475]/1000;
 		P_Last_DR_Offset = Sys.Idata[10476]/1000;
 
-		P_SV_Read_Enable_Flag = 1;
-	}
 		P_After_ARC_Rotate_Distance = sys.Idata[10464] / 10000;						// 260423
 
 		P_X_Move_Recipe_Percent					  = Sys.Idata[10408];						// APC 보정값 

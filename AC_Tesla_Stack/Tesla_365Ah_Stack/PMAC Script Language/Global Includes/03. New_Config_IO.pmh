@@ -1237,7 +1237,8 @@ M5407->Slave_1020_NX_ECC203_1020_60C0_4_Ch4AnalogInputValue	// M_AI_Anode_Clamp_
 M5408->Slave_1020_NX_ECC203_1020_60E0_1_Ch1AnalogInputValue	// M_AI_1st_Unloader_Grip_Sensing		Slave_1020_NX_ECC203_1020_60E0_1_Ch1AnalogInputValue
 M5409->Slave_1020_NX_ECC203_1020_60E0_2_Ch2AnalogInputValue	// SPARE								Slave_1020_NX_ECC203_1020_60E0_2_Ch2AnalogInputValue
 M5410->Slave_1020_NX_ECC203_1020_60E0_3_Ch3AnalogInputValue	// M_AI_Cutter_Heat_Meter				Slave_1020_NX_ECC203_1020_60E0_3_Ch3AnalogInputValue
-M5011->Slave_1020_NX_ECC203_1020_60E0_4_Ch4AnalogInputValue	// SPARE								Slave_1020_NX_ECC203_1020_60E0_4_Ch4AnalogInputValue
+// [ 참조 : 26.10.22 오타 수정 ]
+M5411->Slave_1020_NX_ECC203_1020_60E0_4_Ch4AnalogInputValue	// SPARE								Slave_1020_NX_ECC203_1020_60E0_4_Ch4AnalogInputValue
 
 M5412->Slave_1020_NX_ECC203_1020_7100_1_Ch1AnalogOutputValue		// M_AO_Cathode_Clamp_Regulator			Slave_1020_NX_ECC203_1020_7100_1_Ch1AnalogOutputValue
 M5413->Slave_1020_NX_ECC203_1020_7100_2_Ch2AnalogOutputValue		// M_AO_Anode_Clamp_Regulator			Slave_1020_NX_ECC203_1020_7100_2_Ch2AnalogOutputValue

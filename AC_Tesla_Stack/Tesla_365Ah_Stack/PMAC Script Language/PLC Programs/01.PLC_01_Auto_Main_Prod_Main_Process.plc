@@ -927,6 +927,16 @@ Switch ( P_Process_Function_Command )
 					P_Driving_Start_Pos = P_Motor_Current_Pos(N_DRIVING_ROLL)
 
 					P_Sepa_Run_Completed_Flag = 0					// J/R ID 생성 플래그 초기화
+					//[ 참조 20261026 세파 첫장 검사 실행 결정 조건 추가 (연속 J/R적층 시에는 실행 X, 그 외에는 실행O) ]
+					// 일반모드 + 금회 가동 중 J/R 생산 이력 있음 + 직전 배출이 세파모드 아님 → 연속 J/R 적층 → 세파 첫장 비전 검사 X
+					if( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence && P_Jelly_Roll_Total_Count != 0 && P_Prev_Sepa_Stack_Completed_Flag == 0 )
+					{
+						P_First_Sepa_Vision_Skip_Flag = 1;			// 연속 J/R 적층 → 비전 검사 X
+					}
+					else
+					{
+						P_First_Sepa_Vision_Skip_Flag = 0;			// 첫 J/R(Status Clear/Abort/전원 ON/목표 생산 완료 후) 또는 세파모드 배출 후 → 비전 검사 O
+					}
 					//[참조 : 모듈 실행 명령 전 완료 변수 초기화]
 					P_EXECUTE_Status_Prod_Sequence(N_Execute_Fisrt_Sepa_Mode) = F_Status_IDLE;															// 세파 첫장 실행 전 모듈 상태 초기화.
 					P_Execute_First_Sepa_Mode_Cmd = F_Command_Start;																					//	1) 세파 첫장 Cmd ON.
@@ -2496,11 +2506,15 @@ case N_Function_Sepa_ARC_Mode :	// 세파 ARC 란	/* def 12 */
 					if( Sys_Cathode_NG_TR_Sheet_LO_Vision_BYTE & Hex_NG_Masking)					// 1) 양극 NG PNP에 NG 마스킹이 되어 있다면, 
 					{
 						P_Hold_Cathode_Exception_Empty_Flag = 1;									// 1.1) NG PNP에만 ng 극판이 있으면 빈테이블 검사 플래그 on
-					}			
+					}	
+					else
+						P_Hold_Cathode_Exception_Empty_Flag = 0;
 					if( Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE & Hex_NG_Masking )						// 2) 음극 NG PNP에 NG 마스킹이 되어 있다면,
 					{
 						P_Hold_Anode_Exception_Empty_Flag = 1;										// 2.1) NG PNP에만 ng 극판이 있으면 빈테이블 검사 플래그 on
-					}	
+					}
+					else
+						P_Hold_Anode_Exception_Empty_Flag = 0;	
 					P_STOP_Initial_Process_STEP = P_STOP_Initial_Process_STEP + P_Upcount_NextStep;	// 다음 스텝으로 이동
 				}
 			break;

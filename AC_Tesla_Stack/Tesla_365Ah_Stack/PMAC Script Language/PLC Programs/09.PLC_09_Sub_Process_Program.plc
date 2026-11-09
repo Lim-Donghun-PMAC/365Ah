@@ -223,7 +223,13 @@ IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_ST
 						P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;	
 					}
 				}
-				
+				//  [참조 : 26.10.19 세파 커터 하강 상태 확인 추가 ]
+				if(  (M_X_FR_Sepa_Cutter_Dn_Sensor  ==  1  &&  M_X_FR_Sepa_Cutter_Up_Sensor  ==  0)  ||    M_Y_FR_Sepa_Cutter_Dn_Sol  ==  1  ) 
+				{ 
+					call  Alarm.Insert_Alarm(N_Alarm_Cutter_Lowering  ,N_High_Alarm_Cycle_Stop); 
+					P_array_CF_Function_State_Number  =  444; 
+				} 
+
 			break;
 
 			case N_PLC09_PackML_Num_2:		// 스타팅 필요 초기화 란
@@ -1228,6 +1234,9 @@ IF ( P_array_CF_Mode_Name == F_Current_Manual && P_PMAC_Status == F_Status_RESET
 	IF( P_array_CF_Function_Start_Flag == 0 && P_array_CF_Function_Run_Flag == 0 && P_array_CF_Function_Return_Flag == 0 )		// 프로그램 허용 플래그 ( 스타트,런,리턴 함수 플래그 모두 초기화 되었는지 확인.)
 	{	
 		P_array_CF_Function_Start_Flag = 1;																						// 서브 프로그램 진입 플래그																												
+		//[참조 : 26.10.22 적층중 작업자가 레시피 변경하여 메모리 타워 오류 발생 시, 인터락 팝업 발생 ]																												
+		P_Resetting_First_Approach_Start_Flag = 1;																				// Resetting 진입 확인용 플래그
+		P_Resetting_Re_Entry_Step_Count = 0;	
 		P_array_CF_Function_State_Number = N_PLC09_PackML_Num_1;																// 서브 프로그램 스텟머신 활성화
 		//P_array_CF_Function_State_Number = 7888;
 	}
@@ -1603,6 +1612,23 @@ IF ( P_array_CF_Mode_Name == F_Current_Manual && P_PMAC_Status == F_Status_RESET
 			P_Memory_Tower_Search_Flag = 1;																						// 설비 위치 업데이트 플래그 on
 			P_MemTow_integrated_return = 0;															
 			L_PLC09_Manual_Resetting_Timer = 0;
+			//[참조 : 26.10.22 적층중 작업자가 레시피 변경하여 메모리 타워 오류 발생 시, 인터락 팝업 발생 ]
+			if( P_Resetting_First_Approach_Start_Flag == 1 )	// 리셋팅 첫진입이고,
+			{
+				if( P_Resetting_Re_Entry_Step_Count > 50 )	
+				{
+					P_Resetting_First_Approach_Start_Flag = 0;
+					P_Resetting_Re_Entry_Step_Count = 0;
+					// 임시 Test용 팝업 발생.
+					nop(memset(F_IL_Cdata,0,N_IL_memset_size));						
+					nop(sprintf(F_IL_Cdata," Recipe change needs to be  verified "));																	
+					P_Y_Interlock_Popup_On_Request = 1;
+
+					//call Alarm.Insert_Alarm(N_Alarm_Recipe_Change_Verification_Required, N_High_Alarm_Cycle_Stop);				// 레시피 변경 확인 필요 알람 발생
+				}
+
+				P_Resetting_Re_Entry_Step_Count++;
+			}
 			/*
 				세파 라인 추가 필요
 			*/
@@ -1683,6 +1709,10 @@ IF ( P_array_CF_Mode_Name == F_Current_Manual && P_PMAC_Status == F_Status_STOPP
 				
 				P_Stop_Save_RTN(0),4 = 0;	// 디버깅 프로그램 반환값 초기화.	[ 참조 : 25.09.12 정지 디버깅 프로그램 추가 ]
 				P_Stop_Debug_Flag = 1;		// 디버깅 프로그램 실행.
+
+				//[참조 : 26.10.22 적층중 작업자가 레시피 변경하여 메모리 타워 오류 발생 시, 인터락 팝업 발생 ]
+				P_Resetting_First_Approach_Start_Flag = 0;																	// Resetting 진입 확인용 플래그 초기화
+				P_Resetting_Re_Entry_Step_Count = 0;
 
 				P_array_CF_Function_State_Number = N_PLC09_PackML_Num_2;													// 다음 스텝으로 이동
 			break;

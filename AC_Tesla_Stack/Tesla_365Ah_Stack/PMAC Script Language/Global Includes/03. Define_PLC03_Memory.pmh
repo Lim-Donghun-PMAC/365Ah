@@ -3,6 +3,8 @@
 //======================================================================================================
 // 25.xx.xx 
 // 내용 - [ 참조 : 25.xx.xx 내용 ]
+// 26.10.28
+// 내용 - [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
 
 #define N_NOT_EXIST_VALUE			444
 #define F_TRUE						1
@@ -116,6 +118,9 @@
 #define F_2nd_PNP_Align_Up_Pos			$101			// 얼라인상승
 #define F_2nd_PNP_Align_Down_Pos		$201			// 얼라인하강
 #define F_2nd_PNP_Stack_Up_Pos			$102			// 스텍상승
+//  [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+#define F_2nd_PNP_Avoid_Up_Pos			$104			// 2차 PNP 회피 위치
+
 #define F_2nd_PNP_Stack_Down_Pos		$202			// 스텍하강
 #define F_2nd_PNP_NG_Avoid_Up_Pos		$402			// NG회피상승
 //#define F_2nd_PNP_Init_Up_Pos			$101			// NG회피상승

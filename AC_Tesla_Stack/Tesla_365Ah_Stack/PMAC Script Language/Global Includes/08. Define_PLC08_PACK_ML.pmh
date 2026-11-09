@@ -268,3 +268,6 @@ global	P_Check_STARTTING_CF = 0;
 
 // 신규추가 - [ 참조 : 사이클정지 미사용 포인트_240221]
 global P_Queue_Clear = 0;
+//[참조 : 26.10.22 적층중 작업자가 레시피 변경하여 메모리 타워 오류 발생 시, 인터락 팝업 발생 ]
+global P_Resetting_First_Approach_Start_Flag = 0;
+global P_Resetting_Re_Entry_Step_Count = 0;

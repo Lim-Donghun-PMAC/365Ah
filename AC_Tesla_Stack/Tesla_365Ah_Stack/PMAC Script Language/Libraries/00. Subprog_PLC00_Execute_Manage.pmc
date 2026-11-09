@@ -13,7 +13,8 @@
 //	2.1) Sub_Init_Wait_Mode_Array :	Wait모드의 인포지션을 변경해준다.
 //  2.2) Sub_Init_Run_Mode_Array : 음극런, 양극런 모드의 모션값과 인포지션을 변경해준다.
 //---------------------------------------------------------------------------------------------------------------//
-
+// 26.10.28
+// 내용 - [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
 
 // 1. Sub_Vision_Result				-------------------------------------------------------------------------//
 open subprog Sub_Vision_Result( void )
@@ -507,7 +508,9 @@ sub:Anode_Run( Type, Trg, &Result )
 				//P_Slave2_Anode_Run_Motion_Array(22)=1;	//PickerT좌표계 PNP에 묶음으로 인하여 Run Mode 배열 주석 처리  [ 참조 : 26.08.14 PickerT 모션 변경 ] 	// 180 Deg 회전.		[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
 				//////음극 2차 P&P //////
 				P_Slave17_Anode_Run_Motion_Array(22)=1;		// A/S -> Stack 이동.									// [ 참 조 : 2025.11.24 Z축 분리 ]
-				P_Slave3_Anode_Run_Motion_Array(22)=1;		// A/S -> Stack 이동.
+				//[ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+				//P_Slave3_Anode_Run_Motion_Array(22)=1;		// A/S -> Stack 이동.
+				P_Slave3_Anode_Run_Motion_Array(22)=55;			// A/S -> 회피위치 이동.
 				//////음극 클램프 //////
 				P_Slave4_Anode_Run_Motion_Array(1)=2;		// Clamp On.
 				P_Slave4_Anode_Run_Motion_Array(14)=3;		// 극판 두께만큼 하강
@@ -1217,7 +1220,9 @@ sub: Cathode_Run( Type, Trg, &Result )
 				P_Slave7_Cathode_Run_Motion_Array(59)=3;	// 클램프 on.
 				//////양극 2차 P&P //////
 				P_Slave18_Cathode_Run_Motion_Array(67)=1;	// Stack 이동.												// [ 참 조 : 2025.11.24 Z축 분리 ]
-				P_Slave8_Cathode_Run_Motion_Array(67)=1;	// Stack 이동.
+				// [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+				//P_Slave8_Cathode_Run_Motion_Array(67)=1;	// Stack 이동.
+				P_Slave8_Cathode_Run_Motion_Array(67)=55;	// 회피위치 이동
 				//////양극 Picker T //////
 				//P_Slave9_Cathode_Run_Motion_Array(67)=1;	//PickerT좌표계 PNP에 묶음으로 인하여 Run Mode 배열 주석 처리  [ 참조 : 26.08.14 PickerT 모션 변경 ] // 180 Deg 회전.		[ 참조 : 25.09.15 Picker T축 모션 배열 추가 ]
 				//////양극 1차 P&P //////

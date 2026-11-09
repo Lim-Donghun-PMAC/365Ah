@@ -510,6 +510,7 @@ open subprog Sub_Manual_All_Home_Prod_Sequnce(void)
 						else if(P_Home_First_Move == 1)
 						{
 							call All_Home_Act_Module.AH_Unit_Cmd(N_NG_PnP_CA_T, F_Minus_Act);
+							call All_Home_Act_Module.AH_Unit_Cmd(N_NG_PnP_AN_T, F_Minus_Act);
 						}
 	
 						Execute_All_Home_RTN = N_TRUE;		
@@ -520,6 +521,7 @@ open subprog Sub_Manual_All_Home_Prod_Sequnce(void)
 						if( P_Home_First_Move == 2 || P_Home_First_Move == 3)
 						{
 							call All_Home_Act_Module.AH_Unit_Cmd(N_NG_PnP_CA_T, F_Minus_Act);
+							call All_Home_Act_Module.AH_Unit_Cmd(N_NG_PnP_AN_T, F_Minus_Act);
 						}
 						else if(P_Home_First_Move == 1)
 						{
@@ -1088,6 +1090,7 @@ open subprog Sub_Manual_All_Home_Prod_Sequnce(void)
 						else if(P_Home_First_Move == 1)
 						{
 							call All_Home_Act_Module.AH_Unit_Verify(N_NG_PnP_CA_T, F_Minus_Act, &P_AH_Indvi_rtn(N_NG_PnP_CA_T));
+							call All_Home_Act_Module.AH_Unit_Verify(N_NG_PnP_AN_T, F_Minus_Act, &P_AH_Indvi_rtn(N_NG_PnP_AN_T));
 						}
 
 						if(P_AH_Indvi_rtn(N_1st_Picker_CA_T) & P_AH_Indvi_rtn(N_1st_Picker_AN_T))
@@ -1101,9 +1104,12 @@ open subprog Sub_Manual_All_Home_Prod_Sequnce(void)
 										Precondition_All_Home_RTN = N_TRUE;
 									}
 								}
-								else if(P_Home_First_Move == 1 && P_AH_Indvi_rtn(N_NG_PnP_CA_T))
+								else if(P_Home_First_Move == 1 )
 								{
-									Precondition_All_Home_RTN = N_TRUE;
+									if(P_AH_Indvi_rtn(N_NG_PnP_CA_T) == 1 && P_AH_Indvi_rtn(N_NG_PnP_AN_T) == 1)
+									{
+										Precondition_All_Home_RTN = N_TRUE;
+									}
 								}
 							}
 						}
@@ -1113,8 +1119,9 @@ open subprog Sub_Manual_All_Home_Prod_Sequnce(void)
 						if( P_Home_First_Move == 2 || P_Home_First_Move == 3)
 						{
 							call All_Home_Act_Module.AH_Unit_Verify(N_NG_PnP_CA_T, F_Minus_Act, &P_AH_Indvi_rtn(N_NG_PnP_CA_T));
+							call All_Home_Act_Module.AH_Unit_Verify(N_NG_PnP_AN_T, F_Minus_Act, &P_AH_Indvi_rtn(N_NG_PnP_AN_T));
 
-							if(P_AH_Indvi_rtn(N_NG_PnP_CA_T))
+							if(P_AH_Indvi_rtn(N_NG_PnP_CA_T) && P_AH_Indvi_rtn(N_NG_PnP_AN_T) == 1)
 							{
 								Precondition_All_Home_RTN = N_TRUE;
 							}

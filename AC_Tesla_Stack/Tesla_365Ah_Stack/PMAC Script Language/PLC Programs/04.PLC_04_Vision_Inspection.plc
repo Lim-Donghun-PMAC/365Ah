@@ -295,16 +295,16 @@ switch( P_Vision_Cathode_Sepa_Mode_Stack_Command )
 }
 
 
-
+// [ 참조 : 26.10.23 오타 수정2 ]
 // 얼라인 테이블 대기 위치 커멘드
 if(P_Set_Cathode_Align_Zero_Pos == 1)
 {
-	L_Anode_Align_Zero_Pos_Ret = 0;													// 음극 얼라인 동작 함수 리턴 변수 초기화
+	L_Cathode_Align_Zero_Pos_Ret = 0;												// 양극 얼라인 동작 함수 리턴 변수 초기화
 	P_Cathode_Align_Table_Move = F_Start_Position_Move;								// 얼라인 동작 대기위치 모드
 
-	call Vision_Manager.Align_Move(N_Cathode_Unit, &L_Anode_Align_Zero_Pos_Ret);	// 얼라인 동작
+	call Vision_Manager.Align_Move(N_Cathode_Unit, &L_Cathode_Align_Zero_Pos_Ret);	// 얼라인 동작
 
-	if(L_Anode_Align_Zero_Pos_Ret == 1)
+	if(L_Cathode_Align_Zero_Pos_Ret == 1)
 	{
 		P_Set_Cathode_Align_Zero_Pos = 0;											// 음극 커멘드 초기화
 	}
@@ -312,11 +312,11 @@ if(P_Set_Cathode_Align_Zero_Pos == 1)
 
 if(P_Set_Anode_Align_Zero_Pos == 1)
 {
-	L_Cathode_Align_Zero_Pos_Ret = 0;												// 양극 얼라인 동작 함수 리턴 변수 초기화
+	L_Anode_Align_Zero_Pos_Ret = 0;													// 음극 얼라인 동작 함수 리턴 변수 초기화
 	P_Anode_Align_Table_Move = F_Start_Position_Move;								// 얼라인 동작 대기위치 모드
-	call Vision_Manager.Align_Move(N_Anode_Unit, &L_Cathode_Align_Zero_Pos_Ret);	// 얼라인 동작
+	call Vision_Manager.Align_Move(N_Anode_Unit, &L_Anode_Align_Zero_Pos_Ret);		// 얼라인 동작
 
-	if(L_Cathode_Align_Zero_Pos_Ret == 1)
+	if(L_Anode_Align_Zero_Pos_Ret == 1)
 	{
 		P_Set_Anode_Align_Zero_Pos = 0;												// 양극 커멘드 초기화
 	}
@@ -348,14 +348,16 @@ switch(P_Vision_Align_State_Machine)
 					if(P_Selected_Align_Inspection_Unit == N_Anode_Unit)
 					{
 						Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_Time_Out;									// 타임아웃 데이터 저장
-						call Alarm.Insert_Alarm(N_Alarm_Anode_Align_Vision_TimeOut, N_High_Alarm_Cycle_Stop);
+						//[ 참조 20261026 얼라인비전검사 타임아웃 알람 발생 삭제 → 타임아웃발생 시 사이클정지 -> ng시퀀스 처리로 변경 ]
+						//call Alarm.Insert_Alarm(N_Alarm_Anode_Align_Vision_TimeOut, N_High_Alarm_Cycle_Stop);
 						M_Y_VisioN_Align_AN_TimeOut_Flag = 1;														// 음극 얼라인 타임아웃 I/O On
 						P_Align_TimeOut5++
 					}
 					else if(P_Selected_Align_Inspection_Unit == N_Cathode_Unit)
 					{
 						Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Align_Time_Out;								// 타임아웃 데이터 저장
-						call Alarm.Insert_Alarm(N_Alarm_Cathode_Align_Vision_TimeOut, N_High_Alarm_Cycle_Stop);
+						//[ 참조 20261026 얼라인비전검사 타임아웃 알람 발생 삭제 → 타임아웃발생 시 사이클정지 -> ng시퀀스 처리로 변경 ]
+						//call Alarm.Insert_Alarm(N_Alarm_Cathode_Align_Vision_TimeOut, N_High_Alarm_Cycle_Stop);
 						M_Y_VisioN_Align_CA_TimeOut_Flag = 1;														// 양극 얼라인 타임아웃 I/O On
 						P_Align_TimeOut6++
 					}
@@ -425,13 +427,15 @@ switch(P_Vision_Align_State_Machine)
 				{
 					P_Anode_Align_TimeOut++
 					M_Y_VisioN_Align_AN_TimeOut_Flag = 1;		// 음극 얼라인 타임아웃 I/O On
-					call Alarm.Insert_Alarm(N_Alarm_Anode_Align_Vision_TimeOut, N_High_Alarm_Cycle_Stop);
+					//[ 참조 20261026 얼라인비전검사 타임아웃 알람 발생 삭제 → 타임아웃발생 시 사이클정지 -> ng시퀀스 처리로 변경 ]
+					//call Alarm.Insert_Alarm(N_Alarm_Anode_Align_Vision_TimeOut, N_High_Alarm_Cycle_Stop);
 				}
 				else
 				{
 					P_Cathode_Align_TimeOut++
 					M_Y_VisioN_Align_CA_TimeOut_Flag = 1;		// 양극 얼라인 타임아웃 I/O On
-					call Alarm.Insert_Alarm(N_Alarm_Cathode_Align_Vision_TimeOut, N_High_Alarm_Cycle_Stop);
+					//[ 참조 20261026 얼라인비전검사 타임아웃 알람 발생 삭제 → 타임아웃발생 시 사이클정지 -> ng시퀀스 처리로 변경 ]
+					//call Alarm.Insert_Alarm(N_Alarm_Cathode_Align_Vision_TimeOut, N_High_Alarm_Cycle_Stop);
 				}
 
 				P_Continuous_Call_Align_TimeOut_Flag(P_Selected_Align_Inspection_Unit - 1) = 1;	// 연속 NG (Timeout) 체크
@@ -528,14 +532,16 @@ switch(P_Vision_Surface_State_Machine)
 					Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_Time_Out;									// 표면검사 타임아웃 데이터 저장
 					P_Surf_TimeOut5++
 					M_Y_Vision_Anode_Surface_TimeOut_Flag = 1;													// 음극 표면 검사 타임아웃 I/O On
-					call Alarm.Insert_Alarm(N_Anode_Surface_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);		// 음극 표면검사 타임아웃 알람
+					// [ 참조 20261026 표면검사 타임아웃 알람 발생 삭제 → 타임아웃발생 시 사이클정지 -> ng시퀀스 처리로 변경 ]
+					//call Alarm.Insert_Alarm(N_Anode_Surface_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);		// 음극 표면검사 타임아웃 알람
 				}
 				else if(P_Selected_Surface_Inspection_Unit == N_Cathode_Unit)
 				{
 					Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Surf_Time_Out;								// 표면검사 타임아웃 데이터 저장 -> 얼라인 테이블
 					P_Surf_TimeOut6++
 					M_Y_Vision_Cathode_Surface_TimeOut_Flag = 1;												// 양극 표면 검사 타임아웃 I/O On
-					call Alarm.Insert_Alarm(N_Cathode_Surface_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);	// 양극 표면검사 타임아웃 알람
+					// [ 참조 20261026 표면검사 타임아웃 알람 발생 삭제 → 타임아웃발생 시 사이클정지 -> ng시퀀스 처리로 변경 ]
+					//call Alarm.Insert_Alarm(N_Cathode_Surface_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);	// 양극 표면검사 타임아웃 알람
 				}
 
 				L_Surface_Timer = 0;
@@ -592,13 +598,15 @@ switch(P_Vision_Surface_State_Machine)
 				if(P_Selected_Surface_Inspection_Unit == N_Anode_Unit)
 				{
 					M_Y_Vision_Anode_Surface_TimeOut_Flag = 1;			// 음극 표면검사 타임아웃 I/O On
-					call Alarm.Insert_Alarm(N_Anode_Surface_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);		// 음극 표면검사 타임아웃 알람
+					// [ 참조 20261026 표면검사 타임아웃 알람 발생 삭제 → 타임아웃발생 시 사이클정지 -> ng시퀀스 처리로 변경 ]
+					//call Alarm.Insert_Alarm(N_Anode_Surface_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);		// 음극 표면검사 타임아웃 알람
 					P_Anode_Surf_TimeOut++
 				}
 				else
 				{
 					M_Y_Vision_Cathode_Surface_TimeOut_Flag = 1;										// 양극 표면검사 타임아웃 I/O On
-					call Alarm.Insert_Alarm(N_Cathode_Surface_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);	// 양극 표면검사 타임아웃 알람
+					// [ 참조 20261026 표면검사 타임아웃 알람 발생 삭제 → 타임아웃발생 시 사이클정지 -> ng시퀀스 처리로 변경 ]
+					//call Alarm.Insert_Alarm(N_Cathode_Surface_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);	// 양극 표면검사 타임아웃 알람
 					P_Cathode_Surf_TimeOut++
 				}
 
@@ -677,27 +685,27 @@ switch(P_Vision_Stack_State_Machine)
 
 	case 3 :
 		P_Vision_Stack_Status = F_Status_EXECUTE;					// 스택 검사 진행중
-		if(L_Stack_Timer > P_Stack_Inspection_Time)
+		if(L_Stack_Timer < P_Stack_Inspection_Time)
 		{
 			L_Stack_Ret = 0;
 			call Vision_Manager.Stack_Result(&L_Stack_Ret);			// 스택 검사 결과 확인
 			L_Stack_Timer = 0;
+			// [26.11.07 Stack 타임아웃 -> 스택 연속 NG 처리 하도록 수정]
+//			if(L_Stack_Ret == N_Inspection_TimeOut)					// 결과 리턴 (Timeout)
+//			{
+//				if(P_Selected_Stack_Inspection_Unit == N_Anode_Unit)
+//				{
+//					P_Anode_Stack_TimeOut++
+//				}
+//				else
+//				{
+//					P_Cathode_Stack_TimeOut++
+//				}
 
-			if(L_Stack_Ret == N_Inspection_TimeOut)					// 결과 리턴 (Timeout)
-			{
-				if(P_Selected_Stack_Inspection_Unit == N_Anode_Unit)
-				{
-					P_Anode_Stack_TimeOut++
-				}
-				else
-				{
-					P_Cathode_Stack_TimeOut++
-				}
-
-				M_Y_Vision_Stack_TimeOut_Flag = 1
-				call Alarm.Insert_Alarm(N_Stack_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);		// 스택 비전 타임아웃 알람
-			}
-			else if(L_Stack_Ret == N_Inspection_OK)													// Ok, Ng 
+//				M_Y_Vision_Stack_TimeOut_Flag = 1
+//				call Alarm.Insert_Alarm(N_Stack_Vision_TimeOut_Alarm, N_High_Alarm_Cycle_Stop);		// 스택 비전 타임아웃 알람
+//			}
+			if(L_Stack_Ret == N_Inspection_OK)													// Ok, Ng 
 			{
 				if(P_Selected_Stack_Inspection_Unit == N_Anode_Unit)
 				{
@@ -707,7 +715,7 @@ switch(P_Vision_Stack_State_Machine)
 				{
 					P_Cathode_Stack_OK++
 				}
-
+				P_Vision_Stack_State_Machine = 4;
 			}
 			else if(L_Stack_Ret == N_Inspection_NG)													// Ok, Ng 
 			{
@@ -719,9 +727,15 @@ switch(P_Vision_Stack_State_Machine)
 				{
 					P_Cathode_Stack_NG++
 				}
-
+				P_Vision_Stack_State_Machine = 4;
 			}
-
+		}
+		else
+		{
+			Sys_Stack_Sheet_LO_Vision_BYTE |= Hex_Stack_Time_Out;
+			P_Stack_Table_NG_Count++
+			M_Y_Vision_Stack_TimeOut_Flag = 1;
+//			P_Stack_PMAC_NG_Code = 256;
 			P_Vision_Stack_State_Machine = 4;
 		}
 	break;
@@ -1051,6 +1065,7 @@ switch(P_Vision_FirstSepa_State_Machine)
 			P_PLC01_Execute_Retry_Sepa_Mode_Count = 0;						// 3) 리트라이 세파 보정 횟수 초기화						
 			P_EPC_Retry_Over_Alarm_Flag = N_TRUE;							// 4) 정지 타이밍 -> 기구물 한계로 배출 이후 알람 발생 및 정지 하도록 수정	
 		}
+
 		P_Vision_FirstSepa_State_Machine++;
 	break;
 

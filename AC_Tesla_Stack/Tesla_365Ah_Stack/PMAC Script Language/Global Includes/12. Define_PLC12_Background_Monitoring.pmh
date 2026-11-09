@@ -258,11 +258,11 @@ global P_PLC12_Vacuum_Align_Anode_MNTR_Timer = 0;				// 음극 얼라인   모니터링 �
 
 global P_PLC12_Vacuum_1st_Cathode_Set_Time = 200;				// 양극 1차 PNP 설정 시간
 global P_PLC12_Vacuum_2nd_Cathode_Set_Time = 200;				// 양극 2차 PNP 설정 시간
-global P_PLC12_Vacuum_NG_Cathode_Set_Time = 250;				// 양극 NG  PNP 설정 시간
+global P_PLC12_Vacuum_NG_Cathode_Set_Time = 400;				// 양극 NG  PNP 설정 시간 [26.11.07 - NG PNP가 상승 후 T축 이동시까지 감시를 위해 수정]
 global P_PLC12_Vacuum_Align_Cathode_Set_Time = 200;				// 양극 얼라인  설정 시간
 global P_PLC12_Vacuum_1st_Anode_Set_Time = 200;					// 음극 1차 PNP 설정 시간
 global P_PLC12_Vacuum_2nd_Anode_Set_Time = 200;					// 음극 2차 PNP 설정 시간
-global P_PLC12_Vacuum_NG_Anode_Set_Time = 250;					// 음극 NG  PNP 설정 시간
+global P_PLC12_Vacuum_NG_Anode_Set_Time = 400;					// 음극 NG  PNP 설정 시간 [26.11.07 - NG PNP가 상승 후 T축 이동시까지 감시를 위해 수정]
 global P_PLC12_Vacuum_Align_Anode_Set_Time = 200;				// 음극 얼라인  설정 시간 
 
 #define N_Air_Buffer		5

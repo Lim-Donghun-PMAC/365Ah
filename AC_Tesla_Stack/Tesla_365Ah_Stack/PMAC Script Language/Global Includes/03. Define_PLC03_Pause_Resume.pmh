@@ -64,3 +64,7 @@ global P_Sepa_Mode_Opposite_Resume_Free = 0;			// [1:자유롭게 Resume 가능] 세파 
 global P_Sepa_To_Normal_Mode_Sync_Flag = 0;				// [커터 전진할 때 켜줌 1:isenable에서 싱크 맞춤] 세파 모드 → 일반 모드가 가능한 세파 모드 일 경우 Execute에서 싱크 맞추기 위한 플래그 변수. [ 참조 : 26.07.31 Pause_Resume 수정 ]
 global P_Sepa_To_Normal_Mode_Sync_Err_Avoid = 0;		// [isenable에서 싱크 맞추기 전 켰다가 싱크 맞춘 후 끔] Execute에서 Sync 진행 시 Error를 피하는 변수.
 
+// Pause, Resume 시간 확인
+global P_Pause_Time_Flag = 0;
+global P_Puase_Resume_Time_Check = 0;
+global P_Pause_To_Resume_Time = 0;

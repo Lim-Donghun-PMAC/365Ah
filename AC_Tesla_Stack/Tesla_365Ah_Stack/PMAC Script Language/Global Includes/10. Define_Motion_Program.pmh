@@ -353,3 +353,7 @@ global P_Cathode_Clamp_Down_MNTR = 0;
 global P_FR_Ta = 67;
 global P_FR_Ts = 8;
 global P_FR_Tm = 165;
+
+// [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+global P_Anode_2TR_Avoid = 0;
+global P_Cathode_2TR_Avoid = 0;

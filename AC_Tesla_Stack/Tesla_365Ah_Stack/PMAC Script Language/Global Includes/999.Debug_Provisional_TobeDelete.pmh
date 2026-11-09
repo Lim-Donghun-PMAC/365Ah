@@ -167,12 +167,8 @@ global P_PLC02_Discharge_MNTR = 0;
 #define N_EMS_ON			1
 #define N_EMS_OFF			0
 
-
-
-
-
-
-
+// Alarm TEST 
+global P_NEW_Alarm_USE_Flag = 0;
 
 // 2607023 ecat 부하율, 속도 모니터링 변수 추가
 #define M_EPC_SENSOR_Load_Ratio		M6033   // sys.M[6033]

@@ -454,6 +454,7 @@ IF ( P_Suspend_Discharge_Status == N_TRUE )
 			P_Suspend_Discharge_Tact_Time_Array(0),20 = 0;								// 배출 시퀀스 총 Tact Time 초기화.	[ 참조 : 25.07.04 배출 Tact Time 추가 ]
 			P_Suspend_Discharging_Popup_Flag = 1;										// 배출 진행 중 팝업 ON.	[ 참조 : 26.04.24 Suspend 모듈 팝업 추가 ]
 			P_Suspend_Discharge_State_Machine = N_Ready_Step;							// 배출모듈 구동 준비 스텝으로 이동		
+			P_Last_Run_To_Discharge_Tact_Time = P_Last_Run_To_Discharge_Tact_Timer;			// 라스트 런 → 배출 모듈 시작 타이머 업데이트.	[ 참조 : 26.05.28 Suspend 택타임 수정 ]
 		}
 		// 2.1.1.3) 리턴값 오류시 - Error Step 이동
 		ELSE
@@ -473,8 +474,7 @@ IF ( P_Suspend_Discharge_Status == N_TRUE )
 		{
 			P_PLC02_Sus_Module_Discharge_Step_Flag = 0;
 			// 2.1.2.0 시퀀스 Tact Time 측정.
-			P_Suspend_Discharge_Timer = 0;													// 배출 시퀀스 타이머 초기화.	[ 참조 : 25.07.04 배출 Tact Time 추가 ]
-			P_Last_Run_To_Discharge_Tact_Time = P_Last_Run_To_Discharge_Tact_Timer;			// 라스트 런 → 배출 모듈 시작 타이머 업데이트.	[ 참조 : 26.05.28 Suspend 택타임 수정 ]
+			P_Suspend_Discharge_Timer = 0;													// 배출 시퀀스 타이머 초기화.	[ 참조 : 25.07.04 배출 Tact Time 추가 ]			
 			// 2.1.2.1 시퀀스 인덱스 증가 _ 시퀀스 실행시킬 인덱스 번호 증가		
 			P_Suspend_Discharge_Module_Status = F_Status_EXECUTE;							// 배출 진행 상태 업데이트.
 			P_Suspend_Discharge_Seq_Index = P_Suspend_Discharge_Seq_Index + 1;				// 인덱스 번호 증가.

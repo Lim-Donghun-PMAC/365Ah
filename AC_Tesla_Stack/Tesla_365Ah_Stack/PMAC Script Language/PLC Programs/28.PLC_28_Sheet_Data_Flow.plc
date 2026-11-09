@@ -1134,7 +1134,7 @@ if(P_Cathode_2nd_TR_Align_Down_Flag == 1)
 {
 	P_Cathode_2nd_TR_Align_Down_Flag = 0;
 	
-	L_Anode_2nd_Align_Down_Timer = 0;
+	L_Cathode_2nd_Align_Down_Timer = 0;				//[ 참조 : 26.10.22 오타 수정 ]
 	P_Cathode_2nd_TR_Align_Down_State_Machine = 1;
 	P_Cathode_2nd_TR_Align_Down_Status = F_Status_STARTING;
 }
@@ -1147,7 +1147,7 @@ switch(P_Cathode_2nd_TR_Align_Down_State_Machine)
 
 	case 1:
 		P_Cathode_2nd_TR_Align_Down_Status = F_Status_EXECUTE;
-		if(L_Anode_2nd_Align_Down_Timer < P_Check_Vac_Time)
+		if(L_Cathode_2nd_Align_Down_Timer < P_Check_Vac_Time)	//[ 참조 : 26.10.22 오타 수정 ]
 		{
 			if(Sys_Cathode_2nd_Sheet_Data != 0)
 			{

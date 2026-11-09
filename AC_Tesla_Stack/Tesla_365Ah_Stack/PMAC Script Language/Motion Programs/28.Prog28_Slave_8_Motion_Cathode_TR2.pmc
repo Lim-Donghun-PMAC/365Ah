@@ -1,4 +1,10 @@
-
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+// 26.10.28
+// 내용 - [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
 
 &28
 #3-> 1000tt		// 양극 2차 PNP T축
@@ -179,6 +185,20 @@ open prog 28
 			//	//P_Cathode_Count++;
 			//	dwell(0)
 			//break;
+
+			// [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+			case N_2nd_PNP_Avoid_Pos_Motion :			// 회피 위치
+				P_Cathode_2TR_Avoid = P_Master_Motion_Trigger
+				P_Slave8_Motion_Command = 0;
+				P_Second_PNP_T_Align_To_Stack_Status == F_Status_EXECUTE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				dwell(0)
+				linear
+				tm(115) ta(80) ts(30)		// 230ms
+				tt(P_Cathode_2TR_PNP_Avoid_Pos) //z( 24 )			
+				P_Cathode_2nd_Motion_Complete == 1
+				P_Second_PNP_T_Align_To_Stack_Status == F_Status_COMPLETE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+				dwell(0)
+			break;
 
 			default :
 				P_Slave8_Motion_Command = 0;

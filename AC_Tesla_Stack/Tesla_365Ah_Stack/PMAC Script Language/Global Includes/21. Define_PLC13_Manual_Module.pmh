@@ -332,3 +332,7 @@ P_Edge_Lower_Sensor(0),8 = 0;
 
 global P_Edge_NP_BTN(2)		// 네임플레이트 상,하부 변경 Edge 변수		[ 참조 : 26.04.24 ARC 네임 플레이트 램프 수정 ]
 P_Edge_NP_BTN(0),2 = 0;	
+
+global P_ARC_Tilting_Unwinder_Move_Dis = -50;
+global P_Old_ARC_Upper_Tilting_Status = 0;
+global P_Old_ARC_Lower_Tilting_Status = 0;

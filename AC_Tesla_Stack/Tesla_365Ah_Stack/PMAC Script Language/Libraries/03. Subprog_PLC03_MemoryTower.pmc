@@ -5,6 +5,10 @@
 // 내용 - [ 참조 : 25.xx.xx 내용 ]
 // [ 참조 : 2025.09.30 모터 번호 Define 추가 ] → 모터 번호 상수에서 Define으로 변경 ( 이유 : 모터 번호가 바뀌게 된다면, Define 변경으로 전부 변경 되게 하기 위함 )
 // [ 참조 : 2025.09.30 Clamp 극판 하강 위치 추가]
+//======================================================================================================
+// 26.10.28
+// 내용 - [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+
 open subprog Sub_Unit_Memory_Status(void)
 
 sub: Initialize(&rtn)
@@ -17,9 +21,9 @@ if( P_Memory_Tower_Test == 0 )
 		//P_Recipe_2nd_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(2);			// 양극위치
 		//P_Recipe_3rd_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(3);			// 배출위치 
 
-		P_Recipe_1st_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(2);			// 음극위치 or 세파 첫장 ( 대기위치 )
-		P_Recipe_2nd_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(3);			// 양극위치
-		P_Recipe_3rd_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(1);			// 배출위치 
+		P_Recipe_1st_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(2);				// 음극위치 or 세파 첫장 ( 대기위치 )
+		P_Recipe_2nd_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(3);				// 양극위치
+		P_Recipe_3rd_MotorNo(N_FINAL_ROLL_X) = P_Recipe_M12_POS(1);				// 배출위치 
 		P_Recipe_4th_MotorNo(N_FINAL_ROLL_X) = N_NOT_EXIST_VALUE;			
 		P_Recipe_5th_MotorNo(N_FINAL_ROLL_X) = N_NOT_EXIST_VALUE;
 		P_Recipe_6th_MotorNo(N_FINAL_ROLL_X) = N_NOT_EXIST_VALUE;
@@ -132,7 +136,8 @@ if( P_Memory_Tower_Test == 0 )
 		// N_2nd_PnP_CA_T = 3
 		P_Recipe_1st_MotorNo(N_2nd_PnP_CA_T) = P_Recipe_M03_POS(1);			// 얼라인위치(대기위치)
 		P_Recipe_2nd_MotorNo(N_2nd_PnP_CA_T) = P_Recipe_M03_POS(2);			// 스택위치
-		P_Recipe_3rd_MotorNo(N_2nd_PnP_CA_T) = N_NOT_EXIST_VALUE;			// 
+		//[ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+		P_Recipe_3rd_MotorNo(N_2nd_PnP_CA_T) = P_Cathode_2TR_PNP_Avoid_Pos;	// 양극 2차 PNP 회피 위치 
 		P_Recipe_4th_MotorNo(N_2nd_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
 		P_Recipe_5th_MotorNo(N_2nd_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
 		P_Recipe_6th_MotorNo(N_2nd_PnP_CA_T) = N_NOT_EXIST_VALUE;			 
@@ -148,7 +153,8 @@ if( P_Memory_Tower_Test == 0 )
 		// N_2nd_PnP_AN_T = 4
 		P_Recipe_1st_MotorNo(N_2nd_PnP_AN_T) = P_Recipe_M04_POS(1);			// 얼라인위치(대기위치)
 		P_Recipe_2nd_MotorNo(N_2nd_PnP_AN_T) = P_Recipe_M04_POS(2);			// 스택위치
-		P_Recipe_3rd_MotorNo(N_2nd_PnP_AN_T) = N_NOT_EXIST_VALUE;			// 
+		//[ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+		P_Recipe_3rd_MotorNo(N_2nd_PnP_AN_T) = P_Anode_2TR_PNP_Avoid_Pos;	// 음극 2차 PNP 회피 위치 
 		P_Recipe_4th_MotorNo(N_2nd_PnP_AN_T) = N_NOT_EXIST_VALUE; 
 		P_Recipe_5th_MotorNo(N_2nd_PnP_AN_T) = N_NOT_EXIST_VALUE; 
 		P_Recipe_6th_MotorNo(N_2nd_PnP_AN_T) = N_NOT_EXIST_VALUE; 
@@ -1022,12 +1028,16 @@ else
 	else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Anode_CLP_Unit_Status == F_Clamp_On_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Belt_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Align_Up_Pos )
 	{
 		P_Total_Unit_Pos = F_Equipment_Cathode_Run_Pos;
-	}		
-	else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_On_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	}	
+	//  [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+	//else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_On_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_On_Pos && P_Anode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Avoid_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
 	{
 		P_Total_Unit_Pos = F_Equipment_Anode_NG_Pos;
-	}	
-	else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Anode_CLP_Unit_Status == F_Clamp_On_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	}
+	//  [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+	//else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Anode_CLP_Unit_Status == F_Clamp_On_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )
+	else if( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos && P_Cathode_CLP_Unit_Status == F_Clamp_Off_Pos && P_Anode_CLP_Unit_Status == F_Clamp_On_Pos && P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos && P_Cathode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos && P_Anode_2nd_Unit_Status == F_2nd_PNP_Avoid_Up_Pos && P_Anode_1st_Unit_Status == F_1st_PNP_Init_Up_Pos )		
 	{
 		P_Total_Unit_Pos = F_Equipment_Cathode_NG_Pos;
 	}	

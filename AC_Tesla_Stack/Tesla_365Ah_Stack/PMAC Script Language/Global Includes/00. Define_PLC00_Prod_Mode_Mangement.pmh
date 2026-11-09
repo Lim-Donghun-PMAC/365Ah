@@ -285,9 +285,7 @@ global P_Force_Stop_Flag = 0;
 	#define Total_Inpos_Bit			Motor[5].InPos	& Motor[6].InPos & Motor[7].InPos	& Motor[8].InPos & Motor[9].InPos	& Motor[10].InPos & Motor[11].InPos & Motor[12].InPos & \
 									Motor[13].InPos & Motor[14].InPos & Motor[15].InPos & Motor[16].InPos & Motor[17].InPos & Motor[18].InPos & Motor[19].InPos & Motor[20].InPos 	
 
-
 global P_Align_NG_Tack_Flag = 0;
-
 
 // 비전패스 모드 사용시 플래그
 Global P_Anode_Align_OK_Flag = 0;						// 음극 얼라인 비젼 내부 OK 플래그
@@ -301,7 +299,6 @@ global P_Anode_Retry_OK_Flag = 0;						// 음극 얼라인 비젼 내부 OK 플래그
 global P_Anode_Retry_NG_Flag = 0;                   	// 음극 얼라인 비젼 내부 NG 플래그
 global P_Cathode_Retry_OK_Flag = 0;                 	// 양극 얼라인 비젼 내부 OK 플래그
 global P_Cathode_Retry_NG_Flag = 0;                 	// 양극 얼라인 비젼 내부 NG 플래그
-
 
 global	P_Anode_Surf_Insp_Trigger = 77;		//74
 global	P_Cathode_Surf_Insp_Trigger = 32;	//29
@@ -367,7 +364,6 @@ global	P_Cathode_Surf_Insp_Trigger = 32;	//29
 
 global	P_First_Anode_Sheet_Supply_Flag = 0;
 global	P_First_Cathode_Sheet_Supply_Flag = 0;
-
 
 global P_Cathode_Cur_Mode = 0;
 global P_Anode_Cur_Mode = 0;

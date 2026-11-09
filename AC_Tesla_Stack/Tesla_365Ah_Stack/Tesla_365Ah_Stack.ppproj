@@ -82,6 +82,9 @@
     <Content Include="C Language\Background Programs\save_c\save_h.h">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="C Language\CPLCs\bgcplc01\bgcplc01.h">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="C Language\CPLCs\bgcplc01\cappheader1.h">
       <SubType>Content</SubType>
     </Content>

@@ -77,8 +77,8 @@ global P_Home_First_Move = 0;
 
 
 // 임시 주석
-//#define ECAT_All_Chk_Complete		Align_Home_Complete & Ecat_Other_Home_Complete
-#define ECAT_All_Chk_Complete		Ecat_Other_Home_Complete
+#define ECAT_All_Chk_Complete		Align_Home_Complete & Ecat_Other_Home_Complete			// 주석 해제 [ 26.10.23 ] 
+//#define ECAT_All_Chk_Complete		Ecat_Other_Home_Complete
 
 #define Local_All_Chk_Complete		PnP_Home_Complete & Stak_Home_Complete
 

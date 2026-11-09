@@ -109,44 +109,44 @@ Sys.MaxRtPlc = 3;
 		P_An_2nd_PNP_ABSPhasing_Pos(9) = 2230033;//2817186
 
 		// 10호기 - a AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(10) = 1632793;
-		P_An_1st_PNP_ABSPhasing_Pos(10) = 4007755;   //-> PB에서 U/W 바꾼상태로 Phasing 한거임 추후 다시 해야함
-		P_Ca_2nd_PNP_ABSPhasing_Pos(10) = 4610820;
-		P_An_2nd_PNP_ABSPhasing_Pos(10) = 2232263;
+		P_Ca_1st_PNP_ABSPhasing_Pos(10) = 2215942;//1632793;
+		P_An_1st_PNP_ABSPhasing_Pos(10) = 4625398;//4623636;//4007755;   //-> PB에서 U/W 바꾼상태로 Phasing 한거임 추후 다시 해야함
+		P_Ca_2nd_PNP_ABSPhasing_Pos(10) = 4615537;//4610820;
+		P_An_2nd_PNP_ABSPhasing_Pos(10) = 2243940;//2232263;
 
 		// 11호기 - a AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(11) = 2203670
-		P_An_1st_PNP_ABSPhasing_Pos(11) = 4620449
-		P_Ca_2nd_PNP_ABSPhasing_Pos(11) = 4027961
-		P_An_2nd_PNP_ABSPhasing_Pos(11) = 2245533
+		P_Ca_1st_PNP_ABSPhasing_Pos(11) = 2830200;//2203670
+		P_An_1st_PNP_ABSPhasing_Pos(11) = 4618905;//4620449
+		P_Ca_2nd_PNP_ABSPhasing_Pos(11) = 4623562;//4027961
+		P_An_2nd_PNP_ABSPhasing_Pos(11) = 2227476;//2245533
 
 
-		// 12호기 - a AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(12) = 2224375; 
-		P_An_1st_PNP_ABSPhasing_Pos(12) = 4027234;
-		P_Ca_2nd_PNP_ABSPhasing_Pos(12) = 4625139;
-		P_An_2nd_PNP_ABSPhasing_Pos(12) = 2230317;
+		// 12호기 - a AbsPos 값 (2row 1호기)
+		P_Ca_1st_PNP_ABSPhasing_Pos(12) = 2226068;//2224375; 
+		P_An_1st_PNP_ABSPhasing_Pos(12) = 4629878;//4027234;
+		P_Ca_2nd_PNP_ABSPhasing_Pos(12) = 4623732;//4625139;
+		P_An_2nd_PNP_ABSPhasing_Pos(12) = 2232974;//2230317;
 
 
 		// 13호기 - a AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(13) = 2238209;   
-		P_An_1st_PNP_ABSPhasing_Pos(13) = 4629922;
-		P_Ca_2nd_PNP_ABSPhasing_Pos(13) = 4628028;
-		P_An_2nd_PNP_ABSPhasing_Pos(13) = 2804062;
+		P_Ca_1st_PNP_ABSPhasing_Pos(13) = 4625951;//2238209;   
+		P_An_1st_PNP_ABSPhasing_Pos(13) = 2817147;//4629922;
+		P_Ca_2nd_PNP_ABSPhasing_Pos(13) = 2241602;//4628028;
+		P_An_2nd_PNP_ABSPhasing_Pos(13) = 4635817;//2804062;
 
 
 		// 14호기 - a AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(14) = 2199391;
-		P_An_1st_PNP_ABSPhasing_Pos(14) = 4630980;
-		P_Ca_2nd_PNP_ABSPhasing_Pos(14) = 4635000;
-		P_An_2nd_PNP_ABSPhasing_Pos(14) = 2218916;
+		P_Ca_1st_PNP_ABSPhasing_Pos(14) = 2237597;//2199391;
+		P_An_1st_PNP_ABSPhasing_Pos(14) = 4621915;//4630980;
+		P_Ca_2nd_PNP_ABSPhasing_Pos(14) = 4619068;//4635000;
+		P_An_2nd_PNP_ABSPhasing_Pos(14) = 2208870;//2218916;
 
 
 		// 15호기 - a AbsPos 값
-		P_Ca_1st_PNP_ABSPhasing_Pos(15) = 2822480
-		P_An_1st_PNP_ABSPhasing_Pos(15) = 4625299
-		P_Ca_2nd_PNP_ABSPhasing_Pos(15) = 4626327
-		P_An_2nd_PNP_ABSPhasing_Pos(15) = 2825223
+		P_Ca_1st_PNP_ABSPhasing_Pos(15) = 2224435;//2822480
+		P_An_1st_PNP_ABSPhasing_Pos(15) = 4619377;//4625299
+		P_Ca_2nd_PNP_ABSPhasing_Pos(15) = 4613280;//4626327
+		P_An_2nd_PNP_ABSPhasing_Pos(15) = 2815665;//2825223
 
 
 		// 16호기 - a AbsPos 값

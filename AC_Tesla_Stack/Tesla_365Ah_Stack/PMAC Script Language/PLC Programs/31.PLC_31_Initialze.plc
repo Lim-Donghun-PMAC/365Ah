@@ -312,8 +312,9 @@ if(P_Ecat_Connect_Result == 1)
 
 		enable plc 26
 		//enable plc 25;				// Nand Flash Memory PLC
-		enable plc 27;				//인터락 프로그램 활성화 (환경안전검수용 인터락 활성화로 인해 PLC27 상시 온)
+		enable plc 27;					//인터락 프로그램 활성화 (환경안전검수용 인터락 활성화로 인해 PLC27 상시 온)
 		//enable plc 26,27;
+		enable bgcplc 1;				// [ 참조 : 26.10.26 알람 리팩토링 추가 ]
 
 		call Timer.msec(100);			// enable plc delay time
 		

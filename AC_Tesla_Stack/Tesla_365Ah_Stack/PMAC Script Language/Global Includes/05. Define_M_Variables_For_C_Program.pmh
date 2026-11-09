@@ -99,21 +99,6 @@ Global P_Cathode_Align_Stage_TA = 50;//25;       				// 양극 얼라인 스테이지 가�
 
 Global P_X_Move_Recipe_Percent = 100;						// APC 보정값 적용 %
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #define P_PC_Jog_Motor_No		P4301			// 조그 구동할 모터						Sub_Jog
 P_PC_Jog_Motor_No=0;
 

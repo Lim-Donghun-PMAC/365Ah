@@ -1,4 +1,10 @@
-
+//======================================================================================================
+// 프로그램 개정이력
+//======================================================================================================
+// 25.xx.xx 
+// 내용 - [ 참조 : 25.xx.xx 내용 ]
+// 26.10.28
+// 내용 - [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
 
 open subprog Sub_Motion_Target_Position(void)
 
@@ -19,12 +25,14 @@ P_Anode_1TR_T_Align_POS = P_Recipe_M02_POS(3)		//음극 1차 PNP T축 얼라인 위치
 // #3 양극 2차 PNP T축 레시피
 P_Cathode_2TR_T_Align_POS = P_Recipe_M03_POS(1)		//양극 2차 PNP T축 얼라인 위치
 P_Cathode_2TR_T_Stack_POS = P_Recipe_M03_POS(2)		//양극 2차 PNP T축 스택 위치
-
+ // [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+P_Cathode_2TR_PNP_Avoid_Pos = P_Recipe_M03_POS(1) + P_Cathode_2TR_PNP_Avoid_Value; // 양극 2차 PNP T축 회피 위치
 
 // #4 음극 2차 PNP T축 레시피
 P_Anode_2TR_T_Align_POS = P_Recipe_M04_POS(1)		//음극 2차 PNP T축 얼라인 위치
 P_Anode_2TR_T_Stack_POS = P_Recipe_M04_POS(2)		//음극 2차 PNP T축 스택 위치
-
+ // [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+ P_Anode_2TR_PNP_Avoid_Pos = P_Recipe_M04_POS(1) + P_Anode_2TR_PNP_Avoid_Value; // 음극 2차 PNP T축 회피 위치
 
 // #5 양극 클램프 Y1 레시피
 P_Cathode_Clmap_Y1_Ready_Pos = P_Recipe_M05_POS(1)	//양극 클램프 Y1축 언클램프 위치

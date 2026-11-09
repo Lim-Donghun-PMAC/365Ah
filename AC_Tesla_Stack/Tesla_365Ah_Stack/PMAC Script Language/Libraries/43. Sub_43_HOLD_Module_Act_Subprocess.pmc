@@ -3,6 +3,9 @@
 //======================================================================================================
 // 25.12.02
 // 내용 - Hold 액팅 모듈 추가. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]
+//======================================================================================================
+// 26.10.28
+// 내용 - [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
 
 open subprog Subprog_Subprocess_Hold_Act_Module(void)
 	/*---------- Search ㄴㄷㅁㄱ ----------//
@@ -102,7 +105,8 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 				
 				else if( P_Hold_Anode_Exception_Empty_Flag == 1 && Sys_Anode_NG_TR_Sheet_Data == 0 )								// NG PNP에 극판 데이터가 있는 상태로 정지 후 재시작 할 경우 → 극판 데이터가 없다면 작업자가 제거했다고 판단하여 빈테이블 검사 실행.
 				{
-					P_Vision_EmptyTable_Command = N_Anode_Unit																		// 빈테이블 검사 실행.
+					P_Vision_EmptyTable_Command = N_Anode_Unit;																		// 빈테이블 검사 실행.
+					P_Anode_NG_TR_NG_Place_Down_Flag = 1;
 					P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = 1;										// 다음 스텟 머신으로 이동.
 				}
 				else
@@ -118,7 +122,8 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 					P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = N_Complete_Step;
 				else if( P_Hold_Cathode_Exception_Empty_Flag == 1 && Sys_Cathode_NG_TR_Sheet_Data == 0 )							// NG PNP에 극판 데이터가 있는 상태로 정지 후 재시작 할 경우 → 극판 데이터가 없다면 작업자가 제거했다고 판단하여 빈테이블 검사 실행.
 				{
-					P_Vision_EmptyTable_Command = N_Cathode_Unit																	// 빈테이블 검사 실행.
+					P_Vision_EmptyTable_Command = N_Cathode_Unit;																	// 빈테이블 검사 실행.
+					P_Cathode_NG_TR_NG_Place_Down_Flag = 1;
 					P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = 1;										// 다음 스텟 머신으로 이동.					
 				}
 				else
@@ -126,6 +131,8 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 					P_Vision_Existence_Command = N_Cathode_Unit																		// 극판 유무 검사 실행.
 					P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = 1;										// 다음 스텟 머신으로 이동.
 				}
+
+				P_Hold_Cathode_Exception_Empty_Flag = 0;
 			}
 		}
 		// 1) 비전 검사 확인.
@@ -996,7 +1003,8 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 				if( P_individual_Hold_return == 1 )
 				{
 					// 음극 2차 PNP가 이미 스택 상승 위치이므로 완료 처리
-					if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+					//[ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+					if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos || P_Anode_2nd_Unit_Status == F_2nd_PNP_Avoid_Up_Pos)
 						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = N_Complete_Step
 					else
 						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = 1
@@ -1008,7 +1016,8 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 				if( P_individual_Hold_return == 1 )
 				{
 					// 양극 2차 PNP가 이미 스택 상승 위치이므로 완료 처리
-					if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+					//[ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+					if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos ||  P_Cathode_2nd_Unit_Status == F_2nd_PNP_Avoid_Up_Pos)
 						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = N_Complete_Step
 					else
 						P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = 1
@@ -1023,14 +1032,18 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 			// 1.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
 			if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
 			{
-				P_Slave3_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 음극 2차 PNP T축 스택 위치 이동.
+				//[ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+				//P_Slave3_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;														// 음극 2차 PNP T축 스택 위치 이동.
+				P_Slave3_Motion_Command = N_2nd_PNP_Avoid_Pos_Motion;																// 음극 2차 회피위치 이동 
 				P_Slave17_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 음극 2차 PNP Z축 스택 위치 이동.
 				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = 2;												// 다음 스텟 머신 이동.
 			}
 			// 1.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
 			else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
 			{
-				P_Slave8_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 양극 2차 PNP T축 스택 위치 이동.
+				//[ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+				//P_Slave8_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;														// 양극 2차 PNP T축 스택 위치 이동.
+				P_Slave8_Motion_Command = N_2nd_PNP_Avoid_Pos_Motion																// 양극 2차 회피위치 이동 
 				P_Slave18_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 양극 2차 PNP Z축 스택 위치 이동.
 				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Stack_Pos) = 2;												// 다음 스텟 머신 이동.
 			}
@@ -1539,7 +1552,8 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 					}
 
 					// 음극 2차 PNP 스택 위치면 얼라인 이동 실행
-					if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+					//[ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+					if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos || P_Anode_2nd_Unit_Status == F_2nd_PNP_Avoid_Up_Pos )
 					{
 						P_Second_PNP_T_Stack_To_Align_Status = 0;
 						P_Second_PNP_Z_Stack_To_Align_Status = 0;
@@ -1588,7 +1602,8 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 					}
 
 					// 양극 2차 PNP 스택 위치면 얼라인 이동 실행
-					if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+					// [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+					if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos || P_Cathode_2nd_Unit_Status == F_2nd_PNP_Avoid_Up_Pos )
 					{
 						P_Second_PNP_T_Stack_To_Align_Status = 0;
 						P_Second_PNP_Z_Stack_To_Align_Status = 0;
@@ -1703,7 +1718,8 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 					}
 
 					// 음극 2차 PNP 스택->얼라인 이동 실행
-					if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+					// [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+					if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos || P_Anode_2nd_Unit_Status == F_2nd_PNP_Avoid_Up_Pos )
 					{
 						P_Second_PNP_T_Stack_To_Align_Status = 0;
 						P_Second_PNP_Z_Stack_To_Align_Status = 0;
@@ -1751,7 +1767,8 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 					}
 
 					// 양극 2차 PNP 스택->얼라인 이동 실행
-					if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+					//[ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+					if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos ||  P_Cathode_2nd_Unit_Status == F_2nd_PNP_Avoid_Up_Pos )
 					{
 						P_Second_PNP_T_Stack_To_Align_Status = 0;
 						P_Second_PNP_Z_Stack_To_Align_Status = 0;
@@ -1856,11 +1873,14 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 				{
 					P_Second_PNP_T_Align_To_Stack_Status = 0;
 					P_Second_PNP_Z_Align_To_Stack_Status = 0;
-					P_Slave3_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 음극 2차 PNP T축 스택 위치 이동.
+					//[ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+					//P_Slave3_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 음극 2차 PNP T축 스택 위치 이동.
+					P_Slave3_Motion_Command = N_2nd_PNP_Avoid_Pos_Motion;																// 음극 2차 T축 회피 위치 이동
 					P_Slave17_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 음극 2차 PNP Z축 스택 위치 이동.
 				}
 				// 음극 2차가 이미 스택 위치이므로 상태변수 완료 처리
-				else if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+				// [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+				else if( P_Anode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos || P_Anode_2nd_Unit_Status == F_2nd_PNP_Avoid_Up_Pos )
 				{
 					P_Second_PNP_T_Align_To_Stack_Status = F_Status_COMPLETE;
 					P_Second_PNP_Z_Align_To_Stack_Status = F_Status_COMPLETE;
@@ -1887,17 +1907,20 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 					P_First_PNP_T_Belt_To_Align_Status = F_Status_COMPLETE;
 					P_First_PNP_Z_Belt_To_Align_Status = F_Status_COMPLETE;
 				}
-
+				// [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
 				// 양극 2차 PNP 얼라인 -> 스택 이동 실행
 				if(P_Cathode_2nd_Unit_Status == F_2nd_PNP_Align_Up_Pos )
 				{
 					P_Second_PNP_T_Align_To_Stack_Status = 0;
 					P_Second_PNP_Z_Align_To_Stack_Status = 0;
-					P_Slave8_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 양극 2차 PNP T축 스택 위치 이동.
+					// [ 참조 : 26.10.28 양,음극 2차 회피 위치 추가 ]
+					//P_Slave8_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;														// 양극 2차 PNP T축 스택 위치 이동.
+					P_Slave8_Motion_Command = N_2nd_PNP_Avoid_Pos_Motion;
 					P_Slave18_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;															// 양극 2차 PNP Z축 스택 위치 이동.
 				}
 				// 양극 2차가 이미 스택 위치이므로 상태변수 완료 처리
-				else if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos )
+
+				else if( P_Cathode_2nd_Unit_Status == F_2nd_PNP_Stack_Up_Pos || P_Cathode_2nd_Unit_Status == F_2nd_PNP_Avoid_Up_Pos )
 				{
 					P_Second_PNP_T_Align_To_Stack_Status = F_Status_COMPLETE;
 					P_Second_PNP_Z_Align_To_Stack_Status = F_Status_COMPLETE;

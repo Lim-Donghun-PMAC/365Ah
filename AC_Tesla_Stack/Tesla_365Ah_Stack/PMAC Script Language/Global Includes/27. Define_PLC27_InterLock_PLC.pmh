@@ -29,6 +29,7 @@ P_Limit_PosData(0),3=0;
 #define N_Door_Open				555			//[참조 : 260513 : 양음극 릴컷부 도어 오픈 시 1차 PNP 인터락 ]
 #define N_NG_Box_Open			666			//[참조 : 260601 : 양음극 NG BOX 도어 오픈 시 조그 인터락 ]
 #define N_1st_Cell_Existence	777			//[참조 : 20260716 1차 PNP에 극판 존재 시 피커 T축 인터락 ]
+#define N_IL_Out_Stack_Run_Close 888		
 
 global P_IL_Sprint = 0;
 global P_IL_length = 0;

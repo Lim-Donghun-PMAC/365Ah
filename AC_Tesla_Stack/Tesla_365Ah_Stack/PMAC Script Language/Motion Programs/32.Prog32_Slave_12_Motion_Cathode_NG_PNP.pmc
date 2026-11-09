@@ -109,8 +109,8 @@ open prog 32
 				P_PLC12_Blow_MNTR(N_Align_Cathode) == 1;				// BackGround PLC12 MNTR Start  [ 참조 : 25.07.02 옵저버 추가 ]
 				dwell(50)
 				// [ 참조 : 26.05.06 1,2차,NG PNP 및 얼라인 흡착 해제 타이밍 수정 ]
-				M_Y_Anode_AT_Vac_Ejector_Vac_On == 0;				// 음극 얼라인 흡착 ON
-				M_Y_Anode_AT_Vac_Ejector_Vac_Off == 0;				// 음극 얼라인 흡착 OFF
+				M_Y_Cathode_AT_Vac_Ejector_Vac_On == 0;					// 양극 얼라인 흡착 ON	[ 참조 : 26.10.22 오타 수정 ]
+				M_Y_Cathode_AT_Vac_Ejector_Vac_Off == 0;				// 양극 얼라인 흡착 OFF	[ 참조 : 26.10.22 오타 수정 ]
 				dwell(P_NG_PNP_Vac_Time)
 				P_Cathode_NG_PNP_Motion_Complete == 1
 				P_NG_PNP_Vac_On_Status == F_Status_COMPLETE;		// Hold 모듈 모션 동작 상태 확인. [ 참조 : 25.12.02 Hold 액팅 모듈 추가 ]

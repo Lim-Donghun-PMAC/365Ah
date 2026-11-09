@@ -35,7 +35,7 @@ Open PROG 3
 		P_Tact_Time_Check(N_Anode_Align) == 1;				// Tact Time 측정 시작	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
 		dwell(0)
 		TA( P_Anode_Align_Stage_TA ) TS( P_Anode_Align_Stage_TS ) TM( P_Anode_Align_Stage_TM )	
-		X( 0 ) Y( 0 ) TT( 0 )
+		X( 0 ) 	Y( 0 ) 	TT( 0 )
 		M_Y_Vision_Anode_Aling_Move_Complete == 0
 		P_Tact_Time_Check(N_Anode_Align) == 0;				// Tact Time 측정 종료	[ 참조 : 25.06.20 Tact Time 프로그램 추가. ]
 		dwell(0)

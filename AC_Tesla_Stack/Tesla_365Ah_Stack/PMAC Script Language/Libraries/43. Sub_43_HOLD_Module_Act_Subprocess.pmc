@@ -2182,13 +2182,21 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 		// 2) 동작 확인.
 		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) == 2 )													// 동작 확인 일 경우.
 		{
-			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_NG_Box_Pos) + P_Act_Hold_Time_Out(N_Act_NG_PNP_NG_Box_Pos))			// 일정 시간 전에 완료 될 경우.
+			// [26.11.09 홀드 처리중 NG BOX 오픈 되어있을때 스탑 버튼 누를 시 무언정지 상태로 인해 수정)
+			if(P_Cathode_NG_PNP_Vel_Zero_Set == 0 && P_Anode_NG_PNP_Vel_Zero_Set == 0)
 			{
-				if ( P_NG_PNP_NG_Bos_Status == F_Status_COMPLETE )																	// 모션 프로그램 확인.
-					P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+				if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_NG_Box_Pos) + P_Act_Hold_Time_Out(N_Act_NG_PNP_NG_Box_Pos))			// 일정 시간 전에 완료 될 경우.
+				{
+					if ( P_NG_PNP_NG_Bos_Status == F_Status_COMPLETE )																	// 모션 프로그램 확인.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+				}
+				else																													// 일정 시간을 넘겼을 경우.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) = N_Error_Step;									// 애러 스텟 머신으로 이동.
 			}
-			else																													// 일정 시간을 넘겼을 경우.
-				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+			else
+			{
+				P_Act_Hold_Old_Time(N_Act_NG_PNP_NG_Box_Pos) = Sys.Time;
+			}
 		}		
 		// 444) 애러.
 		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_NG_Box_Pos) == N_Error_Step )										// 애러 상태 일 경우.
@@ -2237,13 +2245,21 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 		// 2) 동작 확인.
 		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) == 2 )													// 동작 확인 일 경우.
 		{
-			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Pos) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Align_Pos))				// 일정 시간 전에 완료 될 경우.
+			// [26.11.09 홀드 처리중 NG BOX 오픈 되어있을때 스탑 버튼 누를 시 무언정지 상태로 인해 수정)
+			if(P_Cathode_NG_PNP_Vel_Zero_Set == 0 && P_Anode_NG_PNP_Vel_Zero_Set == 0)
 			{
-				if ( P_NG_PNP_Align_Status == F_Status_COMPLETE )																	// 모션 프로그램 확인.
-					P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+				if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Pos) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Align_Pos))				// 일정 시간 전에 완료 될 경우.
+				{
+					if ( P_NG_PNP_Align_Status == F_Status_COMPLETE )																	// 모션 프로그램 확인.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+				}
+				else																													// 일정 시간을 넘겼을 경우.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
 			}
-			else																													// 일정 시간을 넘겼을 경우.
-				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+			else
+			{
+				P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Pos) = Sys.Time;	
+			}
 		}		
 		// 444) 애러.
 		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Pos) == N_Error_Step )										// 애러 상태 일 경우.
@@ -2291,13 +2307,21 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 		// 2) 동작 확인.
 		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) == 2 )												// 동작 확인 일 경우.
 		{
-			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Down_Pos) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Align_Down_Pos))	// 일정 시간 전에 완료 될 경우.
+			// [26.11.09 홀드 처리중 NG BOX 오픈 되어있을때 스탑 버튼 누를 시 무언정지 상태로 인해 수정)
+			if(P_Cathode_NG_PNP_Vel_Zero_Set == 0 && P_Anode_NG_PNP_Vel_Zero_Set == 0)
 			{
-				if ( P_NG_PNP_Align_Down_Status == F_Status_COMPLETE )																// 모션 프로그램 확인.
-					P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+				if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Down_Pos) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Align_Down_Pos))	// 일정 시간 전에 완료 될 경우.
+				{
+					if ( P_NG_PNP_Align_Down_Status == F_Status_COMPLETE )																// 모션 프로그램 확인.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+				}
+				else																													// 일정 시간을 넘겼을 경우.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) = N_Error_Step;									// 애러 스텟 머신으로 이동.
 			}
-			else																													// 일정 시간을 넘겼을 경우.
-				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			else
+			{
+				P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Down_Pos) = Sys.Time;
+			}
 		}		
 		// 444) 애러.
 		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Down_Pos) == N_Error_Step )									// 애러 상태 일 경우.
@@ -2346,13 +2370,21 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 		// 2) 동작 확인.
 		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) == 2 )												// 동작 확인 일 경우.
 		{
-			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Up_Pos) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Align_Up_Pos))		// 일정 시간 전에 완료 될 경우.
+			// [26.11.09 홀드 처리중 NG BOX 오픈 되어있을때 스탑 버튼 누를 시 무언정지 상태로 인해 수정)
+			if(P_Cathode_NG_PNP_Vel_Zero_Set == 0 && P_Anode_NG_PNP_Vel_Zero_Set == 0)
 			{
-				if ( P_NG_PNP_Align_Up_Status == F_Status_COMPLETE )																// 모션 프로그램 확인.
-					P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+				if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Up_Pos) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Align_Up_Pos))		// 일정 시간 전에 완료 될 경우.
+				{
+					if ( P_NG_PNP_Align_Up_Status == F_Status_COMPLETE )																// 모션 프로그램 확인.
+						P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) = N_Complete_Step;								// 완료 스텟 머신으로 이동.
+				}
+				else																													// 일정 시간을 넘겼을 경우.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) = N_Error_Step;									// 애러 스텟 머신으로 이동.
 			}
-			else																													// 일정 시간을 넘겼을 경우.
-				P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) = N_Error_Step;									// 애러 스텟 머신으로 이동.
+			else
+			{
+				P_Act_Hold_Old_Time(N_Act_NG_PNP_Align_Up_Pos) = Sys.Time;
+			}
 		}	
 		// 444) 애러.
 		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Align_Up_Pos) == N_Error_Step )										// 애러 상태 일 경우.
@@ -2401,24 +2433,32 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 		// 2) 동작 확인.
 		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) == 2 )														// 동작 확인 일 경우.
 		{
-			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Vac_On) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Vac_On))					// 일정 시간 전에 완료 될 경우.
+			// [26.11.09 홀드 처리중 NG BOX 오픈 되어있을때 스탑 버튼 누를 시 무언정지 상태로 인해 수정)
+			if(P_Cathode_NG_PNP_Vel_Zero_Set == 0 && P_Anode_NG_PNP_Vel_Zero_Set == 0)
 			{
-				if ( P_NG_PNP_Vac_On_Status == F_Status_COMPLETE )																	// 모션 프로그램 확인.
+				if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Vac_On) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Vac_On))					// 일정 시간 전에 완료 될 경우.
 				{
-					// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
-					if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+					if ( P_NG_PNP_Vac_On_Status == F_Status_COMPLETE )																	// 모션 프로그램 확인.
 					{
-							P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
-					}
-					// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
-					else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
-					{
-							P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+						// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+						if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+						{
+								P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+						}
+						// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+						else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+						{
+								P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+						}
 					}
 				}
+				else																													// 일정 시간을 넘겼을 경우.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = N_Error_Step;										// 애러 스텟 머신으로 이동.
 			}
-			else																													// 일정 시간을 넘겼을 경우.
-				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+			else
+			{
+				P_Act_Hold_Old_Time(N_Act_NG_PNP_Vac_On) = Sys.Time;
+			}
 		}	
 		// 444) 애러.
 		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Vac_On) == N_Error_Step )											// 애러 상태 일 경우.
@@ -2467,24 +2507,32 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 		// 2) 동작 확인.
 		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) == 2 )														// 동작 확인 일 경우.
 		{
-			if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Blow_On) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Blow_On))					// 일정 시간 전에 완료 될 경우.
+			// [26.11.09 홀드 처리중 NG BOX 오픈 되어있을때 스탑 버튼 누를 시 무언정지 상태로 인해 수정)
+			if(P_Cathode_NG_PNP_Vel_Zero_Set == 0 && P_Anode_NG_PNP_Vel_Zero_Set == 0)
 			{
-				if ( P_NG_PNP_Blow_On_Status == F_Status_COMPLETE )																	// 모션 프로그램 확인.
+				if ( Sys.Time < P_Act_Hold_Old_Time(N_Act_NG_PNP_Blow_On) + P_Act_Hold_Time_Out(N_Act_NG_PNP_Blow_On))					// 일정 시간 전에 완료 될 경우.
 				{
-					// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
-					if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+					if ( P_NG_PNP_Blow_On_Status == F_Status_COMPLETE )																	// 모션 프로그램 확인.
 					{
-							P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
-					}
-					// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
-					else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
-					{
-							P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+						// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
+						if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
+						{
+								P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+						}
+						// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
+						else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
+						{
+								P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+						}
 					}
 				}
+				else																													// 일정 시간을 넘겼을 경우.
+					P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = N_Error_Step;										// 애러 스텟 머신으로 이동.
 			}
-			else																													// 일정 시간을 넘겼을 경우.
-				P_Module_Act_Hold_State_Machine_Array(N_Act_Second_PNP_Vac_On) = N_Error_Step;										// 애러 스텟 머신으로 이동.
+			else
+			{
+				P_Act_Hold_Old_Time(N_Act_NG_PNP_Blow_On) = Sys.Time;
+			}
 		}	
 		// 444) 애러.
 		if ( P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) == N_Error_Step )											// 애러 상태 일 경우.

@@ -301,11 +301,18 @@ if( P_PMAC_Current_Mode == F_Current_Manual )
 		{
 			M_Y_Trigger_Display_Selected_Motor_Status_To_PLC = 1;		// Ready 버튼 LED ON
 		}
-		else
+		else 
 		{
-			M_Y_Trigger_Display_Selected_Motor_Status_To_PLC = 0;		// Ready 버튼 LED OFF
-			P_PMAC_Commands = F_Command_Stop
-			P_Stop_Cmd_Origin = 35
+			if ( P_SM_Anode_Align_MSA != 0 || P_SM_Cathode_Align_MSA != 0 || P_SM_Cathode_Stack_MSA != 0 || P_SM_Anode_Stack_MSA != 0 ) //[ 참조 : 26.11.03 MSA 동작 중 Stop 안되도록 수정 ]	
+			{ 
+				M_Y_Trigger_Display_Selected_Motor_Status_To_PLC = 1;
+			}
+			else
+			{
+				M_Y_Trigger_Display_Selected_Motor_Status_To_PLC = 0;		// Ready 버튼 LED OFF
+				P_PMAC_Commands = F_Command_Stop
+				P_Stop_Cmd_Origin = 35
+			}
 		}
 	}
 	else

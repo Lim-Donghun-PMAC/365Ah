@@ -51,6 +51,8 @@ local L_Old_N_BTN_CA_1st_PNP_Vac_Chk_Mode;					// Plc[13].ldata.L[27]	음극 1차 P
 local L_Old_N_BTN_AN_1st_PNP_Vac_Chk_Mode;					// Plc[13].ldata.L[28]	양극 1차 PNP 흡착 텍 측정 모드 버튼 이전 값 
 local L_Old_N_BTN_CA_2nd_PNP_Vac_Chk_Mode;					// Plc[13].ldata.L[29]	음극 2차 PNP 흡착 텍 측정 모드 버튼 이전 값 
 local L_Old_N_BTN_AN_2nd_PNP_Vac_Chk_Mode;					// Plc[13].ldata.L[30]	양극 2차 PNP 흡착 텍 측정 모드 버튼 이전 값 
+
+local L_PLC13_Manual_Stopping_RTN;							// Plc[13].ldata.L[31]
 //========================================================================================================================
 //========================================================================================================================
 // 00. 다이나믹 로컬 타이머 함수	
@@ -717,10 +719,15 @@ switch( P_SM_Anode_Align_MSA )
 	// 모터 서보 ON
 	case 1 :
 		P_Anode_Align_MSA_Count = 0
-		call MSA_SubProg.Motor_Servo_ON(&P_Anode_Algin_MSA_RTN)
-		if( P_Anode_Algin_MSA_RTN == 1)
+		//[ 참조 : 26.11.03 MSA 모션 커멘드 초기화 ]
+		call Sub_Common_Function.Slave_Motion_Command_Init(&L_PLC13_Manual_Stopping_RTN);		
+		if ( L_PLC13_Manual_Stopping_RTN == 1 ) 
 		{
-			P_SM_Anode_Align_MSA = 777
+			call MSA_SubProg.Motor_Servo_ON(&P_Anode_Algin_MSA_RTN)
+			if( P_Anode_Algin_MSA_RTN == 1)
+			{
+				P_SM_Anode_Align_MSA = 777
+			}
 		}
 	break;
 
@@ -1318,8 +1325,10 @@ switch( P_SM_Anode_Align_MSA )
 		cmd"&1..60a"
 		call Sub_Common_Function.Master_Motion_Program_OFF(&P_Anode_Algin_MSA_RTN);
 		P_SM_Anode_Align_MSA = 0
-		P_Status_Clear_Flag = 1
 		P_Anode_Align_MSA_Count = 0
+		//[ 참조 : 26.11.03 MSA 동작 완료 후 Status Clear 삭제 ]	
+		P_PMAC_Commands = F_Command_Stop
+		P_Stop_Cmd_Origin = 125
 	break;
 
 	default :
@@ -1339,10 +1348,15 @@ switch( P_SM_Cathode_Align_MSA )
 	// 모터 서보 ON
 	case 1 :
 		P_Cathode_Align_MSA_Count = 0
-		call MSA_SubProg.Motor_Servo_ON(&P_Cathode_Algin_MSA_RTN)
-		if( P_Cathode_Algin_MSA_RTN == 1)
+		//[ 참조 : 26.11.03 MSA 모션 커멘드 초기화 ]
+		call Sub_Common_Function.Slave_Motion_Command_Init(&L_PLC13_Manual_Stopping_RTN);		
+		if ( L_PLC13_Manual_Stopping_RTN == 1 ) 
 		{
-			P_SM_Cathode_Align_MSA = 777
+			call MSA_SubProg.Motor_Servo_ON(&P_Cathode_Algin_MSA_RTN)
+			if( P_Cathode_Algin_MSA_RTN == 1)
+			{
+				P_SM_Cathode_Align_MSA = 777
+			}
 		}
 	break;
 
@@ -1924,8 +1938,10 @@ switch( P_SM_Cathode_Align_MSA )
 		cmd"&1..60a"
 		call Sub_Common_Function.Master_Motion_Program_OFF(&P_Cathode_Algin_MSA_RTN);
 		P_SM_Cathode_Align_MSA = 0
-		P_Status_Clear_Flag = 1
 		P_Cathode_Align_MSA_Count = 0
+		//[ 참조 : 26.11.03 MSA 동작 완료 후 Status Clear 삭제 ]	
+		P_PMAC_Commands = F_Command_Stop
+		P_Stop_Cmd_Origin = 126
 	break;
 
 	default :
@@ -1945,10 +1961,15 @@ switch( P_SM_Cathode_Stack_MSA )
 	// 모터 서보 ON
 	case 1 :
 		P_Cathode_Stack_MSA_Count = 0
-		call MSA_SubProg.Motor_Servo_ON(&P_Cathode_Stack_MSA_RTN)
-		if( P_Cathode_Stack_MSA_RTN == 1)
+		//[ 참조 : 26.11.03 MSA 모션 커멘드 초기화 ]
+		call Sub_Common_Function.Slave_Motion_Command_Init(&L_PLC13_Manual_Stopping_RTN);		
+		if ( L_PLC13_Manual_Stopping_RTN == 1 ) 
 		{
-			P_SM_Cathode_Stack_MSA = 777
+			call MSA_SubProg.Motor_Servo_ON(&P_Cathode_Stack_MSA_RTN)
+			if( P_Cathode_Stack_MSA_RTN == 1)
+			{
+				P_SM_Cathode_Stack_MSA = 777
+			}
 		}
 	break;
 
@@ -2152,10 +2173,15 @@ switch( P_SM_Anode_Stack_MSA )
 	// 모터 서보 ON
 	case 1 :
 		P_Anode_Stack_MSA_Count = 0
-		call MSA_SubProg.Motor_Servo_ON(&P_Anode_Stack_MSA_RTN)
-		if( P_Anode_Stack_MSA_RTN == 1)
+		//[ 참조 : 26.11.03 MSA 모션 커멘드 초기화 ]
+		call Sub_Common_Function.Slave_Motion_Command_Init(&L_PLC13_Manual_Stopping_RTN);		
+		if ( L_PLC13_Manual_Stopping_RTN == 1 ) 
 		{
-			P_SM_Anode_Stack_MSA = 777
+			call MSA_SubProg.Motor_Servo_ON(&P_Anode_Stack_MSA_RTN)
+			if( P_Anode_Stack_MSA_RTN == 1)
+			{
+				P_SM_Anode_Stack_MSA = 777
+			}
 		}
 	break;
 
@@ -2363,10 +2389,15 @@ switch( P_SM_Anode_1st_PNP_Vac_Chk_Mode )
 	// 모터 서보 ON
 	case 1 :
 		P_Anode_1st_PNP_Vac_Chk_Status = F_Status_STARTING;
-		call MSA_SubProg.Motor_Servo_ON(&P_Anode_1st_PnP_Vac_Chk_Mode_RTN)
-		if( P_Anode_1st_PnP_Vac_Chk_Mode_RTN == 1)
+		//[ 참조 : 26.11.03 MSA 모션 커멘드 초기화 ]
+		call Sub_Common_Function.Slave_Motion_Command_Init(&L_PLC13_Manual_Stopping_RTN);		
+		if ( L_PLC13_Manual_Stopping_RTN == 1 ) 
 		{
-			P_SM_Anode_1st_PNP_Vac_Chk_Mode = 777
+			call MSA_SubProg.Motor_Servo_ON(&P_Anode_1st_PnP_Vac_Chk_Mode_RTN)
+			if( P_Anode_1st_PnP_Vac_Chk_Mode_RTN == 1)
+			{
+				P_SM_Anode_1st_PNP_Vac_Chk_Mode = 777
+			}
 		}
 	break;
 
@@ -2584,10 +2615,15 @@ switch( P_SM_Cathode_1st_PNP_Vac_Chk_Mode )
 	// 모터 서보 ON
 	case 1 :
 		P_Cathode_1st_PNP_Vac_Chk_Status = F_Status_STARTING;
-		call MSA_SubProg.Motor_Servo_ON(&P_Cathode_1st_PnP_Vac_Chk_Mode_RTN)
-		if( P_Cathode_1st_PnP_Vac_Chk_Mode_RTN == 1)
+		//[ 참조 : 26.11.03 MSA 모션 커멘드 초기화 ]
+		call Sub_Common_Function.Slave_Motion_Command_Init(&L_PLC13_Manual_Stopping_RTN);		
+		if ( L_PLC13_Manual_Stopping_RTN == 1 ) 
 		{
-			P_SM_Cathode_1st_PNP_Vac_Chk_Mode = 777
+			call MSA_SubProg.Motor_Servo_ON(&P_Cathode_1st_PnP_Vac_Chk_Mode_RTN)
+			if( P_Cathode_1st_PnP_Vac_Chk_Mode_RTN == 1)
+			{
+				P_SM_Cathode_1st_PNP_Vac_Chk_Mode = 777
+			}
 		}
 	break;
 
@@ -2804,10 +2840,15 @@ switch( P_SM_Anode_2nd_PNP_Vac_Chk_Mode )
 	// 모터 서보 ON
 	case 1 :
 		P_Anode_2nd_PNP_Vac_Chk_Status = F_Status_STARTING;
-		call MSA_SubProg.Motor_Servo_ON(&P_Anode_2nd_PnP_Vac_Chk_Mode_RTN)
-		if( P_Anode_2nd_PnP_Vac_Chk_Mode_RTN == 1)
+		//[ 참조 : 26.11.03 MSA 모션 커멘드 초기화 ]
+		call Sub_Common_Function.Slave_Motion_Command_Init(&L_PLC13_Manual_Stopping_RTN);		
+		if ( L_PLC13_Manual_Stopping_RTN == 1 ) 
 		{
-			P_SM_Anode_2nd_PNP_Vac_Chk_Mode = 777
+			call MSA_SubProg.Motor_Servo_ON(&P_Anode_2nd_PnP_Vac_Chk_Mode_RTN)
+			if( P_Anode_2nd_PnP_Vac_Chk_Mode_RTN == 1)
+			{
+				P_SM_Anode_2nd_PNP_Vac_Chk_Mode = 777
+			}
 		}
 	break;
 
@@ -2981,10 +3022,15 @@ switch( P_SM_Cathode_2nd_PNP_Vac_Chk_Mode )
 	// 모터 서보 ON
 	case 1 :
 		P_Cathode_2nd_PNP_Vac_Chk_Status = F_Status_STARTING;
-		call MSA_SubProg.Motor_Servo_ON(&P_Cathode_2nd_PnP_Vac_Chk_Mode_RTN)
-		if( P_Cathode_2nd_PnP_Vac_Chk_Mode_RTN == 1)
+		//[ 참조 : 26.11.03 MSA 모션 커멘드 초기화 ]
+		call Sub_Common_Function.Slave_Motion_Command_Init(&L_PLC13_Manual_Stopping_RTN);		
+		if ( L_PLC13_Manual_Stopping_RTN == 1 ) 
 		{
-			P_SM_Cathode_2nd_PNP_Vac_Chk_Mode = 777
+			call MSA_SubProg.Motor_Servo_ON(&P_Cathode_2nd_PnP_Vac_Chk_Mode_RTN)
+			if( P_Cathode_2nd_PnP_Vac_Chk_Mode_RTN == 1)
+			{
+				P_SM_Cathode_2nd_PNP_Vac_Chk_Mode = 777
+			}
 		}
 	break;
 

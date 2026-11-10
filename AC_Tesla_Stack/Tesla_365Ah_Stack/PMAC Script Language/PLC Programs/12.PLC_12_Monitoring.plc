@@ -1331,8 +1331,8 @@ If ( P_PMAC_Current_Mode == F_Current_Automatic && P_X_PLC_Setup_Mode_Check == 0
 		case 4 :
 			if( Coord[N_Coord_NG_PNP_CA].pDesTimeBase == Coord[1].DesTimeBase.a )
 			{
-				Coord[N_Coord_NG_PNP_CA].DesTimeBase = Sys.ServoPeriod
-				if( Coord[N_Coord_NG_PNP_CA].DesTimeBase == Sys.ServoPeriod  )
+				Coord[N_Coord_NG_PNP_CA].DesTimeBase = Coord[1].DesTimeBase
+				if( Coord[N_Coord_NG_PNP_CA].DesTimeBase == Coord[1].DesTimeBase  )
 				{
 					P_Cathode_NG_PNP_Vel_Zero_Set = 0
 				}
@@ -1372,8 +1372,8 @@ If ( P_PMAC_Current_Mode == F_Current_Automatic && P_X_PLC_Setup_Mode_Check == 0
 		case 4 :
 			if( Coord[N_Coord_NG_PNP_AN].pDesTimeBase == Coord[1].DesTimeBase.a )
 			{
-				Coord[N_Coord_NG_PNP_AN].DesTimeBase = Sys.ServoPeriod
-				if( Coord[N_Coord_NG_PNP_AN].DesTimeBase == Sys.ServoPeriod )
+				Coord[N_Coord_NG_PNP_AN].DesTimeBase = Coord[1].DesTimeBase
+				if( Coord[N_Coord_NG_PNP_AN].DesTimeBase == Coord[1].DesTimeBase )
 				{
 					P_Anode_NG_PNP_Vel_Zero_Set = 0
 				}
@@ -1393,8 +1393,8 @@ if( P_Cathode_NG_PNP_Vel_Zero_Set != 0 || P_Anode_NG_PNP_Vel_Zero_Set != 0 )
 	{
 		P_Cathode_NG_PNP_Vel_Zero_Set = 0
 		P_Anode_NG_PNP_Vel_Zero_Set = 0
-		Coord[N_Coord_NG_PNP_CA].DesTimeBase = Sys.ServoPeriod
-		Coord[N_Coord_NG_PNP_CA].DesTimeBase = Sys.ServoPeriod
+		Coord[N_Coord_NG_PNP_CA].DesTimeBase = Coord[1].DesTimeBase
+		Coord[N_Coord_NG_PNP_CA].DesTimeBase = Coord[1].DesTimeBase
 	}
 	else
 	{
@@ -1403,15 +1403,15 @@ if( P_Cathode_NG_PNP_Vel_Zero_Set != 0 || P_Anode_NG_PNP_Vel_Zero_Set != 0 )
 
 		if( P_Cathode_NG_PNP_Vel_Zero_Set != 0 )
 		{
-			nop(sprintf(F_IL_Cdata," Cathode NG_PNP "));		
+			nop(sprintf(F_IL_Cdata," Cathode NG Box Opened "));		
 		}
 
 		if( P_Anode_NG_PNP_Vel_Zero_Set != 0 )
 		{
-			nop(sprintf(F_IL_Cdata," Anode NG_PNP "));
+			nop(sprintf(F_IL_Cdata," Anode NG Box Opened "));
 		}
 
-		nop(sprintf(F_IL_Cdata2," Sensor Check "));
+		nop(sprintf(F_IL_Cdata2," Please Close NG BOX "));
 		if ( P_X_Interlock_Popup_On_Request_Ack == 0 )			// 26.09.29 ÆË¾÷ÀÌ ²¨Á®ÀÖÀ» ¶§ ÆË¾÷À» ¶ç¿ï ¼ö ÀÖµµ·Ï ¼öÁ¤.
 		{
 			P_Y_Interlock_Popup_On_Request = 1;

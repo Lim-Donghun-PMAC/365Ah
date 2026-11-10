@@ -2380,10 +2380,13 @@ case N_Function_Sepa_ARC_Mode :	// 세파 ARC 란	/* def 12 */
 					{
 						if((P_Hold_Exist_Insp | P_Hold_Remove_NG_PNP | P_Hold_Remove_Align | P_Hold_Remove_2TR | P_Hold_Supply_1TR | P_Hold_Supply_Align | P_Hold_Supply_2TR | P_Hold_Semi_Run) == F_Hold_Complete ) // 2.1) Hold 모듈 완료 상태 확인 ( 0 : 완료, 1 : 진행 중 )
 						{	
-							if( P_Execute_First_Sepa_Mode_Module_Status == 0 || P_Execute_First_Sepa_Mode_Module_Status == F_Status_COMPLETE || P_Execute_First_Sepa_Mode_Module_Status == F_Status_STOPPED )	// 2.1.1) 세파 첫장 모듈 0 || 완료 일 경우 || 타임 아웃 일 경우 (세파 첫장 진행중일 경우 사이클 정지 X)		[ 참조 : 25.06.20 세파 첫장 모듈 추가. ]	[ 참조 : 25.07.15 세파 첫장 타임아웃 정지 추가. ]
+							if( P_Cathode_NG_PNP_Vel_Zero_Set == 0 && P_Anode_NG_PNP_Vel_Zero_Set == 0 )
 							{
-								//call Sub_Exception_Suspend_Function.Last_Jelly_Roll_Action(&P_Last_JR_Ret);		// 2.1.1.1) ARC QUEUE가 실행이 안되는 경우가 있을 수도 있음.
-								P_STOP_Initial_Process_STEP = 1;													// 다음 스텝으로 이동 
+								if( P_Execute_First_Sepa_Mode_Module_Status == 0 || P_Execute_First_Sepa_Mode_Module_Status == F_Status_COMPLETE || P_Execute_First_Sepa_Mode_Module_Status == F_Status_STOPPED )	// 2.1.1) 세파 첫장 모듈 0 || 완료 일 경우 || 타임 아웃 일 경우 (세파 첫장 진행중일 경우 사이클 정지 X)		[ 참조 : 25.06.20 세파 첫장 모듈 추가. ]	[ 참조 : 25.07.15 세파 첫장 타임아웃 정지 추가. ]
+								{
+									//call Sub_Exception_Suspend_Function.Last_Jelly_Roll_Action(&P_Last_JR_Ret);		// 2.1.1.1) ARC QUEUE가 실행이 안되는 경우가 있을 수도 있음.
+									P_STOP_Initial_Process_STEP = 1;													// 다음 스텝으로 이동 
+								}
 							}
 						}
 					}

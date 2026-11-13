@@ -35,7 +35,7 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(15)
 			
 			x(P_Sepa_Length + P_AN_DR_Offset)
 			
-		   Sys.Idata[21185] = P_Sepa_Length + P_AN_DR_Offset	//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]
+		   Sys.Idata[21185] = (P_Sepa_Length + P_AN_DR_Offset) * 10000	//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ] [ 참조 : 26.11.12 MES 단위 변경 ]
 			
 		  dwell(0)	
 	   break;
@@ -49,7 +49,7 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(15)
 
 			x(P_Sepa_Length + P_CA_DR_Offset)
 
-		  Sys.Idata[21185] = P_Sepa_Length + P_CA_DR_Offset		//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]
+		  Sys.Idata[21185] = (P_Sepa_Length + P_CA_DR_Offset) * 10000		//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]	[ 참조 : 26.11.12 MES 단위 변경 ]
 
 		  dwell(0)	
 	   break;
@@ -66,7 +66,7 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(15)
 		  x(P_Sepa_Length + P_CA_DR_Offset + P_First_DR_Offset )	
 		  P_Driving_Start == 0
 
-		  Sys.Idata[21185] = P_Sepa_Length + P_CA_DR_Offset + P_First_DR_Offset				//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]
+		  Sys.Idata[21185] = (P_Sepa_Length + P_CA_DR_Offset + P_First_DR_Offset) * 10000	//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]	[ 참조 : 26.11.12 MES 단위 변경 ]
 		  dwell(0)	
 	   break;
 	   // case 8
@@ -86,7 +86,7 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(15)
 			x(P_Sepa_Length + (abs(P_Final_Roll_X_Discharge) - abs(P_Final_Roll_X_Anode_Move)) + P_AN_DR_Offset + P_Last_DR_Offset)	
 
 			P_Driving_Start == 0;
-			Sys.Idata[21185] = P_Sepa_Length + (abs(P_Final_Roll_X_Discharge) - abs(P_Final_Roll_X_Anode_Move)) + P_AN_DR_Offset + P_Last_DR_Offset				//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]
+			Sys.Idata[21185] = (P_Sepa_Length + (abs(P_Final_Roll_X_Discharge) - abs(P_Final_Roll_X_Anode_Move)) + P_AN_DR_Offset + P_Last_DR_Offset) * 10000				//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]	[ 참조 : 26.11.12 MES 단위 변경 ]
 			dwell(0)
 		  //P_Current_Mode = 2;
 		  //P_AN_DR_Offset = ( abs(P_Final_Roll_X_Discharge) - abs(P_Final_Roll_X_Anode_Move) );
@@ -106,7 +106,7 @@ while( P_Master_Motion_Program_Flag == 1 && P_Sub_Master_Motion_Program_Flag(15)
 		tm(40) ta(25) ts(15)
 		x(P_First_Sepa_1st_Driving_Move)
 
-		Sys.Idata[21185] = P_First_Sepa_1st_Driving_Move		//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]
+		Sys.Idata[21185] = P_First_Sepa_1st_Driving_Move * 10000		//[참조 : 260617 Sepa feeding양 Driviing Roller MES 전달 ]	[ 참조 : 26.11.12 MES 단위 변경 ]
 		dwell(0)
 	   break;
 

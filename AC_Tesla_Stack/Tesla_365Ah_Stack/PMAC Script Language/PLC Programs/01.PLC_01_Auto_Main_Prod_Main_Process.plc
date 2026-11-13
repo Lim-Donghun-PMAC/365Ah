@@ -579,10 +579,12 @@ Switch ( P_Process_Function_Command )
 					{
 						P_PLC01_Exe_Is_Ena_Step_Flag(1) = 0;
 
-						P_PV_EPC_Camera_Pos(0),15 = 0;										// EPC Camera 위치 배열 초기화.	[ 참조 : 26.09.14 PV EPC Camera Pos 추가 ]
-						P_PV_EPC_Index = 0;													// PV_EPC_Index 초기화. (0번 배열에 보정 전 위치값을 넣기 위함)		[ 참조 : 26.09.14 PV EPC Camera Pos 추가 ]
-						P_PV_EPC_Camera_Pos(P_PV_EPC_Index) = P_Motor_Current_Pos(33);		// 보정 전 EPC Camera 위치 저장.	[ 참조 : 26.09.14 PV EPC Camera Pos 추가 ]
-
+						if ( P_Stack_Judgement_Memory == 0 )									// JR 적층 중이 아닐 경우. [ 참조 : 26.11.12 PV EPC Camera Pos 수정 ]
+						{
+							P_PV_EPC_Camera_Pos(0),15 = 0;										// EPC Camera 위치 배열 초기화.	[ 참조 : 26.09.14 PV EPC Camera Pos 추가 ]
+							P_PV_EPC_Index = 0;													// PV_EPC_Index 초기화. (0번 배열에 보정 전 위치값을 넣기 위함)		[ 참조 : 26.09.14 PV EPC Camera Pos 추가 ]
+							P_PV_EPC_Camera_Pos(P_PV_EPC_Index) = P_Motor_Current_Pos(33);		// 보정 전 EPC Camera 위치 저장.	[ 참조 : 26.09.14 PV EPC Camera Pos 추가 ]
+						}
 						P_Sepa_To_Normal_Mode_Sync_Err_Avoid = 1;							// Pause에서 Err를 피하기 위한 변수.	[ 참조 : 26.07.31 Pause_Resume 수정 ]
 						P_Memory_Tower_Search_Flag = 1;										// 1) 메모리타워 통합 유닛 변수 리턴값 초기화 
 						P_MemTow_integrated_return = 0;										// 2) PLC03 위치 메모리 타워 Flag ON

@@ -364,7 +364,7 @@ switch( P_Dancer_Out_Slew_Seq )
 // N -> Kgf 변환 : 9.807 
 // kgf * Gear : 최종 걸리는 kgf
 
-if( Motor[N_SERVO_DANCER].AmpEna == 1 && Motor[N_SERVO_DANCER].ClosedLoop != 0 )	// Open Loop 활성화 시 
+if( Motor[N_SERVO_DANCER].AmpEna == 1 && Motor[N_SERVO_DANCER].ClosedLoop != 1 )	// Open Loop 활성화 시	[ 참조 : 26.11.12 댄서 압력 계산 조건 변경 ]
 {
 	if( Motor[N_SERVO_DANCER].Servoout != 0 )		
 	{

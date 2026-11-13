@@ -100,7 +100,7 @@ if( P_PLC18_EPC_Moving_Flag == N_TRUE )											// 1) 비전 보정값을 받아서 EPC
 	P_PLC18_EPC_Moving_Flag = 0;												// 1.1) 플레그 초기화
 	L_PLC18_EPC_Timer = 0;														// 1.2) 타이머 초기화
 	P_PV_EPC_Index++;															// PV_EPC_Index 증가. (보정이 시작된 후 위치값을 저장하기 위함)		[ 참조 : 26.09.14 PV EPC Camera Pos 추가 ]
-	if ( P_PV_EPC_Index <= 13 )													// PV_EPC_Index가 13을 넘어갈 경우.
+	if ( P_PV_EPC_Index >= 13 )													// PV_EPC_Index가 13을 넘어갈 경우.	[ 참조 : 26.11.12 PV EPC Camera Pos 수정 ]
 		P_PV_EPC_Index = 12;													// PV_EPC_Index를 12로 고정. (배열 중 12가 제일 마지막)
 	P_PLC18_EPC_Moving_Status = F_Status_STARTING;								// 1.3) 상태 : EPC Sensor 모터 보정시작
 	P_PLC18_EPC_Move_State_Machine = 1;											// 1.4) EPC 모터 구동 스텟머신 시작

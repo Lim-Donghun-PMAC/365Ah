@@ -1008,7 +1008,14 @@ switch(P_Vision_FirstSepa_State_Machine)
 		if(L_FirstSepa_Timer > 50)
 		{
 			M_Y_Vision_Stack_First_Sepa_Trigger = 0;			// 비전 트리거 I/O Off
-			P_Vision_FirstSepa_State_Machine++;
+			if(P_First_Sepa_Vision_Skip_Flag == 1)
+			{
+				P_Vision_FirstSepa_State_Machine = 5;
+			}
+			else
+			{
+				P_Vision_FirstSepa_State_Machine++;
+			}
 		}
 	break;
 

@@ -247,7 +247,7 @@ open subprog Subprog_Subprocess_Execute_Act_Module(void)
 		if ( P_Module_Act_Execute_State_Machine_Array(N_Act_Vision_Check) == 1 )
 		{
 			//[ 참조 20261026 세파 첫장 검사 실행 결정 조건 추가 (연속 J/R적층 시에는 실행 X, 그 외에는 실행O) ]
-			if ( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence && P_First_Sepa_Vision_Skip_Flag == 0 )			// 드라이 런 모드가 아니고, 연속 J/R 적층이 아닐 경우.
+			if ( P_Buffer_Mode_Status_Sequence != N_Dryrun_Status_Sequence)			// 드라이 런 모드가 아니고, 연속 J/R 적층이 아닐 경우.
 			{
 				P_Vision_FirstSepa_Command = 1;											// Vision 검사 실행.
 				P_Module_Act_Execute_State_Machine_Array(N_Act_Vision_Check) = 2;		// 다음 스텟 머신으로 이동.

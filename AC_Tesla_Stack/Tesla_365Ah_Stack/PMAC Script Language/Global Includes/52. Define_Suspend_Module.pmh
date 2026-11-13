@@ -1195,9 +1195,9 @@ global P_Passive_D_One_Degree_AD_Value = 0;						// 패시브 댄서 아날로그 값
 //global	P_After_ARC_Rotate_Distance = 750;					// ARC 후 언와인더 감는량 750mm, 기존 Z-STACK에서 감는 량 가져옴.
 global	P_After_ARC_Rotate_Distance = 750;		// ARC 후 언와인더 감는량 (PLC에서 * 10000 값이 들어옴)	[ 참조 : 26.04.17 ARC 보완사항 수정 ]
 //================================================================================================================================================//
-// 참조 260601 비전 ng code 프로그램이 되어 있지 않아 임시로 시간 0으로 수정
-//global P_Stack_Vision_NG_Code_Time_Over = 3000;					// 스텍 비전 타임아웃
-global P_Stack_Vision_NG_Code_Time_Over = 0;					// 스텍 비전 타임아웃
+// 참조 260601 비전 ng code 프로그램이 되어 있지 않아 임시로 시간 0으로 수정 [ 참조 : 26.11.12 스텍 비전 타임아웃 시간 변경 ]
+global P_Stack_Vision_NG_Code_Time_Over = 3000;					// 스텍 비전 타임아웃
+//global P_Stack_Vision_NG_Code_Time_Over = 0;					// 스텍 비전 타임아웃
 
 
 global P_Suspend_Discharge_Resume_Flag = 0;						// 배출모듈 리줌 플래그 

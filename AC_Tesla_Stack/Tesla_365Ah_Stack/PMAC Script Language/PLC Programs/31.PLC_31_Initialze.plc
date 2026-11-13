@@ -307,7 +307,7 @@ if(P_Ecat_Connect_Result == 1)
 		enable plc 4,6,8,9;
 		enable plc 10,12,13,14;		// 12번 모니터링 PLC 추가 , 19번 홈 PLC 추가
 
-		enable plc 15,17,18,19;
+		enable plc 15,16,17,18,19;
 		enable plc 21,23,24,28;
 
 		enable plc 26

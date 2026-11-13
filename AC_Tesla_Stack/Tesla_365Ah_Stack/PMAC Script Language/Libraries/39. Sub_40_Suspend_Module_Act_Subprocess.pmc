@@ -121,6 +121,12 @@ open subprog Subprog_Subprocess_Act_Module(void)
 			call Discharge_Sub_Prog.Discharge_Host_ID_Result(&P_Discharge_Sub_RTN);									// HOST-ID 전송.
 			if( P_Discharge_Sub_RTN == N_TRUE )																		// HOST-ID 전송 완료 일 경우.
 			{
+				//[ 참조 : 260126 비전 마지막장, 첫장 시점 변경 ]	[ 잠조 : 26.11.12 비전 마지막장, 첫장 시점 재변경 ]
+				IF ( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence )
+				{ 	
+					M_Y_Vision_Stack_End_Sheet = 1;		// 스텍 마지막장을 쌓는다는것을 알리는 신호 ON
+					M_Y_Vision_Stack_Start_Sheet = 0;	// 스텍 첫장을 쌓는다는것을 알리는 신호 OFF
+				}
 				P_Stack_Vision_NG_Code_IN_Timer = 0;																// NG Code 보고 타이머 초기화.
 				P_Module_Act_State_Machine_Array(N_Act_FR_Clamp_OFF) = 4;
 			}
@@ -226,8 +232,8 @@ open subprog Subprog_Subprocess_Act_Module(void)
 			//[ 참조 : 260126 비전 마지막장, 첫장 시점 변경 ]
 			IF ( P_Buffer_Mode_Status_Sequence == N_Normal_Status_Sequence )
 			{ 	
-				M_Y_Vision_Stack_End_Sheet = 1;		// 스텍 마지막장을 쌓는다는것을 알리는 신호 ON
-				M_Y_Vision_Stack_Start_Sheet = 0;	// 스텍 첫장을 쌓는다는것을 알리는 신호 OFF
+				//M_Y_Vision_Stack_End_Sheet = 1;		// 스텍 마지막장을 쌓는다는것을 알리는 신호 ON					[ 잠조 : 26.11.12 비전 마지막장, 첫장 시점 재변경 ]
+				//M_Y_Vision_Stack_Start_Sheet = 0;	// 스텍 첫장을 쌓는다는것을 알리는 신호 OFF
 				// [참조 : 260127 얼라인 스타트 io on/off 시점 추가]
 				M_Y_Vision_Anode_Align_Start = 1;
 				M_Y_Vision_Cathode_Align_Start = 1;

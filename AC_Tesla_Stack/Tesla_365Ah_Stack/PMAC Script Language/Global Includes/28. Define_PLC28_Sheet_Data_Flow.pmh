@@ -139,7 +139,7 @@ global P_Anode_Vision_NG_To_PLC_Flag = 0;
 global P_Cathode_Vision_NG_To_PLC_Flag = 0;
 //global P_Cathode_Surface_NG_To_PLC_Flag = 0;
 
-#define N_NG_Data_Shift_Delay_Time			300
+#define N_NG_Data_Shift_Delay_Time			400
 
 // Status clear 체크 변수
 global P_Status_Clear_Sheet_Maint_Check = 0;

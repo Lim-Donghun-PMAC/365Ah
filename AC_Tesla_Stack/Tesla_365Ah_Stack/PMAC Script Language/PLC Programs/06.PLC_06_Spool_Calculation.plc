@@ -321,7 +321,7 @@ if(P_PMAC_Current_Mode == F_Current_Automatic && P_Buffer_Mode_Status_Sequence !
 		if( P_Current_Mode == F_Half_Cathode_Run_Mode && P_Cathode_Cur_Mode == F_Sepa_Last_Run )
 		{
 			P_Spool_Length = P_Sepa_Length + (abs(P_Final_Roll_X_Discharge) - abs(P_Final_Roll_X_Anode_Move));
-			Sys.Idata[21186] = P_Spool_Length //[참조 : 260617 Sepa feeding양 Spool MES 전달 ]
+			Sys.Idata[21186] = P_Spool_Length * 10000 //[참조 : 260617 Sepa feeding양 Spool MES 전달 ]	[ 참조 : 26.11.12 MES 단위 변경 ]
 		}
 		else
 		{
@@ -329,12 +329,12 @@ if(P_PMAC_Current_Mode == F_Current_Automatic && P_Buffer_Mode_Status_Sequence !
 			if( P_Current_Mode == F_Half_Cathode_Run_Mode || P_Driving_Start == 1 )
 			{
 				P_Spool_Length = P_Sepa_Length + P_AN_DR_Offset;
-				Sys.Idata[21186] = P_Spool_Length //[참조 : 260617 Sepa feeding양 Spool MES 전달 ]
+				Sys.Idata[21186] = P_Spool_Length * 10000 //[참조 : 260617 Sepa feeding양 Spool MES 전달 ]	[ 참조 : 26.11.12 MES 단위 변경 ]
 			}
 			else if( P_Current_Mode == F_Half_Anode_Run_Mode )
 			{
 				P_Spool_Length = P_Sepa_Length + P_CA_DR_Offset;
-				Sys.Idata[21186] = P_Spool_Length //[참조 : 260617 Sepa feeding양 Spool MES 전달 ]
+				Sys.Idata[21186] = P_Spool_Length * 10000 //[참조 : 260617 Sepa feeding양 Spool MES 전달 ]	[ 참조 : 26.11.12 MES 단위 변경 ]
 			}
 		}
 
@@ -460,21 +460,20 @@ if( P_Sepa_Min_Thickness_Cmd == N_TRUE )																// on
 	// AI값으로 측정되는 부분이라 오차가 있을 수 있으므로 여유있게 0.05mm 더해도 좋다. ( 너무 더하면 세파가 그만큼 많이 버려지게 된다 )
 }
 
-// 세파 소요량 계산
+// 세파 소요량 계산 [ 참조 : 26.11.12 세파 소요량 계산 수식 변경 ]
 if(P_Sepa_Required_Update_Timer > P_Set_Interval_Time)
 {
 	if(P_Selected_Spool_Number == N_UNWINDER_UPPER)
 	{
 		P_Sepa_Current_Thickness = P_AVRG_Upper_Sepa_Thickness_mm + P_Upper_Sensor_To_Unwinder_Core_Dis - P_Upper_Sepa_To_Sensor_Min_Dis;		// 상단 현재 세파 두께
+		P_Sepa_Initial_Tickness = P_Upper_Sensor_To_Unwinder_Core_Dis - P_Upper_Sepa_To_Sensor_Max_Dis;
 	}
 	else if(P_Selected_Spool_Number == N_UNWINDER_LOWER)
 	{
 		P_Sepa_Current_Thickness = P_AVRG_Lower_Sepa_Thickness_mm + P_Lower_Sensor_To_Unwinder_Core_Dis - P_Lower_Sepa_To_Sensor_Min_Dis;		// 하단 현재 세파 두께
+		P_Sepa_Initial_Tickness = P_Lower_Sensor_To_Unwinder_Core_Dis - P_Lower_Sepa_To_Sensor_Max_Dis;
 	}
-	
-	P_Sepa_Initial_Tickness = P_Sepa_Initial_Tickness + P_Lower_Sensor_To_Unwinder_Core_Dis - P_Lower_Sepa_To_Sensor_Min_Dis;
-
-	P_Sepa_Required_Amount = 3.141592 * (pow(P_Sepa_Initial_Tickness, 2.0) - pow(P_Sepa_Current_Thickness, 2.0)) / P_Sepa_Thickness;	// 현재 세파 소모량 ( 사용된 세파의 길이 mm )
+	P_Sepa_Required_Amount = 3.141592 * (pow(P_Sepa_Initial_Tickness, 2.0) - pow(P_Sepa_Current_Thickness,2.0))/P_Sepa_Thickness;	// 현재 세파 소모량 ( 사용된 세파의 길이 mm )
 	P_Sepa_Required_Update_Timer = 0;
 }
 

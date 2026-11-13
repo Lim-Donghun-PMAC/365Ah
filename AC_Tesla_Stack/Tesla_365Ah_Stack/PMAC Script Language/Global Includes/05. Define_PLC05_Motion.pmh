@@ -647,7 +647,7 @@ global P_Recipe_Dancer_input_kgf = 0;
 
 global P_Cathode_NG_PNP_Vel_Zero_Set = 0
 global P_Anode_NG_PNP_Vel_Zero_Set = 0
-
+global P_NG_Box_Open_Popup_Flag = 0;		// [ 참조 : 26.11.12 NG Box 신호에 따른 처리 수정 ]
 
 global P_Anode_Run_DR = 25  // 이전 27
 global P_Cathode_Run_DR = 70  // 이전 27

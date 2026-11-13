@@ -1317,7 +1317,6 @@ if(P_Send_Cathode_NG_Code_Flag == 1)
 // [ 참조: 26.01.26 Vision 판정 MES 보고 수정 ]
 if(P_Anode_Vision_NG_To_PLC_Flag == 1)
 {
-	// 300ms 후에
 	if(L_Anode_NG_Code_Delay_Timer >= N_NG_Data_Shift_Delay_Time)
 	{
 		M_Y_PLC_Anode_Sheet_NG = 1;
@@ -1340,18 +1339,16 @@ if(P_Cathode_Vision_NG_To_PLC_Flag == 1)
 
 
 // 음극 얼라인, 표면검사 NG I/O 초기화 
-//if(M_Y_PLC_Anode_Align_NG == 1 || M_Y_PLC_Anode_Surf_NG == 1)
-//{
-//	if(L_Anode_NG_Code_Delay_Timer > 400)
-//	{
-//		M_Y_PLC_Anode_Align_NG = 0;
-//		M_Y_PLC_Anode_Surf_NG = 0;
-
-//		P_Anode_NG_Code = 0;
-//		P_Receive_Anode_NG_Code_From_PLC = 0;
-//		P_Send_Anode_NG_Code_To_PLC = 0;
-//	}
-//}
+if(M_Y_PLC_Anode_Sheet_NG == 1)
+{
+	if(L_Anode_NG_Code_Delay_Timer > N_NG_Data_Shift_Delay_Time)
+	{
+		M_Y_PLC_Anode_Sheet_NG= 0;
+		P_Anode_NG_Code = 0;
+		P_Receive_Anode_NG_Code_From_PLC = 0;
+		P_Send_Anode_NG_Code_To_PLC = 0;
+	}
+}
 
 // 음극 데이터 전달 I/O 리셋
 if(M_Y_Vision_Anode_Data_Transfer_Trigger == 1)
@@ -1363,18 +1360,16 @@ if(M_Y_Vision_Anode_Data_Transfer_Trigger == 1)
 }
 
 // 양극 얼라인, 표면검사 NG I/O 초기화 
-//if(M_Y_PLC_Cathode_Align_NG == 1 || M_Y_PLC_Cathode_Surf_NG == 1)
-//{
-//	if(L_Cathode_NG_Code_Delay_Timer > 400)
-//	{
-//		M_Y_PLC_Cathode_Align_NG = 0;
-//		M_Y_PLC_Cathode_Surf_NG = 0;
-
-//		P_Cathode_NG_Code = 0;
-//		P_Receive_Cathode_NG_Code_From_PLC = 0;
-//		P_Send_Cathode_NG_Code_To_PLC = 0;
-//	}
-//}
+if(M_Y_PLC_Cathode_Sheet_NG == 1)
+{
+	if(L_Cathode_NG_Code_Delay_Timer > N_NG_Data_Shift_Delay_Time)
+	{
+		M_Y_PLC_Cathode_Sheet_NG = 0;
+		P_Cathode_NG_Code = 0;
+		P_Receive_Cathode_NG_Code_From_PLC = 0;
+		P_Send_Cathode_NG_Code_To_PLC = 0;
+	}
+}
 
 // 양극 데이터 전달 I/O 리셋
 if(M_Y_Vision_Cathode_Data_Transfer_Trigger == 1)
@@ -1608,16 +1603,17 @@ IF ( P_SM_Cell_Memory_Management == 1 )
 }
 
 // Status Clear 버튼 누르면 Sheet에 Maint NG
+// [ 참조 : 26.11.12 Maint NG 씌우는 조건 수정 ]
 if( P_Status_Clear_Sheet_Maint_Check == 1 )
 {
 	P_Status_Clear_Sheet_Maint_Check = 0;
 
-	if( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )				// 음극 얼라인 Sheet 존재하면	
+	if( Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence && (Sys_Anode_Align_Sheet_LO_Vision_BYTE & Hex_NG_Masking == 0))			// 음극 얼라인 Sheet 존재하면	
 	{
 		Sys_Anode_Align_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;					// 음극 얼라인 Sheet Maint NG
 	}
 
-	if( Sys_Anode_2nd_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )				// 음극 2차 PNP Sheet 존재하면	
+	if( Sys_Anode_2nd_Sheet_LO_Vision_BYTE & Hex_Cell_Existence && (Sys_Anode_2nd_Sheet_LO_Vision_BYTE & Hex_NG_Masking == 0))				// 음극 2차 PNP Sheet 존재하면
 	{
 		Sys_Anode_2nd_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;		 				// 음극 2차 PNP Sheet Maint NG
 	}
@@ -1629,17 +1625,17 @@ if( P_Status_Clear_Sheet_Maint_Check == 1 )
 //	}
 
 
-	if( Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )				// 음극 NG PNP Sheet 존재하면
+	if( Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE & Hex_Cell_Existence && (Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE & Hex_NG_Masking == 0))		// 음극 NG PNP Sheet 존재하면		
 	{
 		Sys_Anode_NG_TR_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;					// 음극 NG PNP Sheet Maint NG
 	}
 
-	if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )			// 양극 얼라인 Sheet 존재하면	
+	if( Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_Cell_Existence && (Sys_Cathode_Align_Sheet_LO_Vision_BYTE & Hex_NG_Masking == 0))			// 양극 얼라인 Sheet 존재하면		
 	{
 		Sys_Cathode_Align_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;					// 양극 얼라인 Sheet Maint NG
 	}
 
-	if( Sys_Cathode_2nd_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )				// 양극 2차 PNP Sheet 존재하면	
+	if( Sys_Cathode_2nd_Sheet_LO_Vision_BYTE & Hex_Cell_Existence && (Sys_Cathode_2nd_Sheet_LO_Vision_BYTE & Hex_NG_Masking == 0))				// 양극 2차 PNP Sheet 존재하면
 	{
 		Sys_Cathode_2nd_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;					// 양극 2차 PNP Sheet Maint NG
 	}
@@ -1651,7 +1647,7 @@ if( P_Status_Clear_Sheet_Maint_Check == 1 )
 //	}
 
 
-	if( Sys_Cathode_NG_TR_Sheet_LO_Vision_BYTE & Hex_Cell_Existence )			// 양극 NG PNP Sheet 존재하면
+	if( Sys_Cathode_NG_TR_Sheet_LO_Vision_BYTE & Hex_Cell_Existence && (Sys_Cathode_NG_TR_Sheet_LO_Vision_BYTE & Hex_NG_Masking == 0))			// 양극 NG PNP Sheet 존재하면
 	{
 		Sys_Cathode_NG_TR_Sheet_LO_Vision_BYTE |= Hex_Maint_NG;					// 양극 NG PNP Sheet Maint NG
 	}

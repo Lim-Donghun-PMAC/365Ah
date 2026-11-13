@@ -477,9 +477,10 @@ enum ptrM {_ptrM_=-1
 ,M_AO_Anode_Clamp_Regulator=5413
 ,M_AO_Dancer_Regulator=5414
 ,M_Sys_Time=8296
-,M_X_PLC_Anode_Sheet_Ready2=5010
-,M_X_PLC_Cathode_Sheet_Ready2=5011
 ,M_Y_A_Site_Heart_Bit=5014
+,M_X_PLC_Anode_Sheet_Ready2=4010
+,M_X_PLC_Cathode_Sheet_Ready2=4011
+,M_X_B_Site_Heart_Bit=4014
 ,M_PLC_HeartBit_Flag=4223
 ,M_X_BTN_Press_Jog_Left_From_PLC=4160
 ,M_X_BTN_Press_Jog_Right_From_PLC=4107
@@ -1618,745 +1619,746 @@ enum ptrMarray {_ptrMarray_=-1
 #define	P_Recipe_Dancer_input_kgf	pshm->P[11760]
 #define	P_Cathode_NG_PNP_Vel_Zero_Set	pshm->P[11761]
 #define	P_Anode_NG_PNP_Vel_Zero_Set	pshm->P[11762]
-#define	P_Anode_Run_DR	pshm->P[11763]
-#define	P_Cathode_Run_DR	pshm->P[11764]
-#define	P_1st_UND_Grip_Time	pshm->P[11765]
-#define	P_1st_UND_Grip_Time_offset	pshm->P[11766]
-#define	P_1st_UND_Grip_Time_offset2	pshm->P[11767]
-#define	P_First_Sepa_Driving_Use	pshm->P[11768]
-#define	P_First_Sepa_Driving_Timing	pshm->P[11769]
-#define	P_Unloader_Safe_rtn	pshm->P[11770]
-#define	P_Final_Start	pshm->P[11771]
-#define	P_Driving_Start	pshm->P[11772]
-#define	P_Starting_Pause_IO_OFF_Flag	pshm->P[11773]
-#define	P_individual_Hold_return	pshm->P[11774]
-#define	P_individual_Hold_return2	pshm->P[11775]
-#define	P_Tension_Ready_Pass	pshm->P[11776]
-#define	P_Discharge_cal_rtn	pshm->P[11777]
-#define	P_Old_Tact_Current_Mode	pshm->P[11778]
-#define	P_Sheet_Clear	pshm->P[11779]
-#define	P_Anode_Clamp_On_Time2	pshm->P[11780]
-#define	P_Anode_Clamp_On_Time	pshm->P[11781]
-#define	P_Cathode_Clamp_On_Time	pshm->P[11782]
-#define	P_Cathode_Clamp_On_Time2	pshm->P[11783]
-#define	P_Offset	pshm->P[11784]
-#define	P_Man_C	pshm->P[11785]
-#define	P_NG_Box_Stop_Use	pshm->P[11786]
-#define	P_SlewTime	pshm->P[11787]
-#define	P_Old_SlewTime	pshm->P[11788]
-#define	P_Resume_MNTR1	pshm->P[11789]
-#define	P_Resume_MNTR2	pshm->P[11790]
-#define	P_Resume_MNTR3	pshm->P[11791]
-#define	P_Resume_MNTR4	pshm->P[11792]
-#define	P_Resume_MNTR5	pshm->P[11793]
-#define	P_Resume_MNTR6	pshm->P[11794]
-#define	P_Resume_MNTR7	pshm->P[11795]
-#define	P_Resume_MNTR8	pshm->P[11796]
-#define	P_Resume_MNTR9	pshm->P[11797]
-#define	P_Resume_MNTR10	pshm->P[11798]
-#define	P_Resume_MNTR11	pshm->P[11799]
-#define	P_Resume_MNTR12	pshm->P[11800]
-#define	P_old_P_Anode_Count	pshm->P[11801]
-#define	P_Sheet_Paper_BWD_Count	pshm->P[11802]
-#define	P_Stop_CHK	pshm->P[11803]
-#define	P_Seq_Pause	pshm->P[11804]
-#define	P_Seq_Pause2	pshm->P[11805]
-#define	P_MSA_TimeBase_Rtn	pshm->P[11806]
-#define	P_Old_Vison_Read_EPC_Camera_Move_Request	pshm->P[11807]
-#define	P_First_Sepa_Time_Out_Count	pshm->P[11808]
-#define	P_Align_Retry_Cal_RTN	pshm->P[11809]
-#define	P_Sheet_Err(i)	pshm->P[(11810+i)%MAX_P]
-#define	P_Driving_Cal	pshm->P[11826]
-#define	P_Driving_End_Pos	pshm->P[11827]
-#define	P_Driving_Start_Pos	pshm->P[11828]
-#define	P_Drivig_Cal_Save(i)	pshm->P[(11829+i)%MAX_P]
-#define	P_Anode_Align_Blow	pshm->P[11834]
-#define	P_Cathode_Align_Blow	pshm->P[11835]
-#define	P_PMAC_Status_Arr_Save1(i)	pshm->P[(11836+i)%MAX_P]
-#define	P_HomePos_Save1(i)	pshm->P[(11841+i)%MAX_P]
-#define	P_PMAC_Status_Arr_Save2(i)	pshm->P[(11846+i)%MAX_P]
-#define	P_HomePos_Save2(i)	pshm->P[(11851+i)%MAX_P]
-#define	P_PMAC_Status_Arr_Save3(i)	pshm->P[(11856+i)%MAX_P]
-#define	P_HomePos_Save3(i)	pshm->P[(11861+i)%MAX_P]
-#define	P_PMAC_Status_Arr_Save4(i)	pshm->P[(11866+i)%MAX_P]
-#define	P_HomePos_Save4(i)	pshm->P[(11871+i)%MAX_P]
-#define	P_Home_Pos_Err_Cnt1	pshm->P[11876]
-#define	P_Home_Pos_Err_Cnt2	pshm->P[11877]
-#define	P_Home_Pos_Err_Cnt3	pshm->P[11878]
-#define	P_Home_Pos_Err_Cnt4	pshm->P[11879]
-#define	P_Align_Inspection_Delay	pshm->P[11880]
-#define	P_HomePos_Err(i)	pshm->P[(11881+i)%MAX_P]
-#define	P_Anode_Sheet_Test	pshm->P[11886]
-#define	P_Cathode_Sheet_Test	pshm->P[11887]
-#define	P_Anode_Sheet_Interlock_Timing	pshm->P[11888]
-#define	P_Cathode_Sheet_Interlock_Timing	pshm->P[11889]
-#define	P_Discharge_Err_MNTR	pshm->P[11890]
-#define	P_Arc_Err_MNTR	pshm->P[11891]
-#define	P_Abort_Cnt	pshm->P[11892]
-#define	P_EMO_Cnt	pshm->P[11893]
-#define	P_Dry_Run_Inspection	pshm->P[11894]
-#define	P_Servo_ON_MNTR1	pshm->P[11895]
-#define	P_Servo_ON_MNTR2	pshm->P[11896]
-#define	P_Servo_ON_MNTR3	pshm->P[11897]
-#define	P_Servo_ON_MNTR4	pshm->P[11898]
-#define	P_Servo_ON_MNTR5	pshm->P[11899]
-#define	P_Servo_ON_MNTR6	pshm->P[11900]
-#define	P_Servo_ON_MNTR7	pshm->P[11901]
-#define	P_Servo_ON_MNTR8	pshm->P[11902]
-#define	P_Servo_ON_MNTR9	pshm->P[11903]
-#define	P_Servo_ON_MNTR10	pshm->P[11904]
-#define	P_Servo_ON_MNTR11	pshm->P[11905]
-#define	P_Servo_ON_MNTR12	pshm->P[11906]
-#define	P_Servo_ON_MNTR13	pshm->P[11907]
-#define	P_Servo_ON_MNTR14	pshm->P[11908]
-#define	P_Servo_ON_MNTR15	pshm->P[11909]
-#define	P_Servo_ON_MNTR16	pshm->P[11910]
-#define	P_Servo_ON_MNTR17	pshm->P[11911]
-#define	P_Servo_ON_MNTR18	pshm->P[11912]
-#define	P_Servo_ON_MNTR19	pshm->P[11913]
-#define	P_Servo_ON_MNTR20	pshm->P[11914]
-#define	P_Servo_ON_MNTR21	pshm->P[11915]
-#define	P_Servo_ON_MNTR22	pshm->P[11916]
-#define	P_Servo_ON_MNTR23	pshm->P[11917]
-#define	P_Servo_ON_MNTR24	pshm->P[11918]
-#define	P_Servo_ON_MNTR25	pshm->P[11919]
-#define	P_Servo_ON_MNTR26	pshm->P[11920]
-#define	P_Servo_ON_MNTR27	pshm->P[11921]
-#define	P_Servo_ON_MNTR28	pshm->P[11922]
-#define	P_Servo_ON_MNTR29	pshm->P[11923]
-#define	P_Servo_ON_MNTR30	pshm->P[11924]
-#define	P_X_IO_WinMess_Connect_BTN	pshm->P[11925]
-#define	P_Ecat_ReConnetion_State_Machine	pshm->P[11926]
-#define	P_Ecat_Reconnection_Timer	pshm->P[11927]
-#define	P_Y_Ecat_Reconnecting	pshm->P[11928]
-#define	P_Y_Ecat_ReConnection_Fail	pshm->P[11929]
-#define	P_Y_Ecat_ReConnection_Complete	pshm->P[11930]
-#define	P_X_Ecat_Reconnection_BTN	pshm->P[11931]
-#define	P_X_PLC_Setup_Mode_Check	pshm->P[11932]
-#define	P_Interlock_On_Off_Flag	pshm->P[11933]
-#define	P_X_Old_MC_Reconnect_BTN_Signal	pshm->P[11934]
-#define	P_BTN_1st_ULD_Data_Clear	pshm->P[11935]
-#define	P_Old_BTN_1st_ULD_Data_Clear	pshm->P[11936]
-#define	P_Old_M_Y_1st_Unloader_UnGrip_Sol	pshm->P[11937]
-#define	P_Sepa_Cutter_Heat_Meter	pshm->P[11938]
-#define	P_Sepa_Cutter_Heating_Timer	pshm->P[11939]
-#define	P_Middle_Skip_Off_Flag	pshm->P[11940]
-#define	P_Stop_MNTR1	pshm->P[11941]
-#define	P_Stop_MNTR2	pshm->P[11942]
-#define	P_Sheet_Pos_Offset	pshm->P[11943]
-#define	P_Stopping_Wait_Time	pshm->P[11944]
-#define	P_Stopping_Test_Timer	pshm->P[11945]
-#define	P_Cutter_FWB_Heater_Current(i)	pshm->P[(11946+i)%MAX_P]
-#define	P_1st_ULD_OK_Lamp	pshm->P[11956]
-#define	P_1st_ULD_NG_Lamp	pshm->P[11957]
-#define	P_1st_ULD_Sample_QC_Lamp	pshm->P[11958]
-#define	P_Proceed_Execute_Flag	pshm->P[11959]
-#define	P_Continuous_Call_Stack_NG_Flag	pshm->P[11960]
-#define	P_Continuous_Call_Stack_OK_Flag	pshm->P[11961]
-#define	P_Cathode_Picker_Home_Pos	pshm->P[11962]
-#define	P_Anode_Picker_Home_Pos	pshm->P[11963]
-#define	P_FR_Sheet_Paper_Home_Chk	pshm->P[11964]
-#define	P_Align_TimeOut1	pshm->P[11965]
-#define	P_Align_TimeOut2	pshm->P[11966]
-#define	P_Align_TimeOut3	pshm->P[11967]
-#define	P_Align_TimeOut4	pshm->P[11968]
-#define	P_Align_TimeOut5	pshm->P[11969]
-#define	P_Align_TimeOut6	pshm->P[11970]
-#define	P_Anode_Align_OK	pshm->P[11971]
-#define	P_Cathode_Align_OK	pshm->P[11972]
-#define	P_Anode_Align_NG	pshm->P[11973]
-#define	P_Cathode_Align_NG	pshm->P[11974]
-#define	P_Anode_Align_TimeOut	pshm->P[11975]
-#define	P_Cathode_Align_TimeOut	pshm->P[11976]
-#define	P_Anode_Surf_OK	pshm->P[11977]
-#define	P_Cathode_Surf_OK	pshm->P[11978]
-#define	P_Anode_Surf_NG	pshm->P[11979]
-#define	P_Cathode_Surf_NG	pshm->P[11980]
-#define	P_Anode_Surf_TimeOut	pshm->P[11981]
-#define	P_Cathode_Surf_TimeOut	pshm->P[11982]
-#define	P_Surf_TimeOut1	pshm->P[11983]
-#define	P_Surf_TimeOut2	pshm->P[11984]
-#define	P_Surf_TimeOut3	pshm->P[11985]
-#define	P_Surf_TimeOut4	pshm->P[11986]
-#define	P_Surf_TimeOut5	pshm->P[11987]
-#define	P_Surf_TimeOut6	pshm->P[11988]
-#define	P_Anode_Stack_TimeOut	pshm->P[11989]
-#define	P_Cathode_Stack_TimeOut	pshm->P[11990]
-#define	P_Anode_Stack_OK	pshm->P[11991]
-#define	P_Cathode_Stack_OK	pshm->P[11992]
-#define	P_Anode_Stack_NG	pshm->P[11993]
-#define	P_Cathode_Stack_NG	pshm->P[11994]
-#define	P_Stack_TimeOut1	pshm->P[11995]
-#define	P_Stack_TimeOut2	pshm->P[11996]
-#define	P_Stack_TimeOut3	pshm->P[11997]
-#define	P_Align_Move_Err	pshm->P[11998]
-#define	P_Ecat_Test	pshm->P[11999]
-#define	P_Scan_Time(i)	pshm->P[(12000+i)%MAX_P]
-#define	P_Scan_Aver	pshm->P[12002]
-#define	P_Scan_MAX	pshm->P[12003]
-#define	P_Cathode_1TR_Picker_T_Belt_POS	pshm->P[12004]
-#define	P_Cathode_1TR_Picker_T_Align_POS	pshm->P[12005]
-#define	P_Anode_1TR_Picker_T_Belt_POS	pshm->P[12006]
-#define	P_Anode_1TR_Picker_T_Align_POS	pshm->P[12007]
-#define	P_1TR_Picker_T_Align_POS	pshm->P[12008]
-#define	P_AVRG_Lower_Sepa_Thickness_mm	pshm->P[12009]
-#define	P_AVRG_Upper_Sepa_Thickness_mm	pshm->P[12010]
-#define	P_PLC06_Upper_Curr_Unwinder_Thickness_mm	pshm->P[12011]
-#define	P_PLC06_Lower_Curr_Unwinder_Thickness_mm	pshm->P[12012]
-#define	P_Upper_Curr_Spool_Radius	pshm->P[12013]
-#define	P_Lower_Curr_Spool_Radius	pshm->P[12014]
-#define	P_PLC06_Curr_Upper_Distance_mm	pshm->P[12015]
-#define	P_PLC06_Curr_Lower_Distance_mm	pshm->P[12016]
-#define	P_Upper_Sepa_Min_Distance_mm	pshm->P[12017]
-#define	P_Lower_Sepa_Min_Distance_mm	pshm->P[12018]
-#define	P_PLC06_Sepa_Change_Set	pshm->P[12019]
-#define	P_Upper_Sepa_To_Sensor_Min_Dis	pshm->P[12020]
-#define	P_Upper_Sepa_To_Sensor_Max_Dis	pshm->P[12021]
-#define	P_Upper_Sensor_To_Unwinder_Core_Dis	pshm->P[12022]
-#define	P_Upper_Sensor_Min_AD	pshm->P[12023]
-#define	P_Upper_Sensor_Max_AD	pshm->P[12024]
-#define	P_Lower_Sepa_To_Sensor_Min_Dis	pshm->P[12025]
-#define	P_Lower_Sepa_To_Sensor_Max_Dis	pshm->P[12026]
-#define	P_Lower_Sensor_To_Unwinder_Core_Dis	pshm->P[12027]
-#define	P_Lower_Sensor_Min_AD	pshm->P[12028]
-#define	P_Lower_Sensor_Max_AD	pshm->P[12029]
+#define	P_NG_Box_Open_Popup_Flag	pshm->P[11763]
+#define	P_Anode_Run_DR	pshm->P[11764]
+#define	P_Cathode_Run_DR	pshm->P[11765]
+#define	P_1st_UND_Grip_Time	pshm->P[11766]
+#define	P_1st_UND_Grip_Time_offset	pshm->P[11767]
+#define	P_1st_UND_Grip_Time_offset2	pshm->P[11768]
+#define	P_First_Sepa_Driving_Use	pshm->P[11769]
+#define	P_First_Sepa_Driving_Timing	pshm->P[11770]
+#define	P_Unloader_Safe_rtn	pshm->P[11771]
+#define	P_Final_Start	pshm->P[11772]
+#define	P_Driving_Start	pshm->P[11773]
+#define	P_Starting_Pause_IO_OFF_Flag	pshm->P[11774]
+#define	P_individual_Hold_return	pshm->P[11775]
+#define	P_individual_Hold_return2	pshm->P[11776]
+#define	P_Tension_Ready_Pass	pshm->P[11777]
+#define	P_Discharge_cal_rtn	pshm->P[11778]
+#define	P_Old_Tact_Current_Mode	pshm->P[11779]
+#define	P_Sheet_Clear	pshm->P[11780]
+#define	P_Anode_Clamp_On_Time2	pshm->P[11781]
+#define	P_Anode_Clamp_On_Time	pshm->P[11782]
+#define	P_Cathode_Clamp_On_Time	pshm->P[11783]
+#define	P_Cathode_Clamp_On_Time2	pshm->P[11784]
+#define	P_Offset	pshm->P[11785]
+#define	P_Man_C	pshm->P[11786]
+#define	P_NG_Box_Stop_Use	pshm->P[11787]
+#define	P_SlewTime	pshm->P[11788]
+#define	P_Old_SlewTime	pshm->P[11789]
+#define	P_Resume_MNTR1	pshm->P[11790]
+#define	P_Resume_MNTR2	pshm->P[11791]
+#define	P_Resume_MNTR3	pshm->P[11792]
+#define	P_Resume_MNTR4	pshm->P[11793]
+#define	P_Resume_MNTR5	pshm->P[11794]
+#define	P_Resume_MNTR6	pshm->P[11795]
+#define	P_Resume_MNTR7	pshm->P[11796]
+#define	P_Resume_MNTR8	pshm->P[11797]
+#define	P_Resume_MNTR9	pshm->P[11798]
+#define	P_Resume_MNTR10	pshm->P[11799]
+#define	P_Resume_MNTR11	pshm->P[11800]
+#define	P_Resume_MNTR12	pshm->P[11801]
+#define	P_old_P_Anode_Count	pshm->P[11802]
+#define	P_Sheet_Paper_BWD_Count	pshm->P[11803]
+#define	P_Stop_CHK	pshm->P[11804]
+#define	P_Seq_Pause	pshm->P[11805]
+#define	P_Seq_Pause2	pshm->P[11806]
+#define	P_MSA_TimeBase_Rtn	pshm->P[11807]
+#define	P_Old_Vison_Read_EPC_Camera_Move_Request	pshm->P[11808]
+#define	P_First_Sepa_Time_Out_Count	pshm->P[11809]
+#define	P_Align_Retry_Cal_RTN	pshm->P[11810]
+#define	P_Sheet_Err(i)	pshm->P[(11811+i)%MAX_P]
+#define	P_Driving_Cal	pshm->P[11827]
+#define	P_Driving_End_Pos	pshm->P[11828]
+#define	P_Driving_Start_Pos	pshm->P[11829]
+#define	P_Drivig_Cal_Save(i)	pshm->P[(11830+i)%MAX_P]
+#define	P_Anode_Align_Blow	pshm->P[11835]
+#define	P_Cathode_Align_Blow	pshm->P[11836]
+#define	P_PMAC_Status_Arr_Save1(i)	pshm->P[(11837+i)%MAX_P]
+#define	P_HomePos_Save1(i)	pshm->P[(11842+i)%MAX_P]
+#define	P_PMAC_Status_Arr_Save2(i)	pshm->P[(11847+i)%MAX_P]
+#define	P_HomePos_Save2(i)	pshm->P[(11852+i)%MAX_P]
+#define	P_PMAC_Status_Arr_Save3(i)	pshm->P[(11857+i)%MAX_P]
+#define	P_HomePos_Save3(i)	pshm->P[(11862+i)%MAX_P]
+#define	P_PMAC_Status_Arr_Save4(i)	pshm->P[(11867+i)%MAX_P]
+#define	P_HomePos_Save4(i)	pshm->P[(11872+i)%MAX_P]
+#define	P_Home_Pos_Err_Cnt1	pshm->P[11877]
+#define	P_Home_Pos_Err_Cnt2	pshm->P[11878]
+#define	P_Home_Pos_Err_Cnt3	pshm->P[11879]
+#define	P_Home_Pos_Err_Cnt4	pshm->P[11880]
+#define	P_Align_Inspection_Delay	pshm->P[11881]
+#define	P_HomePos_Err(i)	pshm->P[(11882+i)%MAX_P]
+#define	P_Anode_Sheet_Test	pshm->P[11887]
+#define	P_Cathode_Sheet_Test	pshm->P[11888]
+#define	P_Anode_Sheet_Interlock_Timing	pshm->P[11889]
+#define	P_Cathode_Sheet_Interlock_Timing	pshm->P[11890]
+#define	P_Discharge_Err_MNTR	pshm->P[11891]
+#define	P_Arc_Err_MNTR	pshm->P[11892]
+#define	P_Abort_Cnt	pshm->P[11893]
+#define	P_EMO_Cnt	pshm->P[11894]
+#define	P_Dry_Run_Inspection	pshm->P[11895]
+#define	P_Servo_ON_MNTR1	pshm->P[11896]
+#define	P_Servo_ON_MNTR2	pshm->P[11897]
+#define	P_Servo_ON_MNTR3	pshm->P[11898]
+#define	P_Servo_ON_MNTR4	pshm->P[11899]
+#define	P_Servo_ON_MNTR5	pshm->P[11900]
+#define	P_Servo_ON_MNTR6	pshm->P[11901]
+#define	P_Servo_ON_MNTR7	pshm->P[11902]
+#define	P_Servo_ON_MNTR8	pshm->P[11903]
+#define	P_Servo_ON_MNTR9	pshm->P[11904]
+#define	P_Servo_ON_MNTR10	pshm->P[11905]
+#define	P_Servo_ON_MNTR11	pshm->P[11906]
+#define	P_Servo_ON_MNTR12	pshm->P[11907]
+#define	P_Servo_ON_MNTR13	pshm->P[11908]
+#define	P_Servo_ON_MNTR14	pshm->P[11909]
+#define	P_Servo_ON_MNTR15	pshm->P[11910]
+#define	P_Servo_ON_MNTR16	pshm->P[11911]
+#define	P_Servo_ON_MNTR17	pshm->P[11912]
+#define	P_Servo_ON_MNTR18	pshm->P[11913]
+#define	P_Servo_ON_MNTR19	pshm->P[11914]
+#define	P_Servo_ON_MNTR20	pshm->P[11915]
+#define	P_Servo_ON_MNTR21	pshm->P[11916]
+#define	P_Servo_ON_MNTR22	pshm->P[11917]
+#define	P_Servo_ON_MNTR23	pshm->P[11918]
+#define	P_Servo_ON_MNTR24	pshm->P[11919]
+#define	P_Servo_ON_MNTR25	pshm->P[11920]
+#define	P_Servo_ON_MNTR26	pshm->P[11921]
+#define	P_Servo_ON_MNTR27	pshm->P[11922]
+#define	P_Servo_ON_MNTR28	pshm->P[11923]
+#define	P_Servo_ON_MNTR29	pshm->P[11924]
+#define	P_Servo_ON_MNTR30	pshm->P[11925]
+#define	P_X_IO_WinMess_Connect_BTN	pshm->P[11926]
+#define	P_Ecat_ReConnetion_State_Machine	pshm->P[11927]
+#define	P_Ecat_Reconnection_Timer	pshm->P[11928]
+#define	P_Y_Ecat_Reconnecting	pshm->P[11929]
+#define	P_Y_Ecat_ReConnection_Fail	pshm->P[11930]
+#define	P_Y_Ecat_ReConnection_Complete	pshm->P[11931]
+#define	P_X_Ecat_Reconnection_BTN	pshm->P[11932]
+#define	P_X_PLC_Setup_Mode_Check	pshm->P[11933]
+#define	P_Interlock_On_Off_Flag	pshm->P[11934]
+#define	P_X_Old_MC_Reconnect_BTN_Signal	pshm->P[11935]
+#define	P_BTN_1st_ULD_Data_Clear	pshm->P[11936]
+#define	P_Old_BTN_1st_ULD_Data_Clear	pshm->P[11937]
+#define	P_Old_M_Y_1st_Unloader_UnGrip_Sol	pshm->P[11938]
+#define	P_Sepa_Cutter_Heat_Meter	pshm->P[11939]
+#define	P_Sepa_Cutter_Heating_Timer	pshm->P[11940]
+#define	P_Middle_Skip_Off_Flag	pshm->P[11941]
+#define	P_Stop_MNTR1	pshm->P[11942]
+#define	P_Stop_MNTR2	pshm->P[11943]
+#define	P_Sheet_Pos_Offset	pshm->P[11944]
+#define	P_Stopping_Wait_Time	pshm->P[11945]
+#define	P_Stopping_Test_Timer	pshm->P[11946]
+#define	P_Cutter_FWB_Heater_Current(i)	pshm->P[(11947+i)%MAX_P]
+#define	P_1st_ULD_OK_Lamp	pshm->P[11957]
+#define	P_1st_ULD_NG_Lamp	pshm->P[11958]
+#define	P_1st_ULD_Sample_QC_Lamp	pshm->P[11959]
+#define	P_Proceed_Execute_Flag	pshm->P[11960]
+#define	P_Continuous_Call_Stack_NG_Flag	pshm->P[11961]
+#define	P_Continuous_Call_Stack_OK_Flag	pshm->P[11962]
+#define	P_Cathode_Picker_Home_Pos	pshm->P[11963]
+#define	P_Anode_Picker_Home_Pos	pshm->P[11964]
+#define	P_FR_Sheet_Paper_Home_Chk	pshm->P[11965]
+#define	P_Align_TimeOut1	pshm->P[11966]
+#define	P_Align_TimeOut2	pshm->P[11967]
+#define	P_Align_TimeOut3	pshm->P[11968]
+#define	P_Align_TimeOut4	pshm->P[11969]
+#define	P_Align_TimeOut5	pshm->P[11970]
+#define	P_Align_TimeOut6	pshm->P[11971]
+#define	P_Anode_Align_OK	pshm->P[11972]
+#define	P_Cathode_Align_OK	pshm->P[11973]
+#define	P_Anode_Align_NG	pshm->P[11974]
+#define	P_Cathode_Align_NG	pshm->P[11975]
+#define	P_Anode_Align_TimeOut	pshm->P[11976]
+#define	P_Cathode_Align_TimeOut	pshm->P[11977]
+#define	P_Anode_Surf_OK	pshm->P[11978]
+#define	P_Cathode_Surf_OK	pshm->P[11979]
+#define	P_Anode_Surf_NG	pshm->P[11980]
+#define	P_Cathode_Surf_NG	pshm->P[11981]
+#define	P_Anode_Surf_TimeOut	pshm->P[11982]
+#define	P_Cathode_Surf_TimeOut	pshm->P[11983]
+#define	P_Surf_TimeOut1	pshm->P[11984]
+#define	P_Surf_TimeOut2	pshm->P[11985]
+#define	P_Surf_TimeOut3	pshm->P[11986]
+#define	P_Surf_TimeOut4	pshm->P[11987]
+#define	P_Surf_TimeOut5	pshm->P[11988]
+#define	P_Surf_TimeOut6	pshm->P[11989]
+#define	P_Anode_Stack_TimeOut	pshm->P[11990]
+#define	P_Cathode_Stack_TimeOut	pshm->P[11991]
+#define	P_Anode_Stack_OK	pshm->P[11992]
+#define	P_Cathode_Stack_OK	pshm->P[11993]
+#define	P_Anode_Stack_NG	pshm->P[11994]
+#define	P_Cathode_Stack_NG	pshm->P[11995]
+#define	P_Stack_TimeOut1	pshm->P[11996]
+#define	P_Stack_TimeOut2	pshm->P[11997]
+#define	P_Stack_TimeOut3	pshm->P[11998]
+#define	P_Align_Move_Err	pshm->P[11999]
+#define	P_Ecat_Test	pshm->P[12000]
+#define	P_Scan_Time(i)	pshm->P[(12001+i)%MAX_P]
+#define	P_Scan_Aver	pshm->P[12003]
+#define	P_Scan_MAX	pshm->P[12004]
+#define	P_Cathode_1TR_Picker_T_Belt_POS	pshm->P[12005]
+#define	P_Cathode_1TR_Picker_T_Align_POS	pshm->P[12006]
+#define	P_Anode_1TR_Picker_T_Belt_POS	pshm->P[12007]
+#define	P_Anode_1TR_Picker_T_Align_POS	pshm->P[12008]
+#define	P_1TR_Picker_T_Align_POS	pshm->P[12009]
+#define	P_AVRG_Lower_Sepa_Thickness_mm	pshm->P[12010]
+#define	P_AVRG_Upper_Sepa_Thickness_mm	pshm->P[12011]
+#define	P_PLC06_Upper_Curr_Unwinder_Thickness_mm	pshm->P[12012]
+#define	P_PLC06_Lower_Curr_Unwinder_Thickness_mm	pshm->P[12013]
+#define	P_Upper_Curr_Spool_Radius	pshm->P[12014]
+#define	P_Lower_Curr_Spool_Radius	pshm->P[12015]
+#define	P_PLC06_Curr_Upper_Distance_mm	pshm->P[12016]
+#define	P_PLC06_Curr_Lower_Distance_mm	pshm->P[12017]
+#define	P_Upper_Sepa_Min_Distance_mm	pshm->P[12018]
+#define	P_Lower_Sepa_Min_Distance_mm	pshm->P[12019]
+#define	P_PLC06_Sepa_Change_Set	pshm->P[12020]
+#define	P_Upper_Sepa_To_Sensor_Min_Dis	pshm->P[12021]
+#define	P_Upper_Sepa_To_Sensor_Max_Dis	pshm->P[12022]
+#define	P_Upper_Sensor_To_Unwinder_Core_Dis	pshm->P[12023]
+#define	P_Upper_Sensor_Min_AD	pshm->P[12024]
+#define	P_Upper_Sensor_Max_AD	pshm->P[12025]
+#define	P_Lower_Sepa_To_Sensor_Min_Dis	pshm->P[12026]
+#define	P_Lower_Sepa_To_Sensor_Max_Dis	pshm->P[12027]
+#define	P_Lower_Sensor_To_Unwinder_Core_Dis	pshm->P[12028]
+#define	P_Lower_Sensor_Min_AD	pshm->P[12029]
+#define	P_Lower_Sensor_Max_AD	pshm->P[12030]
 #define	M_AI_Upper_Sepa_Sensing	pshm->P[372]
 #define	M_AI_Lower_Sepa_Sensing	pshm->P[373]
-#define	P_Status_NP_BTN_Lower_Unwinder	pshm->P[12030]
-#define	P_Status_NP_BTN_Upper_Unwinder	pshm->P[12031]
-#define	P_Driving_CamTable_Scale_Change_Flag	pshm->P[12032]
-#define	P_FR_Driving_Diameter	pshm->P[12033]
-#define	P_FR_Driving_Floating_Point	pshm->P[12034]
-#define	P_FR_Driving_Reward	pshm->P[12035]
-#define	P_Unwinder_Master_Following_Use_Flag	pshm->P[12036]
-#define	P_Unwinder_Master_Following_On	pshm->P[12037]
-#define	P_Old_Master_Following_Start	pshm->P[12038]
-#define	P_Unwinder_Master_Following_Scale	pshm->P[12039]
-#define	P_Unwinder_Jog_Use_Flag	pshm->P[12040]
-#define	P_Old_Jog_Start	pshm->P[12041]
-#define	P_Unwinder_Jog_Total_Time	pshm->P[12042]
-#define	P_Unwinder_Ta	pshm->P[12043]
-#define	P_Unwinder_Ts	pshm->P[12044]
-#define	P_Unwinder_Tm	pshm->P[12045]
-#define	P_Unwinder_1mm_Deg	pshm->P[12046]
-#define	P_Unwinder_Jog_Pos	pshm->P[12047]
-#define	P_Unwinder_Jog_Cnt	pshm->P[12048]
-#define	P_PLC06_Frist_Flag	pshm->P[12049]
-#define	P_Sepa_AI	pshm->P[12050]
-#define	P_PLC06_Reel_Upper_Change_Flag	pshm->P[12051]
-#define	P_PLC06_Reel_Lower_Change_Flag	pshm->P[12052]
-#define	P_Spool_Ready_Enable_Flag	pshm->P[12053]
-#define	P_Spool_Lack_Flag	pshm->P[12054]
-#define	P_Sepa_DR_Start_Flag	pshm->P[12055]
-#define	P_cdTime_Tact_Sec	pshm->P[12056]
-#define	P_Master_Tact_Sec	pshm->P[12057]
-#define	P_Prev_Err_Pos	pshm->P[12058]
-#define	P_Cur_Arc_Rad	pshm->P[12059]
-#define	P_Cur_Arc_Deg	pshm->P[12060]
-#define	P_Spool_Velocity	pshm->P[12061]
-#define	P_Lin_Prop_Vel	pshm->P[12062]
-#define	P_Err_Pos	pshm->P[12063]
-#define	P_Lin_Deriv_Vel	pshm->P[12064]
-#define	P_Lin_Dacer_Kd	pshm->P[12065]
-#define	P_Lin_Dacer_Kp	pshm->P[12066]
-#define	P_Running_CDTimer	pshm->P[12067]
-#define	P_Unwinder_Jog_Ta	pshm->P[12068]
-#define	P_Unwinder_Jog_Ts	pshm->P[12069]
-#define	P_Unwinder_Vel_Test_Time	pshm->P[12070]
-#define	P_Set_Interval_Time	pshm->P[12071]
-#define	P_PLC06_Upper_Sepa_AI_Timer	pshm->P[12072]
-#define	P_PLC06_Upper_Sepa_AI_Data	pshm->P[12073]
-#define	P_PLC06_Upper_Sepa_AI_Cnt	pshm->P[12074]
-#define	P_PLC06_Upper_AVRG_Sensor_Data	pshm->P[12075]
-#define	P_PLC06_Lower_Sepa_AI_Timer	pshm->P[12076]
-#define	P_PLC06_Lower_Sepa_AI_Data	pshm->P[12077]
-#define	P_PLC06_Lower_Sepa_AI_Cnt	pshm->P[12078]
-#define	P_PLC06_Lower_AVRG_Sensor_Data	pshm->P[12079]
-#define	P_PLC06_Sepa_Upper_Thickness_Timer	pshm->P[12080]
-#define	P_PLC06_Sepa_Upper_Thickness_Data	pshm->P[12081]
-#define	P_PLC06_Sepa_Upper_Thickness_Cnt	pshm->P[12082]
-#define	P_PLC06_Sepa_Lower_Thickness_Timer	pshm->P[12083]
-#define	P_PLC06_Sepa_Lower_Thickness_Data	pshm->P[12084]
-#define	P_PLC06_Sepa_Lower_Thickness_Cnt	pshm->P[12085]
-#define	P_Sepa_Thickness_Chk_Timer	pshm->P[12086]
-#define	P_Spool_Length	pshm->P[12087]
-#define	P_Cascade_Sf_Driving_Value	pshm->P[12088]
-#define	P_Cascade_Sf_None_Driving_Value	pshm->P[12089]
-#define	P_Sepa_Min_Value_Cal_Cmd	pshm->P[12090]
-#define	P_Total_Sepa_Need_Length	pshm->P[12091]
-#define	P_Alpa	pshm->P[12092]
-#define	P_Sepa_Num_of_Turns	pshm->P[12093]
-#define	P_Sepa_Turn_Num	pshm->P[12094]
-#define	P_Accumulate_Value	pshm->P[12095]
-#define	P_Sharft_to_Sepa_Core_mm	pshm->P[12096]
-#define	P_Sepa_Cal_Circum	pshm->P[12097]
-#define	P_Sepa_Min_Need_Thickness	pshm->P[12098]
-#define	P_Sepa_Min_Thickness_Cmd	pshm->P[12099]
-#define	P_Sepa_Accumulate_Cmd	pshm->P[12100]
-#define	P_Sepa_Required_Amount	pshm->P[12101]
-#define	P_Sepa_Current_Thickness	pshm->P[12102]
-#define	P_Sepa_Initial_Tickness	pshm->P[12103]
-#define	P_Sepa_Required_Update_Timer	pshm->P[12104]
-#define	P_TEST_EPC_Interlock_Auto	pshm->P[12105]
-#define	P_TEST_EPC_Interlock_Manual	pshm->P[12106]
-#define	P_Discharge_Total_Tact	pshm->P[12107]
-#define	P_Read_Sector_TactTime(i)	pshm->P[(12108+i)%MAX_P]
-#define	P_Write_Sector_TactTime(i)	pshm->P[(12114+i)%MAX_P]
-#define	P_PLC15_Sub_Function_Dryrun_Active_Flag	pshm->P[12120]
-#define	P_Sepa_Rotation_Sequence_Run_Trigger_Cnt	pshm->P[12121]
-#define	P_Sepa_Mode_Sepa_Recipe_Count	pshm->P[12122]
-#define	P_Discharged_After_End_Trigger	pshm->P[12123]
-#define	P_Unloader_1st_Grip_Delay	pshm->P[12124]
-#define	P_Separate_Cutter_Heating_Limit_Value	pshm->P[12125]
-#define	P_Separate_Cutting_Current	pshm->P[12126]
-#define	P_Separate_Cutter_Change_Cycle	pshm->P[12127]
-#define	P_X_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger	pshm->P[12128]
-#define	P_X_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger	pshm->P[12129]
-#define	P_X_Cathode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger	pshm->P[12130]
-#define	P_X_Anode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger	pshm->P[12131]
-#define	P_X_Stack_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger	pshm->P[12132]
-#define	P_Interlock_Messege_Confirmed	pshm->P[12133]
-#define	P_X_MC_Communication_HeartBit	pshm->P[12134]
-#define	P_SV_Cathode_Count	pshm->P[12135]
-#define	P_SV_Anode_Count	pshm->P[12136]
-#define	P_SV_AO_Reference_Value_Chanel(i)	pshm->P[(12137+i)%MAX_P]
-#define	P_SV_Cathode_Reference_Thickness	pshm->P[12140]
-#define	P_SV_Anode_Reference_Thickness	pshm->P[12141]
-#define	P_SV_Stack_Table_Damper_Cathode	pshm->P[12142]
-#define	P_SV_Stack_Table_Damper_Anode	pshm->P[12143]
-#define	P_SV_Sepa_Reference_Thickness	pshm->P[12144]
-#define	P_SV_Jelly_Roll_Width	pshm->P[12145]
-#define	P_Cathode_Align_Continuous_NG_Recipe	pshm->P[12146]
-#define	P_Anode_Align_Continuous_NG_Recipe	pshm->P[12147]
-#define	P_Stack_Vision_Continuous_NG_Recipe	pshm->P[12148]
-#define	P_PLC_Recipe_EPC_Sepa_Count	pshm->P[12149]
-#define	P_PLC_Recipe_Revise_Sepa	pshm->P[12150]
-#define	P_X_PLC_to_PMAC_Correction_Value	pshm->P[12151]
-#define	P_Anode_Align_Continuous_NG_Check_range	pshm->P[12152]
-#define	P_Cathode_Align_Continuous_NG_Check_range	pshm->P[12153]
-#define	P_Stack_Align_Continuous_NG_Check_range	pshm->P[12154]
-#define	P_Cathode_Surface_Continuous_NG_Recipe	pshm->P[12155]
-#define	P_Anode_Surface_Continuous_NG_Recipe	pshm->P[12156]
-#define	P_Cathode_Surface_Continuous_NG_Check_range	pshm->P[12157]
-#define	P_Anode_Surface_Continuous_NG_Check_range	pshm->P[12158]
-#define	P_Servo_Dancer_Alarm_Maximum_Angle_Value	pshm->P[12159]
-#define	P_Servo_Dancer_Alarm_Minimum_Angle_Value	pshm->P[12160]
-#define	P_Current_Selected_Spool_Rev_Counts_Init_Read	pshm->P[12161]
-#define	P_Spool_ARC_Distance_mm	pshm->P[12162]
-#define	P_ARC_Upper_Request_Sepa_Thickness_mm	pshm->P[12163]
-#define	P_ARC_Lower_Request_Sepa_Thickness_mm	pshm->P[12164]
-#define	P_Selected_Spool_Arc_Set_Rev_Counts_Value	pshm->P[12165]
-#define	P_Set_Cnt_FR_Moving_Sepa_ARC	pshm->P[12166]
-#define	P_Current_Selected_Spool_Rev_Counts	pshm->P[12167]
-#define	P_AI_Cathode_Clamp_Damper	pshm->P[12168]
-#define	P_AI_Anode_Clamp_Damper	pshm->P[12169]
-#define	P_MSA_Run_Repeat_Num(i)	pshm->P[(12170+i)%MAX_P]
-#define	P_Current_MSA_Run_Num(i)	pshm->P[(12175+i)%MAX_P]
-#define	P_Select_Sheet_Value	pshm->P[12180]
-#define	P_BTN_Config_Setup_Mode_Select	pshm->P[12181]
-#define	P_Sepa_Thickness_Max_Value	pshm->P[12182]
-#define	P_AI_Cathode_Clamp_Damper_Zero_Mpa_Analog_Value	pshm->P[12183]
-#define	P_AI_Anode_Clamp_Damper_Zero_Mpa_Analog_Value	pshm->P[12184]
-#define	P_Accumulated_Movement_MM_Unit_Cathode_1ST_pnp	pshm->P[12185]
-#define	P_Accumulated_Movement_MM_Unit_Anode_1ST_pnp	pshm->P[12186]
-#define	P_Accumulated_Movement_MM_Unit_Cathode_2nd_pnp	pshm->P[12187]
-#define	P_Accumulated_Movement_MM_Unit_Anode_2nd_pnp	pshm->P[12188]
-#define	P_AI_Anode_Clamp_Damper_Mpa	pshm->P[12189]
-#define	P_AI_Cathode_Clamp_Damper_Mpa	pshm->P[12190]
-#define	P_Current_Whole_Stack_Jelly_Roll_Thinckness_mm	pshm->P[12191]
-#define	P_Upper_Sepa_Current_Thickness_um	pshm->P[12192]
-#define	P_Lower_Sepa_Current_Thickness_um	pshm->P[12193]
-#define	P_Spool_Rotate_Distance	pshm->P[12194]
-#define	Spool_Diameter	pshm->P[12195]
-#define	P_Current_FR_Moving_Cnt_To_PlC	pshm->P[12196]
-#define	P_MES_APC_Select_Btn	pshm->P[12197]
-#define	P_AO_Anode_Clamp_Damper	pshm->P[12198]
-#define	P_AO_Cathode_Clamp_Damper	pshm->P[12199]
-#define	P_Sepa_Length	pshm->P[12200]
-#define	P_Minus_Limit_Detect_Popup_Flag	pshm->P[12201]
-#define	P_Plus_Limit_Detect_Popup_Flag	pshm->P[12202]
-#define	P_Fatal_Fe_Limit_Detect_Popup_Flag	pshm->P[12203]
-#define	P_Emergency_Alarm_Popup_Flag	pshm->P[12204]
-#define	P_SepaArcing_Popup_Flag	pshm->P[12205]
-#define	P_Y_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger	pshm->P[12206]
-#define	P_Y_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger	pshm->P[12207]
-#define	P_Y_Cathode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger	pshm->P[12208]
-#define	P_Y_Anode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger	pshm->P[12209]
-#define	P_Y_Stack_Align_Calibration_twisted_Cycle_Stop_Request_Trigger	pshm->P[12210]
-#define	P_Current_Selected_Sheet_Value	pshm->P[12211]
-#define	P_Status_Config_Mode_Select	pshm->P[12212]
-#define	P_Sepa_Thickness_Jig_Value	pshm->P[12213]
-#define	P_PV_Stack_Table_Damper_Cathode	pshm->P[12214]
-#define	P_PV_Stack_Table_Damper_Anode	pshm->P[12215]
-#define	P_Discharge_Standby_Pos_Tack_Time	pshm->P[12216]
-#define	P_Discharge_FR_MainZ_Pos_Tack_Time	pshm->P[12217]
-#define	P_Discharge_Unloader_Go_Pos_Tack_Time	pshm->P[12218]
-#define	P_Discharge_SubZ_Down_Pos_Tack_Time	pshm->P[12219]
-#define	P_Discharge_Unloader_Cutting_Pos_Tack_Time	pshm->P[12220]
-#define	P_Discharge_FR_Clamp_ON_Complete_Tack_Time	pshm->P[12221]
-#define	P_Discharge_Cutting_Complete_Tack_Time	pshm->P[12222]
-#define	P_Discharge_Motion_PG_Active_Starting_Tack_Time	pshm->P[12223]
-#define	P_Discharge_Motion_PG_Active_Complete_Tack_Time	pshm->P[12224]
-#define	P_Discharge_Sepa_First_Complete_Tack_Time	pshm->P[12225]
-#define	P_Discharge_Complete_Tack_Time	pshm->P[12226]
-#define	P_Discharge_Total_Tack_Time	pshm->P[12227]
-#define	P_Anode_Clamp_TackTime_Array0	pshm->P[12228]
-#define	P_Anode_Clamp_TackTime_Array1	pshm->P[12229]
-#define	P_Anode_Clamp_TackTime_Array2	pshm->P[12230]
-#define	P_Anode_Clamp_TackTime_Array3	pshm->P[12231]
-#define	P_Anode_Clamp_TackTime_Array4	pshm->P[12232]
-#define	P_Anode_Clamp_TackTime_Array5	pshm->P[12233]
-#define	P_Anode_Clamp_TackTime_Array6	pshm->P[12234]
-#define	P_Anode_Clamp_TackTime_Array7	pshm->P[12235]
-#define	P_Anode_Clamp_TackTime_Array8	pshm->P[12236]
-#define	P_Anode_Clamp_TackTime_Array9	pshm->P[12237]
-#define	P_Anode_Clamp_TackTime_Array10	pshm->P[12238]
-#define	P_Stacking_TackTime_Array0	pshm->P[12239]
-#define	P_Stacking_TackTime_Array1	pshm->P[12240]
-#define	P_Stacking_TackTime_Array2	pshm->P[12241]
-#define	P_Stacking_TackTime_Array3	pshm->P[12242]
-#define	P_Stacking_TackTime_Array4	pshm->P[12243]
-#define	P_Stacking_TackTime_Array5	pshm->P[12244]
-#define	P_Stacking_TackTime_Array6	pshm->P[12245]
-#define	P_Stacking_TackTime_Array7	pshm->P[12246]
-#define	P_Stacking_TackTime_Array8	pshm->P[12247]
-#define	P_Stacking_TackTime_Array9	pshm->P[12248]
-#define	P_Stacking_TackTime_Array10	pshm->P[12249]
-#define	P_Cathode_Clamp_TackTime_Array0	pshm->P[12250]
-#define	P_Cathode_Clamp_TackTime_Array1	pshm->P[12251]
-#define	P_Cathode_Clamp_TackTime_Array2	pshm->P[12252]
-#define	P_Cathode_Clamp_TackTime_Array3	pshm->P[12253]
-#define	P_Cathode_Clamp_TackTime_Array4	pshm->P[12254]
-#define	P_Cathode_Clamp_TackTime_Array5	pshm->P[12255]
-#define	P_Cathode_Clamp_TackTime_Array6	pshm->P[12256]
-#define	P_Cathode_Clamp_TackTime_Array7	pshm->P[12257]
-#define	P_Cathode_Clamp_TackTime_Array8	pshm->P[12258]
-#define	P_Cathode_Clamp_TackTime_Array9	pshm->P[12259]
-#define	P_Cathode_Clamp_TackTime_Array10	pshm->P[12260]
-#define	P_JellyRoll_Out_TackTime_Array0	pshm->P[12261]
-#define	P_JellyRoll_Out_TackTime_Array1	pshm->P[12262]
-#define	P_JellyRoll_Out_TackTime_Array2	pshm->P[12263]
-#define	P_JellyRoll_Out_TackTime_Array3	pshm->P[12264]
-#define	P_JellyRoll_Out_TackTime_Array4	pshm->P[12265]
-#define	P_JellyRoll_Out_TackTime_Array5	pshm->P[12266]
-#define	P_JellyRoll_Out_TackTime_Array6	pshm->P[12267]
-#define	P_JellyRoll_Out_TackTime_Array7	pshm->P[12268]
-#define	P_JellyRoll_Out_TackTime_Array8	pshm->P[12269]
-#define	P_JellyRoll_Out_TackTime_Array9	pshm->P[12270]
-#define	P_JellyRoll_Out_TackTime_Array10	pshm->P[12271]
-#define	P_Anode_1th_TackTime_Array0	pshm->P[12272]
-#define	P_Anode_1th_TackTime_Array1	pshm->P[12273]
-#define	P_Anode_1th_TackTime_Array2	pshm->P[12274]
-#define	P_Anode_1th_TackTime_Array3	pshm->P[12275]
-#define	P_Anode_1th_TackTime_Array4	pshm->P[12276]
-#define	P_Anode_1th_TackTime_Array5	pshm->P[12277]
-#define	P_Anode_1th_TackTime_Array6	pshm->P[12278]
-#define	P_Anode_1th_TackTime_Array7	pshm->P[12279]
-#define	P_Anode_1th_TackTime_Array8	pshm->P[12280]
-#define	P_Anode_1th_TackTime_Array9	pshm->P[12281]
-#define	P_Anode_1th_TackTime_Array10	pshm->P[12282]
-#define	P_Cathode_1th_TackTime_Array0	pshm->P[12283]
-#define	P_Cathode_1th_TackTime_Array1	pshm->P[12284]
-#define	P_Cathode_1th_TackTime_Array2	pshm->P[12285]
-#define	P_Cathode_1th_TackTime_Array3	pshm->P[12286]
-#define	P_Cathode_1th_TackTime_Array4	pshm->P[12287]
-#define	P_Cathode_1th_TackTime_Array5	pshm->P[12288]
-#define	P_Cathode_1th_TackTime_Array6	pshm->P[12289]
-#define	P_Cathode_1th_TackTime_Array7	pshm->P[12290]
-#define	P_Cathode_1th_TackTime_Array8	pshm->P[12291]
-#define	P_Cathode_1th_TackTime_Array9	pshm->P[12292]
-#define	P_Cathode_1th_TackTime_Array10	pshm->P[12293]
-#define	P_Anode_2th_TackTime_Array0	pshm->P[12294]
-#define	P_Anode_2th_TackTime_Array1	pshm->P[12295]
-#define	P_Anode_2th_TackTime_Array2	pshm->P[12296]
-#define	P_Anode_2th_TackTime_Array3	pshm->P[12297]
-#define	P_Anode_2th_TackTime_Array4	pshm->P[12298]
-#define	P_Anode_2th_TackTime_Array5	pshm->P[12299]
-#define	P_Anode_2th_TackTime_Array6	pshm->P[12300]
-#define	P_Anode_2th_TackTime_Array7	pshm->P[12301]
-#define	P_Anode_2th_TackTime_Array8	pshm->P[12302]
-#define	P_Anode_2th_TackTime_Array9	pshm->P[12303]
-#define	P_Anode_2th_TackTime_Array10	pshm->P[12304]
-#define	P_Cathode_2th_TackTime_Array0	pshm->P[12305]
-#define	P_Cathode_2th_TackTime_Array1	pshm->P[12306]
-#define	P_Cathode_2th_TackTime_Array2	pshm->P[12307]
-#define	P_Cathode_2th_TackTime_Array3	pshm->P[12308]
-#define	P_Cathode_2th_TackTime_Array4	pshm->P[12309]
-#define	P_Cathode_2th_TackTime_Array5	pshm->P[12310]
-#define	P_Cathode_2th_TackTime_Array6	pshm->P[12311]
-#define	P_Cathode_2th_TackTime_Array7	pshm->P[12312]
-#define	P_Cathode_2th_TackTime_Array8	pshm->P[12313]
-#define	P_Cathode_2th_TackTime_Array9	pshm->P[12314]
-#define	P_Cathode_2th_TackTime_Array10	pshm->P[12315]
-#define	P_Anode_Align_Table_TackTime_Array0	pshm->P[12316]
-#define	P_Anode_Align_Table_TackTime_Array1	pshm->P[12317]
-#define	P_Anode_Align_Table_TackTime_Array2	pshm->P[12318]
-#define	P_Anode_Align_Table_TackTime_Array3	pshm->P[12319]
-#define	P_Anode_Align_Table_TackTime_Array4	pshm->P[12320]
-#define	P_Anode_Align_Table_TackTime_Array5	pshm->P[12321]
-#define	P_Anode_Align_Table_TackTime_Array6	pshm->P[12322]
-#define	P_Anode_Align_Table_TackTime_Array7	pshm->P[12323]
-#define	P_Anode_Align_Table_TackTime_Array8	pshm->P[12324]
-#define	P_Anode_Align_Table_TackTime_Array9	pshm->P[12325]
-#define	P_Anode_Align_Table_TackTime_Array10	pshm->P[12326]
-#define	P_Cathode_Align_Table_TackTime_Array0	pshm->P[12327]
-#define	P_Cathode_Align_Table_TackTime_Array1	pshm->P[12328]
-#define	P_Cathode_Align_Table_TackTime_Array2	pshm->P[12329]
-#define	P_Cathode_Align_Table_TackTime_Array3	pshm->P[12330]
-#define	P_Cathode_Align_Table_TackTime_Array4	pshm->P[12331]
-#define	P_Cathode_Align_Table_TackTime_Array5	pshm->P[12332]
-#define	P_Cathode_Align_Table_TackTime_Array6	pshm->P[12333]
-#define	P_Cathode_Align_Table_TackTime_Array7	pshm->P[12334]
-#define	P_Cathode_Align_Table_TackTime_Array8	pshm->P[12335]
-#define	P_Cathode_Align_Table_TackTime_Array9	pshm->P[12336]
-#define	P_Cathode_Align_Table_TackTime_Array10	pshm->P[12337]
-#define	P_Anode_NG_PNP_TackTime_Array0	pshm->P[12338]
-#define	P_Anode_NG_PNP_TackTime_Array1	pshm->P[12339]
-#define	P_Anode_NG_PNP_TackTime_Array2	pshm->P[12340]
-#define	P_Anode_NG_PNP_TackTime_Array3	pshm->P[12341]
-#define	P_Anode_NG_PNP_TackTime_Array4	pshm->P[12342]
-#define	P_Anode_NG_PNP_TackTime_Array5	pshm->P[12343]
-#define	P_Anode_NG_PNP_TackTime_Array6	pshm->P[12344]
-#define	P_Anode_NG_PNP_TackTime_Array7	pshm->P[12345]
-#define	P_Anode_NG_PNP_TackTime_Array8	pshm->P[12346]
-#define	P_Anode_NG_PNP_TackTime_Array9	pshm->P[12347]
-#define	P_Anode_NG_PNP_TackTime_Array10	pshm->P[12348]
-#define	P_Cathode_NG_PNP_TackTime_Array0	pshm->P[12349]
-#define	P_Cathode_NG_PNP_TackTime_Array1	pshm->P[12350]
-#define	P_Cathode_NG_PNP_TackTime_Array2	pshm->P[12351]
-#define	P_Cathode_NG_PNP_TackTime_Array3	pshm->P[12352]
-#define	P_Cathode_NG_PNP_TackTime_Array4	pshm->P[12353]
-#define	P_Cathode_NG_PNP_TackTime_Array5	pshm->P[12354]
-#define	P_Cathode_NG_PNP_TackTime_Array6	pshm->P[12355]
-#define	P_Cathode_NG_PNP_TackTime_Array7	pshm->P[12356]
-#define	P_Cathode_NG_PNP_TackTime_Array8	pshm->P[12357]
-#define	P_Cathode_NG_PNP_TackTime_Array9	pshm->P[12358]
-#define	P_Cathode_NG_PNP_TackTime_Array10	pshm->P[12359]
-#define	P_Sepa_Unwinder_TackTime_Array0	pshm->P[12360]
-#define	P_Sepa_Unwinder_TackTime_Array1	pshm->P[12361]
-#define	P_Sepa_Unwinder_TackTime_Array2	pshm->P[12362]
-#define	P_Sepa_Unwinder_TackTime_Array3	pshm->P[12363]
-#define	P_Sepa_Unwinder_TackTime_Array4	pshm->P[12364]
-#define	P_Sepa_Unwinder_TackTime_Array5	pshm->P[12365]
-#define	P_Sepa_Unwinder_TackTime_Array6	pshm->P[12366]
-#define	P_Sepa_Unwinder_TackTime_Array7	pshm->P[12367]
-#define	P_Sepa_Unwinder_TackTime_Array8	pshm->P[12368]
-#define	P_Sepa_Unwinder_TackTime_Array9	pshm->P[12369]
-#define	P_Sepa_Unwinder_TackTime_Array10	pshm->P[12370]
-#define	P_Sepa_Unwinder_TackTime_Array11	pshm->P[12371]
-#define	P_1st_Unloader_TackTime_Array0	pshm->P[12372]
-#define	P_1st_Unloader_TackTime_Array1	pshm->P[12373]
-#define	P_1st_Unloader_TackTime_Array2	pshm->P[12374]
-#define	P_1st_Unloader_TackTime_Array3	pshm->P[12375]
-#define	P_1st_Unloader_TackTime_Array4	pshm->P[12376]
-#define	P_1st_Unloader_TackTime_Array5	pshm->P[12377]
-#define	P_1st_Unloader_TackTime_Array6	pshm->P[12378]
-#define	P_1st_Unloader_TackTime_Array7	pshm->P[12379]
-#define	P_1st_Unloader_TackTime_Array8	pshm->P[12380]
-#define	P_1st_Unloader_TackTime_Array9	pshm->P[12381]
-#define	P_1st_Unloader_TackTime_Array10	pshm->P[12382]
-#define	P_Cathode_1st_Vacuum_TackTime_Array1	pshm->P[12383]
-#define	P_Cathode_1st_Vacuum_TackTime_Array2	pshm->P[12384]
-#define	P_Cathode_1st_Vacuum_TackTime_Array3	pshm->P[12385]
-#define	P_Cathode_1st_Vacuum_TackTime_Array4	pshm->P[12386]
-#define	P_Cathode_1st_Vacuum_TackTime_Array5	pshm->P[12387]
-#define	P_Cathode_1st_Vacuum_TackTime_Array6	pshm->P[12388]
-#define	P_Cathode_1st_Vacuum_TackTime_Array7	pshm->P[12389]
-#define	P_Cathode_1st_Vacuum_TackTime_Array8	pshm->P[12390]
-#define	P_Cathode_1st_Vacuum_TackTime_Array9	pshm->P[12391]
-#define	P_Cathode_1st_Vacuum_TackTime_Array10	pshm->P[12392]
-#define	P_Cathode_Align_Vacuum_TackTime_Array1	pshm->P[12393]
-#define	P_Cathode_Align_Vacuum_TackTime_Array2	pshm->P[12394]
-#define	P_Cathode_Align_Vacuum_TackTime_Array3	pshm->P[12395]
-#define	P_Cathode_Align_Vacuum_TackTime_Array4	pshm->P[12396]
-#define	P_Cathode_Align_Vacuum_TackTime_Array5	pshm->P[12397]
-#define	P_Cathode_Align_Vacuum_TackTime_Array6	pshm->P[12398]
-#define	P_Cathode_Align_Vacuum_TackTime_Array7	pshm->P[12399]
-#define	P_Cathode_Align_Vacuum_TackTime_Array8	pshm->P[12400]
-#define	P_Cathode_Align_Vacuum_TackTime_Array9	pshm->P[12401]
-#define	P_Cathode_Align_Vacuum_TackTime_Array10	pshm->P[12402]
-#define	P_Cathode_2nd_Vacuum_TackTime_Array1	pshm->P[12403]
-#define	P_Cathode_2nd_Vacuum_TackTime_Array2	pshm->P[12404]
-#define	P_Cathode_2nd_Vacuum_TackTime_Array3	pshm->P[12405]
-#define	P_Cathode_2nd_Vacuum_TackTime_Array4	pshm->P[12406]
-#define	P_Cathode_2nd_Vacuum_TackTime_Array5	pshm->P[12407]
-#define	P_Cathode_2nd_Vacuum_TackTime_Array6	pshm->P[12408]
-#define	P_Cathode_2nd_Vacuum_TackTime_Array7	pshm->P[12409]
-#define	P_Cathode_2nd_Vacuum_TackTime_Array8	pshm->P[12410]
-#define	P_Cathode_2nd_Vacuum_TackTime_Array9	pshm->P[12411]
-#define	P_Cathode_2nd_Vacuum_TackTime_Array10	pshm->P[12412]
-#define	P_Anode_1st_Vacuum_TackTime_Array1	pshm->P[12413]
-#define	P_Anode_1st_Vacuum_TackTime_Array2	pshm->P[12414]
-#define	P_Anode_1st_Vacuum_TackTime_Array3	pshm->P[12415]
-#define	P_Anode_1st_Vacuum_TackTime_Array4	pshm->P[12416]
-#define	P_Anode_1st_Vacuum_TackTime_Array5	pshm->P[12417]
-#define	P_Anode_1st_Vacuum_TackTime_Array6	pshm->P[12418]
-#define	P_Anode_1st_Vacuum_TackTime_Array7	pshm->P[12419]
-#define	P_Anode_1st_Vacuum_TackTime_Array8	pshm->P[12420]
-#define	P_Anode_1st_Vacuum_TackTime_Array9	pshm->P[12421]
-#define	P_Anode_1st_Vacuum_TackTime_Array10	pshm->P[12422]
-#define	P_Anode_Align_Vacuum_TackTime_Array1	pshm->P[12423]
-#define	P_Anode_Align_Vacuum_TackTime_Array2	pshm->P[12424]
-#define	P_Anode_Align_Vacuum_TackTime_Array3	pshm->P[12425]
-#define	P_Anode_Align_Vacuum_TackTime_Array4	pshm->P[12426]
-#define	P_Anode_Align_Vacuum_TackTime_Array5	pshm->P[12427]
-#define	P_Anode_Align_Vacuum_TackTime_Array6	pshm->P[12428]
-#define	P_Anode_Align_Vacuum_TackTime_Array7	pshm->P[12429]
-#define	P_Anode_Align_Vacuum_TackTime_Array8	pshm->P[12430]
-#define	P_Anode_Align_Vacuum_TackTime_Array9	pshm->P[12431]
-#define	P_Anode_Align_Vacuum_TackTime_Array10	pshm->P[12432]
-#define	P_Anode_2nd_Vacuum_TackTime_Array1	pshm->P[12433]
-#define	P_Anode_2nd_Vacuum_TackTime_Array2	pshm->P[12434]
-#define	P_Anode_2nd_Vacuum_TackTime_Array3	pshm->P[12435]
-#define	P_Anode_2nd_Vacuum_TackTime_Array4	pshm->P[12436]
-#define	P_Anode_2nd_Vacuum_TackTime_Array5	pshm->P[12437]
-#define	P_Anode_2nd_Vacuum_TackTime_Array6	pshm->P[12438]
-#define	P_Anode_2nd_Vacuum_TackTime_Array7	pshm->P[12439]
-#define	P_Anode_2nd_Vacuum_TackTime_Array8	pshm->P[12440]
-#define	P_Anode_2nd_Vacuum_TackTime_Array9	pshm->P[12441]
-#define	P_Anode_2nd_Vacuum_TackTime_Array10	pshm->P[12442]
-#define	P_Final_Roll_TackTime_Array1	pshm->P[12443]
-#define	P_Final_Roll_TackTime_Array2	pshm->P[12444]
-#define	P_Final_Roll_TackTime_Array3	pshm->P[12445]
-#define	P_Final_Roll_TackTime_Array4	pshm->P[12446]
-#define	P_Final_Roll_TackTime_Array5	pshm->P[12447]
-#define	P_Final_Roll_TackTime_Array6	pshm->P[12448]
-#define	P_Final_Roll_TackTime_Array7	pshm->P[12449]
-#define	P_Final_Roll_TackTime_Array8	pshm->P[12450]
-#define	P_Final_Roll_TackTime_Array9	pshm->P[12451]
-#define	P_Final_Roll_TackTime_Array10	pshm->P[12452]
-#define	P_Sepa_ARC_TackTime_Array1	pshm->P[12453]
-#define	P_Sepa_ARC_TackTime_Array2	pshm->P[12454]
-#define	P_Sepa_ARC_TackTime_Array3	pshm->P[12455]
-#define	P_Sepa_ARC_TackTime_Array4	pshm->P[12456]
-#define	P_Sepa_ARC_TackTime_Array5	pshm->P[12457]
-#define	P_Sepa_ARC_TackTime_Array6	pshm->P[12458]
-#define	P_Sepa_ARC_TackTime_Array7	pshm->P[12459]
-#define	P_Sepa_ARC_TackTime_Array8	pshm->P[12460]
-#define	P_Sepa_ARC_TackTime_Array9	pshm->P[12461]
-#define	P_Sepa_ARC_TackTime_Array10	pshm->P[12462]
-#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array1	pshm->P[12463]
-#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array2	pshm->P[12464]
-#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array3	pshm->P[12465]
-#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array4	pshm->P[12466]
-#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array5	pshm->P[12467]
-#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array6	pshm->P[12468]
-#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array7	pshm->P[12469]
-#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array8	pshm->P[12470]
-#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array9	pshm->P[12471]
-#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array10	pshm->P[12472]
-#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array1	pshm->P[12473]
-#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array2	pshm->P[12474]
-#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array3	pshm->P[12475]
-#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array4	pshm->P[12476]
-#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array5	pshm->P[12477]
-#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array6	pshm->P[12478]
-#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array7	pshm->P[12479]
-#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array8	pshm->P[12480]
-#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array9	pshm->P[12481]
-#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array10	pshm->P[12482]
-#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array1	pshm->P[12483]
-#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array2	pshm->P[12484]
-#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array3	pshm->P[12485]
-#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array4	pshm->P[12486]
-#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array5	pshm->P[12487]
-#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array6	pshm->P[12488]
-#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array7	pshm->P[12489]
-#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array8	pshm->P[12490]
-#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array9	pshm->P[12491]
-#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array10	pshm->P[12492]
-#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array1	pshm->P[12493]
-#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array2	pshm->P[12494]
-#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array3	pshm->P[12495]
-#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array4	pshm->P[12496]
-#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array5	pshm->P[12497]
-#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array6	pshm->P[12498]
-#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array7	pshm->P[12499]
-#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array8	pshm->P[12500]
-#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array9	pshm->P[12501]
-#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array10	pshm->P[12502]
-#define	P_PACK_ML_Status_bit	pshm->P[12503]
-#define	P_Whole_Stacking_TackTime_MES_Report_Flag	pshm->P[12504]
-#define	P_JellyRoll_Out_TackTime_MES_Report_Flag	pshm->P[12505]
-#define	P_PV_Cathode_Count	pshm->P[12506]
-#define	P_PV_Anode_Count	pshm->P[12507]
-#define	P_PV_AO_Value_Chanel(i)	pshm->P[(12508+i)%MAX_P]
-#define	P_PV_Cathode_NG_TR_NG_Count	pshm->P[12512]
-#define	P_PV_Anode_NG_TR_NG_Count	pshm->P[12513]
-#define	P_PV_Anode_Retry_NG_Count	pshm->P[12514]
-#define	P_PV_Cathode_Retry_NG_Count	pshm->P[12515]
-#define	P_PV_Align_INPUT_Count	pshm->P[12516]
-#define	P_Unloader_Grip_Pressure	pshm->P[12517]
-#define	P_Unloader_Heatmeter	pshm->P[12518]
-#define	P_Interlock_Messege(i)	pshm->P[(12519+i)%MAX_P]
-#define	P_EPC_Y_StandBy	pshm->P[12569]
-#define	P_SV_Read_Enable_Flag	pshm->P[12570]
-#define	P_Spool_Rotate_Distance_mm	pshm->P[12571]
-#define	P_Current_Homming_Status(i)	pshm->P[(12572+i)%MAX_P]
-#define	P_Home_Execute_Type(i)	pshm->P[(12622+i)%MAX_P]
-#define	P_Cathode_Clamp_Gantry	pshm->P[12672]
-#define	P_Anode_Clamp_Gantry	pshm->P[12673]
-#define	P_SV_Separator_Heting_Cutter_Change_Period	pshm->P[12674]
-#define	P_Interval_Read_Time(i)	pshm->P[(12675+i)%MAX_P]
-#define	P_Interval_Write_Time(i)	pshm->P[(12681+i)%MAX_P]
-#define	P_Cathode_Picker_Cylinder_Count	pshm->P[12687]
-#define	P_Anode_Picker_Cylinder_Count	pshm->P[12688]
-#define	P_SV_Stack_Table_Cathode_Reference_Value	pshm->P[12689]
-#define	P_SV_Stack_Table_Anode_Reference_Value	pshm->P[12690]
-#define	P_CA_DR_Offset	pshm->P[12691]
-#define	P_AN_DR_Offset	pshm->P[12692]
-#define	P_First_DR_Offset	pshm->P[12693]
-#define	P_Last_DR_Offset	pshm->P[12694]
-#define	P_BTN_QC_Sample_Flag	pshm->P[12695]
-#define	P_BTN_Loss_Sample_Flag	pshm->P[12696]
-#define	P_MSA_Sample_Flag	pshm->P[12697]
-#define	P_Sample_JR_Recipe_Count	pshm->P[12698]
-#define	P_Ca_Clamp_Y_Move	pshm->P[12699]
-#define	P_An_Clamp_Y_Move	pshm->P[12700]
-#define	P_Stack_Table_JR_Exist_Flag	pshm->P[12701]
-#define	P_Program_Monitoring_Lamp_Cell_Ready	pshm->P[12702]
-#define	P_Program_Monitoring_Lamp_Ready_Pos	pshm->P[12703]
-#define	P_Program_Monitoring_Lamp_Pause_Pos	pshm->P[12704]
-#define	P_Program_Monitoring_Lamp_Motion_Run	pshm->P[12705]
-#define	P_Program_Monitoring_Lamp_Cell_Remove	pshm->P[12706]
-#define	P_Program_Monitoring_Lamp_Cell_Supply	pshm->P[12707]
-#define	P_Program_Monitoring_Lamp_Sepa_Mode	pshm->P[12708]
-#define	P_Program_Monitoring_Lamp_Semi_Run	pshm->P[12709]
-#define	P_Program_Monitoring_Lamp_Stack_Mode	pshm->P[12710]
-#define	P_Program_Monitoring_Lamp_Anode_Aling_NG	pshm->P[12711]
-#define	P_Program_Monitoring_Lamp_Anode_Retry_NG	pshm->P[12712]
-#define	P_Program_Monitoring_Lamp_Cathode_Align_NG	pshm->P[12713]
-#define	P_Program_Monitoring_Lamp_Cathode_Retry_NG	pshm->P[12714]
-#define	P_Program_Monitoring_Lamp_Last_Stack_Mode	pshm->P[12715]
-#define	P_Program_Monitoring_Lamp_Jelly_Roll_OK	pshm->P[12716]
-#define	P_Program_Monitoring_Lamp_Jelly_Roll_NG	pshm->P[12717]
-#define	P_Program_Monitoring_Lamp_Jelly_Roll_Sepa	pshm->P[12718]
-#define	P_Program_Monitoring_Lamp_Cell_Out_Pos	pshm->P[12719]
-#define	P_Program_Monitoring_Lamp_Cell_Out_Mode	pshm->P[12720]
-#define	P_Master_Motion_Program_Flag	pshm->P[12721]
-#define	P_Sub_Master_Motion_Program_Flag(i)	pshm->P[(12722+i)%MAX_P]
-#define	P_Slave_Motion_Program_Flag(i)	pshm->P[(12742+i)%MAX_P]
-#define	P_Master_Motion_CycleStop_Flag	pshm->P[12762]
-#define	P_OLD_Jog_Speed_Motor(i)	pshm->P[(12763+i)%MAX_P]
-#define	P_PLC_08_Program_Ver	pshm->P[12813]
-#define	P_Old_PMAC_Commands	pshm->P[12814]
-#define	P_Old_PMAC_Status	pshm->P[12815]
-#define	P_Old_PMAC_Current_Mode	pshm->P[12816]
-#define	P_Mode_Function_State_Machine	pshm->P[12817]
-#define	P_PMAC_Commands	pshm->P[12818]
-#define	P_Command_Start(i)	pshm->P[(12819+i)%MAX_P]
-#define	P_Command_Complete(i)	pshm->P[(12837+i)%MAX_P]
-#define	P_Command_Reset(i)	pshm->P[(12855+i)%MAX_P]
-#define	P_Command_Hold(i)	pshm->P[(12873+i)%MAX_P]
-#define	P_Command_Unhold(i)	pshm->P[(12891+i)%MAX_P]
-#define	P_Command_Suspend(i)	pshm->P[(12909+i)%MAX_P]
-#define	P_Command_Unsuspend(i)	pshm->P[(12927+i)%MAX_P]
-#define	P_Command_Clear(i)	pshm->P[(12945+i)%MAX_P]
-#define	P_Command_Stop(i)	pshm->P[(12963+i)%MAX_P]
-#define	P_Command_Abort(i)	pshm->P[(12981+i)%MAX_P]
-#define	P_Command_Status_Complete(i)	pshm->P[(12999+i)%MAX_P]
-#define	P_Command_Mask_Layer(i)	pshm->P[(13017+i)%MAX_P]
-#define	P_Command_Process_Type(i)	pshm->P[(13035+i)%MAX_P]
+#define	P_Status_NP_BTN_Lower_Unwinder	pshm->P[12031]
+#define	P_Status_NP_BTN_Upper_Unwinder	pshm->P[12032]
+#define	P_Driving_CamTable_Scale_Change_Flag	pshm->P[12033]
+#define	P_FR_Driving_Diameter	pshm->P[12034]
+#define	P_FR_Driving_Floating_Point	pshm->P[12035]
+#define	P_FR_Driving_Reward	pshm->P[12036]
+#define	P_Unwinder_Master_Following_Use_Flag	pshm->P[12037]
+#define	P_Unwinder_Master_Following_On	pshm->P[12038]
+#define	P_Old_Master_Following_Start	pshm->P[12039]
+#define	P_Unwinder_Master_Following_Scale	pshm->P[12040]
+#define	P_Unwinder_Jog_Use_Flag	pshm->P[12041]
+#define	P_Old_Jog_Start	pshm->P[12042]
+#define	P_Unwinder_Jog_Total_Time	pshm->P[12043]
+#define	P_Unwinder_Ta	pshm->P[12044]
+#define	P_Unwinder_Ts	pshm->P[12045]
+#define	P_Unwinder_Tm	pshm->P[12046]
+#define	P_Unwinder_1mm_Deg	pshm->P[12047]
+#define	P_Unwinder_Jog_Pos	pshm->P[12048]
+#define	P_Unwinder_Jog_Cnt	pshm->P[12049]
+#define	P_PLC06_Frist_Flag	pshm->P[12050]
+#define	P_Sepa_AI	pshm->P[12051]
+#define	P_PLC06_Reel_Upper_Change_Flag	pshm->P[12052]
+#define	P_PLC06_Reel_Lower_Change_Flag	pshm->P[12053]
+#define	P_Spool_Ready_Enable_Flag	pshm->P[12054]
+#define	P_Spool_Lack_Flag	pshm->P[12055]
+#define	P_Sepa_DR_Start_Flag	pshm->P[12056]
+#define	P_cdTime_Tact_Sec	pshm->P[12057]
+#define	P_Master_Tact_Sec	pshm->P[12058]
+#define	P_Prev_Err_Pos	pshm->P[12059]
+#define	P_Cur_Arc_Rad	pshm->P[12060]
+#define	P_Cur_Arc_Deg	pshm->P[12061]
+#define	P_Spool_Velocity	pshm->P[12062]
+#define	P_Lin_Prop_Vel	pshm->P[12063]
+#define	P_Err_Pos	pshm->P[12064]
+#define	P_Lin_Deriv_Vel	pshm->P[12065]
+#define	P_Lin_Dacer_Kd	pshm->P[12066]
+#define	P_Lin_Dacer_Kp	pshm->P[12067]
+#define	P_Running_CDTimer	pshm->P[12068]
+#define	P_Unwinder_Jog_Ta	pshm->P[12069]
+#define	P_Unwinder_Jog_Ts	pshm->P[12070]
+#define	P_Unwinder_Vel_Test_Time	pshm->P[12071]
+#define	P_Set_Interval_Time	pshm->P[12072]
+#define	P_PLC06_Upper_Sepa_AI_Timer	pshm->P[12073]
+#define	P_PLC06_Upper_Sepa_AI_Data	pshm->P[12074]
+#define	P_PLC06_Upper_Sepa_AI_Cnt	pshm->P[12075]
+#define	P_PLC06_Upper_AVRG_Sensor_Data	pshm->P[12076]
+#define	P_PLC06_Lower_Sepa_AI_Timer	pshm->P[12077]
+#define	P_PLC06_Lower_Sepa_AI_Data	pshm->P[12078]
+#define	P_PLC06_Lower_Sepa_AI_Cnt	pshm->P[12079]
+#define	P_PLC06_Lower_AVRG_Sensor_Data	pshm->P[12080]
+#define	P_PLC06_Sepa_Upper_Thickness_Timer	pshm->P[12081]
+#define	P_PLC06_Sepa_Upper_Thickness_Data	pshm->P[12082]
+#define	P_PLC06_Sepa_Upper_Thickness_Cnt	pshm->P[12083]
+#define	P_PLC06_Sepa_Lower_Thickness_Timer	pshm->P[12084]
+#define	P_PLC06_Sepa_Lower_Thickness_Data	pshm->P[12085]
+#define	P_PLC06_Sepa_Lower_Thickness_Cnt	pshm->P[12086]
+#define	P_Sepa_Thickness_Chk_Timer	pshm->P[12087]
+#define	P_Spool_Length	pshm->P[12088]
+#define	P_Cascade_Sf_Driving_Value	pshm->P[12089]
+#define	P_Cascade_Sf_None_Driving_Value	pshm->P[12090]
+#define	P_Sepa_Min_Value_Cal_Cmd	pshm->P[12091]
+#define	P_Total_Sepa_Need_Length	pshm->P[12092]
+#define	P_Alpa	pshm->P[12093]
+#define	P_Sepa_Num_of_Turns	pshm->P[12094]
+#define	P_Sepa_Turn_Num	pshm->P[12095]
+#define	P_Accumulate_Value	pshm->P[12096]
+#define	P_Sharft_to_Sepa_Core_mm	pshm->P[12097]
+#define	P_Sepa_Cal_Circum	pshm->P[12098]
+#define	P_Sepa_Min_Need_Thickness	pshm->P[12099]
+#define	P_Sepa_Min_Thickness_Cmd	pshm->P[12100]
+#define	P_Sepa_Accumulate_Cmd	pshm->P[12101]
+#define	P_Sepa_Required_Amount	pshm->P[12102]
+#define	P_Sepa_Current_Thickness	pshm->P[12103]
+#define	P_Sepa_Initial_Tickness	pshm->P[12104]
+#define	P_Sepa_Required_Update_Timer	pshm->P[12105]
+#define	P_TEST_EPC_Interlock_Auto	pshm->P[12106]
+#define	P_TEST_EPC_Interlock_Manual	pshm->P[12107]
+#define	P_Discharge_Total_Tact	pshm->P[12108]
+#define	P_Read_Sector_TactTime(i)	pshm->P[(12109+i)%MAX_P]
+#define	P_Write_Sector_TactTime(i)	pshm->P[(12115+i)%MAX_P]
+#define	P_PLC15_Sub_Function_Dryrun_Active_Flag	pshm->P[12121]
+#define	P_Sepa_Rotation_Sequence_Run_Trigger_Cnt	pshm->P[12122]
+#define	P_Sepa_Mode_Sepa_Recipe_Count	pshm->P[12123]
+#define	P_Discharged_After_End_Trigger	pshm->P[12124]
+#define	P_Unloader_1st_Grip_Delay	pshm->P[12125]
+#define	P_Separate_Cutter_Heating_Limit_Value	pshm->P[12126]
+#define	P_Separate_Cutting_Current	pshm->P[12127]
+#define	P_Separate_Cutter_Change_Cycle	pshm->P[12128]
+#define	P_X_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger	pshm->P[12129]
+#define	P_X_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger	pshm->P[12130]
+#define	P_X_Cathode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger	pshm->P[12131]
+#define	P_X_Anode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger	pshm->P[12132]
+#define	P_X_Stack_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger	pshm->P[12133]
+#define	P_Interlock_Messege_Confirmed	pshm->P[12134]
+#define	P_X_MC_Communication_HeartBit	pshm->P[12135]
+#define	P_SV_Cathode_Count	pshm->P[12136]
+#define	P_SV_Anode_Count	pshm->P[12137]
+#define	P_SV_AO_Reference_Value_Chanel(i)	pshm->P[(12138+i)%MAX_P]
+#define	P_SV_Cathode_Reference_Thickness	pshm->P[12141]
+#define	P_SV_Anode_Reference_Thickness	pshm->P[12142]
+#define	P_SV_Stack_Table_Damper_Cathode	pshm->P[12143]
+#define	P_SV_Stack_Table_Damper_Anode	pshm->P[12144]
+#define	P_SV_Sepa_Reference_Thickness	pshm->P[12145]
+#define	P_SV_Jelly_Roll_Width	pshm->P[12146]
+#define	P_Cathode_Align_Continuous_NG_Recipe	pshm->P[12147]
+#define	P_Anode_Align_Continuous_NG_Recipe	pshm->P[12148]
+#define	P_Stack_Vision_Continuous_NG_Recipe	pshm->P[12149]
+#define	P_PLC_Recipe_EPC_Sepa_Count	pshm->P[12150]
+#define	P_PLC_Recipe_Revise_Sepa	pshm->P[12151]
+#define	P_X_PLC_to_PMAC_Correction_Value	pshm->P[12152]
+#define	P_Anode_Align_Continuous_NG_Check_range	pshm->P[12153]
+#define	P_Cathode_Align_Continuous_NG_Check_range	pshm->P[12154]
+#define	P_Stack_Align_Continuous_NG_Check_range	pshm->P[12155]
+#define	P_Cathode_Surface_Continuous_NG_Recipe	pshm->P[12156]
+#define	P_Anode_Surface_Continuous_NG_Recipe	pshm->P[12157]
+#define	P_Cathode_Surface_Continuous_NG_Check_range	pshm->P[12158]
+#define	P_Anode_Surface_Continuous_NG_Check_range	pshm->P[12159]
+#define	P_Servo_Dancer_Alarm_Maximum_Angle_Value	pshm->P[12160]
+#define	P_Servo_Dancer_Alarm_Minimum_Angle_Value	pshm->P[12161]
+#define	P_Current_Selected_Spool_Rev_Counts_Init_Read	pshm->P[12162]
+#define	P_Spool_ARC_Distance_mm	pshm->P[12163]
+#define	P_ARC_Upper_Request_Sepa_Thickness_mm	pshm->P[12164]
+#define	P_ARC_Lower_Request_Sepa_Thickness_mm	pshm->P[12165]
+#define	P_Selected_Spool_Arc_Set_Rev_Counts_Value	pshm->P[12166]
+#define	P_Set_Cnt_FR_Moving_Sepa_ARC	pshm->P[12167]
+#define	P_Current_Selected_Spool_Rev_Counts	pshm->P[12168]
+#define	P_AI_Cathode_Clamp_Damper	pshm->P[12169]
+#define	P_AI_Anode_Clamp_Damper	pshm->P[12170]
+#define	P_MSA_Run_Repeat_Num(i)	pshm->P[(12171+i)%MAX_P]
+#define	P_Current_MSA_Run_Num(i)	pshm->P[(12176+i)%MAX_P]
+#define	P_Select_Sheet_Value	pshm->P[12181]
+#define	P_BTN_Config_Setup_Mode_Select	pshm->P[12182]
+#define	P_Sepa_Thickness_Max_Value	pshm->P[12183]
+#define	P_AI_Cathode_Clamp_Damper_Zero_Mpa_Analog_Value	pshm->P[12184]
+#define	P_AI_Anode_Clamp_Damper_Zero_Mpa_Analog_Value	pshm->P[12185]
+#define	P_Accumulated_Movement_MM_Unit_Cathode_1ST_pnp	pshm->P[12186]
+#define	P_Accumulated_Movement_MM_Unit_Anode_1ST_pnp	pshm->P[12187]
+#define	P_Accumulated_Movement_MM_Unit_Cathode_2nd_pnp	pshm->P[12188]
+#define	P_Accumulated_Movement_MM_Unit_Anode_2nd_pnp	pshm->P[12189]
+#define	P_AI_Anode_Clamp_Damper_Mpa	pshm->P[12190]
+#define	P_AI_Cathode_Clamp_Damper_Mpa	pshm->P[12191]
+#define	P_Current_Whole_Stack_Jelly_Roll_Thinckness_mm	pshm->P[12192]
+#define	P_Upper_Sepa_Current_Thickness_um	pshm->P[12193]
+#define	P_Lower_Sepa_Current_Thickness_um	pshm->P[12194]
+#define	P_Spool_Rotate_Distance	pshm->P[12195]
+#define	Spool_Diameter	pshm->P[12196]
+#define	P_Current_FR_Moving_Cnt_To_PlC	pshm->P[12197]
+#define	P_MES_APC_Select_Btn	pshm->P[12198]
+#define	P_AO_Anode_Clamp_Damper	pshm->P[12199]
+#define	P_AO_Cathode_Clamp_Damper	pshm->P[12200]
+#define	P_Sepa_Length	pshm->P[12201]
+#define	P_Minus_Limit_Detect_Popup_Flag	pshm->P[12202]
+#define	P_Plus_Limit_Detect_Popup_Flag	pshm->P[12203]
+#define	P_Fatal_Fe_Limit_Detect_Popup_Flag	pshm->P[12204]
+#define	P_Emergency_Alarm_Popup_Flag	pshm->P[12205]
+#define	P_SepaArcing_Popup_Flag	pshm->P[12206]
+#define	P_Y_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger	pshm->P[12207]
+#define	P_Y_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger	pshm->P[12208]
+#define	P_Y_Cathode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger	pshm->P[12209]
+#define	P_Y_Anode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger	pshm->P[12210]
+#define	P_Y_Stack_Align_Calibration_twisted_Cycle_Stop_Request_Trigger	pshm->P[12211]
+#define	P_Current_Selected_Sheet_Value	pshm->P[12212]
+#define	P_Status_Config_Mode_Select	pshm->P[12213]
+#define	P_Sepa_Thickness_Jig_Value	pshm->P[12214]
+#define	P_PV_Stack_Table_Damper_Cathode	pshm->P[12215]
+#define	P_PV_Stack_Table_Damper_Anode	pshm->P[12216]
+#define	P_Discharge_Standby_Pos_Tack_Time	pshm->P[12217]
+#define	P_Discharge_FR_MainZ_Pos_Tack_Time	pshm->P[12218]
+#define	P_Discharge_Unloader_Go_Pos_Tack_Time	pshm->P[12219]
+#define	P_Discharge_SubZ_Down_Pos_Tack_Time	pshm->P[12220]
+#define	P_Discharge_Unloader_Cutting_Pos_Tack_Time	pshm->P[12221]
+#define	P_Discharge_FR_Clamp_ON_Complete_Tack_Time	pshm->P[12222]
+#define	P_Discharge_Cutting_Complete_Tack_Time	pshm->P[12223]
+#define	P_Discharge_Motion_PG_Active_Starting_Tack_Time	pshm->P[12224]
+#define	P_Discharge_Motion_PG_Active_Complete_Tack_Time	pshm->P[12225]
+#define	P_Discharge_Sepa_First_Complete_Tack_Time	pshm->P[12226]
+#define	P_Discharge_Complete_Tack_Time	pshm->P[12227]
+#define	P_Discharge_Total_Tack_Time	pshm->P[12228]
+#define	P_Anode_Clamp_TackTime_Array0	pshm->P[12229]
+#define	P_Anode_Clamp_TackTime_Array1	pshm->P[12230]
+#define	P_Anode_Clamp_TackTime_Array2	pshm->P[12231]
+#define	P_Anode_Clamp_TackTime_Array3	pshm->P[12232]
+#define	P_Anode_Clamp_TackTime_Array4	pshm->P[12233]
+#define	P_Anode_Clamp_TackTime_Array5	pshm->P[12234]
+#define	P_Anode_Clamp_TackTime_Array6	pshm->P[12235]
+#define	P_Anode_Clamp_TackTime_Array7	pshm->P[12236]
+#define	P_Anode_Clamp_TackTime_Array8	pshm->P[12237]
+#define	P_Anode_Clamp_TackTime_Array9	pshm->P[12238]
+#define	P_Anode_Clamp_TackTime_Array10	pshm->P[12239]
+#define	P_Stacking_TackTime_Array0	pshm->P[12240]
+#define	P_Stacking_TackTime_Array1	pshm->P[12241]
+#define	P_Stacking_TackTime_Array2	pshm->P[12242]
+#define	P_Stacking_TackTime_Array3	pshm->P[12243]
+#define	P_Stacking_TackTime_Array4	pshm->P[12244]
+#define	P_Stacking_TackTime_Array5	pshm->P[12245]
+#define	P_Stacking_TackTime_Array6	pshm->P[12246]
+#define	P_Stacking_TackTime_Array7	pshm->P[12247]
+#define	P_Stacking_TackTime_Array8	pshm->P[12248]
+#define	P_Stacking_TackTime_Array9	pshm->P[12249]
+#define	P_Stacking_TackTime_Array10	pshm->P[12250]
+#define	P_Cathode_Clamp_TackTime_Array0	pshm->P[12251]
+#define	P_Cathode_Clamp_TackTime_Array1	pshm->P[12252]
+#define	P_Cathode_Clamp_TackTime_Array2	pshm->P[12253]
+#define	P_Cathode_Clamp_TackTime_Array3	pshm->P[12254]
+#define	P_Cathode_Clamp_TackTime_Array4	pshm->P[12255]
+#define	P_Cathode_Clamp_TackTime_Array5	pshm->P[12256]
+#define	P_Cathode_Clamp_TackTime_Array6	pshm->P[12257]
+#define	P_Cathode_Clamp_TackTime_Array7	pshm->P[12258]
+#define	P_Cathode_Clamp_TackTime_Array8	pshm->P[12259]
+#define	P_Cathode_Clamp_TackTime_Array9	pshm->P[12260]
+#define	P_Cathode_Clamp_TackTime_Array10	pshm->P[12261]
+#define	P_JellyRoll_Out_TackTime_Array0	pshm->P[12262]
+#define	P_JellyRoll_Out_TackTime_Array1	pshm->P[12263]
+#define	P_JellyRoll_Out_TackTime_Array2	pshm->P[12264]
+#define	P_JellyRoll_Out_TackTime_Array3	pshm->P[12265]
+#define	P_JellyRoll_Out_TackTime_Array4	pshm->P[12266]
+#define	P_JellyRoll_Out_TackTime_Array5	pshm->P[12267]
+#define	P_JellyRoll_Out_TackTime_Array6	pshm->P[12268]
+#define	P_JellyRoll_Out_TackTime_Array7	pshm->P[12269]
+#define	P_JellyRoll_Out_TackTime_Array8	pshm->P[12270]
+#define	P_JellyRoll_Out_TackTime_Array9	pshm->P[12271]
+#define	P_JellyRoll_Out_TackTime_Array10	pshm->P[12272]
+#define	P_Anode_1th_TackTime_Array0	pshm->P[12273]
+#define	P_Anode_1th_TackTime_Array1	pshm->P[12274]
+#define	P_Anode_1th_TackTime_Array2	pshm->P[12275]
+#define	P_Anode_1th_TackTime_Array3	pshm->P[12276]
+#define	P_Anode_1th_TackTime_Array4	pshm->P[12277]
+#define	P_Anode_1th_TackTime_Array5	pshm->P[12278]
+#define	P_Anode_1th_TackTime_Array6	pshm->P[12279]
+#define	P_Anode_1th_TackTime_Array7	pshm->P[12280]
+#define	P_Anode_1th_TackTime_Array8	pshm->P[12281]
+#define	P_Anode_1th_TackTime_Array9	pshm->P[12282]
+#define	P_Anode_1th_TackTime_Array10	pshm->P[12283]
+#define	P_Cathode_1th_TackTime_Array0	pshm->P[12284]
+#define	P_Cathode_1th_TackTime_Array1	pshm->P[12285]
+#define	P_Cathode_1th_TackTime_Array2	pshm->P[12286]
+#define	P_Cathode_1th_TackTime_Array3	pshm->P[12287]
+#define	P_Cathode_1th_TackTime_Array4	pshm->P[12288]
+#define	P_Cathode_1th_TackTime_Array5	pshm->P[12289]
+#define	P_Cathode_1th_TackTime_Array6	pshm->P[12290]
+#define	P_Cathode_1th_TackTime_Array7	pshm->P[12291]
+#define	P_Cathode_1th_TackTime_Array8	pshm->P[12292]
+#define	P_Cathode_1th_TackTime_Array9	pshm->P[12293]
+#define	P_Cathode_1th_TackTime_Array10	pshm->P[12294]
+#define	P_Anode_2th_TackTime_Array0	pshm->P[12295]
+#define	P_Anode_2th_TackTime_Array1	pshm->P[12296]
+#define	P_Anode_2th_TackTime_Array2	pshm->P[12297]
+#define	P_Anode_2th_TackTime_Array3	pshm->P[12298]
+#define	P_Anode_2th_TackTime_Array4	pshm->P[12299]
+#define	P_Anode_2th_TackTime_Array5	pshm->P[12300]
+#define	P_Anode_2th_TackTime_Array6	pshm->P[12301]
+#define	P_Anode_2th_TackTime_Array7	pshm->P[12302]
+#define	P_Anode_2th_TackTime_Array8	pshm->P[12303]
+#define	P_Anode_2th_TackTime_Array9	pshm->P[12304]
+#define	P_Anode_2th_TackTime_Array10	pshm->P[12305]
+#define	P_Cathode_2th_TackTime_Array0	pshm->P[12306]
+#define	P_Cathode_2th_TackTime_Array1	pshm->P[12307]
+#define	P_Cathode_2th_TackTime_Array2	pshm->P[12308]
+#define	P_Cathode_2th_TackTime_Array3	pshm->P[12309]
+#define	P_Cathode_2th_TackTime_Array4	pshm->P[12310]
+#define	P_Cathode_2th_TackTime_Array5	pshm->P[12311]
+#define	P_Cathode_2th_TackTime_Array6	pshm->P[12312]
+#define	P_Cathode_2th_TackTime_Array7	pshm->P[12313]
+#define	P_Cathode_2th_TackTime_Array8	pshm->P[12314]
+#define	P_Cathode_2th_TackTime_Array9	pshm->P[12315]
+#define	P_Cathode_2th_TackTime_Array10	pshm->P[12316]
+#define	P_Anode_Align_Table_TackTime_Array0	pshm->P[12317]
+#define	P_Anode_Align_Table_TackTime_Array1	pshm->P[12318]
+#define	P_Anode_Align_Table_TackTime_Array2	pshm->P[12319]
+#define	P_Anode_Align_Table_TackTime_Array3	pshm->P[12320]
+#define	P_Anode_Align_Table_TackTime_Array4	pshm->P[12321]
+#define	P_Anode_Align_Table_TackTime_Array5	pshm->P[12322]
+#define	P_Anode_Align_Table_TackTime_Array6	pshm->P[12323]
+#define	P_Anode_Align_Table_TackTime_Array7	pshm->P[12324]
+#define	P_Anode_Align_Table_TackTime_Array8	pshm->P[12325]
+#define	P_Anode_Align_Table_TackTime_Array9	pshm->P[12326]
+#define	P_Anode_Align_Table_TackTime_Array10	pshm->P[12327]
+#define	P_Cathode_Align_Table_TackTime_Array0	pshm->P[12328]
+#define	P_Cathode_Align_Table_TackTime_Array1	pshm->P[12329]
+#define	P_Cathode_Align_Table_TackTime_Array2	pshm->P[12330]
+#define	P_Cathode_Align_Table_TackTime_Array3	pshm->P[12331]
+#define	P_Cathode_Align_Table_TackTime_Array4	pshm->P[12332]
+#define	P_Cathode_Align_Table_TackTime_Array5	pshm->P[12333]
+#define	P_Cathode_Align_Table_TackTime_Array6	pshm->P[12334]
+#define	P_Cathode_Align_Table_TackTime_Array7	pshm->P[12335]
+#define	P_Cathode_Align_Table_TackTime_Array8	pshm->P[12336]
+#define	P_Cathode_Align_Table_TackTime_Array9	pshm->P[12337]
+#define	P_Cathode_Align_Table_TackTime_Array10	pshm->P[12338]
+#define	P_Anode_NG_PNP_TackTime_Array0	pshm->P[12339]
+#define	P_Anode_NG_PNP_TackTime_Array1	pshm->P[12340]
+#define	P_Anode_NG_PNP_TackTime_Array2	pshm->P[12341]
+#define	P_Anode_NG_PNP_TackTime_Array3	pshm->P[12342]
+#define	P_Anode_NG_PNP_TackTime_Array4	pshm->P[12343]
+#define	P_Anode_NG_PNP_TackTime_Array5	pshm->P[12344]
+#define	P_Anode_NG_PNP_TackTime_Array6	pshm->P[12345]
+#define	P_Anode_NG_PNP_TackTime_Array7	pshm->P[12346]
+#define	P_Anode_NG_PNP_TackTime_Array8	pshm->P[12347]
+#define	P_Anode_NG_PNP_TackTime_Array9	pshm->P[12348]
+#define	P_Anode_NG_PNP_TackTime_Array10	pshm->P[12349]
+#define	P_Cathode_NG_PNP_TackTime_Array0	pshm->P[12350]
+#define	P_Cathode_NG_PNP_TackTime_Array1	pshm->P[12351]
+#define	P_Cathode_NG_PNP_TackTime_Array2	pshm->P[12352]
+#define	P_Cathode_NG_PNP_TackTime_Array3	pshm->P[12353]
+#define	P_Cathode_NG_PNP_TackTime_Array4	pshm->P[12354]
+#define	P_Cathode_NG_PNP_TackTime_Array5	pshm->P[12355]
+#define	P_Cathode_NG_PNP_TackTime_Array6	pshm->P[12356]
+#define	P_Cathode_NG_PNP_TackTime_Array7	pshm->P[12357]
+#define	P_Cathode_NG_PNP_TackTime_Array8	pshm->P[12358]
+#define	P_Cathode_NG_PNP_TackTime_Array9	pshm->P[12359]
+#define	P_Cathode_NG_PNP_TackTime_Array10	pshm->P[12360]
+#define	P_Sepa_Unwinder_TackTime_Array0	pshm->P[12361]
+#define	P_Sepa_Unwinder_TackTime_Array1	pshm->P[12362]
+#define	P_Sepa_Unwinder_TackTime_Array2	pshm->P[12363]
+#define	P_Sepa_Unwinder_TackTime_Array3	pshm->P[12364]
+#define	P_Sepa_Unwinder_TackTime_Array4	pshm->P[12365]
+#define	P_Sepa_Unwinder_TackTime_Array5	pshm->P[12366]
+#define	P_Sepa_Unwinder_TackTime_Array6	pshm->P[12367]
+#define	P_Sepa_Unwinder_TackTime_Array7	pshm->P[12368]
+#define	P_Sepa_Unwinder_TackTime_Array8	pshm->P[12369]
+#define	P_Sepa_Unwinder_TackTime_Array9	pshm->P[12370]
+#define	P_Sepa_Unwinder_TackTime_Array10	pshm->P[12371]
+#define	P_Sepa_Unwinder_TackTime_Array11	pshm->P[12372]
+#define	P_1st_Unloader_TackTime_Array0	pshm->P[12373]
+#define	P_1st_Unloader_TackTime_Array1	pshm->P[12374]
+#define	P_1st_Unloader_TackTime_Array2	pshm->P[12375]
+#define	P_1st_Unloader_TackTime_Array3	pshm->P[12376]
+#define	P_1st_Unloader_TackTime_Array4	pshm->P[12377]
+#define	P_1st_Unloader_TackTime_Array5	pshm->P[12378]
+#define	P_1st_Unloader_TackTime_Array6	pshm->P[12379]
+#define	P_1st_Unloader_TackTime_Array7	pshm->P[12380]
+#define	P_1st_Unloader_TackTime_Array8	pshm->P[12381]
+#define	P_1st_Unloader_TackTime_Array9	pshm->P[12382]
+#define	P_1st_Unloader_TackTime_Array10	pshm->P[12383]
+#define	P_Cathode_1st_Vacuum_TackTime_Array1	pshm->P[12384]
+#define	P_Cathode_1st_Vacuum_TackTime_Array2	pshm->P[12385]
+#define	P_Cathode_1st_Vacuum_TackTime_Array3	pshm->P[12386]
+#define	P_Cathode_1st_Vacuum_TackTime_Array4	pshm->P[12387]
+#define	P_Cathode_1st_Vacuum_TackTime_Array5	pshm->P[12388]
+#define	P_Cathode_1st_Vacuum_TackTime_Array6	pshm->P[12389]
+#define	P_Cathode_1st_Vacuum_TackTime_Array7	pshm->P[12390]
+#define	P_Cathode_1st_Vacuum_TackTime_Array8	pshm->P[12391]
+#define	P_Cathode_1st_Vacuum_TackTime_Array9	pshm->P[12392]
+#define	P_Cathode_1st_Vacuum_TackTime_Array10	pshm->P[12393]
+#define	P_Cathode_Align_Vacuum_TackTime_Array1	pshm->P[12394]
+#define	P_Cathode_Align_Vacuum_TackTime_Array2	pshm->P[12395]
+#define	P_Cathode_Align_Vacuum_TackTime_Array3	pshm->P[12396]
+#define	P_Cathode_Align_Vacuum_TackTime_Array4	pshm->P[12397]
+#define	P_Cathode_Align_Vacuum_TackTime_Array5	pshm->P[12398]
+#define	P_Cathode_Align_Vacuum_TackTime_Array6	pshm->P[12399]
+#define	P_Cathode_Align_Vacuum_TackTime_Array7	pshm->P[12400]
+#define	P_Cathode_Align_Vacuum_TackTime_Array8	pshm->P[12401]
+#define	P_Cathode_Align_Vacuum_TackTime_Array9	pshm->P[12402]
+#define	P_Cathode_Align_Vacuum_TackTime_Array10	pshm->P[12403]
+#define	P_Cathode_2nd_Vacuum_TackTime_Array1	pshm->P[12404]
+#define	P_Cathode_2nd_Vacuum_TackTime_Array2	pshm->P[12405]
+#define	P_Cathode_2nd_Vacuum_TackTime_Array3	pshm->P[12406]
+#define	P_Cathode_2nd_Vacuum_TackTime_Array4	pshm->P[12407]
+#define	P_Cathode_2nd_Vacuum_TackTime_Array5	pshm->P[12408]
+#define	P_Cathode_2nd_Vacuum_TackTime_Array6	pshm->P[12409]
+#define	P_Cathode_2nd_Vacuum_TackTime_Array7	pshm->P[12410]
+#define	P_Cathode_2nd_Vacuum_TackTime_Array8	pshm->P[12411]
+#define	P_Cathode_2nd_Vacuum_TackTime_Array9	pshm->P[12412]
+#define	P_Cathode_2nd_Vacuum_TackTime_Array10	pshm->P[12413]
+#define	P_Anode_1st_Vacuum_TackTime_Array1	pshm->P[12414]
+#define	P_Anode_1st_Vacuum_TackTime_Array2	pshm->P[12415]
+#define	P_Anode_1st_Vacuum_TackTime_Array3	pshm->P[12416]
+#define	P_Anode_1st_Vacuum_TackTime_Array4	pshm->P[12417]
+#define	P_Anode_1st_Vacuum_TackTime_Array5	pshm->P[12418]
+#define	P_Anode_1st_Vacuum_TackTime_Array6	pshm->P[12419]
+#define	P_Anode_1st_Vacuum_TackTime_Array7	pshm->P[12420]
+#define	P_Anode_1st_Vacuum_TackTime_Array8	pshm->P[12421]
+#define	P_Anode_1st_Vacuum_TackTime_Array9	pshm->P[12422]
+#define	P_Anode_1st_Vacuum_TackTime_Array10	pshm->P[12423]
+#define	P_Anode_Align_Vacuum_TackTime_Array1	pshm->P[12424]
+#define	P_Anode_Align_Vacuum_TackTime_Array2	pshm->P[12425]
+#define	P_Anode_Align_Vacuum_TackTime_Array3	pshm->P[12426]
+#define	P_Anode_Align_Vacuum_TackTime_Array4	pshm->P[12427]
+#define	P_Anode_Align_Vacuum_TackTime_Array5	pshm->P[12428]
+#define	P_Anode_Align_Vacuum_TackTime_Array6	pshm->P[12429]
+#define	P_Anode_Align_Vacuum_TackTime_Array7	pshm->P[12430]
+#define	P_Anode_Align_Vacuum_TackTime_Array8	pshm->P[12431]
+#define	P_Anode_Align_Vacuum_TackTime_Array9	pshm->P[12432]
+#define	P_Anode_Align_Vacuum_TackTime_Array10	pshm->P[12433]
+#define	P_Anode_2nd_Vacuum_TackTime_Array1	pshm->P[12434]
+#define	P_Anode_2nd_Vacuum_TackTime_Array2	pshm->P[12435]
+#define	P_Anode_2nd_Vacuum_TackTime_Array3	pshm->P[12436]
+#define	P_Anode_2nd_Vacuum_TackTime_Array4	pshm->P[12437]
+#define	P_Anode_2nd_Vacuum_TackTime_Array5	pshm->P[12438]
+#define	P_Anode_2nd_Vacuum_TackTime_Array6	pshm->P[12439]
+#define	P_Anode_2nd_Vacuum_TackTime_Array7	pshm->P[12440]
+#define	P_Anode_2nd_Vacuum_TackTime_Array8	pshm->P[12441]
+#define	P_Anode_2nd_Vacuum_TackTime_Array9	pshm->P[12442]
+#define	P_Anode_2nd_Vacuum_TackTime_Array10	pshm->P[12443]
+#define	P_Final_Roll_TackTime_Array1	pshm->P[12444]
+#define	P_Final_Roll_TackTime_Array2	pshm->P[12445]
+#define	P_Final_Roll_TackTime_Array3	pshm->P[12446]
+#define	P_Final_Roll_TackTime_Array4	pshm->P[12447]
+#define	P_Final_Roll_TackTime_Array5	pshm->P[12448]
+#define	P_Final_Roll_TackTime_Array6	pshm->P[12449]
+#define	P_Final_Roll_TackTime_Array7	pshm->P[12450]
+#define	P_Final_Roll_TackTime_Array8	pshm->P[12451]
+#define	P_Final_Roll_TackTime_Array9	pshm->P[12452]
+#define	P_Final_Roll_TackTime_Array10	pshm->P[12453]
+#define	P_Sepa_ARC_TackTime_Array1	pshm->P[12454]
+#define	P_Sepa_ARC_TackTime_Array2	pshm->P[12455]
+#define	P_Sepa_ARC_TackTime_Array3	pshm->P[12456]
+#define	P_Sepa_ARC_TackTime_Array4	pshm->P[12457]
+#define	P_Sepa_ARC_TackTime_Array5	pshm->P[12458]
+#define	P_Sepa_ARC_TackTime_Array6	pshm->P[12459]
+#define	P_Sepa_ARC_TackTime_Array7	pshm->P[12460]
+#define	P_Sepa_ARC_TackTime_Array8	pshm->P[12461]
+#define	P_Sepa_ARC_TackTime_Array9	pshm->P[12462]
+#define	P_Sepa_ARC_TackTime_Array10	pshm->P[12463]
+#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array1	pshm->P[12464]
+#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array2	pshm->P[12465]
+#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array3	pshm->P[12466]
+#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array4	pshm->P[12467]
+#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array5	pshm->P[12468]
+#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array6	pshm->P[12469]
+#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array7	pshm->P[12470]
+#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array8	pshm->P[12471]
+#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array9	pshm->P[12472]
+#define	P_Cathode_1st_PNP_Vac_Chk_TackTime_Array10	pshm->P[12473]
+#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array1	pshm->P[12474]
+#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array2	pshm->P[12475]
+#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array3	pshm->P[12476]
+#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array4	pshm->P[12477]
+#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array5	pshm->P[12478]
+#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array6	pshm->P[12479]
+#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array7	pshm->P[12480]
+#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array8	pshm->P[12481]
+#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array9	pshm->P[12482]
+#define	P_Anode_1st_PNP_Vac_Chk_TackTime_Array10	pshm->P[12483]
+#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array1	pshm->P[12484]
+#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array2	pshm->P[12485]
+#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array3	pshm->P[12486]
+#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array4	pshm->P[12487]
+#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array5	pshm->P[12488]
+#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array6	pshm->P[12489]
+#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array7	pshm->P[12490]
+#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array8	pshm->P[12491]
+#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array9	pshm->P[12492]
+#define	P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array10	pshm->P[12493]
+#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array1	pshm->P[12494]
+#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array2	pshm->P[12495]
+#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array3	pshm->P[12496]
+#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array4	pshm->P[12497]
+#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array5	pshm->P[12498]
+#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array6	pshm->P[12499]
+#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array7	pshm->P[12500]
+#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array8	pshm->P[12501]
+#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array9	pshm->P[12502]
+#define	P_Anode_2nd_PNP_Vac_Chk_TackTime_Array10	pshm->P[12503]
+#define	P_PACK_ML_Status_bit	pshm->P[12504]
+#define	P_Whole_Stacking_TackTime_MES_Report_Flag	pshm->P[12505]
+#define	P_JellyRoll_Out_TackTime_MES_Report_Flag	pshm->P[12506]
+#define	P_PV_Cathode_Count	pshm->P[12507]
+#define	P_PV_Anode_Count	pshm->P[12508]
+#define	P_PV_AO_Value_Chanel(i)	pshm->P[(12509+i)%MAX_P]
+#define	P_PV_Cathode_NG_TR_NG_Count	pshm->P[12513]
+#define	P_PV_Anode_NG_TR_NG_Count	pshm->P[12514]
+#define	P_PV_Anode_Retry_NG_Count	pshm->P[12515]
+#define	P_PV_Cathode_Retry_NG_Count	pshm->P[12516]
+#define	P_PV_Align_INPUT_Count	pshm->P[12517]
+#define	P_Unloader_Grip_Pressure	pshm->P[12518]
+#define	P_Unloader_Heatmeter	pshm->P[12519]
+#define	P_Interlock_Messege(i)	pshm->P[(12520+i)%MAX_P]
+#define	P_EPC_Y_StandBy	pshm->P[12570]
+#define	P_SV_Read_Enable_Flag	pshm->P[12571]
+#define	P_Spool_Rotate_Distance_mm	pshm->P[12572]
+#define	P_Current_Homming_Status(i)	pshm->P[(12573+i)%MAX_P]
+#define	P_Home_Execute_Type(i)	pshm->P[(12623+i)%MAX_P]
+#define	P_Cathode_Clamp_Gantry	pshm->P[12673]
+#define	P_Anode_Clamp_Gantry	pshm->P[12674]
+#define	P_SV_Separator_Heting_Cutter_Change_Period	pshm->P[12675]
+#define	P_Interval_Read_Time(i)	pshm->P[(12676+i)%MAX_P]
+#define	P_Interval_Write_Time(i)	pshm->P[(12682+i)%MAX_P]
+#define	P_Cathode_Picker_Cylinder_Count	pshm->P[12688]
+#define	P_Anode_Picker_Cylinder_Count	pshm->P[12689]
+#define	P_SV_Stack_Table_Cathode_Reference_Value	pshm->P[12690]
+#define	P_SV_Stack_Table_Anode_Reference_Value	pshm->P[12691]
+#define	P_CA_DR_Offset	pshm->P[12692]
+#define	P_AN_DR_Offset	pshm->P[12693]
+#define	P_First_DR_Offset	pshm->P[12694]
+#define	P_Last_DR_Offset	pshm->P[12695]
+#define	P_BTN_QC_Sample_Flag	pshm->P[12696]
+#define	P_BTN_Loss_Sample_Flag	pshm->P[12697]
+#define	P_MSA_Sample_Flag	pshm->P[12698]
+#define	P_Sample_JR_Recipe_Count	pshm->P[12699]
+#define	P_Ca_Clamp_Y_Move	pshm->P[12700]
+#define	P_An_Clamp_Y_Move	pshm->P[12701]
+#define	P_Stack_Table_JR_Exist_Flag	pshm->P[12702]
+#define	P_Program_Monitoring_Lamp_Cell_Ready	pshm->P[12703]
+#define	P_Program_Monitoring_Lamp_Ready_Pos	pshm->P[12704]
+#define	P_Program_Monitoring_Lamp_Pause_Pos	pshm->P[12705]
+#define	P_Program_Monitoring_Lamp_Motion_Run	pshm->P[12706]
+#define	P_Program_Monitoring_Lamp_Cell_Remove	pshm->P[12707]
+#define	P_Program_Monitoring_Lamp_Cell_Supply	pshm->P[12708]
+#define	P_Program_Monitoring_Lamp_Sepa_Mode	pshm->P[12709]
+#define	P_Program_Monitoring_Lamp_Semi_Run	pshm->P[12710]
+#define	P_Program_Monitoring_Lamp_Stack_Mode	pshm->P[12711]
+#define	P_Program_Monitoring_Lamp_Anode_Aling_NG	pshm->P[12712]
+#define	P_Program_Monitoring_Lamp_Anode_Retry_NG	pshm->P[12713]
+#define	P_Program_Monitoring_Lamp_Cathode_Align_NG	pshm->P[12714]
+#define	P_Program_Monitoring_Lamp_Cathode_Retry_NG	pshm->P[12715]
+#define	P_Program_Monitoring_Lamp_Last_Stack_Mode	pshm->P[12716]
+#define	P_Program_Monitoring_Lamp_Jelly_Roll_OK	pshm->P[12717]
+#define	P_Program_Monitoring_Lamp_Jelly_Roll_NG	pshm->P[12718]
+#define	P_Program_Monitoring_Lamp_Jelly_Roll_Sepa	pshm->P[12719]
+#define	P_Program_Monitoring_Lamp_Cell_Out_Pos	pshm->P[12720]
+#define	P_Program_Monitoring_Lamp_Cell_Out_Mode	pshm->P[12721]
+#define	P_Master_Motion_Program_Flag	pshm->P[12722]
+#define	P_Sub_Master_Motion_Program_Flag(i)	pshm->P[(12723+i)%MAX_P]
+#define	P_Slave_Motion_Program_Flag(i)	pshm->P[(12743+i)%MAX_P]
+#define	P_Master_Motion_CycleStop_Flag	pshm->P[12763]
+#define	P_OLD_Jog_Speed_Motor(i)	pshm->P[(12764+i)%MAX_P]
+#define	P_PLC_08_Program_Ver	pshm->P[12814]
+#define	P_Old_PMAC_Commands	pshm->P[12815]
+#define	P_Old_PMAC_Status	pshm->P[12816]
+#define	P_Old_PMAC_Current_Mode	pshm->P[12817]
+#define	P_Mode_Function_State_Machine	pshm->P[12818]
+#define	P_PMAC_Commands	pshm->P[12819]
+#define	P_Command_Start(i)	pshm->P[(12820+i)%MAX_P]
+#define	P_Command_Complete(i)	pshm->P[(12838+i)%MAX_P]
+#define	P_Command_Reset(i)	pshm->P[(12856+i)%MAX_P]
+#define	P_Command_Hold(i)	pshm->P[(12874+i)%MAX_P]
+#define	P_Command_Unhold(i)	pshm->P[(12892+i)%MAX_P]
+#define	P_Command_Suspend(i)	pshm->P[(12910+i)%MAX_P]
+#define	P_Command_Unsuspend(i)	pshm->P[(12928+i)%MAX_P]
+#define	P_Command_Clear(i)	pshm->P[(12946+i)%MAX_P]
+#define	P_Command_Stop(i)	pshm->P[(12964+i)%MAX_P]
+#define	P_Command_Abort(i)	pshm->P[(12982+i)%MAX_P]
+#define	P_Command_Status_Complete(i)	pshm->P[(13000+i)%MAX_P]
+#define	P_Command_Mask_Layer(i)	pshm->P[(13018+i)%MAX_P]
+#define	P_Command_Process_Type(i)	pshm->P[(13036+i)%MAX_P]
 #define	P_array_CF_Mode_Name	pshm->P[100]
 #define	P_array_CF_Function_Name	pshm->P[200]
 #define	P_array_CF_Function_State_Number	pshm->P[300]
@@ -2367,103 +2369,103 @@ enum ptrMarray {_ptrMarray_=-1
 #define	P_array_CF_Function_Return_Flag	pshm->P[800]
 #define	P_array_CF_Function_Mask	pshm->P[900]
 #define	P_array_CF_Function_Debug_Flag	pshm->P[1000]
-#define	P_PMAC_Current_Mode	pshm->P[13053]
-#define	P_PMAC_Status	pshm->P[13054]
-#define	P_PMAC_Old_Mode	pshm->P[13055]
-#define	P_Ready_Tack_Chk_Timer	pshm->P[13056]
-#define	P_PLC09_Common_Command_Flag	pshm->P[13057]
-#define	P_PLC09_Common_Command_Complete_Bit	pshm->P[13058]
-#define	P_PLC09_Common_Execute_Flag	pshm->P[13059]
-#define	P_PLC09_Common_Execute_Complete_Bit	pshm->P[13060]
-#define	P_PLC09_Status	pshm->P[13061]
-#define	P_PLC09_Libraries_Var	pshm->P[13062]
-#define	P_Master_Motion_Program_ON_Flag	pshm->P[13063]
-#define	P_Master_Motion_Program_ON_Complete_Bit	pshm->P[13064]
-#define	P_Master_Motion_Program_OFF_Flag	pshm->P[13065]
-#define	P_Master_Motion_Program_OFF_Complete_Bit	pshm->P[13066]
-#define	P_Common_Function_Timbase_ON_Flag	pshm->P[13067]
-#define	P_Common_Function_Timbase_ON_Complete_Bit	pshm->P[13068]
-#define	P_Common_Function_Timbase_OFF_Flag	pshm->P[13069]
-#define	P_Common_Function_Timbase_OFF_Complete_Bit	pshm->P[13070]
-#define	P_Common_Function_Monitoring_Lamp_OFF_Flag	pshm->P[13071]
-#define	P_Common_Function_Monitoring_Lamp_OFF_Complete_Bit	pshm->P[13072]
-#define	P_Common_Function_Slave_Motion_Common_Init_Flag	pshm->P[13073]
-#define	P_Common_Function_Slave_Motion_Common_Init_Complete_Bit	pshm->P[13074]
-#define	P_Common_Function_OlD_Jog_Speed_Save_ON_Flag	pshm->P[13075]
-#define	P_Common_Function_OlD_Jog_Speed_Save_ON_Complete_Bit	pshm->P[13076]
-#define	P_Auto_Resetting_Sum_Ready_Pos_Check_Flag	pshm->P[13077]
-#define	P_Auto_Resetting_Sum_Ready_Pos_Check_Complete_bit	pshm->P[13078]
-#define	P_Manual_Resetting_Sum_Ready_Pos_Check_Flag	pshm->P[13079]
-#define	P_Manual_Resetting_Sum_Ready_Pos_Check_Complete_bit	pshm->P[13080]
-#define	P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Flag	pshm->P[13081]
-#define	P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Complete_Bit	pshm->P[13082]
-#define	P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Flag	pshm->P[13083]
-#define	P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Complete_Bit	pshm->P[13084]
-#define	P_Motion_Target_Position_Complete	pshm->P[13085]
-#define	P_SM_Auto_Run_Layer_Management	pshm->P[13086]
-#define	P_Buffer_Mode_Status_Sequence	pshm->P[13087]
-#define	P_SM_Sub_Function_Pause	pshm->P[13088]
-#define	P_PLC09_Resetting_Position_Check_State_Machine	pshm->P[13089]
-#define	P_PLC09_Resetting_Position_Moving_State_Machine	pshm->P[13090]
-#define	P_Sum_Ready_pos_Motor(i)	pshm->P[(13091+i)%MAX_P]
-#define	P_SM_Resetting_Pause_Position	pshm->P[13133]
-#define	P_20per_Vac_Error_Cycle_Stop_Flag	pshm->P[13134]
-#define	P_MNTR_PLC23_ARC_Complete	pshm->P[13135]
-#define	P_FUNCTION_PLC13_Sepa_Trigger_Enable	pshm->P[13136]
-#define	P_PLC_Recipe_PLC2_Revise_Sepa	pshm->P[13137]
-#define	P_Auto_Semi_Init_Status	pshm->P[13138]
-#define	P_Auto_Semi_Init_Chk_Bit	pshm->P[13139]
-#define	P_Old_PLC_HeartBit_Flag	pshm->P[13140]
-#define	P_PLC09_Init_Flag	pshm->P[13141]
-#define	P_Check_IDLE_CF_Flag	pshm->P[13142]
-#define	P_Check_EXECUTE_CF_Flag	pshm->P[13143]
-#define	P_Check_COMPLETING_CF_Flag	pshm->P[13144]
-#define	P_Check_COMPLETE_CF_Flag	pshm->P[13145]
-#define	P_Check_HOLDING_CF_Flag	pshm->P[13146]
-#define	P_Check_HOLD_CF_Flag	pshm->P[13147]
-#define	P_Check_UNHOLDING_CF_Flag	pshm->P[13148]
-#define	P_Check_SUSPENDING_CF_Flag	pshm->P[13149]
-#define	P_Check_SUSPENDED_CF_Flag	pshm->P[13150]
-#define	P_Check_UNSUSPENDING_CF_Flag	pshm->P[13151]
-#define	P_Check_STOPPED_CF_Flag	pshm->P[13152]
-#define	P_Check_ABORTED_CF_Flag	pshm->P[13153]
-#define	P_Check_CLEARING_CF_Flag	pshm->P[13154]
-#define	P_Check_IDLE_CF	pshm->P[13155]
-#define	P_Check_EXECUTE_CF	pshm->P[13156]
-#define	P_Check_COMPLETING_CF	pshm->P[13157]
-#define	P_Check_COMPLETE_CF	pshm->P[13158]
-#define	P_Check_HOLDING_CF	pshm->P[13159]
-#define	P_Check_HOLD_CF	pshm->P[13160]
-#define	P_Check_UNHOLDING_CF	pshm->P[13161]
-#define	P_Check_SUSPENDING_CF	pshm->P[13162]
-#define	P_Check_SUSPENDED_CF	pshm->P[13163]
-#define	P_Check_UNSUSPENDING_CF	pshm->P[13164]
-#define	P_Check_STOPPED_CF	pshm->P[13165]
-#define	P_Check_ABORTED_CF	pshm->P[13166]
-#define	P_Check_CLEARING_CF	pshm->P[13167]
-#define	P_Check_STOPPING_CF	pshm->P[13168]
-#define	P_Check_STARTING_CF	pshm->P[13169]
-#define	P_Check_RESETTING_CF	pshm->P[13170]
-#define	P_Check_STARTTING_CF	pshm->P[13171]
-#define	P_Queue_Clear	pshm->P[13172]
-#define	P_Resetting_First_Approach_Start_Flag	pshm->P[13173]
-#define	P_Resetting_Re_Entry_Step_Count	pshm->P[13174]
-#define	P_PLC09_Alarm_Test_Flag	pshm->P[13175]
-#define	P_PLC09_Test_Temp	pshm->P[13176]
-#define	P_PLC01_STOP_Queue_Complete_Flag	pshm->P[13177]
-#define	P_PMAC_All_Home_Cmd	pshm->P[13178]
-#define	P_PMAC_All_Home_Status	pshm->P[13179]
-#define	P_PMAC_Master_Following_Use_Flag	pshm->P[13180]
-#define	PnP_Belt_Waring_Pos	pshm->P[13181]
-#define	P_Old_X_PLC_Sync_Heart_Bit	pshm->P[13182]
-#define	P_Stack_Heart_Bit_Sync_Flag	pshm->P[13183]
-#define	P_Stack_Heart_Bit_Sunc_Complete_Bit	pshm->P[13184]
-#define	P_Resetting_Init_Module_RTN	pshm->P[13185]
-#define	P_PLC09_MNTR	pshm->P[13186]
-#define	P_Unloder_PNP_Home_IL_Pos	pshm->P[13187]
-#define	P_ECAT_Slave_Err_Bit	pshm->P[13188]
-#define	P_MC_Power_Down_Flag	pshm->P[13189]
-#define	P_Old_MC_Power_Down_Flag	pshm->P[13190]
+#define	P_PMAC_Current_Mode	pshm->P[13054]
+#define	P_PMAC_Status	pshm->P[13055]
+#define	P_PMAC_Old_Mode	pshm->P[13056]
+#define	P_Ready_Tack_Chk_Timer	pshm->P[13057]
+#define	P_PLC09_Common_Command_Flag	pshm->P[13058]
+#define	P_PLC09_Common_Command_Complete_Bit	pshm->P[13059]
+#define	P_PLC09_Common_Execute_Flag	pshm->P[13060]
+#define	P_PLC09_Common_Execute_Complete_Bit	pshm->P[13061]
+#define	P_PLC09_Status	pshm->P[13062]
+#define	P_PLC09_Libraries_Var	pshm->P[13063]
+#define	P_Master_Motion_Program_ON_Flag	pshm->P[13064]
+#define	P_Master_Motion_Program_ON_Complete_Bit	pshm->P[13065]
+#define	P_Master_Motion_Program_OFF_Flag	pshm->P[13066]
+#define	P_Master_Motion_Program_OFF_Complete_Bit	pshm->P[13067]
+#define	P_Common_Function_Timbase_ON_Flag	pshm->P[13068]
+#define	P_Common_Function_Timbase_ON_Complete_Bit	pshm->P[13069]
+#define	P_Common_Function_Timbase_OFF_Flag	pshm->P[13070]
+#define	P_Common_Function_Timbase_OFF_Complete_Bit	pshm->P[13071]
+#define	P_Common_Function_Monitoring_Lamp_OFF_Flag	pshm->P[13072]
+#define	P_Common_Function_Monitoring_Lamp_OFF_Complete_Bit	pshm->P[13073]
+#define	P_Common_Function_Slave_Motion_Common_Init_Flag	pshm->P[13074]
+#define	P_Common_Function_Slave_Motion_Common_Init_Complete_Bit	pshm->P[13075]
+#define	P_Common_Function_OlD_Jog_Speed_Save_ON_Flag	pshm->P[13076]
+#define	P_Common_Function_OlD_Jog_Speed_Save_ON_Complete_Bit	pshm->P[13077]
+#define	P_Auto_Resetting_Sum_Ready_Pos_Check_Flag	pshm->P[13078]
+#define	P_Auto_Resetting_Sum_Ready_Pos_Check_Complete_bit	pshm->P[13079]
+#define	P_Manual_Resetting_Sum_Ready_Pos_Check_Flag	pshm->P[13080]
+#define	P_Manual_Resetting_Sum_Ready_Pos_Check_Complete_bit	pshm->P[13081]
+#define	P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Flag	pshm->P[13082]
+#define	P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Complete_Bit	pshm->P[13083]
+#define	P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Flag	pshm->P[13084]
+#define	P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Complete_Bit	pshm->P[13085]
+#define	P_Motion_Target_Position_Complete	pshm->P[13086]
+#define	P_SM_Auto_Run_Layer_Management	pshm->P[13087]
+#define	P_Buffer_Mode_Status_Sequence	pshm->P[13088]
+#define	P_SM_Sub_Function_Pause	pshm->P[13089]
+#define	P_PLC09_Resetting_Position_Check_State_Machine	pshm->P[13090]
+#define	P_PLC09_Resetting_Position_Moving_State_Machine	pshm->P[13091]
+#define	P_Sum_Ready_pos_Motor(i)	pshm->P[(13092+i)%MAX_P]
+#define	P_SM_Resetting_Pause_Position	pshm->P[13134]
+#define	P_20per_Vac_Error_Cycle_Stop_Flag	pshm->P[13135]
+#define	P_MNTR_PLC23_ARC_Complete	pshm->P[13136]
+#define	P_FUNCTION_PLC13_Sepa_Trigger_Enable	pshm->P[13137]
+#define	P_PLC_Recipe_PLC2_Revise_Sepa	pshm->P[13138]
+#define	P_Auto_Semi_Init_Status	pshm->P[13139]
+#define	P_Auto_Semi_Init_Chk_Bit	pshm->P[13140]
+#define	P_Old_PLC_HeartBit_Flag	pshm->P[13141]
+#define	P_PLC09_Init_Flag	pshm->P[13142]
+#define	P_Check_IDLE_CF_Flag	pshm->P[13143]
+#define	P_Check_EXECUTE_CF_Flag	pshm->P[13144]
+#define	P_Check_COMPLETING_CF_Flag	pshm->P[13145]
+#define	P_Check_COMPLETE_CF_Flag	pshm->P[13146]
+#define	P_Check_HOLDING_CF_Flag	pshm->P[13147]
+#define	P_Check_HOLD_CF_Flag	pshm->P[13148]
+#define	P_Check_UNHOLDING_CF_Flag	pshm->P[13149]
+#define	P_Check_SUSPENDING_CF_Flag	pshm->P[13150]
+#define	P_Check_SUSPENDED_CF_Flag	pshm->P[13151]
+#define	P_Check_UNSUSPENDING_CF_Flag	pshm->P[13152]
+#define	P_Check_STOPPED_CF_Flag	pshm->P[13153]
+#define	P_Check_ABORTED_CF_Flag	pshm->P[13154]
+#define	P_Check_CLEARING_CF_Flag	pshm->P[13155]
+#define	P_Check_IDLE_CF	pshm->P[13156]
+#define	P_Check_EXECUTE_CF	pshm->P[13157]
+#define	P_Check_COMPLETING_CF	pshm->P[13158]
+#define	P_Check_COMPLETE_CF	pshm->P[13159]
+#define	P_Check_HOLDING_CF	pshm->P[13160]
+#define	P_Check_HOLD_CF	pshm->P[13161]
+#define	P_Check_UNHOLDING_CF	pshm->P[13162]
+#define	P_Check_SUSPENDING_CF	pshm->P[13163]
+#define	P_Check_SUSPENDED_CF	pshm->P[13164]
+#define	P_Check_UNSUSPENDING_CF	pshm->P[13165]
+#define	P_Check_STOPPED_CF	pshm->P[13166]
+#define	P_Check_ABORTED_CF	pshm->P[13167]
+#define	P_Check_CLEARING_CF	pshm->P[13168]
+#define	P_Check_STOPPING_CF	pshm->P[13169]
+#define	P_Check_STARTING_CF	pshm->P[13170]
+#define	P_Check_RESETTING_CF	pshm->P[13171]
+#define	P_Check_STARTTING_CF	pshm->P[13172]
+#define	P_Queue_Clear	pshm->P[13173]
+#define	P_Resetting_First_Approach_Start_Flag	pshm->P[13174]
+#define	P_Resetting_Re_Entry_Step_Count	pshm->P[13175]
+#define	P_PLC09_Alarm_Test_Flag	pshm->P[13176]
+#define	P_PLC09_Test_Temp	pshm->P[13177]
+#define	P_PLC01_STOP_Queue_Complete_Flag	pshm->P[13178]
+#define	P_PMAC_All_Home_Cmd	pshm->P[13179]
+#define	P_PMAC_All_Home_Status	pshm->P[13180]
+#define	P_PMAC_Master_Following_Use_Flag	pshm->P[13181]
+#define	PnP_Belt_Waring_Pos	pshm->P[13182]
+#define	P_Old_X_PLC_Sync_Heart_Bit	pshm->P[13183]
+#define	P_Stack_Heart_Bit_Sync_Flag	pshm->P[13184]
+#define	P_Stack_Heart_Bit_Sunc_Complete_Bit	pshm->P[13185]
+#define	P_Resetting_Init_Module_RTN	pshm->P[13186]
+#define	P_PLC09_MNTR	pshm->P[13187]
+#define	P_Unloder_PNP_Home_IL_Pos	pshm->P[13188]
+#define	P_ECAT_Slave_Err_Bit	pshm->P[13189]
+#define	P_MC_Power_Down_Flag	pshm->P[13190]
+#define	P_Old_MC_Power_Down_Flag	pshm->P[13191]
 #define	P_Modbus_A_PMAC_Cur_Mode	pshm->P[10]
 #define	P_Modbus_A_PMAC_Cur_Status	pshm->P[11]
 #define	P_Modbus_A_VISION_MSA_Status	pshm->P[12]
@@ -2483,1797 +2485,1797 @@ enum ptrMarray {_ptrMarray_=-1
 #define	P_Modbus_B_All_Home_Status	pshm->P[36]
 #define	P_Modbus_B_Anode_1st_HCK	pshm->P[37]
 #define	P_Modbus_B_Cathode_1st_HCK	pshm->P[38]
-#define	P_Modbus_Delay_Timer	pshm->P[13191]
-#define	P_Modbus_Connect_Status	pshm->P[13192]
-#define	P_Modbus_Reconnect_MNTR	pshm->P[13193]
-#define	P_Ecat_Reconn_Chk_Lamp	pshm->P[13194]
-#define	P_MC_Reconn_Chk_Lamp	pshm->P[13195]
-#define	P_Cathode_2TR_PNP_Avoid_Pos	pshm->P[13196]
-#define	P_Anode_2TR_PNP_Avoid_Pos	pshm->P[13197]
-#define	P_Cathode_2TR_PNP_Avoid_Value	pshm->P[13198]
-#define	P_Anode_2TR_PNP_Avoid_Value	pshm->P[13199]
-#define	P_Cathode_1st_Vac_Set_Time	pshm->P[13200]
-#define	P_Cathode_2nd_Vac_Set_Time	pshm->P[13201]
-#define	P_Cathode_Align_Vac_Set_Time	pshm->P[13202]
-#define	P_Cathode_Align_Blow_Set_Time	pshm->P[13203]
-#define	P_Anode_1st_Vac_Set_Time	pshm->P[13204]
-#define	P_Anode_2nd_Vac_Set_Time	pshm->P[13205]
-#define	P_Sepa_Consume_Mode_Thickness_rate	pshm->P[13206]
-#define	P_Sepa_Anode_Recipe_Count	pshm->P[13207]
-#define	P_Sepa_Cathode_Recipe_Count	pshm->P[13208]
-#define	P_Discharge_Cathode_Recipe_Count	pshm->P[13209]
-#define	P_Discharge_Anode_Recipe_Count	pshm->P[13210]
-#define	P_Suspend_Discharge_Cathode_Counter	pshm->P[13211]
-#define	P_Suspend_Discharge_Anode_Counter	pshm->P[13212]
-#define	P_Suspend_Discharge_Waiting_Flag	pshm->P[13213]
-#define	P_Com_ARC_Sepa_Consume_Mode_Flag	pshm->P[13214]
-#define	P_Com_EPC_Sepa_Consume_Mode_Flag	pshm->P[13215]
-#define	P_Com_User_Sepa_Consume_Mode_Flag	pshm->P[13216]
-#define	P_Com_Dry_Mode_Flag	pshm->P[13217]
-#define	P_SM_Recipe_Value_Management	pshm->P[13218]
-#define	P_Sepa_Mode_Recipe_Count	pshm->P[13219]
-#define	P_Sepa_Mode_EPC_Recipe_Count	pshm->P[13220]
-#define	P_ARC_End_Sepa_Recipe_Count	pshm->P[13221]
-#define	P_Anode_Align_NG_Array(i)	pshm->P[(13222+i)%MAX_P]
-#define	P_Cathode_Align_NG_Array(i)	pshm->P[(13242+i)%MAX_P]
-#define	P_Anode_Surface_NG_Array(i)	pshm->P[(13262+i)%MAX_P]
-#define	P_Cathode_Surface_NG_Array(i)	pshm->P[(13282+i)%MAX_P]
-#define	P_Stack_NG_Array(i)	pshm->P[(13302+i)%MAX_P]
-#define	P_Cathode_Align_Continuous_NG_Stop_Select	pshm->P[13322]
-#define	P_Anode_Align_Continuous_NG_Stop_Select	pshm->P[13323]
-#define	P_Stack_Vision_NG_Enable	pshm->P[13324]
-#define	P_Cathode_Surface_Continuous_NG_Stop_Select	pshm->P[13325]
-#define	P_Anode_Surface_Continuous_NG_Stop_Select	pshm->P[13326]
-#define	P_Anode_Trigger_IO_Test_Vision_PLC_Loop	pshm->P[13327]
-#define	P_Anode_Trigger_IO_Test_Motion_Loop	pshm->P[13328]
-#define	P_Cathode_Trigger_IO_Test_Vision_PLC_Loop	pshm->P[13329]
-#define	P_Cathode_Trigger_IO_Test_Motion_Loop	pshm->P[13330]
-#define	P_Stack_Trigger_IO_Test_Vision_PLC_Loop	pshm->P[13331]
-#define	P_Stack_Trigger_IO_Test_Motion_Loop	pshm->P[13332]
-#define	P_PLC12_Continuous_Buffer_Reset_Flag	pshm->P[13333]
-#define	P_Continuous_Call_Align_OK_Flag(i)	pshm->P[(13334+i)%MAX_P]
-#define	P_Continuous_Call_Align_NG_Flag(i)	pshm->P[(13336+i)%MAX_P]
-#define	P_Continuous_Call_Align_TimeOut_Flag(i)	pshm->P[(13338+i)%MAX_P]
-#define	P_Continuous_Call_Surface_OK_Flag(i)	pshm->P[(13340+i)%MAX_P]
-#define	P_Continuous_Call_Surface_NG_Flag(i)	pshm->P[(13342+i)%MAX_P]
-#define	P_Continuous_Call_Surface_TimeOut_Flag(i)	pshm->P[(13344+i)%MAX_P]
-#define	P_Continuous_Call_Stack_Flag(i)	pshm->P[(13346+i)%MAX_P]
-#define	P_PLC12_Anode_Sheet_Pick_Up_Flag	pshm->P[13349]
-#define	P_PLC12_Cathode_Sheet_Pick_Up_Flag	pshm->P[13350]
-#define	P_Hold_Anode_Sheet_Pick_Up_Flag	pshm->P[13351]
-#define	P_Hold_Cathode_Sheet_Pick_Up_Flag	pshm->P[13352]
-#define	P_Sheet_Interface_Complete_Pos	pshm->P[13353]
-#define	P_Anode_Sheet_Interface_Complete_Pos	pshm->P[13354]
-#define	P_Cathode_Sheet_Interface_Complete_Pos	pshm->P[13355]
-#define	P_Anode_2nd_TR_Maint_Check	pshm->P[13356]
-#define	P_Cathode_2nd_TR_Maint_Check	pshm->P[13357]
-#define	P_PLC12_Observser_MNTR(i)	pshm->P[(13358+i)%MAX_P]
-#define	P_PLC12_Vacuum_MNTR(i)	pshm->P[(13363+i)%MAX_P]
-#define	P_Vacuum_Check(i)	pshm->P[(13371+i)%MAX_P]
-#define	P_PLC12_Blow_MNTR(i)	pshm->P[(13379+i)%MAX_P]
-#define	P_Blow_Check(i)	pshm->P[(13387+i)%MAX_P]
-#define	P_PLC12_Vacuum_1st_Cathode_MNTR_Timer	pshm->P[13395]
-#define	P_PLC12_Vacuum_2nd_Cathode_MNTR_Timer	pshm->P[13396]
-#define	P_PLC12_Vacuum_NG_Cathode_MNTR_Timer	pshm->P[13397]
-#define	P_PLC12_Vacuum_Align_Cathode_MNTR_Timer	pshm->P[13398]
-#define	P_PLC12_Vacuum_1st_Anode_MNTR_Timer	pshm->P[13399]
-#define	P_PLC12_Vacuum_2nd_Anode_MNTR_Timer	pshm->P[13400]
-#define	P_PLC12_Vacuum_NG_Anode_MNTR_Timer	pshm->P[13401]
-#define	P_PLC12_Vacuum_Align_Anode_MNTR_Timer	pshm->P[13402]
-#define	P_PLC12_Vacuum_1st_Cathode_Set_Time	pshm->P[13403]
-#define	P_PLC12_Vacuum_2nd_Cathode_Set_Time	pshm->P[13404]
-#define	P_PLC12_Vacuum_NG_Cathode_Set_Time	pshm->P[13405]
-#define	P_PLC12_Vacuum_Align_Cathode_Set_Time	pshm->P[13406]
-#define	P_PLC12_Vacuum_1st_Anode_Set_Time	pshm->P[13407]
-#define	P_PLC12_Vacuum_2nd_Anode_Set_Time	pshm->P[13408]
-#define	P_PLC12_Vacuum_NG_Anode_Set_Time	pshm->P[13409]
-#define	P_PLC12_Vacuum_Align_Anode_Set_Time	pshm->P[13410]
-#define	P_PLC12_Vacuum_1st_Cathode_Take_Time(i)	pshm->P[(13411+i)%MAX_P]
-#define	P_PLC12_Vacuum_2nd_Cathode_Take_Time(i)	pshm->P[(13416+i)%MAX_P]
-#define	P_PLC12_Vacuum_NG_Cathode_Take_Time(i)	pshm->P[(13421+i)%MAX_P]
-#define	P_PLC12_Vacuum_Align_Cathode_Take_Time(i)	pshm->P[(13426+i)%MAX_P]
-#define	P_PLC12_Vacuum_1st_Anode_Take_Time(i)	pshm->P[(13431+i)%MAX_P]
-#define	P_PLC12_Vacuum_2nd_Anode_Take_Time(i)	pshm->P[(13436+i)%MAX_P]
-#define	P_PLC12_Vacuum_NG_Anode_Take_Time(i)	pshm->P[(13441+i)%MAX_P]
-#define	P_PLC12_Vacuum_Align_Anode_Take_Time(i)	pshm->P[(13446+i)%MAX_P]
-#define	P_PLC12_Blow_1st_Cathode_MNTR_Timer	pshm->P[13451]
-#define	P_PLC12_Blow_2nd_Cathode_MNTR_Timer	pshm->P[13452]
-#define	P_PLC12_Blow_NG_Cathode_MNTR_Timer	pshm->P[13453]
-#define	P_PLC12_Blow_Align_Cathode_MNTR_Timer	pshm->P[13454]
-#define	P_PLC12_Blow_1st_Anode_MNTR_Timer	pshm->P[13455]
-#define	P_PLC12_Blow_2nd_Anode_MNTR_Timer	pshm->P[13456]
-#define	P_PLC12_Blow_NG_Anode_MNTR_Timer	pshm->P[13457]
-#define	P_PLC12_Blow_Align_Anode_MNTR_Timer	pshm->P[13458]
-#define	P_PLC12_Blow_1st_Cathode_Set_Time	pshm->P[13459]
-#define	P_PLC12_Blow_2nd_Cathode_Set_Time	pshm->P[13460]
-#define	P_PLC12_Blow_NG_Cathode_Set_Time	pshm->P[13461]
-#define	P_PLC12_Blow_Align_Cathode_Set_Time	pshm->P[13462]
-#define	P_PLC12_Blow_1st_Anode_Set_Time	pshm->P[13463]
-#define	P_PLC12_Blow_2nd_Anode_Set_Time	pshm->P[13464]
-#define	P_PLC12_Blow_NG_Anode_Set_Time	pshm->P[13465]
-#define	P_PLC12_Blow_Align_Anode_Set_Time	pshm->P[13466]
-#define	P_PLC12_Blow_1st_Cathode_Take_Time(i)	pshm->P[(13467+i)%MAX_P]
-#define	P_PLC12_Blow_2nd_Cathode_Take_Time(i)	pshm->P[(13472+i)%MAX_P]
-#define	P_PLC12_Blow_NG_Cathode_Take_Time(i)	pshm->P[(13477+i)%MAX_P]
-#define	P_PLC12_Blow_Align_Cathode_Take_Time(i)	pshm->P[(13482+i)%MAX_P]
-#define	P_PLC12_Blow_1st_Anode_Take_Time(i)	pshm->P[(13487+i)%MAX_P]
-#define	P_PLC12_Blow_2nd_Anode_Take_Time(i)	pshm->P[(13492+i)%MAX_P]
-#define	P_PLC12_Blow_NG_Anode_Take_Time(i)	pshm->P[(13497+i)%MAX_P]
-#define	P_PLC12_Blow_Align_Anode_Take_Time(i)	pshm->P[(13502+i)%MAX_P]
-#define	P_Vacuum_Reentry_Bit	pshm->P[13507]
-#define	P_Blow_Reentry_Bit	pshm->P[13508]
-#define	P_Status_arry(i)	pshm->P[(13509+i)%MAX_P]
-#define	P_Queue_arry(i)	pshm->P[(13529+i)%MAX_P]
-#define	P_Step_arry(i)	pshm->P[(13549+i)%MAX_P]
-#define	P_Index_arry(i)	pshm->P[(13569+i)%MAX_P]
-#define	P_top	pshm->P[13589]
-#define	P_Queue_stack_top	pshm->P[13590]
-#define	P_Step_stack_top	pshm->P[13591]
-#define	P_Index_stack_top	pshm->P[13592]
-#define	P_Status_stack_top	pshm->P[13593]
-#define	NN_Step	pshm->P[13594]
-#define	NN_Index	pshm->P[13595]
-#define	P_PLC_Observser_MNTR(i)	pshm->P[(13596+i)%MAX_P]
-#define	P_PLC12_Frist	pshm->P[13601]
-#define	P_SM_Auto_Run_Status_Management	pshm->P[13602]
-#define	P_SM_Status_Main_Memory_Management	pshm->P[13603]
-#define	P_SM_Cell_Memory_Management	pshm->P[13604]
-#define	P_Test_Vacuum_Timer(i)	pshm->P[(13605+i)%MAX_P]
-#define	P_Test_Blow_Timer(i)	pshm->P[(13613+i)%MAX_P]
-#define	P_Vac_Test_Set_Time(i)	pshm->P[(13621+i)%MAX_P]
-#define	P_Blow_Test_Set_Time(i)	pshm->P[(13629+i)%MAX_P]
-#define	P_PLC12_Vacuum_Unit_Data	pshm->P[13637]
-#define	P_PLC12_Blow_Unit_Data	pshm->P[13638]
-#define	P_Stack_Algorithme_Cmd_Event_Status	pshm->P[13639]
-#define	P_PLC12_vacuum_Event_Status	pshm->P[13640]
-#define	P_PLC12_Blow_Event_status	pshm->P[13641]
-#define	P_PLC12_vacuum_DIO_Observer_Status	pshm->P[13642]
-#define	P_PLC12_Blow_DIO_Observer_Status	pshm->P[13643]
-#define	P_Resetting_Vacuum_MNTR_State_Machine	pshm->P[13644]
-#define	P_Heart_Bit_Time	pshm->P[13645]
-#define	P_Dancer_Angle_Alarm_Timer_Flag	pshm->P[13646]
-#define	P_Dancer_Angle_Alarm_Check_Timer	pshm->P[13647]
-#define	P_BTN_LED_LAMP	pshm->P[13648]
-#define	P_Old_BTN_LED_LAMP	pshm->P[13649]
-#define	P_PLC_TO_PMAC_Work_Confirm_Operation_Cnt	pshm->P[13650]
-#define	P_VISION_TO_PMAC_Work_Confirm_Operation_Ack_Cnt	pshm->P[13651]
-#define	P_Ca_AT_Retry_Cal_Move_Complete	pshm->P[13652]
-#define	P_An_AT_Retry_Cal_Move_Complete	pshm->P[13653]
-#define	P_Ca_AT_Retry_Cal_Cnt	pshm->P[13654]
-#define	P_An_AT_Retry_Cal_Cnt	pshm->P[13655]
-#define	P_Ca_AT_Retry_Cal_Complete	pshm->P[13656]
-#define	P_An_AT_Retry_Cal_Complete	pshm->P[13657]
-#define	P_An_AT_Retry_Cal_Pass	pshm->P[13658]
-#define	P_Ca_AT_Retry_Cal_Pass	pshm->P[13659]
-#define	P_Ca_Picker_T_Turn_Cnt_Flag	pshm->P[13660]
-#define	P_Ca_Picker_T_Turn_Cnt	pshm->P[13661]
-#define	P_Ca_Picker_T_Home_Type	pshm->P[13662]
-#define	P_An_Picker_T_Turn_Cnt_Flag	pshm->P[13663]
-#define	P_An_Picker_T_Turn_Cnt	pshm->P[13664]
-#define	P_An_Picker_T_Home_Type	pshm->P[13665]
-#define	P_Flag_Vac_Status_Initialize	pshm->P[13666]
-#define	P_SM_Vac_Initialize	pshm->P[13667]
-#define	P_Flag_Anode_1st_Vac_OFF	pshm->P[13668]
-#define	P_Flag_Anode_AT_Vac_OFF	pshm->P[13669]
-#define	P_Flag_Anode_2nd_Vac_OFF	pshm->P[13670]
-#define	P_Flag_Anode_NG_Vac_OFF	pshm->P[13671]
-#define	P_Flag_Cathode_1st_Vac_OFF	pshm->P[13672]
-#define	P_Flag_Cathode_AT_Vac_OFF	pshm->P[13673]
-#define	P_Flag_Cathode_2nd_Vac_OFF	pshm->P[13674]
-#define	P_Flag_Cathode_NG_Vac_OFF	pshm->P[13675]
-#define	P_Flag_Anode_1st_Vac_Initial_Alarm	pshm->P[13676]
-#define	P_Flag_Anode_AT_Vac_Initial_Alarm	pshm->P[13677]
-#define	P_Flag_Anode_2nd_Vac_Initial_Alarm	pshm->P[13678]
-#define	P_Flag_Anode_NG_Vac_Initial_Alarm	pshm->P[13679]
-#define	P_Flag_Cathode_1st_Vac_Initial_Alarm	pshm->P[13680]
-#define	P_Flag_Cathode_AT_Vac_Initial_Alarm	pshm->P[13681]
-#define	P_Flag_Cathode_2nd_Vac_Initial_Alarm	pshm->P[13682]
-#define	P_Flag_Cathode_NG_Vac_Initial_Alarm	pshm->P[13683]
-#define	P_Middle_Discharge_Ignore_Total_Count	pshm->P[13684]
-#define	P_Middle_Discharge_Ignore_Stack_Count	pshm->P[13685]
-#define	P_Middle_Discharge_Ignore_ON_Signal	pshm->P[13686]
-#define	P_Middle_Discharge_Ignore_OFF_Signal	pshm->P[13687]
-#define	P_Middle_Discharge_Ignore_Cell_Count	pshm->P[13688]
-#define	P_ARC_Middle_Discharge_Ignore_Vision_Check	pshm->P[13689]
-#define	P_ARC_Middle_Discharge_Ignore_ON_Flag	pshm->P[13690]
-#define	P_Middle_Discharge_Ignore_User_Sepa_Mode_Check	pshm->P[13691]
-#define	P_Zero_Angle(i)	pshm->P[(13692+i)%MAX_P]
-#define	P_Zero_Length(i)	pshm->P[(13717+i)%MAX_P]
-#define	P_Homeoffset_Change_Flag(i)	pshm->P[(13742+i)%MAX_P]
-#define	P_Cal_Distance(i)	pshm->P[(13767+i)%MAX_P]
-#define	P_Cal_Denominator(i)	pshm->P[(13772+i)%MAX_P]
-#define	P_Cal_Numerator(i)	pshm->P[(13777+i)%MAX_P]
-#define	P_Cal_Dif_Deg(i)	pshm->P[(13782+i)%MAX_P]
-#define	P_Vac_Door_Open_Clear(i)	pshm->P[(13787+i)%MAX_P]
-#define	P_Flag_Sepa_Stack_Mode_CHK	pshm->P[13800]
-#define	P_Read_Timer_S(i)	pshm->P[(13801+i)%MAX_P]
-#define	P_Write_Timer_S(i)	pshm->P[(13810+i)%MAX_P]
-#define	P_Interval_Read_S(i)	pshm->P[(13819+i)%MAX_P]
-#define	P_Interval_Write_S(i)	pshm->P[(13828+i)%MAX_P]
-#define	P_UI_Jog_Vel_M(i)	pshm->P[(13837+i)%MAX_P]
-#define	P_Initialize_Read_Excom_Variables_Flag	pshm->P[13887]
-#define	P_Old_X_Read_Count_S(i)	pshm->P[(13888+i)%MAX_P]
-#define	P_Cathode_Clamp_MC_Cylinder_Count	pshm->P[13897]
-#define	P_Cathode_Clamp_OP_Cylinder_Count	pshm->P[13898]
-#define	P_Anode_Clamp_MC_Cylinder_Count	pshm->P[13899]
-#define	P_Anode_Clamp_OP_Cylinder_Count	pshm->P[13900]
+#define	P_Modbus_Delay_Timer	pshm->P[13192]
+#define	P_Modbus_Connect_Status	pshm->P[13193]
+#define	P_Modbus_Reconnect_MNTR	pshm->P[13194]
+#define	P_Ecat_Reconn_Chk_Lamp	pshm->P[13195]
+#define	P_MC_Reconn_Chk_Lamp	pshm->P[13196]
+#define	P_Cathode_2TR_PNP_Avoid_Pos	pshm->P[13197]
+#define	P_Anode_2TR_PNP_Avoid_Pos	pshm->P[13198]
+#define	P_Cathode_2TR_PNP_Avoid_Value	pshm->P[13199]
+#define	P_Anode_2TR_PNP_Avoid_Value	pshm->P[13200]
+#define	P_Cathode_1st_Vac_Set_Time	pshm->P[13201]
+#define	P_Cathode_2nd_Vac_Set_Time	pshm->P[13202]
+#define	P_Cathode_Align_Vac_Set_Time	pshm->P[13203]
+#define	P_Cathode_Align_Blow_Set_Time	pshm->P[13204]
+#define	P_Anode_1st_Vac_Set_Time	pshm->P[13205]
+#define	P_Anode_2nd_Vac_Set_Time	pshm->P[13206]
+#define	P_Sepa_Consume_Mode_Thickness_rate	pshm->P[13207]
+#define	P_Sepa_Anode_Recipe_Count	pshm->P[13208]
+#define	P_Sepa_Cathode_Recipe_Count	pshm->P[13209]
+#define	P_Discharge_Cathode_Recipe_Count	pshm->P[13210]
+#define	P_Discharge_Anode_Recipe_Count	pshm->P[13211]
+#define	P_Suspend_Discharge_Cathode_Counter	pshm->P[13212]
+#define	P_Suspend_Discharge_Anode_Counter	pshm->P[13213]
+#define	P_Suspend_Discharge_Waiting_Flag	pshm->P[13214]
+#define	P_Com_ARC_Sepa_Consume_Mode_Flag	pshm->P[13215]
+#define	P_Com_EPC_Sepa_Consume_Mode_Flag	pshm->P[13216]
+#define	P_Com_User_Sepa_Consume_Mode_Flag	pshm->P[13217]
+#define	P_Com_Dry_Mode_Flag	pshm->P[13218]
+#define	P_SM_Recipe_Value_Management	pshm->P[13219]
+#define	P_Sepa_Mode_Recipe_Count	pshm->P[13220]
+#define	P_Sepa_Mode_EPC_Recipe_Count	pshm->P[13221]
+#define	P_ARC_End_Sepa_Recipe_Count	pshm->P[13222]
+#define	P_Anode_Align_NG_Array(i)	pshm->P[(13223+i)%MAX_P]
+#define	P_Cathode_Align_NG_Array(i)	pshm->P[(13243+i)%MAX_P]
+#define	P_Anode_Surface_NG_Array(i)	pshm->P[(13263+i)%MAX_P]
+#define	P_Cathode_Surface_NG_Array(i)	pshm->P[(13283+i)%MAX_P]
+#define	P_Stack_NG_Array(i)	pshm->P[(13303+i)%MAX_P]
+#define	P_Cathode_Align_Continuous_NG_Stop_Select	pshm->P[13323]
+#define	P_Anode_Align_Continuous_NG_Stop_Select	pshm->P[13324]
+#define	P_Stack_Vision_NG_Enable	pshm->P[13325]
+#define	P_Cathode_Surface_Continuous_NG_Stop_Select	pshm->P[13326]
+#define	P_Anode_Surface_Continuous_NG_Stop_Select	pshm->P[13327]
+#define	P_Anode_Trigger_IO_Test_Vision_PLC_Loop	pshm->P[13328]
+#define	P_Anode_Trigger_IO_Test_Motion_Loop	pshm->P[13329]
+#define	P_Cathode_Trigger_IO_Test_Vision_PLC_Loop	pshm->P[13330]
+#define	P_Cathode_Trigger_IO_Test_Motion_Loop	pshm->P[13331]
+#define	P_Stack_Trigger_IO_Test_Vision_PLC_Loop	pshm->P[13332]
+#define	P_Stack_Trigger_IO_Test_Motion_Loop	pshm->P[13333]
+#define	P_PLC12_Continuous_Buffer_Reset_Flag	pshm->P[13334]
+#define	P_Continuous_Call_Align_OK_Flag(i)	pshm->P[(13335+i)%MAX_P]
+#define	P_Continuous_Call_Align_NG_Flag(i)	pshm->P[(13337+i)%MAX_P]
+#define	P_Continuous_Call_Align_TimeOut_Flag(i)	pshm->P[(13339+i)%MAX_P]
+#define	P_Continuous_Call_Surface_OK_Flag(i)	pshm->P[(13341+i)%MAX_P]
+#define	P_Continuous_Call_Surface_NG_Flag(i)	pshm->P[(13343+i)%MAX_P]
+#define	P_Continuous_Call_Surface_TimeOut_Flag(i)	pshm->P[(13345+i)%MAX_P]
+#define	P_Continuous_Call_Stack_Flag(i)	pshm->P[(13347+i)%MAX_P]
+#define	P_PLC12_Anode_Sheet_Pick_Up_Flag	pshm->P[13350]
+#define	P_PLC12_Cathode_Sheet_Pick_Up_Flag	pshm->P[13351]
+#define	P_Hold_Anode_Sheet_Pick_Up_Flag	pshm->P[13352]
+#define	P_Hold_Cathode_Sheet_Pick_Up_Flag	pshm->P[13353]
+#define	P_Sheet_Interface_Complete_Pos	pshm->P[13354]
+#define	P_Anode_Sheet_Interface_Complete_Pos	pshm->P[13355]
+#define	P_Cathode_Sheet_Interface_Complete_Pos	pshm->P[13356]
+#define	P_Anode_2nd_TR_Maint_Check	pshm->P[13357]
+#define	P_Cathode_2nd_TR_Maint_Check	pshm->P[13358]
+#define	P_PLC12_Observser_MNTR(i)	pshm->P[(13359+i)%MAX_P]
+#define	P_PLC12_Vacuum_MNTR(i)	pshm->P[(13364+i)%MAX_P]
+#define	P_Vacuum_Check(i)	pshm->P[(13372+i)%MAX_P]
+#define	P_PLC12_Blow_MNTR(i)	pshm->P[(13380+i)%MAX_P]
+#define	P_Blow_Check(i)	pshm->P[(13388+i)%MAX_P]
+#define	P_PLC12_Vacuum_1st_Cathode_MNTR_Timer	pshm->P[13396]
+#define	P_PLC12_Vacuum_2nd_Cathode_MNTR_Timer	pshm->P[13397]
+#define	P_PLC12_Vacuum_NG_Cathode_MNTR_Timer	pshm->P[13398]
+#define	P_PLC12_Vacuum_Align_Cathode_MNTR_Timer	pshm->P[13399]
+#define	P_PLC12_Vacuum_1st_Anode_MNTR_Timer	pshm->P[13400]
+#define	P_PLC12_Vacuum_2nd_Anode_MNTR_Timer	pshm->P[13401]
+#define	P_PLC12_Vacuum_NG_Anode_MNTR_Timer	pshm->P[13402]
+#define	P_PLC12_Vacuum_Align_Anode_MNTR_Timer	pshm->P[13403]
+#define	P_PLC12_Vacuum_1st_Cathode_Set_Time	pshm->P[13404]
+#define	P_PLC12_Vacuum_2nd_Cathode_Set_Time	pshm->P[13405]
+#define	P_PLC12_Vacuum_NG_Cathode_Set_Time	pshm->P[13406]
+#define	P_PLC12_Vacuum_Align_Cathode_Set_Time	pshm->P[13407]
+#define	P_PLC12_Vacuum_1st_Anode_Set_Time	pshm->P[13408]
+#define	P_PLC12_Vacuum_2nd_Anode_Set_Time	pshm->P[13409]
+#define	P_PLC12_Vacuum_NG_Anode_Set_Time	pshm->P[13410]
+#define	P_PLC12_Vacuum_Align_Anode_Set_Time	pshm->P[13411]
+#define	P_PLC12_Vacuum_1st_Cathode_Take_Time(i)	pshm->P[(13412+i)%MAX_P]
+#define	P_PLC12_Vacuum_2nd_Cathode_Take_Time(i)	pshm->P[(13417+i)%MAX_P]
+#define	P_PLC12_Vacuum_NG_Cathode_Take_Time(i)	pshm->P[(13422+i)%MAX_P]
+#define	P_PLC12_Vacuum_Align_Cathode_Take_Time(i)	pshm->P[(13427+i)%MAX_P]
+#define	P_PLC12_Vacuum_1st_Anode_Take_Time(i)	pshm->P[(13432+i)%MAX_P]
+#define	P_PLC12_Vacuum_2nd_Anode_Take_Time(i)	pshm->P[(13437+i)%MAX_P]
+#define	P_PLC12_Vacuum_NG_Anode_Take_Time(i)	pshm->P[(13442+i)%MAX_P]
+#define	P_PLC12_Vacuum_Align_Anode_Take_Time(i)	pshm->P[(13447+i)%MAX_P]
+#define	P_PLC12_Blow_1st_Cathode_MNTR_Timer	pshm->P[13452]
+#define	P_PLC12_Blow_2nd_Cathode_MNTR_Timer	pshm->P[13453]
+#define	P_PLC12_Blow_NG_Cathode_MNTR_Timer	pshm->P[13454]
+#define	P_PLC12_Blow_Align_Cathode_MNTR_Timer	pshm->P[13455]
+#define	P_PLC12_Blow_1st_Anode_MNTR_Timer	pshm->P[13456]
+#define	P_PLC12_Blow_2nd_Anode_MNTR_Timer	pshm->P[13457]
+#define	P_PLC12_Blow_NG_Anode_MNTR_Timer	pshm->P[13458]
+#define	P_PLC12_Blow_Align_Anode_MNTR_Timer	pshm->P[13459]
+#define	P_PLC12_Blow_1st_Cathode_Set_Time	pshm->P[13460]
+#define	P_PLC12_Blow_2nd_Cathode_Set_Time	pshm->P[13461]
+#define	P_PLC12_Blow_NG_Cathode_Set_Time	pshm->P[13462]
+#define	P_PLC12_Blow_Align_Cathode_Set_Time	pshm->P[13463]
+#define	P_PLC12_Blow_1st_Anode_Set_Time	pshm->P[13464]
+#define	P_PLC12_Blow_2nd_Anode_Set_Time	pshm->P[13465]
+#define	P_PLC12_Blow_NG_Anode_Set_Time	pshm->P[13466]
+#define	P_PLC12_Blow_Align_Anode_Set_Time	pshm->P[13467]
+#define	P_PLC12_Blow_1st_Cathode_Take_Time(i)	pshm->P[(13468+i)%MAX_P]
+#define	P_PLC12_Blow_2nd_Cathode_Take_Time(i)	pshm->P[(13473+i)%MAX_P]
+#define	P_PLC12_Blow_NG_Cathode_Take_Time(i)	pshm->P[(13478+i)%MAX_P]
+#define	P_PLC12_Blow_Align_Cathode_Take_Time(i)	pshm->P[(13483+i)%MAX_P]
+#define	P_PLC12_Blow_1st_Anode_Take_Time(i)	pshm->P[(13488+i)%MAX_P]
+#define	P_PLC12_Blow_2nd_Anode_Take_Time(i)	pshm->P[(13493+i)%MAX_P]
+#define	P_PLC12_Blow_NG_Anode_Take_Time(i)	pshm->P[(13498+i)%MAX_P]
+#define	P_PLC12_Blow_Align_Anode_Take_Time(i)	pshm->P[(13503+i)%MAX_P]
+#define	P_Vacuum_Reentry_Bit	pshm->P[13508]
+#define	P_Blow_Reentry_Bit	pshm->P[13509]
+#define	P_Status_arry(i)	pshm->P[(13510+i)%MAX_P]
+#define	P_Queue_arry(i)	pshm->P[(13530+i)%MAX_P]
+#define	P_Step_arry(i)	pshm->P[(13550+i)%MAX_P]
+#define	P_Index_arry(i)	pshm->P[(13570+i)%MAX_P]
+#define	P_top	pshm->P[13590]
+#define	P_Queue_stack_top	pshm->P[13591]
+#define	P_Step_stack_top	pshm->P[13592]
+#define	P_Index_stack_top	pshm->P[13593]
+#define	P_Status_stack_top	pshm->P[13594]
+#define	NN_Step	pshm->P[13595]
+#define	NN_Index	pshm->P[13596]
+#define	P_PLC_Observser_MNTR(i)	pshm->P[(13597+i)%MAX_P]
+#define	P_PLC12_Frist	pshm->P[13602]
+#define	P_SM_Auto_Run_Status_Management	pshm->P[13603]
+#define	P_SM_Status_Main_Memory_Management	pshm->P[13604]
+#define	P_SM_Cell_Memory_Management	pshm->P[13605]
+#define	P_Test_Vacuum_Timer(i)	pshm->P[(13606+i)%MAX_P]
+#define	P_Test_Blow_Timer(i)	pshm->P[(13614+i)%MAX_P]
+#define	P_Vac_Test_Set_Time(i)	pshm->P[(13622+i)%MAX_P]
+#define	P_Blow_Test_Set_Time(i)	pshm->P[(13630+i)%MAX_P]
+#define	P_PLC12_Vacuum_Unit_Data	pshm->P[13638]
+#define	P_PLC12_Blow_Unit_Data	pshm->P[13639]
+#define	P_Stack_Algorithme_Cmd_Event_Status	pshm->P[13640]
+#define	P_PLC12_vacuum_Event_Status	pshm->P[13641]
+#define	P_PLC12_Blow_Event_status	pshm->P[13642]
+#define	P_PLC12_vacuum_DIO_Observer_Status	pshm->P[13643]
+#define	P_PLC12_Blow_DIO_Observer_Status	pshm->P[13644]
+#define	P_Resetting_Vacuum_MNTR_State_Machine	pshm->P[13645]
+#define	P_Heart_Bit_Time	pshm->P[13646]
+#define	P_Dancer_Angle_Alarm_Timer_Flag	pshm->P[13647]
+#define	P_Dancer_Angle_Alarm_Check_Timer	pshm->P[13648]
+#define	P_BTN_LED_LAMP	pshm->P[13649]
+#define	P_Old_BTN_LED_LAMP	pshm->P[13650]
+#define	P_PLC_TO_PMAC_Work_Confirm_Operation_Cnt	pshm->P[13651]
+#define	P_VISION_TO_PMAC_Work_Confirm_Operation_Ack_Cnt	pshm->P[13652]
+#define	P_Ca_AT_Retry_Cal_Move_Complete	pshm->P[13653]
+#define	P_An_AT_Retry_Cal_Move_Complete	pshm->P[13654]
+#define	P_Ca_AT_Retry_Cal_Cnt	pshm->P[13655]
+#define	P_An_AT_Retry_Cal_Cnt	pshm->P[13656]
+#define	P_Ca_AT_Retry_Cal_Complete	pshm->P[13657]
+#define	P_An_AT_Retry_Cal_Complete	pshm->P[13658]
+#define	P_An_AT_Retry_Cal_Pass	pshm->P[13659]
+#define	P_Ca_AT_Retry_Cal_Pass	pshm->P[13660]
+#define	P_Ca_Picker_T_Turn_Cnt_Flag	pshm->P[13661]
+#define	P_Ca_Picker_T_Turn_Cnt	pshm->P[13662]
+#define	P_Ca_Picker_T_Home_Type	pshm->P[13663]
+#define	P_An_Picker_T_Turn_Cnt_Flag	pshm->P[13664]
+#define	P_An_Picker_T_Turn_Cnt	pshm->P[13665]
+#define	P_An_Picker_T_Home_Type	pshm->P[13666]
+#define	P_Flag_Vac_Status_Initialize	pshm->P[13667]
+#define	P_SM_Vac_Initialize	pshm->P[13668]
+#define	P_Flag_Anode_1st_Vac_OFF	pshm->P[13669]
+#define	P_Flag_Anode_AT_Vac_OFF	pshm->P[13670]
+#define	P_Flag_Anode_2nd_Vac_OFF	pshm->P[13671]
+#define	P_Flag_Anode_NG_Vac_OFF	pshm->P[13672]
+#define	P_Flag_Cathode_1st_Vac_OFF	pshm->P[13673]
+#define	P_Flag_Cathode_AT_Vac_OFF	pshm->P[13674]
+#define	P_Flag_Cathode_2nd_Vac_OFF	pshm->P[13675]
+#define	P_Flag_Cathode_NG_Vac_OFF	pshm->P[13676]
+#define	P_Flag_Anode_1st_Vac_Initial_Alarm	pshm->P[13677]
+#define	P_Flag_Anode_AT_Vac_Initial_Alarm	pshm->P[13678]
+#define	P_Flag_Anode_2nd_Vac_Initial_Alarm	pshm->P[13679]
+#define	P_Flag_Anode_NG_Vac_Initial_Alarm	pshm->P[13680]
+#define	P_Flag_Cathode_1st_Vac_Initial_Alarm	pshm->P[13681]
+#define	P_Flag_Cathode_AT_Vac_Initial_Alarm	pshm->P[13682]
+#define	P_Flag_Cathode_2nd_Vac_Initial_Alarm	pshm->P[13683]
+#define	P_Flag_Cathode_NG_Vac_Initial_Alarm	pshm->P[13684]
+#define	P_Middle_Discharge_Ignore_Total_Count	pshm->P[13685]
+#define	P_Middle_Discharge_Ignore_Stack_Count	pshm->P[13686]
+#define	P_Middle_Discharge_Ignore_ON_Signal	pshm->P[13687]
+#define	P_Middle_Discharge_Ignore_OFF_Signal	pshm->P[13688]
+#define	P_Middle_Discharge_Ignore_Cell_Count	pshm->P[13689]
+#define	P_ARC_Middle_Discharge_Ignore_Vision_Check	pshm->P[13690]
+#define	P_ARC_Middle_Discharge_Ignore_ON_Flag	pshm->P[13691]
+#define	P_Middle_Discharge_Ignore_User_Sepa_Mode_Check	pshm->P[13692]
+#define	P_Zero_Angle(i)	pshm->P[(13693+i)%MAX_P]
+#define	P_Zero_Length(i)	pshm->P[(13718+i)%MAX_P]
+#define	P_Homeoffset_Change_Flag(i)	pshm->P[(13743+i)%MAX_P]
+#define	P_Cal_Distance(i)	pshm->P[(13768+i)%MAX_P]
+#define	P_Cal_Denominator(i)	pshm->P[(13773+i)%MAX_P]
+#define	P_Cal_Numerator(i)	pshm->P[(13778+i)%MAX_P]
+#define	P_Cal_Dif_Deg(i)	pshm->P[(13783+i)%MAX_P]
+#define	P_Vac_Door_Open_Clear(i)	pshm->P[(13788+i)%MAX_P]
+#define	P_Flag_Sepa_Stack_Mode_CHK	pshm->P[13801]
+#define	P_Read_Timer_S(i)	pshm->P[(13802+i)%MAX_P]
+#define	P_Write_Timer_S(i)	pshm->P[(13811+i)%MAX_P]
+#define	P_Interval_Read_S(i)	pshm->P[(13820+i)%MAX_P]
+#define	P_Interval_Write_S(i)	pshm->P[(13829+i)%MAX_P]
+#define	P_UI_Jog_Vel_M(i)	pshm->P[(13838+i)%MAX_P]
+#define	P_Initialize_Read_Excom_Variables_Flag	pshm->P[13888]
+#define	P_Old_X_Read_Count_S(i)	pshm->P[(13889+i)%MAX_P]
+#define	P_Cathode_Clamp_MC_Cylinder_Count	pshm->P[13898]
+#define	P_Cathode_Clamp_OP_Cylinder_Count	pshm->P[13899]
+#define	P_Anode_Clamp_MC_Cylinder_Count	pshm->P[13900]
+#define	P_Anode_Clamp_OP_Cylinder_Count	pshm->P[13901]
 #define	P_Cathode_1ST_TR_Cylinder_Count	pshm->P[8003]
 #define	P_Anode_1ST_TR_Cylinder_Count	pshm->P[8004]
-#define	P_BTN_Cathode_Clamp_inside_Machine_Cylinder_Count_Clear	pshm->P[13901]
-#define	P_BTN_Cathode_Clamp_Middle_Cylinder_Count_Clear	pshm->P[13902]
-#define	P_BTN_Cathode_Clamp_outside_Machine_Cylinder_Count_Clear	pshm->P[13903]
-#define	P_BTN_Anode_Clamp_inside_Machine_Cylinder_Count_Clear	pshm->P[13904]
-#define	P_BTN_Anode_Clamp_Middle_Cylinder_Count_Clear	pshm->P[13905]
-#define	P_BTN_Anode_Clamp_outside_Machine_Cylinder_Count_Clear	pshm->P[13906]
-#define	P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear	pshm->P[13907]
-#define	P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear_Old	pshm->P[13908]
-#define	P_BTN_Anode_1ST_TR_Cylinder_Count_Clear	pshm->P[13909]
-#define	P_BTN_Anode_1ST_TR_Cylinder_Count_Clear_Old	pshm->P[13910]
-#define	P_X_BTN_Manual_1(i)	pshm->P[(13911+i)%MAX_P]
-#define	P_X_BTN_Manual_2(i)	pshm->P[(14031+i)%MAX_P]
-#define	P_X_BTN_Manual_3(i)	pshm->P[(14151+i)%MAX_P]
-#define	P_Home_InterLock_M(i)	pshm->P[(14271+i)%MAX_P]
-#define	P_Status_BTN_Manual_1(i)	pshm->P[(14321+i)%MAX_P]
-#define	P_Status_BTN_Manual_2(i)	pshm->P[(14441+i)%MAX_P]
-#define	P_Status_BTN_Manual_Interlock_1(i)	pshm->P[(14561+i)%MAX_P]
-#define	P_Status_BTN_Manual_Interlock_2(i)	pshm->P[(14681+i)%MAX_P]
-#define	P_Status_BTN_Manual_Interlock_3(i)	pshm->P[(14801+i)%MAX_P]
-#define	P_Mode_Run_Enable_Flag(i)	pshm->P[(14921+i)%MAX_P]
-#define	P_RECIPE_PLC27_Manual_Interval	pshm->P[14926]
-#define	P_RECIPE_PLC27_Auto_Interval	pshm->P[14927]
-#define	P_MNTR_PLC4_Vision_Result(i)	pshm->P[(14928+i)%MAX_P]
-#define	P_PNP_Vac_Mode_Run_Enable_Flag(i)	pshm->P[(15129+i)%MAX_P]
-#define	P_Recipe_Speed_Value	pshm->P[15134]
-#define	P_Slave6_Target_X_For_Cell_Out	pshm->P[15135]
-#define	P_HCK_Step_MNTR(i)	pshm->P[(15136+i)%MAX_P]
-#define	P_Axis_Home_Pos(i)	pshm->P[(15186+i)%MAX_P]
-#define	P_Axis_Ready_Pos(i)	pshm->P[(15236+i)%MAX_P]
-#define	P_PMAC_Homing_CHK(i)	pshm->P[(15286+i)%MAX_P]
-#define	P_Poistion_error	pshm->P[15336]
-#define	P_Home_Command(i)	pshm->P[(15337+i)%MAX_P]
-#define	P_Recipe_Count_Num	pshm->P[15387]
-#define	L_Motor_Status_Update_Interval	pshm->P[15388]
-#define	L_Motor_Recipe_Update_Interval	pshm->P[15389]
-#define	P_UI_Servo_On_Off	pshm->P[15390]
-#define	P_Old_BTN_Servo_On_Off_M(i)	pshm->P[(15391+i)%MAX_P]
-#define	P_Peak_Load_Ratio_M(i)	pshm->P[(15424+i)%MAX_P]
-#define	P_Chk_Current_Jog_Sel(i)	pshm->P[(15457+i)%MAX_P]
-#define	P_Jog_Sel_Count	pshm->P[15490]
-#define	P_Recipe_POS_Interock_Num_Bit(i)	pshm->P[(15491+i)%MAX_P]
-#define	P_Recipe_VEL(i)	pshm->P[(15524+i)%MAX_P]
-#define	P_Recipe_POS(i)	pshm->P[(15535+i)%MAX_P]
-#define	P_BTN_Servo_On_Off_M(i)	pshm->P[(15546+i)%MAX_P]
-#define	P_BTN_Home_M(i)	pshm->P[(15579+i)%MAX_P]
-#define	P_BTN_Jog_Stop_M(i)	pshm->P[(15612+i)%MAX_P]
-#define	P_BTN_Recipe_POS_RUN_M(i)	pshm->P[(15645+i)%MAX_P]
-#define	P_Recipe_POS_Flag_M(i)	pshm->P[(15678+i)%MAX_P]
-#define	P_BTN_Jog_INC_M(i)	pshm->P[(15711+i)%MAX_P]
-#define	P_BTN_JOG_ABS_M(i)	pshm->P[(15744+i)%MAX_P]
-#define	P_User_Jog_Distance	pshm->P[15777]
-#define	P_Unit_Command(i)	pshm->P[(15778+i)%MAX_P]
-#define	P_Unit_State_Machine(i)	pshm->P[(15878+i)%MAX_P]
-#define	P_Status_BTN_Manual_3(i)	pshm->P[(15978+i)%MAX_P]
-#define	P_Chk_Current_BTN_Sel(i)	pshm->P[(16078+i)%MAX_P]
-#define	P_BTN_Sel_Count	pshm->P[16128]
-#define	P_PC_BTN_No	pshm->P[16129]
-#define	P_BTN_Interlock_Update_Interval	pshm->P[16130]
-#define	P_Align_Table_Status_Update_Interval	pshm->P[16131]
-#define	P_Jelly_Roll_Total_Count_Old	pshm->P[16132]
-#define	P_Old_m4120	pshm->P[16133]
-#define	P_Old_m4121	pshm->P[16134]
-#define	P_Old_m4122	pshm->P[16135]
-#define	P_Old_m4123	pshm->P[16136]
-#define	P_Linear_Encoder_Pos_Check_Flag(i)	pshm->P[(16137+i)%MAX_P]
-#define	P_Linear_Encoder_Pos(i)	pshm->P[(16142+i)%MAX_P]
-#define	P_Status_Linear_Encoder_HomeZero(i)	pshm->P[(16147+i)%MAX_P]
-#define	P_Command_Linear_Encoder_HomeZero(i)	pshm->P[(16152+i)%MAX_P]
-#define	P_Flag_Linear_Enc_Homezero_Complete_M17	pshm->P[16157]
-#define	P_Flag_Linear_Enc_Homezero_Complete_M18	pshm->P[16158]
-#define	P_Flag_Linear_Enc_Homezero_Complete_M19	pshm->P[16159]
-#define	P_Flag_Linear_Enc_Homezero_Complete_M20	pshm->P[16160]
-#define	P_CMD_Linear_ENC_Homezero_M17	pshm->P[16161]
-#define	P_CMD_Linear_ENC_Homezero_M18	pshm->P[16162]
-#define	P_CMD_Linear_ENC_Homezero_M19	pshm->P[16163]
-#define	P_CMD_Linear_ENC_Homezero_M20	pshm->P[16164]
-#define	P_OLD_Home_Offset(i)	pshm->P[(16165+i)%MAX_P]
-#define	P_RECIPE_PLC27_Alltime_Interval	pshm->P[16195]
-#define	P_Manual_Memory_Tower_Timer	pshm->P[16196]
-#define	P_Memory_Tower_Interval	pshm->P[16197]
-#define	P_PLC_14_Status_Cycle_Stop_Flag	pshm->P[16198]
-#define	P_Cathode_AlignTable_Cleaning_Pos_Status_Machine	pshm->P[16199]
-#define	P_Anode_AlignTable_Cleaning_Pos_Status_Machine	pshm->P[16200]
-#define	P_Status_Cathode_AlignTable_Cleaning_Pos	pshm->P[16201]
-#define	P_Status_Anode_AlignTable_Cleaning_Pos	pshm->P[16202]
-#define	P_CMD_Cathode_AlignTable_Cleaning_Pos	pshm->P[16203]
-#define	P_CMD_Anode_AlignTable_Cleaning_Pos	pshm->P[16204]
-#define	P_Cathode_2nd_pnp_Cleaning_Mode_Pos	pshm->P[16205]
-#define	P_Anode_2nd_pnp_Cleaning_Mode_Pos	pshm->P[16206]
-#define	P_Interlock_Test	pshm->P[16207]
-#define	P_PNP_Picker_T_Pos	pshm->P[16208]
-#define	P_NG_PNP_Pos	pshm->P[16209]
-#define	M_Old_X_BTN_Machine_READY	pshm->P[16210]
-#define	M_Old_X_BTN_Machine_START	pshm->P[16211]
-#define	M_Old_X_BTN_Machine_STOP	pshm->P[16212]
-#define	M_Old_X_BTN_Machine_RESET	pshm->P[16213]
-#define	M_Old_X_BTN_Machine_MODE	pshm->P[16214]
-#define	P_BTN_Motor_Pos_Check_RTN	pshm->P[16215]
-#define	P_BTN_Memory_Tower_Check_Bit	pshm->P[16216]
-#define	P_PMAC_Status_IDLE_Motor_Not_Pos	pshm->P[16217]
-#define	P_PMAC_Status_IDLE_Motor_Pos	pshm->P[16218]
-#define	P_BTN_Motor_Pos_Check_Monitor	pshm->P[16219]
-#define	P_PackML_Auto_Stop_Bit	pshm->P[16220]
-#define	P_BTN_IDLE_Motor_Not_Pos	pshm->P[16221]
-#define	M_X_BTN_Machine_Mode	pshm->P[16222]
-#define	M_Old_X_BTN_Machine_Mode	pshm->P[16223]
-#define	P_Lamp_Blinking_Timer	pshm->P[16224]
-#define	P_BTN_Ready_Lamp	pshm->P[16225]
-#define	P_BTN_Start_Lamp	pshm->P[16226]
-#define	P_BTN_Stop_Lamp	pshm->P[16227]
-#define	P_ARC_Name_Plate_Passive_Status	pshm->P[16228]
-#define	P_ARC_Passive_Status	pshm->P[16229]
-#define	P_NP_Spool_Number	pshm->P[16230]
-#define	P_ARC_Page_On	pshm->P[16231]
-#define	P_ARC_NP_Upper_Timer	pshm->P[16232]
-#define	P_ARC_Upper_Ready	pshm->P[16233]
-#define	P_ARC_NP_Upper_3rd_Step_Toggle_Variable	pshm->P[16234]
-#define	P_ARC_NP_Upper_7th_Step_Variable	pshm->P[16235]
-#define	P_ARC_NP_Upper_7th_Step_Edge_Variable	pshm->P[16236]
-#define	P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit	pshm->P[16237]
-#define	P_ARC_NP_Lower_Timer	pshm->P[16238]
-#define	P_ARC_Lower_Ready	pshm->P[16239]
-#define	P_ARC_NP_Lower_3rd_Step_Toggle_Variable	pshm->P[16240]
-#define	P_ARC_NP_Lower_7th_Step_Variable	pshm->P[16241]
-#define	P_ARC_NP_Lower_7th_Step_Edge_Variable	pshm->P[16242]
-#define	P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit	pshm->P[16243]
-#define	M_Old_X_ARC_NP_Ready	pshm->P[16244]
-#define	M_Old_X_ARC_NP_Unwinder_Rotation	pshm->P[16245]
-#define	M_Old_X_ARC_NP_Unwinder_Re_Rotation	pshm->P[16246]
-#define	P_Status_Clear_Flag	pshm->P[16247]
-#define	P_Status_Clear_RTN	pshm->P[16248]
-#define	P_MSA_BTN_On	pshm->P[16249]
-#define	P_Align_Take_Off_BTN_ON	pshm->P[16250]
-#define	P_ARC_NP_Upper_Ready_Check_Bit	pshm->P[16251]
-#define	P_ARC_NP_Lower_Ready_Check_Bit	pshm->P[16252]
-#define	P_PLC13_Cycle_Stop_Return_Array(i)	pshm->P[(16253+i)%MAX_P]
-#define	P_Stopping_CycleStop_Status	pshm->P[16353]
-#define	P_Stopping_CycleStop_Seq_Index	pshm->P[16354]
-#define	P_Stopping_CycleStop_Precondition_Seq_Index	pshm->P[16355]
-#define	P_Stopping_CycleStop_Module_Status	pshm->P[16356]
-#define	P_Stopping_CycleStop_Cmd	pshm->P[16357]
-#define	P_Stopping_CycleStop_State_Machine	pshm->P[16358]
-#define	P_Stopping_CycleStop_Act_State_Machine(i)	pshm->P[(16359+i)%MAX_P]
-#define	P_Module_Cycle_Stop_Act_State_Machine_Array(i)	pshm->P[(16379+i)%MAX_P]
-#define	P_Module_Cycle_Stop_Act_Complete_Bit(i)	pshm->P[(16399+i)%MAX_P]
-#define	P_Module_Cycle_Stop_Act_Command_Array(i)	pshm->P[(16419+i)%MAX_P]
-#define	P_OLD_Module_Cycle_Stop_Act_Command_Array(i)	pshm->P[(16439+i)%MAX_P]
-#define	P_Buffer_Seqdata_CycleStop_Array(i)	pshm->P[(16459+i)%MAX_P]
-#define	P_Final_Roll_Cathode_Pos_Status	pshm->P[16479]
-#define	P_Sheet_Paper_FWD_Pos_Status	pshm->P[16480]
-#define	P_Final_Roll_Vision_Pos_Status	pshm->P[16481]
-#define	P_Cathode_Clamp_ON_Status	pshm->P[16482]
-#define	P_Anode_Clamp_ON_Status	pshm->P[16483]
-#define	P_Anode_Clamp_OFF_Status	pshm->P[16484]
-#define	P_Partition_Up_Flag	pshm->P[16485]
-#define	P_Partition_Down_Flag	pshm->P[16486]
-#define	P_Partition_Avoid_Flag	pshm->P[16487]
-#define	P_Partition_Avoid_Z_Speed	pshm->P[16488]
-#define	P_Partition_Avoid_X_Speed	pshm->P[16489]
-#define	P_Partition_Avoid_T_Speed	pshm->P[16490]
-#define	P_Partition_Avoid_2nd_T_Pos	pshm->P[16491]
-#define	P_Partition_Step_Flag	pshm->P[16492]
-#define	P_Partition_1st_Avoid_Offset	pshm->P[16493]
-#define	P_Partition_Picker_Avoid_Offset	pshm->P[16494]
-#define	P_Partition_Avoid_Check	pshm->P[16495]
-#define	P_Tact_Time_Timer(i)	pshm->P[(16496+i)%MAX_P]
-#define	P_Tack_Time_Save_Time(i)	pshm->P[(16536+i)%MAX_P]
-#define	P_Anode_NG_PNP_Tact_Time_Start	pshm->P[16576]
-#define	P_Cathode_NG_PNP_Tact_Time_Start	pshm->P[16577]
-#define	P_Anode_NG_PNP_Tact_Time_End	pshm->P[16578]
-#define	P_Cathode_NG_PNP_Tact_Time_End	pshm->P[16579]
-#define	P_Tact_Time_Stack_Array(i)	pshm->P[(16580+i)%MAX_P]
-#define	P_Tact_Time_Discharge_Array(i)	pshm->P[(16590+i)%MAX_P]
-#define	P_Tact_Time_1st_Unloader_Array(i)	pshm->P[(16600+i)%MAX_P]
-#define	P_Tact_Time_Sepa_ARC_Array(i)	pshm->P[(16610+i)%MAX_P]
-#define	P_Tact_Time_Final_Roll_Array(i)	pshm->P[(16620+i)%MAX_P]
-#define	P_Tact_Time_Cathode_1st_PNP_Array(i)	pshm->P[(16630+i)%MAX_P]
-#define	P_Tact_Time_Cathode_Align_Array(i)	pshm->P[(16640+i)%MAX_P]
-#define	P_Tact_Time_Cathode_2nd_PNP_Array(i)	pshm->P[(16650+i)%MAX_P]
-#define	P_Tact_Time_Cathode_Clamp_Array(i)	pshm->P[(16660+i)%MAX_P]
-#define	P_Tact_Time_Anode_1st_PNP_Array(i)	pshm->P[(16670+i)%MAX_P]
-#define	P_Tact_Time_Anode_Align_Array(i)	pshm->P[(16680+i)%MAX_P]
-#define	P_Tact_Time_Anode_2nd_PNP_Array(i)	pshm->P[(16690+i)%MAX_P]
-#define	P_Tact_Time_Anode_Clamp_Array(i)	pshm->P[(16700+i)%MAX_P]
-#define	P_Tact_Time_Cathode_1st_PNP_Vac_Array(i)	pshm->P[(16710+i)%MAX_P]
-#define	P_Tact_Time_Cathode_Align_PNP_Vac_Array(i)	pshm->P[(16720+i)%MAX_P]
-#define	P_Tact_Time_Cathode_2nd_PNP_Vac_Array(i)	pshm->P[(16730+i)%MAX_P]
-#define	P_Tact_Time_Anode_1st_PNP_Vac_Array(i)	pshm->P[(16740+i)%MAX_P]
-#define	P_Tact_Time_Anode_Align_PNP_Vac_Array(i)	pshm->P[(16750+i)%MAX_P]
-#define	P_Tact_Time_Anode_2nd_PNP_Vac_Array(i)	pshm->P[(16760+i)%MAX_P]
-#define	P_Tact_Time_Final_Roller_Clamp	pshm->P[16770]
-#define	P_Tact_Time_Final_Roller_Unclamp	pshm->P[16771]
-#define	P_Tact_Time_Stack_Table_Down	pshm->P[16772]
-#define	P_Tact_Time_Stack_Table_Up	pshm->P[16773]
-#define	P_Tact_Time_Sepa_Cutting_Down	pshm->P[16774]
-#define	P_Tact_Time_Sepa_Cutting_Up	pshm->P[16775]
-#define	P_Tact_Time_ARC_Upper_Plate_Up	pshm->P[16776]
-#define	P_Tact_Time_ARC_Upper_Plate_Down	pshm->P[16777]
-#define	P_Tact_Time_ARC_Upper_Tilting_On	pshm->P[16778]
-#define	P_Tact_Time_ARC_Upper_Tilting_Off	pshm->P[16779]
-#define	P_Tact_Time_ARC_Upper_Cutter_Fwd	pshm->P[16780]
-#define	P_Tact_Time_ARC_Upper_Cutter_Bwd	pshm->P[16781]
-#define	P_Tact_Time_ARC_Upper_Clamp_On	pshm->P[16782]
-#define	P_Tact_Time_ARC_Upper_Clamp_Off	pshm->P[16783]
-#define	P_Tact_Time_ARC_Lower_Plate_Up	pshm->P[16784]
-#define	P_Tact_Time_ARC_Lower_Plate_Down	pshm->P[16785]
-#define	P_Tact_Time_ARC_Lower_Tilting_On	pshm->P[16786]
-#define	P_Tact_Time_ARC_Lower_Tilting_Off	pshm->P[16787]
-#define	P_Tact_Time_ARC_Lower_Cutter_Fwd	pshm->P[16788]
-#define	P_Tact_Time_ARC_Lower_Cutter_Bwd	pshm->P[16789]
-#define	P_Tact_Time_ARC_Lower_Clamp_On	pshm->P[16790]
-#define	P_Tact_Time_ARC_Lower_Clamp_Off	pshm->P[16791]
-#define	P_Tact_Time_Save_Final_Roller_Clamp_Time	pshm->P[16792]
-#define	P_Tact_Time_Save_Final_Roller_Unclamp_Time	pshm->P[16793]
-#define	P_Tact_Time_Save_Stack_Table_Down_Time	pshm->P[16794]
-#define	P_Tact_Time_Save_Stack_Table_Up_Time	pshm->P[16795]
-#define	P_Tact_Time_Save_Sepa_Cutting_Down_Time	pshm->P[16796]
-#define	P_Tact_Time_Save_Sepa_Cutting_Up_Time	pshm->P[16797]
-#define	P_Tact_Time_Save_ARC_Upper_Plate_Up_Time	pshm->P[16798]
-#define	P_Tact_Time_Save_ARC_Upper_Plate_Down_Time	pshm->P[16799]
-#define	P_Tact_Time_Save_ARC_Upper_Tilting_On_Time	pshm->P[16800]
-#define	P_Tact_Time_Save_ARC_Upper_Tilting_Off_Time	pshm->P[16801]
-#define	P_Tact_Time_Save_ARC_Upper_Cutter_Fwd_Time	pshm->P[16802]
-#define	P_Tact_Time_Save_ARC_Upper_Cutter_Bwd_Time	pshm->P[16803]
-#define	P_Tact_Time_Save_ARC_Upper_Clamp_On_Time	pshm->P[16804]
-#define	P_Tact_Time_Save_ARC_Upper_Clamp_Off_Time	pshm->P[16805]
-#define	P_Tact_Time_Save_ARC_Lower_Plate_Up_Time	pshm->P[16806]
-#define	P_Tact_Time_Save_ARC_Lower_Plate_Down_Time	pshm->P[16807]
-#define	P_Tact_Time_Save_ARC_Lower_Tilting_On_Time	pshm->P[16808]
-#define	P_Tact_Time_Save_ARC_Lower_Tilting_Off_Time	pshm->P[16809]
-#define	P_Tact_Time_Save_ARC_Lower_Cutter_Fwd_Time	pshm->P[16810]
-#define	P_Tact_Time_Save_ARC_Lower_Cutter_Bwd_Time	pshm->P[16811]
-#define	P_Tact_Time_Save_ARC_Lower_Clamp_On_Time	pshm->P[16812]
-#define	P_Tact_Time_Save_ARC_Lower_Clamp_Off_Time	pshm->P[16813]
-#define	P_Tact_Time_Check(i)	pshm->P[(16814+i)%MAX_P]
-#define	P_Old_Tact_Time_Check(i)	pshm->P[(16854+i)%MAX_P]
-#define	P_Tact_Time_Head_Address(i)	pshm->P[(16894+i)%MAX_P]
-#define	P_Tact_Time_Array_Init	pshm->P[16934]
-#define	P_Last_Run_To_Discharge_Tact_Timer	pshm->P[16935]
-#define	P_Last_Run_To_Discharge_Tact_Time	pshm->P[16936]
-#define	P_Master_Trigger_Sync_Tact_Timer	pshm->P[16937]
-#define	P_Master_Trigger_Sync_Tact_Time	pshm->P[16938]
-#define	P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag	pshm->P[16939]
-#define	P_PLC18_EPC_Retry_Mode_Time_Use_Flag	pshm->P[16940]
-#define	P_PLC18_Vision_EPC_Correction_Request_Old	pshm->P[16941]
-#define	P_PLC18_EPC_Moving_Flag	pshm->P[16942]
-#define	P_PLC18_EPC_Moving_Status	pshm->P[16943]
-#define	P_PLC18_EPC_Move_State_Machine	pshm->P[16944]
-#define	P_PLC18_EPC_Move_Status	pshm->P[16945]
-#define	P_PLC18_EPC_inspection_Time	pshm->P[16946]
-#define	P_EPC_Insp_Time	pshm->P[16947]
-#define	P_EPC_Correction_Time	pshm->P[16948]
-#define	P_TEST_Max_EPC_Sensor_Value_um	pshm->P[16949]
-#define	P_PLC18_EPC_Moving_Timer	pshm->P[16950]
-#define	P_EPC_MNTR_VAR(i)	pshm->P[(16951+i)%MAX_P]
-#define	P_EPC_Axis_Target_Y	pshm->P[16961]
-#define	P_Com_After_Sepa_Mode_Status	pshm->P[16962]
-#define	P_PLC18_PLC_to_PMAC_Correction_Value	pshm->P[16963]
-#define	P_PLC_EPC_Status	pshm->P[16964]
-#define	P_EPC_Retry_Over_Alarm_Flag	pshm->P[16965]
-#define	P_ARC_EPC_Vision_Value_Apply_Bit	pshm->P[16966]
-#define	P_ARC_EPC_Vision_Value_Apply_Flag	pshm->P[16967]
-#define	P_ARC_EPC_Vision_Value_Apply_State_Machine	pshm->P[16968]
-#define	P_ARC_EPC_Vision_Value_Apply_Timer	pshm->P[16969]
-#define	P_ARC_EPC_Vision_Value_Apply_Time	pshm->P[16970]
-#define	P_AH_Home_Status	pshm->P[16971]
-#define	P_Resetting_All_Home_Command	pshm->P[16972]
-#define	P_Homing_Alarm_Time	pshm->P[16973]
-#define	P_Home_Check_Arry(i)	pshm->P[(16974+i)%MAX_P]
-#define	P_All_Home_Stop_Cmd	pshm->P[17024]
-#define	P_Home_First_Move	pshm->P[17025]
-#define	P_PWM_Phasing_Start(i)	pshm->P[(17026+i)%MAX_P]
-#define	P_PWM_Status(i)	pshm->P[(17031+i)%MAX_P]
-#define	P_PWM_State_Machine(i)	pshm->P[(17036+i)%MAX_P]
-#define	P_AH_Seq_arr(i)	pshm->P[(17041+i)%MAX_P]
-#define	P_DD_M_Home_ABS_Pos(i)	pshm->P[(17056+i)%MAX_P]
-#define	P_AH_Indvi_rtn(i)	pshm->P[(17061+i)%MAX_P]
-#define	P_DD_M_Home_Pos_Flag	pshm->P[17112]
-#define	P_WAIT_INDEX	pshm->P[17113]
-#define	P_Home_Check_Arry1(i)	pshm->P[(17114+i)%MAX_P]
-#define	P_FR_Cmd_Check_Flag	pshm->P[17164]
-#define	P_PV_Separator_Dancer_Pressure	pshm->P[17165]
-#define	P_PV_Cathode_Clamp_Pressure	pshm->P[17166]
-#define	P_PV_Anoode_Clamp_Pressure	pshm->P[17167]
-#define	P_PV_Cathode_Final_Roller_X_Axis	pshm->P[17168]
-#define	P_PV_Anode_Final_Roller_X_Axis	pshm->P[17169]
-#define	P_PV_Cathode_Clamp_ON_Y1_Axis_Pos	pshm->P[17170]
-#define	P_PV_Cathode_Clamp_ON_Y2_Axis_Pos	pshm->P[17171]
-#define	P_PV_Cathode_Clamp_ON_Z1_Axis_Pos	pshm->P[17172]
-#define	P_PV_Cathode_Clamp_ON_Z2_Axis_Pos	pshm->P[17173]
-#define	P_PV_Anode_Clamp_ON_Y1_Axis_Pos	pshm->P[17174]
-#define	P_PV_Anode_Clamp_ON_Y2_Axis_Pos	pshm->P[17175]
-#define	P_PV_Anode_Clamp_ON_Z1_Axis_Pos	pshm->P[17176]
-#define	P_PV_Anode_Clamp_ON_Z2_Axis_Pos	pshm->P[17177]
-#define	P_PV_Cathode_2th_AT_T_Axis_Pos	pshm->P[17178]
-#define	P_PV_Cathode_2th_ST_T_Axis_Pos	pshm->P[17179]
-#define	P_PV_Cathode_2th_AT_Z_Axis_Pos	pshm->P[17180]
-#define	P_PV_Cathode_2th_ST_Z_Axis_Pos	pshm->P[17181]
-#define	P_PV_Anode_2th_AT_T_Axis_Pos	pshm->P[17182]
-#define	P_PV_Anode_2th_ST_T_Axis_Pos	pshm->P[17183]
-#define	P_PV_Anode_2th_AT_Z_Axis_Pos	pshm->P[17184]
-#define	P_PV_Anode_2th_ST_Z_Axis_Pos	pshm->P[17185]
-#define	P_PV_Cathode_1th_Ready_T_Axis_Pos	pshm->P[17186]
-#define	P_PV_Cathode_1th_CV_T_Axis_Pos	pshm->P[17187]
-#define	P_PV_Cathode_1th_AT_T_Axis_Pos	pshm->P[17188]
-#define	P_PV_Cathode_1th_Ready_Z_Axis_Pos	pshm->P[17189]
-#define	P_PV_Cathode_1th_CV_Z_Axis_Pos	pshm->P[17190]
-#define	P_PV_Cathode_1th_AT_Z_Axis_Pos	pshm->P[17191]
-#define	P_PV_Anode_1th_Ready_T_Axis_Pos	pshm->P[17192]
-#define	P_PV_Anode_1th_CV_T_Axis_Pos	pshm->P[17193]
-#define	P_PV_Anode_1th_AT_T_Axis_Pos	pshm->P[17194]
-#define	P_PV_Anode_1th_Ready_Z_Axis_Pos	pshm->P[17195]
-#define	P_PV_Anode_1th_CV_Z_Axis_Pos	pshm->P[17196]
-#define	P_PV_Anode_1th_AT_Z_Axis_Pos	pshm->P[17197]
-#define	P_PV_Cathode_NG_AT_T_Axis_Pos	pshm->P[17198]
-#define	P_PV_Cathode_NG_Box_T_Axis_Pos	pshm->P[17199]
-#define	P_PV_Anode_NG_AT_T_Axis_Pos	pshm->P[17200]
-#define	P_PV_Anode_NG_Box_T_Axis_Pos	pshm->P[17201]
-#define	P_PV_1st_Unloader_X_Axis_Pos	pshm->P[17202]
-#define	P_PV_1st_Unloader_Z_Axis_Pos	pshm->P[17203]
-#define	P_SemiRun_Separator_Dancer_Pressure_Flag	pshm->P[17204]
-#define	P_SemiRun_Cathode_Clamp_Pressure_Flag	pshm->P[17205]
-#define	P_SemiRun_Anoode_Clamp_Pressure_Flag	pshm->P[17206]
-#define	P_SemiRun_Cathode_Final_Roller_X_Axis_Flag	pshm->P[17207]
-#define	P_SemiRun_Anode_Final_Roller_X_Axis_Flag	pshm->P[17208]
-#define	P_SemiRun_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag	pshm->P[17209]
-#define	P_SemiRun_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag	pshm->P[17210]
-#define	P_SemiRun_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag	pshm->P[17211]
-#define	P_SemiRun_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag	pshm->P[17212]
-#define	P_SemiRun_Cathode_2th_AT_T_Axis_Pos_Flag	pshm->P[17213]
-#define	P_SemiRun_Cathode_2th_ST_T_Axis_Pos_Flag	pshm->P[17214]
-#define	P_SemiRun_Cathode_2th_AT_Z_Axis_Pos_Flag	pshm->P[17215]
-#define	P_SemiRun_Cathode_2th_ST_Z_Axis_Pos_Flag	pshm->P[17216]
-#define	P_SemiRun_Anode_2th_AT_T_Axis_Pos_Flag	pshm->P[17217]
-#define	P_SemiRun_Anode_2th_ST_T_Axis_Pos_Flag	pshm->P[17218]
-#define	P_SemiRun_Anode_2th_AT_Z_Axis_Pos_Flag	pshm->P[17219]
-#define	P_SemiRun_Anode_2th_ST_Z_Axis_Pos_Flag	pshm->P[17220]
-#define	P_SemiRun_Cathode_1th_Ready_T_Axis_Pos_Flag	pshm->P[17221]
-#define	P_SemiRun_Cathode_1th_CV_T_Axis_Pos_Flag	pshm->P[17222]
-#define	P_SemiRun_Cathode_1th_AT_T_Axis_Pos_Flag	pshm->P[17223]
-#define	P_SemiRun_Cathode_1th_Ready_Z_Axis_Pos_Flag	pshm->P[17224]
-#define	P_SemiRun_Cathode_1th_CV_Z_Axis_Pos_Flag	pshm->P[17225]
-#define	P_SemiRun_Cathode_1th_AT_Z_Axis_Pos_Flag	pshm->P[17226]
-#define	P_SemiRun_Anode_1th_Ready_T_Axis_Pos_Flag	pshm->P[17227]
-#define	P_SemiRun_Anode_1th_CV_T_Axis_Pos_Flag	pshm->P[17228]
-#define	P_SemiRun_Anode_1th_AT_T_Axis_Pos_Flag	pshm->P[17229]
-#define	P_SemiRun_Anode_1th_Ready_Z_Axis_Pos_Flag	pshm->P[17230]
-#define	P_SemiRun_Anode_1th_CV_Z_Axis_Pos_Flag	pshm->P[17231]
-#define	P_SemiRun_Anode_1th_AT_Z_Axis_Pos_Flag	pshm->P[17232]
-#define	P_SemiRun_Cathode_NG_AT_T_Axis_Pos_Flag	pshm->P[17233]
-#define	P_SemiRun_Cathode_NG_Box_T_Axis_Pos_Flag	pshm->P[17234]
-#define	P_SemiRun_Anode_NG_AT_T_Axis_Pos_Flag	pshm->P[17235]
-#define	P_SemiRun_Anode_NG_Box_T_Axis_Pos_Flag	pshm->P[17236]
-#define	P_SemiRun_1st_Unloader_Forward_Pos_Flag	pshm->P[17237]
-#define	P_Motion_Separator_Dancer_Pressure_Flag	pshm->P[17238]
-#define	P_Motion_Cathode_Clamp_Pressure_Flag	pshm->P[17239]
-#define	P_Motion_Anoode_Clamp_Pressure_Flag	pshm->P[17240]
-#define	P_Motion_Cathode_Final_Roller_X_Axis_Flag	pshm->P[17241]
-#define	P_Motion_Anode_Final_Roller_X_Axis_Flag	pshm->P[17242]
-#define	P_Motion_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag	pshm->P[17243]
-#define	P_Motion_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag	pshm->P[17244]
-#define	P_Motion_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag	pshm->P[17245]
-#define	P_Motion_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag	pshm->P[17246]
-#define	P_Motion_Cathode_2th_AT_T_Axis_Pos_Flag	pshm->P[17247]
-#define	P_Motion_Cathode_2th_ST_T_Axis_Pos_Flag	pshm->P[17248]
-#define	P_Motion_Cathode_2th_AT_Z_Axis_Pos_Flag	pshm->P[17249]
-#define	P_Motion_Cathode_2th_ST_Z_Axis_Pos_Flag	pshm->P[17250]
-#define	P_Motion_Anode_2th_AT_T_Axis_Pos_Flag	pshm->P[17251]
-#define	P_Motion_Anode_2th_ST_T_Axis_Pos_Flag	pshm->P[17252]
-#define	P_Motion_Anode_2th_AT_Z_Axis_Pos_Flag	pshm->P[17253]
-#define	P_Motion_Anode_2th_ST_Z_Axis_Pos_Flag	pshm->P[17254]
-#define	P_Motion_Cathode_1th_Ready_T_Axis_Pos_Flag	pshm->P[17255]
-#define	P_Motion_Cathode_1th_CV_T_Axis_Pos_Flag	pshm->P[17256]
-#define	P_Motion_Cathode_1th_AT_T_Axis_Pos_Flag	pshm->P[17257]
-#define	P_Motion_Cathode_1th_Ready_Z_Axis_Pos_Flag	pshm->P[17258]
-#define	P_Motion_Cathode_1th_CV_Z_Axis_Pos_Flag	pshm->P[17259]
-#define	P_Motion_Cathode_1th_AT_Z_Axis_Pos_Flag	pshm->P[17260]
-#define	P_Motion_Anode_1th_Ready_T_Axis_Pos_Flag	pshm->P[17261]
-#define	P_Motion_Anode_1th_CV_T_Axis_Pos_Flag	pshm->P[17262]
-#define	P_Motion_Anode_1th_AT_T_Axis_Pos_Flag	pshm->P[17263]
-#define	P_Motion_Anode_1th_Ready_Z_Axis_Pos_Flag	pshm->P[17264]
-#define	P_Motion_Anode_1th_CV_Z_Axis_Pos_Flag	pshm->P[17265]
-#define	P_Motion_Anode_1th_AT_Z_Axis_Pos_Flag	pshm->P[17266]
-#define	P_Motion_Cathode_NG_AT_T_Axis_Pos_Flag	pshm->P[17267]
-#define	P_Motion_Cathode_NG_Box_T_Axis_Pos_Flag	pshm->P[17268]
-#define	P_Motion_Anode_NG_AT_T_Axis_Pos_Flag	pshm->P[17269]
-#define	P_Motion_Anode_NG_Box_T_Axis_Pos_Flag	pshm->P[17270]
-#define	P_Motion_1st_Unloader_Forward_Pos_Flag	pshm->P[17271]
-#define	P_Cathode_1PNP_Sacle_Value	pshm->P[17272]
-#define	P_Cathode_2PNP_Sacle_Value	pshm->P[17273]
-#define	P_Anode_1PNP_Sacle_Value	pshm->P[17274]
-#define	P_Anode_2PNP_Sacle_Value	pshm->P[17275]
-#define	P_PLC01_SemiRun_PV_Flag	pshm->P[17276]
-#define	P_PV_EPC_Index	pshm->P[17277]
-#define	P_PV_EPC_Camera_Pos(i)	pshm->P[(17278+i)%MAX_P]
-#define	P_BTN_MSA_Total_Value	pshm->P[17293]
-#define	P_Vision_Align_Trigger_Timer	pshm->P[17294]
-#define	P_Vision_Stack_Trigger_Timer	pshm->P[17295]
-#define	P_MSA_Chk_Pos_Timer	pshm->P[17296]
-#define	P_MSA_Chk_Pos_Time	pshm->P[17297]
-#define	P_VISION_MSA_Status_Prod_Sequence(i)	pshm->P[(17298+i)%MAX_P]
-#define	P_VISION_MSA_Seq_Index	pshm->P[17318]
-#define	P_VISION_MSA_Anode_Align_Bit_Pos	pshm->P[17319]
-#define	P_VISION_MSA_Seq_PreCondition_Index	pshm->P[17320]
-#define	P_MSA_CycleStop_Point_Check_Complete_RTN	pshm->P[17321]
-#define	P_MSA_Cmd(i)	pshm->P[(17322+i)%MAX_P]
-#define	P_Current_Anode_Align_MSA_Run_Count	pshm->P[17327]
-#define	P_Current_Cathode_Align_MSA_Run_Count	pshm->P[17328]
-#define	P_Current_Anode_Stack_MSA_Run_Count	pshm->P[17329]
-#define	P_Current_Cathode_Stack_MSA_Run_Count	pshm->P[17330]
-#define	P_VISION_MSA_Align_Count_Chk_Flag	pshm->P[17331]
-#define	P_VISION_MSA_Stack_Count_Chk_Flag	pshm->P[17332]
-#define	P_VISION_MSA_pre_InterLock_Cmd	pshm->P[17333]
-#define	P_VISION_MSA_pre_InterLock_Status	pshm->P[17334]
-#define	P_VISION_MSA_pre_InterLock_Check_Assy_Bit	pshm->P[17335]
-#define	P_VISION_MSA_pre_InterLock_Assy_Bit_Pos	pshm->P[17336]
-#define	P_Vision_MSA_Interlock_Status	pshm->P[17337]
-#define	P_VISION_MSA_MODE	pshm->P[17338]
-#define	P_VISION_MSA_Status_Flag	pshm->P[17339]
-#define	P_VISION_MSA_State_Machine	pshm->P[17340]
-#define	P_VISION_MSA_Status	pshm->P[17341]
-#define	P_VISION_MSA_Seq_Command_Occurs	pshm->P[17342]
-#define	P_Vision_Align_Trigger_Time	pshm->P[17343]
-#define	P_Anode_Align_MSA_Motion_Check	pshm->P[17344]
-#define	P_Cathode_Align_MSA_Motion_Check	pshm->P[17345]
-#define	P_Anode_Stack_MSA_Motion_Check	pshm->P[17346]
-#define	P_Cathode_Stack_MSA_Motion_Check	pshm->P[17347]
-#define	P_Anode_Align_MSA_Motion_ProgActive_Complete	pshm->P[17348]
-#define	P_Cathode_Align_MSA_Motion_ProgActive_Complete	pshm->P[17349]
-#define	P_Anode_Stack_MSA_Motion_ProgActive_Complete	pshm->P[17350]
-#define	P_Cathode_Stack_MSA_Motion_ProgActive_Complete	pshm->P[17351]
-#define	P_BTN_Align_Off_Total_Value	pshm->P[17352]
-#define	P_Align_Take_Off_Cmd(i)	pshm->P[(17353+i)%MAX_P]
-#define	P_Align_Take_Off_Status	pshm->P[17356]
-#define	P_Align_Take_Off_Mode	pshm->P[17357]
-#define	P_Align_Take_Off_Status_Flag	pshm->P[17358]
-#define	P_Align_Take_Off_State_Machine	pshm->P[17359]
-#define	P_Align_Take_Off_Chk_Pos_Timer	pshm->P[17360]
-#define	P_Align_Take_Off_Motor_Check_Complete	pshm->P[17361]
-#define	P_Align_Take_Off_Speed_Return_Complete	pshm->P[17362]
-#define	P_Align_Take_Off_Interlock_Status	pshm->P[17363]
-#define	P_Align_Take_Off_pre_InterLock_Cmd	pshm->P[17364]
-#define	P_Align_Take_Off_pre_InterLock_Status	pshm->P[17365]
-#define	P_Align_Take_Off_pre_InterLock_Check_Assy_Bit	pshm->P[17366]
-#define	P_Align_Take_Off_pre_InterLock_Assy_Bit_Pos	pshm->P[17367]
-#define	P_Align_Take_Off_Seq_Index	pshm->P[17368]
-#define	P_Align_Take_Off_Seq_PreCondition_Index	pshm->P[17369]
-#define	P_Align_Take_Off_Status_Prod_Sequence(i)	pshm->P[(17370+i)%MAX_P]
-#define	P_Align_Take_Off_Stop_Signal	pshm->P[17390]
-#define	P_Vision_Cal_Reset_Count	pshm->P[17391]
-#define	P_2nd_PNP_Cleaning_Mode_Cmd	pshm->P[17392]
-#define	P_2nd_PNP_Cleaning_Mode_Status	pshm->P[17393]
-#define	P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed	pshm->P[17394]
-#define	P_2nd_PNP_Cleaning_Mode_X_Jog_Speed	pshm->P[17395]
-#define	P_2nd_PNP_Cleaning_Mode_T_Jog_Speed	pshm->P[17396]
-#define	P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos	pshm->P[17397]
-#define	P_PNP_Vac_Chk_Mode_Interlock	pshm->P[17398]
-#define	P_Vac_Chk_Test	pshm->P[17399]
-#define	P_Anode_1st_PNP_Vac_Chk_Mode_Blocked	pshm->P[17400]
-#define	P_Cathode_1st_PNP_Vac_Chk_Mode_Blocked	pshm->P[17401]
-#define	P_Anode_2nd_PNP_Vac_Chk_Mode_Blocked	pshm->P[17402]
-#define	P_Cathode_2nd_PNP_Vac_Chk_Mode_Blocked	pshm->P[17403]
-#define	P_SM_Anode_1st_PNP_Vac_Chk_Mode	pshm->P[17404]
-#define	P_SM_Cathode_1st_PNP_Vac_Chk_Mode	pshm->P[17405]
-#define	P_SM_Anode_2nd_PNP_Vac_Chk_Mode	pshm->P[17406]
-#define	P_SM_Cathode_2nd_PNP_Vac_Chk_Mode	pshm->P[17407]
-#define	P_Anode_1st_PNP_Vac_Chk_Execute_Timer	pshm->P[17408]
-#define	P_Cathode_1st_PNP_Vac_Chk_Execute_Timer	pshm->P[17409]
-#define	P_Anode_2nd_PNP_Vac_Chk_Execute_Timer	pshm->P[17410]
-#define	P_Cathode_2nd_PNP_Vac_Chk_Execute_Timer	pshm->P[17411]
-#define	P_Anode_1st_PNP_Vac_Check_Timer	pshm->P[17412]
-#define	P_Cathode_1st_PNP_Vac_Check_Timer	pshm->P[17413]
-#define	P_Anode_2nd_PNP_Vac_Check_Timer	pshm->P[17414]
-#define	P_Cathode_2nd_PNP_Vac_Check_Timer	pshm->P[17415]
-#define	P_Anode_1st_PNP_Vac_Chk_Status	pshm->P[17416]
-#define	P_Cathode_1st_PNP_Vac_Chk_Status	pshm->P[17417]
-#define	P_Anode_2nd_PNP_Vac_Chk_Status	pshm->P[17418]
-#define	P_Cathode_2nd_PNP_Vac_Chk_Status	pshm->P[17419]
-#define	P_Anode_1st_PNP_Vac_Chk_Mode_Stop_Blocked	pshm->P[17420]
-#define	P_Cathode_1st_PNP_Vac_Chk_Mode_Stop_Blocked	pshm->P[17421]
-#define	P_Anode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked	pshm->P[17422]
-#define	P_Cathode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked	pshm->P[17423]
-#define	P_Anode_1st_PnP_Vac_Chk_Mode_RTN	pshm->P[17424]
-#define	P_Cathode_1st_PnP_Vac_Chk_Mode_RTN	pshm->P[17425]
-#define	P_Anode_2nd_PnP_Vac_Chk_Mode_RTN	pshm->P[17426]
-#define	P_Cathode_2nd_PnP_Vac_Chk_Mode_RTN	pshm->P[17427]
-#define	P_PNP_Vac_Chk_Mode_TimeBase_Rtn	pshm->P[17428]
-#define	P_PNP_Vac_Chk_Mode_Timer	pshm->P[17429]
-#define	P_Anode_1st_PNP_Vac_Chk_Mode_Err	pshm->P[17430]
-#define	P_Cathode_1st_PNP_Vac_Chk_Mode_Err	pshm->P[17431]
-#define	P_Anode_2nd_PNP_Vac_Chk_Mode_Err	pshm->P[17432]
-#define	P_Cathode_2nd_PNP_Vac_Chk_Mode_Err	pshm->P[17433]
-#define	P_PNP_Vac_Chk_Mode_BTN_Err	pshm->P[17434]
-#define	P_BTN_CA_1st_PNP_Vac_Chk_Mode	pshm->P[17435]
-#define	P_BTN_AN_1st_PNP_Vac_Chk_Mode	pshm->P[17436]
-#define	P_BTN_CA_2nd_PNP_Vac_Chk_Mode	pshm->P[17437]
-#define	P_BTN_AN_2nd_PNP_Vac_Chk_Mode	pshm->P[17438]
-#define	P_Old_Upper_Sensor(i)	pshm->P[(17439+i)%MAX_P]
-#define	P_Edge_Upper_Sensor(i)	pshm->P[(17447+i)%MAX_P]
-#define	P_Old_Lower_Sensor(i)	pshm->P[(17455+i)%MAX_P]
-#define	P_Edge_Lower_Sensor(i)	pshm->P[(17463+i)%MAX_P]
-#define	P_Edge_NP_BTN(i)	pshm->P[(17471+i)%MAX_P]
-#define	P_ARC_Tilting_Unwinder_Move_Dis	pshm->P[17473]
-#define	P_Old_ARC_Upper_Tilting_Status	pshm->P[17474]
-#define	P_Old_ARC_Lower_Tilting_Status	pshm->P[17475]
-#define	P_UI_Unit_Status(i)	pshm->P[(17476+i)%MAX_P]
-#define	P_Motor_Unit_Status(i)	pshm->P[(17486+i)%MAX_P]
-#define	P_Current_Homming_Status_To_PLC(i)	pshm->P[(17536+i)%MAX_P]
-#define	P_System_Cascading_ON_Cmd	pshm->P[17586]
-#define	P_System_Cascading_OFF_Cmd	pshm->P[17587]
-#define	P_System_Master_Following_ON_Cmd	pshm->P[17588]
-#define	P_System_Master_Following_OFF_Cmd	pshm->P[17589]
-#define	P_System_CamTable_ON_Cmd	pshm->P[17590]
-#define	P_System_CamTable_OFF_Cmd	pshm->P[17591]
-#define	P_System_Spool_Home_Ready_Pos_Cmd	pshm->P[17592]
-#define	P_System_Cascading_ON_Status	pshm->P[17593]
-#define	P_System_Cascading_OFF_Status	pshm->P[17594]
-#define	P_System_Master_Following_ON_Status	pshm->P[17595]
-#define	P_System_Master_Following_OFF_Status	pshm->P[17596]
-#define	P_System_CamTable_ON_Status	pshm->P[17597]
-#define	P_System_CamTable_OFF_Status	pshm->P[17598]
-#define	P_System_Spool_Home_Ready_Pos_Status	pshm->P[17599]
-#define	P_System_Cascading_ON_State_Machine	pshm->P[17600]
-#define	P_System_Cascading_OFF_State_Machine	pshm->P[17601]
-#define	P_System_Master_Follwing_ON_State_Machine	pshm->P[17602]
-#define	P_System_Master_Follwing_OFF_State_Machine	pshm->P[17603]
-#define	P_System_CamTable_ON_State_Machine	pshm->P[17604]
-#define	P_System_CamTable_OFF_State_Machine	pshm->P[17605]
-#define	P_System_Spool_Home_Ready_Pos_State_Machine	pshm->P[17606]
-#define	P_System_Cascading_ON_Complete_Flag	pshm->P[17607]
-#define	P_System_Cascading_OFF_Complete_Flag	pshm->P[17608]
-#define	P_System_Master_Following_ON_Complete_Flag	pshm->P[17609]
-#define	P_System_Master_Following_OFF_Complete_Flag	pshm->P[17610]
-#define	P_System_CamTable_ON_Complete_Flag	pshm->P[17611]
-#define	P_System_CamTable_OFF_Complete_Flag	pshm->P[17612]
-#define	P_System_Spool_Home_Ready_Pos_Complete_Flag	pshm->P[17613]
-#define	P_Servo_Dancer_Cascading_Off_Timer	pshm->P[17614]
-#define	P_Servo_Dancer_Cascading_Set_Timer	pshm->P[17615]
-#define	P_Dancer_Frist_Home_Ready_Pos_Timer	pshm->P[17616]
-#define	P_Driving_Motor_Use_Flag	pshm->P[17617]
-#define	P_Home_Spool_Unwinding	pshm->P[17618]
-#define	P_OutValue	pshm->P[17619]
-#define	P_Dancer_Out_Slew_Seq	pshm->P[17620]
-#define	P_OutChangeValue	pshm->P[17621]
-#define	P_Rot_OutValue	pshm->P[17622]
-#define	P_OutChangeTime	pshm->P[17623]
-#define	P_AO_Module_Arr(i)	pshm->P[(17624+i)%MAX_P]
-#define	P_AO_Range_Set_Value(i)	pshm->P[(17629+i)%MAX_P]
-#define	P_Regul_Max_kPa_Value	pshm->P[17634]
-#define	P_Regul_Min_kPa_Value	pshm->P[17635]
-#define	P_Regul_Max_AD	pshm->P[17636]
-#define	P_Regul_Min_AD	pshm->P[17637]
-#define	P_Current_Max_Value	pshm->P[17638]
-#define	P_Current_Min_Value	pshm->P[17639]
-#define	P_Current_Max_AD	pshm->P[17640]
-#define	P_Current_Min_AD	pshm->P[17641]
-#define	P_Sepa_Cal_Inclination	pshm->P[17642]
-#define	P_Regul_Cal_Inclination	pshm->P[17643]
-#define	P_Cutter_Heat_Amp_Data_Bit	pshm->P[17644]
-#define	P_Cut_Heat_Amp_Value	pshm->P[17645]
-#define	P_AI_Cathode_Clamp_Damper_AVG	pshm->P[17646]
-#define	P_AI_Anode_Clamp_Damper_AVG	pshm->P[17647]
-#define	P_Tension_Ready_Pos_Cmd	pshm->P[17648]
-#define	P_Tension_Ready_State_Machine	pshm->P[17649]
-#define	P_Tension_Ready_Pos_Status	pshm->P[17650]
-#define	P_Dancer_Center_Pos	pshm->P[17651]
-#define	P_Upper_Sepa_Cal_Inclination	pshm->P[17652]
-#define	P_Lower_Sepa_Cal_Inclination	pshm->P[17653]
-#define	P_Unwinder_Jogspeed	pshm->P[17654]
-#define	P_Cascading_First_Out	pshm->P[17655]
-#define	P_Dancer_Cur_Vdc	pshm->P[17656]
-#define	P_Dancer_Cur_Torque	pshm->P[17657]
-#define	P_Dancer_Cur_Newton	pshm->P[17658]
-#define	P_Dancer_Cur_Kgf	pshm->P[17659]
-#define	P_Board_IO_Count	pshm->P[17660]
-#define	P_Force_BTN_Address_Clear_Count	pshm->P[17661]
-#define	P_Force_BTN_M_Variable_Save(i)	pshm->P[(17662+i)%MAX_P]
-#define	P_Force_BTN_Condition_Count	pshm->P[18046]
-#define	P_Old_Force_BTN_Mode	pshm->P[18047]
-#define	P_Force_BTN_Address_Count	pshm->P[18048]
-#define	P_Force_BTN_GPIO_Address_Count	pshm->P[18049]
-#define	P_Force_BTN_Ecat_Address_Count	pshm->P[18050]
-#define	P_Force_BTN_M_Variable_Save_Count	pshm->P[18051]
-#define	P_Force_BTN_M_Variable_Start_Num	pshm->P[18052]
-#define	P_Force_BTN_Normal_Mode_Status	pshm->P[18053]
-#define	P_Force_BTN_Normal_Mode_State_Machine	pshm->P[18054]
-#define	P_Force_BTN_Normal_Mode_Complete_Flag	pshm->P[18055]
-#define	P_Force_BTN_Force_Mode_Timer	pshm->P[18056]
-#define	P_Force_BTN_Force_Mode_Delay_Time	pshm->P[18057]
-#define	P_Force_BTN_Force_Mode_Status	pshm->P[18058]
-#define	P_Force_BTN_Force_Mode_State_Machine	pshm->P[18059]
-#define	P_Force_BTN_Force_Mode_Complete_Flag	pshm->P[18060]
-#define	P_Mem_Save_Error_Bit	pshm->P[18061]
-#define	P_ABS_Phasing_Data(i)	pshm->P[(18062+i)%MAX_P]
-#define	P_ABS_Home_Offset_Data(i)	pshm->P[(18067+i)%MAX_P]
-#define	P_Servo_Gain_Save_Command	pshm->P[18072]
-#define	P_Servo_Gain_Load_Command	pshm->P[18073]
-#define	P_Servo_Gain_Save_Flag	pshm->P[18074]
-#define	P_Servo_Gain_Load_Flag	pshm->P[18075]
-#define	P_Servo_Gain_Kp(i)	pshm->P[(18076+i)%MAX_P]
-#define	P_Servo_Gain_Kvfb(i)	pshm->P[(18106+i)%MAX_P]
-#define	P_Servo_Gain_Kvff(i)	pshm->P[(18136+i)%MAX_P]
-#define	P_Servo_Gain_Ki(i)	pshm->P[(18166+i)%MAX_P]
-#define	P_Servo_Gain_SwZvInt(i)	pshm->P[(18196+i)%MAX_P]
-#define	P_Servo_Gain_Kaff(i)	pshm->P[(18226+i)%MAX_P]
-#define	P_Insert_Phase_Flag	pshm->P[18256]
-#define	P_Alarm_Arr(i)	pshm->P[(18257+i)%MAX_P]
-#define	P_Alarm_Occur_Flag	pshm->P[18357]
-#define	P_Alarm_Occur_Index_Flag(i)	pshm->P[(18358+i)%MAX_P]
-#define	P_Alarm_Wait_Time	pshm->P[18362]
-#define	P_Alarm_Delay_Timer	pshm->P[18363]
-#define	P_Compare_Priority	pshm->P[18364]
-#define	P_Alarm_Report	pshm->P[18365]
-#define	P_Alarm_Num	pshm->P[18366]
-#define	P_Alarm_Index	pshm->P[18367]
-#define	P_First_Alarm_Flag	pshm->P[18368]
-#define	P_First_Alarm_Log(i)	pshm->P[(18369+i)%MAX_P]
-#define	P_Servo_Alarm_Check	pshm->P[18399]
-#define	P_Ecat_Servo_Alarm_Check	pshm->P[18400]
-#define	P_Alarm_Count	pshm->P[18401]
-#define	P_Alarm_Get_Flag	pshm->P[18402]
-#define	P_Alarm_Sort_Time	pshm->P[18403]
-#define	P_Alarm_Frist_Flag	pshm->P[18404]
-#define	P_Alarm_Delay_time	pshm->P[18405]
-#define	P_Alarm_duplicate_Check_Arr(i)	pshm->P[(18406+i)%MAX_P]
-#define	P_Alarm_Time_Log(i)	pshm->P[(19076+i)%MAX_P]
-#define	P_Alarm_Log(i)	pshm->P[(19126+i)%MAX_P]
-#define	P_Old_Drive_Alarm(i)	pshm->P[(19176+i)%MAX_P]
-#define	P_IL_ON_OFF_Flag	pshm->P[19226]
-#define	P_IL_Coord_Robot	pshm->P[19227]
-#define	P_IL_Robot_Bit	pshm->P[19228]
-#define	P_IL_Outer_Status	pshm->P[19229]
-#define	P_Robot_Unit_Serch_Flag	pshm->P[19230]
-#define	P_IL_Home_Chk_Edge	pshm->P[19231]
-#define	P_Limit_PosData(i)	pshm->P[(19232+i)%MAX_P]
-#define	P_IL_Sprint	pshm->P[19235]
-#define	P_IL_length	pshm->P[19236]
-#define	P_IL_Strcat	pshm->P[19237]
-#define	P_IL_Popup_Motor	pshm->P[19238]
-#define	P_IL_Motor_Page	pshm->P[19239]
-#define	P_IL_Recipe_Bit	pshm->P[19240]
-#define	P_Interlock_Popup_On_Flag	pshm->P[19241]
-#define	P_Motor_Page	pshm->P[19242]
-#define	P_OP_Side_Ca_PNP_Pos	pshm->P[19243]
-#define	P_OP_Side_An_PNP_Pos	pshm->P[19244]
-#define	P_OP_Side_PMAC_Cur_Mode	pshm->P[19245]
-#define	P_Abs_Trans_Cur_Pos	pshm->P[19246]
-#define	P_Minus_IL_Offset	pshm->P[19247]
-#define	P_Plus_IL_Offset	pshm->P[19248]
-#define	P_2nd_PNP_Arm_Radius	pshm->P[19249]
-#define	P_IL_Enable_Flag	pshm->P[19250]
-#define	P_Plus_Interlock_Bit	pshm->P[19251]
-#define	P_Minus_Interlock_Bit	pshm->P[19252]
-#define	UPPos	pshm->P[19253]
-#define	Unloader_In_StackPos	pshm->P[19254]
-#define	FR_AnodePos	pshm->P[19255]
-#define	FR_CathodePos	pshm->P[19256]
-#define	Before_In_Stack	pshm->P[19257]
-#define	In_Stack	pshm->P[19258]
-#define	P_Collision_Risk_Motor(i)	pshm->P[(19259+i)%MAX_P]
-#define	P_Minus_Collision_Risk_Motor	pshm->P[19261]
-#define	P_IL_Clamp_Y	pshm->P[19262]
-#define	P_IL_Clamp_Z	pshm->P[19263]
-#define	P_IL_Clamp_Pos	pshm->P[19264]
-#define	P_IL_Use_FR_Clamp_Pos	pshm->P[19265]
-#define	P_P_IL_Normal_Pos_Offset(i)	pshm->P[(19266+i)%MAX_P]
-#define	P_M_IL_Normal_Pos_Offset(i)	pshm->P[(19316+i)%MAX_P]
-#define	P_P_IL_Upper_Pos_Offset(i)	pshm->P[(19366+i)%MAX_P]
-#define	P_M_IL_Upper_Pos_Offset(i)	pshm->P[(19416+i)%MAX_P]
-#define	P_P_IL_Align_Pos_Offset(i)	pshm->P[(19466+i)%MAX_P]
-#define	P_M_IL_Align_Pos_Offset(i)	pshm->P[(19516+i)%MAX_P]
-#define	P_P_IL_Stack_Pos_Offset(i)	pshm->P[(19566+i)%MAX_P]
-#define	P_M_IL_Stack_Pos_Offset(i)	pshm->P[(19616+i)%MAX_P]
-#define	P_Ca_1st_Plus_IL_Offset	pshm->P[19666]
-#define	P_Ca_1st_Minus_IL_Offset	pshm->P[19667]
-#define	P_An_1st_Plus_IL_Offset	pshm->P[19668]
-#define	P_An_1st_Minus_IL_Offset	pshm->P[19669]
-#define	P_Ca_2nd_T_Plus_IL_Offset(i)	pshm->P[(19670+i)%MAX_P]
-#define	P_Ca_2nd_T_Minus_IL_Offset(i)	pshm->P[(19673+i)%MAX_P]
-#define	P_Ca_2nd_Z_Plus_IL_Offset(i)	pshm->P[(19676+i)%MAX_P]
-#define	P_Ca_2nd_Z_Minus_IL_Offset(i)	pshm->P[(19678+i)%MAX_P]
-#define	P_An_2nd_T_Plus_IL_Offset(i)	pshm->P[(19680+i)%MAX_P]
-#define	P_An_2nd_T_Minus_IL_Offset(i)	pshm->P[(19683+i)%MAX_P]
-#define	P_An_2nd_Z_Minus_IL_Offset(i)	pshm->P[(19686+i)%MAX_P]
-#define	P_Z_Pos_Data	pshm->P[19688]
-#define	P_Clamp_Z_Plus_IL_Offset	pshm->P[19689]
-#define	P_FR_X_Plus_IL_Offset(i)	pshm->P[(19690+i)%MAX_P]
-#define	P_FR_X_Minus_IL_Offset(i)	pshm->P[(19692+i)%MAX_P]
-#define	P_FR_Z_Minus_IL_Offset	pshm->P[19694]
-#define	P_Ca_NG_PNP_Plus_IL_Offset(i)	pshm->P[(19695+i)%MAX_P]
-#define	P_Ca_NG_PNP_Minus_IL_Offset(i)	pshm->P[(19699+i)%MAX_P]
-#define	P_An_NG_PNP_Plus_IL_Offset(i)	pshm->P[(19703+i)%MAX_P]
-#define	P_An_NG_PNP_Minus_IL_Offset(i)	pshm->P[(19707+i)%MAX_P]
-#define	P_Unloader_X_Plus_IL_Offset(i)	pshm->P[(19711+i)%MAX_P]
-#define	P_Unloader_X_Minus_IL_Offset(i)	pshm->P[(19715+i)%MAX_P]
-#define	P_Unloader_Z_Plus_IL_Offset(i)	pshm->P[(19719+i)%MAX_P]
-#define	P_Unloader_Z_Minus_IL_Offset(i)	pshm->P[(19722+i)%MAX_P]
-#define	P_IL_In_Offset(i)	pshm->P[(19725+i)%MAX_P]
-#define	P_X_PLC_InterLock	pshm->P[19750]
-#define	P_IL_Home_Chk	pshm->P[19751]
-#define	P_IL_Home_Chk_Motor_Num(i)	pshm->P[(19752+i)%MAX_P]
-#define	P_IL_Home_Chk_Motor_Update	pshm->P[19772]
-#define	P_IL_Inside_Home_Chk_Complete	pshm->P[19773]
-#define	P_IL_Outside_Home_Chk_Complete	pshm->P[19774]
-#define	P_IL_Motor_Home_Chk_RTN	pshm->P[19775]
-#define	P_IL_Function_Cnt	pshm->P[19776]
-#define	P_IL_Function_Motor_Num	pshm->P[19777]
-#define	P_Jog_Page_Flag	pshm->P[19778]
-#define	P_Jog_Btn_Flag	pshm->P[19779]
-#define	P_Old_Jog_Btn_Flag	pshm->P[19780]
-#define	P_Anode_1st_TR_Belt_Down_Flag	pshm->P[19781]
-#define	P_Anode_1st_TR_Belt_Pick_Up_Flag	pshm->P[19782]
-#define	P_Anode_1st_TR_Align_Down_Flag	pshm->P[19783]
-#define	P_Anode_2nd_TR_Align_Pick_Up_Flag	pshm->P[19784]
-#define	P_Anode_2nd_TR_Stack_Down_Flag	pshm->P[19785]
-#define	P_Anode_NG_TR_Align_Pick_Up_Flag	pshm->P[19786]
-#define	P_Anode_NG_TR_NG_Place_Down_Flag	pshm->P[19787]
-#define	P_Anode_2nd_TR_Align_Down_Flag	pshm->P[19788]
-#define	P_Anode_1st_TR_Align_Pick_Up_Flag	pshm->P[19789]
-#define	P_Anode_1st_TR_Belt_Down_State_Machine	pshm->P[19790]
-#define	P_Anode_1st_TR_Belt_Down_Status	pshm->P[19791]
-#define	P_Anode_1st_TR_Belt_Pick_Up_State_Machine	pshm->P[19792]
-#define	P_Anode_1st_TR_Belt_Pick_Up_Status	pshm->P[19793]
-#define	P_Anode_1st_TR_Align_Down_State_Machine	pshm->P[19794]
-#define	P_Anode_1st_TR_Align_Down_Status	pshm->P[19795]
-#define	P_Anode_2nd_TR_Align_Pick_Up_State_Machine	pshm->P[19796]
-#define	P_Anode_2nd_TR_Align_Pick_Up_Status	pshm->P[19797]
-#define	P_Anode_2nd_TR_Stack_Down_State_Machine	pshm->P[19798]
-#define	P_Anode_2nd_TR_Stack_Down_Status	pshm->P[19799]
-#define	P_Anode_NG_TR_Align_Pick_Up_State_Machine	pshm->P[19800]
-#define	P_Anode_NG_TR_Align_Pick_Up_Status	pshm->P[19801]
-#define	P_Anode_NG_TR_NG_Place_Down_State_Machine	pshm->P[19802]
-#define	P_Anode_NG_TR_NG_Place_Down_Status	pshm->P[19803]
-#define	P_Anode_2nd_TR_Align_Down_State_Machine	pshm->P[19804]
-#define	P_Anode_2nd_TR_Align_Down_Status	pshm->P[19805]
-#define	P_Anode_1st_TR_Align_Pick_Up_State_Machine	pshm->P[19806]
-#define	P_Anode_1st_TR_Align_Pick_Up_Status	pshm->P[19807]
-#define	P_Cathode_1st_TR_Belt_Down_Flag	pshm->P[19808]
-#define	P_Cathode_1st_TR_Belt_Pick_Up_Flag	pshm->P[19809]
-#define	P_Cathode_1st_TR_Align_Down_Flag	pshm->P[19810]
-#define	P_Cathode_2nd_TR_Align_Pick_Up_Flag	pshm->P[19811]
-#define	P_Cathode_2nd_TR_Stack_Down_Flag	pshm->P[19812]
-#define	P_Cathode_NG_TR_Align_Pick_Up_Flag	pshm->P[19813]
-#define	P_Cathode_NG_TR_NG_Place_Down_Flag	pshm->P[19814]
-#define	P_Cathode_2nd_TR_Align_Down_Flag	pshm->P[19815]
-#define	P_Cathode_1st_TR_Align_Pick_Up_Flag	pshm->P[19816]
-#define	P_Cathode_1st_TR_Belt_Down_State_Machine	pshm->P[19817]
-#define	P_Cathode_1st_TR_Belt_Down_Status	pshm->P[19818]
-#define	P_Cathode_1st_TR_Belt_Pick_Up_State_Machine	pshm->P[19819]
-#define	P_Cathode_1st_TR_Belt_Pick_Up_Status	pshm->P[19820]
-#define	P_Cathode_1st_TR_Align_Down_State_Machine	pshm->P[19821]
-#define	P_Cathode_1st_TR_Align_Down_Status	pshm->P[19822]
-#define	P_Cathode_2nd_TR_Align_Pick_Up_State_Machine	pshm->P[19823]
-#define	P_Cathode_2nd_TR_Align_Pick_Up_Status	pshm->P[19824]
-#define	P_Cathode_2nd_TR_Stack_Down_State_Machine	pshm->P[19825]
-#define	P_Cathode_2nd_TR_Stack_Down_Status	pshm->P[19826]
-#define	P_Cathode_NG_TR_Align_Pick_Up_State_Machine	pshm->P[19827]
-#define	P_Cathode_NG_TR_Align_Pick_Up_Status	pshm->P[19828]
-#define	P_Cathode_NG_TR_NG_Place_Down_State_Machine	pshm->P[19829]
-#define	P_Cathode_NG_TR_NG_Place_Down_Status	pshm->P[19830]
-#define	P_Cathode_2nd_TR_Align_Down_State_Machine	pshm->P[19831]
-#define	P_Cathode_2nd_TR_Align_Down_Status	pshm->P[19832]
-#define	P_Cathode_1st_TR_Align_Pick_Up_State_Machine	pshm->P[19833]
-#define	P_Cathode_1st_TR_Align_Pick_Up_Status	pshm->P[19834]
-#define	P_Old_Anode_Belt_ASCII	pshm->P[19835]
-#define	P_Old_Cathode_Belt_ASCII	pshm->P[19836]
-#define	P_Anode_Belt_ASCII	pshm->P[19837]
-#define	P_Cathode_Belt_ASCII	pshm->P[19838]
-#define	P_Check_Vac_Time	pshm->P[19839]
-#define	P_Send_Anode_NG_Code_To_PLC	pshm->P[19840]
-#define	P_Receive_Anode_NG_Code_From_PLC	pshm->P[19841]
-#define	P_Send_Cathode_NG_Code_To_PLC	pshm->P[19842]
-#define	P_Receive_Cathode_NG_Code_From_PLC	pshm->P[19843]
-#define	P_Current_Cell_Memory_Anode_1P	pshm->P[19844]
-#define	P_Current_Cell_Memory_Anode_AT	pshm->P[19845]
-#define	P_Current_Cell_Memory_Anode_2P	pshm->P[19846]
-#define	P_Current_Cell_Memory_Cathode_1P	pshm->P[19847]
-#define	P_Current_Cell_Memory_Cathode_AT	pshm->P[19848]
-#define	P_Current_Cell_Memory_Cathode_2P	pshm->P[19849]
-#define	P_Current_Cell_Memory_Stack_Table	pshm->P[19850]
-#define	P_Current_Cell_Memory_Cathode_NG_TR	pshm->P[19851]
-#define	P_Current_Cell_Memory_Anode_NG_TR	pshm->P[19852]
-#define	P_BTN_Anode_1st_TR_Buffer_Clear	pshm->P[19853]
-#define	P_BTN_Anode_2nd_TR_Buffer_Clear	pshm->P[19854]
-#define	P_BTN_Anode_Align_Buffer_Clear	pshm->P[19855]
-#define	P_BTN_Anode_NG_TR_Buffer_Clear	pshm->P[19856]
-#define	P_BTN_Cathode_1st_TR_Buffer_Clear	pshm->P[19857]
-#define	P_BTN_Cathode_2nd_TR_Buffer_Clear	pshm->P[19858]
-#define	P_BTN_Cathode_Align_Buffer_Clear	pshm->P[19859]
-#define	P_BTN_Cathode_NG_TR_Buffer_Clear	pshm->P[19860]
-#define	P_Old_BTN_Anode_1st_TR_Buffer_Clear	pshm->P[19861]
-#define	P_Old_BTN_Anode_2nd_TR_Buffer_Clear	pshm->P[19862]
-#define	P_Old_BTN_Anode_Align_Buffer_Clear	pshm->P[19863]
-#define	P_Old_BTN_Anode_NG_TR_Buffer_Clear	pshm->P[19864]
-#define	P_Old_BTN_Cathode_1st_TR_Buffer_Clear	pshm->P[19865]
-#define	P_Old_BTN_Cathode_2nd_TR_Buffer_Clear	pshm->P[19866]
-#define	P_Old_BTN_Cathode_Align_Buffer_Clear	pshm->P[19867]
-#define	P_Old_BTN_Cathode_NG_TR_Buffer_Clear	pshm->P[19868]
-#define	P_Send_Anode_NG_Code_Flag	pshm->P[19869]
-#define	P_Send_Cathode_NG_Code_Flag	pshm->P[19870]
-#define	P_Anode_Vision_NG_To_PLC_Flag	pshm->P[19871]
-#define	P_Cathode_Vision_NG_To_PLC_Flag	pshm->P[19872]
-#define	P_Status_Clear_Sheet_Maint_Check	pshm->P[19873]
-#define	P_Single_Run_Start_Flag	pshm->P[19874]
-#define	P_Single_Run_Control_State_Machine	pshm->P[19875]
-#define	P_Single_Run_Control_Status	pshm->P[19876]
-#define	P_Single_Run_Execute_Bit	pshm->P[19877]
-#define	P_User_Dry_Run_Mode	pshm->P[19878]
-#define	P_Single_Run_State_Machine	pshm->P[19879]
-#define	P_Single_Run_Status	pshm->P[19880]
-#define	P_Single_Run_Unit	pshm->P[19881]
-#define	P_Single_Run_Evade_Pos_RTN	pshm->P[19882]
-#define	P_Single_Run_Evade_Pos_Check_RTN	pshm->P[19883]
-#define	P_Single_Run_Pos_Rtn1	pshm->P[19884]
-#define	P_Single_Run_Pos_Rtn2	pshm->P[19885]
-#define	P_Single_Run_Motion_Ready_RTN	pshm->P[19886]
-#define	P_Single_Run_Execution_Interlock_RTN	pshm->P[19887]
-#define	P_Single_Run_Coord_Activate_RTN	pshm->P[19888]
-#define	P_Single_Run_Coord_Activate_Check_RTN	pshm->P[19889]
-#define	P_Single_Run_Select_Run_Mode_RTN	pshm->P[19890]
-#define	P_Single_Run_Execution_Run_RTN	pshm->P[19891]
-#define	P_Single_Run_Motion_Ready_State_Machine	pshm->P[19892]
-#define	P_Coord_1	pshm->P[19893]
-#define	P_Coord_2	pshm->P[19894]
-#define	P_Coord_3	pshm->P[19895]
-#define	P_Coord_4	pshm->P[19896]
-#define	P_Final_Roll_Z_Motion_Flag	pshm->P[19897]
-#define	P_Final_Roll_Z_Motion_State_Machine	pshm->P[19898]
-#define	P_Main_Z_Motion_Flag	pshm->P[19899]
-#define	P_Main_Z_Motion_State_Machine	pshm->P[19900]
-#define	P_Single_Run_Mode_Flag	pshm->P[19901]
-#define	P_Cathode_AT_Motion_Flag	pshm->P[19902]
-#define	P_Cathode_Align_Motion_State_Machine	pshm->P[19903]
-#define	P_Anode_AT_Motion_Flag	pshm->P[19904]
-#define	P_Anode_Align_Motion_State_Machine	pshm->P[19905]
-#define	P_Sheet_Paper_Motion_Flag	pshm->P[19906]
-#define	P_Sheet_Paper_Motion_State_Machine	pshm->P[19907]
-#define	P_Cathode_NG_PNP_T_Motion_Flag	pshm->P[19908]
-#define	P_Cathode_NG_PNP_T_Motion_State_Machine	pshm->P[19909]
-#define	P_Cathode_NG_PNP_Z_Motion_Flag	pshm->P[19910]
-#define	P_Cathode_NG_PNP_Z_Motion_State_Machine	pshm->P[19911]
-#define	P_Anode_NG_PNP_T_Motion_Flag	pshm->P[19912]
-#define	P_Anode_NG_PNP_T_Motion_State_Machine	pshm->P[19913]
-#define	P_Anode_NG_PNP_Z_Motion_Flag	pshm->P[19914]
-#define	P_Anode_NG_PNP_Z_Motion_State_Machine	pshm->P[19915]
-#define	P_1st_UND_X_Motion_Flag	pshm->P[19916]
-#define	P_1st_UND_X_Motion_State_Machine	pshm->P[19917]
-#define	P_1st_UND_Z_Motion_Flag	pshm->P[19918]
-#define	P_1st_UND_Z_Motion_State_Machine	pshm->P[19919]
-#define	P_1st_UND_T_Motion_Flag	pshm->P[19920]
-#define	P_1st_UND_T_Motion_State_Machine	pshm->P[19921]
-#define	P_Cathode_Run_Command_Flag	pshm->P[19922]
-#define	P_Anode_Run_Command_Flag	pshm->P[19923]
-#define	P_NG_PNP_Uint_Motion_Flag	pshm->P[19924]
-#define	P_NG_PNP_Uint_State_Machine	pshm->P[19925]
-#define	P_NG_PNP_Motion_Cnt	pshm->P[19926]
-#define	P_NG_PNP_Motion_arr(i)	pshm->P[(19927+i)%MAX_P]
-#define	P_Single_Run_Timer	pshm->P[19937]
-#define	P_Single_Run_Align_Timer	pshm->P[19938]
-#define	P_Single_Run_Align_Timer2	pshm->P[19939]
-#define	P_Single_Run_Finall_Roll_Z_Timer	pshm->P[19940]
-#define	P_Single_RuN_MAIN_Z_Timer	pshm->P[19941]
-#define	P_Single_Run_Sheet_Paper_Timer	pshm->P[19942]
-#define	P_Single_Run_Debug_SM	pshm->P[19943]
-#define	P_Error_Monitoring_Count_1	pshm->P[19944]
-#define	P_Error_Monitoring_Count_2	pshm->P[19945]
-#define	P_Error_Monitoring_Count_3	pshm->P[19946]
-#define	P_Error_Monitoring_Count_4	pshm->P[19947]
-#define	P_Error_Monitoring_Count_5	pshm->P[19948]
-#define	P_Old_Single_Run_Mode_Flag	pshm->P[19949]
-#define	P_Old_Current_Mode	pshm->P[19950]
-#define	P_Single_Run_Timebase_Off_RTN	pshm->P[19951]
-#define	P_Single_Run_Stop_State_Machine	pshm->P[19952]
-#define	P_Single_Run_Stop_Status	pshm->P[19953]
-#define	P_Single_Run_Stop_Timer	pshm->P[19954]
-#define	P_Single_Run_Stop_Init_RTN	pshm->P[19955]
-#define	P_Single_Run_Stop_Btn_Chk	pshm->P[19956]
-#define	P_Single_Run_Stop_Command	pshm->P[19957]
-#define	P_Motor_Ready_Poa_Inpos_200um	pshm->P[19958]
-#define	P_Ecat_Parameter_Write_Flag	pshm->P[19959]
-#define	P_Ecat_Parameter_Read_Flag	pshm->P[19960]
-#define	P_Ecat_Each_Parameter_Write_Flag	pshm->P[19961]
-#define	P_Ecat_Slave_Idx	pshm->P[19962]
-#define	P_Ec_Num	pshm->P[19963]
-#define	P_Ecat_Read_Motor_Num	pshm->P[19964]
-#define	P_Ecat_Write_Motor_Num	pshm->P[19965]
-#define	P_Ecat_Parameter_Write_State_Machine	pshm->P[19966]
-#define	P_Ecat_Parameter_Read_State_Machine	pshm->P[19967]
-#define	P_Ecat_Each_Parameter_Write_State_Machine	pshm->P[19968]
-#define	P_Ecat_Read_MNTR(i)	pshm->P[(19969+i)%MAX_P]
-#define	P_Ecat_Write_MNTR(i)	pshm->P[(19997+i)%MAX_P]
-#define	P_Ecat_Save_MNTR(i)	pshm->P[(20025+i)%MAX_P]
-#define	P_Ecat_Error_MNTR(i)	pshm->P[(20041+i)%MAX_P]
-#define	P_Ecat_Read_Error_MNTR(i)	pshm->P[(20057+i)%MAX_P]
-#define	P_Ecat_Each_Write_Error_MNTR(i)	pshm->P[(20073+i)%MAX_P]
-#define	P_Ecat_Write_Status	pshm->P[20089]
-#define	P_Ecat_Read_Status	pshm->P[20090]
-#define	P_Ecat_Each_Write_Status	pshm->P[20091]
-#define	P_Pn000(i)	pshm->P[(20092+i)%MAX_P]
-#define	P_Pn001(i)	pshm->P[(20112+i)%MAX_P]
-#define	P_Pn00B(i)	pshm->P[(20132+i)%MAX_P]
-#define	P_Pn100(i)	pshm->P[(20152+i)%MAX_P]
-#define	P_Pn101(i)	pshm->P[(20172+i)%MAX_P]
-#define	P_Pn102(i)	pshm->P[(20192+i)%MAX_P]
-#define	P_Pn103(i)	pshm->P[(20212+i)%MAX_P]
-#define	P_Pn123(i)	pshm->P[(20232+i)%MAX_P]
-#define	P_Pn140(i)	pshm->P[(20252+i)%MAX_P]
-#define	P_Pn141(i)	pshm->P[(20272+i)%MAX_P]
-#define	P_Pn145(i)	pshm->P[(20292+i)%MAX_P]
-#define	P_Pn146(i)	pshm->P[(20312+i)%MAX_P]
-#define	P_Pn160(i)	pshm->P[(20332+i)%MAX_P]
-#define	P_Pn161(i)	pshm->P[(20352+i)%MAX_P]
-#define	P_Pn163(i)	pshm->P[(20372+i)%MAX_P]
-#define	P_Pn170(i)	pshm->P[(20392+i)%MAX_P]
-#define	P_Pn401(i)	pshm->P[(20412+i)%MAX_P]
-#define	P_Pn408(i)	pshm->P[(20432+i)%MAX_P]
-#define	P_Pn409(i)	pshm->P[(20452+i)%MAX_P]
-#define	P_Pn40A(i)	pshm->P[(20472+i)%MAX_P]
-#define	P_Pn40C(i)	pshm->P[(20492+i)%MAX_P]
-#define	P_Pn40D(i)	pshm->P[(20512+i)%MAX_P]
-#define	P_Pn416(i)	pshm->P[(20532+i)%MAX_P]
-#define	P_Pn417(i)	pshm->P[(20552+i)%MAX_P]
-#define	P_Pn511(i)	pshm->P[(20572+i)%MAX_P]
-#define	P_Pn520(i)	pshm->P[(20592+i)%MAX_P]
-#define	P_PnB02_Numerator(i)	pshm->P[(20612+i)%MAX_P]
-#define	P_PnB02_Denominator(i)	pshm->P[(20632+i)%MAX_P]
-#define	P_Align_Plus_Blow_Test	pshm->P[20652]
-#define	P_System_Setting_Flag	pshm->P[20653]
-#define	P_Ecat_Setting_Flag	pshm->P[20654]
-#define	P_Ecat_Activation_State_Machine	pshm->P[20655]
-#define	P_PLC31_Ecat_Retry_Cnt	pshm->P[20656]
-#define	P_Ecat_Connect_Result	pshm->P[20657]
-#define	P_Ecat_Slave_Error	pshm->P[20658]
-#define	P_PWM_AbsPhasePosOffset_Change_State_Machine	pshm->P[20659]
-#define	P_AbsPhasePosOffset_Change_Complete	pshm->P[20660]
-#define	P_PWM_AbsPhasing_Fail	pshm->P[20661]
-#define	P_PWM_AbsPhasing_Complete	pshm->P[20662]
-#define	P_Whole_Stacking_Tack_Time	pshm->P[20663]
-#define	P_Whole_Stacking_Tack_Time_Check	pshm->P[20664]
-#define	P_Whole_Stacking_Tack_Timer_Check_Flag	pshm->P[20665]
-#define	P_Whole_Stacking_Timer_Shift_Status_Machine	pshm->P[20666]
-#define	P_Whole_Stacking_TackTime_Array0	pshm->P[20667]
-#define	P_Whole_Stacking_TackTime_Array1	pshm->P[20668]
-#define	P_Whole_Stacking_TackTime_Array2	pshm->P[20669]
-#define	P_Whole_Stacking_TackTime_Array3	pshm->P[20670]
-#define	P_Whole_Stacking_TackTime_Array4	pshm->P[20671]
-#define	P_Whole_Stacking_TackTime_Array5	pshm->P[20672]
-#define	P_Whole_Stacking_TackTime_Array6	pshm->P[20673]
-#define	P_Whole_Stacking_TackTime_Array7	pshm->P[20674]
-#define	P_Whole_Stacking_TackTime_Array8	pshm->P[20675]
-#define	P_Whole_Stacking_TackTime_Array9	pshm->P[20676]
-#define	P_Whole_Stacking_TackTime_Array10	pshm->P[20677]
-#define	P_First_Stacking_Start	pshm->P[20678]
-#define	P_Last_Stacking_Complete	pshm->P[20679]
-#define	P_Stacking_Tack_Time	pshm->P[20680]
-#define	P_Stacking_Tack_Time_Check	pshm->P[20681]
-#define	P_Stacking_Tack_Timer_Check_Flag	pshm->P[20682]
-#define	P_Stacking_Timer_Shift_Status_Machine	pshm->P[20683]
-#define	P_Cathode_to_Anode_FR_Tack_Time_Check	pshm->P[20684]
-#define	P_Anode_to_Cathode_FR_Tack_Time_Check	pshm->P[20685]
-#define	P_Cathode_to_Anode_FR_Tack_Time_Start	pshm->P[20686]
-#define	P_Anode_to_Cathode_FR_Tack_Time_Start	pshm->P[20687]
-#define	P_Cathode_to_Anode_FR_Tack_Time_Complete	pshm->P[20688]
-#define	P_Anode_to_Cathode_FR_Tack_Time_Complete	pshm->P[20689]
-#define	P_Cathode_to_Anode_FR_Time	pshm->P[20690]
-#define	P_Anode_to_Cathode_FR_Time	pshm->P[20691]
-#define	P_Cathode_to_Anode_FR_Tack_Timer_Check_Flag	pshm->P[20692]
-#define	P_Anode_to_Cathode_FR_Tack_Timer_Check_Flag	pshm->P[20693]
-#define	P_Anode_Align_Table_Time	pshm->P[20694]
-#define	P_Anode_Align_Table_Tack_Time_Check	pshm->P[20695]
-#define	P_Anode_Align_Table_Tack_Timer_Check_Flag	pshm->P[20696]
-#define	P_Anode_Align_Table_Timer_Shift_Status_Machine	pshm->P[20697]
-#define	P_Anode_Align_Tack_Time_Start	pshm->P[20698]
-#define	P_Anode_Align_Tack_Time_Complete	pshm->P[20699]
-#define	P_Cathode_Align_Table_Time	pshm->P[20700]
-#define	P_Cathode_Align_Table_Tack_Time_Check	pshm->P[20701]
-#define	P_Cathode_Align_Table_Tack_Timer_Check_Flag	pshm->P[20702]
-#define	P_Cathode_Align_Table_Timer_Shift_Status_Machine	pshm->P[20703]
-#define	P_Cathode_Align_Tack_Time_Start	pshm->P[20704]
-#define	P_Cathode_Align_Tack_Time_Complete	pshm->P[20705]
-#define	P_Anode_1th_Tack_Time_Start	pshm->P[20706]
-#define	P_Anode_1th_Tack_Time_Complete	pshm->P[20707]
-#define	P_Anode_1th_Time	pshm->P[20708]
-#define	P_Anode_1th_Tack_Time_Check	pshm->P[20709]
-#define	P_Anode_1th_Tack_Timer_Check_Flag	pshm->P[20710]
-#define	P_Anode_1th_Timer_Shift_Status_Machine	pshm->P[20711]
-#define	P_Cathode_1th_Tack_Time_Start	pshm->P[20712]
-#define	P_Cathode_1th_Tack_Time_Complete	pshm->P[20713]
-#define	P_Cathode_1th_Time	pshm->P[20714]
-#define	P_Cathode_1th_Tack_Time_Check	pshm->P[20715]
-#define	P_Cathode_1th_Tack_Timer_Check_Flag	pshm->P[20716]
-#define	P_Cathode_1th_Timer_Shift_Status_Machine	pshm->P[20717]
-#define	P_Anode_2th_Tack_Time_Start	pshm->P[20718]
-#define	P_Anode_2th_Tack_Time_Complete	pshm->P[20719]
-#define	P_Anode_2th_Time	pshm->P[20720]
-#define	P_Anode_2th_Tack_Time_Check	pshm->P[20721]
-#define	P_Anode_2th_Tack_Timer_Check_Flag	pshm->P[20722]
-#define	P_Anode_2th_Timer_Shift_Status_Machine	pshm->P[20723]
-#define	P_Cathode_2th_Tack_Time_Start	pshm->P[20724]
-#define	P_Cathode_2th_Tack_Time_Complete	pshm->P[20725]
-#define	P_Cathode_2th_Time	pshm->P[20726]
-#define	P_Cathode_2th_Tack_Time_Check	pshm->P[20727]
-#define	P_Cathode_2th_Tack_Timer_Check_Flag	pshm->P[20728]
-#define	P_Cathode_2th_Timer_Shift_Status_Machine	pshm->P[20729]
-#define	P_Anode_1th_NG_Tack_Time_Start	pshm->P[20730]
-#define	P_Anode_1th_NG_Tack_Time_Complete	pshm->P[20731]
-#define	P_Anode_1th_NG_Time	pshm->P[20732]
-#define	P_Anode_1th_NG_Tack_Time_Check	pshm->P[20733]
-#define	P_Anode_1th_NG_Tack_Timer_Check_Flag	pshm->P[20734]
-#define	P_Anode_1th_NG_Timer_Shift_Status_Machine	pshm->P[20735]
-#define	P_Cathode_1th_NG_Tack_Time_Start	pshm->P[20736]
-#define	P_Cathode_1th_NG_Tack_Time_Complete	pshm->P[20737]
-#define	P_Cathode_1th_NG_Time	pshm->P[20738]
-#define	P_Cathode_1th_NG_Tack_Time_Check	pshm->P[20739]
-#define	P_Cathode_1th_NG_Tack_Timer_Check_Flag	pshm->P[20740]
-#define	P_Cathode_1th_NG_Timer_Shift_Status_Machine	pshm->P[20741]
-#define	P_Anode_Clamp_Tack_Time_Start	pshm->P[20742]
-#define	P_Anode_Clamp_Tack_Time_Complete	pshm->P[20743]
-#define	P_Anode_Clamp_Time	pshm->P[20744]
-#define	P_Anode_Clamp_Tack_Time_Check	pshm->P[20745]
-#define	P_Anode_Clamp_Tack_Timer_Check_Flag	pshm->P[20746]
-#define	P_Anode_Clamp_Timer_Shift_Status_Machine	pshm->P[20747]
-#define	P_Cathode_Clamp_Tack_Time_Start	pshm->P[20748]
-#define	P_Cathode_Clamp_Tack_Time_Complete	pshm->P[20749]
-#define	P_Cathode_Clamp_Time	pshm->P[20750]
-#define	P_Cathode_Clamp_Tack_Time_Check	pshm->P[20751]
-#define	P_Cathode_Clamp_Tack_Timer_Check_Flag	pshm->P[20752]
-#define	P_Cathode_Clamp_Timer_Shift_Status_Machine	pshm->P[20753]
-#define	P_Final_Roll_X_Timer_Shift_Status_Machine	pshm->P[20754]
-#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array0	pshm->P[20755]
-#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array1	pshm->P[20756]
-#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array2	pshm->P[20757]
-#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array3	pshm->P[20758]
-#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array4	pshm->P[20759]
-#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array5	pshm->P[20760]
-#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array6	pshm->P[20761]
-#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array7	pshm->P[20762]
-#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array8	pshm->P[20763]
-#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array9	pshm->P[20764]
-#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array10	pshm->P[20765]
-#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array0	pshm->P[20766]
-#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array1	pshm->P[20767]
-#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array2	pshm->P[20768]
-#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array3	pshm->P[20769]
-#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array4	pshm->P[20770]
-#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array5	pshm->P[20771]
-#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array6	pshm->P[20772]
-#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array7	pshm->P[20773]
-#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array8	pshm->P[20774]
-#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array9	pshm->P[20775]
-#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array10	pshm->P[20776]
-#define	P_Pneumatic_Pressure_Unit_Tack_Time_Chk_Timer(i)	pshm->P[(20777+i)%MAX_P]
-#define	P_Pneumatic_Pressure_Unit_Tack_Time(i)	pshm->P[(20804+i)%MAX_P]
-#define	P_MCC_Anode_Align_NG_Count	pshm->P[20831]
-#define	P_MCC_Cathode_Align_NG_Count	pshm->P[20832]
-#define	P_MCC_Anode_Retry_NG_Count	pshm->P[20833]
-#define	P_MCC_Cathode_Retry_NG_Count	pshm->P[20834]
-#define	P_Discharge_Tact_Time_Arr(i)	pshm->P[(20835+i)%MAX_P]
-#define	P_Discharge_Hold_Timer	pshm->P[20847]
-#define	P_Discharge_Hold_Time	pshm->P[20848]
-#define	P_AN_1st_Z_Zero_Angle	pshm->P[20849]
-#define	P_AN_1st_Z_Zero_Length	pshm->P[20850]
-#define	P_Anode_1st_PNP_Z_Crank_Zero_Pos	pshm->P[20851]
-#define	P_Anode_1st_PNP_Z_Crank_real_Move_Pos	pshm->P[20852]
-#define	P_Anode_1st_PNP_Z_Crank_radian	pshm->P[20853]
-#define	P_Anode_1st_PNP_Z_Acos_denominator	pshm->P[20854]
-#define	P_Anode_1st_PNP_Z_Acos_numerator	pshm->P[20855]
-#define	P_Anode_1st_PNP_Z_Crank_Angle	pshm->P[20856]
-#define	P_Anode_1st_PNP_Z_Real_Move_Pos	pshm->P[20857]
-#define	P_Anode_1st_Fwd_Bwd_Rise	pshm->P[20858]
-#define	P_CA_1st_Z_Zero_Angle	pshm->P[20859]
-#define	P_CA_1st_Z_Zero_Length	pshm->P[20860]
-#define	P_Cathode_1st_PNP_Z_Crank_Zero_Pos	pshm->P[20861]
-#define	P_Cathode_1st_PNP_Z_Crank_real_Move_Pos	pshm->P[20862]
-#define	P_Cathode_1st_PNP_Z_Crank_radian	pshm->P[20863]
-#define	P_Cathode_1st_PNP_Z_Acos_denominator	pshm->P[20864]
-#define	P_Cathode_1st_PNP_Z_Acos_numerator	pshm->P[20865]
-#define	P_Cathode_1st_PNP_Z_Crank_Angle	pshm->P[20866]
-#define	P_Cathode_1st_PNP_Z_Real_Move_Pos	pshm->P[20867]
-#define	P_Cathode_1st_Fwd_Bwd_Rise	pshm->P[20868]
-#define	P_AN_2nd_Z_Zero_Angle	pshm->P[20869]
-#define	P_AN_2nd_Z_Zero_Length	pshm->P[20870]
-#define	P_Anode_2nd_PNP_Z_Crank_Zero_Pos	pshm->P[20871]
-#define	P_Anode_2nd_PNP_Z_Crank_real_Move_Pos	pshm->P[20872]
-#define	P_Anode_2nd_PNP_Z_Crank_radian	pshm->P[20873]
-#define	P_Anode_2nd_PNP_Z_Acos_denominator	pshm->P[20874]
-#define	P_Anode_2nd_PNP_Z_Acos_numerator	pshm->P[20875]
-#define	P_Anode_2nd_PNP_Z_Crank_Angle	pshm->P[20876]
-#define	P_Anode_2nd_PNP_Z_Real_Move_Pos	pshm->P[20877]
-#define	P_Anode_2nd_Fwd_Bwd_Rise	pshm->P[20878]
-#define	P_CA_2nd_Z_Zero_Angle	pshm->P[20879]
-#define	P_CA_2nd_Z_Zero_Length	pshm->P[20880]
-#define	P_Cathode_2nd_PNP_Z_Crank_Zero_Pos	pshm->P[20881]
-#define	P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos	pshm->P[20882]
-#define	P_Cathode_2nd_PNP_Z_Crank_radian	pshm->P[20883]
-#define	P_Cathode_2nd_PNP_Z_Acos_denominator	pshm->P[20884]
-#define	P_Cathode_2nd_PNP_Z_Acos_numerator	pshm->P[20885]
-#define	P_Cathode_2nd_PNP_Z_Crank_Angle	pshm->P[20886]
-#define	P_Cathode_2nd_PNP_Z_Real_Move_Pos	pshm->P[20887]
-#define	P_Cathode_2nd_Fwd_Bwd_Rise	pshm->P[20888]
-#define	P_Old_Recipe_Anode_1st_PNP_Z_Ready_Up	pshm->P[20889]
-#define	P_Old_Recipe_Anode_1st_PNP_Z_Belt_Up	pshm->P[20890]
-#define	P_Old_Recipe_Anode_1st_PNP_Z_Belt_Down	pshm->P[20891]
-#define	P_Old_Recipe_Anode_1st_PNP_Z_Align_Up	pshm->P[20892]
-#define	P_Old_Recipe_Anode_1st_PNP_Z_Align_Down	pshm->P[20893]
-#define	P_Old_Recipe_Cathode_1st_PNP_Z_Ready_Up	pshm->P[20894]
-#define	P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Up	pshm->P[20895]
-#define	P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Down	pshm->P[20896]
-#define	P_Old_Recipe_Cathode_1st_PNP_Z_Align_Up	pshm->P[20897]
-#define	P_Old_Recipe_Cathode_1st_PNP_Z_Align_Down	pshm->P[20898]
-#define	P_Old_Recipe_Anode_2nd_PNP_Z_Align_Up	pshm->P[20899]
-#define	P_Old_Recipe_Anode_2nd_PNP_Z_Align_Down	pshm->P[20900]
-#define	P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Up	pshm->P[20901]
-#define	P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Down	pshm->P[20902]
-#define	P_Old_Recipe_Anode_2nd_PNP_Z_Ready_Up	pshm->P[20903]
-#define	P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Up	pshm->P[20904]
-#define	P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Down	pshm->P[20905]
-#define	P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Up	pshm->P[20906]
-#define	P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Down	pshm->P[20907]
-#define	P_Old_Recipe_Cathode_2nd_PNP_Z_Ready_Up	pshm->P[20908]
-#define	P_PLC19_All_Home_Status	pshm->P[20909]
-#define	P_PLC19_All_Home_Module_Status	pshm->P[20910]
-#define	P_PLC19_All_Home_State_Machine	pshm->P[20911]
-#define	P_PLC19_All_Home_Seq_Index	pshm->P[20912]
-#define	P_PLC19_All_Home_Self_Index	pshm->P[20913]
-#define	P_PLC19_All_Home_Set_Mode_Return	pshm->P[20914]
-#define	P_PLC19_All_Home_Timer	pshm->P[20915]
-#define	P_PLC19_All_Home_Tact_Time_Array(i)	pshm->P[(20916+i)%MAX_P]
-#define	P_PLC19_All_Home_Tact_Time	pshm->P[20936]
-#define	P_All_Home_Module_Error	pshm->P[20937]
-#define	P_Act_ALL_Home_Time_Out_Time	pshm->P[20938]
-#define	P_Act_ALL_Home_Time_Out(i)	pshm->P[(20939+i)%MAX_P]
-#define	P_Act_Hold_Complete_Bit(i)	pshm->P[(20979+i)%MAX_P]
-#define	P_Module_Act_Hold_Command_Array(i)	pshm->P[(21014+i)%MAX_P]
-#define	P_OLD_Module_Act_Hold_Command_Array(i)	pshm->P[(21049+i)%MAX_P]
-#define	P_Module_Act_Hold_State_Machine_Array(i)	pshm->P[(21084+i)%MAX_P]
-#define	P_Act_Hold_Old_Time(i)	pshm->P[(21119+i)%MAX_P]
-#define	P_Act_Hold_Time_Out_Time	pshm->P[21154]
-#define	P_Act_Hold_Time_Out(i)	pshm->P[(21155+i)%MAX_P]
-#define	P_First_PNP_T_Wait_Status	pshm->P[21190]
-#define	P_First_PNP_Z_Wait_Status	pshm->P[21191]
-#define	P_First_PNP_Picker_T_Turn_Status	pshm->P[21192]
-#define	P_First_PNP_T_Wait_To_Belt_Status	pshm->P[21193]
-#define	P_First_PNP_Z_Wait_To_Belt_Status	pshm->P[21194]
-#define	P_First_PNP_T_Align_To_Belt_Status	pshm->P[21195]
-#define	P_First_PNP_Z_Align_To_Belt_Status	pshm->P[21196]
-#define	P_First_PNP_Z_Belt_Down_Status	pshm->P[21197]
-#define	P_First_PNP_Z_Belt_Up_Status	pshm->P[21198]
-#define	P_First_PNP_T_Wait_To_Align_Status	pshm->P[21199]
-#define	P_First_PNP_Z_Wait_To_Align_Status	pshm->P[21200]
-#define	P_First_PNP_T_Belt_To_Align_Status	pshm->P[21201]
-#define	P_First_PNP_Z_Belt_To_Align_Status	pshm->P[21202]
-#define	P_First_PNP_Z_Align_Down_Status	pshm->P[21203]
-#define	P_First_PNP_Z_Align_Up_Status	pshm->P[21204]
-#define	P_First_PNP_Vac_On_Status	pshm->P[21205]
-#define	P_First_PNP_Blow_On_Status	pshm->P[21206]
-#define	P_Second_PNP_T_Align_To_Stack_Status	pshm->P[21207]
-#define	P_Second_PNP_Z_Align_To_Stack_Status	pshm->P[21208]
-#define	P_Second_PNP_T_Stack_To_Align_Status	pshm->P[21209]
-#define	P_Second_PNP_Z_Stack_To_Align_Status	pshm->P[21210]
-#define	P_Second_PNP_Z_Align_Down_Status	pshm->P[21211]
-#define	P_Second_PNP_Z_Align_Up_Status	pshm->P[21212]
-#define	P_Second_PNP_Vac_On_Status	pshm->P[21213]
-#define	P_Second_PNP_Blow_On_Status	pshm->P[21214]
-#define	P_NG_PNP_NG_Bos_Status	pshm->P[21215]
-#define	P_NG_PNP_Align_Status	pshm->P[21216]
-#define	P_NG_PNP_Align_Down_Status	pshm->P[21217]
-#define	P_NG_PNP_Align_Up_Status	pshm->P[21218]
-#define	P_NG_PNP_Vac_On_Status	pshm->P[21219]
-#define	P_NG_PNP_Blow_On_Status	pshm->P[21220]
-#define	P_Hold_1st_PNP_Position	pshm->P[21221]
-#define	P_Hold_Module_Error	pshm->P[21222]
-#define	P_Act_Execute_Complete_Bit(i)	pshm->P[(21223+i)%MAX_P]
-#define	P_Module_Act_Execute_Command_Array(i)	pshm->P[(21235+i)%MAX_P]
-#define	P_OLD_Module_Act_Execute_Command_Array(i)	pshm->P[(21247+i)%MAX_P]
-#define	P_Module_Act_Execute_State_Machine_Array(i)	pshm->P[(21259+i)%MAX_P]
-#define	P_Act_Execute_Old_Time(i)	pshm->P[(21271+i)%MAX_P]
-#define	P_Act_Execute_Time_Out_Time	pshm->P[21283]
-#define	P_Act_Execute_Time_Out(i)	pshm->P[(21284+i)%MAX_P]
-#define	P_Execute_Module_Error	pshm->P[21296]
-#define	P_Execute_First_Sepa_Total_Tact_Time	pshm->P[21297]
-#define	P_Current_JR_Thickness_mm	pshm->P[21298]
-#define	P_Current_Jelly_Roll_Thinckness_mm_Send_Enable_Flag	pshm->P[21299]
-#define	P_Stack_Table_NG_Flag	pshm->P[21300]
-#define	P_Suspend_Discharge_Cell_Out_Restart	pshm->P[21301]
-#define	P_Jelly_Roll_OK_Count	pshm->P[21302]
-#define	P_Jelly_Roll_NG_Count	pshm->P[21303]
-#define	P_Jelly_Roll_Total_Count	pshm->P[21304]
-#define	P_Jelly_Roll_Prod_Count	pshm->P[21305]
-#define	P_Jelly_Roll_Recipe_Count	pshm->P[21306]
-#define	P_Current_Cell_Memory_Jelly_Roll	pshm->P[21307]
-#define	P_VISION_PLC10_Anode_Align_Start	pshm->P[21308]
-#define	P_VISION_PLC10_Cathode_Align_Start	pshm->P[21309]
-#define	P_Stack_Table_NG_Count	pshm->P[21310]
-#define	P_Stack_PMAC_NG_Code	pshm->P[21311]
-#define	P_Stack_Vision_NG_Code_IN_Timer	pshm->P[21312]
-#define	P_1st_Discharge_State	pshm->P[21313]
-#define	P_Prev_Sepa_Stack_Completed_Flag	pshm->P[21314]
-#define	P_First_Sepa_Vision_Skip_Flag	pshm->P[21315]
-#define	P_Discharge_Unloader_Handover_Timer	pshm->P[21316]
-#define	P_Discharge_Unloader_Handover_Time	pshm->P[21317]
-#define	P_Buffer_Mode_Module_Status_Sequence(i)	pshm->P[(21318+i)%MAX_P]
-#define	P_EXECUTE_Status_Prod_Sequence(i)	pshm->P[(21348+i)%MAX_P]
-#define	P_Execute_First_Sepa_Mode_Cmd	pshm->P[21378]
-#define	P_Execute_First_Sepa_Mode_Status	pshm->P[21379]
-#define	P_Execute_First_Sepa_Mode_Module_Status	pshm->P[21380]
-#define	P_Execute_First_Sepa_Mode_State_Machine	pshm->P[21381]
-#define	P_Execute_First_Sepa_Mode_Seq_Index	pshm->P[21382]
-#define	P_Execute_First_Sepa_Mode_Self_Index	pshm->P[21383]
-#define	P_Execute_First_Sepa_Mode_Debug_Edge	pshm->P[21384]
-#define	P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(i)	pshm->P[(21385+i)%MAX_P]
-#define	P_Execute_First_Sepa_Mode_Timer	pshm->P[21415]
-#define	P_Execute_First_Sepa_Mode_Tact_Time_Array(i)	pshm->P[(21416+i)%MAX_P]
-#define	P_Execute_First_Sepa_Mode_Tact_Time	pshm->P[21436]
-#define	P_Execute_1st_Sepa_Status	pshm->P[21437]
-#define	P_Suspend_Discharge_Cmd	pshm->P[21438]
-#define	P_Suspend_Discharge_Status	pshm->P[21439]
-#define	P_Suspend_Discharge_State_Machine	pshm->P[21440]
-#define	P_Suspend_Discharge_Seq_Index	pshm->P[21441]
-#define	P_Suspend_Discharge_Self_Index	pshm->P[21442]
-#define	P_Discharge_Seq_InterLock_Delay_Time(i)	pshm->P[(21443+i)%MAX_P]
-#define	P_Discharge_Seq_InterLock_Flag(i)	pshm->P[(21473+i)%MAX_P]
-#define	P_Buffer_Seqdata_Discharge_Array(i)	pshm->P[(21503+i)%MAX_P]
-#define	P_Suspend_Discharge_Timer	pshm->P[21533]
-#define	P_Suspend_Discharge_Tact_Time_Array(i)	pshm->P[(21534+i)%MAX_P]
-#define	P_Suspend_Discharge_Tact_Time	pshm->P[21554]
-#define	P_Suspend_Discharge_1st_Unloader_JR_Grip	pshm->P[21555]
-#define	P_Suspend_ARC_Cmd	pshm->P[21556]
-#define	P_Suspend_ARC_Status	pshm->P[21557]
-#define	P_Suspend_ARC_State_Machine	pshm->P[21558]
-#define	P_Suspend_ARC_Seq_Index	pshm->P[21559]
-#define	P_Suspend_ARC_Self_Index	pshm->P[21560]
-#define	P_Suspend_ARC_Manual_Occur_Flag	pshm->P[21561]
-#define	P_ARC_Seq_InterLock_Delay_Time(i)	pshm->P[(21562+i)%MAX_P]
-#define	P_ARC_Seq_InterLock_Flag(i)	pshm->P[(21592+i)%MAX_P]
-#define	P_Buffer_Seqdata_ARC_Array(i)	pshm->P[(21622+i)%MAX_P]
-#define	P_Suspend_ARC_Timer	pshm->P[21652]
-#define	P_Suspend_ARC_Tact_Time_Array(i)	pshm->P[(21653+i)%MAX_P]
-#define	P_Suspend_ARC_Tact_Time	pshm->P[21673]
-#define	P_Suspend_Anode_1TR_Cell_Supply_Cmd	pshm->P[21674]
-#define	P_Suspend_Anode_1TR_Cell_Supply_Status	pshm->P[21675]
-#define	P_Suspend_Anode_1TR_Cell_Supply_State_Machine	pshm->P[21676]
-#define	P_Suspend_Anode_1TR_Cell_Supply_Seq_Index	pshm->P[21677]
-#define	P_Suspend_Anode_1TR_Cell_Supply_Self_Index	pshm->P[21678]
-#define	P_Suspend_Anode_1TR_Cell_Supply_Module_Status	pshm->P[21679]
-#define	P_Anode_1TR_Cell_Supply_Seq_InterLock_Delay_Time(i)	pshm->P[(21680+i)%MAX_P]
-#define	P_Anode_1TR_Cell_Supply_Seq_InterLock_Flag(i)	pshm->P[(21710+i)%MAX_P]
-#define	P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(i)	pshm->P[(21740+i)%MAX_P]
-#define	P_Suspend_Anode_1TR_Cell_Supply_Timer	pshm->P[21770]
-#define	P_Suspend_Anode_1TR_Cell_Supply_Tact_Time_Array(i)	pshm->P[(21771+i)%MAX_P]
-#define	P_Suspend_Anode_1TR_Cell_Supply_Tact_Time	pshm->P[21791]
-#define	P_Hold_Exist_Insp_Cmd	pshm->P[21792]
-#define	P_Hold_Exist_Insp_Status	pshm->P[21793]
-#define	P_Hold_Exist_Insp_Module_Status	pshm->P[21794]
-#define	P_Hold_Exist_Insp_State_Machine	pshm->P[21795]
-#define	P_Hold_Exist_Insp_Seq_Index	pshm->P[21796]
-#define	P_Hold_Exist_Insp_Self_Index	pshm->P[21797]
-#define	P_Hold_Exist_Insp_Debug_Edge	pshm->P[21798]
-#define	P_Buffer_Seqdata_Hold_Exist_Insp_Array(i)	pshm->P[(21799+i)%MAX_P]
-#define	P_Hold_Exist_Insp_Timer	pshm->P[21829]
-#define	P_Hold_Exist_Insp_Tact_Time_Array(i)	pshm->P[(21830+i)%MAX_P]
-#define	P_Hold_Exist_Insp_Tact_Time	pshm->P[21850]
-#define	P_Hold_Remove_NG_PNP_Cmd	pshm->P[21851]
-#define	P_Hold_Remove_NG_PNP_Status	pshm->P[21852]
-#define	P_Hold_Remove_NG_PNP_Module_Status	pshm->P[21853]
-#define	P_Hold_Remove_NG_PNP_State_Machine	pshm->P[21854]
-#define	P_Hold_Remove_NG_PNP_Seq_Index	pshm->P[21855]
-#define	P_Hold_Remove_NG_PNP_Self_Index	pshm->P[21856]
-#define	P_Hold_Remove_NG_PNP_Debug_Edge	pshm->P[21857]
-#define	P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(i)	pshm->P[(21858+i)%MAX_P]
-#define	P_Hold_Remove_NG_PNP_Timer	pshm->P[21888]
-#define	P_Hold_Remove_NG_PNP_Tact_Time_Array(i)	pshm->P[(21889+i)%MAX_P]
-#define	P_Hold_Remove_NG_PNP_Tact_Time	pshm->P[21909]
-#define	P_PLC01_Hold_Remove_NG_PNP_Sub_Flag	pshm->P[21910]
-#define	P_PLC01_Hold_Remove_NG_PNP_Sub_State_Machine	pshm->P[21911]
-#define	P_PLC01_Hold_Remove_NG_PNP_Sub_Status	pshm->P[21912]
-#define	P_Hold_Remove_Align_Cmd	pshm->P[21913]
-#define	P_Hold_Remove_Align_Status	pshm->P[21914]
-#define	P_Hold_Remove_Align_Module_Status	pshm->P[21915]
-#define	P_Hold_Remove_Align_State_Machine	pshm->P[21916]
-#define	P_Hold_Remove_Align_Seq_Index	pshm->P[21917]
-#define	P_Hold_Remove_Align_Self_Index	pshm->P[21918]
-#define	P_Hold_Remove_Align_Debug_Edge	pshm->P[21919]
-#define	P_Buffer_Seqdata_Hold_Remove_Align_Array(i)	pshm->P[(21920+i)%MAX_P]
-#define	P_Hold_Remove_Align_Timer	pshm->P[21950]
-#define	P_Hold_Remove_Align_Tact_Time_Array(i)	pshm->P[(21951+i)%MAX_P]
-#define	P_Hold_Remove_Align_Tact_Time	pshm->P[21971]
-#define	P_PLC01_Hold_Remove_Align_Sub_Flag	pshm->P[21972]
-#define	P_PLC01_Hold_Remove_Align_Sub_State_Machine	pshm->P[21973]
-#define	P_PLC01_Hold_Remove_Align_Sub_Status	pshm->P[21974]
-#define	P_Hold_Remove_2TR_Cmd	pshm->P[21975]
-#define	P_Hold_Remove_2TR_Status	pshm->P[21976]
-#define	P_Hold_Remove_2TR_Module_Status	pshm->P[21977]
-#define	P_Hold_Remove_2TR_State_Machine	pshm->P[21978]
-#define	P_Hold_Remove_2TR_Seq_Index	pshm->P[21979]
-#define	P_Hold_Remove_2TR_Self_Index	pshm->P[21980]
-#define	P_Hold_Remove_2TR_Debug_Edge	pshm->P[21981]
-#define	P_Buffer_Seqdata_Hold_Remove_2TR_Array(i)	pshm->P[(21982+i)%MAX_P]
-#define	P_Hold_Remove_2TR_Timer	pshm->P[22012]
-#define	P_Hold_Remove_2TR_Tact_Time_Array(i)	pshm->P[(22013+i)%MAX_P]
-#define	P_Hold_Remove_2TR_Tact_Time	pshm->P[22033]
-#define	P_Hold_Supply_1TR_Cmd	pshm->P[22034]
-#define	P_Hold_Supply_1TR_Status	pshm->P[22035]
-#define	P_Hold_Supply_1TR_Module_Status	pshm->P[22036]
-#define	P_Hold_Supply_1TR_State_Machine	pshm->P[22037]
-#define	P_Hold_Supply_1TR_Seq_Index	pshm->P[22038]
-#define	P_Hold_Supply_1TR_Self_Index	pshm->P[22039]
-#define	P_Hold_Supply_1TR_Debug_Edge	pshm->P[22040]
-#define	P_Buffer_Seqdata_Hold_Supply_1TR_Array(i)	pshm->P[(22041+i)%MAX_P]
-#define	P_Hold_Supply_1TR_Timer	pshm->P[22071]
-#define	P_Hold_Supply_1TR_Tact_Time_Array(i)	pshm->P[(22072+i)%MAX_P]
-#define	P_Hold_Supply_1TR_Tact_Time	pshm->P[22092]
-#define	P_PLC01_Hold_Supply_1TR_Memory_RTN	pshm->P[22093]
-#define	P_PLC01_Hold_Supply_1TR_Judge_Flag	pshm->P[22094]
-#define	P_PLC01_Hold_Supply_1TR_Judge_State_Machine	pshm->P[22095]
-#define	P_PLC01_Hold_Supply_1TR_Judge_Status	pshm->P[22096]
-#define	P_Plate_1TR_Supply_Module_Judge_Bit	pshm->P[22097]
-#define	P_Hold_Supply_Align_Cmd	pshm->P[22098]
-#define	P_Hold_Supply_Align_Status	pshm->P[22099]
-#define	P_Hold_Supply_Align_Module_Status	pshm->P[22100]
-#define	P_Hold_Supply_Align_State_Machine	pshm->P[22101]
-#define	P_Hold_Supply_Align_Seq_Index	pshm->P[22102]
-#define	P_Hold_Supply_Align_Self_Index	pshm->P[22103]
-#define	P_Hold_Supply_Align_Debug_Edge	pshm->P[22104]
-#define	P_Buffer_Seqdata_Hold_Supply_Align_Array(i)	pshm->P[(22105+i)%MAX_P]
-#define	P_Hold_Supply_Align_Timer	pshm->P[22135]
-#define	P_Hold_Supply_Align_Tact_Time_Array(i)	pshm->P[(22136+i)%MAX_P]
-#define	P_Hold_Supply_Align_Tact_Time	pshm->P[22156]
-#define	P_Hold_Supply_2TR_Cmd	pshm->P[22157]
-#define	P_Hold_Supply_2TR_Status	pshm->P[22158]
-#define	P_Hold_Supply_2TR_Module_Status	pshm->P[22159]
-#define	P_Hold_Supply_2TR_State_Machine	pshm->P[22160]
-#define	P_Hold_Supply_2TR_Seq_Index	pshm->P[22161]
-#define	P_Hold_Supply_2TR_Self_Index	pshm->P[22162]
-#define	P_Hold_Supply_2TR_Debug_Edge	pshm->P[22163]
-#define	P_Buffer_Seqdata_Hold_Supply_2TR_Array(i)	pshm->P[(22164+i)%MAX_P]
-#define	P_Hold_Supply_2TR_Timer	pshm->P[22194]
-#define	P_Hold_Supply_2TR_Tact_Time_Array(i)	pshm->P[(22195+i)%MAX_P]
-#define	P_Hold_Supply_2TR_Tact_Time	pshm->P[22215]
-#define	P_Hold_Semi_Run_Pos_Move_Cmd	pshm->P[22216]
-#define	P_Hold_Semi_Run_Pos_Move_Status	pshm->P[22217]
-#define	P_Hold_Semi_Run_Pos_Move_Module_Status	pshm->P[22218]
-#define	P_Hold_Semi_Run_Pos_Move_State_Machine	pshm->P[22219]
-#define	P_Hold_Semi_Run_Pos_Move_Seq_Index	pshm->P[22220]
-#define	P_Hold_Semi_Run_Pos_Move_Self_Index	pshm->P[22221]
-#define	P_Hold_Semi_Run_Pos_Move_Debug_Edge	pshm->P[22222]
-#define	P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(i)	pshm->P[(22223+i)%MAX_P]
-#define	P_Hold_Semi_Run_Pos_Move_Timer	pshm->P[22253]
-#define	P_Hold_Semi_Run_Pos_Move_Tact_Time_Array(i)	pshm->P[(22254+i)%MAX_P]
-#define	P_Hold_Semi_Run_Pos_Move_Tact_Time	pshm->P[22274]
-#define	P_Act_Complete_Bit(i)	pshm->P[(22275+i)%MAX_P]
-#define	P_Act_Old_Time(i)	pshm->P[(22341+i)%MAX_P]
-#define	P_Act_Delay_Time(i)	pshm->P[(22407+i)%MAX_P]
-#define	P_Act_Suspend_Time_Out_Time	pshm->P[22473]
-#define	P_Act_Time_Out(i)	pshm->P[(22474+i)%MAX_P]
-#define	P_Test_Sungmin_Flag	pshm->P[22540]
-#define	P_Discharge_Possibility_Bit(i)	pshm->P[(22541+i)%MAX_P]
-#define	P_HOLD_Exist_Possibility_Bit(i)	pshm->P[(22607+i)%MAX_P]
-#define	P_HOLD_NG_Remove_Possibility_Bit(i)	pshm->P[(22673+i)%MAX_P]
-#define	P_HOLD_Align_Remove_Possibility_Bit(i)	pshm->P[(22739+i)%MAX_P]
-#define	P_HOLD_2TR_Remove_Possibility_Bit(i)	pshm->P[(22805+i)%MAX_P]
-#define	P_HOLD_1TR_Supply_Possibility_Bit(i)	pshm->P[(22871+i)%MAX_P]
-#define	P_HOLD_Align_Supply_Possibility_Bit(i)	pshm->P[(22937+i)%MAX_P]
-#define	P_HOLD_2TR_Supply_Possibility_Bit(i)	pshm->P[(23003+i)%MAX_P]
-#define	P_HOLD_Semi_Run_Pos_Possibility_Bit(i)	pshm->P[(23069+i)%MAX_P]
-#define	P_Module_Act_Command_Array(i)	pshm->P[(23135+i)%MAX_P]
-#define	P_OLD_Module_Act_Command_Array(i)	pshm->P[(23201+i)%MAX_P]
-#define	P_Module_Act_State_Machine_Array(i)	pshm->P[(23267+i)%MAX_P]
-#define	P_Module_Act_State_Machine_Error_Array(i)	pshm->P[(23333+i)%MAX_P]
-#define	P_Suspend_Discharge_Module_Status	pshm->P[23399]
-#define	P_Suspend_Discharge_To_Execute_Flag	pshm->P[23400]
-#define	P_Suspend_Discharge_Complete_Flag	pshm->P[23401]
-#define	P_First_Unloader_Stack_Up_Status	pshm->P[23402]
-#define	P_First_Unloader_Stack_FWD_Status	pshm->P[23403]
-#define	P_First_Unloader_Grip_Cell_Status	pshm->P[23404]
-#define	P_First_Unloader_Stack_BWD_Wait_Status	pshm->P[23405]
-#define	P_First_Unloader_Stack_BWD_Status	pshm->P[23406]
-#define	P_First_Unloader_Stack_Down_Status	pshm->P[23407]
-#define	P_First_Unloader_Avoid_Status	pshm->P[23408]
-#define	P_First_Unloader_Turn_Status	pshm->P[23409]
-#define	P_First_Unloader_Handover_Status	pshm->P[23410]
-#define	P_Cathode_Clamp_OFF_Status	pshm->P[23411]
-#define	P_Final_Roll_Discharge_Status	pshm->P[23412]
-#define	P_Final_Roll_Stack_Pos_Status	pshm->P[23413]
-#define	P_Final_Roll_Stack_Up_Pos_Status	pshm->P[23414]
-#define	P_Main_Z_Init_Pos_Status	pshm->P[23415]
-#define	P_Sheet_Paper_BWD_Status	pshm->P[23416]
-#define	P_Discharge_Vision_DIO_RTN	pshm->P[23417]
-#define	P_Discharge_Sub_RTN	pshm->P[23418]
-#define	P_Discharge_NG_Code_Report_RTN	pshm->P[23419]
-#define	P_Individual_RTN	pshm->P[23420]
-#define	P_Suspend_Discharge_Last_Run_Bit	pshm->P[23421]
-#define	P_Suspend_Discharge_JR_Result_RTN	pshm->P[23422]
-#define	P_ARC_Buffer_Jog_Speed	pshm->P[23423]
-#define	P_Selected_Spool_Number	pshm->P[23424]
-#define	P_ARC_Home_Check_RTN	pshm->P[23425]
-#define	P_Suspend_ARC_Module_Status	pshm->P[23426]
-#define	P_Not_Selected_Spool_Radius	pshm->P[23427]
-#define	P_Not_Selected_Spool_Circumference	pshm->P[23428]
-#define	P_Sensor_To_Sepa_Curr_Distance_mm(i)	pshm->P[(23429+i)%MAX_P]
-#define	P_Passive_D_One_Degree_AD_Value	pshm->P[23454]
-#define	P_After_ARC_Rotate_Distance	pshm->P[23455]
-#define	P_Stack_Vision_NG_Code_Time_Over	pshm->P[23456]
-#define	P_Suspend_Discharge_Resume_Flag	pshm->P[23457]
-#define	P_Suspend_Discharge_Resume_Complete	pshm->P[23458]
-#define	P_Suspend_Discharge_Pause_Flag	pshm->P[23459]
-#define	P_Suspend_Monitor_(i)	pshm->P[(23460+i)%MAX_P]
-#define	P_Flag_Stack_Work_Host_ID	pshm->P[23470]
-#define	P_First_Sepa_Stack_Align_OK_PMAC_Flag	pshm->P[23471]
-#define	P_Sepa_Run_Completed_Status_Machine	pshm->P[23472]
-#define	P_Discharge_Debug_Edge	pshm->P[23473]
-#define	P_Suspend_Discharge_Debug_Address(i)	pshm->P[(23474+i)%MAX_P]
-#define	P_Suspend_Discharge_Debug_Value(i)	pshm->P[(23479+i)%MAX_P]
-#define	P_Discharge_Sepa_Cutter_Time_Out_State_Machine	pshm->P[23484]
-#define	P_Old_Suspend_Discharge_Seq_Index	pshm->P[23485]
-#define	P_Discharge_Debug_Index_1	pshm->P[23486]
-#define	P_Discharge_Debug_Index_2	pshm->P[23487]
-#define	P_Discharge_Debug_Index_3	pshm->P[23488]
-#define	P_Discharge_Debug_Index_4	pshm->P[23489]
-#define	P_ARC_Debug_Edge	pshm->P[23490]
-#define	P_Suspend_ARC_Debug_Address(i)	pshm->P[(23491+i)%MAX_P]
-#define	P_Suspend_ARC_Debug_Value(i)	pshm->P[(23496+i)%MAX_P]
-#define	P_Old_Suspend_ARC_Seq_Index	pshm->P[23501]
-#define	P_ARC_Debug_Index_1	pshm->P[23502]
-#define	P_ARC_Debug_Index_2	pshm->P[23503]
-#define	P_ARC_Debug_Index_3	pshm->P[23504]
-#define	P_ARC_Debug_Index_4	pshm->P[23505]
-#define	P_ARC_Ready_Flag(i)	pshm->P[(23506+i)%MAX_P]
-#define	P_Suspend_Cutter_Heating_Time	pshm->P[23508]
-#define	P_Suspend_Cutter_Heating_Timer	pshm->P[23509]
-#define	P_An_1TR_Supply_Debug_Edge	pshm->P[23510]
-#define	P_Suspend_An_1TR_Supply_Debug_Address(i)	pshm->P[(23511+i)%MAX_P]
-#define	P_Suspend_An_1TR_Supply_Debug_Value(i)	pshm->P[(23516+i)%MAX_P]
-#define	P_Old_Suspend_An_1TR_Supply_Seq_Index	pshm->P[23521]
-#define	P_An_1TR_Supply_Debug_Index_1	pshm->P[23522]
-#define	P_An_1TR_Supply_Debug_Index_2	pshm->P[23523]
-#define	P_An_1TR_Supply_Debug_Index_3	pshm->P[23524]
-#define	P_An_1TR_Supply_Debug_Index_4	pshm->P[23525]
-#define	P_Suspend_Supply_Index	pshm->P[23526]
-#define	P_Suspend_Supply_Index_2nd	pshm->P[23527]
-#define	P_Anode_Suspend_Supply_Complete(i)	pshm->P[(23528+i)%MAX_P]
-#define	P_Suspend_Supply_Pause_Flag	pshm->P[23536]
-#define	P_Suspend_Supply_Resume_Flag	pshm->P[23537]
-#define	P_Supply_Module_Status	pshm->P[23538]
-#define	P_Suspend_Anode_1TR_Supply_Complete_Flag	pshm->P[23539]
-#define	P_Suspend_Discharge_Module_Error	pshm->P[23540]
-#define	P_Suspend_ARC_Module_Error	pshm->P[23541]
-#define	P_Suspend_1st_Supply_Error	pshm->P[23542]
-#define	P_Discharge_Seq_Data	pshm->P[23543]
-#define	P_Suspend_Discharging_Popup_Flag	pshm->P[23544]
-#define	P_Suspend_Discharge_FR_Unclamp_Error_Popup_Flag	pshm->P[23545]
-#define	P_Suspend_Discharge_Cathode_Align_Retry_Cal_Error_Popup_Flag	pshm->P[23546]
-#define	P_Suspend_Discharge_Anode_Align_Retry_Cal_Error_Popup_Flag	pshm->P[23547]
-#define	P_Suspend_Discharge_FR_Discharge_Pos_Error_Popup_Flag	pshm->P[23548]
-#define	P_Suspend_Discharge_1st_Unloader_Grip_OFF_Error_Popup_Flag	pshm->P[23549]
-#define	P_Suspend_Discharge_1st_Unloader_Up_Error_Popup_Flag	pshm->P[23550]
-#define	P_Suspend_Discharge_1st_Unloader_FWD_Error_Popup_Flag	pshm->P[23551]
-#define	P_Suspend_Discharge_FR_Clamp_Error_Popup_Flag	pshm->P[23552]
-#define	P_Suspend_Discharge_Sepa_Cutter_Heating_Error_Popup_Flag	pshm->P[23553]
-#define	P_Suspend_Discharge_1st_Unloader_Grip_Cell_Pos_Error_Popup_Flag	pshm->P[23554]
-#define	P_Suspend_Discharge_1st_Unloader_Grip_ON_Error_Popup_Flag	pshm->P[23555]
-#define	P_Suspend_Discharge_Sheet_Paper_BWD_Error_Popup_Flag	pshm->P[23556]
-#define	P_Suspend_Discharge_Cathode_Clamp_OFF_Error_Popup_Flag	pshm->P[23557]
-#define	P_Suspend_Discharge_Sepa_Cutter_FWD_Error_Popup_Flag	pshm->P[23558]
-#define	P_Suspend_Discharge_Sheet_Paper_Vacuum_ON_Error_Popup_Flag	pshm->P[23559]
-#define	P_Suspend_Discharge_Sepa_Cutter_BWD_Error_Popup_Flag	pshm->P[23560]
-#define	P_Suspend_Discharge_1st_Unloader_BWD_Wait_Pos_Error_Popup_Flag	pshm->P[23561]
-#define	P_Suspend_Discharge_1st_Unloader_BWD_Error_Popup_Flag	pshm->P[23562]
-#define	P_Suspend_Discharge_1st_Unloader_Stack_Down_Error_Popup_Flag	pshm->P[23563]
-#define	P_Suspend_Discharge_FR_Stack_Pos_Error_Popup_Flag	pshm->P[23564]
-#define	P_Suspend_Discharge_After_Action_Init_Error_Popup_Flag	pshm->P[23565]
-#define	P_Suspend_Discharge_1st_Unloader_Avoid_Pos_Error_Popup_Flag	pshm->P[23566]
-#define	P_Suspend_Discharge_1st_2nd_Unloader_Handover_Chk_Error_Popup_Flag	pshm->P[23567]
-#define	P_Suspend_Discharge_1st_Unloader_Handover_Pos_Error_Popup_Flag	pshm->P[23568]
-#define	P_Suspend_Discharge_2nd_3rd_Unloader_Grip_Request_Error_Popup_Flag	pshm->P[23569]
-#define	P_Suspend_Discharge_1st_Unloader_Wait_Pos_Error_Popup_Flag	pshm->P[23570]
-#define	P_Suspend_ARC_Manual_ARC_Active_Popup_Flag	pshm->P[23571]
-#define	P_Suspend_ARC_Auto_ARC_Active_Popup_Flag	pshm->P[23572]
-#define	P_Suspend_ARC_Pre_Act_Popup_Flag	pshm->P[23573]
-#define	P_Suspend_ARC_Dancer_Close_Popup_Flag	pshm->P[23574]
-#define	P_Suspend_ARC_Use_Plate_FWD_Popup_Flag	pshm->P[23575]
-#define	P_Suspend_ARC_Replace_Plate_Blow_ON_Popup_Flag	pshm->P[23576]
-#define	P_Suspend_ARC_Use_Plate_Clamp_Popup_Flag	pshm->P[23577]
-#define	P_Suspend_ARC_Use_Plate_Cutter_FWD_Popup_Flag	pshm->P[23578]
-#define	P_Suspend_ARC_Use_Plate_Cutter_BWD_Popup_Flag	pshm->P[23579]
-#define	P_Suspend_ARC_Use_Plate_Unclamp_Popup_Flag	pshm->P[23580]
-#define	P_Suspend_ARC_Use_Plate_BWD_Popup_Flag	pshm->P[23581]
-#define	P_Suspend_ARC_Replace_Plate_Blow_OFF_Popup_Flag	pshm->P[23582]
-#define	P_Suspend_ARC_Dancer_Open_Popup_Flag	pshm->P[23583]
-#define	P_Suspend_ARC_Spool_Change_Popup_Flag	pshm->P[23584]
-#define	P_Suspend_ARC_Post_Act_Popup_Flag	pshm->P[23585]
-#define	P_Suspend_ARC_Previous_Spool_Remain_Winding_Popup_Flag	pshm->P[23586]
-#define	P_Suspend_Discharge_First_Address	pshm->P[23587]
-#define	P_Suspend_ARC_First_Address	pshm->P[23588]
-#define	P_Status_Stop_Ready_Pos_Move	pshm->P[23589]
-#define	P_Cycle_Stop_Stauts	pshm->P[23590]
-#define	P_Cycle_Stop_Status_Machine	pshm->P[23591]
-#define	P_Cycle_Stop_Flag	pshm->P[23592]
-#define	P_Speed_Origin_rtn	pshm->P[23593]
-#define	P_Speed_rtn	pshm->P[23594]
-#define	P_NG_PNP_Z_Move_rtn	pshm->P[23595]
-#define	P_NG_PNP_Z_Move_Check_rtn	pshm->P[23596]
-#define	P_NG_PNP_T_Move_rtn	pshm->P[23597]
-#define	P_NG_PNP_T_Move_Check_rtn	pshm->P[23598]
-#define	P_2nd_Z_Move_rtn	pshm->P[23599]
-#define	P_2nd_Z_Move_Check_rtn	pshm->P[23600]
-#define	P_2nd_T_Move_rtn	pshm->P[23601]
-#define	P_2nd_T_Move_Check_rtn	pshm->P[23602]
-#define	P_Stack_Judgement_Memory	pshm->P[23603]
-#define	P_Stop_Cycle_Stop_Move_Status	pshm->P[23604]
-#define	P_STOP_Initial_Process_Status	pshm->P[23605]
-#define	P_Stopping_CycleStop_Init_Flag	pshm->P[23606]
-#define	P_Sepa_Timing	pshm->P[23607]
-#define	P_Old_Trigger_PLC0	pshm->P[23608]
-#define	P_Mode_Command	pshm->P[23609]
-#define	P_Current_Mode	pshm->P[23610]
-#define	P_MOde_Num(i)	pshm->P[(23611+i)%MAX_P]
-#define	P_Command_Depth(i)	pshm->P[(23616+i)%MAX_P]
-#define	P_In_Position(i)	pshm->P[(23621+i)%MAX_P]
-#define	P_Last_Cycle_Command(i)	pshm->P[(23626+i)%MAX_P]
-#define	P_Mode_Command_Buffer	pshm->P[23631]
-#define	P_Mode_Command_Wait_Count	pshm->P[23632]
-#define	P_Old_Mode_Command	pshm->P[23633]
-#define	P_Slave1_Anode_Run_Motion_Array(i)	pshm->P[(23634+i)%MAX_P]
-#define	P_Slave2_Anode_Run_Motion_Array(i)	pshm->P[(23734+i)%MAX_P]
-#define	P_Slave3_Anode_Run_Motion_Array(i)	pshm->P[(23834+i)%MAX_P]
-#define	P_Slave4_Anode_Run_Motion_Array(i)	pshm->P[(23934+i)%MAX_P]
-#define	P_Slave5_Anode_Run_Motion_Array(i)	pshm->P[(24034+i)%MAX_P]
-#define	P_Slave6_Anode_Run_Motion_Array(i)	pshm->P[(24134+i)%MAX_P]
-#define	P_Slave7_Anode_Run_Motion_Array(i)	pshm->P[(24234+i)%MAX_P]
-#define	P_Slave8_Anode_Run_Motion_Array(i)	pshm->P[(24334+i)%MAX_P]
-#define	P_Slave9_Anode_Run_Motion_Array(i)	pshm->P[(24434+i)%MAX_P]
-#define	P_Slave10_Anode_Run_Motion_Array(i)	pshm->P[(24534+i)%MAX_P]
-#define	P_Slave15_Anode_Run_Motion_Array(i)	pshm->P[(24634+i)%MAX_P]
-#define	P_Slave16_Anode_Run_Motion_Array(i)	pshm->P[(24734+i)%MAX_P]
-#define	P_Slave17_Anode_Run_Motion_Array(i)	pshm->P[(24834+i)%MAX_P]
-#define	P_Slave18_Anode_Run_Motion_Array(i)	pshm->P[(24934+i)%MAX_P]
-#define	P_Slave19_Anode_Run_Motion_Array(i)	pshm->P[(25034+i)%MAX_P]
-#define	P_Slave1_Cathode_Run_Motion_Array(i)	pshm->P[(25134+i)%MAX_P]
-#define	P_Slave2_Cathode_Run_Motion_Array(i)	pshm->P[(25234+i)%MAX_P]
-#define	P_Slave3_Cathode_Run_Motion_Array(i)	pshm->P[(25334+i)%MAX_P]
-#define	P_Slave4_Cathode_Run_Motion_Array(i)	pshm->P[(25434+i)%MAX_P]
-#define	P_Slave5_Cathode_Run_Motion_Array(i)	pshm->P[(25534+i)%MAX_P]
-#define	P_Slave15_Cathode_Run_Motion_Array(i)	pshm->P[(25634+i)%MAX_P]
-#define	P_Slave6_Cathode_Run_Motion_Array(i)	pshm->P[(25734+i)%MAX_P]
-#define	P_Slave7_Cathode_Run_Motion_Array(i)	pshm->P[(25834+i)%MAX_P]
-#define	P_Slave8_Cathode_Run_Motion_Array(i)	pshm->P[(25934+i)%MAX_P]
-#define	P_Slave9_Cathode_Run_Motion_Array(i)	pshm->P[(26034+i)%MAX_P]
-#define	P_Slave10_Cathode_Run_Motion_Array(i)	pshm->P[(26134+i)%MAX_P]
-#define	P_Slave16_Cathode_Run_Motion_Array(i)	pshm->P[(26234+i)%MAX_P]
-#define	P_Slave17_Cathode_Run_Motion_Array(i)	pshm->P[(26334+i)%MAX_P]
-#define	P_Slave18_Cathode_Run_Motion_Array(i)	pshm->P[(26434+i)%MAX_P]
-#define	P_Slave19_Cathode_Run_Motion_Array(i)	pshm->P[(26534+i)%MAX_P]
-#define	P_Anode_NG_Unit_Status	pshm->P[26634]
-#define	P_Cathode_NG_Unit_Status	pshm->P[26635]
-#define	P_ParsingRtn	pshm->P[26636]
-#define	P_CurPosData	pshm->P[26637]
-#define	P_Hold_MNTR_Supply_1st	pshm->P[26638]
-#define	P_TimeOutNumb	pshm->P[26639]
-#define	P_PosRtn	pshm->P[26640]
-#define	P_MotionRtn	pshm->P[26641]
-#define	P_CmdData	pshm->P[26642]
-#define	P_Interval	pshm->P[26643]
-#define	P_Cont_Ret	pshm->P[26644]
-#define	P_Cur_Idx	pshm->P[26645]
-#define	P_NextID	pshm->P[26646]
-#define	P_Cur_Size	pshm->P[26647]
-#define	P_Hold_Exist_Insp	pshm->P[26648]
-#define	P_Hold_Remove_NG_PNP	pshm->P[26649]
-#define	P_Hold_Remove_Align	pshm->P[26650]
-#define	P_Hold_Remove_2TR	pshm->P[26651]
-#define	P_Hold_Supply_1TR	pshm->P[26652]
-#define	P_Hold_Supply_Align	pshm->P[26653]
-#define	P_Hold_Supply_2TR	pshm->P[26654]
-#define	P_Hold_Semi_Run	pshm->P[26655]
+#define	P_BTN_Cathode_Clamp_inside_Machine_Cylinder_Count_Clear	pshm->P[13902]
+#define	P_BTN_Cathode_Clamp_Middle_Cylinder_Count_Clear	pshm->P[13903]
+#define	P_BTN_Cathode_Clamp_outside_Machine_Cylinder_Count_Clear	pshm->P[13904]
+#define	P_BTN_Anode_Clamp_inside_Machine_Cylinder_Count_Clear	pshm->P[13905]
+#define	P_BTN_Anode_Clamp_Middle_Cylinder_Count_Clear	pshm->P[13906]
+#define	P_BTN_Anode_Clamp_outside_Machine_Cylinder_Count_Clear	pshm->P[13907]
+#define	P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear	pshm->P[13908]
+#define	P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear_Old	pshm->P[13909]
+#define	P_BTN_Anode_1ST_TR_Cylinder_Count_Clear	pshm->P[13910]
+#define	P_BTN_Anode_1ST_TR_Cylinder_Count_Clear_Old	pshm->P[13911]
+#define	P_X_BTN_Manual_1(i)	pshm->P[(13912+i)%MAX_P]
+#define	P_X_BTN_Manual_2(i)	pshm->P[(14032+i)%MAX_P]
+#define	P_X_BTN_Manual_3(i)	pshm->P[(14152+i)%MAX_P]
+#define	P_Home_InterLock_M(i)	pshm->P[(14272+i)%MAX_P]
+#define	P_Status_BTN_Manual_1(i)	pshm->P[(14322+i)%MAX_P]
+#define	P_Status_BTN_Manual_2(i)	pshm->P[(14442+i)%MAX_P]
+#define	P_Status_BTN_Manual_Interlock_1(i)	pshm->P[(14562+i)%MAX_P]
+#define	P_Status_BTN_Manual_Interlock_2(i)	pshm->P[(14682+i)%MAX_P]
+#define	P_Status_BTN_Manual_Interlock_3(i)	pshm->P[(14802+i)%MAX_P]
+#define	P_Mode_Run_Enable_Flag(i)	pshm->P[(14922+i)%MAX_P]
+#define	P_RECIPE_PLC27_Manual_Interval	pshm->P[14927]
+#define	P_RECIPE_PLC27_Auto_Interval	pshm->P[14928]
+#define	P_MNTR_PLC4_Vision_Result(i)	pshm->P[(14929+i)%MAX_P]
+#define	P_PNP_Vac_Mode_Run_Enable_Flag(i)	pshm->P[(15130+i)%MAX_P]
+#define	P_Recipe_Speed_Value	pshm->P[15135]
+#define	P_Slave6_Target_X_For_Cell_Out	pshm->P[15136]
+#define	P_HCK_Step_MNTR(i)	pshm->P[(15137+i)%MAX_P]
+#define	P_Axis_Home_Pos(i)	pshm->P[(15187+i)%MAX_P]
+#define	P_Axis_Ready_Pos(i)	pshm->P[(15237+i)%MAX_P]
+#define	P_PMAC_Homing_CHK(i)	pshm->P[(15287+i)%MAX_P]
+#define	P_Poistion_error	pshm->P[15337]
+#define	P_Home_Command(i)	pshm->P[(15338+i)%MAX_P]
+#define	P_Recipe_Count_Num	pshm->P[15388]
+#define	L_Motor_Status_Update_Interval	pshm->P[15389]
+#define	L_Motor_Recipe_Update_Interval	pshm->P[15390]
+#define	P_UI_Servo_On_Off	pshm->P[15391]
+#define	P_Old_BTN_Servo_On_Off_M(i)	pshm->P[(15392+i)%MAX_P]
+#define	P_Peak_Load_Ratio_M(i)	pshm->P[(15425+i)%MAX_P]
+#define	P_Chk_Current_Jog_Sel(i)	pshm->P[(15458+i)%MAX_P]
+#define	P_Jog_Sel_Count	pshm->P[15491]
+#define	P_Recipe_POS_Interock_Num_Bit(i)	pshm->P[(15492+i)%MAX_P]
+#define	P_Recipe_VEL(i)	pshm->P[(15525+i)%MAX_P]
+#define	P_Recipe_POS(i)	pshm->P[(15536+i)%MAX_P]
+#define	P_BTN_Servo_On_Off_M(i)	pshm->P[(15547+i)%MAX_P]
+#define	P_BTN_Home_M(i)	pshm->P[(15580+i)%MAX_P]
+#define	P_BTN_Jog_Stop_M(i)	pshm->P[(15613+i)%MAX_P]
+#define	P_BTN_Recipe_POS_RUN_M(i)	pshm->P[(15646+i)%MAX_P]
+#define	P_Recipe_POS_Flag_M(i)	pshm->P[(15679+i)%MAX_P]
+#define	P_BTN_Jog_INC_M(i)	pshm->P[(15712+i)%MAX_P]
+#define	P_BTN_JOG_ABS_M(i)	pshm->P[(15745+i)%MAX_P]
+#define	P_User_Jog_Distance	pshm->P[15778]
+#define	P_Unit_Command(i)	pshm->P[(15779+i)%MAX_P]
+#define	P_Unit_State_Machine(i)	pshm->P[(15879+i)%MAX_P]
+#define	P_Status_BTN_Manual_3(i)	pshm->P[(15979+i)%MAX_P]
+#define	P_Chk_Current_BTN_Sel(i)	pshm->P[(16079+i)%MAX_P]
+#define	P_BTN_Sel_Count	pshm->P[16129]
+#define	P_PC_BTN_No	pshm->P[16130]
+#define	P_BTN_Interlock_Update_Interval	pshm->P[16131]
+#define	P_Align_Table_Status_Update_Interval	pshm->P[16132]
+#define	P_Jelly_Roll_Total_Count_Old	pshm->P[16133]
+#define	P_Old_m4120	pshm->P[16134]
+#define	P_Old_m4121	pshm->P[16135]
+#define	P_Old_m4122	pshm->P[16136]
+#define	P_Old_m4123	pshm->P[16137]
+#define	P_Linear_Encoder_Pos_Check_Flag(i)	pshm->P[(16138+i)%MAX_P]
+#define	P_Linear_Encoder_Pos(i)	pshm->P[(16143+i)%MAX_P]
+#define	P_Status_Linear_Encoder_HomeZero(i)	pshm->P[(16148+i)%MAX_P]
+#define	P_Command_Linear_Encoder_HomeZero(i)	pshm->P[(16153+i)%MAX_P]
+#define	P_Flag_Linear_Enc_Homezero_Complete_M17	pshm->P[16158]
+#define	P_Flag_Linear_Enc_Homezero_Complete_M18	pshm->P[16159]
+#define	P_Flag_Linear_Enc_Homezero_Complete_M19	pshm->P[16160]
+#define	P_Flag_Linear_Enc_Homezero_Complete_M20	pshm->P[16161]
+#define	P_CMD_Linear_ENC_Homezero_M17	pshm->P[16162]
+#define	P_CMD_Linear_ENC_Homezero_M18	pshm->P[16163]
+#define	P_CMD_Linear_ENC_Homezero_M19	pshm->P[16164]
+#define	P_CMD_Linear_ENC_Homezero_M20	pshm->P[16165]
+#define	P_OLD_Home_Offset(i)	pshm->P[(16166+i)%MAX_P]
+#define	P_RECIPE_PLC27_Alltime_Interval	pshm->P[16196]
+#define	P_Manual_Memory_Tower_Timer	pshm->P[16197]
+#define	P_Memory_Tower_Interval	pshm->P[16198]
+#define	P_PLC_14_Status_Cycle_Stop_Flag	pshm->P[16199]
+#define	P_Cathode_AlignTable_Cleaning_Pos_Status_Machine	pshm->P[16200]
+#define	P_Anode_AlignTable_Cleaning_Pos_Status_Machine	pshm->P[16201]
+#define	P_Status_Cathode_AlignTable_Cleaning_Pos	pshm->P[16202]
+#define	P_Status_Anode_AlignTable_Cleaning_Pos	pshm->P[16203]
+#define	P_CMD_Cathode_AlignTable_Cleaning_Pos	pshm->P[16204]
+#define	P_CMD_Anode_AlignTable_Cleaning_Pos	pshm->P[16205]
+#define	P_Cathode_2nd_pnp_Cleaning_Mode_Pos	pshm->P[16206]
+#define	P_Anode_2nd_pnp_Cleaning_Mode_Pos	pshm->P[16207]
+#define	P_Interlock_Test	pshm->P[16208]
+#define	P_PNP_Picker_T_Pos	pshm->P[16209]
+#define	P_NG_PNP_Pos	pshm->P[16210]
+#define	M_Old_X_BTN_Machine_READY	pshm->P[16211]
+#define	M_Old_X_BTN_Machine_START	pshm->P[16212]
+#define	M_Old_X_BTN_Machine_STOP	pshm->P[16213]
+#define	M_Old_X_BTN_Machine_RESET	pshm->P[16214]
+#define	M_Old_X_BTN_Machine_MODE	pshm->P[16215]
+#define	P_BTN_Motor_Pos_Check_RTN	pshm->P[16216]
+#define	P_BTN_Memory_Tower_Check_Bit	pshm->P[16217]
+#define	P_PMAC_Status_IDLE_Motor_Not_Pos	pshm->P[16218]
+#define	P_PMAC_Status_IDLE_Motor_Pos	pshm->P[16219]
+#define	P_BTN_Motor_Pos_Check_Monitor	pshm->P[16220]
+#define	P_PackML_Auto_Stop_Bit	pshm->P[16221]
+#define	P_BTN_IDLE_Motor_Not_Pos	pshm->P[16222]
+#define	M_X_BTN_Machine_Mode	pshm->P[16223]
+#define	M_Old_X_BTN_Machine_Mode	pshm->P[16224]
+#define	P_Lamp_Blinking_Timer	pshm->P[16225]
+#define	P_BTN_Ready_Lamp	pshm->P[16226]
+#define	P_BTN_Start_Lamp	pshm->P[16227]
+#define	P_BTN_Stop_Lamp	pshm->P[16228]
+#define	P_ARC_Name_Plate_Passive_Status	pshm->P[16229]
+#define	P_ARC_Passive_Status	pshm->P[16230]
+#define	P_NP_Spool_Number	pshm->P[16231]
+#define	P_ARC_Page_On	pshm->P[16232]
+#define	P_ARC_NP_Upper_Timer	pshm->P[16233]
+#define	P_ARC_Upper_Ready	pshm->P[16234]
+#define	P_ARC_NP_Upper_3rd_Step_Toggle_Variable	pshm->P[16235]
+#define	P_ARC_NP_Upper_7th_Step_Variable	pshm->P[16236]
+#define	P_ARC_NP_Upper_7th_Step_Edge_Variable	pshm->P[16237]
+#define	P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit	pshm->P[16238]
+#define	P_ARC_NP_Lower_Timer	pshm->P[16239]
+#define	P_ARC_Lower_Ready	pshm->P[16240]
+#define	P_ARC_NP_Lower_3rd_Step_Toggle_Variable	pshm->P[16241]
+#define	P_ARC_NP_Lower_7th_Step_Variable	pshm->P[16242]
+#define	P_ARC_NP_Lower_7th_Step_Edge_Variable	pshm->P[16243]
+#define	P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit	pshm->P[16244]
+#define	M_Old_X_ARC_NP_Ready	pshm->P[16245]
+#define	M_Old_X_ARC_NP_Unwinder_Rotation	pshm->P[16246]
+#define	M_Old_X_ARC_NP_Unwinder_Re_Rotation	pshm->P[16247]
+#define	P_Status_Clear_Flag	pshm->P[16248]
+#define	P_Status_Clear_RTN	pshm->P[16249]
+#define	P_MSA_BTN_On	pshm->P[16250]
+#define	P_Align_Take_Off_BTN_ON	pshm->P[16251]
+#define	P_ARC_NP_Upper_Ready_Check_Bit	pshm->P[16252]
+#define	P_ARC_NP_Lower_Ready_Check_Bit	pshm->P[16253]
+#define	P_PLC13_Cycle_Stop_Return_Array(i)	pshm->P[(16254+i)%MAX_P]
+#define	P_Stopping_CycleStop_Status	pshm->P[16354]
+#define	P_Stopping_CycleStop_Seq_Index	pshm->P[16355]
+#define	P_Stopping_CycleStop_Precondition_Seq_Index	pshm->P[16356]
+#define	P_Stopping_CycleStop_Module_Status	pshm->P[16357]
+#define	P_Stopping_CycleStop_Cmd	pshm->P[16358]
+#define	P_Stopping_CycleStop_State_Machine	pshm->P[16359]
+#define	P_Stopping_CycleStop_Act_State_Machine(i)	pshm->P[(16360+i)%MAX_P]
+#define	P_Module_Cycle_Stop_Act_State_Machine_Array(i)	pshm->P[(16380+i)%MAX_P]
+#define	P_Module_Cycle_Stop_Act_Complete_Bit(i)	pshm->P[(16400+i)%MAX_P]
+#define	P_Module_Cycle_Stop_Act_Command_Array(i)	pshm->P[(16420+i)%MAX_P]
+#define	P_OLD_Module_Cycle_Stop_Act_Command_Array(i)	pshm->P[(16440+i)%MAX_P]
+#define	P_Buffer_Seqdata_CycleStop_Array(i)	pshm->P[(16460+i)%MAX_P]
+#define	P_Final_Roll_Cathode_Pos_Status	pshm->P[16480]
+#define	P_Sheet_Paper_FWD_Pos_Status	pshm->P[16481]
+#define	P_Final_Roll_Vision_Pos_Status	pshm->P[16482]
+#define	P_Cathode_Clamp_ON_Status	pshm->P[16483]
+#define	P_Anode_Clamp_ON_Status	pshm->P[16484]
+#define	P_Anode_Clamp_OFF_Status	pshm->P[16485]
+#define	P_Partition_Up_Flag	pshm->P[16486]
+#define	P_Partition_Down_Flag	pshm->P[16487]
+#define	P_Partition_Avoid_Flag	pshm->P[16488]
+#define	P_Partition_Avoid_Z_Speed	pshm->P[16489]
+#define	P_Partition_Avoid_X_Speed	pshm->P[16490]
+#define	P_Partition_Avoid_T_Speed	pshm->P[16491]
+#define	P_Partition_Avoid_2nd_T_Pos	pshm->P[16492]
+#define	P_Partition_Step_Flag	pshm->P[16493]
+#define	P_Partition_1st_Avoid_Offset	pshm->P[16494]
+#define	P_Partition_Picker_Avoid_Offset	pshm->P[16495]
+#define	P_Partition_Avoid_Check	pshm->P[16496]
+#define	P_Tact_Time_Timer(i)	pshm->P[(16497+i)%MAX_P]
+#define	P_Tack_Time_Save_Time(i)	pshm->P[(16537+i)%MAX_P]
+#define	P_Anode_NG_PNP_Tact_Time_Start	pshm->P[16577]
+#define	P_Cathode_NG_PNP_Tact_Time_Start	pshm->P[16578]
+#define	P_Anode_NG_PNP_Tact_Time_End	pshm->P[16579]
+#define	P_Cathode_NG_PNP_Tact_Time_End	pshm->P[16580]
+#define	P_Tact_Time_Stack_Array(i)	pshm->P[(16581+i)%MAX_P]
+#define	P_Tact_Time_Discharge_Array(i)	pshm->P[(16591+i)%MAX_P]
+#define	P_Tact_Time_1st_Unloader_Array(i)	pshm->P[(16601+i)%MAX_P]
+#define	P_Tact_Time_Sepa_ARC_Array(i)	pshm->P[(16611+i)%MAX_P]
+#define	P_Tact_Time_Final_Roll_Array(i)	pshm->P[(16621+i)%MAX_P]
+#define	P_Tact_Time_Cathode_1st_PNP_Array(i)	pshm->P[(16631+i)%MAX_P]
+#define	P_Tact_Time_Cathode_Align_Array(i)	pshm->P[(16641+i)%MAX_P]
+#define	P_Tact_Time_Cathode_2nd_PNP_Array(i)	pshm->P[(16651+i)%MAX_P]
+#define	P_Tact_Time_Cathode_Clamp_Array(i)	pshm->P[(16661+i)%MAX_P]
+#define	P_Tact_Time_Anode_1st_PNP_Array(i)	pshm->P[(16671+i)%MAX_P]
+#define	P_Tact_Time_Anode_Align_Array(i)	pshm->P[(16681+i)%MAX_P]
+#define	P_Tact_Time_Anode_2nd_PNP_Array(i)	pshm->P[(16691+i)%MAX_P]
+#define	P_Tact_Time_Anode_Clamp_Array(i)	pshm->P[(16701+i)%MAX_P]
+#define	P_Tact_Time_Cathode_1st_PNP_Vac_Array(i)	pshm->P[(16711+i)%MAX_P]
+#define	P_Tact_Time_Cathode_Align_PNP_Vac_Array(i)	pshm->P[(16721+i)%MAX_P]
+#define	P_Tact_Time_Cathode_2nd_PNP_Vac_Array(i)	pshm->P[(16731+i)%MAX_P]
+#define	P_Tact_Time_Anode_1st_PNP_Vac_Array(i)	pshm->P[(16741+i)%MAX_P]
+#define	P_Tact_Time_Anode_Align_PNP_Vac_Array(i)	pshm->P[(16751+i)%MAX_P]
+#define	P_Tact_Time_Anode_2nd_PNP_Vac_Array(i)	pshm->P[(16761+i)%MAX_P]
+#define	P_Tact_Time_Final_Roller_Clamp	pshm->P[16771]
+#define	P_Tact_Time_Final_Roller_Unclamp	pshm->P[16772]
+#define	P_Tact_Time_Stack_Table_Down	pshm->P[16773]
+#define	P_Tact_Time_Stack_Table_Up	pshm->P[16774]
+#define	P_Tact_Time_Sepa_Cutting_Down	pshm->P[16775]
+#define	P_Tact_Time_Sepa_Cutting_Up	pshm->P[16776]
+#define	P_Tact_Time_ARC_Upper_Plate_Up	pshm->P[16777]
+#define	P_Tact_Time_ARC_Upper_Plate_Down	pshm->P[16778]
+#define	P_Tact_Time_ARC_Upper_Tilting_On	pshm->P[16779]
+#define	P_Tact_Time_ARC_Upper_Tilting_Off	pshm->P[16780]
+#define	P_Tact_Time_ARC_Upper_Cutter_Fwd	pshm->P[16781]
+#define	P_Tact_Time_ARC_Upper_Cutter_Bwd	pshm->P[16782]
+#define	P_Tact_Time_ARC_Upper_Clamp_On	pshm->P[16783]
+#define	P_Tact_Time_ARC_Upper_Clamp_Off	pshm->P[16784]
+#define	P_Tact_Time_ARC_Lower_Plate_Up	pshm->P[16785]
+#define	P_Tact_Time_ARC_Lower_Plate_Down	pshm->P[16786]
+#define	P_Tact_Time_ARC_Lower_Tilting_On	pshm->P[16787]
+#define	P_Tact_Time_ARC_Lower_Tilting_Off	pshm->P[16788]
+#define	P_Tact_Time_ARC_Lower_Cutter_Fwd	pshm->P[16789]
+#define	P_Tact_Time_ARC_Lower_Cutter_Bwd	pshm->P[16790]
+#define	P_Tact_Time_ARC_Lower_Clamp_On	pshm->P[16791]
+#define	P_Tact_Time_ARC_Lower_Clamp_Off	pshm->P[16792]
+#define	P_Tact_Time_Save_Final_Roller_Clamp_Time	pshm->P[16793]
+#define	P_Tact_Time_Save_Final_Roller_Unclamp_Time	pshm->P[16794]
+#define	P_Tact_Time_Save_Stack_Table_Down_Time	pshm->P[16795]
+#define	P_Tact_Time_Save_Stack_Table_Up_Time	pshm->P[16796]
+#define	P_Tact_Time_Save_Sepa_Cutting_Down_Time	pshm->P[16797]
+#define	P_Tact_Time_Save_Sepa_Cutting_Up_Time	pshm->P[16798]
+#define	P_Tact_Time_Save_ARC_Upper_Plate_Up_Time	pshm->P[16799]
+#define	P_Tact_Time_Save_ARC_Upper_Plate_Down_Time	pshm->P[16800]
+#define	P_Tact_Time_Save_ARC_Upper_Tilting_On_Time	pshm->P[16801]
+#define	P_Tact_Time_Save_ARC_Upper_Tilting_Off_Time	pshm->P[16802]
+#define	P_Tact_Time_Save_ARC_Upper_Cutter_Fwd_Time	pshm->P[16803]
+#define	P_Tact_Time_Save_ARC_Upper_Cutter_Bwd_Time	pshm->P[16804]
+#define	P_Tact_Time_Save_ARC_Upper_Clamp_On_Time	pshm->P[16805]
+#define	P_Tact_Time_Save_ARC_Upper_Clamp_Off_Time	pshm->P[16806]
+#define	P_Tact_Time_Save_ARC_Lower_Plate_Up_Time	pshm->P[16807]
+#define	P_Tact_Time_Save_ARC_Lower_Plate_Down_Time	pshm->P[16808]
+#define	P_Tact_Time_Save_ARC_Lower_Tilting_On_Time	pshm->P[16809]
+#define	P_Tact_Time_Save_ARC_Lower_Tilting_Off_Time	pshm->P[16810]
+#define	P_Tact_Time_Save_ARC_Lower_Cutter_Fwd_Time	pshm->P[16811]
+#define	P_Tact_Time_Save_ARC_Lower_Cutter_Bwd_Time	pshm->P[16812]
+#define	P_Tact_Time_Save_ARC_Lower_Clamp_On_Time	pshm->P[16813]
+#define	P_Tact_Time_Save_ARC_Lower_Clamp_Off_Time	pshm->P[16814]
+#define	P_Tact_Time_Check(i)	pshm->P[(16815+i)%MAX_P]
+#define	P_Old_Tact_Time_Check(i)	pshm->P[(16855+i)%MAX_P]
+#define	P_Tact_Time_Head_Address(i)	pshm->P[(16895+i)%MAX_P]
+#define	P_Tact_Time_Array_Init	pshm->P[16935]
+#define	P_Last_Run_To_Discharge_Tact_Timer	pshm->P[16936]
+#define	P_Last_Run_To_Discharge_Tact_Time	pshm->P[16937]
+#define	P_Master_Trigger_Sync_Tact_Timer	pshm->P[16938]
+#define	P_Master_Trigger_Sync_Tact_Time	pshm->P[16939]
+#define	P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag	pshm->P[16940]
+#define	P_PLC18_EPC_Retry_Mode_Time_Use_Flag	pshm->P[16941]
+#define	P_PLC18_Vision_EPC_Correction_Request_Old	pshm->P[16942]
+#define	P_PLC18_EPC_Moving_Flag	pshm->P[16943]
+#define	P_PLC18_EPC_Moving_Status	pshm->P[16944]
+#define	P_PLC18_EPC_Move_State_Machine	pshm->P[16945]
+#define	P_PLC18_EPC_Move_Status	pshm->P[16946]
+#define	P_PLC18_EPC_inspection_Time	pshm->P[16947]
+#define	P_EPC_Insp_Time	pshm->P[16948]
+#define	P_EPC_Correction_Time	pshm->P[16949]
+#define	P_TEST_Max_EPC_Sensor_Value_um	pshm->P[16950]
+#define	P_PLC18_EPC_Moving_Timer	pshm->P[16951]
+#define	P_EPC_MNTR_VAR(i)	pshm->P[(16952+i)%MAX_P]
+#define	P_EPC_Axis_Target_Y	pshm->P[16962]
+#define	P_Com_After_Sepa_Mode_Status	pshm->P[16963]
+#define	P_PLC18_PLC_to_PMAC_Correction_Value	pshm->P[16964]
+#define	P_PLC_EPC_Status	pshm->P[16965]
+#define	P_EPC_Retry_Over_Alarm_Flag	pshm->P[16966]
+#define	P_ARC_EPC_Vision_Value_Apply_Bit	pshm->P[16967]
+#define	P_ARC_EPC_Vision_Value_Apply_Flag	pshm->P[16968]
+#define	P_ARC_EPC_Vision_Value_Apply_State_Machine	pshm->P[16969]
+#define	P_ARC_EPC_Vision_Value_Apply_Timer	pshm->P[16970]
+#define	P_ARC_EPC_Vision_Value_Apply_Time	pshm->P[16971]
+#define	P_AH_Home_Status	pshm->P[16972]
+#define	P_Resetting_All_Home_Command	pshm->P[16973]
+#define	P_Homing_Alarm_Time	pshm->P[16974]
+#define	P_Home_Check_Arry(i)	pshm->P[(16975+i)%MAX_P]
+#define	P_All_Home_Stop_Cmd	pshm->P[17025]
+#define	P_Home_First_Move	pshm->P[17026]
+#define	P_PWM_Phasing_Start(i)	pshm->P[(17027+i)%MAX_P]
+#define	P_PWM_Status(i)	pshm->P[(17032+i)%MAX_P]
+#define	P_PWM_State_Machine(i)	pshm->P[(17037+i)%MAX_P]
+#define	P_AH_Seq_arr(i)	pshm->P[(17042+i)%MAX_P]
+#define	P_DD_M_Home_ABS_Pos(i)	pshm->P[(17057+i)%MAX_P]
+#define	P_AH_Indvi_rtn(i)	pshm->P[(17062+i)%MAX_P]
+#define	P_DD_M_Home_Pos_Flag	pshm->P[17113]
+#define	P_WAIT_INDEX	pshm->P[17114]
+#define	P_Home_Check_Arry1(i)	pshm->P[(17115+i)%MAX_P]
+#define	P_FR_Cmd_Check_Flag	pshm->P[17165]
+#define	P_PV_Separator_Dancer_Pressure	pshm->P[17166]
+#define	P_PV_Cathode_Clamp_Pressure	pshm->P[17167]
+#define	P_PV_Anoode_Clamp_Pressure	pshm->P[17168]
+#define	P_PV_Cathode_Final_Roller_X_Axis	pshm->P[17169]
+#define	P_PV_Anode_Final_Roller_X_Axis	pshm->P[17170]
+#define	P_PV_Cathode_Clamp_ON_Y1_Axis_Pos	pshm->P[17171]
+#define	P_PV_Cathode_Clamp_ON_Y2_Axis_Pos	pshm->P[17172]
+#define	P_PV_Cathode_Clamp_ON_Z1_Axis_Pos	pshm->P[17173]
+#define	P_PV_Cathode_Clamp_ON_Z2_Axis_Pos	pshm->P[17174]
+#define	P_PV_Anode_Clamp_ON_Y1_Axis_Pos	pshm->P[17175]
+#define	P_PV_Anode_Clamp_ON_Y2_Axis_Pos	pshm->P[17176]
+#define	P_PV_Anode_Clamp_ON_Z1_Axis_Pos	pshm->P[17177]
+#define	P_PV_Anode_Clamp_ON_Z2_Axis_Pos	pshm->P[17178]
+#define	P_PV_Cathode_2th_AT_T_Axis_Pos	pshm->P[17179]
+#define	P_PV_Cathode_2th_ST_T_Axis_Pos	pshm->P[17180]
+#define	P_PV_Cathode_2th_AT_Z_Axis_Pos	pshm->P[17181]
+#define	P_PV_Cathode_2th_ST_Z_Axis_Pos	pshm->P[17182]
+#define	P_PV_Anode_2th_AT_T_Axis_Pos	pshm->P[17183]
+#define	P_PV_Anode_2th_ST_T_Axis_Pos	pshm->P[17184]
+#define	P_PV_Anode_2th_AT_Z_Axis_Pos	pshm->P[17185]
+#define	P_PV_Anode_2th_ST_Z_Axis_Pos	pshm->P[17186]
+#define	P_PV_Cathode_1th_Ready_T_Axis_Pos	pshm->P[17187]
+#define	P_PV_Cathode_1th_CV_T_Axis_Pos	pshm->P[17188]
+#define	P_PV_Cathode_1th_AT_T_Axis_Pos	pshm->P[17189]
+#define	P_PV_Cathode_1th_Ready_Z_Axis_Pos	pshm->P[17190]
+#define	P_PV_Cathode_1th_CV_Z_Axis_Pos	pshm->P[17191]
+#define	P_PV_Cathode_1th_AT_Z_Axis_Pos	pshm->P[17192]
+#define	P_PV_Anode_1th_Ready_T_Axis_Pos	pshm->P[17193]
+#define	P_PV_Anode_1th_CV_T_Axis_Pos	pshm->P[17194]
+#define	P_PV_Anode_1th_AT_T_Axis_Pos	pshm->P[17195]
+#define	P_PV_Anode_1th_Ready_Z_Axis_Pos	pshm->P[17196]
+#define	P_PV_Anode_1th_CV_Z_Axis_Pos	pshm->P[17197]
+#define	P_PV_Anode_1th_AT_Z_Axis_Pos	pshm->P[17198]
+#define	P_PV_Cathode_NG_AT_T_Axis_Pos	pshm->P[17199]
+#define	P_PV_Cathode_NG_Box_T_Axis_Pos	pshm->P[17200]
+#define	P_PV_Anode_NG_AT_T_Axis_Pos	pshm->P[17201]
+#define	P_PV_Anode_NG_Box_T_Axis_Pos	pshm->P[17202]
+#define	P_PV_1st_Unloader_X_Axis_Pos	pshm->P[17203]
+#define	P_PV_1st_Unloader_Z_Axis_Pos	pshm->P[17204]
+#define	P_SemiRun_Separator_Dancer_Pressure_Flag	pshm->P[17205]
+#define	P_SemiRun_Cathode_Clamp_Pressure_Flag	pshm->P[17206]
+#define	P_SemiRun_Anoode_Clamp_Pressure_Flag	pshm->P[17207]
+#define	P_SemiRun_Cathode_Final_Roller_X_Axis_Flag	pshm->P[17208]
+#define	P_SemiRun_Anode_Final_Roller_X_Axis_Flag	pshm->P[17209]
+#define	P_SemiRun_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag	pshm->P[17210]
+#define	P_SemiRun_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag	pshm->P[17211]
+#define	P_SemiRun_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag	pshm->P[17212]
+#define	P_SemiRun_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag	pshm->P[17213]
+#define	P_SemiRun_Cathode_2th_AT_T_Axis_Pos_Flag	pshm->P[17214]
+#define	P_SemiRun_Cathode_2th_ST_T_Axis_Pos_Flag	pshm->P[17215]
+#define	P_SemiRun_Cathode_2th_AT_Z_Axis_Pos_Flag	pshm->P[17216]
+#define	P_SemiRun_Cathode_2th_ST_Z_Axis_Pos_Flag	pshm->P[17217]
+#define	P_SemiRun_Anode_2th_AT_T_Axis_Pos_Flag	pshm->P[17218]
+#define	P_SemiRun_Anode_2th_ST_T_Axis_Pos_Flag	pshm->P[17219]
+#define	P_SemiRun_Anode_2th_AT_Z_Axis_Pos_Flag	pshm->P[17220]
+#define	P_SemiRun_Anode_2th_ST_Z_Axis_Pos_Flag	pshm->P[17221]
+#define	P_SemiRun_Cathode_1th_Ready_T_Axis_Pos_Flag	pshm->P[17222]
+#define	P_SemiRun_Cathode_1th_CV_T_Axis_Pos_Flag	pshm->P[17223]
+#define	P_SemiRun_Cathode_1th_AT_T_Axis_Pos_Flag	pshm->P[17224]
+#define	P_SemiRun_Cathode_1th_Ready_Z_Axis_Pos_Flag	pshm->P[17225]
+#define	P_SemiRun_Cathode_1th_CV_Z_Axis_Pos_Flag	pshm->P[17226]
+#define	P_SemiRun_Cathode_1th_AT_Z_Axis_Pos_Flag	pshm->P[17227]
+#define	P_SemiRun_Anode_1th_Ready_T_Axis_Pos_Flag	pshm->P[17228]
+#define	P_SemiRun_Anode_1th_CV_T_Axis_Pos_Flag	pshm->P[17229]
+#define	P_SemiRun_Anode_1th_AT_T_Axis_Pos_Flag	pshm->P[17230]
+#define	P_SemiRun_Anode_1th_Ready_Z_Axis_Pos_Flag	pshm->P[17231]
+#define	P_SemiRun_Anode_1th_CV_Z_Axis_Pos_Flag	pshm->P[17232]
+#define	P_SemiRun_Anode_1th_AT_Z_Axis_Pos_Flag	pshm->P[17233]
+#define	P_SemiRun_Cathode_NG_AT_T_Axis_Pos_Flag	pshm->P[17234]
+#define	P_SemiRun_Cathode_NG_Box_T_Axis_Pos_Flag	pshm->P[17235]
+#define	P_SemiRun_Anode_NG_AT_T_Axis_Pos_Flag	pshm->P[17236]
+#define	P_SemiRun_Anode_NG_Box_T_Axis_Pos_Flag	pshm->P[17237]
+#define	P_SemiRun_1st_Unloader_Forward_Pos_Flag	pshm->P[17238]
+#define	P_Motion_Separator_Dancer_Pressure_Flag	pshm->P[17239]
+#define	P_Motion_Cathode_Clamp_Pressure_Flag	pshm->P[17240]
+#define	P_Motion_Anoode_Clamp_Pressure_Flag	pshm->P[17241]
+#define	P_Motion_Cathode_Final_Roller_X_Axis_Flag	pshm->P[17242]
+#define	P_Motion_Anode_Final_Roller_X_Axis_Flag	pshm->P[17243]
+#define	P_Motion_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag	pshm->P[17244]
+#define	P_Motion_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag	pshm->P[17245]
+#define	P_Motion_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag	pshm->P[17246]
+#define	P_Motion_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag	pshm->P[17247]
+#define	P_Motion_Cathode_2th_AT_T_Axis_Pos_Flag	pshm->P[17248]
+#define	P_Motion_Cathode_2th_ST_T_Axis_Pos_Flag	pshm->P[17249]
+#define	P_Motion_Cathode_2th_AT_Z_Axis_Pos_Flag	pshm->P[17250]
+#define	P_Motion_Cathode_2th_ST_Z_Axis_Pos_Flag	pshm->P[17251]
+#define	P_Motion_Anode_2th_AT_T_Axis_Pos_Flag	pshm->P[17252]
+#define	P_Motion_Anode_2th_ST_T_Axis_Pos_Flag	pshm->P[17253]
+#define	P_Motion_Anode_2th_AT_Z_Axis_Pos_Flag	pshm->P[17254]
+#define	P_Motion_Anode_2th_ST_Z_Axis_Pos_Flag	pshm->P[17255]
+#define	P_Motion_Cathode_1th_Ready_T_Axis_Pos_Flag	pshm->P[17256]
+#define	P_Motion_Cathode_1th_CV_T_Axis_Pos_Flag	pshm->P[17257]
+#define	P_Motion_Cathode_1th_AT_T_Axis_Pos_Flag	pshm->P[17258]
+#define	P_Motion_Cathode_1th_Ready_Z_Axis_Pos_Flag	pshm->P[17259]
+#define	P_Motion_Cathode_1th_CV_Z_Axis_Pos_Flag	pshm->P[17260]
+#define	P_Motion_Cathode_1th_AT_Z_Axis_Pos_Flag	pshm->P[17261]
+#define	P_Motion_Anode_1th_Ready_T_Axis_Pos_Flag	pshm->P[17262]
+#define	P_Motion_Anode_1th_CV_T_Axis_Pos_Flag	pshm->P[17263]
+#define	P_Motion_Anode_1th_AT_T_Axis_Pos_Flag	pshm->P[17264]
+#define	P_Motion_Anode_1th_Ready_Z_Axis_Pos_Flag	pshm->P[17265]
+#define	P_Motion_Anode_1th_CV_Z_Axis_Pos_Flag	pshm->P[17266]
+#define	P_Motion_Anode_1th_AT_Z_Axis_Pos_Flag	pshm->P[17267]
+#define	P_Motion_Cathode_NG_AT_T_Axis_Pos_Flag	pshm->P[17268]
+#define	P_Motion_Cathode_NG_Box_T_Axis_Pos_Flag	pshm->P[17269]
+#define	P_Motion_Anode_NG_AT_T_Axis_Pos_Flag	pshm->P[17270]
+#define	P_Motion_Anode_NG_Box_T_Axis_Pos_Flag	pshm->P[17271]
+#define	P_Motion_1st_Unloader_Forward_Pos_Flag	pshm->P[17272]
+#define	P_Cathode_1PNP_Sacle_Value	pshm->P[17273]
+#define	P_Cathode_2PNP_Sacle_Value	pshm->P[17274]
+#define	P_Anode_1PNP_Sacle_Value	pshm->P[17275]
+#define	P_Anode_2PNP_Sacle_Value	pshm->P[17276]
+#define	P_PLC01_SemiRun_PV_Flag	pshm->P[17277]
+#define	P_PV_EPC_Index	pshm->P[17278]
+#define	P_PV_EPC_Camera_Pos(i)	pshm->P[(17279+i)%MAX_P]
+#define	P_BTN_MSA_Total_Value	pshm->P[17294]
+#define	P_Vision_Align_Trigger_Timer	pshm->P[17295]
+#define	P_Vision_Stack_Trigger_Timer	pshm->P[17296]
+#define	P_MSA_Chk_Pos_Timer	pshm->P[17297]
+#define	P_MSA_Chk_Pos_Time	pshm->P[17298]
+#define	P_VISION_MSA_Status_Prod_Sequence(i)	pshm->P[(17299+i)%MAX_P]
+#define	P_VISION_MSA_Seq_Index	pshm->P[17319]
+#define	P_VISION_MSA_Anode_Align_Bit_Pos	pshm->P[17320]
+#define	P_VISION_MSA_Seq_PreCondition_Index	pshm->P[17321]
+#define	P_MSA_CycleStop_Point_Check_Complete_RTN	pshm->P[17322]
+#define	P_MSA_Cmd(i)	pshm->P[(17323+i)%MAX_P]
+#define	P_Current_Anode_Align_MSA_Run_Count	pshm->P[17328]
+#define	P_Current_Cathode_Align_MSA_Run_Count	pshm->P[17329]
+#define	P_Current_Anode_Stack_MSA_Run_Count	pshm->P[17330]
+#define	P_Current_Cathode_Stack_MSA_Run_Count	pshm->P[17331]
+#define	P_VISION_MSA_Align_Count_Chk_Flag	pshm->P[17332]
+#define	P_VISION_MSA_Stack_Count_Chk_Flag	pshm->P[17333]
+#define	P_VISION_MSA_pre_InterLock_Cmd	pshm->P[17334]
+#define	P_VISION_MSA_pre_InterLock_Status	pshm->P[17335]
+#define	P_VISION_MSA_pre_InterLock_Check_Assy_Bit	pshm->P[17336]
+#define	P_VISION_MSA_pre_InterLock_Assy_Bit_Pos	pshm->P[17337]
+#define	P_Vision_MSA_Interlock_Status	pshm->P[17338]
+#define	P_VISION_MSA_MODE	pshm->P[17339]
+#define	P_VISION_MSA_Status_Flag	pshm->P[17340]
+#define	P_VISION_MSA_State_Machine	pshm->P[17341]
+#define	P_VISION_MSA_Status	pshm->P[17342]
+#define	P_VISION_MSA_Seq_Command_Occurs	pshm->P[17343]
+#define	P_Vision_Align_Trigger_Time	pshm->P[17344]
+#define	P_Anode_Align_MSA_Motion_Check	pshm->P[17345]
+#define	P_Cathode_Align_MSA_Motion_Check	pshm->P[17346]
+#define	P_Anode_Stack_MSA_Motion_Check	pshm->P[17347]
+#define	P_Cathode_Stack_MSA_Motion_Check	pshm->P[17348]
+#define	P_Anode_Align_MSA_Motion_ProgActive_Complete	pshm->P[17349]
+#define	P_Cathode_Align_MSA_Motion_ProgActive_Complete	pshm->P[17350]
+#define	P_Anode_Stack_MSA_Motion_ProgActive_Complete	pshm->P[17351]
+#define	P_Cathode_Stack_MSA_Motion_ProgActive_Complete	pshm->P[17352]
+#define	P_BTN_Align_Off_Total_Value	pshm->P[17353]
+#define	P_Align_Take_Off_Cmd(i)	pshm->P[(17354+i)%MAX_P]
+#define	P_Align_Take_Off_Status	pshm->P[17357]
+#define	P_Align_Take_Off_Mode	pshm->P[17358]
+#define	P_Align_Take_Off_Status_Flag	pshm->P[17359]
+#define	P_Align_Take_Off_State_Machine	pshm->P[17360]
+#define	P_Align_Take_Off_Chk_Pos_Timer	pshm->P[17361]
+#define	P_Align_Take_Off_Motor_Check_Complete	pshm->P[17362]
+#define	P_Align_Take_Off_Speed_Return_Complete	pshm->P[17363]
+#define	P_Align_Take_Off_Interlock_Status	pshm->P[17364]
+#define	P_Align_Take_Off_pre_InterLock_Cmd	pshm->P[17365]
+#define	P_Align_Take_Off_pre_InterLock_Status	pshm->P[17366]
+#define	P_Align_Take_Off_pre_InterLock_Check_Assy_Bit	pshm->P[17367]
+#define	P_Align_Take_Off_pre_InterLock_Assy_Bit_Pos	pshm->P[17368]
+#define	P_Align_Take_Off_Seq_Index	pshm->P[17369]
+#define	P_Align_Take_Off_Seq_PreCondition_Index	pshm->P[17370]
+#define	P_Align_Take_Off_Status_Prod_Sequence(i)	pshm->P[(17371+i)%MAX_P]
+#define	P_Align_Take_Off_Stop_Signal	pshm->P[17391]
+#define	P_Vision_Cal_Reset_Count	pshm->P[17392]
+#define	P_2nd_PNP_Cleaning_Mode_Cmd	pshm->P[17393]
+#define	P_2nd_PNP_Cleaning_Mode_Status	pshm->P[17394]
+#define	P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed	pshm->P[17395]
+#define	P_2nd_PNP_Cleaning_Mode_X_Jog_Speed	pshm->P[17396]
+#define	P_2nd_PNP_Cleaning_Mode_T_Jog_Speed	pshm->P[17397]
+#define	P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos	pshm->P[17398]
+#define	P_PNP_Vac_Chk_Mode_Interlock	pshm->P[17399]
+#define	P_Vac_Chk_Test	pshm->P[17400]
+#define	P_Anode_1st_PNP_Vac_Chk_Mode_Blocked	pshm->P[17401]
+#define	P_Cathode_1st_PNP_Vac_Chk_Mode_Blocked	pshm->P[17402]
+#define	P_Anode_2nd_PNP_Vac_Chk_Mode_Blocked	pshm->P[17403]
+#define	P_Cathode_2nd_PNP_Vac_Chk_Mode_Blocked	pshm->P[17404]
+#define	P_SM_Anode_1st_PNP_Vac_Chk_Mode	pshm->P[17405]
+#define	P_SM_Cathode_1st_PNP_Vac_Chk_Mode	pshm->P[17406]
+#define	P_SM_Anode_2nd_PNP_Vac_Chk_Mode	pshm->P[17407]
+#define	P_SM_Cathode_2nd_PNP_Vac_Chk_Mode	pshm->P[17408]
+#define	P_Anode_1st_PNP_Vac_Chk_Execute_Timer	pshm->P[17409]
+#define	P_Cathode_1st_PNP_Vac_Chk_Execute_Timer	pshm->P[17410]
+#define	P_Anode_2nd_PNP_Vac_Chk_Execute_Timer	pshm->P[17411]
+#define	P_Cathode_2nd_PNP_Vac_Chk_Execute_Timer	pshm->P[17412]
+#define	P_Anode_1st_PNP_Vac_Check_Timer	pshm->P[17413]
+#define	P_Cathode_1st_PNP_Vac_Check_Timer	pshm->P[17414]
+#define	P_Anode_2nd_PNP_Vac_Check_Timer	pshm->P[17415]
+#define	P_Cathode_2nd_PNP_Vac_Check_Timer	pshm->P[17416]
+#define	P_Anode_1st_PNP_Vac_Chk_Status	pshm->P[17417]
+#define	P_Cathode_1st_PNP_Vac_Chk_Status	pshm->P[17418]
+#define	P_Anode_2nd_PNP_Vac_Chk_Status	pshm->P[17419]
+#define	P_Cathode_2nd_PNP_Vac_Chk_Status	pshm->P[17420]
+#define	P_Anode_1st_PNP_Vac_Chk_Mode_Stop_Blocked	pshm->P[17421]
+#define	P_Cathode_1st_PNP_Vac_Chk_Mode_Stop_Blocked	pshm->P[17422]
+#define	P_Anode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked	pshm->P[17423]
+#define	P_Cathode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked	pshm->P[17424]
+#define	P_Anode_1st_PnP_Vac_Chk_Mode_RTN	pshm->P[17425]
+#define	P_Cathode_1st_PnP_Vac_Chk_Mode_RTN	pshm->P[17426]
+#define	P_Anode_2nd_PnP_Vac_Chk_Mode_RTN	pshm->P[17427]
+#define	P_Cathode_2nd_PnP_Vac_Chk_Mode_RTN	pshm->P[17428]
+#define	P_PNP_Vac_Chk_Mode_TimeBase_Rtn	pshm->P[17429]
+#define	P_PNP_Vac_Chk_Mode_Timer	pshm->P[17430]
+#define	P_Anode_1st_PNP_Vac_Chk_Mode_Err	pshm->P[17431]
+#define	P_Cathode_1st_PNP_Vac_Chk_Mode_Err	pshm->P[17432]
+#define	P_Anode_2nd_PNP_Vac_Chk_Mode_Err	pshm->P[17433]
+#define	P_Cathode_2nd_PNP_Vac_Chk_Mode_Err	pshm->P[17434]
+#define	P_PNP_Vac_Chk_Mode_BTN_Err	pshm->P[17435]
+#define	P_BTN_CA_1st_PNP_Vac_Chk_Mode	pshm->P[17436]
+#define	P_BTN_AN_1st_PNP_Vac_Chk_Mode	pshm->P[17437]
+#define	P_BTN_CA_2nd_PNP_Vac_Chk_Mode	pshm->P[17438]
+#define	P_BTN_AN_2nd_PNP_Vac_Chk_Mode	pshm->P[17439]
+#define	P_Old_Upper_Sensor(i)	pshm->P[(17440+i)%MAX_P]
+#define	P_Edge_Upper_Sensor(i)	pshm->P[(17448+i)%MAX_P]
+#define	P_Old_Lower_Sensor(i)	pshm->P[(17456+i)%MAX_P]
+#define	P_Edge_Lower_Sensor(i)	pshm->P[(17464+i)%MAX_P]
+#define	P_Edge_NP_BTN(i)	pshm->P[(17472+i)%MAX_P]
+#define	P_ARC_Tilting_Unwinder_Move_Dis	pshm->P[17474]
+#define	P_Old_ARC_Upper_Tilting_Status	pshm->P[17475]
+#define	P_Old_ARC_Lower_Tilting_Status	pshm->P[17476]
+#define	P_UI_Unit_Status(i)	pshm->P[(17477+i)%MAX_P]
+#define	P_Motor_Unit_Status(i)	pshm->P[(17487+i)%MAX_P]
+#define	P_Current_Homming_Status_To_PLC(i)	pshm->P[(17537+i)%MAX_P]
+#define	P_System_Cascading_ON_Cmd	pshm->P[17587]
+#define	P_System_Cascading_OFF_Cmd	pshm->P[17588]
+#define	P_System_Master_Following_ON_Cmd	pshm->P[17589]
+#define	P_System_Master_Following_OFF_Cmd	pshm->P[17590]
+#define	P_System_CamTable_ON_Cmd	pshm->P[17591]
+#define	P_System_CamTable_OFF_Cmd	pshm->P[17592]
+#define	P_System_Spool_Home_Ready_Pos_Cmd	pshm->P[17593]
+#define	P_System_Cascading_ON_Status	pshm->P[17594]
+#define	P_System_Cascading_OFF_Status	pshm->P[17595]
+#define	P_System_Master_Following_ON_Status	pshm->P[17596]
+#define	P_System_Master_Following_OFF_Status	pshm->P[17597]
+#define	P_System_CamTable_ON_Status	pshm->P[17598]
+#define	P_System_CamTable_OFF_Status	pshm->P[17599]
+#define	P_System_Spool_Home_Ready_Pos_Status	pshm->P[17600]
+#define	P_System_Cascading_ON_State_Machine	pshm->P[17601]
+#define	P_System_Cascading_OFF_State_Machine	pshm->P[17602]
+#define	P_System_Master_Follwing_ON_State_Machine	pshm->P[17603]
+#define	P_System_Master_Follwing_OFF_State_Machine	pshm->P[17604]
+#define	P_System_CamTable_ON_State_Machine	pshm->P[17605]
+#define	P_System_CamTable_OFF_State_Machine	pshm->P[17606]
+#define	P_System_Spool_Home_Ready_Pos_State_Machine	pshm->P[17607]
+#define	P_System_Cascading_ON_Complete_Flag	pshm->P[17608]
+#define	P_System_Cascading_OFF_Complete_Flag	pshm->P[17609]
+#define	P_System_Master_Following_ON_Complete_Flag	pshm->P[17610]
+#define	P_System_Master_Following_OFF_Complete_Flag	pshm->P[17611]
+#define	P_System_CamTable_ON_Complete_Flag	pshm->P[17612]
+#define	P_System_CamTable_OFF_Complete_Flag	pshm->P[17613]
+#define	P_System_Spool_Home_Ready_Pos_Complete_Flag	pshm->P[17614]
+#define	P_Servo_Dancer_Cascading_Off_Timer	pshm->P[17615]
+#define	P_Servo_Dancer_Cascading_Set_Timer	pshm->P[17616]
+#define	P_Dancer_Frist_Home_Ready_Pos_Timer	pshm->P[17617]
+#define	P_Driving_Motor_Use_Flag	pshm->P[17618]
+#define	P_Home_Spool_Unwinding	pshm->P[17619]
+#define	P_OutValue	pshm->P[17620]
+#define	P_Dancer_Out_Slew_Seq	pshm->P[17621]
+#define	P_OutChangeValue	pshm->P[17622]
+#define	P_Rot_OutValue	pshm->P[17623]
+#define	P_OutChangeTime	pshm->P[17624]
+#define	P_AO_Module_Arr(i)	pshm->P[(17625+i)%MAX_P]
+#define	P_AO_Range_Set_Value(i)	pshm->P[(17630+i)%MAX_P]
+#define	P_Regul_Max_kPa_Value	pshm->P[17635]
+#define	P_Regul_Min_kPa_Value	pshm->P[17636]
+#define	P_Regul_Max_AD	pshm->P[17637]
+#define	P_Regul_Min_AD	pshm->P[17638]
+#define	P_Current_Max_Value	pshm->P[17639]
+#define	P_Current_Min_Value	pshm->P[17640]
+#define	P_Current_Max_AD	pshm->P[17641]
+#define	P_Current_Min_AD	pshm->P[17642]
+#define	P_Sepa_Cal_Inclination	pshm->P[17643]
+#define	P_Regul_Cal_Inclination	pshm->P[17644]
+#define	P_Cutter_Heat_Amp_Data_Bit	pshm->P[17645]
+#define	P_Cut_Heat_Amp_Value	pshm->P[17646]
+#define	P_AI_Cathode_Clamp_Damper_AVG	pshm->P[17647]
+#define	P_AI_Anode_Clamp_Damper_AVG	pshm->P[17648]
+#define	P_Tension_Ready_Pos_Cmd	pshm->P[17649]
+#define	P_Tension_Ready_State_Machine	pshm->P[17650]
+#define	P_Tension_Ready_Pos_Status	pshm->P[17651]
+#define	P_Dancer_Center_Pos	pshm->P[17652]
+#define	P_Upper_Sepa_Cal_Inclination	pshm->P[17653]
+#define	P_Lower_Sepa_Cal_Inclination	pshm->P[17654]
+#define	P_Unwinder_Jogspeed	pshm->P[17655]
+#define	P_Cascading_First_Out	pshm->P[17656]
+#define	P_Dancer_Cur_Vdc	pshm->P[17657]
+#define	P_Dancer_Cur_Torque	pshm->P[17658]
+#define	P_Dancer_Cur_Newton	pshm->P[17659]
+#define	P_Dancer_Cur_Kgf	pshm->P[17660]
+#define	P_Board_IO_Count	pshm->P[17661]
+#define	P_Force_BTN_Address_Clear_Count	pshm->P[17662]
+#define	P_Force_BTN_M_Variable_Save(i)	pshm->P[(17663+i)%MAX_P]
+#define	P_Force_BTN_Condition_Count	pshm->P[18047]
+#define	P_Old_Force_BTN_Mode	pshm->P[18048]
+#define	P_Force_BTN_Address_Count	pshm->P[18049]
+#define	P_Force_BTN_GPIO_Address_Count	pshm->P[18050]
+#define	P_Force_BTN_Ecat_Address_Count	pshm->P[18051]
+#define	P_Force_BTN_M_Variable_Save_Count	pshm->P[18052]
+#define	P_Force_BTN_M_Variable_Start_Num	pshm->P[18053]
+#define	P_Force_BTN_Normal_Mode_Status	pshm->P[18054]
+#define	P_Force_BTN_Normal_Mode_State_Machine	pshm->P[18055]
+#define	P_Force_BTN_Normal_Mode_Complete_Flag	pshm->P[18056]
+#define	P_Force_BTN_Force_Mode_Timer	pshm->P[18057]
+#define	P_Force_BTN_Force_Mode_Delay_Time	pshm->P[18058]
+#define	P_Force_BTN_Force_Mode_Status	pshm->P[18059]
+#define	P_Force_BTN_Force_Mode_State_Machine	pshm->P[18060]
+#define	P_Force_BTN_Force_Mode_Complete_Flag	pshm->P[18061]
+#define	P_Mem_Save_Error_Bit	pshm->P[18062]
+#define	P_ABS_Phasing_Data(i)	pshm->P[(18063+i)%MAX_P]
+#define	P_ABS_Home_Offset_Data(i)	pshm->P[(18068+i)%MAX_P]
+#define	P_Servo_Gain_Save_Command	pshm->P[18073]
+#define	P_Servo_Gain_Load_Command	pshm->P[18074]
+#define	P_Servo_Gain_Save_Flag	pshm->P[18075]
+#define	P_Servo_Gain_Load_Flag	pshm->P[18076]
+#define	P_Servo_Gain_Kp(i)	pshm->P[(18077+i)%MAX_P]
+#define	P_Servo_Gain_Kvfb(i)	pshm->P[(18107+i)%MAX_P]
+#define	P_Servo_Gain_Kvff(i)	pshm->P[(18137+i)%MAX_P]
+#define	P_Servo_Gain_Ki(i)	pshm->P[(18167+i)%MAX_P]
+#define	P_Servo_Gain_SwZvInt(i)	pshm->P[(18197+i)%MAX_P]
+#define	P_Servo_Gain_Kaff(i)	pshm->P[(18227+i)%MAX_P]
+#define	P_Insert_Phase_Flag	pshm->P[18257]
+#define	P_Alarm_Arr(i)	pshm->P[(18258+i)%MAX_P]
+#define	P_Alarm_Occur_Flag	pshm->P[18358]
+#define	P_Alarm_Occur_Index_Flag(i)	pshm->P[(18359+i)%MAX_P]
+#define	P_Alarm_Wait_Time	pshm->P[18363]
+#define	P_Alarm_Delay_Timer	pshm->P[18364]
+#define	P_Compare_Priority	pshm->P[18365]
+#define	P_Alarm_Report	pshm->P[18366]
+#define	P_Alarm_Num	pshm->P[18367]
+#define	P_Alarm_Index	pshm->P[18368]
+#define	P_First_Alarm_Flag	pshm->P[18369]
+#define	P_First_Alarm_Log(i)	pshm->P[(18370+i)%MAX_P]
+#define	P_Servo_Alarm_Check	pshm->P[18400]
+#define	P_Ecat_Servo_Alarm_Check	pshm->P[18401]
+#define	P_Alarm_Count	pshm->P[18402]
+#define	P_Alarm_Get_Flag	pshm->P[18403]
+#define	P_Alarm_Sort_Time	pshm->P[18404]
+#define	P_Alarm_Frist_Flag	pshm->P[18405]
+#define	P_Alarm_Delay_time	pshm->P[18406]
+#define	P_Alarm_duplicate_Check_Arr(i)	pshm->P[(18407+i)%MAX_P]
+#define	P_Alarm_Time_Log(i)	pshm->P[(19077+i)%MAX_P]
+#define	P_Alarm_Log(i)	pshm->P[(19127+i)%MAX_P]
+#define	P_Old_Drive_Alarm(i)	pshm->P[(19177+i)%MAX_P]
+#define	P_IL_ON_OFF_Flag	pshm->P[19227]
+#define	P_IL_Coord_Robot	pshm->P[19228]
+#define	P_IL_Robot_Bit	pshm->P[19229]
+#define	P_IL_Outer_Status	pshm->P[19230]
+#define	P_Robot_Unit_Serch_Flag	pshm->P[19231]
+#define	P_IL_Home_Chk_Edge	pshm->P[19232]
+#define	P_Limit_PosData(i)	pshm->P[(19233+i)%MAX_P]
+#define	P_IL_Sprint	pshm->P[19236]
+#define	P_IL_length	pshm->P[19237]
+#define	P_IL_Strcat	pshm->P[19238]
+#define	P_IL_Popup_Motor	pshm->P[19239]
+#define	P_IL_Motor_Page	pshm->P[19240]
+#define	P_IL_Recipe_Bit	pshm->P[19241]
+#define	P_Interlock_Popup_On_Flag	pshm->P[19242]
+#define	P_Motor_Page	pshm->P[19243]
+#define	P_OP_Side_Ca_PNP_Pos	pshm->P[19244]
+#define	P_OP_Side_An_PNP_Pos	pshm->P[19245]
+#define	P_OP_Side_PMAC_Cur_Mode	pshm->P[19246]
+#define	P_Abs_Trans_Cur_Pos	pshm->P[19247]
+#define	P_Minus_IL_Offset	pshm->P[19248]
+#define	P_Plus_IL_Offset	pshm->P[19249]
+#define	P_2nd_PNP_Arm_Radius	pshm->P[19250]
+#define	P_IL_Enable_Flag	pshm->P[19251]
+#define	P_Plus_Interlock_Bit	pshm->P[19252]
+#define	P_Minus_Interlock_Bit	pshm->P[19253]
+#define	UPPos	pshm->P[19254]
+#define	Unloader_In_StackPos	pshm->P[19255]
+#define	FR_AnodePos	pshm->P[19256]
+#define	FR_CathodePos	pshm->P[19257]
+#define	Before_In_Stack	pshm->P[19258]
+#define	In_Stack	pshm->P[19259]
+#define	P_Collision_Risk_Motor(i)	pshm->P[(19260+i)%MAX_P]
+#define	P_Minus_Collision_Risk_Motor	pshm->P[19262]
+#define	P_IL_Clamp_Y	pshm->P[19263]
+#define	P_IL_Clamp_Z	pshm->P[19264]
+#define	P_IL_Clamp_Pos	pshm->P[19265]
+#define	P_IL_Use_FR_Clamp_Pos	pshm->P[19266]
+#define	P_P_IL_Normal_Pos_Offset(i)	pshm->P[(19267+i)%MAX_P]
+#define	P_M_IL_Normal_Pos_Offset(i)	pshm->P[(19317+i)%MAX_P]
+#define	P_P_IL_Upper_Pos_Offset(i)	pshm->P[(19367+i)%MAX_P]
+#define	P_M_IL_Upper_Pos_Offset(i)	pshm->P[(19417+i)%MAX_P]
+#define	P_P_IL_Align_Pos_Offset(i)	pshm->P[(19467+i)%MAX_P]
+#define	P_M_IL_Align_Pos_Offset(i)	pshm->P[(19517+i)%MAX_P]
+#define	P_P_IL_Stack_Pos_Offset(i)	pshm->P[(19567+i)%MAX_P]
+#define	P_M_IL_Stack_Pos_Offset(i)	pshm->P[(19617+i)%MAX_P]
+#define	P_Ca_1st_Plus_IL_Offset	pshm->P[19667]
+#define	P_Ca_1st_Minus_IL_Offset	pshm->P[19668]
+#define	P_An_1st_Plus_IL_Offset	pshm->P[19669]
+#define	P_An_1st_Minus_IL_Offset	pshm->P[19670]
+#define	P_Ca_2nd_T_Plus_IL_Offset(i)	pshm->P[(19671+i)%MAX_P]
+#define	P_Ca_2nd_T_Minus_IL_Offset(i)	pshm->P[(19674+i)%MAX_P]
+#define	P_Ca_2nd_Z_Plus_IL_Offset(i)	pshm->P[(19677+i)%MAX_P]
+#define	P_Ca_2nd_Z_Minus_IL_Offset(i)	pshm->P[(19679+i)%MAX_P]
+#define	P_An_2nd_T_Plus_IL_Offset(i)	pshm->P[(19681+i)%MAX_P]
+#define	P_An_2nd_T_Minus_IL_Offset(i)	pshm->P[(19684+i)%MAX_P]
+#define	P_An_2nd_Z_Minus_IL_Offset(i)	pshm->P[(19687+i)%MAX_P]
+#define	P_Z_Pos_Data	pshm->P[19689]
+#define	P_Clamp_Z_Plus_IL_Offset	pshm->P[19690]
+#define	P_FR_X_Plus_IL_Offset(i)	pshm->P[(19691+i)%MAX_P]
+#define	P_FR_X_Minus_IL_Offset(i)	pshm->P[(19693+i)%MAX_P]
+#define	P_FR_Z_Minus_IL_Offset	pshm->P[19695]
+#define	P_Ca_NG_PNP_Plus_IL_Offset(i)	pshm->P[(19696+i)%MAX_P]
+#define	P_Ca_NG_PNP_Minus_IL_Offset(i)	pshm->P[(19700+i)%MAX_P]
+#define	P_An_NG_PNP_Plus_IL_Offset(i)	pshm->P[(19704+i)%MAX_P]
+#define	P_An_NG_PNP_Minus_IL_Offset(i)	pshm->P[(19708+i)%MAX_P]
+#define	P_Unloader_X_Plus_IL_Offset(i)	pshm->P[(19712+i)%MAX_P]
+#define	P_Unloader_X_Minus_IL_Offset(i)	pshm->P[(19716+i)%MAX_P]
+#define	P_Unloader_Z_Plus_IL_Offset(i)	pshm->P[(19720+i)%MAX_P]
+#define	P_Unloader_Z_Minus_IL_Offset(i)	pshm->P[(19723+i)%MAX_P]
+#define	P_IL_In_Offset(i)	pshm->P[(19726+i)%MAX_P]
+#define	P_X_PLC_InterLock	pshm->P[19751]
+#define	P_IL_Home_Chk	pshm->P[19752]
+#define	P_IL_Home_Chk_Motor_Num(i)	pshm->P[(19753+i)%MAX_P]
+#define	P_IL_Home_Chk_Motor_Update	pshm->P[19773]
+#define	P_IL_Inside_Home_Chk_Complete	pshm->P[19774]
+#define	P_IL_Outside_Home_Chk_Complete	pshm->P[19775]
+#define	P_IL_Motor_Home_Chk_RTN	pshm->P[19776]
+#define	P_IL_Function_Cnt	pshm->P[19777]
+#define	P_IL_Function_Motor_Num	pshm->P[19778]
+#define	P_Jog_Page_Flag	pshm->P[19779]
+#define	P_Jog_Btn_Flag	pshm->P[19780]
+#define	P_Old_Jog_Btn_Flag	pshm->P[19781]
+#define	P_Anode_1st_TR_Belt_Down_Flag	pshm->P[19782]
+#define	P_Anode_1st_TR_Belt_Pick_Up_Flag	pshm->P[19783]
+#define	P_Anode_1st_TR_Align_Down_Flag	pshm->P[19784]
+#define	P_Anode_2nd_TR_Align_Pick_Up_Flag	pshm->P[19785]
+#define	P_Anode_2nd_TR_Stack_Down_Flag	pshm->P[19786]
+#define	P_Anode_NG_TR_Align_Pick_Up_Flag	pshm->P[19787]
+#define	P_Anode_NG_TR_NG_Place_Down_Flag	pshm->P[19788]
+#define	P_Anode_2nd_TR_Align_Down_Flag	pshm->P[19789]
+#define	P_Anode_1st_TR_Align_Pick_Up_Flag	pshm->P[19790]
+#define	P_Anode_1st_TR_Belt_Down_State_Machine	pshm->P[19791]
+#define	P_Anode_1st_TR_Belt_Down_Status	pshm->P[19792]
+#define	P_Anode_1st_TR_Belt_Pick_Up_State_Machine	pshm->P[19793]
+#define	P_Anode_1st_TR_Belt_Pick_Up_Status	pshm->P[19794]
+#define	P_Anode_1st_TR_Align_Down_State_Machine	pshm->P[19795]
+#define	P_Anode_1st_TR_Align_Down_Status	pshm->P[19796]
+#define	P_Anode_2nd_TR_Align_Pick_Up_State_Machine	pshm->P[19797]
+#define	P_Anode_2nd_TR_Align_Pick_Up_Status	pshm->P[19798]
+#define	P_Anode_2nd_TR_Stack_Down_State_Machine	pshm->P[19799]
+#define	P_Anode_2nd_TR_Stack_Down_Status	pshm->P[19800]
+#define	P_Anode_NG_TR_Align_Pick_Up_State_Machine	pshm->P[19801]
+#define	P_Anode_NG_TR_Align_Pick_Up_Status	pshm->P[19802]
+#define	P_Anode_NG_TR_NG_Place_Down_State_Machine	pshm->P[19803]
+#define	P_Anode_NG_TR_NG_Place_Down_Status	pshm->P[19804]
+#define	P_Anode_2nd_TR_Align_Down_State_Machine	pshm->P[19805]
+#define	P_Anode_2nd_TR_Align_Down_Status	pshm->P[19806]
+#define	P_Anode_1st_TR_Align_Pick_Up_State_Machine	pshm->P[19807]
+#define	P_Anode_1st_TR_Align_Pick_Up_Status	pshm->P[19808]
+#define	P_Cathode_1st_TR_Belt_Down_Flag	pshm->P[19809]
+#define	P_Cathode_1st_TR_Belt_Pick_Up_Flag	pshm->P[19810]
+#define	P_Cathode_1st_TR_Align_Down_Flag	pshm->P[19811]
+#define	P_Cathode_2nd_TR_Align_Pick_Up_Flag	pshm->P[19812]
+#define	P_Cathode_2nd_TR_Stack_Down_Flag	pshm->P[19813]
+#define	P_Cathode_NG_TR_Align_Pick_Up_Flag	pshm->P[19814]
+#define	P_Cathode_NG_TR_NG_Place_Down_Flag	pshm->P[19815]
+#define	P_Cathode_2nd_TR_Align_Down_Flag	pshm->P[19816]
+#define	P_Cathode_1st_TR_Align_Pick_Up_Flag	pshm->P[19817]
+#define	P_Cathode_1st_TR_Belt_Down_State_Machine	pshm->P[19818]
+#define	P_Cathode_1st_TR_Belt_Down_Status	pshm->P[19819]
+#define	P_Cathode_1st_TR_Belt_Pick_Up_State_Machine	pshm->P[19820]
+#define	P_Cathode_1st_TR_Belt_Pick_Up_Status	pshm->P[19821]
+#define	P_Cathode_1st_TR_Align_Down_State_Machine	pshm->P[19822]
+#define	P_Cathode_1st_TR_Align_Down_Status	pshm->P[19823]
+#define	P_Cathode_2nd_TR_Align_Pick_Up_State_Machine	pshm->P[19824]
+#define	P_Cathode_2nd_TR_Align_Pick_Up_Status	pshm->P[19825]
+#define	P_Cathode_2nd_TR_Stack_Down_State_Machine	pshm->P[19826]
+#define	P_Cathode_2nd_TR_Stack_Down_Status	pshm->P[19827]
+#define	P_Cathode_NG_TR_Align_Pick_Up_State_Machine	pshm->P[19828]
+#define	P_Cathode_NG_TR_Align_Pick_Up_Status	pshm->P[19829]
+#define	P_Cathode_NG_TR_NG_Place_Down_State_Machine	pshm->P[19830]
+#define	P_Cathode_NG_TR_NG_Place_Down_Status	pshm->P[19831]
+#define	P_Cathode_2nd_TR_Align_Down_State_Machine	pshm->P[19832]
+#define	P_Cathode_2nd_TR_Align_Down_Status	pshm->P[19833]
+#define	P_Cathode_1st_TR_Align_Pick_Up_State_Machine	pshm->P[19834]
+#define	P_Cathode_1st_TR_Align_Pick_Up_Status	pshm->P[19835]
+#define	P_Old_Anode_Belt_ASCII	pshm->P[19836]
+#define	P_Old_Cathode_Belt_ASCII	pshm->P[19837]
+#define	P_Anode_Belt_ASCII	pshm->P[19838]
+#define	P_Cathode_Belt_ASCII	pshm->P[19839]
+#define	P_Check_Vac_Time	pshm->P[19840]
+#define	P_Send_Anode_NG_Code_To_PLC	pshm->P[19841]
+#define	P_Receive_Anode_NG_Code_From_PLC	pshm->P[19842]
+#define	P_Send_Cathode_NG_Code_To_PLC	pshm->P[19843]
+#define	P_Receive_Cathode_NG_Code_From_PLC	pshm->P[19844]
+#define	P_Current_Cell_Memory_Anode_1P	pshm->P[19845]
+#define	P_Current_Cell_Memory_Anode_AT	pshm->P[19846]
+#define	P_Current_Cell_Memory_Anode_2P	pshm->P[19847]
+#define	P_Current_Cell_Memory_Cathode_1P	pshm->P[19848]
+#define	P_Current_Cell_Memory_Cathode_AT	pshm->P[19849]
+#define	P_Current_Cell_Memory_Cathode_2P	pshm->P[19850]
+#define	P_Current_Cell_Memory_Stack_Table	pshm->P[19851]
+#define	P_Current_Cell_Memory_Cathode_NG_TR	pshm->P[19852]
+#define	P_Current_Cell_Memory_Anode_NG_TR	pshm->P[19853]
+#define	P_BTN_Anode_1st_TR_Buffer_Clear	pshm->P[19854]
+#define	P_BTN_Anode_2nd_TR_Buffer_Clear	pshm->P[19855]
+#define	P_BTN_Anode_Align_Buffer_Clear	pshm->P[19856]
+#define	P_BTN_Anode_NG_TR_Buffer_Clear	pshm->P[19857]
+#define	P_BTN_Cathode_1st_TR_Buffer_Clear	pshm->P[19858]
+#define	P_BTN_Cathode_2nd_TR_Buffer_Clear	pshm->P[19859]
+#define	P_BTN_Cathode_Align_Buffer_Clear	pshm->P[19860]
+#define	P_BTN_Cathode_NG_TR_Buffer_Clear	pshm->P[19861]
+#define	P_Old_BTN_Anode_1st_TR_Buffer_Clear	pshm->P[19862]
+#define	P_Old_BTN_Anode_2nd_TR_Buffer_Clear	pshm->P[19863]
+#define	P_Old_BTN_Anode_Align_Buffer_Clear	pshm->P[19864]
+#define	P_Old_BTN_Anode_NG_TR_Buffer_Clear	pshm->P[19865]
+#define	P_Old_BTN_Cathode_1st_TR_Buffer_Clear	pshm->P[19866]
+#define	P_Old_BTN_Cathode_2nd_TR_Buffer_Clear	pshm->P[19867]
+#define	P_Old_BTN_Cathode_Align_Buffer_Clear	pshm->P[19868]
+#define	P_Old_BTN_Cathode_NG_TR_Buffer_Clear	pshm->P[19869]
+#define	P_Send_Anode_NG_Code_Flag	pshm->P[19870]
+#define	P_Send_Cathode_NG_Code_Flag	pshm->P[19871]
+#define	P_Anode_Vision_NG_To_PLC_Flag	pshm->P[19872]
+#define	P_Cathode_Vision_NG_To_PLC_Flag	pshm->P[19873]
+#define	P_Status_Clear_Sheet_Maint_Check	pshm->P[19874]
+#define	P_Single_Run_Start_Flag	pshm->P[19875]
+#define	P_Single_Run_Control_State_Machine	pshm->P[19876]
+#define	P_Single_Run_Control_Status	pshm->P[19877]
+#define	P_Single_Run_Execute_Bit	pshm->P[19878]
+#define	P_User_Dry_Run_Mode	pshm->P[19879]
+#define	P_Single_Run_State_Machine	pshm->P[19880]
+#define	P_Single_Run_Status	pshm->P[19881]
+#define	P_Single_Run_Unit	pshm->P[19882]
+#define	P_Single_Run_Evade_Pos_RTN	pshm->P[19883]
+#define	P_Single_Run_Evade_Pos_Check_RTN	pshm->P[19884]
+#define	P_Single_Run_Pos_Rtn1	pshm->P[19885]
+#define	P_Single_Run_Pos_Rtn2	pshm->P[19886]
+#define	P_Single_Run_Motion_Ready_RTN	pshm->P[19887]
+#define	P_Single_Run_Execution_Interlock_RTN	pshm->P[19888]
+#define	P_Single_Run_Coord_Activate_RTN	pshm->P[19889]
+#define	P_Single_Run_Coord_Activate_Check_RTN	pshm->P[19890]
+#define	P_Single_Run_Select_Run_Mode_RTN	pshm->P[19891]
+#define	P_Single_Run_Execution_Run_RTN	pshm->P[19892]
+#define	P_Single_Run_Motion_Ready_State_Machine	pshm->P[19893]
+#define	P_Coord_1	pshm->P[19894]
+#define	P_Coord_2	pshm->P[19895]
+#define	P_Coord_3	pshm->P[19896]
+#define	P_Coord_4	pshm->P[19897]
+#define	P_Final_Roll_Z_Motion_Flag	pshm->P[19898]
+#define	P_Final_Roll_Z_Motion_State_Machine	pshm->P[19899]
+#define	P_Main_Z_Motion_Flag	pshm->P[19900]
+#define	P_Main_Z_Motion_State_Machine	pshm->P[19901]
+#define	P_Single_Run_Mode_Flag	pshm->P[19902]
+#define	P_Cathode_AT_Motion_Flag	pshm->P[19903]
+#define	P_Cathode_Align_Motion_State_Machine	pshm->P[19904]
+#define	P_Anode_AT_Motion_Flag	pshm->P[19905]
+#define	P_Anode_Align_Motion_State_Machine	pshm->P[19906]
+#define	P_Sheet_Paper_Motion_Flag	pshm->P[19907]
+#define	P_Sheet_Paper_Motion_State_Machine	pshm->P[19908]
+#define	P_Cathode_NG_PNP_T_Motion_Flag	pshm->P[19909]
+#define	P_Cathode_NG_PNP_T_Motion_State_Machine	pshm->P[19910]
+#define	P_Cathode_NG_PNP_Z_Motion_Flag	pshm->P[19911]
+#define	P_Cathode_NG_PNP_Z_Motion_State_Machine	pshm->P[19912]
+#define	P_Anode_NG_PNP_T_Motion_Flag	pshm->P[19913]
+#define	P_Anode_NG_PNP_T_Motion_State_Machine	pshm->P[19914]
+#define	P_Anode_NG_PNP_Z_Motion_Flag	pshm->P[19915]
+#define	P_Anode_NG_PNP_Z_Motion_State_Machine	pshm->P[19916]
+#define	P_1st_UND_X_Motion_Flag	pshm->P[19917]
+#define	P_1st_UND_X_Motion_State_Machine	pshm->P[19918]
+#define	P_1st_UND_Z_Motion_Flag	pshm->P[19919]
+#define	P_1st_UND_Z_Motion_State_Machine	pshm->P[19920]
+#define	P_1st_UND_T_Motion_Flag	pshm->P[19921]
+#define	P_1st_UND_T_Motion_State_Machine	pshm->P[19922]
+#define	P_Cathode_Run_Command_Flag	pshm->P[19923]
+#define	P_Anode_Run_Command_Flag	pshm->P[19924]
+#define	P_NG_PNP_Uint_Motion_Flag	pshm->P[19925]
+#define	P_NG_PNP_Uint_State_Machine	pshm->P[19926]
+#define	P_NG_PNP_Motion_Cnt	pshm->P[19927]
+#define	P_NG_PNP_Motion_arr(i)	pshm->P[(19928+i)%MAX_P]
+#define	P_Single_Run_Timer	pshm->P[19938]
+#define	P_Single_Run_Align_Timer	pshm->P[19939]
+#define	P_Single_Run_Align_Timer2	pshm->P[19940]
+#define	P_Single_Run_Finall_Roll_Z_Timer	pshm->P[19941]
+#define	P_Single_RuN_MAIN_Z_Timer	pshm->P[19942]
+#define	P_Single_Run_Sheet_Paper_Timer	pshm->P[19943]
+#define	P_Single_Run_Debug_SM	pshm->P[19944]
+#define	P_Error_Monitoring_Count_1	pshm->P[19945]
+#define	P_Error_Monitoring_Count_2	pshm->P[19946]
+#define	P_Error_Monitoring_Count_3	pshm->P[19947]
+#define	P_Error_Monitoring_Count_4	pshm->P[19948]
+#define	P_Error_Monitoring_Count_5	pshm->P[19949]
+#define	P_Old_Single_Run_Mode_Flag	pshm->P[19950]
+#define	P_Old_Current_Mode	pshm->P[19951]
+#define	P_Single_Run_Timebase_Off_RTN	pshm->P[19952]
+#define	P_Single_Run_Stop_State_Machine	pshm->P[19953]
+#define	P_Single_Run_Stop_Status	pshm->P[19954]
+#define	P_Single_Run_Stop_Timer	pshm->P[19955]
+#define	P_Single_Run_Stop_Init_RTN	pshm->P[19956]
+#define	P_Single_Run_Stop_Btn_Chk	pshm->P[19957]
+#define	P_Single_Run_Stop_Command	pshm->P[19958]
+#define	P_Motor_Ready_Poa_Inpos_200um	pshm->P[19959]
+#define	P_Ecat_Parameter_Write_Flag	pshm->P[19960]
+#define	P_Ecat_Parameter_Read_Flag	pshm->P[19961]
+#define	P_Ecat_Each_Parameter_Write_Flag	pshm->P[19962]
+#define	P_Ecat_Slave_Idx	pshm->P[19963]
+#define	P_Ec_Num	pshm->P[19964]
+#define	P_Ecat_Read_Motor_Num	pshm->P[19965]
+#define	P_Ecat_Write_Motor_Num	pshm->P[19966]
+#define	P_Ecat_Parameter_Write_State_Machine	pshm->P[19967]
+#define	P_Ecat_Parameter_Read_State_Machine	pshm->P[19968]
+#define	P_Ecat_Each_Parameter_Write_State_Machine	pshm->P[19969]
+#define	P_Ecat_Read_MNTR(i)	pshm->P[(19970+i)%MAX_P]
+#define	P_Ecat_Write_MNTR(i)	pshm->P[(19998+i)%MAX_P]
+#define	P_Ecat_Save_MNTR(i)	pshm->P[(20026+i)%MAX_P]
+#define	P_Ecat_Error_MNTR(i)	pshm->P[(20042+i)%MAX_P]
+#define	P_Ecat_Read_Error_MNTR(i)	pshm->P[(20058+i)%MAX_P]
+#define	P_Ecat_Each_Write_Error_MNTR(i)	pshm->P[(20074+i)%MAX_P]
+#define	P_Ecat_Write_Status	pshm->P[20090]
+#define	P_Ecat_Read_Status	pshm->P[20091]
+#define	P_Ecat_Each_Write_Status	pshm->P[20092]
+#define	P_Pn000(i)	pshm->P[(20093+i)%MAX_P]
+#define	P_Pn001(i)	pshm->P[(20113+i)%MAX_P]
+#define	P_Pn00B(i)	pshm->P[(20133+i)%MAX_P]
+#define	P_Pn100(i)	pshm->P[(20153+i)%MAX_P]
+#define	P_Pn101(i)	pshm->P[(20173+i)%MAX_P]
+#define	P_Pn102(i)	pshm->P[(20193+i)%MAX_P]
+#define	P_Pn103(i)	pshm->P[(20213+i)%MAX_P]
+#define	P_Pn123(i)	pshm->P[(20233+i)%MAX_P]
+#define	P_Pn140(i)	pshm->P[(20253+i)%MAX_P]
+#define	P_Pn141(i)	pshm->P[(20273+i)%MAX_P]
+#define	P_Pn145(i)	pshm->P[(20293+i)%MAX_P]
+#define	P_Pn146(i)	pshm->P[(20313+i)%MAX_P]
+#define	P_Pn160(i)	pshm->P[(20333+i)%MAX_P]
+#define	P_Pn161(i)	pshm->P[(20353+i)%MAX_P]
+#define	P_Pn163(i)	pshm->P[(20373+i)%MAX_P]
+#define	P_Pn170(i)	pshm->P[(20393+i)%MAX_P]
+#define	P_Pn401(i)	pshm->P[(20413+i)%MAX_P]
+#define	P_Pn408(i)	pshm->P[(20433+i)%MAX_P]
+#define	P_Pn409(i)	pshm->P[(20453+i)%MAX_P]
+#define	P_Pn40A(i)	pshm->P[(20473+i)%MAX_P]
+#define	P_Pn40C(i)	pshm->P[(20493+i)%MAX_P]
+#define	P_Pn40D(i)	pshm->P[(20513+i)%MAX_P]
+#define	P_Pn416(i)	pshm->P[(20533+i)%MAX_P]
+#define	P_Pn417(i)	pshm->P[(20553+i)%MAX_P]
+#define	P_Pn511(i)	pshm->P[(20573+i)%MAX_P]
+#define	P_Pn520(i)	pshm->P[(20593+i)%MAX_P]
+#define	P_PnB02_Numerator(i)	pshm->P[(20613+i)%MAX_P]
+#define	P_PnB02_Denominator(i)	pshm->P[(20633+i)%MAX_P]
+#define	P_Align_Plus_Blow_Test	pshm->P[20653]
+#define	P_System_Setting_Flag	pshm->P[20654]
+#define	P_Ecat_Setting_Flag	pshm->P[20655]
+#define	P_Ecat_Activation_State_Machine	pshm->P[20656]
+#define	P_PLC31_Ecat_Retry_Cnt	pshm->P[20657]
+#define	P_Ecat_Connect_Result	pshm->P[20658]
+#define	P_Ecat_Slave_Error	pshm->P[20659]
+#define	P_PWM_AbsPhasePosOffset_Change_State_Machine	pshm->P[20660]
+#define	P_AbsPhasePosOffset_Change_Complete	pshm->P[20661]
+#define	P_PWM_AbsPhasing_Fail	pshm->P[20662]
+#define	P_PWM_AbsPhasing_Complete	pshm->P[20663]
+#define	P_Whole_Stacking_Tack_Time	pshm->P[20664]
+#define	P_Whole_Stacking_Tack_Time_Check	pshm->P[20665]
+#define	P_Whole_Stacking_Tack_Timer_Check_Flag	pshm->P[20666]
+#define	P_Whole_Stacking_Timer_Shift_Status_Machine	pshm->P[20667]
+#define	P_Whole_Stacking_TackTime_Array0	pshm->P[20668]
+#define	P_Whole_Stacking_TackTime_Array1	pshm->P[20669]
+#define	P_Whole_Stacking_TackTime_Array2	pshm->P[20670]
+#define	P_Whole_Stacking_TackTime_Array3	pshm->P[20671]
+#define	P_Whole_Stacking_TackTime_Array4	pshm->P[20672]
+#define	P_Whole_Stacking_TackTime_Array5	pshm->P[20673]
+#define	P_Whole_Stacking_TackTime_Array6	pshm->P[20674]
+#define	P_Whole_Stacking_TackTime_Array7	pshm->P[20675]
+#define	P_Whole_Stacking_TackTime_Array8	pshm->P[20676]
+#define	P_Whole_Stacking_TackTime_Array9	pshm->P[20677]
+#define	P_Whole_Stacking_TackTime_Array10	pshm->P[20678]
+#define	P_First_Stacking_Start	pshm->P[20679]
+#define	P_Last_Stacking_Complete	pshm->P[20680]
+#define	P_Stacking_Tack_Time	pshm->P[20681]
+#define	P_Stacking_Tack_Time_Check	pshm->P[20682]
+#define	P_Stacking_Tack_Timer_Check_Flag	pshm->P[20683]
+#define	P_Stacking_Timer_Shift_Status_Machine	pshm->P[20684]
+#define	P_Cathode_to_Anode_FR_Tack_Time_Check	pshm->P[20685]
+#define	P_Anode_to_Cathode_FR_Tack_Time_Check	pshm->P[20686]
+#define	P_Cathode_to_Anode_FR_Tack_Time_Start	pshm->P[20687]
+#define	P_Anode_to_Cathode_FR_Tack_Time_Start	pshm->P[20688]
+#define	P_Cathode_to_Anode_FR_Tack_Time_Complete	pshm->P[20689]
+#define	P_Anode_to_Cathode_FR_Tack_Time_Complete	pshm->P[20690]
+#define	P_Cathode_to_Anode_FR_Time	pshm->P[20691]
+#define	P_Anode_to_Cathode_FR_Time	pshm->P[20692]
+#define	P_Cathode_to_Anode_FR_Tack_Timer_Check_Flag	pshm->P[20693]
+#define	P_Anode_to_Cathode_FR_Tack_Timer_Check_Flag	pshm->P[20694]
+#define	P_Anode_Align_Table_Time	pshm->P[20695]
+#define	P_Anode_Align_Table_Tack_Time_Check	pshm->P[20696]
+#define	P_Anode_Align_Table_Tack_Timer_Check_Flag	pshm->P[20697]
+#define	P_Anode_Align_Table_Timer_Shift_Status_Machine	pshm->P[20698]
+#define	P_Anode_Align_Tack_Time_Start	pshm->P[20699]
+#define	P_Anode_Align_Tack_Time_Complete	pshm->P[20700]
+#define	P_Cathode_Align_Table_Time	pshm->P[20701]
+#define	P_Cathode_Align_Table_Tack_Time_Check	pshm->P[20702]
+#define	P_Cathode_Align_Table_Tack_Timer_Check_Flag	pshm->P[20703]
+#define	P_Cathode_Align_Table_Timer_Shift_Status_Machine	pshm->P[20704]
+#define	P_Cathode_Align_Tack_Time_Start	pshm->P[20705]
+#define	P_Cathode_Align_Tack_Time_Complete	pshm->P[20706]
+#define	P_Anode_1th_Tack_Time_Start	pshm->P[20707]
+#define	P_Anode_1th_Tack_Time_Complete	pshm->P[20708]
+#define	P_Anode_1th_Time	pshm->P[20709]
+#define	P_Anode_1th_Tack_Time_Check	pshm->P[20710]
+#define	P_Anode_1th_Tack_Timer_Check_Flag	pshm->P[20711]
+#define	P_Anode_1th_Timer_Shift_Status_Machine	pshm->P[20712]
+#define	P_Cathode_1th_Tack_Time_Start	pshm->P[20713]
+#define	P_Cathode_1th_Tack_Time_Complete	pshm->P[20714]
+#define	P_Cathode_1th_Time	pshm->P[20715]
+#define	P_Cathode_1th_Tack_Time_Check	pshm->P[20716]
+#define	P_Cathode_1th_Tack_Timer_Check_Flag	pshm->P[20717]
+#define	P_Cathode_1th_Timer_Shift_Status_Machine	pshm->P[20718]
+#define	P_Anode_2th_Tack_Time_Start	pshm->P[20719]
+#define	P_Anode_2th_Tack_Time_Complete	pshm->P[20720]
+#define	P_Anode_2th_Time	pshm->P[20721]
+#define	P_Anode_2th_Tack_Time_Check	pshm->P[20722]
+#define	P_Anode_2th_Tack_Timer_Check_Flag	pshm->P[20723]
+#define	P_Anode_2th_Timer_Shift_Status_Machine	pshm->P[20724]
+#define	P_Cathode_2th_Tack_Time_Start	pshm->P[20725]
+#define	P_Cathode_2th_Tack_Time_Complete	pshm->P[20726]
+#define	P_Cathode_2th_Time	pshm->P[20727]
+#define	P_Cathode_2th_Tack_Time_Check	pshm->P[20728]
+#define	P_Cathode_2th_Tack_Timer_Check_Flag	pshm->P[20729]
+#define	P_Cathode_2th_Timer_Shift_Status_Machine	pshm->P[20730]
+#define	P_Anode_1th_NG_Tack_Time_Start	pshm->P[20731]
+#define	P_Anode_1th_NG_Tack_Time_Complete	pshm->P[20732]
+#define	P_Anode_1th_NG_Time	pshm->P[20733]
+#define	P_Anode_1th_NG_Tack_Time_Check	pshm->P[20734]
+#define	P_Anode_1th_NG_Tack_Timer_Check_Flag	pshm->P[20735]
+#define	P_Anode_1th_NG_Timer_Shift_Status_Machine	pshm->P[20736]
+#define	P_Cathode_1th_NG_Tack_Time_Start	pshm->P[20737]
+#define	P_Cathode_1th_NG_Tack_Time_Complete	pshm->P[20738]
+#define	P_Cathode_1th_NG_Time	pshm->P[20739]
+#define	P_Cathode_1th_NG_Tack_Time_Check	pshm->P[20740]
+#define	P_Cathode_1th_NG_Tack_Timer_Check_Flag	pshm->P[20741]
+#define	P_Cathode_1th_NG_Timer_Shift_Status_Machine	pshm->P[20742]
+#define	P_Anode_Clamp_Tack_Time_Start	pshm->P[20743]
+#define	P_Anode_Clamp_Tack_Time_Complete	pshm->P[20744]
+#define	P_Anode_Clamp_Time	pshm->P[20745]
+#define	P_Anode_Clamp_Tack_Time_Check	pshm->P[20746]
+#define	P_Anode_Clamp_Tack_Timer_Check_Flag	pshm->P[20747]
+#define	P_Anode_Clamp_Timer_Shift_Status_Machine	pshm->P[20748]
+#define	P_Cathode_Clamp_Tack_Time_Start	pshm->P[20749]
+#define	P_Cathode_Clamp_Tack_Time_Complete	pshm->P[20750]
+#define	P_Cathode_Clamp_Time	pshm->P[20751]
+#define	P_Cathode_Clamp_Tack_Time_Check	pshm->P[20752]
+#define	P_Cathode_Clamp_Tack_Timer_Check_Flag	pshm->P[20753]
+#define	P_Cathode_Clamp_Timer_Shift_Status_Machine	pshm->P[20754]
+#define	P_Final_Roll_X_Timer_Shift_Status_Machine	pshm->P[20755]
+#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array0	pshm->P[20756]
+#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array1	pshm->P[20757]
+#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array2	pshm->P[20758]
+#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array3	pshm->P[20759]
+#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array4	pshm->P[20760]
+#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array5	pshm->P[20761]
+#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array6	pshm->P[20762]
+#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array7	pshm->P[20763]
+#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array8	pshm->P[20764]
+#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array9	pshm->P[20765]
+#define	P_Final_Roll_X_Cathode_to_Anode_TackTime_Array10	pshm->P[20766]
+#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array0	pshm->P[20767]
+#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array1	pshm->P[20768]
+#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array2	pshm->P[20769]
+#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array3	pshm->P[20770]
+#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array4	pshm->P[20771]
+#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array5	pshm->P[20772]
+#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array6	pshm->P[20773]
+#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array7	pshm->P[20774]
+#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array8	pshm->P[20775]
+#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array9	pshm->P[20776]
+#define	P_Final_Roll_X_Anode_to_Cathode_TackTime_Array10	pshm->P[20777]
+#define	P_Pneumatic_Pressure_Unit_Tack_Time_Chk_Timer(i)	pshm->P[(20778+i)%MAX_P]
+#define	P_Pneumatic_Pressure_Unit_Tack_Time(i)	pshm->P[(20805+i)%MAX_P]
+#define	P_MCC_Anode_Align_NG_Count	pshm->P[20832]
+#define	P_MCC_Cathode_Align_NG_Count	pshm->P[20833]
+#define	P_MCC_Anode_Retry_NG_Count	pshm->P[20834]
+#define	P_MCC_Cathode_Retry_NG_Count	pshm->P[20835]
+#define	P_Discharge_Tact_Time_Arr(i)	pshm->P[(20836+i)%MAX_P]
+#define	P_Discharge_Hold_Timer	pshm->P[20848]
+#define	P_Discharge_Hold_Time	pshm->P[20849]
+#define	P_AN_1st_Z_Zero_Angle	pshm->P[20850]
+#define	P_AN_1st_Z_Zero_Length	pshm->P[20851]
+#define	P_Anode_1st_PNP_Z_Crank_Zero_Pos	pshm->P[20852]
+#define	P_Anode_1st_PNP_Z_Crank_real_Move_Pos	pshm->P[20853]
+#define	P_Anode_1st_PNP_Z_Crank_radian	pshm->P[20854]
+#define	P_Anode_1st_PNP_Z_Acos_denominator	pshm->P[20855]
+#define	P_Anode_1st_PNP_Z_Acos_numerator	pshm->P[20856]
+#define	P_Anode_1st_PNP_Z_Crank_Angle	pshm->P[20857]
+#define	P_Anode_1st_PNP_Z_Real_Move_Pos	pshm->P[20858]
+#define	P_Anode_1st_Fwd_Bwd_Rise	pshm->P[20859]
+#define	P_CA_1st_Z_Zero_Angle	pshm->P[20860]
+#define	P_CA_1st_Z_Zero_Length	pshm->P[20861]
+#define	P_Cathode_1st_PNP_Z_Crank_Zero_Pos	pshm->P[20862]
+#define	P_Cathode_1st_PNP_Z_Crank_real_Move_Pos	pshm->P[20863]
+#define	P_Cathode_1st_PNP_Z_Crank_radian	pshm->P[20864]
+#define	P_Cathode_1st_PNP_Z_Acos_denominator	pshm->P[20865]
+#define	P_Cathode_1st_PNP_Z_Acos_numerator	pshm->P[20866]
+#define	P_Cathode_1st_PNP_Z_Crank_Angle	pshm->P[20867]
+#define	P_Cathode_1st_PNP_Z_Real_Move_Pos	pshm->P[20868]
+#define	P_Cathode_1st_Fwd_Bwd_Rise	pshm->P[20869]
+#define	P_AN_2nd_Z_Zero_Angle	pshm->P[20870]
+#define	P_AN_2nd_Z_Zero_Length	pshm->P[20871]
+#define	P_Anode_2nd_PNP_Z_Crank_Zero_Pos	pshm->P[20872]
+#define	P_Anode_2nd_PNP_Z_Crank_real_Move_Pos	pshm->P[20873]
+#define	P_Anode_2nd_PNP_Z_Crank_radian	pshm->P[20874]
+#define	P_Anode_2nd_PNP_Z_Acos_denominator	pshm->P[20875]
+#define	P_Anode_2nd_PNP_Z_Acos_numerator	pshm->P[20876]
+#define	P_Anode_2nd_PNP_Z_Crank_Angle	pshm->P[20877]
+#define	P_Anode_2nd_PNP_Z_Real_Move_Pos	pshm->P[20878]
+#define	P_Anode_2nd_Fwd_Bwd_Rise	pshm->P[20879]
+#define	P_CA_2nd_Z_Zero_Angle	pshm->P[20880]
+#define	P_CA_2nd_Z_Zero_Length	pshm->P[20881]
+#define	P_Cathode_2nd_PNP_Z_Crank_Zero_Pos	pshm->P[20882]
+#define	P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos	pshm->P[20883]
+#define	P_Cathode_2nd_PNP_Z_Crank_radian	pshm->P[20884]
+#define	P_Cathode_2nd_PNP_Z_Acos_denominator	pshm->P[20885]
+#define	P_Cathode_2nd_PNP_Z_Acos_numerator	pshm->P[20886]
+#define	P_Cathode_2nd_PNP_Z_Crank_Angle	pshm->P[20887]
+#define	P_Cathode_2nd_PNP_Z_Real_Move_Pos	pshm->P[20888]
+#define	P_Cathode_2nd_Fwd_Bwd_Rise	pshm->P[20889]
+#define	P_Old_Recipe_Anode_1st_PNP_Z_Ready_Up	pshm->P[20890]
+#define	P_Old_Recipe_Anode_1st_PNP_Z_Belt_Up	pshm->P[20891]
+#define	P_Old_Recipe_Anode_1st_PNP_Z_Belt_Down	pshm->P[20892]
+#define	P_Old_Recipe_Anode_1st_PNP_Z_Align_Up	pshm->P[20893]
+#define	P_Old_Recipe_Anode_1st_PNP_Z_Align_Down	pshm->P[20894]
+#define	P_Old_Recipe_Cathode_1st_PNP_Z_Ready_Up	pshm->P[20895]
+#define	P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Up	pshm->P[20896]
+#define	P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Down	pshm->P[20897]
+#define	P_Old_Recipe_Cathode_1st_PNP_Z_Align_Up	pshm->P[20898]
+#define	P_Old_Recipe_Cathode_1st_PNP_Z_Align_Down	pshm->P[20899]
+#define	P_Old_Recipe_Anode_2nd_PNP_Z_Align_Up	pshm->P[20900]
+#define	P_Old_Recipe_Anode_2nd_PNP_Z_Align_Down	pshm->P[20901]
+#define	P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Up	pshm->P[20902]
+#define	P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Down	pshm->P[20903]
+#define	P_Old_Recipe_Anode_2nd_PNP_Z_Ready_Up	pshm->P[20904]
+#define	P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Up	pshm->P[20905]
+#define	P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Down	pshm->P[20906]
+#define	P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Up	pshm->P[20907]
+#define	P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Down	pshm->P[20908]
+#define	P_Old_Recipe_Cathode_2nd_PNP_Z_Ready_Up	pshm->P[20909]
+#define	P_PLC19_All_Home_Status	pshm->P[20910]
+#define	P_PLC19_All_Home_Module_Status	pshm->P[20911]
+#define	P_PLC19_All_Home_State_Machine	pshm->P[20912]
+#define	P_PLC19_All_Home_Seq_Index	pshm->P[20913]
+#define	P_PLC19_All_Home_Self_Index	pshm->P[20914]
+#define	P_PLC19_All_Home_Set_Mode_Return	pshm->P[20915]
+#define	P_PLC19_All_Home_Timer	pshm->P[20916]
+#define	P_PLC19_All_Home_Tact_Time_Array(i)	pshm->P[(20917+i)%MAX_P]
+#define	P_PLC19_All_Home_Tact_Time	pshm->P[20937]
+#define	P_All_Home_Module_Error	pshm->P[20938]
+#define	P_Act_ALL_Home_Time_Out_Time	pshm->P[20939]
+#define	P_Act_ALL_Home_Time_Out(i)	pshm->P[(20940+i)%MAX_P]
+#define	P_Act_Hold_Complete_Bit(i)	pshm->P[(20980+i)%MAX_P]
+#define	P_Module_Act_Hold_Command_Array(i)	pshm->P[(21015+i)%MAX_P]
+#define	P_OLD_Module_Act_Hold_Command_Array(i)	pshm->P[(21050+i)%MAX_P]
+#define	P_Module_Act_Hold_State_Machine_Array(i)	pshm->P[(21085+i)%MAX_P]
+#define	P_Act_Hold_Old_Time(i)	pshm->P[(21120+i)%MAX_P]
+#define	P_Act_Hold_Time_Out_Time	pshm->P[21155]
+#define	P_Act_Hold_Time_Out(i)	pshm->P[(21156+i)%MAX_P]
+#define	P_First_PNP_T_Wait_Status	pshm->P[21191]
+#define	P_First_PNP_Z_Wait_Status	pshm->P[21192]
+#define	P_First_PNP_Picker_T_Turn_Status	pshm->P[21193]
+#define	P_First_PNP_T_Wait_To_Belt_Status	pshm->P[21194]
+#define	P_First_PNP_Z_Wait_To_Belt_Status	pshm->P[21195]
+#define	P_First_PNP_T_Align_To_Belt_Status	pshm->P[21196]
+#define	P_First_PNP_Z_Align_To_Belt_Status	pshm->P[21197]
+#define	P_First_PNP_Z_Belt_Down_Status	pshm->P[21198]
+#define	P_First_PNP_Z_Belt_Up_Status	pshm->P[21199]
+#define	P_First_PNP_T_Wait_To_Align_Status	pshm->P[21200]
+#define	P_First_PNP_Z_Wait_To_Align_Status	pshm->P[21201]
+#define	P_First_PNP_T_Belt_To_Align_Status	pshm->P[21202]
+#define	P_First_PNP_Z_Belt_To_Align_Status	pshm->P[21203]
+#define	P_First_PNP_Z_Align_Down_Status	pshm->P[21204]
+#define	P_First_PNP_Z_Align_Up_Status	pshm->P[21205]
+#define	P_First_PNP_Vac_On_Status	pshm->P[21206]
+#define	P_First_PNP_Blow_On_Status	pshm->P[21207]
+#define	P_Second_PNP_T_Align_To_Stack_Status	pshm->P[21208]
+#define	P_Second_PNP_Z_Align_To_Stack_Status	pshm->P[21209]
+#define	P_Second_PNP_T_Stack_To_Align_Status	pshm->P[21210]
+#define	P_Second_PNP_Z_Stack_To_Align_Status	pshm->P[21211]
+#define	P_Second_PNP_Z_Align_Down_Status	pshm->P[21212]
+#define	P_Second_PNP_Z_Align_Up_Status	pshm->P[21213]
+#define	P_Second_PNP_Vac_On_Status	pshm->P[21214]
+#define	P_Second_PNP_Blow_On_Status	pshm->P[21215]
+#define	P_NG_PNP_NG_Bos_Status	pshm->P[21216]
+#define	P_NG_PNP_Align_Status	pshm->P[21217]
+#define	P_NG_PNP_Align_Down_Status	pshm->P[21218]
+#define	P_NG_PNP_Align_Up_Status	pshm->P[21219]
+#define	P_NG_PNP_Vac_On_Status	pshm->P[21220]
+#define	P_NG_PNP_Blow_On_Status	pshm->P[21221]
+#define	P_Hold_1st_PNP_Position	pshm->P[21222]
+#define	P_Hold_Module_Error	pshm->P[21223]
+#define	P_Act_Execute_Complete_Bit(i)	pshm->P[(21224+i)%MAX_P]
+#define	P_Module_Act_Execute_Command_Array(i)	pshm->P[(21236+i)%MAX_P]
+#define	P_OLD_Module_Act_Execute_Command_Array(i)	pshm->P[(21248+i)%MAX_P]
+#define	P_Module_Act_Execute_State_Machine_Array(i)	pshm->P[(21260+i)%MAX_P]
+#define	P_Act_Execute_Old_Time(i)	pshm->P[(21272+i)%MAX_P]
+#define	P_Act_Execute_Time_Out_Time	pshm->P[21284]
+#define	P_Act_Execute_Time_Out(i)	pshm->P[(21285+i)%MAX_P]
+#define	P_Execute_Module_Error	pshm->P[21297]
+#define	P_Execute_First_Sepa_Total_Tact_Time	pshm->P[21298]
+#define	P_Current_JR_Thickness_mm	pshm->P[21299]
+#define	P_Current_Jelly_Roll_Thinckness_mm_Send_Enable_Flag	pshm->P[21300]
+#define	P_Stack_Table_NG_Flag	pshm->P[21301]
+#define	P_Suspend_Discharge_Cell_Out_Restart	pshm->P[21302]
+#define	P_Jelly_Roll_OK_Count	pshm->P[21303]
+#define	P_Jelly_Roll_NG_Count	pshm->P[21304]
+#define	P_Jelly_Roll_Total_Count	pshm->P[21305]
+#define	P_Jelly_Roll_Prod_Count	pshm->P[21306]
+#define	P_Jelly_Roll_Recipe_Count	pshm->P[21307]
+#define	P_Current_Cell_Memory_Jelly_Roll	pshm->P[21308]
+#define	P_VISION_PLC10_Anode_Align_Start	pshm->P[21309]
+#define	P_VISION_PLC10_Cathode_Align_Start	pshm->P[21310]
+#define	P_Stack_Table_NG_Count	pshm->P[21311]
+#define	P_Stack_PMAC_NG_Code	pshm->P[21312]
+#define	P_Stack_Vision_NG_Code_IN_Timer	pshm->P[21313]
+#define	P_1st_Discharge_State	pshm->P[21314]
+#define	P_Prev_Sepa_Stack_Completed_Flag	pshm->P[21315]
+#define	P_First_Sepa_Vision_Skip_Flag	pshm->P[21316]
+#define	P_Discharge_Unloader_Handover_Timer	pshm->P[21317]
+#define	P_Discharge_Unloader_Handover_Time	pshm->P[21318]
+#define	P_Buffer_Mode_Module_Status_Sequence(i)	pshm->P[(21319+i)%MAX_P]
+#define	P_EXECUTE_Status_Prod_Sequence(i)	pshm->P[(21349+i)%MAX_P]
+#define	P_Execute_First_Sepa_Mode_Cmd	pshm->P[21379]
+#define	P_Execute_First_Sepa_Mode_Status	pshm->P[21380]
+#define	P_Execute_First_Sepa_Mode_Module_Status	pshm->P[21381]
+#define	P_Execute_First_Sepa_Mode_State_Machine	pshm->P[21382]
+#define	P_Execute_First_Sepa_Mode_Seq_Index	pshm->P[21383]
+#define	P_Execute_First_Sepa_Mode_Self_Index	pshm->P[21384]
+#define	P_Execute_First_Sepa_Mode_Debug_Edge	pshm->P[21385]
+#define	P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array(i)	pshm->P[(21386+i)%MAX_P]
+#define	P_Execute_First_Sepa_Mode_Timer	pshm->P[21416]
+#define	P_Execute_First_Sepa_Mode_Tact_Time_Array(i)	pshm->P[(21417+i)%MAX_P]
+#define	P_Execute_First_Sepa_Mode_Tact_Time	pshm->P[21437]
+#define	P_Execute_1st_Sepa_Status	pshm->P[21438]
+#define	P_Suspend_Discharge_Cmd	pshm->P[21439]
+#define	P_Suspend_Discharge_Status	pshm->P[21440]
+#define	P_Suspend_Discharge_State_Machine	pshm->P[21441]
+#define	P_Suspend_Discharge_Seq_Index	pshm->P[21442]
+#define	P_Suspend_Discharge_Self_Index	pshm->P[21443]
+#define	P_Discharge_Seq_InterLock_Delay_Time(i)	pshm->P[(21444+i)%MAX_P]
+#define	P_Discharge_Seq_InterLock_Flag(i)	pshm->P[(21474+i)%MAX_P]
+#define	P_Buffer_Seqdata_Discharge_Array(i)	pshm->P[(21504+i)%MAX_P]
+#define	P_Suspend_Discharge_Timer	pshm->P[21534]
+#define	P_Suspend_Discharge_Tact_Time_Array(i)	pshm->P[(21535+i)%MAX_P]
+#define	P_Suspend_Discharge_Tact_Time	pshm->P[21555]
+#define	P_Suspend_Discharge_1st_Unloader_JR_Grip	pshm->P[21556]
+#define	P_Suspend_ARC_Cmd	pshm->P[21557]
+#define	P_Suspend_ARC_Status	pshm->P[21558]
+#define	P_Suspend_ARC_State_Machine	pshm->P[21559]
+#define	P_Suspend_ARC_Seq_Index	pshm->P[21560]
+#define	P_Suspend_ARC_Self_Index	pshm->P[21561]
+#define	P_Suspend_ARC_Manual_Occur_Flag	pshm->P[21562]
+#define	P_ARC_Seq_InterLock_Delay_Time(i)	pshm->P[(21563+i)%MAX_P]
+#define	P_ARC_Seq_InterLock_Flag(i)	pshm->P[(21593+i)%MAX_P]
+#define	P_Buffer_Seqdata_ARC_Array(i)	pshm->P[(21623+i)%MAX_P]
+#define	P_Suspend_ARC_Timer	pshm->P[21653]
+#define	P_Suspend_ARC_Tact_Time_Array(i)	pshm->P[(21654+i)%MAX_P]
+#define	P_Suspend_ARC_Tact_Time	pshm->P[21674]
+#define	P_Suspend_Anode_1TR_Cell_Supply_Cmd	pshm->P[21675]
+#define	P_Suspend_Anode_1TR_Cell_Supply_Status	pshm->P[21676]
+#define	P_Suspend_Anode_1TR_Cell_Supply_State_Machine	pshm->P[21677]
+#define	P_Suspend_Anode_1TR_Cell_Supply_Seq_Index	pshm->P[21678]
+#define	P_Suspend_Anode_1TR_Cell_Supply_Self_Index	pshm->P[21679]
+#define	P_Suspend_Anode_1TR_Cell_Supply_Module_Status	pshm->P[21680]
+#define	P_Anode_1TR_Cell_Supply_Seq_InterLock_Delay_Time(i)	pshm->P[(21681+i)%MAX_P]
+#define	P_Anode_1TR_Cell_Supply_Seq_InterLock_Flag(i)	pshm->P[(21711+i)%MAX_P]
+#define	P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array(i)	pshm->P[(21741+i)%MAX_P]
+#define	P_Suspend_Anode_1TR_Cell_Supply_Timer	pshm->P[21771]
+#define	P_Suspend_Anode_1TR_Cell_Supply_Tact_Time_Array(i)	pshm->P[(21772+i)%MAX_P]
+#define	P_Suspend_Anode_1TR_Cell_Supply_Tact_Time	pshm->P[21792]
+#define	P_Hold_Exist_Insp_Cmd	pshm->P[21793]
+#define	P_Hold_Exist_Insp_Status	pshm->P[21794]
+#define	P_Hold_Exist_Insp_Module_Status	pshm->P[21795]
+#define	P_Hold_Exist_Insp_State_Machine	pshm->P[21796]
+#define	P_Hold_Exist_Insp_Seq_Index	pshm->P[21797]
+#define	P_Hold_Exist_Insp_Self_Index	pshm->P[21798]
+#define	P_Hold_Exist_Insp_Debug_Edge	pshm->P[21799]
+#define	P_Buffer_Seqdata_Hold_Exist_Insp_Array(i)	pshm->P[(21800+i)%MAX_P]
+#define	P_Hold_Exist_Insp_Timer	pshm->P[21830]
+#define	P_Hold_Exist_Insp_Tact_Time_Array(i)	pshm->P[(21831+i)%MAX_P]
+#define	P_Hold_Exist_Insp_Tact_Time	pshm->P[21851]
+#define	P_Hold_Remove_NG_PNP_Cmd	pshm->P[21852]
+#define	P_Hold_Remove_NG_PNP_Status	pshm->P[21853]
+#define	P_Hold_Remove_NG_PNP_Module_Status	pshm->P[21854]
+#define	P_Hold_Remove_NG_PNP_State_Machine	pshm->P[21855]
+#define	P_Hold_Remove_NG_PNP_Seq_Index	pshm->P[21856]
+#define	P_Hold_Remove_NG_PNP_Self_Index	pshm->P[21857]
+#define	P_Hold_Remove_NG_PNP_Debug_Edge	pshm->P[21858]
+#define	P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array(i)	pshm->P[(21859+i)%MAX_P]
+#define	P_Hold_Remove_NG_PNP_Timer	pshm->P[21889]
+#define	P_Hold_Remove_NG_PNP_Tact_Time_Array(i)	pshm->P[(21890+i)%MAX_P]
+#define	P_Hold_Remove_NG_PNP_Tact_Time	pshm->P[21910]
+#define	P_PLC01_Hold_Remove_NG_PNP_Sub_Flag	pshm->P[21911]
+#define	P_PLC01_Hold_Remove_NG_PNP_Sub_State_Machine	pshm->P[21912]
+#define	P_PLC01_Hold_Remove_NG_PNP_Sub_Status	pshm->P[21913]
+#define	P_Hold_Remove_Align_Cmd	pshm->P[21914]
+#define	P_Hold_Remove_Align_Status	pshm->P[21915]
+#define	P_Hold_Remove_Align_Module_Status	pshm->P[21916]
+#define	P_Hold_Remove_Align_State_Machine	pshm->P[21917]
+#define	P_Hold_Remove_Align_Seq_Index	pshm->P[21918]
+#define	P_Hold_Remove_Align_Self_Index	pshm->P[21919]
+#define	P_Hold_Remove_Align_Debug_Edge	pshm->P[21920]
+#define	P_Buffer_Seqdata_Hold_Remove_Align_Array(i)	pshm->P[(21921+i)%MAX_P]
+#define	P_Hold_Remove_Align_Timer	pshm->P[21951]
+#define	P_Hold_Remove_Align_Tact_Time_Array(i)	pshm->P[(21952+i)%MAX_P]
+#define	P_Hold_Remove_Align_Tact_Time	pshm->P[21972]
+#define	P_PLC01_Hold_Remove_Align_Sub_Flag	pshm->P[21973]
+#define	P_PLC01_Hold_Remove_Align_Sub_State_Machine	pshm->P[21974]
+#define	P_PLC01_Hold_Remove_Align_Sub_Status	pshm->P[21975]
+#define	P_Hold_Remove_2TR_Cmd	pshm->P[21976]
+#define	P_Hold_Remove_2TR_Status	pshm->P[21977]
+#define	P_Hold_Remove_2TR_Module_Status	pshm->P[21978]
+#define	P_Hold_Remove_2TR_State_Machine	pshm->P[21979]
+#define	P_Hold_Remove_2TR_Seq_Index	pshm->P[21980]
+#define	P_Hold_Remove_2TR_Self_Index	pshm->P[21981]
+#define	P_Hold_Remove_2TR_Debug_Edge	pshm->P[21982]
+#define	P_Buffer_Seqdata_Hold_Remove_2TR_Array(i)	pshm->P[(21983+i)%MAX_P]
+#define	P_Hold_Remove_2TR_Timer	pshm->P[22013]
+#define	P_Hold_Remove_2TR_Tact_Time_Array(i)	pshm->P[(22014+i)%MAX_P]
+#define	P_Hold_Remove_2TR_Tact_Time	pshm->P[22034]
+#define	P_Hold_Supply_1TR_Cmd	pshm->P[22035]
+#define	P_Hold_Supply_1TR_Status	pshm->P[22036]
+#define	P_Hold_Supply_1TR_Module_Status	pshm->P[22037]
+#define	P_Hold_Supply_1TR_State_Machine	pshm->P[22038]
+#define	P_Hold_Supply_1TR_Seq_Index	pshm->P[22039]
+#define	P_Hold_Supply_1TR_Self_Index	pshm->P[22040]
+#define	P_Hold_Supply_1TR_Debug_Edge	pshm->P[22041]
+#define	P_Buffer_Seqdata_Hold_Supply_1TR_Array(i)	pshm->P[(22042+i)%MAX_P]
+#define	P_Hold_Supply_1TR_Timer	pshm->P[22072]
+#define	P_Hold_Supply_1TR_Tact_Time_Array(i)	pshm->P[(22073+i)%MAX_P]
+#define	P_Hold_Supply_1TR_Tact_Time	pshm->P[22093]
+#define	P_PLC01_Hold_Supply_1TR_Memory_RTN	pshm->P[22094]
+#define	P_PLC01_Hold_Supply_1TR_Judge_Flag	pshm->P[22095]
+#define	P_PLC01_Hold_Supply_1TR_Judge_State_Machine	pshm->P[22096]
+#define	P_PLC01_Hold_Supply_1TR_Judge_Status	pshm->P[22097]
+#define	P_Plate_1TR_Supply_Module_Judge_Bit	pshm->P[22098]
+#define	P_Hold_Supply_Align_Cmd	pshm->P[22099]
+#define	P_Hold_Supply_Align_Status	pshm->P[22100]
+#define	P_Hold_Supply_Align_Module_Status	pshm->P[22101]
+#define	P_Hold_Supply_Align_State_Machine	pshm->P[22102]
+#define	P_Hold_Supply_Align_Seq_Index	pshm->P[22103]
+#define	P_Hold_Supply_Align_Self_Index	pshm->P[22104]
+#define	P_Hold_Supply_Align_Debug_Edge	pshm->P[22105]
+#define	P_Buffer_Seqdata_Hold_Supply_Align_Array(i)	pshm->P[(22106+i)%MAX_P]
+#define	P_Hold_Supply_Align_Timer	pshm->P[22136]
+#define	P_Hold_Supply_Align_Tact_Time_Array(i)	pshm->P[(22137+i)%MAX_P]
+#define	P_Hold_Supply_Align_Tact_Time	pshm->P[22157]
+#define	P_Hold_Supply_2TR_Cmd	pshm->P[22158]
+#define	P_Hold_Supply_2TR_Status	pshm->P[22159]
+#define	P_Hold_Supply_2TR_Module_Status	pshm->P[22160]
+#define	P_Hold_Supply_2TR_State_Machine	pshm->P[22161]
+#define	P_Hold_Supply_2TR_Seq_Index	pshm->P[22162]
+#define	P_Hold_Supply_2TR_Self_Index	pshm->P[22163]
+#define	P_Hold_Supply_2TR_Debug_Edge	pshm->P[22164]
+#define	P_Buffer_Seqdata_Hold_Supply_2TR_Array(i)	pshm->P[(22165+i)%MAX_P]
+#define	P_Hold_Supply_2TR_Timer	pshm->P[22195]
+#define	P_Hold_Supply_2TR_Tact_Time_Array(i)	pshm->P[(22196+i)%MAX_P]
+#define	P_Hold_Supply_2TR_Tact_Time	pshm->P[22216]
+#define	P_Hold_Semi_Run_Pos_Move_Cmd	pshm->P[22217]
+#define	P_Hold_Semi_Run_Pos_Move_Status	pshm->P[22218]
+#define	P_Hold_Semi_Run_Pos_Move_Module_Status	pshm->P[22219]
+#define	P_Hold_Semi_Run_Pos_Move_State_Machine	pshm->P[22220]
+#define	P_Hold_Semi_Run_Pos_Move_Seq_Index	pshm->P[22221]
+#define	P_Hold_Semi_Run_Pos_Move_Self_Index	pshm->P[22222]
+#define	P_Hold_Semi_Run_Pos_Move_Debug_Edge	pshm->P[22223]
+#define	P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array(i)	pshm->P[(22224+i)%MAX_P]
+#define	P_Hold_Semi_Run_Pos_Move_Timer	pshm->P[22254]
+#define	P_Hold_Semi_Run_Pos_Move_Tact_Time_Array(i)	pshm->P[(22255+i)%MAX_P]
+#define	P_Hold_Semi_Run_Pos_Move_Tact_Time	pshm->P[22275]
+#define	P_Act_Complete_Bit(i)	pshm->P[(22276+i)%MAX_P]
+#define	P_Act_Old_Time(i)	pshm->P[(22342+i)%MAX_P]
+#define	P_Act_Delay_Time(i)	pshm->P[(22408+i)%MAX_P]
+#define	P_Act_Suspend_Time_Out_Time	pshm->P[22474]
+#define	P_Act_Time_Out(i)	pshm->P[(22475+i)%MAX_P]
+#define	P_Test_Sungmin_Flag	pshm->P[22541]
+#define	P_Discharge_Possibility_Bit(i)	pshm->P[(22542+i)%MAX_P]
+#define	P_HOLD_Exist_Possibility_Bit(i)	pshm->P[(22608+i)%MAX_P]
+#define	P_HOLD_NG_Remove_Possibility_Bit(i)	pshm->P[(22674+i)%MAX_P]
+#define	P_HOLD_Align_Remove_Possibility_Bit(i)	pshm->P[(22740+i)%MAX_P]
+#define	P_HOLD_2TR_Remove_Possibility_Bit(i)	pshm->P[(22806+i)%MAX_P]
+#define	P_HOLD_1TR_Supply_Possibility_Bit(i)	pshm->P[(22872+i)%MAX_P]
+#define	P_HOLD_Align_Supply_Possibility_Bit(i)	pshm->P[(22938+i)%MAX_P]
+#define	P_HOLD_2TR_Supply_Possibility_Bit(i)	pshm->P[(23004+i)%MAX_P]
+#define	P_HOLD_Semi_Run_Pos_Possibility_Bit(i)	pshm->P[(23070+i)%MAX_P]
+#define	P_Module_Act_Command_Array(i)	pshm->P[(23136+i)%MAX_P]
+#define	P_OLD_Module_Act_Command_Array(i)	pshm->P[(23202+i)%MAX_P]
+#define	P_Module_Act_State_Machine_Array(i)	pshm->P[(23268+i)%MAX_P]
+#define	P_Module_Act_State_Machine_Error_Array(i)	pshm->P[(23334+i)%MAX_P]
+#define	P_Suspend_Discharge_Module_Status	pshm->P[23400]
+#define	P_Suspend_Discharge_To_Execute_Flag	pshm->P[23401]
+#define	P_Suspend_Discharge_Complete_Flag	pshm->P[23402]
+#define	P_First_Unloader_Stack_Up_Status	pshm->P[23403]
+#define	P_First_Unloader_Stack_FWD_Status	pshm->P[23404]
+#define	P_First_Unloader_Grip_Cell_Status	pshm->P[23405]
+#define	P_First_Unloader_Stack_BWD_Wait_Status	pshm->P[23406]
+#define	P_First_Unloader_Stack_BWD_Status	pshm->P[23407]
+#define	P_First_Unloader_Stack_Down_Status	pshm->P[23408]
+#define	P_First_Unloader_Avoid_Status	pshm->P[23409]
+#define	P_First_Unloader_Turn_Status	pshm->P[23410]
+#define	P_First_Unloader_Handover_Status	pshm->P[23411]
+#define	P_Cathode_Clamp_OFF_Status	pshm->P[23412]
+#define	P_Final_Roll_Discharge_Status	pshm->P[23413]
+#define	P_Final_Roll_Stack_Pos_Status	pshm->P[23414]
+#define	P_Final_Roll_Stack_Up_Pos_Status	pshm->P[23415]
+#define	P_Main_Z_Init_Pos_Status	pshm->P[23416]
+#define	P_Sheet_Paper_BWD_Status	pshm->P[23417]
+#define	P_Discharge_Vision_DIO_RTN	pshm->P[23418]
+#define	P_Discharge_Sub_RTN	pshm->P[23419]
+#define	P_Discharge_NG_Code_Report_RTN	pshm->P[23420]
+#define	P_Individual_RTN	pshm->P[23421]
+#define	P_Suspend_Discharge_Last_Run_Bit	pshm->P[23422]
+#define	P_Suspend_Discharge_JR_Result_RTN	pshm->P[23423]
+#define	P_ARC_Buffer_Jog_Speed	pshm->P[23424]
+#define	P_Selected_Spool_Number	pshm->P[23425]
+#define	P_ARC_Home_Check_RTN	pshm->P[23426]
+#define	P_Suspend_ARC_Module_Status	pshm->P[23427]
+#define	P_Not_Selected_Spool_Radius	pshm->P[23428]
+#define	P_Not_Selected_Spool_Circumference	pshm->P[23429]
+#define	P_Sensor_To_Sepa_Curr_Distance_mm(i)	pshm->P[(23430+i)%MAX_P]
+#define	P_Passive_D_One_Degree_AD_Value	pshm->P[23455]
+#define	P_After_ARC_Rotate_Distance	pshm->P[23456]
+#define	P_Stack_Vision_NG_Code_Time_Over	pshm->P[23457]
+#define	P_Suspend_Discharge_Resume_Flag	pshm->P[23458]
+#define	P_Suspend_Discharge_Resume_Complete	pshm->P[23459]
+#define	P_Suspend_Discharge_Pause_Flag	pshm->P[23460]
+#define	P_Suspend_Monitor_(i)	pshm->P[(23461+i)%MAX_P]
+#define	P_Flag_Stack_Work_Host_ID	pshm->P[23471]
+#define	P_First_Sepa_Stack_Align_OK_PMAC_Flag	pshm->P[23472]
+#define	P_Sepa_Run_Completed_Status_Machine	pshm->P[23473]
+#define	P_Discharge_Debug_Edge	pshm->P[23474]
+#define	P_Suspend_Discharge_Debug_Address(i)	pshm->P[(23475+i)%MAX_P]
+#define	P_Suspend_Discharge_Debug_Value(i)	pshm->P[(23480+i)%MAX_P]
+#define	P_Discharge_Sepa_Cutter_Time_Out_State_Machine	pshm->P[23485]
+#define	P_Old_Suspend_Discharge_Seq_Index	pshm->P[23486]
+#define	P_Discharge_Debug_Index_1	pshm->P[23487]
+#define	P_Discharge_Debug_Index_2	pshm->P[23488]
+#define	P_Discharge_Debug_Index_3	pshm->P[23489]
+#define	P_Discharge_Debug_Index_4	pshm->P[23490]
+#define	P_ARC_Debug_Edge	pshm->P[23491]
+#define	P_Suspend_ARC_Debug_Address(i)	pshm->P[(23492+i)%MAX_P]
+#define	P_Suspend_ARC_Debug_Value(i)	pshm->P[(23497+i)%MAX_P]
+#define	P_Old_Suspend_ARC_Seq_Index	pshm->P[23502]
+#define	P_ARC_Debug_Index_1	pshm->P[23503]
+#define	P_ARC_Debug_Index_2	pshm->P[23504]
+#define	P_ARC_Debug_Index_3	pshm->P[23505]
+#define	P_ARC_Debug_Index_4	pshm->P[23506]
+#define	P_ARC_Ready_Flag(i)	pshm->P[(23507+i)%MAX_P]
+#define	P_Suspend_Cutter_Heating_Time	pshm->P[23509]
+#define	P_Suspend_Cutter_Heating_Timer	pshm->P[23510]
+#define	P_An_1TR_Supply_Debug_Edge	pshm->P[23511]
+#define	P_Suspend_An_1TR_Supply_Debug_Address(i)	pshm->P[(23512+i)%MAX_P]
+#define	P_Suspend_An_1TR_Supply_Debug_Value(i)	pshm->P[(23517+i)%MAX_P]
+#define	P_Old_Suspend_An_1TR_Supply_Seq_Index	pshm->P[23522]
+#define	P_An_1TR_Supply_Debug_Index_1	pshm->P[23523]
+#define	P_An_1TR_Supply_Debug_Index_2	pshm->P[23524]
+#define	P_An_1TR_Supply_Debug_Index_3	pshm->P[23525]
+#define	P_An_1TR_Supply_Debug_Index_4	pshm->P[23526]
+#define	P_Suspend_Supply_Index	pshm->P[23527]
+#define	P_Suspend_Supply_Index_2nd	pshm->P[23528]
+#define	P_Anode_Suspend_Supply_Complete(i)	pshm->P[(23529+i)%MAX_P]
+#define	P_Suspend_Supply_Pause_Flag	pshm->P[23537]
+#define	P_Suspend_Supply_Resume_Flag	pshm->P[23538]
+#define	P_Supply_Module_Status	pshm->P[23539]
+#define	P_Suspend_Anode_1TR_Supply_Complete_Flag	pshm->P[23540]
+#define	P_Suspend_Discharge_Module_Error	pshm->P[23541]
+#define	P_Suspend_ARC_Module_Error	pshm->P[23542]
+#define	P_Suspend_1st_Supply_Error	pshm->P[23543]
+#define	P_Discharge_Seq_Data	pshm->P[23544]
+#define	P_Suspend_Discharging_Popup_Flag	pshm->P[23545]
+#define	P_Suspend_Discharge_FR_Unclamp_Error_Popup_Flag	pshm->P[23546]
+#define	P_Suspend_Discharge_Cathode_Align_Retry_Cal_Error_Popup_Flag	pshm->P[23547]
+#define	P_Suspend_Discharge_Anode_Align_Retry_Cal_Error_Popup_Flag	pshm->P[23548]
+#define	P_Suspend_Discharge_FR_Discharge_Pos_Error_Popup_Flag	pshm->P[23549]
+#define	P_Suspend_Discharge_1st_Unloader_Grip_OFF_Error_Popup_Flag	pshm->P[23550]
+#define	P_Suspend_Discharge_1st_Unloader_Up_Error_Popup_Flag	pshm->P[23551]
+#define	P_Suspend_Discharge_1st_Unloader_FWD_Error_Popup_Flag	pshm->P[23552]
+#define	P_Suspend_Discharge_FR_Clamp_Error_Popup_Flag	pshm->P[23553]
+#define	P_Suspend_Discharge_Sepa_Cutter_Heating_Error_Popup_Flag	pshm->P[23554]
+#define	P_Suspend_Discharge_1st_Unloader_Grip_Cell_Pos_Error_Popup_Flag	pshm->P[23555]
+#define	P_Suspend_Discharge_1st_Unloader_Grip_ON_Error_Popup_Flag	pshm->P[23556]
+#define	P_Suspend_Discharge_Sheet_Paper_BWD_Error_Popup_Flag	pshm->P[23557]
+#define	P_Suspend_Discharge_Cathode_Clamp_OFF_Error_Popup_Flag	pshm->P[23558]
+#define	P_Suspend_Discharge_Sepa_Cutter_FWD_Error_Popup_Flag	pshm->P[23559]
+#define	P_Suspend_Discharge_Sheet_Paper_Vacuum_ON_Error_Popup_Flag	pshm->P[23560]
+#define	P_Suspend_Discharge_Sepa_Cutter_BWD_Error_Popup_Flag	pshm->P[23561]
+#define	P_Suspend_Discharge_1st_Unloader_BWD_Wait_Pos_Error_Popup_Flag	pshm->P[23562]
+#define	P_Suspend_Discharge_1st_Unloader_BWD_Error_Popup_Flag	pshm->P[23563]
+#define	P_Suspend_Discharge_1st_Unloader_Stack_Down_Error_Popup_Flag	pshm->P[23564]
+#define	P_Suspend_Discharge_FR_Stack_Pos_Error_Popup_Flag	pshm->P[23565]
+#define	P_Suspend_Discharge_After_Action_Init_Error_Popup_Flag	pshm->P[23566]
+#define	P_Suspend_Discharge_1st_Unloader_Avoid_Pos_Error_Popup_Flag	pshm->P[23567]
+#define	P_Suspend_Discharge_1st_2nd_Unloader_Handover_Chk_Error_Popup_Flag	pshm->P[23568]
+#define	P_Suspend_Discharge_1st_Unloader_Handover_Pos_Error_Popup_Flag	pshm->P[23569]
+#define	P_Suspend_Discharge_2nd_3rd_Unloader_Grip_Request_Error_Popup_Flag	pshm->P[23570]
+#define	P_Suspend_Discharge_1st_Unloader_Wait_Pos_Error_Popup_Flag	pshm->P[23571]
+#define	P_Suspend_ARC_Manual_ARC_Active_Popup_Flag	pshm->P[23572]
+#define	P_Suspend_ARC_Auto_ARC_Active_Popup_Flag	pshm->P[23573]
+#define	P_Suspend_ARC_Pre_Act_Popup_Flag	pshm->P[23574]
+#define	P_Suspend_ARC_Dancer_Close_Popup_Flag	pshm->P[23575]
+#define	P_Suspend_ARC_Use_Plate_FWD_Popup_Flag	pshm->P[23576]
+#define	P_Suspend_ARC_Replace_Plate_Blow_ON_Popup_Flag	pshm->P[23577]
+#define	P_Suspend_ARC_Use_Plate_Clamp_Popup_Flag	pshm->P[23578]
+#define	P_Suspend_ARC_Use_Plate_Cutter_FWD_Popup_Flag	pshm->P[23579]
+#define	P_Suspend_ARC_Use_Plate_Cutter_BWD_Popup_Flag	pshm->P[23580]
+#define	P_Suspend_ARC_Use_Plate_Unclamp_Popup_Flag	pshm->P[23581]
+#define	P_Suspend_ARC_Use_Plate_BWD_Popup_Flag	pshm->P[23582]
+#define	P_Suspend_ARC_Replace_Plate_Blow_OFF_Popup_Flag	pshm->P[23583]
+#define	P_Suspend_ARC_Dancer_Open_Popup_Flag	pshm->P[23584]
+#define	P_Suspend_ARC_Spool_Change_Popup_Flag	pshm->P[23585]
+#define	P_Suspend_ARC_Post_Act_Popup_Flag	pshm->P[23586]
+#define	P_Suspend_ARC_Previous_Spool_Remain_Winding_Popup_Flag	pshm->P[23587]
+#define	P_Suspend_Discharge_First_Address	pshm->P[23588]
+#define	P_Suspend_ARC_First_Address	pshm->P[23589]
+#define	P_Status_Stop_Ready_Pos_Move	pshm->P[23590]
+#define	P_Cycle_Stop_Stauts	pshm->P[23591]
+#define	P_Cycle_Stop_Status_Machine	pshm->P[23592]
+#define	P_Cycle_Stop_Flag	pshm->P[23593]
+#define	P_Speed_Origin_rtn	pshm->P[23594]
+#define	P_Speed_rtn	pshm->P[23595]
+#define	P_NG_PNP_Z_Move_rtn	pshm->P[23596]
+#define	P_NG_PNP_Z_Move_Check_rtn	pshm->P[23597]
+#define	P_NG_PNP_T_Move_rtn	pshm->P[23598]
+#define	P_NG_PNP_T_Move_Check_rtn	pshm->P[23599]
+#define	P_2nd_Z_Move_rtn	pshm->P[23600]
+#define	P_2nd_Z_Move_Check_rtn	pshm->P[23601]
+#define	P_2nd_T_Move_rtn	pshm->P[23602]
+#define	P_2nd_T_Move_Check_rtn	pshm->P[23603]
+#define	P_Stack_Judgement_Memory	pshm->P[23604]
+#define	P_Stop_Cycle_Stop_Move_Status	pshm->P[23605]
+#define	P_STOP_Initial_Process_Status	pshm->P[23606]
+#define	P_Stopping_CycleStop_Init_Flag	pshm->P[23607]
+#define	P_Sepa_Timing	pshm->P[23608]
+#define	P_Old_Trigger_PLC0	pshm->P[23609]
+#define	P_Mode_Command	pshm->P[23610]
+#define	P_Current_Mode	pshm->P[23611]
+#define	P_MOde_Num(i)	pshm->P[(23612+i)%MAX_P]
+#define	P_Command_Depth(i)	pshm->P[(23617+i)%MAX_P]
+#define	P_In_Position(i)	pshm->P[(23622+i)%MAX_P]
+#define	P_Last_Cycle_Command(i)	pshm->P[(23627+i)%MAX_P]
+#define	P_Mode_Command_Buffer	pshm->P[23632]
+#define	P_Mode_Command_Wait_Count	pshm->P[23633]
+#define	P_Old_Mode_Command	pshm->P[23634]
+#define	P_Slave1_Anode_Run_Motion_Array(i)	pshm->P[(23635+i)%MAX_P]
+#define	P_Slave2_Anode_Run_Motion_Array(i)	pshm->P[(23735+i)%MAX_P]
+#define	P_Slave3_Anode_Run_Motion_Array(i)	pshm->P[(23835+i)%MAX_P]
+#define	P_Slave4_Anode_Run_Motion_Array(i)	pshm->P[(23935+i)%MAX_P]
+#define	P_Slave5_Anode_Run_Motion_Array(i)	pshm->P[(24035+i)%MAX_P]
+#define	P_Slave6_Anode_Run_Motion_Array(i)	pshm->P[(24135+i)%MAX_P]
+#define	P_Slave7_Anode_Run_Motion_Array(i)	pshm->P[(24235+i)%MAX_P]
+#define	P_Slave8_Anode_Run_Motion_Array(i)	pshm->P[(24335+i)%MAX_P]
+#define	P_Slave9_Anode_Run_Motion_Array(i)	pshm->P[(24435+i)%MAX_P]
+#define	P_Slave10_Anode_Run_Motion_Array(i)	pshm->P[(24535+i)%MAX_P]
+#define	P_Slave15_Anode_Run_Motion_Array(i)	pshm->P[(24635+i)%MAX_P]
+#define	P_Slave16_Anode_Run_Motion_Array(i)	pshm->P[(24735+i)%MAX_P]
+#define	P_Slave17_Anode_Run_Motion_Array(i)	pshm->P[(24835+i)%MAX_P]
+#define	P_Slave18_Anode_Run_Motion_Array(i)	pshm->P[(24935+i)%MAX_P]
+#define	P_Slave19_Anode_Run_Motion_Array(i)	pshm->P[(25035+i)%MAX_P]
+#define	P_Slave1_Cathode_Run_Motion_Array(i)	pshm->P[(25135+i)%MAX_P]
+#define	P_Slave2_Cathode_Run_Motion_Array(i)	pshm->P[(25235+i)%MAX_P]
+#define	P_Slave3_Cathode_Run_Motion_Array(i)	pshm->P[(25335+i)%MAX_P]
+#define	P_Slave4_Cathode_Run_Motion_Array(i)	pshm->P[(25435+i)%MAX_P]
+#define	P_Slave5_Cathode_Run_Motion_Array(i)	pshm->P[(25535+i)%MAX_P]
+#define	P_Slave15_Cathode_Run_Motion_Array(i)	pshm->P[(25635+i)%MAX_P]
+#define	P_Slave6_Cathode_Run_Motion_Array(i)	pshm->P[(25735+i)%MAX_P]
+#define	P_Slave7_Cathode_Run_Motion_Array(i)	pshm->P[(25835+i)%MAX_P]
+#define	P_Slave8_Cathode_Run_Motion_Array(i)	pshm->P[(25935+i)%MAX_P]
+#define	P_Slave9_Cathode_Run_Motion_Array(i)	pshm->P[(26035+i)%MAX_P]
+#define	P_Slave10_Cathode_Run_Motion_Array(i)	pshm->P[(26135+i)%MAX_P]
+#define	P_Slave16_Cathode_Run_Motion_Array(i)	pshm->P[(26235+i)%MAX_P]
+#define	P_Slave17_Cathode_Run_Motion_Array(i)	pshm->P[(26335+i)%MAX_P]
+#define	P_Slave18_Cathode_Run_Motion_Array(i)	pshm->P[(26435+i)%MAX_P]
+#define	P_Slave19_Cathode_Run_Motion_Array(i)	pshm->P[(26535+i)%MAX_P]
+#define	P_Anode_NG_Unit_Status	pshm->P[26635]
+#define	P_Cathode_NG_Unit_Status	pshm->P[26636]
+#define	P_ParsingRtn	pshm->P[26637]
+#define	P_CurPosData	pshm->P[26638]
+#define	P_Hold_MNTR_Supply_1st	pshm->P[26639]
+#define	P_TimeOutNumb	pshm->P[26640]
+#define	P_PosRtn	pshm->P[26641]
+#define	P_MotionRtn	pshm->P[26642]
+#define	P_CmdData	pshm->P[26643]
+#define	P_Interval	pshm->P[26644]
+#define	P_Cont_Ret	pshm->P[26645]
+#define	P_Cur_Idx	pshm->P[26646]
+#define	P_NextID	pshm->P[26647]
+#define	P_Cur_Size	pshm->P[26648]
+#define	P_Hold_Exist_Insp	pshm->P[26649]
+#define	P_Hold_Remove_NG_PNP	pshm->P[26650]
+#define	P_Hold_Remove_Align	pshm->P[26651]
+#define	P_Hold_Remove_2TR	pshm->P[26652]
+#define	P_Hold_Supply_1TR	pshm->P[26653]
+#define	P_Hold_Supply_Align	pshm->P[26654]
+#define	P_Hold_Supply_2TR	pshm->P[26655]
+#define	P_Hold_Semi_Run	pshm->P[26656]
 #define	P_Hold_NG_PNP_Remove	pshm->P[180]
 #define	P_Hold_Remove_2nd	pshm->P[182]
 #define	P_Hold_Supply_1st	pshm->P[183]
@@ -4283,145 +4285,145 @@ enum ptrMarray {_ptrMarray_=-1
 #define	P_Hold_Existence_Insp	pshm->P[188]
 #define	P_Hold_1st_Belt_Move	pshm->P[189]
 #define	P_Hold_Motion	pshm->P[190]
-#define	P_Hold_Data_process_State_Machine	pshm->P[26656]
-#define	P_Hold_Align_Remove_State_Machine	pshm->P[26657]
-#define	P_Hold_2nd_Remove_State_Machine	pshm->P[26658]
-#define	P_Hold_Supply_1st_State_Machine	pshm->P[26659]
-#define	P_Hold_Supply_2nd_State_Machine	pshm->P[26660]
-#define	P_Hold_Existence_Insp_State_Machine	pshm->P[26661]
-#define	P_Hold_NG_PNP_Remove_State_Machine	pshm->P[26662]
-#define	P_Hold_Data_Process_Complete	pshm->P[26663]
-#define	P_Hold_Semi_Run_Enable_Pos_State_Machine	pshm->P[26664]
-#define	P_HOLD_Existence_Insp_Queue_State_Machine	pshm->P[26665]
-#define	P_Hold_Stop_Existence_Insp_STEP	pshm->P[26666]
-#define	P_SubMaster_Status_Err	pshm->P[26667]
-#define	P_Data_Process_Rtn	pshm->P[26668]
-#define	P_Hold_Set_Trigger	pshm->P[26669]
-#define	P_Hold_Get_Trigger	pshm->P[26670]
-#define	P_Anode_2nd_Data	pshm->P[26671]
-#define	P_Anode_Align_Data	pshm->P[26672]
-#define	P_Hold_Remove_Step	pshm->P[26673]
-#define	P_HList_Head_Idx	pshm->P[26674]
-#define	P_Hold_Next_ID	pshm->P[26675]
-#define	P_HCmd_List(i)	pshm->P[(26676+i)%MAX_P]
-#define	P_Hold_Data_Value	pshm->P[26696]
-#define	P_Comb_Bitwise	pshm->P[26697]
-#define	P_Target_Cmd	pshm->P[26698]
-#define	P_Temp_Bit	pshm->P[26699]
-#define	P_Get_ErrorCode	pshm->P[26700]
-#define	P_Rtn_Code	pshm->P[26701]
-#define	P_Complete_Hold_Bit	pshm->P[26702]
-#define	P_HoldMtion_Flag	pshm->P[26703]
-#define	P_Ret_BitWise	pshm->P[26704]
-#define	P_NotEnough_GetSpace	pshm->P[26705]
-#define	P_NotEnough_SetSpace	pshm->P[26706]
-#define	P_Check_SetSpace	pshm->P[26707]
-#define	P_Hold_Get_Data	pshm->P[26708]
-#define	P_Err_NextID_Flag	pshm->P[26709]
-#define	P_Elec_Bit	pshm->P[26710]
-#define	P_MotionData	pshm->P[26711]
-#define	P_DataList(i)	pshm->P[(26712+i)%MAX_P]
-#define	P_Hold_Data_Err(i)	pshm->P[(26717+i)%MAX_P]
-#define	P_Cur_PosX1	pshm->P[26727]
-#define	P_Cur_PosZ1	pshm->P[26728]
-#define	P_Cur_PosX2	pshm->P[26729]
-#define	P_Cur_PosZ2	pshm->P[26730]
-#define	P_Dest_PosX	pshm->P[26731]
-#define	P_Dest_PosZ	pshm->P[26732]
-#define	P_FailToParse	pshm->P[26733]
-#define	P_CurTrigger	pshm->P[26734]
-#define	P_TimeOutTrigger	pshm->P[26735]
-#define	P_CalcTime	pshm->P[26736]
-#define	P_Cycle_Count	pshm->P[26737]
-#define	P_MotionTimeOutFlag	pshm->P[26738]
-#define	P_Set_Data	pshm->P[26739]
-#define	P_Rtn	pshm->P[26740]
-#define	P_CurPosTestBit	pshm->P[26741]
-#define	P_Hold_Anode_Pause_CHK	pshm->P[26742]
-#define	P_Hold_Cathode_Pause_CHK	pshm->P[26743]
-#define	P_Surface_Complete_To_Hold	pshm->P[26744]
-#define	P_Hold_Motion_Arr(i)	pshm->P[(26745+i)%MAX_P]
-#define	P_Hold_Pause_Trg	pshm->P[26765]
-#define	P_From_Staring_Flag	pshm->P[26766]
-#define	P_Hold_Existence_Insp_Enqueue_Flag	pshm->P[26767]
-#define	P_Hold_Rtn	pshm->P[26768]
-#define	P_Debug_Existence_Insp_STEP	pshm->P[26769]
-#define	P_Hold_Align_Sheet_CHK	pshm->P[26770]
-#define	P_Hold_Cathode_Exception_Empty_Flag	pshm->P[26771]
-#define	P_Hold_Anode_Exception_Empty_Flag	pshm->P[26772]
-#define	P_HOLD_Hold_Process_State_Machine	pshm->P[26773]
-#define	P_Hold_Stop_Sheet_Process_STEP	pshm->P[26774]
-#define	P_Hold_Debug_Sheet_Process_STEP	pshm->P[26775]
-#define	P_Hold_Stop_Point	pshm->P[26776]
-#define	P_Hold_CHK	pshm->P[26777]
-#define	P_Hold_Test	pshm->P[26778]
-#define	P_Anode_1st_Motion_Complete	pshm->P[26779]
-#define	P_Anode_2nd_Motion_Complete	pshm->P[26780]
-#define	P_Anode_NG_PNP_Motion_Complete	pshm->P[26781]
-#define	P_Cathode_1st_Motion_Complete	pshm->P[26782]
-#define	P_Cathode_2nd_Motion_Complete	pshm->P[26783]
-#define	P_Cathode_NG_PNP_Motion_Complete	pshm->P[26784]
-#define	P_Anode_1st_Picker_Motion_Complete	pshm->P[26785]
-#define	P_Cathode_1st_Picker_Motion_Complete	pshm->P[26786]
-#define	P_individual_return	pshm->P[26787]
-#define	P_individual_return2	pshm->P[26788]
-#define	P_HoldCurPosBit1	pshm->P[26789]
-#define	P_HoldCurPosBit2	pshm->P[26790]
-#define	P_Parsing_Status	pshm->P[26791]
-#define	P_Sel_Obj	pshm->P[26792]
-#define	P_Sel_Elec	pshm->P[26793]
-#define	P_Error	pshm->P[26794]
-#define	P_Vision_FirstSepa_Complete	pshm->P[26795]
-#define	P_NG_PNP_Turn_TM	pshm->P[26796]
-#define	P_NG_PNP_Turn_TS	pshm->P[26797]
-#define	P_NG_PNP_Turn_TA	pshm->P[26798]
-#define	P_NG_PNP_Up_TM	pshm->P[26799]
-#define	P_NG_PNP_Up_TS	pshm->P[26800]
-#define	P_NG_PNP_Up_TA	pshm->P[26801]
-#define	P_NG_PNP_Down_TM	pshm->P[26802]
-#define	P_NG_PNP_Down_TS	pshm->P[26803]
-#define	P_NG_PNP_Down_TA	pshm->P[26804]
-#define	P_NG_PNP_Vac_Time	pshm->P[26805]
-#define	P_NG_PNP_Blow_Time	pshm->P[26806]
-#define	P_Slow_NG_Mode_Btn	pshm->P[26807]
-#define	P_HOLD_Memory_Tower_Offset	pshm->P[26808]
-#define	P_Hold_Pause_Use	pshm->P[26809]
-#define	P_Hold_Err_MNTR(i)	pshm->P[(26810+i)%MAX_P]
-#define	P_Hold_Err_Data_Save(i)	pshm->P[(26814+i)%MAX_P]
-#define	P_Hold_Err_Action_Data_Save(i)	pshm->P[(26822+i)%MAX_P]
-#define	P_Hold_Motion_Err_Chk	pshm->P[26830]
-#define	P_Hold_Memory_Tower_Err_Pos(i)	pshm->P[(26831+i)%MAX_P]
-#define	P_Hold_Motion_TimeOut	pshm->P[26846]
-#define	P_Hold_Data_OK	pshm->P[26847]
-#define	P_VISION_TRG_PLC4_AnodeSurface_Ins_Shoot	pshm->P[26848]
-#define	P_VISION_TRG_PLC4_CathodeSurface_Ins_Shoot	pshm->P[26849]
-#define	P_Memory_Tower_Test	pshm->P[26850]
-#define	P_Temp_Run_Mode	pshm->P[26851]
-#define	P_Data_Idx	pshm->P[26852]
-#define	P_Get_Data_Idx	pshm->P[26853]
-#define	P_HOLD_Data_Err_Queue	pshm->P[26854]
-#define	P_HOLD_Data_Err_State_Machine	pshm->P[26855]
-#define	P_HOLD_Err_Set_Data	pshm->P[26856]
-#define	P_HOLD_Err_Save	pshm->P[26857]
-#define	P_Sepa_Run_Completed_Flag	pshm->P[26858]
-#define	P_Buffer_Seqdata_MSA_Array(i)	pshm->P[(26859+i)%MAX_P]
-#define	P_Buffer_Seqdata_Align_Take_Off_Array(i)	pshm->P[(26909+i)%MAX_P]
-#define	P_VISION_MSA_Align_Module_Complete_Bit(i)	pshm->P[(26959+i)%MAX_P]
-#define	P_Module_Manual_MSA_Act_Command_Array(i)	pshm->P[(27059+i)%MAX_P]
-#define	P_OLD_Module_Manual_MSA_Act_Command_Array(i)	pshm->P[(27159+i)%MAX_P]
-#define	P_Module_MSA_Act_State_Machine_Array(i)	pshm->P[(27259+i)%MAX_P]
-#define	P_VISION_MSA_Seq_Stopping_Point(i)	pshm->P[(27359+i)%MAX_P]
-#define	P_Align_Take_Off_Module_Complete_Bit(i)	pshm->P[(27392+i)%MAX_P]
-#define	P_Module_Manual_Align_Take_Off_Act_Command_Array(i)	pshm->P[(27492+i)%MAX_P]
-#define	P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(i)	pshm->P[(27592+i)%MAX_P]
-#define	P_Module_Align_Take_Off_Act_State_Machine_Array(i)	pshm->P[(27692+i)%MAX_P]
-#define	P_Log_Data_Y	pshm->P[27792]
-#define	P_Log_Data_M	pshm->P[27793]
-#define	P_Log_Data_D	pshm->P[27794]
-#define	P_Log_Data_H	pshm->P[27795]
-#define	P_Log_Data_m	pshm->P[27796]
-#define	P_Log_Data_s	pshm->P[27797]
-#define	P_MNTR_End_Index	pshm->P[27798]
+#define	P_Hold_Data_process_State_Machine	pshm->P[26657]
+#define	P_Hold_Align_Remove_State_Machine	pshm->P[26658]
+#define	P_Hold_2nd_Remove_State_Machine	pshm->P[26659]
+#define	P_Hold_Supply_1st_State_Machine	pshm->P[26660]
+#define	P_Hold_Supply_2nd_State_Machine	pshm->P[26661]
+#define	P_Hold_Existence_Insp_State_Machine	pshm->P[26662]
+#define	P_Hold_NG_PNP_Remove_State_Machine	pshm->P[26663]
+#define	P_Hold_Data_Process_Complete	pshm->P[26664]
+#define	P_Hold_Semi_Run_Enable_Pos_State_Machine	pshm->P[26665]
+#define	P_HOLD_Existence_Insp_Queue_State_Machine	pshm->P[26666]
+#define	P_Hold_Stop_Existence_Insp_STEP	pshm->P[26667]
+#define	P_SubMaster_Status_Err	pshm->P[26668]
+#define	P_Data_Process_Rtn	pshm->P[26669]
+#define	P_Hold_Set_Trigger	pshm->P[26670]
+#define	P_Hold_Get_Trigger	pshm->P[26671]
+#define	P_Anode_2nd_Data	pshm->P[26672]
+#define	P_Anode_Align_Data	pshm->P[26673]
+#define	P_Hold_Remove_Step	pshm->P[26674]
+#define	P_HList_Head_Idx	pshm->P[26675]
+#define	P_Hold_Next_ID	pshm->P[26676]
+#define	P_HCmd_List(i)	pshm->P[(26677+i)%MAX_P]
+#define	P_Hold_Data_Value	pshm->P[26697]
+#define	P_Comb_Bitwise	pshm->P[26698]
+#define	P_Target_Cmd	pshm->P[26699]
+#define	P_Temp_Bit	pshm->P[26700]
+#define	P_Get_ErrorCode	pshm->P[26701]
+#define	P_Rtn_Code	pshm->P[26702]
+#define	P_Complete_Hold_Bit	pshm->P[26703]
+#define	P_HoldMtion_Flag	pshm->P[26704]
+#define	P_Ret_BitWise	pshm->P[26705]
+#define	P_NotEnough_GetSpace	pshm->P[26706]
+#define	P_NotEnough_SetSpace	pshm->P[26707]
+#define	P_Check_SetSpace	pshm->P[26708]
+#define	P_Hold_Get_Data	pshm->P[26709]
+#define	P_Err_NextID_Flag	pshm->P[26710]
+#define	P_Elec_Bit	pshm->P[26711]
+#define	P_MotionData	pshm->P[26712]
+#define	P_DataList(i)	pshm->P[(26713+i)%MAX_P]
+#define	P_Hold_Data_Err(i)	pshm->P[(26718+i)%MAX_P]
+#define	P_Cur_PosX1	pshm->P[26728]
+#define	P_Cur_PosZ1	pshm->P[26729]
+#define	P_Cur_PosX2	pshm->P[26730]
+#define	P_Cur_PosZ2	pshm->P[26731]
+#define	P_Dest_PosX	pshm->P[26732]
+#define	P_Dest_PosZ	pshm->P[26733]
+#define	P_FailToParse	pshm->P[26734]
+#define	P_CurTrigger	pshm->P[26735]
+#define	P_TimeOutTrigger	pshm->P[26736]
+#define	P_CalcTime	pshm->P[26737]
+#define	P_Cycle_Count	pshm->P[26738]
+#define	P_MotionTimeOutFlag	pshm->P[26739]
+#define	P_Set_Data	pshm->P[26740]
+#define	P_Rtn	pshm->P[26741]
+#define	P_CurPosTestBit	pshm->P[26742]
+#define	P_Hold_Anode_Pause_CHK	pshm->P[26743]
+#define	P_Hold_Cathode_Pause_CHK	pshm->P[26744]
+#define	P_Surface_Complete_To_Hold	pshm->P[26745]
+#define	P_Hold_Motion_Arr(i)	pshm->P[(26746+i)%MAX_P]
+#define	P_Hold_Pause_Trg	pshm->P[26766]
+#define	P_From_Staring_Flag	pshm->P[26767]
+#define	P_Hold_Existence_Insp_Enqueue_Flag	pshm->P[26768]
+#define	P_Hold_Rtn	pshm->P[26769]
+#define	P_Debug_Existence_Insp_STEP	pshm->P[26770]
+#define	P_Hold_Align_Sheet_CHK	pshm->P[26771]
+#define	P_Hold_Cathode_Exception_Empty_Flag	pshm->P[26772]
+#define	P_Hold_Anode_Exception_Empty_Flag	pshm->P[26773]
+#define	P_HOLD_Hold_Process_State_Machine	pshm->P[26774]
+#define	P_Hold_Stop_Sheet_Process_STEP	pshm->P[26775]
+#define	P_Hold_Debug_Sheet_Process_STEP	pshm->P[26776]
+#define	P_Hold_Stop_Point	pshm->P[26777]
+#define	P_Hold_CHK	pshm->P[26778]
+#define	P_Hold_Test	pshm->P[26779]
+#define	P_Anode_1st_Motion_Complete	pshm->P[26780]
+#define	P_Anode_2nd_Motion_Complete	pshm->P[26781]
+#define	P_Anode_NG_PNP_Motion_Complete	pshm->P[26782]
+#define	P_Cathode_1st_Motion_Complete	pshm->P[26783]
+#define	P_Cathode_2nd_Motion_Complete	pshm->P[26784]
+#define	P_Cathode_NG_PNP_Motion_Complete	pshm->P[26785]
+#define	P_Anode_1st_Picker_Motion_Complete	pshm->P[26786]
+#define	P_Cathode_1st_Picker_Motion_Complete	pshm->P[26787]
+#define	P_individual_return	pshm->P[26788]
+#define	P_individual_return2	pshm->P[26789]
+#define	P_HoldCurPosBit1	pshm->P[26790]
+#define	P_HoldCurPosBit2	pshm->P[26791]
+#define	P_Parsing_Status	pshm->P[26792]
+#define	P_Sel_Obj	pshm->P[26793]
+#define	P_Sel_Elec	pshm->P[26794]
+#define	P_Error	pshm->P[26795]
+#define	P_Vision_FirstSepa_Complete	pshm->P[26796]
+#define	P_NG_PNP_Turn_TM	pshm->P[26797]
+#define	P_NG_PNP_Turn_TS	pshm->P[26798]
+#define	P_NG_PNP_Turn_TA	pshm->P[26799]
+#define	P_NG_PNP_Up_TM	pshm->P[26800]
+#define	P_NG_PNP_Up_TS	pshm->P[26801]
+#define	P_NG_PNP_Up_TA	pshm->P[26802]
+#define	P_NG_PNP_Down_TM	pshm->P[26803]
+#define	P_NG_PNP_Down_TS	pshm->P[26804]
+#define	P_NG_PNP_Down_TA	pshm->P[26805]
+#define	P_NG_PNP_Vac_Time	pshm->P[26806]
+#define	P_NG_PNP_Blow_Time	pshm->P[26807]
+#define	P_Slow_NG_Mode_Btn	pshm->P[26808]
+#define	P_HOLD_Memory_Tower_Offset	pshm->P[26809]
+#define	P_Hold_Pause_Use	pshm->P[26810]
+#define	P_Hold_Err_MNTR(i)	pshm->P[(26811+i)%MAX_P]
+#define	P_Hold_Err_Data_Save(i)	pshm->P[(26815+i)%MAX_P]
+#define	P_Hold_Err_Action_Data_Save(i)	pshm->P[(26823+i)%MAX_P]
+#define	P_Hold_Motion_Err_Chk	pshm->P[26831]
+#define	P_Hold_Memory_Tower_Err_Pos(i)	pshm->P[(26832+i)%MAX_P]
+#define	P_Hold_Motion_TimeOut	pshm->P[26847]
+#define	P_Hold_Data_OK	pshm->P[26848]
+#define	P_VISION_TRG_PLC4_AnodeSurface_Ins_Shoot	pshm->P[26849]
+#define	P_VISION_TRG_PLC4_CathodeSurface_Ins_Shoot	pshm->P[26850]
+#define	P_Memory_Tower_Test	pshm->P[26851]
+#define	P_Temp_Run_Mode	pshm->P[26852]
+#define	P_Data_Idx	pshm->P[26853]
+#define	P_Get_Data_Idx	pshm->P[26854]
+#define	P_HOLD_Data_Err_Queue	pshm->P[26855]
+#define	P_HOLD_Data_Err_State_Machine	pshm->P[26856]
+#define	P_HOLD_Err_Set_Data	pshm->P[26857]
+#define	P_HOLD_Err_Save	pshm->P[26858]
+#define	P_Sepa_Run_Completed_Flag	pshm->P[26859]
+#define	P_Buffer_Seqdata_MSA_Array(i)	pshm->P[(26860+i)%MAX_P]
+#define	P_Buffer_Seqdata_Align_Take_Off_Array(i)	pshm->P[(26910+i)%MAX_P]
+#define	P_VISION_MSA_Align_Module_Complete_Bit(i)	pshm->P[(26960+i)%MAX_P]
+#define	P_Module_Manual_MSA_Act_Command_Array(i)	pshm->P[(27060+i)%MAX_P]
+#define	P_OLD_Module_Manual_MSA_Act_Command_Array(i)	pshm->P[(27160+i)%MAX_P]
+#define	P_Module_MSA_Act_State_Machine_Array(i)	pshm->P[(27260+i)%MAX_P]
+#define	P_VISION_MSA_Seq_Stopping_Point(i)	pshm->P[(27360+i)%MAX_P]
+#define	P_Align_Take_Off_Module_Complete_Bit(i)	pshm->P[(27393+i)%MAX_P]
+#define	P_Module_Manual_Align_Take_Off_Act_Command_Array(i)	pshm->P[(27493+i)%MAX_P]
+#define	P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array(i)	pshm->P[(27593+i)%MAX_P]
+#define	P_Module_Align_Take_Off_Act_State_Machine_Array(i)	pshm->P[(27693+i)%MAX_P]
+#define	P_Log_Data_Y	pshm->P[27793]
+#define	P_Log_Data_M	pshm->P[27794]
+#define	P_Log_Data_D	pshm->P[27795]
+#define	P_Log_Data_H	pshm->P[27796]
+#define	P_Log_Data_m	pshm->P[27797]
+#define	P_Log_Data_s	pshm->P[27798]
+#define	P_MNTR_End_Index	pshm->P[27799]
 #define	P_BG_CPLC_Running_MNTR	pshm->P[50]
 #define	P_RTI_CPLC_Running_MNTR	pshm->P[51]
 #define	P_Log_Start_Flag	pshm->P[170]
@@ -4430,48 +4432,48 @@ enum ptrMarray {_ptrMarray_=-1
 #define	P_USB_Register	pshm->P[173]
 #define	P_Cur_Line_Check	pshm->P[175]
 #define	P_Cur_Line_Check_Init	pshm->P[176]
-#define	P_Buffer_Judge_Trg(i)	pshm->P[(27799+i)%MAX_P]
-#define	P_Hold_Pass	pshm->P[27809]
-#define	P_PLC01_Queue_MNTR(i)	pshm->P[(27810+i)%MAX_P]
-#define	P_PLC01_Total_Step_Flag	pshm->P[27825]
-#define	P_PLC02_Total_Step_Flag	pshm->P[27826]
-#define	P_PLC014_Total_Step_Flag	pshm->P[27827]
-#define	P_PLC02_Total_Step_Flag2	pshm->P[27828]
-#define	P_Vac_Pass	pshm->P[27829]
-#define	P_Vision_Pass_Exisitence	pshm->P[27830]
-#define	P_Vision_Pass_Empty	pshm->P[27831]
-#define	P_Vision_Pass_FirstSepa	pshm->P[27832]
-#define	P_Vision_Pass_Stack_Inspection	pshm->P[27833]
-#define	P_ULD_Home_Pass	pshm->P[27834]
-#define	P_Clamp_Cell_Down_Use	pshm->P[27835]
-#define	P_FR_Clamp_Use_Test	pshm->P[27836]
-#define	P_Door_Interlock_Use_Flag	pshm->P[27837]
-#define	P_Vacuum_Door_Clear_Use	pshm->P[27838]
-#define	P_Align_Test_Pos	pshm->P[27839]
-#define	P_PLC01_Exe_Is_Ena_Step_Flag(i)	pshm->P[(27840+i)%MAX_P]
-#define	P_PLC01_Exe_Fist_Sepa_Step_Flag(i)	pshm->P[(27850+i)%MAX_P]
-#define	P_PLC01_Exe_Prod_Step_Flag(i)	pshm->P[(27860+i)%MAX_P]
-#define	P_PLC01_HOLD_Insp_Step_Flag(i)	pshm->P[(27865+i)%MAX_P]
-#define	P_PLC01_HOLD_Main_Step_Flag(i)	pshm->P[(27875+i)%MAX_P]
-#define	P_PLC01_Sus_Discharge_Step_Flag(i)	pshm->P[(27890+i)%MAX_P]
-#define	P_PLC01_Sus_ARC_Step_Flag(i)	pshm->P[(27900+i)%MAX_P]
-#define	P_PLC01_STOP_Init_Step_Flag(i)	pshm->P[(27910+i)%MAX_P]
-#define	P_PLC01_STOP_Cycle_ST_Step_Flag(i)	pshm->P[(27920+i)%MAX_P]
-#define	P_PLC02_Exe_Module_First_Sepa_Step_Flag	pshm->P[27935]
-#define	P_PLC02_Sus_Module_Discharge_Step_Flag	pshm->P[27936]
-#define	P_PLC02_Sus_Module_ARC_Step_Flag	pshm->P[27937]
-#define	P_PLC02_Sus_Module_1TR_Supply_Step_Flag	pshm->P[27938]
-#define	P_PLC02_HOLD_Module_Insp_Step_Flag	pshm->P[27939]
-#define	P_PLC02_HOLD_Module_Remove_NGPNP_Step_Flag	pshm->P[27940]
-#define	P_PLC02_HOLD_Module_Remove_Align_Step_Flag	pshm->P[27941]
-#define	P_PLC02_HOLD_Module_Remove_2TR_Step_Flag	pshm->P[27942]
-#define	P_PLC02_HOLD_Module_Supply_1TR_Step_Flag	pshm->P[27943]
-#define	P_PLC02_HOLD_Module_Supply_Align_Step_Flag	pshm->P[27944]
-#define	P_PLC02_HOLD_Module_Supply_2TR_Step_Flag	pshm->P[27945]
-#define	P_PLC02_HOLD_Module_SemiRun_Pos_Step_Flag	pshm->P[27946]
-#define	P_PLC14_STOP_Module_Cycle_Stop_Step_Flag	pshm->P[27947]
-#define	P_PLC02_Discharge_MNTR	pshm->P[27948]
-#define	P_NEW_Alarm_USE_Flag	pshm->P[27949]
+#define	P_Buffer_Judge_Trg(i)	pshm->P[(27800+i)%MAX_P]
+#define	P_Hold_Pass	pshm->P[27810]
+#define	P_PLC01_Queue_MNTR(i)	pshm->P[(27811+i)%MAX_P]
+#define	P_PLC01_Total_Step_Flag	pshm->P[27826]
+#define	P_PLC02_Total_Step_Flag	pshm->P[27827]
+#define	P_PLC014_Total_Step_Flag	pshm->P[27828]
+#define	P_PLC02_Total_Step_Flag2	pshm->P[27829]
+#define	P_Vac_Pass	pshm->P[27830]
+#define	P_Vision_Pass_Exisitence	pshm->P[27831]
+#define	P_Vision_Pass_Empty	pshm->P[27832]
+#define	P_Vision_Pass_FirstSepa	pshm->P[27833]
+#define	P_Vision_Pass_Stack_Inspection	pshm->P[27834]
+#define	P_ULD_Home_Pass	pshm->P[27835]
+#define	P_Clamp_Cell_Down_Use	pshm->P[27836]
+#define	P_FR_Clamp_Use_Test	pshm->P[27837]
+#define	P_Door_Interlock_Use_Flag	pshm->P[27838]
+#define	P_Vacuum_Door_Clear_Use	pshm->P[27839]
+#define	P_Align_Test_Pos	pshm->P[27840]
+#define	P_PLC01_Exe_Is_Ena_Step_Flag(i)	pshm->P[(27841+i)%MAX_P]
+#define	P_PLC01_Exe_Fist_Sepa_Step_Flag(i)	pshm->P[(27851+i)%MAX_P]
+#define	P_PLC01_Exe_Prod_Step_Flag(i)	pshm->P[(27861+i)%MAX_P]
+#define	P_PLC01_HOLD_Insp_Step_Flag(i)	pshm->P[(27866+i)%MAX_P]
+#define	P_PLC01_HOLD_Main_Step_Flag(i)	pshm->P[(27876+i)%MAX_P]
+#define	P_PLC01_Sus_Discharge_Step_Flag(i)	pshm->P[(27891+i)%MAX_P]
+#define	P_PLC01_Sus_ARC_Step_Flag(i)	pshm->P[(27901+i)%MAX_P]
+#define	P_PLC01_STOP_Init_Step_Flag(i)	pshm->P[(27911+i)%MAX_P]
+#define	P_PLC01_STOP_Cycle_ST_Step_Flag(i)	pshm->P[(27921+i)%MAX_P]
+#define	P_PLC02_Exe_Module_First_Sepa_Step_Flag	pshm->P[27936]
+#define	P_PLC02_Sus_Module_Discharge_Step_Flag	pshm->P[27937]
+#define	P_PLC02_Sus_Module_ARC_Step_Flag	pshm->P[27938]
+#define	P_PLC02_Sus_Module_1TR_Supply_Step_Flag	pshm->P[27939]
+#define	P_PLC02_HOLD_Module_Insp_Step_Flag	pshm->P[27940]
+#define	P_PLC02_HOLD_Module_Remove_NGPNP_Step_Flag	pshm->P[27941]
+#define	P_PLC02_HOLD_Module_Remove_Align_Step_Flag	pshm->P[27942]
+#define	P_PLC02_HOLD_Module_Remove_2TR_Step_Flag	pshm->P[27943]
+#define	P_PLC02_HOLD_Module_Supply_1TR_Step_Flag	pshm->P[27944]
+#define	P_PLC02_HOLD_Module_Supply_Align_Step_Flag	pshm->P[27945]
+#define	P_PLC02_HOLD_Module_Supply_2TR_Step_Flag	pshm->P[27946]
+#define	P_PLC02_HOLD_Module_SemiRun_Pos_Step_Flag	pshm->P[27947]
+#define	P_PLC14_STOP_Module_Cycle_Stop_Step_Flag	pshm->P[27948]
+#define	P_PLC02_Discharge_MNTR	pshm->P[27949]
+#define	P_NEW_Alarm_USE_Flag	pshm->P[27950]
 #define	P_EPC_SENSOR_Load_Ratio	pshm->P[133]
 #define	P_STACK_VISION_Load_Ratio	pshm->P[134]
 #define	P_SHEET_PAPER_X_Load_Ratio	pshm->P[135]
@@ -4488,39 +4490,39 @@ enum ptrMarray {_ptrMarray_=-1
 #define	P_UNLOADER_X_Load_Ratio	pshm->P[146]
 #define	P_UNLOADER_Z_Load_Ratio	pshm->P[147]
 #define	P_UNLOADER_T_Load_Ratio	pshm->P[148]
-#define	P_Error_Index_Number	pshm->P[27950]
-#define	P_ECAT_MNTR_Bit	pshm->P[27951]
-#define	P_Local_MNTR_Bit	pshm->P[27952]
-#define	P_Clamp_Motion_VER1	pshm->P[27953]
-#define	P_CA_DR_Ta	pshm->P[27954]
-#define	P_CA_DR_Ts	pshm->P[27955]
-#define	P_CA_DR_Tm	pshm->P[27956]
-#define	P_CA_DR_Td	pshm->P[27957]
-#define	P_CA_DR_Tsd	pshm->P[27958]
-#define	P_AN_DR_Ta	pshm->P[27959]
-#define	P_AN_DR_Ts	pshm->P[27960]
-#define	P_AN_DR_Tm	pshm->P[27961]
-#define	P_AN_DR_Td	pshm->P[27962]
-#define	P_AN_DR_Tsd	pshm->P[27963]
-#define	P_First_Sepa_1st_Driving_Move	pshm->P[27964]
-#define	P_AN_Cam_Total_Time	pshm->P[27965]
-#define	P_CA_Cam_Total_Time	pshm->P[27966]
-#define	P_Dry_Run_BTN	pshm->P[27967]
-#define	P_Home_Angle_Offset_change_Bit	pshm->P[27968]
-#define	P_InterLock_Motor_Num	pshm->P[27969]
-#define	P_Recipe_Move_IL_Loop	pshm->P[27970]
-#define	P_Z_Var	pshm->P[27971]
-#define	P_No1_Recipe_Pos_IL(i)	pshm->P[(27972+i)%MAX_P]
-#define	P_No2_Recipe_Pos_IL(i)	pshm->P[(28025+i)%MAX_P]
-#define	P_No3_Recipe_Pos_IL(i)	pshm->P[(28078+i)%MAX_P]
-#define	P_No4_Recipe_Pos_IL(i)	pshm->P[(28131+i)%MAX_P]
-#define	P_No5_Recipe_Pos_IL(i)	pshm->P[(28184+i)%MAX_P]
-#define	P_No6_Recipe_Pos_IL(i)	pshm->P[(28237+i)%MAX_P]
-#define	P_No7_Recipe_Pos_IL(i)	pshm->P[(28290+i)%MAX_P]
-#define	P_No8_Recipe_Pos_IL(i)	pshm->P[(28343+i)%MAX_P]
-#define	P_No9_Recipe_Pos_IL(i)	pshm->P[(28396+i)%MAX_P]
-#define	P_No10_Recipe_Pos_IL(i)	pshm->P[(28449+i)%MAX_P]
-#define	P_Recipe_POS_Interock_M(i)	pshm->P[(28502+i)%MAX_P]
+#define	P_Error_Index_Number	pshm->P[27951]
+#define	P_ECAT_MNTR_Bit	pshm->P[27952]
+#define	P_Local_MNTR_Bit	pshm->P[27953]
+#define	P_Clamp_Motion_VER1	pshm->P[27954]
+#define	P_CA_DR_Ta	pshm->P[27955]
+#define	P_CA_DR_Ts	pshm->P[27956]
+#define	P_CA_DR_Tm	pshm->P[27957]
+#define	P_CA_DR_Td	pshm->P[27958]
+#define	P_CA_DR_Tsd	pshm->P[27959]
+#define	P_AN_DR_Ta	pshm->P[27960]
+#define	P_AN_DR_Ts	pshm->P[27961]
+#define	P_AN_DR_Tm	pshm->P[27962]
+#define	P_AN_DR_Td	pshm->P[27963]
+#define	P_AN_DR_Tsd	pshm->P[27964]
+#define	P_First_Sepa_1st_Driving_Move	pshm->P[27965]
+#define	P_AN_Cam_Total_Time	pshm->P[27966]
+#define	P_CA_Cam_Total_Time	pshm->P[27967]
+#define	P_Dry_Run_BTN	pshm->P[27968]
+#define	P_Home_Angle_Offset_change_Bit	pshm->P[27969]
+#define	P_InterLock_Motor_Num	pshm->P[27970]
+#define	P_Recipe_Move_IL_Loop	pshm->P[27971]
+#define	P_Z_Var	pshm->P[27972]
+#define	P_No1_Recipe_Pos_IL(i)	pshm->P[(27973+i)%MAX_P]
+#define	P_No2_Recipe_Pos_IL(i)	pshm->P[(28026+i)%MAX_P]
+#define	P_No3_Recipe_Pos_IL(i)	pshm->P[(28079+i)%MAX_P]
+#define	P_No4_Recipe_Pos_IL(i)	pshm->P[(28132+i)%MAX_P]
+#define	P_No5_Recipe_Pos_IL(i)	pshm->P[(28185+i)%MAX_P]
+#define	P_No6_Recipe_Pos_IL(i)	pshm->P[(28238+i)%MAX_P]
+#define	P_No7_Recipe_Pos_IL(i)	pshm->P[(28291+i)%MAX_P]
+#define	P_No8_Recipe_Pos_IL(i)	pshm->P[(28344+i)%MAX_P]
+#define	P_No9_Recipe_Pos_IL(i)	pshm->P[(28397+i)%MAX_P]
+#define	P_No10_Recipe_Pos_IL(i)	pshm->P[(28450+i)%MAX_P]
+#define	P_Recipe_POS_Interock_M(i)	pshm->P[(28503+i)%MAX_P]
 #ifndef _PP_PROJ_HDR_
   void SetEnumGlobalVar(enum globalP var, double data)
   {
@@ -5514,705 +5516,706 @@ enum globalP {_globalP_=-1
 ,P_Recipe_Dancer_input_kgf=11760
 ,P_Cathode_NG_PNP_Vel_Zero_Set=11761
 ,P_Anode_NG_PNP_Vel_Zero_Set=11762
-,P_Anode_Run_DR=11763
-,P_Cathode_Run_DR=11764
-,P_1st_UND_Grip_Time=11765
-,P_1st_UND_Grip_Time_offset=11766
-,P_1st_UND_Grip_Time_offset2=11767
-,P_First_Sepa_Driving_Use=11768
-,P_First_Sepa_Driving_Timing=11769
-,P_Unloader_Safe_rtn=11770
-,P_Final_Start=11771
-,P_Driving_Start=11772
-,P_Starting_Pause_IO_OFF_Flag=11773
-,P_individual_Hold_return=11774
-,P_individual_Hold_return2=11775
-,P_Tension_Ready_Pass=11776
-,P_Discharge_cal_rtn=11777
-,P_Old_Tact_Current_Mode=11778
-,P_Sheet_Clear=11779
-,P_Anode_Clamp_On_Time2=11780
-,P_Anode_Clamp_On_Time=11781
-,P_Cathode_Clamp_On_Time=11782
-,P_Cathode_Clamp_On_Time2=11783
-,P_Offset=11784
-,P_Man_C=11785
-,P_NG_Box_Stop_Use=11786
-,P_SlewTime=11787
-,P_Old_SlewTime=11788
-,P_Resume_MNTR1=11789
-,P_Resume_MNTR2=11790
-,P_Resume_MNTR3=11791
-,P_Resume_MNTR4=11792
-,P_Resume_MNTR5=11793
-,P_Resume_MNTR6=11794
-,P_Resume_MNTR7=11795
-,P_Resume_MNTR8=11796
-,P_Resume_MNTR9=11797
-,P_Resume_MNTR10=11798
-,P_Resume_MNTR11=11799
-,P_Resume_MNTR12=11800
-,P_old_P_Anode_Count=11801
-,P_Sheet_Paper_BWD_Count=11802
-,P_Stop_CHK=11803
-,P_Seq_Pause=11804
-,P_Seq_Pause2=11805
-,P_MSA_TimeBase_Rtn=11806
-,P_Old_Vison_Read_EPC_Camera_Move_Request=11807
-,P_First_Sepa_Time_Out_Count=11808
-,P_Align_Retry_Cal_RTN=11809
-,P_Driving_Cal=11826
-,P_Driving_End_Pos=11827
-,P_Driving_Start_Pos=11828
-,P_Anode_Align_Blow=11834
-,P_Cathode_Align_Blow=11835
-,P_Home_Pos_Err_Cnt1=11876
-,P_Home_Pos_Err_Cnt2=11877
-,P_Home_Pos_Err_Cnt3=11878
-,P_Home_Pos_Err_Cnt4=11879
-,P_Align_Inspection_Delay=11880
-,P_Anode_Sheet_Test=11886
-,P_Cathode_Sheet_Test=11887
-,P_Anode_Sheet_Interlock_Timing=11888
-,P_Cathode_Sheet_Interlock_Timing=11889
-,P_Discharge_Err_MNTR=11890
-,P_Arc_Err_MNTR=11891
-,P_Abort_Cnt=11892
-,P_EMO_Cnt=11893
-,P_Dry_Run_Inspection=11894
-,P_Servo_ON_MNTR1=11895
-,P_Servo_ON_MNTR2=11896
-,P_Servo_ON_MNTR3=11897
-,P_Servo_ON_MNTR4=11898
-,P_Servo_ON_MNTR5=11899
-,P_Servo_ON_MNTR6=11900
-,P_Servo_ON_MNTR7=11901
-,P_Servo_ON_MNTR8=11902
-,P_Servo_ON_MNTR9=11903
-,P_Servo_ON_MNTR10=11904
-,P_Servo_ON_MNTR11=11905
-,P_Servo_ON_MNTR12=11906
-,P_Servo_ON_MNTR13=11907
-,P_Servo_ON_MNTR14=11908
-,P_Servo_ON_MNTR15=11909
-,P_Servo_ON_MNTR16=11910
-,P_Servo_ON_MNTR17=11911
-,P_Servo_ON_MNTR18=11912
-,P_Servo_ON_MNTR19=11913
-,P_Servo_ON_MNTR20=11914
-,P_Servo_ON_MNTR21=11915
-,P_Servo_ON_MNTR22=11916
-,P_Servo_ON_MNTR23=11917
-,P_Servo_ON_MNTR24=11918
-,P_Servo_ON_MNTR25=11919
-,P_Servo_ON_MNTR26=11920
-,P_Servo_ON_MNTR27=11921
-,P_Servo_ON_MNTR28=11922
-,P_Servo_ON_MNTR29=11923
-,P_Servo_ON_MNTR30=11924
-,P_X_IO_WinMess_Connect_BTN=11925
-,P_Ecat_ReConnetion_State_Machine=11926
-,P_Ecat_Reconnection_Timer=11927
-,P_Y_Ecat_Reconnecting=11928
-,P_Y_Ecat_ReConnection_Fail=11929
-,P_Y_Ecat_ReConnection_Complete=11930
-,P_X_Ecat_Reconnection_BTN=11931
-,P_X_PLC_Setup_Mode_Check=11932
-,P_Interlock_On_Off_Flag=11933
-,P_X_Old_MC_Reconnect_BTN_Signal=11934
-,P_BTN_1st_ULD_Data_Clear=11935
-,P_Old_BTN_1st_ULD_Data_Clear=11936
-,P_Old_M_Y_1st_Unloader_UnGrip_Sol=11937
-,P_Sepa_Cutter_Heat_Meter=11938
-,P_Sepa_Cutter_Heating_Timer=11939
-,P_Middle_Skip_Off_Flag=11940
-,P_Stop_MNTR1=11941
-,P_Stop_MNTR2=11942
-,P_Sheet_Pos_Offset=11943
-,P_Stopping_Wait_Time=11944
-,P_Stopping_Test_Timer=11945
-,P_1st_ULD_OK_Lamp=11956
-,P_1st_ULD_NG_Lamp=11957
-,P_1st_ULD_Sample_QC_Lamp=11958
-,P_Proceed_Execute_Flag=11959
-,P_Continuous_Call_Stack_NG_Flag=11960
-,P_Continuous_Call_Stack_OK_Flag=11961
-,P_Cathode_Picker_Home_Pos=11962
-,P_Anode_Picker_Home_Pos=11963
-,P_FR_Sheet_Paper_Home_Chk=11964
-,P_Align_TimeOut1=11965
-,P_Align_TimeOut2=11966
-,P_Align_TimeOut3=11967
-,P_Align_TimeOut4=11968
-,P_Align_TimeOut5=11969
-,P_Align_TimeOut6=11970
-,P_Anode_Align_OK=11971
-,P_Cathode_Align_OK=11972
-,P_Anode_Align_NG=11973
-,P_Cathode_Align_NG=11974
-,P_Anode_Align_TimeOut=11975
-,P_Cathode_Align_TimeOut=11976
-,P_Anode_Surf_OK=11977
-,P_Cathode_Surf_OK=11978
-,P_Anode_Surf_NG=11979
-,P_Cathode_Surf_NG=11980
-,P_Anode_Surf_TimeOut=11981
-,P_Cathode_Surf_TimeOut=11982
-,P_Surf_TimeOut1=11983
-,P_Surf_TimeOut2=11984
-,P_Surf_TimeOut3=11985
-,P_Surf_TimeOut4=11986
-,P_Surf_TimeOut5=11987
-,P_Surf_TimeOut6=11988
-,P_Anode_Stack_TimeOut=11989
-,P_Cathode_Stack_TimeOut=11990
-,P_Anode_Stack_OK=11991
-,P_Cathode_Stack_OK=11992
-,P_Anode_Stack_NG=11993
-,P_Cathode_Stack_NG=11994
-,P_Stack_TimeOut1=11995
-,P_Stack_TimeOut2=11996
-,P_Stack_TimeOut3=11997
-,P_Align_Move_Err=11998
-,P_Ecat_Test=11999
-,P_Scan_Aver=12002
-,P_Scan_MAX=12003
-,P_Cathode_1TR_Picker_T_Belt_POS=12004
-,P_Cathode_1TR_Picker_T_Align_POS=12005
-,P_Anode_1TR_Picker_T_Belt_POS=12006
-,P_Anode_1TR_Picker_T_Align_POS=12007
-,P_1TR_Picker_T_Align_POS=12008
-,P_AVRG_Lower_Sepa_Thickness_mm=12009
-,P_AVRG_Upper_Sepa_Thickness_mm=12010
-,P_PLC06_Upper_Curr_Unwinder_Thickness_mm=12011
-,P_PLC06_Lower_Curr_Unwinder_Thickness_mm=12012
-,P_Upper_Curr_Spool_Radius=12013
-,P_Lower_Curr_Spool_Radius=12014
-,P_PLC06_Curr_Upper_Distance_mm=12015
-,P_PLC06_Curr_Lower_Distance_mm=12016
-,P_Upper_Sepa_Min_Distance_mm=12017
-,P_Lower_Sepa_Min_Distance_mm=12018
-,P_PLC06_Sepa_Change_Set=12019
-,P_Upper_Sepa_To_Sensor_Min_Dis=12020
-,P_Upper_Sepa_To_Sensor_Max_Dis=12021
-,P_Upper_Sensor_To_Unwinder_Core_Dis=12022
-,P_Upper_Sensor_Min_AD=12023
-,P_Upper_Sensor_Max_AD=12024
-,P_Lower_Sepa_To_Sensor_Min_Dis=12025
-,P_Lower_Sepa_To_Sensor_Max_Dis=12026
-,P_Lower_Sensor_To_Unwinder_Core_Dis=12027
-,P_Lower_Sensor_Min_AD=12028
-,P_Lower_Sensor_Max_AD=12029
+,P_NG_Box_Open_Popup_Flag=11763
+,P_Anode_Run_DR=11764
+,P_Cathode_Run_DR=11765
+,P_1st_UND_Grip_Time=11766
+,P_1st_UND_Grip_Time_offset=11767
+,P_1st_UND_Grip_Time_offset2=11768
+,P_First_Sepa_Driving_Use=11769
+,P_First_Sepa_Driving_Timing=11770
+,P_Unloader_Safe_rtn=11771
+,P_Final_Start=11772
+,P_Driving_Start=11773
+,P_Starting_Pause_IO_OFF_Flag=11774
+,P_individual_Hold_return=11775
+,P_individual_Hold_return2=11776
+,P_Tension_Ready_Pass=11777
+,P_Discharge_cal_rtn=11778
+,P_Old_Tact_Current_Mode=11779
+,P_Sheet_Clear=11780
+,P_Anode_Clamp_On_Time2=11781
+,P_Anode_Clamp_On_Time=11782
+,P_Cathode_Clamp_On_Time=11783
+,P_Cathode_Clamp_On_Time2=11784
+,P_Offset=11785
+,P_Man_C=11786
+,P_NG_Box_Stop_Use=11787
+,P_SlewTime=11788
+,P_Old_SlewTime=11789
+,P_Resume_MNTR1=11790
+,P_Resume_MNTR2=11791
+,P_Resume_MNTR3=11792
+,P_Resume_MNTR4=11793
+,P_Resume_MNTR5=11794
+,P_Resume_MNTR6=11795
+,P_Resume_MNTR7=11796
+,P_Resume_MNTR8=11797
+,P_Resume_MNTR9=11798
+,P_Resume_MNTR10=11799
+,P_Resume_MNTR11=11800
+,P_Resume_MNTR12=11801
+,P_old_P_Anode_Count=11802
+,P_Sheet_Paper_BWD_Count=11803
+,P_Stop_CHK=11804
+,P_Seq_Pause=11805
+,P_Seq_Pause2=11806
+,P_MSA_TimeBase_Rtn=11807
+,P_Old_Vison_Read_EPC_Camera_Move_Request=11808
+,P_First_Sepa_Time_Out_Count=11809
+,P_Align_Retry_Cal_RTN=11810
+,P_Driving_Cal=11827
+,P_Driving_End_Pos=11828
+,P_Driving_Start_Pos=11829
+,P_Anode_Align_Blow=11835
+,P_Cathode_Align_Blow=11836
+,P_Home_Pos_Err_Cnt1=11877
+,P_Home_Pos_Err_Cnt2=11878
+,P_Home_Pos_Err_Cnt3=11879
+,P_Home_Pos_Err_Cnt4=11880
+,P_Align_Inspection_Delay=11881
+,P_Anode_Sheet_Test=11887
+,P_Cathode_Sheet_Test=11888
+,P_Anode_Sheet_Interlock_Timing=11889
+,P_Cathode_Sheet_Interlock_Timing=11890
+,P_Discharge_Err_MNTR=11891
+,P_Arc_Err_MNTR=11892
+,P_Abort_Cnt=11893
+,P_EMO_Cnt=11894
+,P_Dry_Run_Inspection=11895
+,P_Servo_ON_MNTR1=11896
+,P_Servo_ON_MNTR2=11897
+,P_Servo_ON_MNTR3=11898
+,P_Servo_ON_MNTR4=11899
+,P_Servo_ON_MNTR5=11900
+,P_Servo_ON_MNTR6=11901
+,P_Servo_ON_MNTR7=11902
+,P_Servo_ON_MNTR8=11903
+,P_Servo_ON_MNTR9=11904
+,P_Servo_ON_MNTR10=11905
+,P_Servo_ON_MNTR11=11906
+,P_Servo_ON_MNTR12=11907
+,P_Servo_ON_MNTR13=11908
+,P_Servo_ON_MNTR14=11909
+,P_Servo_ON_MNTR15=11910
+,P_Servo_ON_MNTR16=11911
+,P_Servo_ON_MNTR17=11912
+,P_Servo_ON_MNTR18=11913
+,P_Servo_ON_MNTR19=11914
+,P_Servo_ON_MNTR20=11915
+,P_Servo_ON_MNTR21=11916
+,P_Servo_ON_MNTR22=11917
+,P_Servo_ON_MNTR23=11918
+,P_Servo_ON_MNTR24=11919
+,P_Servo_ON_MNTR25=11920
+,P_Servo_ON_MNTR26=11921
+,P_Servo_ON_MNTR27=11922
+,P_Servo_ON_MNTR28=11923
+,P_Servo_ON_MNTR29=11924
+,P_Servo_ON_MNTR30=11925
+,P_X_IO_WinMess_Connect_BTN=11926
+,P_Ecat_ReConnetion_State_Machine=11927
+,P_Ecat_Reconnection_Timer=11928
+,P_Y_Ecat_Reconnecting=11929
+,P_Y_Ecat_ReConnection_Fail=11930
+,P_Y_Ecat_ReConnection_Complete=11931
+,P_X_Ecat_Reconnection_BTN=11932
+,P_X_PLC_Setup_Mode_Check=11933
+,P_Interlock_On_Off_Flag=11934
+,P_X_Old_MC_Reconnect_BTN_Signal=11935
+,P_BTN_1st_ULD_Data_Clear=11936
+,P_Old_BTN_1st_ULD_Data_Clear=11937
+,P_Old_M_Y_1st_Unloader_UnGrip_Sol=11938
+,P_Sepa_Cutter_Heat_Meter=11939
+,P_Sepa_Cutter_Heating_Timer=11940
+,P_Middle_Skip_Off_Flag=11941
+,P_Stop_MNTR1=11942
+,P_Stop_MNTR2=11943
+,P_Sheet_Pos_Offset=11944
+,P_Stopping_Wait_Time=11945
+,P_Stopping_Test_Timer=11946
+,P_1st_ULD_OK_Lamp=11957
+,P_1st_ULD_NG_Lamp=11958
+,P_1st_ULD_Sample_QC_Lamp=11959
+,P_Proceed_Execute_Flag=11960
+,P_Continuous_Call_Stack_NG_Flag=11961
+,P_Continuous_Call_Stack_OK_Flag=11962
+,P_Cathode_Picker_Home_Pos=11963
+,P_Anode_Picker_Home_Pos=11964
+,P_FR_Sheet_Paper_Home_Chk=11965
+,P_Align_TimeOut1=11966
+,P_Align_TimeOut2=11967
+,P_Align_TimeOut3=11968
+,P_Align_TimeOut4=11969
+,P_Align_TimeOut5=11970
+,P_Align_TimeOut6=11971
+,P_Anode_Align_OK=11972
+,P_Cathode_Align_OK=11973
+,P_Anode_Align_NG=11974
+,P_Cathode_Align_NG=11975
+,P_Anode_Align_TimeOut=11976
+,P_Cathode_Align_TimeOut=11977
+,P_Anode_Surf_OK=11978
+,P_Cathode_Surf_OK=11979
+,P_Anode_Surf_NG=11980
+,P_Cathode_Surf_NG=11981
+,P_Anode_Surf_TimeOut=11982
+,P_Cathode_Surf_TimeOut=11983
+,P_Surf_TimeOut1=11984
+,P_Surf_TimeOut2=11985
+,P_Surf_TimeOut3=11986
+,P_Surf_TimeOut4=11987
+,P_Surf_TimeOut5=11988
+,P_Surf_TimeOut6=11989
+,P_Anode_Stack_TimeOut=11990
+,P_Cathode_Stack_TimeOut=11991
+,P_Anode_Stack_OK=11992
+,P_Cathode_Stack_OK=11993
+,P_Anode_Stack_NG=11994
+,P_Cathode_Stack_NG=11995
+,P_Stack_TimeOut1=11996
+,P_Stack_TimeOut2=11997
+,P_Stack_TimeOut3=11998
+,P_Align_Move_Err=11999
+,P_Ecat_Test=12000
+,P_Scan_Aver=12003
+,P_Scan_MAX=12004
+,P_Cathode_1TR_Picker_T_Belt_POS=12005
+,P_Cathode_1TR_Picker_T_Align_POS=12006
+,P_Anode_1TR_Picker_T_Belt_POS=12007
+,P_Anode_1TR_Picker_T_Align_POS=12008
+,P_1TR_Picker_T_Align_POS=12009
+,P_AVRG_Lower_Sepa_Thickness_mm=12010
+,P_AVRG_Upper_Sepa_Thickness_mm=12011
+,P_PLC06_Upper_Curr_Unwinder_Thickness_mm=12012
+,P_PLC06_Lower_Curr_Unwinder_Thickness_mm=12013
+,P_Upper_Curr_Spool_Radius=12014
+,P_Lower_Curr_Spool_Radius=12015
+,P_PLC06_Curr_Upper_Distance_mm=12016
+,P_PLC06_Curr_Lower_Distance_mm=12017
+,P_Upper_Sepa_Min_Distance_mm=12018
+,P_Lower_Sepa_Min_Distance_mm=12019
+,P_PLC06_Sepa_Change_Set=12020
+,P_Upper_Sepa_To_Sensor_Min_Dis=12021
+,P_Upper_Sepa_To_Sensor_Max_Dis=12022
+,P_Upper_Sensor_To_Unwinder_Core_Dis=12023
+,P_Upper_Sensor_Min_AD=12024
+,P_Upper_Sensor_Max_AD=12025
+,P_Lower_Sepa_To_Sensor_Min_Dis=12026
+,P_Lower_Sepa_To_Sensor_Max_Dis=12027
+,P_Lower_Sensor_To_Unwinder_Core_Dis=12028
+,P_Lower_Sensor_Min_AD=12029
+,P_Lower_Sensor_Max_AD=12030
 ,M_AI_Upper_Sepa_Sensing=372
 ,M_AI_Lower_Sepa_Sensing=373
-,P_Status_NP_BTN_Lower_Unwinder=12030
-,P_Status_NP_BTN_Upper_Unwinder=12031
-,P_Driving_CamTable_Scale_Change_Flag=12032
-,P_FR_Driving_Diameter=12033
-,P_FR_Driving_Floating_Point=12034
-,P_FR_Driving_Reward=12035
-,P_Unwinder_Master_Following_Use_Flag=12036
-,P_Unwinder_Master_Following_On=12037
-,P_Old_Master_Following_Start=12038
-,P_Unwinder_Master_Following_Scale=12039
-,P_Unwinder_Jog_Use_Flag=12040
-,P_Old_Jog_Start=12041
-,P_Unwinder_Jog_Total_Time=12042
-,P_Unwinder_Ta=12043
-,P_Unwinder_Ts=12044
-,P_Unwinder_Tm=12045
-,P_Unwinder_1mm_Deg=12046
-,P_Unwinder_Jog_Pos=12047
-,P_Unwinder_Jog_Cnt=12048
-,P_PLC06_Frist_Flag=12049
-,P_Sepa_AI=12050
-,P_PLC06_Reel_Upper_Change_Flag=12051
-,P_PLC06_Reel_Lower_Change_Flag=12052
-,P_Spool_Ready_Enable_Flag=12053
-,P_Spool_Lack_Flag=12054
-,P_Sepa_DR_Start_Flag=12055
-,P_cdTime_Tact_Sec=12056
-,P_Master_Tact_Sec=12057
-,P_Prev_Err_Pos=12058
-,P_Cur_Arc_Rad=12059
-,P_Cur_Arc_Deg=12060
-,P_Spool_Velocity=12061
-,P_Lin_Prop_Vel=12062
-,P_Err_Pos=12063
-,P_Lin_Deriv_Vel=12064
-,P_Lin_Dacer_Kd=12065
-,P_Lin_Dacer_Kp=12066
-,P_Running_CDTimer=12067
-,P_Unwinder_Jog_Ta=12068
-,P_Unwinder_Jog_Ts=12069
-,P_Unwinder_Vel_Test_Time=12070
-,P_Set_Interval_Time=12071
-,P_PLC06_Upper_Sepa_AI_Timer=12072
-,P_PLC06_Upper_Sepa_AI_Data=12073
-,P_PLC06_Upper_Sepa_AI_Cnt=12074
-,P_PLC06_Upper_AVRG_Sensor_Data=12075
-,P_PLC06_Lower_Sepa_AI_Timer=12076
-,P_PLC06_Lower_Sepa_AI_Data=12077
-,P_PLC06_Lower_Sepa_AI_Cnt=12078
-,P_PLC06_Lower_AVRG_Sensor_Data=12079
-,P_PLC06_Sepa_Upper_Thickness_Timer=12080
-,P_PLC06_Sepa_Upper_Thickness_Data=12081
-,P_PLC06_Sepa_Upper_Thickness_Cnt=12082
-,P_PLC06_Sepa_Lower_Thickness_Timer=12083
-,P_PLC06_Sepa_Lower_Thickness_Data=12084
-,P_PLC06_Sepa_Lower_Thickness_Cnt=12085
-,P_Sepa_Thickness_Chk_Timer=12086
-,P_Spool_Length=12087
-,P_Cascade_Sf_Driving_Value=12088
-,P_Cascade_Sf_None_Driving_Value=12089
-,P_Sepa_Min_Value_Cal_Cmd=12090
-,P_Total_Sepa_Need_Length=12091
-,P_Alpa=12092
-,P_Sepa_Num_of_Turns=12093
-,P_Sepa_Turn_Num=12094
-,P_Accumulate_Value=12095
-,P_Sharft_to_Sepa_Core_mm=12096
-,P_Sepa_Cal_Circum=12097
-,P_Sepa_Min_Need_Thickness=12098
-,P_Sepa_Min_Thickness_Cmd=12099
-,P_Sepa_Accumulate_Cmd=12100
-,P_Sepa_Required_Amount=12101
-,P_Sepa_Current_Thickness=12102
-,P_Sepa_Initial_Tickness=12103
-,P_Sepa_Required_Update_Timer=12104
-,P_TEST_EPC_Interlock_Auto=12105
-,P_TEST_EPC_Interlock_Manual=12106
-,P_Discharge_Total_Tact=12107
-,P_PLC15_Sub_Function_Dryrun_Active_Flag=12120
-,P_Sepa_Rotation_Sequence_Run_Trigger_Cnt=12121
-,P_Sepa_Mode_Sepa_Recipe_Count=12122
-,P_Discharged_After_End_Trigger=12123
-,P_Unloader_1st_Grip_Delay=12124
-,P_Separate_Cutter_Heating_Limit_Value=12125
-,P_Separate_Cutting_Current=12126
-,P_Separate_Cutter_Change_Cycle=12127
-,P_X_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger=12128
-,P_X_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger=12129
-,P_X_Cathode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger=12130
-,P_X_Anode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger=12131
-,P_X_Stack_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger=12132
-,P_Interlock_Messege_Confirmed=12133
-,P_X_MC_Communication_HeartBit=12134
-,P_SV_Cathode_Count=12135
-,P_SV_Anode_Count=12136
-,P_SV_Cathode_Reference_Thickness=12140
-,P_SV_Anode_Reference_Thickness=12141
-,P_SV_Stack_Table_Damper_Cathode=12142
-,P_SV_Stack_Table_Damper_Anode=12143
-,P_SV_Sepa_Reference_Thickness=12144
-,P_SV_Jelly_Roll_Width=12145
-,P_Cathode_Align_Continuous_NG_Recipe=12146
-,P_Anode_Align_Continuous_NG_Recipe=12147
-,P_Stack_Vision_Continuous_NG_Recipe=12148
-,P_PLC_Recipe_EPC_Sepa_Count=12149
-,P_PLC_Recipe_Revise_Sepa=12150
-,P_X_PLC_to_PMAC_Correction_Value=12151
-,P_Anode_Align_Continuous_NG_Check_range=12152
-,P_Cathode_Align_Continuous_NG_Check_range=12153
-,P_Stack_Align_Continuous_NG_Check_range=12154
-,P_Cathode_Surface_Continuous_NG_Recipe=12155
-,P_Anode_Surface_Continuous_NG_Recipe=12156
-,P_Cathode_Surface_Continuous_NG_Check_range=12157
-,P_Anode_Surface_Continuous_NG_Check_range=12158
-,P_Servo_Dancer_Alarm_Maximum_Angle_Value=12159
-,P_Servo_Dancer_Alarm_Minimum_Angle_Value=12160
-,P_Current_Selected_Spool_Rev_Counts_Init_Read=12161
-,P_Spool_ARC_Distance_mm=12162
-,P_ARC_Upper_Request_Sepa_Thickness_mm=12163
-,P_ARC_Lower_Request_Sepa_Thickness_mm=12164
-,P_Selected_Spool_Arc_Set_Rev_Counts_Value=12165
-,P_Set_Cnt_FR_Moving_Sepa_ARC=12166
-,P_Current_Selected_Spool_Rev_Counts=12167
-,P_AI_Cathode_Clamp_Damper=12168
-,P_AI_Anode_Clamp_Damper=12169
-,P_Select_Sheet_Value=12180
-,P_BTN_Config_Setup_Mode_Select=12181
-,P_Sepa_Thickness_Max_Value=12182
-,P_AI_Cathode_Clamp_Damper_Zero_Mpa_Analog_Value=12183
-,P_AI_Anode_Clamp_Damper_Zero_Mpa_Analog_Value=12184
-,P_Accumulated_Movement_MM_Unit_Cathode_1ST_pnp=12185
-,P_Accumulated_Movement_MM_Unit_Anode_1ST_pnp=12186
-,P_Accumulated_Movement_MM_Unit_Cathode_2nd_pnp=12187
-,P_Accumulated_Movement_MM_Unit_Anode_2nd_pnp=12188
-,P_AI_Anode_Clamp_Damper_Mpa=12189
-,P_AI_Cathode_Clamp_Damper_Mpa=12190
-,P_Current_Whole_Stack_Jelly_Roll_Thinckness_mm=12191
-,P_Upper_Sepa_Current_Thickness_um=12192
-,P_Lower_Sepa_Current_Thickness_um=12193
-,P_Spool_Rotate_Distance=12194
-,Spool_Diameter=12195
-,P_Current_FR_Moving_Cnt_To_PlC=12196
-,P_MES_APC_Select_Btn=12197
-,P_AO_Anode_Clamp_Damper=12198
-,P_AO_Cathode_Clamp_Damper=12199
-,P_Sepa_Length=12200
-,P_Minus_Limit_Detect_Popup_Flag=12201
-,P_Plus_Limit_Detect_Popup_Flag=12202
-,P_Fatal_Fe_Limit_Detect_Popup_Flag=12203
-,P_Emergency_Alarm_Popup_Flag=12204
-,P_SepaArcing_Popup_Flag=12205
-,P_Y_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger=12206
-,P_Y_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger=12207
-,P_Y_Cathode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger=12208
-,P_Y_Anode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger=12209
-,P_Y_Stack_Align_Calibration_twisted_Cycle_Stop_Request_Trigger=12210
-,P_Current_Selected_Sheet_Value=12211
-,P_Status_Config_Mode_Select=12212
-,P_Sepa_Thickness_Jig_Value=12213
-,P_PV_Stack_Table_Damper_Cathode=12214
-,P_PV_Stack_Table_Damper_Anode=12215
-,P_Discharge_Standby_Pos_Tack_Time=12216
-,P_Discharge_FR_MainZ_Pos_Tack_Time=12217
-,P_Discharge_Unloader_Go_Pos_Tack_Time=12218
-,P_Discharge_SubZ_Down_Pos_Tack_Time=12219
-,P_Discharge_Unloader_Cutting_Pos_Tack_Time=12220
-,P_Discharge_FR_Clamp_ON_Complete_Tack_Time=12221
-,P_Discharge_Cutting_Complete_Tack_Time=12222
-,P_Discharge_Motion_PG_Active_Starting_Tack_Time=12223
-,P_Discharge_Motion_PG_Active_Complete_Tack_Time=12224
-,P_Discharge_Sepa_First_Complete_Tack_Time=12225
-,P_Discharge_Complete_Tack_Time=12226
-,P_Discharge_Total_Tack_Time=12227
-,P_Anode_Clamp_TackTime_Array0=12228
-,P_Anode_Clamp_TackTime_Array1=12229
-,P_Anode_Clamp_TackTime_Array2=12230
-,P_Anode_Clamp_TackTime_Array3=12231
-,P_Anode_Clamp_TackTime_Array4=12232
-,P_Anode_Clamp_TackTime_Array5=12233
-,P_Anode_Clamp_TackTime_Array6=12234
-,P_Anode_Clamp_TackTime_Array7=12235
-,P_Anode_Clamp_TackTime_Array8=12236
-,P_Anode_Clamp_TackTime_Array9=12237
-,P_Anode_Clamp_TackTime_Array10=12238
-,P_Stacking_TackTime_Array0=12239
-,P_Stacking_TackTime_Array1=12240
-,P_Stacking_TackTime_Array2=12241
-,P_Stacking_TackTime_Array3=12242
-,P_Stacking_TackTime_Array4=12243
-,P_Stacking_TackTime_Array5=12244
-,P_Stacking_TackTime_Array6=12245
-,P_Stacking_TackTime_Array7=12246
-,P_Stacking_TackTime_Array8=12247
-,P_Stacking_TackTime_Array9=12248
-,P_Stacking_TackTime_Array10=12249
-,P_Cathode_Clamp_TackTime_Array0=12250
-,P_Cathode_Clamp_TackTime_Array1=12251
-,P_Cathode_Clamp_TackTime_Array2=12252
-,P_Cathode_Clamp_TackTime_Array3=12253
-,P_Cathode_Clamp_TackTime_Array4=12254
-,P_Cathode_Clamp_TackTime_Array5=12255
-,P_Cathode_Clamp_TackTime_Array6=12256
-,P_Cathode_Clamp_TackTime_Array7=12257
-,P_Cathode_Clamp_TackTime_Array8=12258
-,P_Cathode_Clamp_TackTime_Array9=12259
-,P_Cathode_Clamp_TackTime_Array10=12260
-,P_JellyRoll_Out_TackTime_Array0=12261
-,P_JellyRoll_Out_TackTime_Array1=12262
-,P_JellyRoll_Out_TackTime_Array2=12263
-,P_JellyRoll_Out_TackTime_Array3=12264
-,P_JellyRoll_Out_TackTime_Array4=12265
-,P_JellyRoll_Out_TackTime_Array5=12266
-,P_JellyRoll_Out_TackTime_Array6=12267
-,P_JellyRoll_Out_TackTime_Array7=12268
-,P_JellyRoll_Out_TackTime_Array8=12269
-,P_JellyRoll_Out_TackTime_Array9=12270
-,P_JellyRoll_Out_TackTime_Array10=12271
-,P_Anode_1th_TackTime_Array0=12272
-,P_Anode_1th_TackTime_Array1=12273
-,P_Anode_1th_TackTime_Array2=12274
-,P_Anode_1th_TackTime_Array3=12275
-,P_Anode_1th_TackTime_Array4=12276
-,P_Anode_1th_TackTime_Array5=12277
-,P_Anode_1th_TackTime_Array6=12278
-,P_Anode_1th_TackTime_Array7=12279
-,P_Anode_1th_TackTime_Array8=12280
-,P_Anode_1th_TackTime_Array9=12281
-,P_Anode_1th_TackTime_Array10=12282
-,P_Cathode_1th_TackTime_Array0=12283
-,P_Cathode_1th_TackTime_Array1=12284
-,P_Cathode_1th_TackTime_Array2=12285
-,P_Cathode_1th_TackTime_Array3=12286
-,P_Cathode_1th_TackTime_Array4=12287
-,P_Cathode_1th_TackTime_Array5=12288
-,P_Cathode_1th_TackTime_Array6=12289
-,P_Cathode_1th_TackTime_Array7=12290
-,P_Cathode_1th_TackTime_Array8=12291
-,P_Cathode_1th_TackTime_Array9=12292
-,P_Cathode_1th_TackTime_Array10=12293
-,P_Anode_2th_TackTime_Array0=12294
-,P_Anode_2th_TackTime_Array1=12295
-,P_Anode_2th_TackTime_Array2=12296
-,P_Anode_2th_TackTime_Array3=12297
-,P_Anode_2th_TackTime_Array4=12298
-,P_Anode_2th_TackTime_Array5=12299
-,P_Anode_2th_TackTime_Array6=12300
-,P_Anode_2th_TackTime_Array7=12301
-,P_Anode_2th_TackTime_Array8=12302
-,P_Anode_2th_TackTime_Array9=12303
-,P_Anode_2th_TackTime_Array10=12304
-,P_Cathode_2th_TackTime_Array0=12305
-,P_Cathode_2th_TackTime_Array1=12306
-,P_Cathode_2th_TackTime_Array2=12307
-,P_Cathode_2th_TackTime_Array3=12308
-,P_Cathode_2th_TackTime_Array4=12309
-,P_Cathode_2th_TackTime_Array5=12310
-,P_Cathode_2th_TackTime_Array6=12311
-,P_Cathode_2th_TackTime_Array7=12312
-,P_Cathode_2th_TackTime_Array8=12313
-,P_Cathode_2th_TackTime_Array9=12314
-,P_Cathode_2th_TackTime_Array10=12315
-,P_Anode_Align_Table_TackTime_Array0=12316
-,P_Anode_Align_Table_TackTime_Array1=12317
-,P_Anode_Align_Table_TackTime_Array2=12318
-,P_Anode_Align_Table_TackTime_Array3=12319
-,P_Anode_Align_Table_TackTime_Array4=12320
-,P_Anode_Align_Table_TackTime_Array5=12321
-,P_Anode_Align_Table_TackTime_Array6=12322
-,P_Anode_Align_Table_TackTime_Array7=12323
-,P_Anode_Align_Table_TackTime_Array8=12324
-,P_Anode_Align_Table_TackTime_Array9=12325
-,P_Anode_Align_Table_TackTime_Array10=12326
-,P_Cathode_Align_Table_TackTime_Array0=12327
-,P_Cathode_Align_Table_TackTime_Array1=12328
-,P_Cathode_Align_Table_TackTime_Array2=12329
-,P_Cathode_Align_Table_TackTime_Array3=12330
-,P_Cathode_Align_Table_TackTime_Array4=12331
-,P_Cathode_Align_Table_TackTime_Array5=12332
-,P_Cathode_Align_Table_TackTime_Array6=12333
-,P_Cathode_Align_Table_TackTime_Array7=12334
-,P_Cathode_Align_Table_TackTime_Array8=12335
-,P_Cathode_Align_Table_TackTime_Array9=12336
-,P_Cathode_Align_Table_TackTime_Array10=12337
-,P_Anode_NG_PNP_TackTime_Array0=12338
-,P_Anode_NG_PNP_TackTime_Array1=12339
-,P_Anode_NG_PNP_TackTime_Array2=12340
-,P_Anode_NG_PNP_TackTime_Array3=12341
-,P_Anode_NG_PNP_TackTime_Array4=12342
-,P_Anode_NG_PNP_TackTime_Array5=12343
-,P_Anode_NG_PNP_TackTime_Array6=12344
-,P_Anode_NG_PNP_TackTime_Array7=12345
-,P_Anode_NG_PNP_TackTime_Array8=12346
-,P_Anode_NG_PNP_TackTime_Array9=12347
-,P_Anode_NG_PNP_TackTime_Array10=12348
-,P_Cathode_NG_PNP_TackTime_Array0=12349
-,P_Cathode_NG_PNP_TackTime_Array1=12350
-,P_Cathode_NG_PNP_TackTime_Array2=12351
-,P_Cathode_NG_PNP_TackTime_Array3=12352
-,P_Cathode_NG_PNP_TackTime_Array4=12353
-,P_Cathode_NG_PNP_TackTime_Array5=12354
-,P_Cathode_NG_PNP_TackTime_Array6=12355
-,P_Cathode_NG_PNP_TackTime_Array7=12356
-,P_Cathode_NG_PNP_TackTime_Array8=12357
-,P_Cathode_NG_PNP_TackTime_Array9=12358
-,P_Cathode_NG_PNP_TackTime_Array10=12359
-,P_Sepa_Unwinder_TackTime_Array0=12360
-,P_Sepa_Unwinder_TackTime_Array1=12361
-,P_Sepa_Unwinder_TackTime_Array2=12362
-,P_Sepa_Unwinder_TackTime_Array3=12363
-,P_Sepa_Unwinder_TackTime_Array4=12364
-,P_Sepa_Unwinder_TackTime_Array5=12365
-,P_Sepa_Unwinder_TackTime_Array6=12366
-,P_Sepa_Unwinder_TackTime_Array7=12367
-,P_Sepa_Unwinder_TackTime_Array8=12368
-,P_Sepa_Unwinder_TackTime_Array9=12369
-,P_Sepa_Unwinder_TackTime_Array10=12370
-,P_Sepa_Unwinder_TackTime_Array11=12371
-,P_1st_Unloader_TackTime_Array0=12372
-,P_1st_Unloader_TackTime_Array1=12373
-,P_1st_Unloader_TackTime_Array2=12374
-,P_1st_Unloader_TackTime_Array3=12375
-,P_1st_Unloader_TackTime_Array4=12376
-,P_1st_Unloader_TackTime_Array5=12377
-,P_1st_Unloader_TackTime_Array6=12378
-,P_1st_Unloader_TackTime_Array7=12379
-,P_1st_Unloader_TackTime_Array8=12380
-,P_1st_Unloader_TackTime_Array9=12381
-,P_1st_Unloader_TackTime_Array10=12382
-,P_Cathode_1st_Vacuum_TackTime_Array1=12383
-,P_Cathode_1st_Vacuum_TackTime_Array2=12384
-,P_Cathode_1st_Vacuum_TackTime_Array3=12385
-,P_Cathode_1st_Vacuum_TackTime_Array4=12386
-,P_Cathode_1st_Vacuum_TackTime_Array5=12387
-,P_Cathode_1st_Vacuum_TackTime_Array6=12388
-,P_Cathode_1st_Vacuum_TackTime_Array7=12389
-,P_Cathode_1st_Vacuum_TackTime_Array8=12390
-,P_Cathode_1st_Vacuum_TackTime_Array9=12391
-,P_Cathode_1st_Vacuum_TackTime_Array10=12392
-,P_Cathode_Align_Vacuum_TackTime_Array1=12393
-,P_Cathode_Align_Vacuum_TackTime_Array2=12394
-,P_Cathode_Align_Vacuum_TackTime_Array3=12395
-,P_Cathode_Align_Vacuum_TackTime_Array4=12396
-,P_Cathode_Align_Vacuum_TackTime_Array5=12397
-,P_Cathode_Align_Vacuum_TackTime_Array6=12398
-,P_Cathode_Align_Vacuum_TackTime_Array7=12399
-,P_Cathode_Align_Vacuum_TackTime_Array8=12400
-,P_Cathode_Align_Vacuum_TackTime_Array9=12401
-,P_Cathode_Align_Vacuum_TackTime_Array10=12402
-,P_Cathode_2nd_Vacuum_TackTime_Array1=12403
-,P_Cathode_2nd_Vacuum_TackTime_Array2=12404
-,P_Cathode_2nd_Vacuum_TackTime_Array3=12405
-,P_Cathode_2nd_Vacuum_TackTime_Array4=12406
-,P_Cathode_2nd_Vacuum_TackTime_Array5=12407
-,P_Cathode_2nd_Vacuum_TackTime_Array6=12408
-,P_Cathode_2nd_Vacuum_TackTime_Array7=12409
-,P_Cathode_2nd_Vacuum_TackTime_Array8=12410
-,P_Cathode_2nd_Vacuum_TackTime_Array9=12411
-,P_Cathode_2nd_Vacuum_TackTime_Array10=12412
-,P_Anode_1st_Vacuum_TackTime_Array1=12413
-,P_Anode_1st_Vacuum_TackTime_Array2=12414
-,P_Anode_1st_Vacuum_TackTime_Array3=12415
-,P_Anode_1st_Vacuum_TackTime_Array4=12416
-,P_Anode_1st_Vacuum_TackTime_Array5=12417
-,P_Anode_1st_Vacuum_TackTime_Array6=12418
-,P_Anode_1st_Vacuum_TackTime_Array7=12419
-,P_Anode_1st_Vacuum_TackTime_Array8=12420
-,P_Anode_1st_Vacuum_TackTime_Array9=12421
-,P_Anode_1st_Vacuum_TackTime_Array10=12422
-,P_Anode_Align_Vacuum_TackTime_Array1=12423
-,P_Anode_Align_Vacuum_TackTime_Array2=12424
-,P_Anode_Align_Vacuum_TackTime_Array3=12425
-,P_Anode_Align_Vacuum_TackTime_Array4=12426
-,P_Anode_Align_Vacuum_TackTime_Array5=12427
-,P_Anode_Align_Vacuum_TackTime_Array6=12428
-,P_Anode_Align_Vacuum_TackTime_Array7=12429
-,P_Anode_Align_Vacuum_TackTime_Array8=12430
-,P_Anode_Align_Vacuum_TackTime_Array9=12431
-,P_Anode_Align_Vacuum_TackTime_Array10=12432
-,P_Anode_2nd_Vacuum_TackTime_Array1=12433
-,P_Anode_2nd_Vacuum_TackTime_Array2=12434
-,P_Anode_2nd_Vacuum_TackTime_Array3=12435
-,P_Anode_2nd_Vacuum_TackTime_Array4=12436
-,P_Anode_2nd_Vacuum_TackTime_Array5=12437
-,P_Anode_2nd_Vacuum_TackTime_Array6=12438
-,P_Anode_2nd_Vacuum_TackTime_Array7=12439
-,P_Anode_2nd_Vacuum_TackTime_Array8=12440
-,P_Anode_2nd_Vacuum_TackTime_Array9=12441
-,P_Anode_2nd_Vacuum_TackTime_Array10=12442
-,P_Final_Roll_TackTime_Array1=12443
-,P_Final_Roll_TackTime_Array2=12444
-,P_Final_Roll_TackTime_Array3=12445
-,P_Final_Roll_TackTime_Array4=12446
-,P_Final_Roll_TackTime_Array5=12447
-,P_Final_Roll_TackTime_Array6=12448
-,P_Final_Roll_TackTime_Array7=12449
-,P_Final_Roll_TackTime_Array8=12450
-,P_Final_Roll_TackTime_Array9=12451
-,P_Final_Roll_TackTime_Array10=12452
-,P_Sepa_ARC_TackTime_Array1=12453
-,P_Sepa_ARC_TackTime_Array2=12454
-,P_Sepa_ARC_TackTime_Array3=12455
-,P_Sepa_ARC_TackTime_Array4=12456
-,P_Sepa_ARC_TackTime_Array5=12457
-,P_Sepa_ARC_TackTime_Array6=12458
-,P_Sepa_ARC_TackTime_Array7=12459
-,P_Sepa_ARC_TackTime_Array8=12460
-,P_Sepa_ARC_TackTime_Array9=12461
-,P_Sepa_ARC_TackTime_Array10=12462
-,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array1=12463
-,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array2=12464
-,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array3=12465
-,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array4=12466
-,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array5=12467
-,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array6=12468
-,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array7=12469
-,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array8=12470
-,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array9=12471
-,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array10=12472
-,P_Anode_1st_PNP_Vac_Chk_TackTime_Array1=12473
-,P_Anode_1st_PNP_Vac_Chk_TackTime_Array2=12474
-,P_Anode_1st_PNP_Vac_Chk_TackTime_Array3=12475
-,P_Anode_1st_PNP_Vac_Chk_TackTime_Array4=12476
-,P_Anode_1st_PNP_Vac_Chk_TackTime_Array5=12477
-,P_Anode_1st_PNP_Vac_Chk_TackTime_Array6=12478
-,P_Anode_1st_PNP_Vac_Chk_TackTime_Array7=12479
-,P_Anode_1st_PNP_Vac_Chk_TackTime_Array8=12480
-,P_Anode_1st_PNP_Vac_Chk_TackTime_Array9=12481
-,P_Anode_1st_PNP_Vac_Chk_TackTime_Array10=12482
-,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array1=12483
-,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array2=12484
-,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array3=12485
-,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array4=12486
-,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array5=12487
-,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array6=12488
-,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array7=12489
-,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array8=12490
-,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array9=12491
-,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array10=12492
-,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array1=12493
-,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array2=12494
-,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array3=12495
-,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array4=12496
-,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array5=12497
-,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array6=12498
-,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array7=12499
-,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array8=12500
-,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array9=12501
-,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array10=12502
-,P_PACK_ML_Status_bit=12503
-,P_Whole_Stacking_TackTime_MES_Report_Flag=12504
-,P_JellyRoll_Out_TackTime_MES_Report_Flag=12505
-,P_PV_Cathode_Count=12506
-,P_PV_Anode_Count=12507
-,P_PV_Cathode_NG_TR_NG_Count=12512
-,P_PV_Anode_NG_TR_NG_Count=12513
-,P_PV_Anode_Retry_NG_Count=12514
-,P_PV_Cathode_Retry_NG_Count=12515
-,P_PV_Align_INPUT_Count=12516
-,P_Unloader_Grip_Pressure=12517
-,P_Unloader_Heatmeter=12518
-,P_EPC_Y_StandBy=12569
-,P_SV_Read_Enable_Flag=12570
-,P_Spool_Rotate_Distance_mm=12571
-,P_Cathode_Clamp_Gantry=12672
-,P_Anode_Clamp_Gantry=12673
-,P_SV_Separator_Heting_Cutter_Change_Period=12674
-,P_Cathode_Picker_Cylinder_Count=12687
-,P_Anode_Picker_Cylinder_Count=12688
-,P_SV_Stack_Table_Cathode_Reference_Value=12689
-,P_SV_Stack_Table_Anode_Reference_Value=12690
-,P_CA_DR_Offset=12691
-,P_AN_DR_Offset=12692
-,P_First_DR_Offset=12693
-,P_Last_DR_Offset=12694
-,P_BTN_QC_Sample_Flag=12695
-,P_BTN_Loss_Sample_Flag=12696
-,P_MSA_Sample_Flag=12697
-,P_Sample_JR_Recipe_Count=12698
-,P_Ca_Clamp_Y_Move=12699
-,P_An_Clamp_Y_Move=12700
-,P_Stack_Table_JR_Exist_Flag=12701
-,P_Program_Monitoring_Lamp_Cell_Ready=12702
-,P_Program_Monitoring_Lamp_Ready_Pos=12703
-,P_Program_Monitoring_Lamp_Pause_Pos=12704
-,P_Program_Monitoring_Lamp_Motion_Run=12705
-,P_Program_Monitoring_Lamp_Cell_Remove=12706
-,P_Program_Monitoring_Lamp_Cell_Supply=12707
-,P_Program_Monitoring_Lamp_Sepa_Mode=12708
-,P_Program_Monitoring_Lamp_Semi_Run=12709
-,P_Program_Monitoring_Lamp_Stack_Mode=12710
-,P_Program_Monitoring_Lamp_Anode_Aling_NG=12711
-,P_Program_Monitoring_Lamp_Anode_Retry_NG=12712
-,P_Program_Monitoring_Lamp_Cathode_Align_NG=12713
-,P_Program_Monitoring_Lamp_Cathode_Retry_NG=12714
-,P_Program_Monitoring_Lamp_Last_Stack_Mode=12715
-,P_Program_Monitoring_Lamp_Jelly_Roll_OK=12716
-,P_Program_Monitoring_Lamp_Jelly_Roll_NG=12717
-,P_Program_Monitoring_Lamp_Jelly_Roll_Sepa=12718
-,P_Program_Monitoring_Lamp_Cell_Out_Pos=12719
-,P_Program_Monitoring_Lamp_Cell_Out_Mode=12720
-,P_Master_Motion_Program_Flag=12721
-,P_Master_Motion_CycleStop_Flag=12762
-,P_PLC_08_Program_Ver=12813
-,P_Old_PMAC_Commands=12814
-,P_Old_PMAC_Status=12815
-,P_Old_PMAC_Current_Mode=12816
-,P_Mode_Function_State_Machine=12817
-,P_PMAC_Commands=12818
+,P_Status_NP_BTN_Lower_Unwinder=12031
+,P_Status_NP_BTN_Upper_Unwinder=12032
+,P_Driving_CamTable_Scale_Change_Flag=12033
+,P_FR_Driving_Diameter=12034
+,P_FR_Driving_Floating_Point=12035
+,P_FR_Driving_Reward=12036
+,P_Unwinder_Master_Following_Use_Flag=12037
+,P_Unwinder_Master_Following_On=12038
+,P_Old_Master_Following_Start=12039
+,P_Unwinder_Master_Following_Scale=12040
+,P_Unwinder_Jog_Use_Flag=12041
+,P_Old_Jog_Start=12042
+,P_Unwinder_Jog_Total_Time=12043
+,P_Unwinder_Ta=12044
+,P_Unwinder_Ts=12045
+,P_Unwinder_Tm=12046
+,P_Unwinder_1mm_Deg=12047
+,P_Unwinder_Jog_Pos=12048
+,P_Unwinder_Jog_Cnt=12049
+,P_PLC06_Frist_Flag=12050
+,P_Sepa_AI=12051
+,P_PLC06_Reel_Upper_Change_Flag=12052
+,P_PLC06_Reel_Lower_Change_Flag=12053
+,P_Spool_Ready_Enable_Flag=12054
+,P_Spool_Lack_Flag=12055
+,P_Sepa_DR_Start_Flag=12056
+,P_cdTime_Tact_Sec=12057
+,P_Master_Tact_Sec=12058
+,P_Prev_Err_Pos=12059
+,P_Cur_Arc_Rad=12060
+,P_Cur_Arc_Deg=12061
+,P_Spool_Velocity=12062
+,P_Lin_Prop_Vel=12063
+,P_Err_Pos=12064
+,P_Lin_Deriv_Vel=12065
+,P_Lin_Dacer_Kd=12066
+,P_Lin_Dacer_Kp=12067
+,P_Running_CDTimer=12068
+,P_Unwinder_Jog_Ta=12069
+,P_Unwinder_Jog_Ts=12070
+,P_Unwinder_Vel_Test_Time=12071
+,P_Set_Interval_Time=12072
+,P_PLC06_Upper_Sepa_AI_Timer=12073
+,P_PLC06_Upper_Sepa_AI_Data=12074
+,P_PLC06_Upper_Sepa_AI_Cnt=12075
+,P_PLC06_Upper_AVRG_Sensor_Data=12076
+,P_PLC06_Lower_Sepa_AI_Timer=12077
+,P_PLC06_Lower_Sepa_AI_Data=12078
+,P_PLC06_Lower_Sepa_AI_Cnt=12079
+,P_PLC06_Lower_AVRG_Sensor_Data=12080
+,P_PLC06_Sepa_Upper_Thickness_Timer=12081
+,P_PLC06_Sepa_Upper_Thickness_Data=12082
+,P_PLC06_Sepa_Upper_Thickness_Cnt=12083
+,P_PLC06_Sepa_Lower_Thickness_Timer=12084
+,P_PLC06_Sepa_Lower_Thickness_Data=12085
+,P_PLC06_Sepa_Lower_Thickness_Cnt=12086
+,P_Sepa_Thickness_Chk_Timer=12087
+,P_Spool_Length=12088
+,P_Cascade_Sf_Driving_Value=12089
+,P_Cascade_Sf_None_Driving_Value=12090
+,P_Sepa_Min_Value_Cal_Cmd=12091
+,P_Total_Sepa_Need_Length=12092
+,P_Alpa=12093
+,P_Sepa_Num_of_Turns=12094
+,P_Sepa_Turn_Num=12095
+,P_Accumulate_Value=12096
+,P_Sharft_to_Sepa_Core_mm=12097
+,P_Sepa_Cal_Circum=12098
+,P_Sepa_Min_Need_Thickness=12099
+,P_Sepa_Min_Thickness_Cmd=12100
+,P_Sepa_Accumulate_Cmd=12101
+,P_Sepa_Required_Amount=12102
+,P_Sepa_Current_Thickness=12103
+,P_Sepa_Initial_Tickness=12104
+,P_Sepa_Required_Update_Timer=12105
+,P_TEST_EPC_Interlock_Auto=12106
+,P_TEST_EPC_Interlock_Manual=12107
+,P_Discharge_Total_Tact=12108
+,P_PLC15_Sub_Function_Dryrun_Active_Flag=12121
+,P_Sepa_Rotation_Sequence_Run_Trigger_Cnt=12122
+,P_Sepa_Mode_Sepa_Recipe_Count=12123
+,P_Discharged_After_End_Trigger=12124
+,P_Unloader_1st_Grip_Delay=12125
+,P_Separate_Cutter_Heating_Limit_Value=12126
+,P_Separate_Cutting_Current=12127
+,P_Separate_Cutter_Change_Cycle=12128
+,P_X_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger=12129
+,P_X_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger=12130
+,P_X_Cathode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger=12131
+,P_X_Anode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger=12132
+,P_X_Stack_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger=12133
+,P_Interlock_Messege_Confirmed=12134
+,P_X_MC_Communication_HeartBit=12135
+,P_SV_Cathode_Count=12136
+,P_SV_Anode_Count=12137
+,P_SV_Cathode_Reference_Thickness=12141
+,P_SV_Anode_Reference_Thickness=12142
+,P_SV_Stack_Table_Damper_Cathode=12143
+,P_SV_Stack_Table_Damper_Anode=12144
+,P_SV_Sepa_Reference_Thickness=12145
+,P_SV_Jelly_Roll_Width=12146
+,P_Cathode_Align_Continuous_NG_Recipe=12147
+,P_Anode_Align_Continuous_NG_Recipe=12148
+,P_Stack_Vision_Continuous_NG_Recipe=12149
+,P_PLC_Recipe_EPC_Sepa_Count=12150
+,P_PLC_Recipe_Revise_Sepa=12151
+,P_X_PLC_to_PMAC_Correction_Value=12152
+,P_Anode_Align_Continuous_NG_Check_range=12153
+,P_Cathode_Align_Continuous_NG_Check_range=12154
+,P_Stack_Align_Continuous_NG_Check_range=12155
+,P_Cathode_Surface_Continuous_NG_Recipe=12156
+,P_Anode_Surface_Continuous_NG_Recipe=12157
+,P_Cathode_Surface_Continuous_NG_Check_range=12158
+,P_Anode_Surface_Continuous_NG_Check_range=12159
+,P_Servo_Dancer_Alarm_Maximum_Angle_Value=12160
+,P_Servo_Dancer_Alarm_Minimum_Angle_Value=12161
+,P_Current_Selected_Spool_Rev_Counts_Init_Read=12162
+,P_Spool_ARC_Distance_mm=12163
+,P_ARC_Upper_Request_Sepa_Thickness_mm=12164
+,P_ARC_Lower_Request_Sepa_Thickness_mm=12165
+,P_Selected_Spool_Arc_Set_Rev_Counts_Value=12166
+,P_Set_Cnt_FR_Moving_Sepa_ARC=12167
+,P_Current_Selected_Spool_Rev_Counts=12168
+,P_AI_Cathode_Clamp_Damper=12169
+,P_AI_Anode_Clamp_Damper=12170
+,P_Select_Sheet_Value=12181
+,P_BTN_Config_Setup_Mode_Select=12182
+,P_Sepa_Thickness_Max_Value=12183
+,P_AI_Cathode_Clamp_Damper_Zero_Mpa_Analog_Value=12184
+,P_AI_Anode_Clamp_Damper_Zero_Mpa_Analog_Value=12185
+,P_Accumulated_Movement_MM_Unit_Cathode_1ST_pnp=12186
+,P_Accumulated_Movement_MM_Unit_Anode_1ST_pnp=12187
+,P_Accumulated_Movement_MM_Unit_Cathode_2nd_pnp=12188
+,P_Accumulated_Movement_MM_Unit_Anode_2nd_pnp=12189
+,P_AI_Anode_Clamp_Damper_Mpa=12190
+,P_AI_Cathode_Clamp_Damper_Mpa=12191
+,P_Current_Whole_Stack_Jelly_Roll_Thinckness_mm=12192
+,P_Upper_Sepa_Current_Thickness_um=12193
+,P_Lower_Sepa_Current_Thickness_um=12194
+,P_Spool_Rotate_Distance=12195
+,Spool_Diameter=12196
+,P_Current_FR_Moving_Cnt_To_PlC=12197
+,P_MES_APC_Select_Btn=12198
+,P_AO_Anode_Clamp_Damper=12199
+,P_AO_Cathode_Clamp_Damper=12200
+,P_Sepa_Length=12201
+,P_Minus_Limit_Detect_Popup_Flag=12202
+,P_Plus_Limit_Detect_Popup_Flag=12203
+,P_Fatal_Fe_Limit_Detect_Popup_Flag=12204
+,P_Emergency_Alarm_Popup_Flag=12205
+,P_SepaArcing_Popup_Flag=12206
+,P_Y_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger=12207
+,P_Y_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger=12208
+,P_Y_Cathode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger=12209
+,P_Y_Anode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger=12210
+,P_Y_Stack_Align_Calibration_twisted_Cycle_Stop_Request_Trigger=12211
+,P_Current_Selected_Sheet_Value=12212
+,P_Status_Config_Mode_Select=12213
+,P_Sepa_Thickness_Jig_Value=12214
+,P_PV_Stack_Table_Damper_Cathode=12215
+,P_PV_Stack_Table_Damper_Anode=12216
+,P_Discharge_Standby_Pos_Tack_Time=12217
+,P_Discharge_FR_MainZ_Pos_Tack_Time=12218
+,P_Discharge_Unloader_Go_Pos_Tack_Time=12219
+,P_Discharge_SubZ_Down_Pos_Tack_Time=12220
+,P_Discharge_Unloader_Cutting_Pos_Tack_Time=12221
+,P_Discharge_FR_Clamp_ON_Complete_Tack_Time=12222
+,P_Discharge_Cutting_Complete_Tack_Time=12223
+,P_Discharge_Motion_PG_Active_Starting_Tack_Time=12224
+,P_Discharge_Motion_PG_Active_Complete_Tack_Time=12225
+,P_Discharge_Sepa_First_Complete_Tack_Time=12226
+,P_Discharge_Complete_Tack_Time=12227
+,P_Discharge_Total_Tack_Time=12228
+,P_Anode_Clamp_TackTime_Array0=12229
+,P_Anode_Clamp_TackTime_Array1=12230
+,P_Anode_Clamp_TackTime_Array2=12231
+,P_Anode_Clamp_TackTime_Array3=12232
+,P_Anode_Clamp_TackTime_Array4=12233
+,P_Anode_Clamp_TackTime_Array5=12234
+,P_Anode_Clamp_TackTime_Array6=12235
+,P_Anode_Clamp_TackTime_Array7=12236
+,P_Anode_Clamp_TackTime_Array8=12237
+,P_Anode_Clamp_TackTime_Array9=12238
+,P_Anode_Clamp_TackTime_Array10=12239
+,P_Stacking_TackTime_Array0=12240
+,P_Stacking_TackTime_Array1=12241
+,P_Stacking_TackTime_Array2=12242
+,P_Stacking_TackTime_Array3=12243
+,P_Stacking_TackTime_Array4=12244
+,P_Stacking_TackTime_Array5=12245
+,P_Stacking_TackTime_Array6=12246
+,P_Stacking_TackTime_Array7=12247
+,P_Stacking_TackTime_Array8=12248
+,P_Stacking_TackTime_Array9=12249
+,P_Stacking_TackTime_Array10=12250
+,P_Cathode_Clamp_TackTime_Array0=12251
+,P_Cathode_Clamp_TackTime_Array1=12252
+,P_Cathode_Clamp_TackTime_Array2=12253
+,P_Cathode_Clamp_TackTime_Array3=12254
+,P_Cathode_Clamp_TackTime_Array4=12255
+,P_Cathode_Clamp_TackTime_Array5=12256
+,P_Cathode_Clamp_TackTime_Array6=12257
+,P_Cathode_Clamp_TackTime_Array7=12258
+,P_Cathode_Clamp_TackTime_Array8=12259
+,P_Cathode_Clamp_TackTime_Array9=12260
+,P_Cathode_Clamp_TackTime_Array10=12261
+,P_JellyRoll_Out_TackTime_Array0=12262
+,P_JellyRoll_Out_TackTime_Array1=12263
+,P_JellyRoll_Out_TackTime_Array2=12264
+,P_JellyRoll_Out_TackTime_Array3=12265
+,P_JellyRoll_Out_TackTime_Array4=12266
+,P_JellyRoll_Out_TackTime_Array5=12267
+,P_JellyRoll_Out_TackTime_Array6=12268
+,P_JellyRoll_Out_TackTime_Array7=12269
+,P_JellyRoll_Out_TackTime_Array8=12270
+,P_JellyRoll_Out_TackTime_Array9=12271
+,P_JellyRoll_Out_TackTime_Array10=12272
+,P_Anode_1th_TackTime_Array0=12273
+,P_Anode_1th_TackTime_Array1=12274
+,P_Anode_1th_TackTime_Array2=12275
+,P_Anode_1th_TackTime_Array3=12276
+,P_Anode_1th_TackTime_Array4=12277
+,P_Anode_1th_TackTime_Array5=12278
+,P_Anode_1th_TackTime_Array6=12279
+,P_Anode_1th_TackTime_Array7=12280
+,P_Anode_1th_TackTime_Array8=12281
+,P_Anode_1th_TackTime_Array9=12282
+,P_Anode_1th_TackTime_Array10=12283
+,P_Cathode_1th_TackTime_Array0=12284
+,P_Cathode_1th_TackTime_Array1=12285
+,P_Cathode_1th_TackTime_Array2=12286
+,P_Cathode_1th_TackTime_Array3=12287
+,P_Cathode_1th_TackTime_Array4=12288
+,P_Cathode_1th_TackTime_Array5=12289
+,P_Cathode_1th_TackTime_Array6=12290
+,P_Cathode_1th_TackTime_Array7=12291
+,P_Cathode_1th_TackTime_Array8=12292
+,P_Cathode_1th_TackTime_Array9=12293
+,P_Cathode_1th_TackTime_Array10=12294
+,P_Anode_2th_TackTime_Array0=12295
+,P_Anode_2th_TackTime_Array1=12296
+,P_Anode_2th_TackTime_Array2=12297
+,P_Anode_2th_TackTime_Array3=12298
+,P_Anode_2th_TackTime_Array4=12299
+,P_Anode_2th_TackTime_Array5=12300
+,P_Anode_2th_TackTime_Array6=12301
+,P_Anode_2th_TackTime_Array7=12302
+,P_Anode_2th_TackTime_Array8=12303
+,P_Anode_2th_TackTime_Array9=12304
+,P_Anode_2th_TackTime_Array10=12305
+,P_Cathode_2th_TackTime_Array0=12306
+,P_Cathode_2th_TackTime_Array1=12307
+,P_Cathode_2th_TackTime_Array2=12308
+,P_Cathode_2th_TackTime_Array3=12309
+,P_Cathode_2th_TackTime_Array4=12310
+,P_Cathode_2th_TackTime_Array5=12311
+,P_Cathode_2th_TackTime_Array6=12312
+,P_Cathode_2th_TackTime_Array7=12313
+,P_Cathode_2th_TackTime_Array8=12314
+,P_Cathode_2th_TackTime_Array9=12315
+,P_Cathode_2th_TackTime_Array10=12316
+,P_Anode_Align_Table_TackTime_Array0=12317
+,P_Anode_Align_Table_TackTime_Array1=12318
+,P_Anode_Align_Table_TackTime_Array2=12319
+,P_Anode_Align_Table_TackTime_Array3=12320
+,P_Anode_Align_Table_TackTime_Array4=12321
+,P_Anode_Align_Table_TackTime_Array5=12322
+,P_Anode_Align_Table_TackTime_Array6=12323
+,P_Anode_Align_Table_TackTime_Array7=12324
+,P_Anode_Align_Table_TackTime_Array8=12325
+,P_Anode_Align_Table_TackTime_Array9=12326
+,P_Anode_Align_Table_TackTime_Array10=12327
+,P_Cathode_Align_Table_TackTime_Array0=12328
+,P_Cathode_Align_Table_TackTime_Array1=12329
+,P_Cathode_Align_Table_TackTime_Array2=12330
+,P_Cathode_Align_Table_TackTime_Array3=12331
+,P_Cathode_Align_Table_TackTime_Array4=12332
+,P_Cathode_Align_Table_TackTime_Array5=12333
+,P_Cathode_Align_Table_TackTime_Array6=12334
+,P_Cathode_Align_Table_TackTime_Array7=12335
+,P_Cathode_Align_Table_TackTime_Array8=12336
+,P_Cathode_Align_Table_TackTime_Array9=12337
+,P_Cathode_Align_Table_TackTime_Array10=12338
+,P_Anode_NG_PNP_TackTime_Array0=12339
+,P_Anode_NG_PNP_TackTime_Array1=12340
+,P_Anode_NG_PNP_TackTime_Array2=12341
+,P_Anode_NG_PNP_TackTime_Array3=12342
+,P_Anode_NG_PNP_TackTime_Array4=12343
+,P_Anode_NG_PNP_TackTime_Array5=12344
+,P_Anode_NG_PNP_TackTime_Array6=12345
+,P_Anode_NG_PNP_TackTime_Array7=12346
+,P_Anode_NG_PNP_TackTime_Array8=12347
+,P_Anode_NG_PNP_TackTime_Array9=12348
+,P_Anode_NG_PNP_TackTime_Array10=12349
+,P_Cathode_NG_PNP_TackTime_Array0=12350
+,P_Cathode_NG_PNP_TackTime_Array1=12351
+,P_Cathode_NG_PNP_TackTime_Array2=12352
+,P_Cathode_NG_PNP_TackTime_Array3=12353
+,P_Cathode_NG_PNP_TackTime_Array4=12354
+,P_Cathode_NG_PNP_TackTime_Array5=12355
+,P_Cathode_NG_PNP_TackTime_Array6=12356
+,P_Cathode_NG_PNP_TackTime_Array7=12357
+,P_Cathode_NG_PNP_TackTime_Array8=12358
+,P_Cathode_NG_PNP_TackTime_Array9=12359
+,P_Cathode_NG_PNP_TackTime_Array10=12360
+,P_Sepa_Unwinder_TackTime_Array0=12361
+,P_Sepa_Unwinder_TackTime_Array1=12362
+,P_Sepa_Unwinder_TackTime_Array2=12363
+,P_Sepa_Unwinder_TackTime_Array3=12364
+,P_Sepa_Unwinder_TackTime_Array4=12365
+,P_Sepa_Unwinder_TackTime_Array5=12366
+,P_Sepa_Unwinder_TackTime_Array6=12367
+,P_Sepa_Unwinder_TackTime_Array7=12368
+,P_Sepa_Unwinder_TackTime_Array8=12369
+,P_Sepa_Unwinder_TackTime_Array9=12370
+,P_Sepa_Unwinder_TackTime_Array10=12371
+,P_Sepa_Unwinder_TackTime_Array11=12372
+,P_1st_Unloader_TackTime_Array0=12373
+,P_1st_Unloader_TackTime_Array1=12374
+,P_1st_Unloader_TackTime_Array2=12375
+,P_1st_Unloader_TackTime_Array3=12376
+,P_1st_Unloader_TackTime_Array4=12377
+,P_1st_Unloader_TackTime_Array5=12378
+,P_1st_Unloader_TackTime_Array6=12379
+,P_1st_Unloader_TackTime_Array7=12380
+,P_1st_Unloader_TackTime_Array8=12381
+,P_1st_Unloader_TackTime_Array9=12382
+,P_1st_Unloader_TackTime_Array10=12383
+,P_Cathode_1st_Vacuum_TackTime_Array1=12384
+,P_Cathode_1st_Vacuum_TackTime_Array2=12385
+,P_Cathode_1st_Vacuum_TackTime_Array3=12386
+,P_Cathode_1st_Vacuum_TackTime_Array4=12387
+,P_Cathode_1st_Vacuum_TackTime_Array5=12388
+,P_Cathode_1st_Vacuum_TackTime_Array6=12389
+,P_Cathode_1st_Vacuum_TackTime_Array7=12390
+,P_Cathode_1st_Vacuum_TackTime_Array8=12391
+,P_Cathode_1st_Vacuum_TackTime_Array9=12392
+,P_Cathode_1st_Vacuum_TackTime_Array10=12393
+,P_Cathode_Align_Vacuum_TackTime_Array1=12394
+,P_Cathode_Align_Vacuum_TackTime_Array2=12395
+,P_Cathode_Align_Vacuum_TackTime_Array3=12396
+,P_Cathode_Align_Vacuum_TackTime_Array4=12397
+,P_Cathode_Align_Vacuum_TackTime_Array5=12398
+,P_Cathode_Align_Vacuum_TackTime_Array6=12399
+,P_Cathode_Align_Vacuum_TackTime_Array7=12400
+,P_Cathode_Align_Vacuum_TackTime_Array8=12401
+,P_Cathode_Align_Vacuum_TackTime_Array9=12402
+,P_Cathode_Align_Vacuum_TackTime_Array10=12403
+,P_Cathode_2nd_Vacuum_TackTime_Array1=12404
+,P_Cathode_2nd_Vacuum_TackTime_Array2=12405
+,P_Cathode_2nd_Vacuum_TackTime_Array3=12406
+,P_Cathode_2nd_Vacuum_TackTime_Array4=12407
+,P_Cathode_2nd_Vacuum_TackTime_Array5=12408
+,P_Cathode_2nd_Vacuum_TackTime_Array6=12409
+,P_Cathode_2nd_Vacuum_TackTime_Array7=12410
+,P_Cathode_2nd_Vacuum_TackTime_Array8=12411
+,P_Cathode_2nd_Vacuum_TackTime_Array9=12412
+,P_Cathode_2nd_Vacuum_TackTime_Array10=12413
+,P_Anode_1st_Vacuum_TackTime_Array1=12414
+,P_Anode_1st_Vacuum_TackTime_Array2=12415
+,P_Anode_1st_Vacuum_TackTime_Array3=12416
+,P_Anode_1st_Vacuum_TackTime_Array4=12417
+,P_Anode_1st_Vacuum_TackTime_Array5=12418
+,P_Anode_1st_Vacuum_TackTime_Array6=12419
+,P_Anode_1st_Vacuum_TackTime_Array7=12420
+,P_Anode_1st_Vacuum_TackTime_Array8=12421
+,P_Anode_1st_Vacuum_TackTime_Array9=12422
+,P_Anode_1st_Vacuum_TackTime_Array10=12423
+,P_Anode_Align_Vacuum_TackTime_Array1=12424
+,P_Anode_Align_Vacuum_TackTime_Array2=12425
+,P_Anode_Align_Vacuum_TackTime_Array3=12426
+,P_Anode_Align_Vacuum_TackTime_Array4=12427
+,P_Anode_Align_Vacuum_TackTime_Array5=12428
+,P_Anode_Align_Vacuum_TackTime_Array6=12429
+,P_Anode_Align_Vacuum_TackTime_Array7=12430
+,P_Anode_Align_Vacuum_TackTime_Array8=12431
+,P_Anode_Align_Vacuum_TackTime_Array9=12432
+,P_Anode_Align_Vacuum_TackTime_Array10=12433
+,P_Anode_2nd_Vacuum_TackTime_Array1=12434
+,P_Anode_2nd_Vacuum_TackTime_Array2=12435
+,P_Anode_2nd_Vacuum_TackTime_Array3=12436
+,P_Anode_2nd_Vacuum_TackTime_Array4=12437
+,P_Anode_2nd_Vacuum_TackTime_Array5=12438
+,P_Anode_2nd_Vacuum_TackTime_Array6=12439
+,P_Anode_2nd_Vacuum_TackTime_Array7=12440
+,P_Anode_2nd_Vacuum_TackTime_Array8=12441
+,P_Anode_2nd_Vacuum_TackTime_Array9=12442
+,P_Anode_2nd_Vacuum_TackTime_Array10=12443
+,P_Final_Roll_TackTime_Array1=12444
+,P_Final_Roll_TackTime_Array2=12445
+,P_Final_Roll_TackTime_Array3=12446
+,P_Final_Roll_TackTime_Array4=12447
+,P_Final_Roll_TackTime_Array5=12448
+,P_Final_Roll_TackTime_Array6=12449
+,P_Final_Roll_TackTime_Array7=12450
+,P_Final_Roll_TackTime_Array8=12451
+,P_Final_Roll_TackTime_Array9=12452
+,P_Final_Roll_TackTime_Array10=12453
+,P_Sepa_ARC_TackTime_Array1=12454
+,P_Sepa_ARC_TackTime_Array2=12455
+,P_Sepa_ARC_TackTime_Array3=12456
+,P_Sepa_ARC_TackTime_Array4=12457
+,P_Sepa_ARC_TackTime_Array5=12458
+,P_Sepa_ARC_TackTime_Array6=12459
+,P_Sepa_ARC_TackTime_Array7=12460
+,P_Sepa_ARC_TackTime_Array8=12461
+,P_Sepa_ARC_TackTime_Array9=12462
+,P_Sepa_ARC_TackTime_Array10=12463
+,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array1=12464
+,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array2=12465
+,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array3=12466
+,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array4=12467
+,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array5=12468
+,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array6=12469
+,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array7=12470
+,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array8=12471
+,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array9=12472
+,P_Cathode_1st_PNP_Vac_Chk_TackTime_Array10=12473
+,P_Anode_1st_PNP_Vac_Chk_TackTime_Array1=12474
+,P_Anode_1st_PNP_Vac_Chk_TackTime_Array2=12475
+,P_Anode_1st_PNP_Vac_Chk_TackTime_Array3=12476
+,P_Anode_1st_PNP_Vac_Chk_TackTime_Array4=12477
+,P_Anode_1st_PNP_Vac_Chk_TackTime_Array5=12478
+,P_Anode_1st_PNP_Vac_Chk_TackTime_Array6=12479
+,P_Anode_1st_PNP_Vac_Chk_TackTime_Array7=12480
+,P_Anode_1st_PNP_Vac_Chk_TackTime_Array8=12481
+,P_Anode_1st_PNP_Vac_Chk_TackTime_Array9=12482
+,P_Anode_1st_PNP_Vac_Chk_TackTime_Array10=12483
+,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array1=12484
+,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array2=12485
+,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array3=12486
+,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array4=12487
+,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array5=12488
+,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array6=12489
+,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array7=12490
+,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array8=12491
+,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array9=12492
+,P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array10=12493
+,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array1=12494
+,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array2=12495
+,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array3=12496
+,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array4=12497
+,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array5=12498
+,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array6=12499
+,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array7=12500
+,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array8=12501
+,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array9=12502
+,P_Anode_2nd_PNP_Vac_Chk_TackTime_Array10=12503
+,P_PACK_ML_Status_bit=12504
+,P_Whole_Stacking_TackTime_MES_Report_Flag=12505
+,P_JellyRoll_Out_TackTime_MES_Report_Flag=12506
+,P_PV_Cathode_Count=12507
+,P_PV_Anode_Count=12508
+,P_PV_Cathode_NG_TR_NG_Count=12513
+,P_PV_Anode_NG_TR_NG_Count=12514
+,P_PV_Anode_Retry_NG_Count=12515
+,P_PV_Cathode_Retry_NG_Count=12516
+,P_PV_Align_INPUT_Count=12517
+,P_Unloader_Grip_Pressure=12518
+,P_Unloader_Heatmeter=12519
+,P_EPC_Y_StandBy=12570
+,P_SV_Read_Enable_Flag=12571
+,P_Spool_Rotate_Distance_mm=12572
+,P_Cathode_Clamp_Gantry=12673
+,P_Anode_Clamp_Gantry=12674
+,P_SV_Separator_Heting_Cutter_Change_Period=12675
+,P_Cathode_Picker_Cylinder_Count=12688
+,P_Anode_Picker_Cylinder_Count=12689
+,P_SV_Stack_Table_Cathode_Reference_Value=12690
+,P_SV_Stack_Table_Anode_Reference_Value=12691
+,P_CA_DR_Offset=12692
+,P_AN_DR_Offset=12693
+,P_First_DR_Offset=12694
+,P_Last_DR_Offset=12695
+,P_BTN_QC_Sample_Flag=12696
+,P_BTN_Loss_Sample_Flag=12697
+,P_MSA_Sample_Flag=12698
+,P_Sample_JR_Recipe_Count=12699
+,P_Ca_Clamp_Y_Move=12700
+,P_An_Clamp_Y_Move=12701
+,P_Stack_Table_JR_Exist_Flag=12702
+,P_Program_Monitoring_Lamp_Cell_Ready=12703
+,P_Program_Monitoring_Lamp_Ready_Pos=12704
+,P_Program_Monitoring_Lamp_Pause_Pos=12705
+,P_Program_Monitoring_Lamp_Motion_Run=12706
+,P_Program_Monitoring_Lamp_Cell_Remove=12707
+,P_Program_Monitoring_Lamp_Cell_Supply=12708
+,P_Program_Monitoring_Lamp_Sepa_Mode=12709
+,P_Program_Monitoring_Lamp_Semi_Run=12710
+,P_Program_Monitoring_Lamp_Stack_Mode=12711
+,P_Program_Monitoring_Lamp_Anode_Aling_NG=12712
+,P_Program_Monitoring_Lamp_Anode_Retry_NG=12713
+,P_Program_Monitoring_Lamp_Cathode_Align_NG=12714
+,P_Program_Monitoring_Lamp_Cathode_Retry_NG=12715
+,P_Program_Monitoring_Lamp_Last_Stack_Mode=12716
+,P_Program_Monitoring_Lamp_Jelly_Roll_OK=12717
+,P_Program_Monitoring_Lamp_Jelly_Roll_NG=12718
+,P_Program_Monitoring_Lamp_Jelly_Roll_Sepa=12719
+,P_Program_Monitoring_Lamp_Cell_Out_Pos=12720
+,P_Program_Monitoring_Lamp_Cell_Out_Mode=12721
+,P_Master_Motion_Program_Flag=12722
+,P_Master_Motion_CycleStop_Flag=12763
+,P_PLC_08_Program_Ver=12814
+,P_Old_PMAC_Commands=12815
+,P_Old_PMAC_Status=12816
+,P_Old_PMAC_Current_Mode=12817
+,P_Mode_Function_State_Machine=12818
+,P_PMAC_Commands=12819
 ,P_array_CF_Mode_Name=100
 ,P_array_CF_Function_Name=200
 ,P_array_CF_Function_State_Number=300
@@ -6223,102 +6226,102 @@ enum globalP {_globalP_=-1
 ,P_array_CF_Function_Return_Flag=800
 ,P_array_CF_Function_Mask=900
 ,P_array_CF_Function_Debug_Flag=1000
-,P_PMAC_Current_Mode=13053
-,P_PMAC_Status=13054
-,P_PMAC_Old_Mode=13055
-,P_Ready_Tack_Chk_Timer=13056
-,P_PLC09_Common_Command_Flag=13057
-,P_PLC09_Common_Command_Complete_Bit=13058
-,P_PLC09_Common_Execute_Flag=13059
-,P_PLC09_Common_Execute_Complete_Bit=13060
-,P_PLC09_Status=13061
-,P_PLC09_Libraries_Var=13062
-,P_Master_Motion_Program_ON_Flag=13063
-,P_Master_Motion_Program_ON_Complete_Bit=13064
-,P_Master_Motion_Program_OFF_Flag=13065
-,P_Master_Motion_Program_OFF_Complete_Bit=13066
-,P_Common_Function_Timbase_ON_Flag=13067
-,P_Common_Function_Timbase_ON_Complete_Bit=13068
-,P_Common_Function_Timbase_OFF_Flag=13069
-,P_Common_Function_Timbase_OFF_Complete_Bit=13070
-,P_Common_Function_Monitoring_Lamp_OFF_Flag=13071
-,P_Common_Function_Monitoring_Lamp_OFF_Complete_Bit=13072
-,P_Common_Function_Slave_Motion_Common_Init_Flag=13073
-,P_Common_Function_Slave_Motion_Common_Init_Complete_Bit=13074
-,P_Common_Function_OlD_Jog_Speed_Save_ON_Flag=13075
-,P_Common_Function_OlD_Jog_Speed_Save_ON_Complete_Bit=13076
-,P_Auto_Resetting_Sum_Ready_Pos_Check_Flag=13077
-,P_Auto_Resetting_Sum_Ready_Pos_Check_Complete_bit=13078
-,P_Manual_Resetting_Sum_Ready_Pos_Check_Flag=13079
-,P_Manual_Resetting_Sum_Ready_Pos_Check_Complete_bit=13080
-,P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Flag=13081
-,P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Complete_Bit=13082
-,P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Flag=13083
-,P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Complete_Bit=13084
-,P_Motion_Target_Position_Complete=13085
-,P_SM_Auto_Run_Layer_Management=13086
-,P_Buffer_Mode_Status_Sequence=13087
-,P_SM_Sub_Function_Pause=13088
-,P_PLC09_Resetting_Position_Check_State_Machine=13089
-,P_PLC09_Resetting_Position_Moving_State_Machine=13090
-,P_SM_Resetting_Pause_Position=13133
-,P_20per_Vac_Error_Cycle_Stop_Flag=13134
-,P_MNTR_PLC23_ARC_Complete=13135
-,P_FUNCTION_PLC13_Sepa_Trigger_Enable=13136
-,P_PLC_Recipe_PLC2_Revise_Sepa=13137
-,P_Auto_Semi_Init_Status=13138
-,P_Auto_Semi_Init_Chk_Bit=13139
-,P_Old_PLC_HeartBit_Flag=13140
-,P_PLC09_Init_Flag=13141
-,P_Check_IDLE_CF_Flag=13142
-,P_Check_EXECUTE_CF_Flag=13143
-,P_Check_COMPLETING_CF_Flag=13144
-,P_Check_COMPLETE_CF_Flag=13145
-,P_Check_HOLDING_CF_Flag=13146
-,P_Check_HOLD_CF_Flag=13147
-,P_Check_UNHOLDING_CF_Flag=13148
-,P_Check_SUSPENDING_CF_Flag=13149
-,P_Check_SUSPENDED_CF_Flag=13150
-,P_Check_UNSUSPENDING_CF_Flag=13151
-,P_Check_STOPPED_CF_Flag=13152
-,P_Check_ABORTED_CF_Flag=13153
-,P_Check_CLEARING_CF_Flag=13154
-,P_Check_IDLE_CF=13155
-,P_Check_EXECUTE_CF=13156
-,P_Check_COMPLETING_CF=13157
-,P_Check_COMPLETE_CF=13158
-,P_Check_HOLDING_CF=13159
-,P_Check_HOLD_CF=13160
-,P_Check_UNHOLDING_CF=13161
-,P_Check_SUSPENDING_CF=13162
-,P_Check_SUSPENDED_CF=13163
-,P_Check_UNSUSPENDING_CF=13164
-,P_Check_STOPPED_CF=13165
-,P_Check_ABORTED_CF=13166
-,P_Check_CLEARING_CF=13167
-,P_Check_STOPPING_CF=13168
-,P_Check_STARTING_CF=13169
-,P_Check_RESETTING_CF=13170
-,P_Check_STARTTING_CF=13171
-,P_Queue_Clear=13172
-,P_Resetting_First_Approach_Start_Flag=13173
-,P_Resetting_Re_Entry_Step_Count=13174
-,P_PLC09_Alarm_Test_Flag=13175
-,P_PLC09_Test_Temp=13176
-,P_PLC01_STOP_Queue_Complete_Flag=13177
-,P_PMAC_All_Home_Cmd=13178
-,P_PMAC_All_Home_Status=13179
-,P_PMAC_Master_Following_Use_Flag=13180
-,PnP_Belt_Waring_Pos=13181
-,P_Old_X_PLC_Sync_Heart_Bit=13182
-,P_Stack_Heart_Bit_Sync_Flag=13183
-,P_Stack_Heart_Bit_Sunc_Complete_Bit=13184
-,P_Resetting_Init_Module_RTN=13185
-,P_PLC09_MNTR=13186
-,P_Unloder_PNP_Home_IL_Pos=13187
-,P_ECAT_Slave_Err_Bit=13188
-,P_MC_Power_Down_Flag=13189
-,P_Old_MC_Power_Down_Flag=13190
+,P_PMAC_Current_Mode=13054
+,P_PMAC_Status=13055
+,P_PMAC_Old_Mode=13056
+,P_Ready_Tack_Chk_Timer=13057
+,P_PLC09_Common_Command_Flag=13058
+,P_PLC09_Common_Command_Complete_Bit=13059
+,P_PLC09_Common_Execute_Flag=13060
+,P_PLC09_Common_Execute_Complete_Bit=13061
+,P_PLC09_Status=13062
+,P_PLC09_Libraries_Var=13063
+,P_Master_Motion_Program_ON_Flag=13064
+,P_Master_Motion_Program_ON_Complete_Bit=13065
+,P_Master_Motion_Program_OFF_Flag=13066
+,P_Master_Motion_Program_OFF_Complete_Bit=13067
+,P_Common_Function_Timbase_ON_Flag=13068
+,P_Common_Function_Timbase_ON_Complete_Bit=13069
+,P_Common_Function_Timbase_OFF_Flag=13070
+,P_Common_Function_Timbase_OFF_Complete_Bit=13071
+,P_Common_Function_Monitoring_Lamp_OFF_Flag=13072
+,P_Common_Function_Monitoring_Lamp_OFF_Complete_Bit=13073
+,P_Common_Function_Slave_Motion_Common_Init_Flag=13074
+,P_Common_Function_Slave_Motion_Common_Init_Complete_Bit=13075
+,P_Common_Function_OlD_Jog_Speed_Save_ON_Flag=13076
+,P_Common_Function_OlD_Jog_Speed_Save_ON_Complete_Bit=13077
+,P_Auto_Resetting_Sum_Ready_Pos_Check_Flag=13078
+,P_Auto_Resetting_Sum_Ready_Pos_Check_Complete_bit=13079
+,P_Manual_Resetting_Sum_Ready_Pos_Check_Flag=13080
+,P_Manual_Resetting_Sum_Ready_Pos_Check_Complete_bit=13081
+,P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Flag=13082
+,P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Complete_Bit=13083
+,P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Flag=13084
+,P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Complete_Bit=13085
+,P_Motion_Target_Position_Complete=13086
+,P_SM_Auto_Run_Layer_Management=13087
+,P_Buffer_Mode_Status_Sequence=13088
+,P_SM_Sub_Function_Pause=13089
+,P_PLC09_Resetting_Position_Check_State_Machine=13090
+,P_PLC09_Resetting_Position_Moving_State_Machine=13091
+,P_SM_Resetting_Pause_Position=13134
+,P_20per_Vac_Error_Cycle_Stop_Flag=13135
+,P_MNTR_PLC23_ARC_Complete=13136
+,P_FUNCTION_PLC13_Sepa_Trigger_Enable=13137
+,P_PLC_Recipe_PLC2_Revise_Sepa=13138
+,P_Auto_Semi_Init_Status=13139
+,P_Auto_Semi_Init_Chk_Bit=13140
+,P_Old_PLC_HeartBit_Flag=13141
+,P_PLC09_Init_Flag=13142
+,P_Check_IDLE_CF_Flag=13143
+,P_Check_EXECUTE_CF_Flag=13144
+,P_Check_COMPLETING_CF_Flag=13145
+,P_Check_COMPLETE_CF_Flag=13146
+,P_Check_HOLDING_CF_Flag=13147
+,P_Check_HOLD_CF_Flag=13148
+,P_Check_UNHOLDING_CF_Flag=13149
+,P_Check_SUSPENDING_CF_Flag=13150
+,P_Check_SUSPENDED_CF_Flag=13151
+,P_Check_UNSUSPENDING_CF_Flag=13152
+,P_Check_STOPPED_CF_Flag=13153
+,P_Check_ABORTED_CF_Flag=13154
+,P_Check_CLEARING_CF_Flag=13155
+,P_Check_IDLE_CF=13156
+,P_Check_EXECUTE_CF=13157
+,P_Check_COMPLETING_CF=13158
+,P_Check_COMPLETE_CF=13159
+,P_Check_HOLDING_CF=13160
+,P_Check_HOLD_CF=13161
+,P_Check_UNHOLDING_CF=13162
+,P_Check_SUSPENDING_CF=13163
+,P_Check_SUSPENDED_CF=13164
+,P_Check_UNSUSPENDING_CF=13165
+,P_Check_STOPPED_CF=13166
+,P_Check_ABORTED_CF=13167
+,P_Check_CLEARING_CF=13168
+,P_Check_STOPPING_CF=13169
+,P_Check_STARTING_CF=13170
+,P_Check_RESETTING_CF=13171
+,P_Check_STARTTING_CF=13172
+,P_Queue_Clear=13173
+,P_Resetting_First_Approach_Start_Flag=13174
+,P_Resetting_Re_Entry_Step_Count=13175
+,P_PLC09_Alarm_Test_Flag=13176
+,P_PLC09_Test_Temp=13177
+,P_PLC01_STOP_Queue_Complete_Flag=13178
+,P_PMAC_All_Home_Cmd=13179
+,P_PMAC_All_Home_Status=13180
+,P_PMAC_Master_Following_Use_Flag=13181
+,PnP_Belt_Waring_Pos=13182
+,P_Old_X_PLC_Sync_Heart_Bit=13183
+,P_Stack_Heart_Bit_Sync_Flag=13184
+,P_Stack_Heart_Bit_Sunc_Complete_Bit=13185
+,P_Resetting_Init_Module_RTN=13186
+,P_PLC09_MNTR=13187
+,P_Unloder_PNP_Home_IL_Pos=13188
+,P_ECAT_Slave_Err_Bit=13189
+,P_MC_Power_Down_Flag=13190
+,P_Old_MC_Power_Down_Flag=13191
 ,P_Modbus_A_PMAC_Cur_Mode=10
 ,P_Modbus_A_PMAC_Cur_Status=11
 ,P_Modbus_A_VISION_MSA_Status=12
@@ -6338,1457 +6341,1457 @@ enum globalP {_globalP_=-1
 ,P_Modbus_B_All_Home_Status=36
 ,P_Modbus_B_Anode_1st_HCK=37
 ,P_Modbus_B_Cathode_1st_HCK=38
-,P_Modbus_Delay_Timer=13191
-,P_Modbus_Connect_Status=13192
-,P_Modbus_Reconnect_MNTR=13193
-,P_Ecat_Reconn_Chk_Lamp=13194
-,P_MC_Reconn_Chk_Lamp=13195
-,P_Cathode_2TR_PNP_Avoid_Pos=13196
-,P_Anode_2TR_PNP_Avoid_Pos=13197
-,P_Cathode_2TR_PNP_Avoid_Value=13198
-,P_Anode_2TR_PNP_Avoid_Value=13199
-,P_Cathode_1st_Vac_Set_Time=13200
-,P_Cathode_2nd_Vac_Set_Time=13201
-,P_Cathode_Align_Vac_Set_Time=13202
-,P_Cathode_Align_Blow_Set_Time=13203
-,P_Anode_1st_Vac_Set_Time=13204
-,P_Anode_2nd_Vac_Set_Time=13205
-,P_Sepa_Consume_Mode_Thickness_rate=13206
-,P_Sepa_Anode_Recipe_Count=13207
-,P_Sepa_Cathode_Recipe_Count=13208
-,P_Discharge_Cathode_Recipe_Count=13209
-,P_Discharge_Anode_Recipe_Count=13210
-,P_Suspend_Discharge_Cathode_Counter=13211
-,P_Suspend_Discharge_Anode_Counter=13212
-,P_Suspend_Discharge_Waiting_Flag=13213
-,P_Com_ARC_Sepa_Consume_Mode_Flag=13214
-,P_Com_EPC_Sepa_Consume_Mode_Flag=13215
-,P_Com_User_Sepa_Consume_Mode_Flag=13216
-,P_Com_Dry_Mode_Flag=13217
-,P_SM_Recipe_Value_Management=13218
-,P_Sepa_Mode_Recipe_Count=13219
-,P_Sepa_Mode_EPC_Recipe_Count=13220
-,P_ARC_End_Sepa_Recipe_Count=13221
-,P_Cathode_Align_Continuous_NG_Stop_Select=13322
-,P_Anode_Align_Continuous_NG_Stop_Select=13323
-,P_Stack_Vision_NG_Enable=13324
-,P_Cathode_Surface_Continuous_NG_Stop_Select=13325
-,P_Anode_Surface_Continuous_NG_Stop_Select=13326
-,P_Anode_Trigger_IO_Test_Vision_PLC_Loop=13327
-,P_Anode_Trigger_IO_Test_Motion_Loop=13328
-,P_Cathode_Trigger_IO_Test_Vision_PLC_Loop=13329
-,P_Cathode_Trigger_IO_Test_Motion_Loop=13330
-,P_Stack_Trigger_IO_Test_Vision_PLC_Loop=13331
-,P_Stack_Trigger_IO_Test_Motion_Loop=13332
-,P_PLC12_Continuous_Buffer_Reset_Flag=13333
-,P_PLC12_Anode_Sheet_Pick_Up_Flag=13349
-,P_PLC12_Cathode_Sheet_Pick_Up_Flag=13350
-,P_Hold_Anode_Sheet_Pick_Up_Flag=13351
-,P_Hold_Cathode_Sheet_Pick_Up_Flag=13352
-,P_Sheet_Interface_Complete_Pos=13353
-,P_Anode_Sheet_Interface_Complete_Pos=13354
-,P_Cathode_Sheet_Interface_Complete_Pos=13355
-,P_Anode_2nd_TR_Maint_Check=13356
-,P_Cathode_2nd_TR_Maint_Check=13357
-,P_PLC12_Vacuum_1st_Cathode_MNTR_Timer=13395
-,P_PLC12_Vacuum_2nd_Cathode_MNTR_Timer=13396
-,P_PLC12_Vacuum_NG_Cathode_MNTR_Timer=13397
-,P_PLC12_Vacuum_Align_Cathode_MNTR_Timer=13398
-,P_PLC12_Vacuum_1st_Anode_MNTR_Timer=13399
-,P_PLC12_Vacuum_2nd_Anode_MNTR_Timer=13400
-,P_PLC12_Vacuum_NG_Anode_MNTR_Timer=13401
-,P_PLC12_Vacuum_Align_Anode_MNTR_Timer=13402
-,P_PLC12_Vacuum_1st_Cathode_Set_Time=13403
-,P_PLC12_Vacuum_2nd_Cathode_Set_Time=13404
-,P_PLC12_Vacuum_NG_Cathode_Set_Time=13405
-,P_PLC12_Vacuum_Align_Cathode_Set_Time=13406
-,P_PLC12_Vacuum_1st_Anode_Set_Time=13407
-,P_PLC12_Vacuum_2nd_Anode_Set_Time=13408
-,P_PLC12_Vacuum_NG_Anode_Set_Time=13409
-,P_PLC12_Vacuum_Align_Anode_Set_Time=13410
-,P_PLC12_Blow_1st_Cathode_MNTR_Timer=13451
-,P_PLC12_Blow_2nd_Cathode_MNTR_Timer=13452
-,P_PLC12_Blow_NG_Cathode_MNTR_Timer=13453
-,P_PLC12_Blow_Align_Cathode_MNTR_Timer=13454
-,P_PLC12_Blow_1st_Anode_MNTR_Timer=13455
-,P_PLC12_Blow_2nd_Anode_MNTR_Timer=13456
-,P_PLC12_Blow_NG_Anode_MNTR_Timer=13457
-,P_PLC12_Blow_Align_Anode_MNTR_Timer=13458
-,P_PLC12_Blow_1st_Cathode_Set_Time=13459
-,P_PLC12_Blow_2nd_Cathode_Set_Time=13460
-,P_PLC12_Blow_NG_Cathode_Set_Time=13461
-,P_PLC12_Blow_Align_Cathode_Set_Time=13462
-,P_PLC12_Blow_1st_Anode_Set_Time=13463
-,P_PLC12_Blow_2nd_Anode_Set_Time=13464
-,P_PLC12_Blow_NG_Anode_Set_Time=13465
-,P_PLC12_Blow_Align_Anode_Set_Time=13466
-,P_Vacuum_Reentry_Bit=13507
-,P_Blow_Reentry_Bit=13508
-,P_top=13589
-,P_Queue_stack_top=13590
-,P_Step_stack_top=13591
-,P_Index_stack_top=13592
-,P_Status_stack_top=13593
-,NN_Step=13594
-,NN_Index=13595
-,P_PLC12_Frist=13601
-,P_SM_Auto_Run_Status_Management=13602
-,P_SM_Status_Main_Memory_Management=13603
-,P_SM_Cell_Memory_Management=13604
-,P_PLC12_Vacuum_Unit_Data=13637
-,P_PLC12_Blow_Unit_Data=13638
-,P_Stack_Algorithme_Cmd_Event_Status=13639
-,P_PLC12_vacuum_Event_Status=13640
-,P_PLC12_Blow_Event_status=13641
-,P_PLC12_vacuum_DIO_Observer_Status=13642
-,P_PLC12_Blow_DIO_Observer_Status=13643
-,P_Resetting_Vacuum_MNTR_State_Machine=13644
-,P_Heart_Bit_Time=13645
-,P_Dancer_Angle_Alarm_Timer_Flag=13646
-,P_Dancer_Angle_Alarm_Check_Timer=13647
-,P_BTN_LED_LAMP=13648
-,P_Old_BTN_LED_LAMP=13649
-,P_PLC_TO_PMAC_Work_Confirm_Operation_Cnt=13650
-,P_VISION_TO_PMAC_Work_Confirm_Operation_Ack_Cnt=13651
-,P_Ca_AT_Retry_Cal_Move_Complete=13652
-,P_An_AT_Retry_Cal_Move_Complete=13653
-,P_Ca_AT_Retry_Cal_Cnt=13654
-,P_An_AT_Retry_Cal_Cnt=13655
-,P_Ca_AT_Retry_Cal_Complete=13656
-,P_An_AT_Retry_Cal_Complete=13657
-,P_An_AT_Retry_Cal_Pass=13658
-,P_Ca_AT_Retry_Cal_Pass=13659
-,P_Ca_Picker_T_Turn_Cnt_Flag=13660
-,P_Ca_Picker_T_Turn_Cnt=13661
-,P_Ca_Picker_T_Home_Type=13662
-,P_An_Picker_T_Turn_Cnt_Flag=13663
-,P_An_Picker_T_Turn_Cnt=13664
-,P_An_Picker_T_Home_Type=13665
-,P_Flag_Vac_Status_Initialize=13666
-,P_SM_Vac_Initialize=13667
-,P_Flag_Anode_1st_Vac_OFF=13668
-,P_Flag_Anode_AT_Vac_OFF=13669
-,P_Flag_Anode_2nd_Vac_OFF=13670
-,P_Flag_Anode_NG_Vac_OFF=13671
-,P_Flag_Cathode_1st_Vac_OFF=13672
-,P_Flag_Cathode_AT_Vac_OFF=13673
-,P_Flag_Cathode_2nd_Vac_OFF=13674
-,P_Flag_Cathode_NG_Vac_OFF=13675
-,P_Flag_Anode_1st_Vac_Initial_Alarm=13676
-,P_Flag_Anode_AT_Vac_Initial_Alarm=13677
-,P_Flag_Anode_2nd_Vac_Initial_Alarm=13678
-,P_Flag_Anode_NG_Vac_Initial_Alarm=13679
-,P_Flag_Cathode_1st_Vac_Initial_Alarm=13680
-,P_Flag_Cathode_AT_Vac_Initial_Alarm=13681
-,P_Flag_Cathode_2nd_Vac_Initial_Alarm=13682
-,P_Flag_Cathode_NG_Vac_Initial_Alarm=13683
-,P_Middle_Discharge_Ignore_Total_Count=13684
-,P_Middle_Discharge_Ignore_Stack_Count=13685
-,P_Middle_Discharge_Ignore_ON_Signal=13686
-,P_Middle_Discharge_Ignore_OFF_Signal=13687
-,P_Middle_Discharge_Ignore_Cell_Count=13688
-,P_ARC_Middle_Discharge_Ignore_Vision_Check=13689
-,P_ARC_Middle_Discharge_Ignore_ON_Flag=13690
-,P_Middle_Discharge_Ignore_User_Sepa_Mode_Check=13691
-,P_Flag_Sepa_Stack_Mode_CHK=13800
-,P_Initialize_Read_Excom_Variables_Flag=13887
-,P_Cathode_Clamp_MC_Cylinder_Count=13897
-,P_Cathode_Clamp_OP_Cylinder_Count=13898
-,P_Anode_Clamp_MC_Cylinder_Count=13899
-,P_Anode_Clamp_OP_Cylinder_Count=13900
+,P_Modbus_Delay_Timer=13192
+,P_Modbus_Connect_Status=13193
+,P_Modbus_Reconnect_MNTR=13194
+,P_Ecat_Reconn_Chk_Lamp=13195
+,P_MC_Reconn_Chk_Lamp=13196
+,P_Cathode_2TR_PNP_Avoid_Pos=13197
+,P_Anode_2TR_PNP_Avoid_Pos=13198
+,P_Cathode_2TR_PNP_Avoid_Value=13199
+,P_Anode_2TR_PNP_Avoid_Value=13200
+,P_Cathode_1st_Vac_Set_Time=13201
+,P_Cathode_2nd_Vac_Set_Time=13202
+,P_Cathode_Align_Vac_Set_Time=13203
+,P_Cathode_Align_Blow_Set_Time=13204
+,P_Anode_1st_Vac_Set_Time=13205
+,P_Anode_2nd_Vac_Set_Time=13206
+,P_Sepa_Consume_Mode_Thickness_rate=13207
+,P_Sepa_Anode_Recipe_Count=13208
+,P_Sepa_Cathode_Recipe_Count=13209
+,P_Discharge_Cathode_Recipe_Count=13210
+,P_Discharge_Anode_Recipe_Count=13211
+,P_Suspend_Discharge_Cathode_Counter=13212
+,P_Suspend_Discharge_Anode_Counter=13213
+,P_Suspend_Discharge_Waiting_Flag=13214
+,P_Com_ARC_Sepa_Consume_Mode_Flag=13215
+,P_Com_EPC_Sepa_Consume_Mode_Flag=13216
+,P_Com_User_Sepa_Consume_Mode_Flag=13217
+,P_Com_Dry_Mode_Flag=13218
+,P_SM_Recipe_Value_Management=13219
+,P_Sepa_Mode_Recipe_Count=13220
+,P_Sepa_Mode_EPC_Recipe_Count=13221
+,P_ARC_End_Sepa_Recipe_Count=13222
+,P_Cathode_Align_Continuous_NG_Stop_Select=13323
+,P_Anode_Align_Continuous_NG_Stop_Select=13324
+,P_Stack_Vision_NG_Enable=13325
+,P_Cathode_Surface_Continuous_NG_Stop_Select=13326
+,P_Anode_Surface_Continuous_NG_Stop_Select=13327
+,P_Anode_Trigger_IO_Test_Vision_PLC_Loop=13328
+,P_Anode_Trigger_IO_Test_Motion_Loop=13329
+,P_Cathode_Trigger_IO_Test_Vision_PLC_Loop=13330
+,P_Cathode_Trigger_IO_Test_Motion_Loop=13331
+,P_Stack_Trigger_IO_Test_Vision_PLC_Loop=13332
+,P_Stack_Trigger_IO_Test_Motion_Loop=13333
+,P_PLC12_Continuous_Buffer_Reset_Flag=13334
+,P_PLC12_Anode_Sheet_Pick_Up_Flag=13350
+,P_PLC12_Cathode_Sheet_Pick_Up_Flag=13351
+,P_Hold_Anode_Sheet_Pick_Up_Flag=13352
+,P_Hold_Cathode_Sheet_Pick_Up_Flag=13353
+,P_Sheet_Interface_Complete_Pos=13354
+,P_Anode_Sheet_Interface_Complete_Pos=13355
+,P_Cathode_Sheet_Interface_Complete_Pos=13356
+,P_Anode_2nd_TR_Maint_Check=13357
+,P_Cathode_2nd_TR_Maint_Check=13358
+,P_PLC12_Vacuum_1st_Cathode_MNTR_Timer=13396
+,P_PLC12_Vacuum_2nd_Cathode_MNTR_Timer=13397
+,P_PLC12_Vacuum_NG_Cathode_MNTR_Timer=13398
+,P_PLC12_Vacuum_Align_Cathode_MNTR_Timer=13399
+,P_PLC12_Vacuum_1st_Anode_MNTR_Timer=13400
+,P_PLC12_Vacuum_2nd_Anode_MNTR_Timer=13401
+,P_PLC12_Vacuum_NG_Anode_MNTR_Timer=13402
+,P_PLC12_Vacuum_Align_Anode_MNTR_Timer=13403
+,P_PLC12_Vacuum_1st_Cathode_Set_Time=13404
+,P_PLC12_Vacuum_2nd_Cathode_Set_Time=13405
+,P_PLC12_Vacuum_NG_Cathode_Set_Time=13406
+,P_PLC12_Vacuum_Align_Cathode_Set_Time=13407
+,P_PLC12_Vacuum_1st_Anode_Set_Time=13408
+,P_PLC12_Vacuum_2nd_Anode_Set_Time=13409
+,P_PLC12_Vacuum_NG_Anode_Set_Time=13410
+,P_PLC12_Vacuum_Align_Anode_Set_Time=13411
+,P_PLC12_Blow_1st_Cathode_MNTR_Timer=13452
+,P_PLC12_Blow_2nd_Cathode_MNTR_Timer=13453
+,P_PLC12_Blow_NG_Cathode_MNTR_Timer=13454
+,P_PLC12_Blow_Align_Cathode_MNTR_Timer=13455
+,P_PLC12_Blow_1st_Anode_MNTR_Timer=13456
+,P_PLC12_Blow_2nd_Anode_MNTR_Timer=13457
+,P_PLC12_Blow_NG_Anode_MNTR_Timer=13458
+,P_PLC12_Blow_Align_Anode_MNTR_Timer=13459
+,P_PLC12_Blow_1st_Cathode_Set_Time=13460
+,P_PLC12_Blow_2nd_Cathode_Set_Time=13461
+,P_PLC12_Blow_NG_Cathode_Set_Time=13462
+,P_PLC12_Blow_Align_Cathode_Set_Time=13463
+,P_PLC12_Blow_1st_Anode_Set_Time=13464
+,P_PLC12_Blow_2nd_Anode_Set_Time=13465
+,P_PLC12_Blow_NG_Anode_Set_Time=13466
+,P_PLC12_Blow_Align_Anode_Set_Time=13467
+,P_Vacuum_Reentry_Bit=13508
+,P_Blow_Reentry_Bit=13509
+,P_top=13590
+,P_Queue_stack_top=13591
+,P_Step_stack_top=13592
+,P_Index_stack_top=13593
+,P_Status_stack_top=13594
+,NN_Step=13595
+,NN_Index=13596
+,P_PLC12_Frist=13602
+,P_SM_Auto_Run_Status_Management=13603
+,P_SM_Status_Main_Memory_Management=13604
+,P_SM_Cell_Memory_Management=13605
+,P_PLC12_Vacuum_Unit_Data=13638
+,P_PLC12_Blow_Unit_Data=13639
+,P_Stack_Algorithme_Cmd_Event_Status=13640
+,P_PLC12_vacuum_Event_Status=13641
+,P_PLC12_Blow_Event_status=13642
+,P_PLC12_vacuum_DIO_Observer_Status=13643
+,P_PLC12_Blow_DIO_Observer_Status=13644
+,P_Resetting_Vacuum_MNTR_State_Machine=13645
+,P_Heart_Bit_Time=13646
+,P_Dancer_Angle_Alarm_Timer_Flag=13647
+,P_Dancer_Angle_Alarm_Check_Timer=13648
+,P_BTN_LED_LAMP=13649
+,P_Old_BTN_LED_LAMP=13650
+,P_PLC_TO_PMAC_Work_Confirm_Operation_Cnt=13651
+,P_VISION_TO_PMAC_Work_Confirm_Operation_Ack_Cnt=13652
+,P_Ca_AT_Retry_Cal_Move_Complete=13653
+,P_An_AT_Retry_Cal_Move_Complete=13654
+,P_Ca_AT_Retry_Cal_Cnt=13655
+,P_An_AT_Retry_Cal_Cnt=13656
+,P_Ca_AT_Retry_Cal_Complete=13657
+,P_An_AT_Retry_Cal_Complete=13658
+,P_An_AT_Retry_Cal_Pass=13659
+,P_Ca_AT_Retry_Cal_Pass=13660
+,P_Ca_Picker_T_Turn_Cnt_Flag=13661
+,P_Ca_Picker_T_Turn_Cnt=13662
+,P_Ca_Picker_T_Home_Type=13663
+,P_An_Picker_T_Turn_Cnt_Flag=13664
+,P_An_Picker_T_Turn_Cnt=13665
+,P_An_Picker_T_Home_Type=13666
+,P_Flag_Vac_Status_Initialize=13667
+,P_SM_Vac_Initialize=13668
+,P_Flag_Anode_1st_Vac_OFF=13669
+,P_Flag_Anode_AT_Vac_OFF=13670
+,P_Flag_Anode_2nd_Vac_OFF=13671
+,P_Flag_Anode_NG_Vac_OFF=13672
+,P_Flag_Cathode_1st_Vac_OFF=13673
+,P_Flag_Cathode_AT_Vac_OFF=13674
+,P_Flag_Cathode_2nd_Vac_OFF=13675
+,P_Flag_Cathode_NG_Vac_OFF=13676
+,P_Flag_Anode_1st_Vac_Initial_Alarm=13677
+,P_Flag_Anode_AT_Vac_Initial_Alarm=13678
+,P_Flag_Anode_2nd_Vac_Initial_Alarm=13679
+,P_Flag_Anode_NG_Vac_Initial_Alarm=13680
+,P_Flag_Cathode_1st_Vac_Initial_Alarm=13681
+,P_Flag_Cathode_AT_Vac_Initial_Alarm=13682
+,P_Flag_Cathode_2nd_Vac_Initial_Alarm=13683
+,P_Flag_Cathode_NG_Vac_Initial_Alarm=13684
+,P_Middle_Discharge_Ignore_Total_Count=13685
+,P_Middle_Discharge_Ignore_Stack_Count=13686
+,P_Middle_Discharge_Ignore_ON_Signal=13687
+,P_Middle_Discharge_Ignore_OFF_Signal=13688
+,P_Middle_Discharge_Ignore_Cell_Count=13689
+,P_ARC_Middle_Discharge_Ignore_Vision_Check=13690
+,P_ARC_Middle_Discharge_Ignore_ON_Flag=13691
+,P_Middle_Discharge_Ignore_User_Sepa_Mode_Check=13692
+,P_Flag_Sepa_Stack_Mode_CHK=13801
+,P_Initialize_Read_Excom_Variables_Flag=13888
+,P_Cathode_Clamp_MC_Cylinder_Count=13898
+,P_Cathode_Clamp_OP_Cylinder_Count=13899
+,P_Anode_Clamp_MC_Cylinder_Count=13900
+,P_Anode_Clamp_OP_Cylinder_Count=13901
 ,P_Cathode_1ST_TR_Cylinder_Count=8003
 ,P_Anode_1ST_TR_Cylinder_Count=8004
-,P_BTN_Cathode_Clamp_inside_Machine_Cylinder_Count_Clear=13901
-,P_BTN_Cathode_Clamp_Middle_Cylinder_Count_Clear=13902
-,P_BTN_Cathode_Clamp_outside_Machine_Cylinder_Count_Clear=13903
-,P_BTN_Anode_Clamp_inside_Machine_Cylinder_Count_Clear=13904
-,P_BTN_Anode_Clamp_Middle_Cylinder_Count_Clear=13905
-,P_BTN_Anode_Clamp_outside_Machine_Cylinder_Count_Clear=13906
-,P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear=13907
-,P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear_Old=13908
-,P_BTN_Anode_1ST_TR_Cylinder_Count_Clear=13909
-,P_BTN_Anode_1ST_TR_Cylinder_Count_Clear_Old=13910
-,P_RECIPE_PLC27_Manual_Interval=14926
-,P_RECIPE_PLC27_Auto_Interval=14927
-,P_Recipe_Speed_Value=15134
-,P_Slave6_Target_X_For_Cell_Out=15135
-,P_Poistion_error=15336
-,P_Recipe_Count_Num=15387
-,L_Motor_Status_Update_Interval=15388
-,L_Motor_Recipe_Update_Interval=15389
-,P_UI_Servo_On_Off=15390
-,P_Jog_Sel_Count=15490
-,P_User_Jog_Distance=15777
-,P_BTN_Sel_Count=16128
-,P_PC_BTN_No=16129
-,P_BTN_Interlock_Update_Interval=16130
-,P_Align_Table_Status_Update_Interval=16131
-,P_Jelly_Roll_Total_Count_Old=16132
-,P_Old_m4120=16133
-,P_Old_m4121=16134
-,P_Old_m4122=16135
-,P_Old_m4123=16136
-,P_Flag_Linear_Enc_Homezero_Complete_M17=16157
-,P_Flag_Linear_Enc_Homezero_Complete_M18=16158
-,P_Flag_Linear_Enc_Homezero_Complete_M19=16159
-,P_Flag_Linear_Enc_Homezero_Complete_M20=16160
-,P_CMD_Linear_ENC_Homezero_M17=16161
-,P_CMD_Linear_ENC_Homezero_M18=16162
-,P_CMD_Linear_ENC_Homezero_M19=16163
-,P_CMD_Linear_ENC_Homezero_M20=16164
-,P_RECIPE_PLC27_Alltime_Interval=16195
-,P_Manual_Memory_Tower_Timer=16196
-,P_Memory_Tower_Interval=16197
-,P_PLC_14_Status_Cycle_Stop_Flag=16198
-,P_Cathode_AlignTable_Cleaning_Pos_Status_Machine=16199
-,P_Anode_AlignTable_Cleaning_Pos_Status_Machine=16200
-,P_Status_Cathode_AlignTable_Cleaning_Pos=16201
-,P_Status_Anode_AlignTable_Cleaning_Pos=16202
-,P_CMD_Cathode_AlignTable_Cleaning_Pos=16203
-,P_CMD_Anode_AlignTable_Cleaning_Pos=16204
-,P_Cathode_2nd_pnp_Cleaning_Mode_Pos=16205
-,P_Anode_2nd_pnp_Cleaning_Mode_Pos=16206
-,P_Interlock_Test=16207
-,P_PNP_Picker_T_Pos=16208
-,P_NG_PNP_Pos=16209
-,M_Old_X_BTN_Machine_READY=16210
-,M_Old_X_BTN_Machine_START=16211
-,M_Old_X_BTN_Machine_STOP=16212
-,M_Old_X_BTN_Machine_RESET=16213
-,M_Old_X_BTN_Machine_MODE=16214
-,P_BTN_Motor_Pos_Check_RTN=16215
-,P_BTN_Memory_Tower_Check_Bit=16216
-,P_PMAC_Status_IDLE_Motor_Not_Pos=16217
-,P_PMAC_Status_IDLE_Motor_Pos=16218
-,P_BTN_Motor_Pos_Check_Monitor=16219
-,P_PackML_Auto_Stop_Bit=16220
-,P_BTN_IDLE_Motor_Not_Pos=16221
-,M_X_BTN_Machine_Mode=16222
-,M_Old_X_BTN_Machine_Mode=16223
-,P_Lamp_Blinking_Timer=16224
-,P_BTN_Ready_Lamp=16225
-,P_BTN_Start_Lamp=16226
-,P_BTN_Stop_Lamp=16227
-,P_ARC_Name_Plate_Passive_Status=16228
-,P_ARC_Passive_Status=16229
-,P_NP_Spool_Number=16230
-,P_ARC_Page_On=16231
-,P_ARC_NP_Upper_Timer=16232
-,P_ARC_Upper_Ready=16233
-,P_ARC_NP_Upper_3rd_Step_Toggle_Variable=16234
-,P_ARC_NP_Upper_7th_Step_Variable=16235
-,P_ARC_NP_Upper_7th_Step_Edge_Variable=16236
-,P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit=16237
-,P_ARC_NP_Lower_Timer=16238
-,P_ARC_Lower_Ready=16239
-,P_ARC_NP_Lower_3rd_Step_Toggle_Variable=16240
-,P_ARC_NP_Lower_7th_Step_Variable=16241
-,P_ARC_NP_Lower_7th_Step_Edge_Variable=16242
-,P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit=16243
-,M_Old_X_ARC_NP_Ready=16244
-,M_Old_X_ARC_NP_Unwinder_Rotation=16245
-,M_Old_X_ARC_NP_Unwinder_Re_Rotation=16246
-,P_Status_Clear_Flag=16247
-,P_Status_Clear_RTN=16248
-,P_MSA_BTN_On=16249
-,P_Align_Take_Off_BTN_ON=16250
-,P_ARC_NP_Upper_Ready_Check_Bit=16251
-,P_ARC_NP_Lower_Ready_Check_Bit=16252
-,P_Stopping_CycleStop_Status=16353
-,P_Stopping_CycleStop_Seq_Index=16354
-,P_Stopping_CycleStop_Precondition_Seq_Index=16355
-,P_Stopping_CycleStop_Module_Status=16356
-,P_Stopping_CycleStop_Cmd=16357
-,P_Stopping_CycleStop_State_Machine=16358
-,P_Final_Roll_Cathode_Pos_Status=16479
-,P_Sheet_Paper_FWD_Pos_Status=16480
-,P_Final_Roll_Vision_Pos_Status=16481
-,P_Cathode_Clamp_ON_Status=16482
-,P_Anode_Clamp_ON_Status=16483
-,P_Anode_Clamp_OFF_Status=16484
-,P_Partition_Up_Flag=16485
-,P_Partition_Down_Flag=16486
-,P_Partition_Avoid_Flag=16487
-,P_Partition_Avoid_Z_Speed=16488
-,P_Partition_Avoid_X_Speed=16489
-,P_Partition_Avoid_T_Speed=16490
-,P_Partition_Avoid_2nd_T_Pos=16491
-,P_Partition_Step_Flag=16492
-,P_Partition_1st_Avoid_Offset=16493
-,P_Partition_Picker_Avoid_Offset=16494
-,P_Partition_Avoid_Check=16495
-,P_Anode_NG_PNP_Tact_Time_Start=16576
-,P_Cathode_NG_PNP_Tact_Time_Start=16577
-,P_Anode_NG_PNP_Tact_Time_End=16578
-,P_Cathode_NG_PNP_Tact_Time_End=16579
-,P_Tact_Time_Final_Roller_Clamp=16770
-,P_Tact_Time_Final_Roller_Unclamp=16771
-,P_Tact_Time_Stack_Table_Down=16772
-,P_Tact_Time_Stack_Table_Up=16773
-,P_Tact_Time_Sepa_Cutting_Down=16774
-,P_Tact_Time_Sepa_Cutting_Up=16775
-,P_Tact_Time_ARC_Upper_Plate_Up=16776
-,P_Tact_Time_ARC_Upper_Plate_Down=16777
-,P_Tact_Time_ARC_Upper_Tilting_On=16778
-,P_Tact_Time_ARC_Upper_Tilting_Off=16779
-,P_Tact_Time_ARC_Upper_Cutter_Fwd=16780
-,P_Tact_Time_ARC_Upper_Cutter_Bwd=16781
-,P_Tact_Time_ARC_Upper_Clamp_On=16782
-,P_Tact_Time_ARC_Upper_Clamp_Off=16783
-,P_Tact_Time_ARC_Lower_Plate_Up=16784
-,P_Tact_Time_ARC_Lower_Plate_Down=16785
-,P_Tact_Time_ARC_Lower_Tilting_On=16786
-,P_Tact_Time_ARC_Lower_Tilting_Off=16787
-,P_Tact_Time_ARC_Lower_Cutter_Fwd=16788
-,P_Tact_Time_ARC_Lower_Cutter_Bwd=16789
-,P_Tact_Time_ARC_Lower_Clamp_On=16790
-,P_Tact_Time_ARC_Lower_Clamp_Off=16791
-,P_Tact_Time_Save_Final_Roller_Clamp_Time=16792
-,P_Tact_Time_Save_Final_Roller_Unclamp_Time=16793
-,P_Tact_Time_Save_Stack_Table_Down_Time=16794
-,P_Tact_Time_Save_Stack_Table_Up_Time=16795
-,P_Tact_Time_Save_Sepa_Cutting_Down_Time=16796
-,P_Tact_Time_Save_Sepa_Cutting_Up_Time=16797
-,P_Tact_Time_Save_ARC_Upper_Plate_Up_Time=16798
-,P_Tact_Time_Save_ARC_Upper_Plate_Down_Time=16799
-,P_Tact_Time_Save_ARC_Upper_Tilting_On_Time=16800
-,P_Tact_Time_Save_ARC_Upper_Tilting_Off_Time=16801
-,P_Tact_Time_Save_ARC_Upper_Cutter_Fwd_Time=16802
-,P_Tact_Time_Save_ARC_Upper_Cutter_Bwd_Time=16803
-,P_Tact_Time_Save_ARC_Upper_Clamp_On_Time=16804
-,P_Tact_Time_Save_ARC_Upper_Clamp_Off_Time=16805
-,P_Tact_Time_Save_ARC_Lower_Plate_Up_Time=16806
-,P_Tact_Time_Save_ARC_Lower_Plate_Down_Time=16807
-,P_Tact_Time_Save_ARC_Lower_Tilting_On_Time=16808
-,P_Tact_Time_Save_ARC_Lower_Tilting_Off_Time=16809
-,P_Tact_Time_Save_ARC_Lower_Cutter_Fwd_Time=16810
-,P_Tact_Time_Save_ARC_Lower_Cutter_Bwd_Time=16811
-,P_Tact_Time_Save_ARC_Lower_Clamp_On_Time=16812
-,P_Tact_Time_Save_ARC_Lower_Clamp_Off_Time=16813
-,P_Tact_Time_Array_Init=16934
-,P_Last_Run_To_Discharge_Tact_Timer=16935
-,P_Last_Run_To_Discharge_Tact_Time=16936
-,P_Master_Trigger_Sync_Tact_Timer=16937
-,P_Master_Trigger_Sync_Tact_Time=16938
-,P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag=16939
-,P_PLC18_EPC_Retry_Mode_Time_Use_Flag=16940
-,P_PLC18_Vision_EPC_Correction_Request_Old=16941
-,P_PLC18_EPC_Moving_Flag=16942
-,P_PLC18_EPC_Moving_Status=16943
-,P_PLC18_EPC_Move_State_Machine=16944
-,P_PLC18_EPC_Move_Status=16945
-,P_PLC18_EPC_inspection_Time=16946
-,P_EPC_Insp_Time=16947
-,P_EPC_Correction_Time=16948
-,P_TEST_Max_EPC_Sensor_Value_um=16949
-,P_PLC18_EPC_Moving_Timer=16950
-,P_EPC_Axis_Target_Y=16961
-,P_Com_After_Sepa_Mode_Status=16962
-,P_PLC18_PLC_to_PMAC_Correction_Value=16963
-,P_PLC_EPC_Status=16964
-,P_EPC_Retry_Over_Alarm_Flag=16965
-,P_ARC_EPC_Vision_Value_Apply_Bit=16966
-,P_ARC_EPC_Vision_Value_Apply_Flag=16967
-,P_ARC_EPC_Vision_Value_Apply_State_Machine=16968
-,P_ARC_EPC_Vision_Value_Apply_Timer=16969
-,P_ARC_EPC_Vision_Value_Apply_Time=16970
-,P_AH_Home_Status=16971
-,P_Resetting_All_Home_Command=16972
-,P_Homing_Alarm_Time=16973
-,P_All_Home_Stop_Cmd=17024
-,P_Home_First_Move=17025
-,P_DD_M_Home_Pos_Flag=17112
-,P_WAIT_INDEX=17113
-,P_FR_Cmd_Check_Flag=17164
-,P_PV_Separator_Dancer_Pressure=17165
-,P_PV_Cathode_Clamp_Pressure=17166
-,P_PV_Anoode_Clamp_Pressure=17167
-,P_PV_Cathode_Final_Roller_X_Axis=17168
-,P_PV_Anode_Final_Roller_X_Axis=17169
-,P_PV_Cathode_Clamp_ON_Y1_Axis_Pos=17170
-,P_PV_Cathode_Clamp_ON_Y2_Axis_Pos=17171
-,P_PV_Cathode_Clamp_ON_Z1_Axis_Pos=17172
-,P_PV_Cathode_Clamp_ON_Z2_Axis_Pos=17173
-,P_PV_Anode_Clamp_ON_Y1_Axis_Pos=17174
-,P_PV_Anode_Clamp_ON_Y2_Axis_Pos=17175
-,P_PV_Anode_Clamp_ON_Z1_Axis_Pos=17176
-,P_PV_Anode_Clamp_ON_Z2_Axis_Pos=17177
-,P_PV_Cathode_2th_AT_T_Axis_Pos=17178
-,P_PV_Cathode_2th_ST_T_Axis_Pos=17179
-,P_PV_Cathode_2th_AT_Z_Axis_Pos=17180
-,P_PV_Cathode_2th_ST_Z_Axis_Pos=17181
-,P_PV_Anode_2th_AT_T_Axis_Pos=17182
-,P_PV_Anode_2th_ST_T_Axis_Pos=17183
-,P_PV_Anode_2th_AT_Z_Axis_Pos=17184
-,P_PV_Anode_2th_ST_Z_Axis_Pos=17185
-,P_PV_Cathode_1th_Ready_T_Axis_Pos=17186
-,P_PV_Cathode_1th_CV_T_Axis_Pos=17187
-,P_PV_Cathode_1th_AT_T_Axis_Pos=17188
-,P_PV_Cathode_1th_Ready_Z_Axis_Pos=17189
-,P_PV_Cathode_1th_CV_Z_Axis_Pos=17190
-,P_PV_Cathode_1th_AT_Z_Axis_Pos=17191
-,P_PV_Anode_1th_Ready_T_Axis_Pos=17192
-,P_PV_Anode_1th_CV_T_Axis_Pos=17193
-,P_PV_Anode_1th_AT_T_Axis_Pos=17194
-,P_PV_Anode_1th_Ready_Z_Axis_Pos=17195
-,P_PV_Anode_1th_CV_Z_Axis_Pos=17196
-,P_PV_Anode_1th_AT_Z_Axis_Pos=17197
-,P_PV_Cathode_NG_AT_T_Axis_Pos=17198
-,P_PV_Cathode_NG_Box_T_Axis_Pos=17199
-,P_PV_Anode_NG_AT_T_Axis_Pos=17200
-,P_PV_Anode_NG_Box_T_Axis_Pos=17201
-,P_PV_1st_Unloader_X_Axis_Pos=17202
-,P_PV_1st_Unloader_Z_Axis_Pos=17203
-,P_SemiRun_Separator_Dancer_Pressure_Flag=17204
-,P_SemiRun_Cathode_Clamp_Pressure_Flag=17205
-,P_SemiRun_Anoode_Clamp_Pressure_Flag=17206
-,P_SemiRun_Cathode_Final_Roller_X_Axis_Flag=17207
-,P_SemiRun_Anode_Final_Roller_X_Axis_Flag=17208
-,P_SemiRun_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag=17209
-,P_SemiRun_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag=17210
-,P_SemiRun_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag=17211
-,P_SemiRun_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag=17212
-,P_SemiRun_Cathode_2th_AT_T_Axis_Pos_Flag=17213
-,P_SemiRun_Cathode_2th_ST_T_Axis_Pos_Flag=17214
-,P_SemiRun_Cathode_2th_AT_Z_Axis_Pos_Flag=17215
-,P_SemiRun_Cathode_2th_ST_Z_Axis_Pos_Flag=17216
-,P_SemiRun_Anode_2th_AT_T_Axis_Pos_Flag=17217
-,P_SemiRun_Anode_2th_ST_T_Axis_Pos_Flag=17218
-,P_SemiRun_Anode_2th_AT_Z_Axis_Pos_Flag=17219
-,P_SemiRun_Anode_2th_ST_Z_Axis_Pos_Flag=17220
-,P_SemiRun_Cathode_1th_Ready_T_Axis_Pos_Flag=17221
-,P_SemiRun_Cathode_1th_CV_T_Axis_Pos_Flag=17222
-,P_SemiRun_Cathode_1th_AT_T_Axis_Pos_Flag=17223
-,P_SemiRun_Cathode_1th_Ready_Z_Axis_Pos_Flag=17224
-,P_SemiRun_Cathode_1th_CV_Z_Axis_Pos_Flag=17225
-,P_SemiRun_Cathode_1th_AT_Z_Axis_Pos_Flag=17226
-,P_SemiRun_Anode_1th_Ready_T_Axis_Pos_Flag=17227
-,P_SemiRun_Anode_1th_CV_T_Axis_Pos_Flag=17228
-,P_SemiRun_Anode_1th_AT_T_Axis_Pos_Flag=17229
-,P_SemiRun_Anode_1th_Ready_Z_Axis_Pos_Flag=17230
-,P_SemiRun_Anode_1th_CV_Z_Axis_Pos_Flag=17231
-,P_SemiRun_Anode_1th_AT_Z_Axis_Pos_Flag=17232
-,P_SemiRun_Cathode_NG_AT_T_Axis_Pos_Flag=17233
-,P_SemiRun_Cathode_NG_Box_T_Axis_Pos_Flag=17234
-,P_SemiRun_Anode_NG_AT_T_Axis_Pos_Flag=17235
-,P_SemiRun_Anode_NG_Box_T_Axis_Pos_Flag=17236
-,P_SemiRun_1st_Unloader_Forward_Pos_Flag=17237
-,P_Motion_Separator_Dancer_Pressure_Flag=17238
-,P_Motion_Cathode_Clamp_Pressure_Flag=17239
-,P_Motion_Anoode_Clamp_Pressure_Flag=17240
-,P_Motion_Cathode_Final_Roller_X_Axis_Flag=17241
-,P_Motion_Anode_Final_Roller_X_Axis_Flag=17242
-,P_Motion_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag=17243
-,P_Motion_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag=17244
-,P_Motion_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag=17245
-,P_Motion_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag=17246
-,P_Motion_Cathode_2th_AT_T_Axis_Pos_Flag=17247
-,P_Motion_Cathode_2th_ST_T_Axis_Pos_Flag=17248
-,P_Motion_Cathode_2th_AT_Z_Axis_Pos_Flag=17249
-,P_Motion_Cathode_2th_ST_Z_Axis_Pos_Flag=17250
-,P_Motion_Anode_2th_AT_T_Axis_Pos_Flag=17251
-,P_Motion_Anode_2th_ST_T_Axis_Pos_Flag=17252
-,P_Motion_Anode_2th_AT_Z_Axis_Pos_Flag=17253
-,P_Motion_Anode_2th_ST_Z_Axis_Pos_Flag=17254
-,P_Motion_Cathode_1th_Ready_T_Axis_Pos_Flag=17255
-,P_Motion_Cathode_1th_CV_T_Axis_Pos_Flag=17256
-,P_Motion_Cathode_1th_AT_T_Axis_Pos_Flag=17257
-,P_Motion_Cathode_1th_Ready_Z_Axis_Pos_Flag=17258
-,P_Motion_Cathode_1th_CV_Z_Axis_Pos_Flag=17259
-,P_Motion_Cathode_1th_AT_Z_Axis_Pos_Flag=17260
-,P_Motion_Anode_1th_Ready_T_Axis_Pos_Flag=17261
-,P_Motion_Anode_1th_CV_T_Axis_Pos_Flag=17262
-,P_Motion_Anode_1th_AT_T_Axis_Pos_Flag=17263
-,P_Motion_Anode_1th_Ready_Z_Axis_Pos_Flag=17264
-,P_Motion_Anode_1th_CV_Z_Axis_Pos_Flag=17265
-,P_Motion_Anode_1th_AT_Z_Axis_Pos_Flag=17266
-,P_Motion_Cathode_NG_AT_T_Axis_Pos_Flag=17267
-,P_Motion_Cathode_NG_Box_T_Axis_Pos_Flag=17268
-,P_Motion_Anode_NG_AT_T_Axis_Pos_Flag=17269
-,P_Motion_Anode_NG_Box_T_Axis_Pos_Flag=17270
-,P_Motion_1st_Unloader_Forward_Pos_Flag=17271
-,P_Cathode_1PNP_Sacle_Value=17272
-,P_Cathode_2PNP_Sacle_Value=17273
-,P_Anode_1PNP_Sacle_Value=17274
-,P_Anode_2PNP_Sacle_Value=17275
-,P_PLC01_SemiRun_PV_Flag=17276
-,P_PV_EPC_Index=17277
-,P_BTN_MSA_Total_Value=17293
-,P_Vision_Align_Trigger_Timer=17294
-,P_Vision_Stack_Trigger_Timer=17295
-,P_MSA_Chk_Pos_Timer=17296
-,P_MSA_Chk_Pos_Time=17297
-,P_VISION_MSA_Seq_Index=17318
-,P_VISION_MSA_Anode_Align_Bit_Pos=17319
-,P_VISION_MSA_Seq_PreCondition_Index=17320
-,P_MSA_CycleStop_Point_Check_Complete_RTN=17321
-,P_Current_Anode_Align_MSA_Run_Count=17327
-,P_Current_Cathode_Align_MSA_Run_Count=17328
-,P_Current_Anode_Stack_MSA_Run_Count=17329
-,P_Current_Cathode_Stack_MSA_Run_Count=17330
-,P_VISION_MSA_Align_Count_Chk_Flag=17331
-,P_VISION_MSA_Stack_Count_Chk_Flag=17332
-,P_VISION_MSA_pre_InterLock_Cmd=17333
-,P_VISION_MSA_pre_InterLock_Status=17334
-,P_VISION_MSA_pre_InterLock_Check_Assy_Bit=17335
-,P_VISION_MSA_pre_InterLock_Assy_Bit_Pos=17336
-,P_Vision_MSA_Interlock_Status=17337
-,P_VISION_MSA_MODE=17338
-,P_VISION_MSA_Status_Flag=17339
-,P_VISION_MSA_State_Machine=17340
-,P_VISION_MSA_Status=17341
-,P_VISION_MSA_Seq_Command_Occurs=17342
-,P_Vision_Align_Trigger_Time=17343
-,P_Anode_Align_MSA_Motion_Check=17344
-,P_Cathode_Align_MSA_Motion_Check=17345
-,P_Anode_Stack_MSA_Motion_Check=17346
-,P_Cathode_Stack_MSA_Motion_Check=17347
-,P_Anode_Align_MSA_Motion_ProgActive_Complete=17348
-,P_Cathode_Align_MSA_Motion_ProgActive_Complete=17349
-,P_Anode_Stack_MSA_Motion_ProgActive_Complete=17350
-,P_Cathode_Stack_MSA_Motion_ProgActive_Complete=17351
-,P_BTN_Align_Off_Total_Value=17352
-,P_Align_Take_Off_Status=17356
-,P_Align_Take_Off_Mode=17357
-,P_Align_Take_Off_Status_Flag=17358
-,P_Align_Take_Off_State_Machine=17359
-,P_Align_Take_Off_Chk_Pos_Timer=17360
-,P_Align_Take_Off_Motor_Check_Complete=17361
-,P_Align_Take_Off_Speed_Return_Complete=17362
-,P_Align_Take_Off_Interlock_Status=17363
-,P_Align_Take_Off_pre_InterLock_Cmd=17364
-,P_Align_Take_Off_pre_InterLock_Status=17365
-,P_Align_Take_Off_pre_InterLock_Check_Assy_Bit=17366
-,P_Align_Take_Off_pre_InterLock_Assy_Bit_Pos=17367
-,P_Align_Take_Off_Seq_Index=17368
-,P_Align_Take_Off_Seq_PreCondition_Index=17369
-,P_Align_Take_Off_Stop_Signal=17390
-,P_Vision_Cal_Reset_Count=17391
-,P_2nd_PNP_Cleaning_Mode_Cmd=17392
-,P_2nd_PNP_Cleaning_Mode_Status=17393
-,P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed=17394
-,P_2nd_PNP_Cleaning_Mode_X_Jog_Speed=17395
-,P_2nd_PNP_Cleaning_Mode_T_Jog_Speed=17396
-,P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos=17397
-,P_PNP_Vac_Chk_Mode_Interlock=17398
-,P_Vac_Chk_Test=17399
-,P_Anode_1st_PNP_Vac_Chk_Mode_Blocked=17400
-,P_Cathode_1st_PNP_Vac_Chk_Mode_Blocked=17401
-,P_Anode_2nd_PNP_Vac_Chk_Mode_Blocked=17402
-,P_Cathode_2nd_PNP_Vac_Chk_Mode_Blocked=17403
-,P_SM_Anode_1st_PNP_Vac_Chk_Mode=17404
-,P_SM_Cathode_1st_PNP_Vac_Chk_Mode=17405
-,P_SM_Anode_2nd_PNP_Vac_Chk_Mode=17406
-,P_SM_Cathode_2nd_PNP_Vac_Chk_Mode=17407
-,P_Anode_1st_PNP_Vac_Chk_Execute_Timer=17408
-,P_Cathode_1st_PNP_Vac_Chk_Execute_Timer=17409
-,P_Anode_2nd_PNP_Vac_Chk_Execute_Timer=17410
-,P_Cathode_2nd_PNP_Vac_Chk_Execute_Timer=17411
-,P_Anode_1st_PNP_Vac_Check_Timer=17412
-,P_Cathode_1st_PNP_Vac_Check_Timer=17413
-,P_Anode_2nd_PNP_Vac_Check_Timer=17414
-,P_Cathode_2nd_PNP_Vac_Check_Timer=17415
-,P_Anode_1st_PNP_Vac_Chk_Status=17416
-,P_Cathode_1st_PNP_Vac_Chk_Status=17417
-,P_Anode_2nd_PNP_Vac_Chk_Status=17418
-,P_Cathode_2nd_PNP_Vac_Chk_Status=17419
-,P_Anode_1st_PNP_Vac_Chk_Mode_Stop_Blocked=17420
-,P_Cathode_1st_PNP_Vac_Chk_Mode_Stop_Blocked=17421
-,P_Anode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked=17422
-,P_Cathode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked=17423
-,P_Anode_1st_PnP_Vac_Chk_Mode_RTN=17424
-,P_Cathode_1st_PnP_Vac_Chk_Mode_RTN=17425
-,P_Anode_2nd_PnP_Vac_Chk_Mode_RTN=17426
-,P_Cathode_2nd_PnP_Vac_Chk_Mode_RTN=17427
-,P_PNP_Vac_Chk_Mode_TimeBase_Rtn=17428
-,P_PNP_Vac_Chk_Mode_Timer=17429
-,P_Anode_1st_PNP_Vac_Chk_Mode_Err=17430
-,P_Cathode_1st_PNP_Vac_Chk_Mode_Err=17431
-,P_Anode_2nd_PNP_Vac_Chk_Mode_Err=17432
-,P_Cathode_2nd_PNP_Vac_Chk_Mode_Err=17433
-,P_PNP_Vac_Chk_Mode_BTN_Err=17434
-,P_BTN_CA_1st_PNP_Vac_Chk_Mode=17435
-,P_BTN_AN_1st_PNP_Vac_Chk_Mode=17436
-,P_BTN_CA_2nd_PNP_Vac_Chk_Mode=17437
-,P_BTN_AN_2nd_PNP_Vac_Chk_Mode=17438
-,P_ARC_Tilting_Unwinder_Move_Dis=17473
-,P_Old_ARC_Upper_Tilting_Status=17474
-,P_Old_ARC_Lower_Tilting_Status=17475
-,P_System_Cascading_ON_Cmd=17586
-,P_System_Cascading_OFF_Cmd=17587
-,P_System_Master_Following_ON_Cmd=17588
-,P_System_Master_Following_OFF_Cmd=17589
-,P_System_CamTable_ON_Cmd=17590
-,P_System_CamTable_OFF_Cmd=17591
-,P_System_Spool_Home_Ready_Pos_Cmd=17592
-,P_System_Cascading_ON_Status=17593
-,P_System_Cascading_OFF_Status=17594
-,P_System_Master_Following_ON_Status=17595
-,P_System_Master_Following_OFF_Status=17596
-,P_System_CamTable_ON_Status=17597
-,P_System_CamTable_OFF_Status=17598
-,P_System_Spool_Home_Ready_Pos_Status=17599
-,P_System_Cascading_ON_State_Machine=17600
-,P_System_Cascading_OFF_State_Machine=17601
-,P_System_Master_Follwing_ON_State_Machine=17602
-,P_System_Master_Follwing_OFF_State_Machine=17603
-,P_System_CamTable_ON_State_Machine=17604
-,P_System_CamTable_OFF_State_Machine=17605
-,P_System_Spool_Home_Ready_Pos_State_Machine=17606
-,P_System_Cascading_ON_Complete_Flag=17607
-,P_System_Cascading_OFF_Complete_Flag=17608
-,P_System_Master_Following_ON_Complete_Flag=17609
-,P_System_Master_Following_OFF_Complete_Flag=17610
-,P_System_CamTable_ON_Complete_Flag=17611
-,P_System_CamTable_OFF_Complete_Flag=17612
-,P_System_Spool_Home_Ready_Pos_Complete_Flag=17613
-,P_Servo_Dancer_Cascading_Off_Timer=17614
-,P_Servo_Dancer_Cascading_Set_Timer=17615
-,P_Dancer_Frist_Home_Ready_Pos_Timer=17616
-,P_Driving_Motor_Use_Flag=17617
-,P_Home_Spool_Unwinding=17618
-,P_OutValue=17619
-,P_Dancer_Out_Slew_Seq=17620
-,P_OutChangeValue=17621
-,P_Rot_OutValue=17622
-,P_OutChangeTime=17623
-,P_Regul_Max_kPa_Value=17634
-,P_Regul_Min_kPa_Value=17635
-,P_Regul_Max_AD=17636
-,P_Regul_Min_AD=17637
-,P_Current_Max_Value=17638
-,P_Current_Min_Value=17639
-,P_Current_Max_AD=17640
-,P_Current_Min_AD=17641
-,P_Sepa_Cal_Inclination=17642
-,P_Regul_Cal_Inclination=17643
-,P_Cutter_Heat_Amp_Data_Bit=17644
-,P_Cut_Heat_Amp_Value=17645
-,P_AI_Cathode_Clamp_Damper_AVG=17646
-,P_AI_Anode_Clamp_Damper_AVG=17647
-,P_Tension_Ready_Pos_Cmd=17648
-,P_Tension_Ready_State_Machine=17649
-,P_Tension_Ready_Pos_Status=17650
-,P_Dancer_Center_Pos=17651
-,P_Upper_Sepa_Cal_Inclination=17652
-,P_Lower_Sepa_Cal_Inclination=17653
-,P_Unwinder_Jogspeed=17654
-,P_Cascading_First_Out=17655
-,P_Dancer_Cur_Vdc=17656
-,P_Dancer_Cur_Torque=17657
-,P_Dancer_Cur_Newton=17658
-,P_Dancer_Cur_Kgf=17659
-,P_Board_IO_Count=17660
-,P_Force_BTN_Address_Clear_Count=17661
-,P_Force_BTN_Condition_Count=18046
-,P_Old_Force_BTN_Mode=18047
-,P_Force_BTN_Address_Count=18048
-,P_Force_BTN_GPIO_Address_Count=18049
-,P_Force_BTN_Ecat_Address_Count=18050
-,P_Force_BTN_M_Variable_Save_Count=18051
-,P_Force_BTN_M_Variable_Start_Num=18052
-,P_Force_BTN_Normal_Mode_Status=18053
-,P_Force_BTN_Normal_Mode_State_Machine=18054
-,P_Force_BTN_Normal_Mode_Complete_Flag=18055
-,P_Force_BTN_Force_Mode_Timer=18056
-,P_Force_BTN_Force_Mode_Delay_Time=18057
-,P_Force_BTN_Force_Mode_Status=18058
-,P_Force_BTN_Force_Mode_State_Machine=18059
-,P_Force_BTN_Force_Mode_Complete_Flag=18060
-,P_Mem_Save_Error_Bit=18061
-,P_Servo_Gain_Save_Command=18072
-,P_Servo_Gain_Load_Command=18073
-,P_Servo_Gain_Save_Flag=18074
-,P_Servo_Gain_Load_Flag=18075
-,P_Insert_Phase_Flag=18256
-,P_Alarm_Occur_Flag=18357
-,P_Alarm_Wait_Time=18362
-,P_Alarm_Delay_Timer=18363
-,P_Compare_Priority=18364
-,P_Alarm_Report=18365
-,P_Alarm_Num=18366
-,P_Alarm_Index=18367
-,P_First_Alarm_Flag=18368
-,P_Servo_Alarm_Check=18399
-,P_Ecat_Servo_Alarm_Check=18400
-,P_Alarm_Count=18401
-,P_Alarm_Get_Flag=18402
-,P_Alarm_Sort_Time=18403
-,P_Alarm_Frist_Flag=18404
-,P_Alarm_Delay_time=18405
-,P_IL_ON_OFF_Flag=19226
-,P_IL_Coord_Robot=19227
-,P_IL_Robot_Bit=19228
-,P_IL_Outer_Status=19229
-,P_Robot_Unit_Serch_Flag=19230
-,P_IL_Home_Chk_Edge=19231
-,P_IL_Sprint=19235
-,P_IL_length=19236
-,P_IL_Strcat=19237
-,P_IL_Popup_Motor=19238
-,P_IL_Motor_Page=19239
-,P_IL_Recipe_Bit=19240
-,P_Interlock_Popup_On_Flag=19241
-,P_Motor_Page=19242
-,P_OP_Side_Ca_PNP_Pos=19243
-,P_OP_Side_An_PNP_Pos=19244
-,P_OP_Side_PMAC_Cur_Mode=19245
-,P_Abs_Trans_Cur_Pos=19246
-,P_Minus_IL_Offset=19247
-,P_Plus_IL_Offset=19248
-,P_2nd_PNP_Arm_Radius=19249
-,P_IL_Enable_Flag=19250
-,P_Plus_Interlock_Bit=19251
-,P_Minus_Interlock_Bit=19252
-,UPPos=19253
-,Unloader_In_StackPos=19254
-,FR_AnodePos=19255
-,FR_CathodePos=19256
-,Before_In_Stack=19257
-,In_Stack=19258
-,P_Minus_Collision_Risk_Motor=19261
-,P_IL_Clamp_Y=19262
-,P_IL_Clamp_Z=19263
-,P_IL_Clamp_Pos=19264
-,P_IL_Use_FR_Clamp_Pos=19265
-,P_Ca_1st_Plus_IL_Offset=19666
-,P_Ca_1st_Minus_IL_Offset=19667
-,P_An_1st_Plus_IL_Offset=19668
-,P_An_1st_Minus_IL_Offset=19669
-,P_Z_Pos_Data=19688
-,P_Clamp_Z_Plus_IL_Offset=19689
-,P_FR_Z_Minus_IL_Offset=19694
-,P_X_PLC_InterLock=19750
-,P_IL_Home_Chk=19751
-,P_IL_Home_Chk_Motor_Update=19772
-,P_IL_Inside_Home_Chk_Complete=19773
-,P_IL_Outside_Home_Chk_Complete=19774
-,P_IL_Motor_Home_Chk_RTN=19775
-,P_IL_Function_Cnt=19776
-,P_IL_Function_Motor_Num=19777
-,P_Jog_Page_Flag=19778
-,P_Jog_Btn_Flag=19779
-,P_Old_Jog_Btn_Flag=19780
-,P_Anode_1st_TR_Belt_Down_Flag=19781
-,P_Anode_1st_TR_Belt_Pick_Up_Flag=19782
-,P_Anode_1st_TR_Align_Down_Flag=19783
-,P_Anode_2nd_TR_Align_Pick_Up_Flag=19784
-,P_Anode_2nd_TR_Stack_Down_Flag=19785
-,P_Anode_NG_TR_Align_Pick_Up_Flag=19786
-,P_Anode_NG_TR_NG_Place_Down_Flag=19787
-,P_Anode_2nd_TR_Align_Down_Flag=19788
-,P_Anode_1st_TR_Align_Pick_Up_Flag=19789
-,P_Anode_1st_TR_Belt_Down_State_Machine=19790
-,P_Anode_1st_TR_Belt_Down_Status=19791
-,P_Anode_1st_TR_Belt_Pick_Up_State_Machine=19792
-,P_Anode_1st_TR_Belt_Pick_Up_Status=19793
-,P_Anode_1st_TR_Align_Down_State_Machine=19794
-,P_Anode_1st_TR_Align_Down_Status=19795
-,P_Anode_2nd_TR_Align_Pick_Up_State_Machine=19796
-,P_Anode_2nd_TR_Align_Pick_Up_Status=19797
-,P_Anode_2nd_TR_Stack_Down_State_Machine=19798
-,P_Anode_2nd_TR_Stack_Down_Status=19799
-,P_Anode_NG_TR_Align_Pick_Up_State_Machine=19800
-,P_Anode_NG_TR_Align_Pick_Up_Status=19801
-,P_Anode_NG_TR_NG_Place_Down_State_Machine=19802
-,P_Anode_NG_TR_NG_Place_Down_Status=19803
-,P_Anode_2nd_TR_Align_Down_State_Machine=19804
-,P_Anode_2nd_TR_Align_Down_Status=19805
-,P_Anode_1st_TR_Align_Pick_Up_State_Machine=19806
-,P_Anode_1st_TR_Align_Pick_Up_Status=19807
-,P_Cathode_1st_TR_Belt_Down_Flag=19808
-,P_Cathode_1st_TR_Belt_Pick_Up_Flag=19809
-,P_Cathode_1st_TR_Align_Down_Flag=19810
-,P_Cathode_2nd_TR_Align_Pick_Up_Flag=19811
-,P_Cathode_2nd_TR_Stack_Down_Flag=19812
-,P_Cathode_NG_TR_Align_Pick_Up_Flag=19813
-,P_Cathode_NG_TR_NG_Place_Down_Flag=19814
-,P_Cathode_2nd_TR_Align_Down_Flag=19815
-,P_Cathode_1st_TR_Align_Pick_Up_Flag=19816
-,P_Cathode_1st_TR_Belt_Down_State_Machine=19817
-,P_Cathode_1st_TR_Belt_Down_Status=19818
-,P_Cathode_1st_TR_Belt_Pick_Up_State_Machine=19819
-,P_Cathode_1st_TR_Belt_Pick_Up_Status=19820
-,P_Cathode_1st_TR_Align_Down_State_Machine=19821
-,P_Cathode_1st_TR_Align_Down_Status=19822
-,P_Cathode_2nd_TR_Align_Pick_Up_State_Machine=19823
-,P_Cathode_2nd_TR_Align_Pick_Up_Status=19824
-,P_Cathode_2nd_TR_Stack_Down_State_Machine=19825
-,P_Cathode_2nd_TR_Stack_Down_Status=19826
-,P_Cathode_NG_TR_Align_Pick_Up_State_Machine=19827
-,P_Cathode_NG_TR_Align_Pick_Up_Status=19828
-,P_Cathode_NG_TR_NG_Place_Down_State_Machine=19829
-,P_Cathode_NG_TR_NG_Place_Down_Status=19830
-,P_Cathode_2nd_TR_Align_Down_State_Machine=19831
-,P_Cathode_2nd_TR_Align_Down_Status=19832
-,P_Cathode_1st_TR_Align_Pick_Up_State_Machine=19833
-,P_Cathode_1st_TR_Align_Pick_Up_Status=19834
-,P_Old_Anode_Belt_ASCII=19835
-,P_Old_Cathode_Belt_ASCII=19836
-,P_Anode_Belt_ASCII=19837
-,P_Cathode_Belt_ASCII=19838
-,P_Check_Vac_Time=19839
-,P_Send_Anode_NG_Code_To_PLC=19840
-,P_Receive_Anode_NG_Code_From_PLC=19841
-,P_Send_Cathode_NG_Code_To_PLC=19842
-,P_Receive_Cathode_NG_Code_From_PLC=19843
-,P_Current_Cell_Memory_Anode_1P=19844
-,P_Current_Cell_Memory_Anode_AT=19845
-,P_Current_Cell_Memory_Anode_2P=19846
-,P_Current_Cell_Memory_Cathode_1P=19847
-,P_Current_Cell_Memory_Cathode_AT=19848
-,P_Current_Cell_Memory_Cathode_2P=19849
-,P_Current_Cell_Memory_Stack_Table=19850
-,P_Current_Cell_Memory_Cathode_NG_TR=19851
-,P_Current_Cell_Memory_Anode_NG_TR=19852
-,P_BTN_Anode_1st_TR_Buffer_Clear=19853
-,P_BTN_Anode_2nd_TR_Buffer_Clear=19854
-,P_BTN_Anode_Align_Buffer_Clear=19855
-,P_BTN_Anode_NG_TR_Buffer_Clear=19856
-,P_BTN_Cathode_1st_TR_Buffer_Clear=19857
-,P_BTN_Cathode_2nd_TR_Buffer_Clear=19858
-,P_BTN_Cathode_Align_Buffer_Clear=19859
-,P_BTN_Cathode_NG_TR_Buffer_Clear=19860
-,P_Old_BTN_Anode_1st_TR_Buffer_Clear=19861
-,P_Old_BTN_Anode_2nd_TR_Buffer_Clear=19862
-,P_Old_BTN_Anode_Align_Buffer_Clear=19863
-,P_Old_BTN_Anode_NG_TR_Buffer_Clear=19864
-,P_Old_BTN_Cathode_1st_TR_Buffer_Clear=19865
-,P_Old_BTN_Cathode_2nd_TR_Buffer_Clear=19866
-,P_Old_BTN_Cathode_Align_Buffer_Clear=19867
-,P_Old_BTN_Cathode_NG_TR_Buffer_Clear=19868
-,P_Send_Anode_NG_Code_Flag=19869
-,P_Send_Cathode_NG_Code_Flag=19870
-,P_Anode_Vision_NG_To_PLC_Flag=19871
-,P_Cathode_Vision_NG_To_PLC_Flag=19872
-,P_Status_Clear_Sheet_Maint_Check=19873
-,P_Single_Run_Start_Flag=19874
-,P_Single_Run_Control_State_Machine=19875
-,P_Single_Run_Control_Status=19876
-,P_Single_Run_Execute_Bit=19877
-,P_User_Dry_Run_Mode=19878
-,P_Single_Run_State_Machine=19879
-,P_Single_Run_Status=19880
-,P_Single_Run_Unit=19881
-,P_Single_Run_Evade_Pos_RTN=19882
-,P_Single_Run_Evade_Pos_Check_RTN=19883
-,P_Single_Run_Pos_Rtn1=19884
-,P_Single_Run_Pos_Rtn2=19885
-,P_Single_Run_Motion_Ready_RTN=19886
-,P_Single_Run_Execution_Interlock_RTN=19887
-,P_Single_Run_Coord_Activate_RTN=19888
-,P_Single_Run_Coord_Activate_Check_RTN=19889
-,P_Single_Run_Select_Run_Mode_RTN=19890
-,P_Single_Run_Execution_Run_RTN=19891
-,P_Single_Run_Motion_Ready_State_Machine=19892
-,P_Coord_1=19893
-,P_Coord_2=19894
-,P_Coord_3=19895
-,P_Coord_4=19896
-,P_Final_Roll_Z_Motion_Flag=19897
-,P_Final_Roll_Z_Motion_State_Machine=19898
-,P_Main_Z_Motion_Flag=19899
-,P_Main_Z_Motion_State_Machine=19900
-,P_Single_Run_Mode_Flag=19901
-,P_Cathode_AT_Motion_Flag=19902
-,P_Cathode_Align_Motion_State_Machine=19903
-,P_Anode_AT_Motion_Flag=19904
-,P_Anode_Align_Motion_State_Machine=19905
-,P_Sheet_Paper_Motion_Flag=19906
-,P_Sheet_Paper_Motion_State_Machine=19907
-,P_Cathode_NG_PNP_T_Motion_Flag=19908
-,P_Cathode_NG_PNP_T_Motion_State_Machine=19909
-,P_Cathode_NG_PNP_Z_Motion_Flag=19910
-,P_Cathode_NG_PNP_Z_Motion_State_Machine=19911
-,P_Anode_NG_PNP_T_Motion_Flag=19912
-,P_Anode_NG_PNP_T_Motion_State_Machine=19913
-,P_Anode_NG_PNP_Z_Motion_Flag=19914
-,P_Anode_NG_PNP_Z_Motion_State_Machine=19915
-,P_1st_UND_X_Motion_Flag=19916
-,P_1st_UND_X_Motion_State_Machine=19917
-,P_1st_UND_Z_Motion_Flag=19918
-,P_1st_UND_Z_Motion_State_Machine=19919
-,P_1st_UND_T_Motion_Flag=19920
-,P_1st_UND_T_Motion_State_Machine=19921
-,P_Cathode_Run_Command_Flag=19922
-,P_Anode_Run_Command_Flag=19923
-,P_NG_PNP_Uint_Motion_Flag=19924
-,P_NG_PNP_Uint_State_Machine=19925
-,P_NG_PNP_Motion_Cnt=19926
-,P_Single_Run_Timer=19937
-,P_Single_Run_Align_Timer=19938
-,P_Single_Run_Align_Timer2=19939
-,P_Single_Run_Finall_Roll_Z_Timer=19940
-,P_Single_RuN_MAIN_Z_Timer=19941
-,P_Single_Run_Sheet_Paper_Timer=19942
-,P_Single_Run_Debug_SM=19943
-,P_Error_Monitoring_Count_1=19944
-,P_Error_Monitoring_Count_2=19945
-,P_Error_Monitoring_Count_3=19946
-,P_Error_Monitoring_Count_4=19947
-,P_Error_Monitoring_Count_5=19948
-,P_Old_Single_Run_Mode_Flag=19949
-,P_Old_Current_Mode=19950
-,P_Single_Run_Timebase_Off_RTN=19951
-,P_Single_Run_Stop_State_Machine=19952
-,P_Single_Run_Stop_Status=19953
-,P_Single_Run_Stop_Timer=19954
-,P_Single_Run_Stop_Init_RTN=19955
-,P_Single_Run_Stop_Btn_Chk=19956
-,P_Single_Run_Stop_Command=19957
-,P_Motor_Ready_Poa_Inpos_200um=19958
-,P_Ecat_Parameter_Write_Flag=19959
-,P_Ecat_Parameter_Read_Flag=19960
-,P_Ecat_Each_Parameter_Write_Flag=19961
-,P_Ecat_Slave_Idx=19962
-,P_Ec_Num=19963
-,P_Ecat_Read_Motor_Num=19964
-,P_Ecat_Write_Motor_Num=19965
-,P_Ecat_Parameter_Write_State_Machine=19966
-,P_Ecat_Parameter_Read_State_Machine=19967
-,P_Ecat_Each_Parameter_Write_State_Machine=19968
-,P_Ecat_Write_Status=20089
-,P_Ecat_Read_Status=20090
-,P_Ecat_Each_Write_Status=20091
-,P_Align_Plus_Blow_Test=20652
-,P_System_Setting_Flag=20653
-,P_Ecat_Setting_Flag=20654
-,P_Ecat_Activation_State_Machine=20655
-,P_PLC31_Ecat_Retry_Cnt=20656
-,P_Ecat_Connect_Result=20657
-,P_Ecat_Slave_Error=20658
-,P_PWM_AbsPhasePosOffset_Change_State_Machine=20659
-,P_AbsPhasePosOffset_Change_Complete=20660
-,P_PWM_AbsPhasing_Fail=20661
-,P_PWM_AbsPhasing_Complete=20662
-,P_Whole_Stacking_Tack_Time=20663
-,P_Whole_Stacking_Tack_Time_Check=20664
-,P_Whole_Stacking_Tack_Timer_Check_Flag=20665
-,P_Whole_Stacking_Timer_Shift_Status_Machine=20666
-,P_Whole_Stacking_TackTime_Array0=20667
-,P_Whole_Stacking_TackTime_Array1=20668
-,P_Whole_Stacking_TackTime_Array2=20669
-,P_Whole_Stacking_TackTime_Array3=20670
-,P_Whole_Stacking_TackTime_Array4=20671
-,P_Whole_Stacking_TackTime_Array5=20672
-,P_Whole_Stacking_TackTime_Array6=20673
-,P_Whole_Stacking_TackTime_Array7=20674
-,P_Whole_Stacking_TackTime_Array8=20675
-,P_Whole_Stacking_TackTime_Array9=20676
-,P_Whole_Stacking_TackTime_Array10=20677
-,P_First_Stacking_Start=20678
-,P_Last_Stacking_Complete=20679
-,P_Stacking_Tack_Time=20680
-,P_Stacking_Tack_Time_Check=20681
-,P_Stacking_Tack_Timer_Check_Flag=20682
-,P_Stacking_Timer_Shift_Status_Machine=20683
-,P_Cathode_to_Anode_FR_Tack_Time_Check=20684
-,P_Anode_to_Cathode_FR_Tack_Time_Check=20685
-,P_Cathode_to_Anode_FR_Tack_Time_Start=20686
-,P_Anode_to_Cathode_FR_Tack_Time_Start=20687
-,P_Cathode_to_Anode_FR_Tack_Time_Complete=20688
-,P_Anode_to_Cathode_FR_Tack_Time_Complete=20689
-,P_Cathode_to_Anode_FR_Time=20690
-,P_Anode_to_Cathode_FR_Time=20691
-,P_Cathode_to_Anode_FR_Tack_Timer_Check_Flag=20692
-,P_Anode_to_Cathode_FR_Tack_Timer_Check_Flag=20693
-,P_Anode_Align_Table_Time=20694
-,P_Anode_Align_Table_Tack_Time_Check=20695
-,P_Anode_Align_Table_Tack_Timer_Check_Flag=20696
-,P_Anode_Align_Table_Timer_Shift_Status_Machine=20697
-,P_Anode_Align_Tack_Time_Start=20698
-,P_Anode_Align_Tack_Time_Complete=20699
-,P_Cathode_Align_Table_Time=20700
-,P_Cathode_Align_Table_Tack_Time_Check=20701
-,P_Cathode_Align_Table_Tack_Timer_Check_Flag=20702
-,P_Cathode_Align_Table_Timer_Shift_Status_Machine=20703
-,P_Cathode_Align_Tack_Time_Start=20704
-,P_Cathode_Align_Tack_Time_Complete=20705
-,P_Anode_1th_Tack_Time_Start=20706
-,P_Anode_1th_Tack_Time_Complete=20707
-,P_Anode_1th_Time=20708
-,P_Anode_1th_Tack_Time_Check=20709
-,P_Anode_1th_Tack_Timer_Check_Flag=20710
-,P_Anode_1th_Timer_Shift_Status_Machine=20711
-,P_Cathode_1th_Tack_Time_Start=20712
-,P_Cathode_1th_Tack_Time_Complete=20713
-,P_Cathode_1th_Time=20714
-,P_Cathode_1th_Tack_Time_Check=20715
-,P_Cathode_1th_Tack_Timer_Check_Flag=20716
-,P_Cathode_1th_Timer_Shift_Status_Machine=20717
-,P_Anode_2th_Tack_Time_Start=20718
-,P_Anode_2th_Tack_Time_Complete=20719
-,P_Anode_2th_Time=20720
-,P_Anode_2th_Tack_Time_Check=20721
-,P_Anode_2th_Tack_Timer_Check_Flag=20722
-,P_Anode_2th_Timer_Shift_Status_Machine=20723
-,P_Cathode_2th_Tack_Time_Start=20724
-,P_Cathode_2th_Tack_Time_Complete=20725
-,P_Cathode_2th_Time=20726
-,P_Cathode_2th_Tack_Time_Check=20727
-,P_Cathode_2th_Tack_Timer_Check_Flag=20728
-,P_Cathode_2th_Timer_Shift_Status_Machine=20729
-,P_Anode_1th_NG_Tack_Time_Start=20730
-,P_Anode_1th_NG_Tack_Time_Complete=20731
-,P_Anode_1th_NG_Time=20732
-,P_Anode_1th_NG_Tack_Time_Check=20733
-,P_Anode_1th_NG_Tack_Timer_Check_Flag=20734
-,P_Anode_1th_NG_Timer_Shift_Status_Machine=20735
-,P_Cathode_1th_NG_Tack_Time_Start=20736
-,P_Cathode_1th_NG_Tack_Time_Complete=20737
-,P_Cathode_1th_NG_Time=20738
-,P_Cathode_1th_NG_Tack_Time_Check=20739
-,P_Cathode_1th_NG_Tack_Timer_Check_Flag=20740
-,P_Cathode_1th_NG_Timer_Shift_Status_Machine=20741
-,P_Anode_Clamp_Tack_Time_Start=20742
-,P_Anode_Clamp_Tack_Time_Complete=20743
-,P_Anode_Clamp_Time=20744
-,P_Anode_Clamp_Tack_Time_Check=20745
-,P_Anode_Clamp_Tack_Timer_Check_Flag=20746
-,P_Anode_Clamp_Timer_Shift_Status_Machine=20747
-,P_Cathode_Clamp_Tack_Time_Start=20748
-,P_Cathode_Clamp_Tack_Time_Complete=20749
-,P_Cathode_Clamp_Time=20750
-,P_Cathode_Clamp_Tack_Time_Check=20751
-,P_Cathode_Clamp_Tack_Timer_Check_Flag=20752
-,P_Cathode_Clamp_Timer_Shift_Status_Machine=20753
-,P_Final_Roll_X_Timer_Shift_Status_Machine=20754
-,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array0=20755
-,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array1=20756
-,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array2=20757
-,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array3=20758
-,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array4=20759
-,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array5=20760
-,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array6=20761
-,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array7=20762
-,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array8=20763
-,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array9=20764
-,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array10=20765
-,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array0=20766
-,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array1=20767
-,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array2=20768
-,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array3=20769
-,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array4=20770
-,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array5=20771
-,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array6=20772
-,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array7=20773
-,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array8=20774
-,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array9=20775
-,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array10=20776
-,P_MCC_Anode_Align_NG_Count=20831
-,P_MCC_Cathode_Align_NG_Count=20832
-,P_MCC_Anode_Retry_NG_Count=20833
-,P_MCC_Cathode_Retry_NG_Count=20834
-,P_Discharge_Hold_Timer=20847
-,P_Discharge_Hold_Time=20848
-,P_AN_1st_Z_Zero_Angle=20849
-,P_AN_1st_Z_Zero_Length=20850
-,P_Anode_1st_PNP_Z_Crank_Zero_Pos=20851
-,P_Anode_1st_PNP_Z_Crank_real_Move_Pos=20852
-,P_Anode_1st_PNP_Z_Crank_radian=20853
-,P_Anode_1st_PNP_Z_Acos_denominator=20854
-,P_Anode_1st_PNP_Z_Acos_numerator=20855
-,P_Anode_1st_PNP_Z_Crank_Angle=20856
-,P_Anode_1st_PNP_Z_Real_Move_Pos=20857
-,P_Anode_1st_Fwd_Bwd_Rise=20858
-,P_CA_1st_Z_Zero_Angle=20859
-,P_CA_1st_Z_Zero_Length=20860
-,P_Cathode_1st_PNP_Z_Crank_Zero_Pos=20861
-,P_Cathode_1st_PNP_Z_Crank_real_Move_Pos=20862
-,P_Cathode_1st_PNP_Z_Crank_radian=20863
-,P_Cathode_1st_PNP_Z_Acos_denominator=20864
-,P_Cathode_1st_PNP_Z_Acos_numerator=20865
-,P_Cathode_1st_PNP_Z_Crank_Angle=20866
-,P_Cathode_1st_PNP_Z_Real_Move_Pos=20867
-,P_Cathode_1st_Fwd_Bwd_Rise=20868
-,P_AN_2nd_Z_Zero_Angle=20869
-,P_AN_2nd_Z_Zero_Length=20870
-,P_Anode_2nd_PNP_Z_Crank_Zero_Pos=20871
-,P_Anode_2nd_PNP_Z_Crank_real_Move_Pos=20872
-,P_Anode_2nd_PNP_Z_Crank_radian=20873
-,P_Anode_2nd_PNP_Z_Acos_denominator=20874
-,P_Anode_2nd_PNP_Z_Acos_numerator=20875
-,P_Anode_2nd_PNP_Z_Crank_Angle=20876
-,P_Anode_2nd_PNP_Z_Real_Move_Pos=20877
-,P_Anode_2nd_Fwd_Bwd_Rise=20878
-,P_CA_2nd_Z_Zero_Angle=20879
-,P_CA_2nd_Z_Zero_Length=20880
-,P_Cathode_2nd_PNP_Z_Crank_Zero_Pos=20881
-,P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos=20882
-,P_Cathode_2nd_PNP_Z_Crank_radian=20883
-,P_Cathode_2nd_PNP_Z_Acos_denominator=20884
-,P_Cathode_2nd_PNP_Z_Acos_numerator=20885
-,P_Cathode_2nd_PNP_Z_Crank_Angle=20886
-,P_Cathode_2nd_PNP_Z_Real_Move_Pos=20887
-,P_Cathode_2nd_Fwd_Bwd_Rise=20888
-,P_Old_Recipe_Anode_1st_PNP_Z_Ready_Up=20889
-,P_Old_Recipe_Anode_1st_PNP_Z_Belt_Up=20890
-,P_Old_Recipe_Anode_1st_PNP_Z_Belt_Down=20891
-,P_Old_Recipe_Anode_1st_PNP_Z_Align_Up=20892
-,P_Old_Recipe_Anode_1st_PNP_Z_Align_Down=20893
-,P_Old_Recipe_Cathode_1st_PNP_Z_Ready_Up=20894
-,P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Up=20895
-,P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Down=20896
-,P_Old_Recipe_Cathode_1st_PNP_Z_Align_Up=20897
-,P_Old_Recipe_Cathode_1st_PNP_Z_Align_Down=20898
-,P_Old_Recipe_Anode_2nd_PNP_Z_Align_Up=20899
-,P_Old_Recipe_Anode_2nd_PNP_Z_Align_Down=20900
-,P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Up=20901
-,P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Down=20902
-,P_Old_Recipe_Anode_2nd_PNP_Z_Ready_Up=20903
-,P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Up=20904
-,P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Down=20905
-,P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Up=20906
-,P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Down=20907
-,P_Old_Recipe_Cathode_2nd_PNP_Z_Ready_Up=20908
-,P_PLC19_All_Home_Status=20909
-,P_PLC19_All_Home_Module_Status=20910
-,P_PLC19_All_Home_State_Machine=20911
-,P_PLC19_All_Home_Seq_Index=20912
-,P_PLC19_All_Home_Self_Index=20913
-,P_PLC19_All_Home_Set_Mode_Return=20914
-,P_PLC19_All_Home_Timer=20915
-,P_PLC19_All_Home_Tact_Time=20936
-,P_All_Home_Module_Error=20937
-,P_Act_ALL_Home_Time_Out_Time=20938
-,P_Act_Hold_Time_Out_Time=21154
-,P_First_PNP_T_Wait_Status=21190
-,P_First_PNP_Z_Wait_Status=21191
-,P_First_PNP_Picker_T_Turn_Status=21192
-,P_First_PNP_T_Wait_To_Belt_Status=21193
-,P_First_PNP_Z_Wait_To_Belt_Status=21194
-,P_First_PNP_T_Align_To_Belt_Status=21195
-,P_First_PNP_Z_Align_To_Belt_Status=21196
-,P_First_PNP_Z_Belt_Down_Status=21197
-,P_First_PNP_Z_Belt_Up_Status=21198
-,P_First_PNP_T_Wait_To_Align_Status=21199
-,P_First_PNP_Z_Wait_To_Align_Status=21200
-,P_First_PNP_T_Belt_To_Align_Status=21201
-,P_First_PNP_Z_Belt_To_Align_Status=21202
-,P_First_PNP_Z_Align_Down_Status=21203
-,P_First_PNP_Z_Align_Up_Status=21204
-,P_First_PNP_Vac_On_Status=21205
-,P_First_PNP_Blow_On_Status=21206
-,P_Second_PNP_T_Align_To_Stack_Status=21207
-,P_Second_PNP_Z_Align_To_Stack_Status=21208
-,P_Second_PNP_T_Stack_To_Align_Status=21209
-,P_Second_PNP_Z_Stack_To_Align_Status=21210
-,P_Second_PNP_Z_Align_Down_Status=21211
-,P_Second_PNP_Z_Align_Up_Status=21212
-,P_Second_PNP_Vac_On_Status=21213
-,P_Second_PNP_Blow_On_Status=21214
-,P_NG_PNP_NG_Bos_Status=21215
-,P_NG_PNP_Align_Status=21216
-,P_NG_PNP_Align_Down_Status=21217
-,P_NG_PNP_Align_Up_Status=21218
-,P_NG_PNP_Vac_On_Status=21219
-,P_NG_PNP_Blow_On_Status=21220
-,P_Hold_1st_PNP_Position=21221
-,P_Hold_Module_Error=21222
-,P_Act_Execute_Time_Out_Time=21283
-,P_Execute_Module_Error=21296
-,P_Execute_First_Sepa_Total_Tact_Time=21297
-,P_Current_JR_Thickness_mm=21298
-,P_Current_Jelly_Roll_Thinckness_mm_Send_Enable_Flag=21299
-,P_Stack_Table_NG_Flag=21300
-,P_Suspend_Discharge_Cell_Out_Restart=21301
-,P_Jelly_Roll_OK_Count=21302
-,P_Jelly_Roll_NG_Count=21303
-,P_Jelly_Roll_Total_Count=21304
-,P_Jelly_Roll_Prod_Count=21305
-,P_Jelly_Roll_Recipe_Count=21306
-,P_Current_Cell_Memory_Jelly_Roll=21307
-,P_VISION_PLC10_Anode_Align_Start=21308
-,P_VISION_PLC10_Cathode_Align_Start=21309
-,P_Stack_Table_NG_Count=21310
-,P_Stack_PMAC_NG_Code=21311
-,P_Stack_Vision_NG_Code_IN_Timer=21312
-,P_1st_Discharge_State=21313
-,P_Prev_Sepa_Stack_Completed_Flag=21314
-,P_First_Sepa_Vision_Skip_Flag=21315
-,P_Discharge_Unloader_Handover_Timer=21316
-,P_Discharge_Unloader_Handover_Time=21317
-,P_Execute_First_Sepa_Mode_Cmd=21378
-,P_Execute_First_Sepa_Mode_Status=21379
-,P_Execute_First_Sepa_Mode_Module_Status=21380
-,P_Execute_First_Sepa_Mode_State_Machine=21381
-,P_Execute_First_Sepa_Mode_Seq_Index=21382
-,P_Execute_First_Sepa_Mode_Self_Index=21383
-,P_Execute_First_Sepa_Mode_Debug_Edge=21384
-,P_Execute_First_Sepa_Mode_Timer=21415
-,P_Execute_First_Sepa_Mode_Tact_Time=21436
-,P_Execute_1st_Sepa_Status=21437
-,P_Suspend_Discharge_Cmd=21438
-,P_Suspend_Discharge_Status=21439
-,P_Suspend_Discharge_State_Machine=21440
-,P_Suspend_Discharge_Seq_Index=21441
-,P_Suspend_Discharge_Self_Index=21442
-,P_Suspend_Discharge_Timer=21533
-,P_Suspend_Discharge_Tact_Time=21554
-,P_Suspend_Discharge_1st_Unloader_JR_Grip=21555
-,P_Suspend_ARC_Cmd=21556
-,P_Suspend_ARC_Status=21557
-,P_Suspend_ARC_State_Machine=21558
-,P_Suspend_ARC_Seq_Index=21559
-,P_Suspend_ARC_Self_Index=21560
-,P_Suspend_ARC_Manual_Occur_Flag=21561
-,P_Suspend_ARC_Timer=21652
-,P_Suspend_ARC_Tact_Time=21673
-,P_Suspend_Anode_1TR_Cell_Supply_Cmd=21674
-,P_Suspend_Anode_1TR_Cell_Supply_Status=21675
-,P_Suspend_Anode_1TR_Cell_Supply_State_Machine=21676
-,P_Suspend_Anode_1TR_Cell_Supply_Seq_Index=21677
-,P_Suspend_Anode_1TR_Cell_Supply_Self_Index=21678
-,P_Suspend_Anode_1TR_Cell_Supply_Module_Status=21679
-,P_Suspend_Anode_1TR_Cell_Supply_Timer=21770
-,P_Suspend_Anode_1TR_Cell_Supply_Tact_Time=21791
-,P_Hold_Exist_Insp_Cmd=21792
-,P_Hold_Exist_Insp_Status=21793
-,P_Hold_Exist_Insp_Module_Status=21794
-,P_Hold_Exist_Insp_State_Machine=21795
-,P_Hold_Exist_Insp_Seq_Index=21796
-,P_Hold_Exist_Insp_Self_Index=21797
-,P_Hold_Exist_Insp_Debug_Edge=21798
-,P_Hold_Exist_Insp_Timer=21829
-,P_Hold_Exist_Insp_Tact_Time=21850
-,P_Hold_Remove_NG_PNP_Cmd=21851
-,P_Hold_Remove_NG_PNP_Status=21852
-,P_Hold_Remove_NG_PNP_Module_Status=21853
-,P_Hold_Remove_NG_PNP_State_Machine=21854
-,P_Hold_Remove_NG_PNP_Seq_Index=21855
-,P_Hold_Remove_NG_PNP_Self_Index=21856
-,P_Hold_Remove_NG_PNP_Debug_Edge=21857
-,P_Hold_Remove_NG_PNP_Timer=21888
-,P_Hold_Remove_NG_PNP_Tact_Time=21909
-,P_PLC01_Hold_Remove_NG_PNP_Sub_Flag=21910
-,P_PLC01_Hold_Remove_NG_PNP_Sub_State_Machine=21911
-,P_PLC01_Hold_Remove_NG_PNP_Sub_Status=21912
-,P_Hold_Remove_Align_Cmd=21913
-,P_Hold_Remove_Align_Status=21914
-,P_Hold_Remove_Align_Module_Status=21915
-,P_Hold_Remove_Align_State_Machine=21916
-,P_Hold_Remove_Align_Seq_Index=21917
-,P_Hold_Remove_Align_Self_Index=21918
-,P_Hold_Remove_Align_Debug_Edge=21919
-,P_Hold_Remove_Align_Timer=21950
-,P_Hold_Remove_Align_Tact_Time=21971
-,P_PLC01_Hold_Remove_Align_Sub_Flag=21972
-,P_PLC01_Hold_Remove_Align_Sub_State_Machine=21973
-,P_PLC01_Hold_Remove_Align_Sub_Status=21974
-,P_Hold_Remove_2TR_Cmd=21975
-,P_Hold_Remove_2TR_Status=21976
-,P_Hold_Remove_2TR_Module_Status=21977
-,P_Hold_Remove_2TR_State_Machine=21978
-,P_Hold_Remove_2TR_Seq_Index=21979
-,P_Hold_Remove_2TR_Self_Index=21980
-,P_Hold_Remove_2TR_Debug_Edge=21981
-,P_Hold_Remove_2TR_Timer=22012
-,P_Hold_Remove_2TR_Tact_Time=22033
-,P_Hold_Supply_1TR_Cmd=22034
-,P_Hold_Supply_1TR_Status=22035
-,P_Hold_Supply_1TR_Module_Status=22036
-,P_Hold_Supply_1TR_State_Machine=22037
-,P_Hold_Supply_1TR_Seq_Index=22038
-,P_Hold_Supply_1TR_Self_Index=22039
-,P_Hold_Supply_1TR_Debug_Edge=22040
-,P_Hold_Supply_1TR_Timer=22071
-,P_Hold_Supply_1TR_Tact_Time=22092
-,P_PLC01_Hold_Supply_1TR_Memory_RTN=22093
-,P_PLC01_Hold_Supply_1TR_Judge_Flag=22094
-,P_PLC01_Hold_Supply_1TR_Judge_State_Machine=22095
-,P_PLC01_Hold_Supply_1TR_Judge_Status=22096
-,P_Plate_1TR_Supply_Module_Judge_Bit=22097
-,P_Hold_Supply_Align_Cmd=22098
-,P_Hold_Supply_Align_Status=22099
-,P_Hold_Supply_Align_Module_Status=22100
-,P_Hold_Supply_Align_State_Machine=22101
-,P_Hold_Supply_Align_Seq_Index=22102
-,P_Hold_Supply_Align_Self_Index=22103
-,P_Hold_Supply_Align_Debug_Edge=22104
-,P_Hold_Supply_Align_Timer=22135
-,P_Hold_Supply_Align_Tact_Time=22156
-,P_Hold_Supply_2TR_Cmd=22157
-,P_Hold_Supply_2TR_Status=22158
-,P_Hold_Supply_2TR_Module_Status=22159
-,P_Hold_Supply_2TR_State_Machine=22160
-,P_Hold_Supply_2TR_Seq_Index=22161
-,P_Hold_Supply_2TR_Self_Index=22162
-,P_Hold_Supply_2TR_Debug_Edge=22163
-,P_Hold_Supply_2TR_Timer=22194
-,P_Hold_Supply_2TR_Tact_Time=22215
-,P_Hold_Semi_Run_Pos_Move_Cmd=22216
-,P_Hold_Semi_Run_Pos_Move_Status=22217
-,P_Hold_Semi_Run_Pos_Move_Module_Status=22218
-,P_Hold_Semi_Run_Pos_Move_State_Machine=22219
-,P_Hold_Semi_Run_Pos_Move_Seq_Index=22220
-,P_Hold_Semi_Run_Pos_Move_Self_Index=22221
-,P_Hold_Semi_Run_Pos_Move_Debug_Edge=22222
-,P_Hold_Semi_Run_Pos_Move_Timer=22253
-,P_Hold_Semi_Run_Pos_Move_Tact_Time=22274
-,P_Act_Suspend_Time_Out_Time=22473
-,P_Test_Sungmin_Flag=22540
-,P_Suspend_Discharge_Module_Status=23399
-,P_Suspend_Discharge_To_Execute_Flag=23400
-,P_Suspend_Discharge_Complete_Flag=23401
-,P_First_Unloader_Stack_Up_Status=23402
-,P_First_Unloader_Stack_FWD_Status=23403
-,P_First_Unloader_Grip_Cell_Status=23404
-,P_First_Unloader_Stack_BWD_Wait_Status=23405
-,P_First_Unloader_Stack_BWD_Status=23406
-,P_First_Unloader_Stack_Down_Status=23407
-,P_First_Unloader_Avoid_Status=23408
-,P_First_Unloader_Turn_Status=23409
-,P_First_Unloader_Handover_Status=23410
-,P_Cathode_Clamp_OFF_Status=23411
-,P_Final_Roll_Discharge_Status=23412
-,P_Final_Roll_Stack_Pos_Status=23413
-,P_Final_Roll_Stack_Up_Pos_Status=23414
-,P_Main_Z_Init_Pos_Status=23415
-,P_Sheet_Paper_BWD_Status=23416
-,P_Discharge_Vision_DIO_RTN=23417
-,P_Discharge_Sub_RTN=23418
-,P_Discharge_NG_Code_Report_RTN=23419
-,P_Individual_RTN=23420
-,P_Suspend_Discharge_Last_Run_Bit=23421
-,P_Suspend_Discharge_JR_Result_RTN=23422
-,P_ARC_Buffer_Jog_Speed=23423
-,P_Selected_Spool_Number=23424
-,P_ARC_Home_Check_RTN=23425
-,P_Suspend_ARC_Module_Status=23426
-,P_Not_Selected_Spool_Radius=23427
-,P_Not_Selected_Spool_Circumference=23428
-,P_Passive_D_One_Degree_AD_Value=23454
-,P_After_ARC_Rotate_Distance=23455
-,P_Stack_Vision_NG_Code_Time_Over=23456
-,P_Suspend_Discharge_Resume_Flag=23457
-,P_Suspend_Discharge_Resume_Complete=23458
-,P_Suspend_Discharge_Pause_Flag=23459
-,P_Flag_Stack_Work_Host_ID=23470
-,P_First_Sepa_Stack_Align_OK_PMAC_Flag=23471
-,P_Sepa_Run_Completed_Status_Machine=23472
-,P_Discharge_Debug_Edge=23473
-,P_Discharge_Sepa_Cutter_Time_Out_State_Machine=23484
-,P_Old_Suspend_Discharge_Seq_Index=23485
-,P_Discharge_Debug_Index_1=23486
-,P_Discharge_Debug_Index_2=23487
-,P_Discharge_Debug_Index_3=23488
-,P_Discharge_Debug_Index_4=23489
-,P_ARC_Debug_Edge=23490
-,P_Old_Suspend_ARC_Seq_Index=23501
-,P_ARC_Debug_Index_1=23502
-,P_ARC_Debug_Index_2=23503
-,P_ARC_Debug_Index_3=23504
-,P_ARC_Debug_Index_4=23505
-,P_Suspend_Cutter_Heating_Time=23508
-,P_Suspend_Cutter_Heating_Timer=23509
-,P_An_1TR_Supply_Debug_Edge=23510
-,P_Old_Suspend_An_1TR_Supply_Seq_Index=23521
-,P_An_1TR_Supply_Debug_Index_1=23522
-,P_An_1TR_Supply_Debug_Index_2=23523
-,P_An_1TR_Supply_Debug_Index_3=23524
-,P_An_1TR_Supply_Debug_Index_4=23525
-,P_Suspend_Supply_Index=23526
-,P_Suspend_Supply_Index_2nd=23527
-,P_Suspend_Supply_Pause_Flag=23536
-,P_Suspend_Supply_Resume_Flag=23537
-,P_Supply_Module_Status=23538
-,P_Suspend_Anode_1TR_Supply_Complete_Flag=23539
-,P_Suspend_Discharge_Module_Error=23540
-,P_Suspend_ARC_Module_Error=23541
-,P_Suspend_1st_Supply_Error=23542
-,P_Discharge_Seq_Data=23543
-,P_Suspend_Discharging_Popup_Flag=23544
-,P_Suspend_Discharge_FR_Unclamp_Error_Popup_Flag=23545
-,P_Suspend_Discharge_Cathode_Align_Retry_Cal_Error_Popup_Flag=23546
-,P_Suspend_Discharge_Anode_Align_Retry_Cal_Error_Popup_Flag=23547
-,P_Suspend_Discharge_FR_Discharge_Pos_Error_Popup_Flag=23548
-,P_Suspend_Discharge_1st_Unloader_Grip_OFF_Error_Popup_Flag=23549
-,P_Suspend_Discharge_1st_Unloader_Up_Error_Popup_Flag=23550
-,P_Suspend_Discharge_1st_Unloader_FWD_Error_Popup_Flag=23551
-,P_Suspend_Discharge_FR_Clamp_Error_Popup_Flag=23552
-,P_Suspend_Discharge_Sepa_Cutter_Heating_Error_Popup_Flag=23553
-,P_Suspend_Discharge_1st_Unloader_Grip_Cell_Pos_Error_Popup_Flag=23554
-,P_Suspend_Discharge_1st_Unloader_Grip_ON_Error_Popup_Flag=23555
-,P_Suspend_Discharge_Sheet_Paper_BWD_Error_Popup_Flag=23556
-,P_Suspend_Discharge_Cathode_Clamp_OFF_Error_Popup_Flag=23557
-,P_Suspend_Discharge_Sepa_Cutter_FWD_Error_Popup_Flag=23558
-,P_Suspend_Discharge_Sheet_Paper_Vacuum_ON_Error_Popup_Flag=23559
-,P_Suspend_Discharge_Sepa_Cutter_BWD_Error_Popup_Flag=23560
-,P_Suspend_Discharge_1st_Unloader_BWD_Wait_Pos_Error_Popup_Flag=23561
-,P_Suspend_Discharge_1st_Unloader_BWD_Error_Popup_Flag=23562
-,P_Suspend_Discharge_1st_Unloader_Stack_Down_Error_Popup_Flag=23563
-,P_Suspend_Discharge_FR_Stack_Pos_Error_Popup_Flag=23564
-,P_Suspend_Discharge_After_Action_Init_Error_Popup_Flag=23565
-,P_Suspend_Discharge_1st_Unloader_Avoid_Pos_Error_Popup_Flag=23566
-,P_Suspend_Discharge_1st_2nd_Unloader_Handover_Chk_Error_Popup_Flag=23567
-,P_Suspend_Discharge_1st_Unloader_Handover_Pos_Error_Popup_Flag=23568
-,P_Suspend_Discharge_2nd_3rd_Unloader_Grip_Request_Error_Popup_Flag=23569
-,P_Suspend_Discharge_1st_Unloader_Wait_Pos_Error_Popup_Flag=23570
-,P_Suspend_ARC_Manual_ARC_Active_Popup_Flag=23571
-,P_Suspend_ARC_Auto_ARC_Active_Popup_Flag=23572
-,P_Suspend_ARC_Pre_Act_Popup_Flag=23573
-,P_Suspend_ARC_Dancer_Close_Popup_Flag=23574
-,P_Suspend_ARC_Use_Plate_FWD_Popup_Flag=23575
-,P_Suspend_ARC_Replace_Plate_Blow_ON_Popup_Flag=23576
-,P_Suspend_ARC_Use_Plate_Clamp_Popup_Flag=23577
-,P_Suspend_ARC_Use_Plate_Cutter_FWD_Popup_Flag=23578
-,P_Suspend_ARC_Use_Plate_Cutter_BWD_Popup_Flag=23579
-,P_Suspend_ARC_Use_Plate_Unclamp_Popup_Flag=23580
-,P_Suspend_ARC_Use_Plate_BWD_Popup_Flag=23581
-,P_Suspend_ARC_Replace_Plate_Blow_OFF_Popup_Flag=23582
-,P_Suspend_ARC_Dancer_Open_Popup_Flag=23583
-,P_Suspend_ARC_Spool_Change_Popup_Flag=23584
-,P_Suspend_ARC_Post_Act_Popup_Flag=23585
-,P_Suspend_ARC_Previous_Spool_Remain_Winding_Popup_Flag=23586
-,P_Suspend_Discharge_First_Address=23587
-,P_Suspend_ARC_First_Address=23588
-,P_Status_Stop_Ready_Pos_Move=23589
-,P_Cycle_Stop_Stauts=23590
-,P_Cycle_Stop_Status_Machine=23591
-,P_Cycle_Stop_Flag=23592
-,P_Speed_Origin_rtn=23593
-,P_Speed_rtn=23594
-,P_NG_PNP_Z_Move_rtn=23595
-,P_NG_PNP_Z_Move_Check_rtn=23596
-,P_NG_PNP_T_Move_rtn=23597
-,P_NG_PNP_T_Move_Check_rtn=23598
-,P_2nd_Z_Move_rtn=23599
-,P_2nd_Z_Move_Check_rtn=23600
-,P_2nd_T_Move_rtn=23601
-,P_2nd_T_Move_Check_rtn=23602
-,P_Stack_Judgement_Memory=23603
-,P_Stop_Cycle_Stop_Move_Status=23604
-,P_STOP_Initial_Process_Status=23605
-,P_Stopping_CycleStop_Init_Flag=23606
-,P_Sepa_Timing=23607
-,P_Old_Trigger_PLC0=23608
-,P_Mode_Command=23609
-,P_Current_Mode=23610
-,P_Mode_Command_Buffer=23631
-,P_Mode_Command_Wait_Count=23632
-,P_Old_Mode_Command=23633
-,P_Anode_NG_Unit_Status=26634
-,P_Cathode_NG_Unit_Status=26635
-,P_ParsingRtn=26636
-,P_CurPosData=26637
-,P_Hold_MNTR_Supply_1st=26638
-,P_TimeOutNumb=26639
-,P_PosRtn=26640
-,P_MotionRtn=26641
-,P_CmdData=26642
-,P_Interval=26643
-,P_Cont_Ret=26644
-,P_Cur_Idx=26645
-,P_NextID=26646
-,P_Cur_Size=26647
-,P_Hold_Exist_Insp=26648
-,P_Hold_Remove_NG_PNP=26649
-,P_Hold_Remove_Align=26650
-,P_Hold_Remove_2TR=26651
-,P_Hold_Supply_1TR=26652
-,P_Hold_Supply_Align=26653
-,P_Hold_Supply_2TR=26654
-,P_Hold_Semi_Run=26655
+,P_BTN_Cathode_Clamp_inside_Machine_Cylinder_Count_Clear=13902
+,P_BTN_Cathode_Clamp_Middle_Cylinder_Count_Clear=13903
+,P_BTN_Cathode_Clamp_outside_Machine_Cylinder_Count_Clear=13904
+,P_BTN_Anode_Clamp_inside_Machine_Cylinder_Count_Clear=13905
+,P_BTN_Anode_Clamp_Middle_Cylinder_Count_Clear=13906
+,P_BTN_Anode_Clamp_outside_Machine_Cylinder_Count_Clear=13907
+,P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear=13908
+,P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear_Old=13909
+,P_BTN_Anode_1ST_TR_Cylinder_Count_Clear=13910
+,P_BTN_Anode_1ST_TR_Cylinder_Count_Clear_Old=13911
+,P_RECIPE_PLC27_Manual_Interval=14927
+,P_RECIPE_PLC27_Auto_Interval=14928
+,P_Recipe_Speed_Value=15135
+,P_Slave6_Target_X_For_Cell_Out=15136
+,P_Poistion_error=15337
+,P_Recipe_Count_Num=15388
+,L_Motor_Status_Update_Interval=15389
+,L_Motor_Recipe_Update_Interval=15390
+,P_UI_Servo_On_Off=15391
+,P_Jog_Sel_Count=15491
+,P_User_Jog_Distance=15778
+,P_BTN_Sel_Count=16129
+,P_PC_BTN_No=16130
+,P_BTN_Interlock_Update_Interval=16131
+,P_Align_Table_Status_Update_Interval=16132
+,P_Jelly_Roll_Total_Count_Old=16133
+,P_Old_m4120=16134
+,P_Old_m4121=16135
+,P_Old_m4122=16136
+,P_Old_m4123=16137
+,P_Flag_Linear_Enc_Homezero_Complete_M17=16158
+,P_Flag_Linear_Enc_Homezero_Complete_M18=16159
+,P_Flag_Linear_Enc_Homezero_Complete_M19=16160
+,P_Flag_Linear_Enc_Homezero_Complete_M20=16161
+,P_CMD_Linear_ENC_Homezero_M17=16162
+,P_CMD_Linear_ENC_Homezero_M18=16163
+,P_CMD_Linear_ENC_Homezero_M19=16164
+,P_CMD_Linear_ENC_Homezero_M20=16165
+,P_RECIPE_PLC27_Alltime_Interval=16196
+,P_Manual_Memory_Tower_Timer=16197
+,P_Memory_Tower_Interval=16198
+,P_PLC_14_Status_Cycle_Stop_Flag=16199
+,P_Cathode_AlignTable_Cleaning_Pos_Status_Machine=16200
+,P_Anode_AlignTable_Cleaning_Pos_Status_Machine=16201
+,P_Status_Cathode_AlignTable_Cleaning_Pos=16202
+,P_Status_Anode_AlignTable_Cleaning_Pos=16203
+,P_CMD_Cathode_AlignTable_Cleaning_Pos=16204
+,P_CMD_Anode_AlignTable_Cleaning_Pos=16205
+,P_Cathode_2nd_pnp_Cleaning_Mode_Pos=16206
+,P_Anode_2nd_pnp_Cleaning_Mode_Pos=16207
+,P_Interlock_Test=16208
+,P_PNP_Picker_T_Pos=16209
+,P_NG_PNP_Pos=16210
+,M_Old_X_BTN_Machine_READY=16211
+,M_Old_X_BTN_Machine_START=16212
+,M_Old_X_BTN_Machine_STOP=16213
+,M_Old_X_BTN_Machine_RESET=16214
+,M_Old_X_BTN_Machine_MODE=16215
+,P_BTN_Motor_Pos_Check_RTN=16216
+,P_BTN_Memory_Tower_Check_Bit=16217
+,P_PMAC_Status_IDLE_Motor_Not_Pos=16218
+,P_PMAC_Status_IDLE_Motor_Pos=16219
+,P_BTN_Motor_Pos_Check_Monitor=16220
+,P_PackML_Auto_Stop_Bit=16221
+,P_BTN_IDLE_Motor_Not_Pos=16222
+,M_X_BTN_Machine_Mode=16223
+,M_Old_X_BTN_Machine_Mode=16224
+,P_Lamp_Blinking_Timer=16225
+,P_BTN_Ready_Lamp=16226
+,P_BTN_Start_Lamp=16227
+,P_BTN_Stop_Lamp=16228
+,P_ARC_Name_Plate_Passive_Status=16229
+,P_ARC_Passive_Status=16230
+,P_NP_Spool_Number=16231
+,P_ARC_Page_On=16232
+,P_ARC_NP_Upper_Timer=16233
+,P_ARC_Upper_Ready=16234
+,P_ARC_NP_Upper_3rd_Step_Toggle_Variable=16235
+,P_ARC_NP_Upper_7th_Step_Variable=16236
+,P_ARC_NP_Upper_7th_Step_Edge_Variable=16237
+,P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit=16238
+,P_ARC_NP_Lower_Timer=16239
+,P_ARC_Lower_Ready=16240
+,P_ARC_NP_Lower_3rd_Step_Toggle_Variable=16241
+,P_ARC_NP_Lower_7th_Step_Variable=16242
+,P_ARC_NP_Lower_7th_Step_Edge_Variable=16243
+,P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit=16244
+,M_Old_X_ARC_NP_Ready=16245
+,M_Old_X_ARC_NP_Unwinder_Rotation=16246
+,M_Old_X_ARC_NP_Unwinder_Re_Rotation=16247
+,P_Status_Clear_Flag=16248
+,P_Status_Clear_RTN=16249
+,P_MSA_BTN_On=16250
+,P_Align_Take_Off_BTN_ON=16251
+,P_ARC_NP_Upper_Ready_Check_Bit=16252
+,P_ARC_NP_Lower_Ready_Check_Bit=16253
+,P_Stopping_CycleStop_Status=16354
+,P_Stopping_CycleStop_Seq_Index=16355
+,P_Stopping_CycleStop_Precondition_Seq_Index=16356
+,P_Stopping_CycleStop_Module_Status=16357
+,P_Stopping_CycleStop_Cmd=16358
+,P_Stopping_CycleStop_State_Machine=16359
+,P_Final_Roll_Cathode_Pos_Status=16480
+,P_Sheet_Paper_FWD_Pos_Status=16481
+,P_Final_Roll_Vision_Pos_Status=16482
+,P_Cathode_Clamp_ON_Status=16483
+,P_Anode_Clamp_ON_Status=16484
+,P_Anode_Clamp_OFF_Status=16485
+,P_Partition_Up_Flag=16486
+,P_Partition_Down_Flag=16487
+,P_Partition_Avoid_Flag=16488
+,P_Partition_Avoid_Z_Speed=16489
+,P_Partition_Avoid_X_Speed=16490
+,P_Partition_Avoid_T_Speed=16491
+,P_Partition_Avoid_2nd_T_Pos=16492
+,P_Partition_Step_Flag=16493
+,P_Partition_1st_Avoid_Offset=16494
+,P_Partition_Picker_Avoid_Offset=16495
+,P_Partition_Avoid_Check=16496
+,P_Anode_NG_PNP_Tact_Time_Start=16577
+,P_Cathode_NG_PNP_Tact_Time_Start=16578
+,P_Anode_NG_PNP_Tact_Time_End=16579
+,P_Cathode_NG_PNP_Tact_Time_End=16580
+,P_Tact_Time_Final_Roller_Clamp=16771
+,P_Tact_Time_Final_Roller_Unclamp=16772
+,P_Tact_Time_Stack_Table_Down=16773
+,P_Tact_Time_Stack_Table_Up=16774
+,P_Tact_Time_Sepa_Cutting_Down=16775
+,P_Tact_Time_Sepa_Cutting_Up=16776
+,P_Tact_Time_ARC_Upper_Plate_Up=16777
+,P_Tact_Time_ARC_Upper_Plate_Down=16778
+,P_Tact_Time_ARC_Upper_Tilting_On=16779
+,P_Tact_Time_ARC_Upper_Tilting_Off=16780
+,P_Tact_Time_ARC_Upper_Cutter_Fwd=16781
+,P_Tact_Time_ARC_Upper_Cutter_Bwd=16782
+,P_Tact_Time_ARC_Upper_Clamp_On=16783
+,P_Tact_Time_ARC_Upper_Clamp_Off=16784
+,P_Tact_Time_ARC_Lower_Plate_Up=16785
+,P_Tact_Time_ARC_Lower_Plate_Down=16786
+,P_Tact_Time_ARC_Lower_Tilting_On=16787
+,P_Tact_Time_ARC_Lower_Tilting_Off=16788
+,P_Tact_Time_ARC_Lower_Cutter_Fwd=16789
+,P_Tact_Time_ARC_Lower_Cutter_Bwd=16790
+,P_Tact_Time_ARC_Lower_Clamp_On=16791
+,P_Tact_Time_ARC_Lower_Clamp_Off=16792
+,P_Tact_Time_Save_Final_Roller_Clamp_Time=16793
+,P_Tact_Time_Save_Final_Roller_Unclamp_Time=16794
+,P_Tact_Time_Save_Stack_Table_Down_Time=16795
+,P_Tact_Time_Save_Stack_Table_Up_Time=16796
+,P_Tact_Time_Save_Sepa_Cutting_Down_Time=16797
+,P_Tact_Time_Save_Sepa_Cutting_Up_Time=16798
+,P_Tact_Time_Save_ARC_Upper_Plate_Up_Time=16799
+,P_Tact_Time_Save_ARC_Upper_Plate_Down_Time=16800
+,P_Tact_Time_Save_ARC_Upper_Tilting_On_Time=16801
+,P_Tact_Time_Save_ARC_Upper_Tilting_Off_Time=16802
+,P_Tact_Time_Save_ARC_Upper_Cutter_Fwd_Time=16803
+,P_Tact_Time_Save_ARC_Upper_Cutter_Bwd_Time=16804
+,P_Tact_Time_Save_ARC_Upper_Clamp_On_Time=16805
+,P_Tact_Time_Save_ARC_Upper_Clamp_Off_Time=16806
+,P_Tact_Time_Save_ARC_Lower_Plate_Up_Time=16807
+,P_Tact_Time_Save_ARC_Lower_Plate_Down_Time=16808
+,P_Tact_Time_Save_ARC_Lower_Tilting_On_Time=16809
+,P_Tact_Time_Save_ARC_Lower_Tilting_Off_Time=16810
+,P_Tact_Time_Save_ARC_Lower_Cutter_Fwd_Time=16811
+,P_Tact_Time_Save_ARC_Lower_Cutter_Bwd_Time=16812
+,P_Tact_Time_Save_ARC_Lower_Clamp_On_Time=16813
+,P_Tact_Time_Save_ARC_Lower_Clamp_Off_Time=16814
+,P_Tact_Time_Array_Init=16935
+,P_Last_Run_To_Discharge_Tact_Timer=16936
+,P_Last_Run_To_Discharge_Tact_Time=16937
+,P_Master_Trigger_Sync_Tact_Timer=16938
+,P_Master_Trigger_Sync_Tact_Time=16939
+,P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag=16940
+,P_PLC18_EPC_Retry_Mode_Time_Use_Flag=16941
+,P_PLC18_Vision_EPC_Correction_Request_Old=16942
+,P_PLC18_EPC_Moving_Flag=16943
+,P_PLC18_EPC_Moving_Status=16944
+,P_PLC18_EPC_Move_State_Machine=16945
+,P_PLC18_EPC_Move_Status=16946
+,P_PLC18_EPC_inspection_Time=16947
+,P_EPC_Insp_Time=16948
+,P_EPC_Correction_Time=16949
+,P_TEST_Max_EPC_Sensor_Value_um=16950
+,P_PLC18_EPC_Moving_Timer=16951
+,P_EPC_Axis_Target_Y=16962
+,P_Com_After_Sepa_Mode_Status=16963
+,P_PLC18_PLC_to_PMAC_Correction_Value=16964
+,P_PLC_EPC_Status=16965
+,P_EPC_Retry_Over_Alarm_Flag=16966
+,P_ARC_EPC_Vision_Value_Apply_Bit=16967
+,P_ARC_EPC_Vision_Value_Apply_Flag=16968
+,P_ARC_EPC_Vision_Value_Apply_State_Machine=16969
+,P_ARC_EPC_Vision_Value_Apply_Timer=16970
+,P_ARC_EPC_Vision_Value_Apply_Time=16971
+,P_AH_Home_Status=16972
+,P_Resetting_All_Home_Command=16973
+,P_Homing_Alarm_Time=16974
+,P_All_Home_Stop_Cmd=17025
+,P_Home_First_Move=17026
+,P_DD_M_Home_Pos_Flag=17113
+,P_WAIT_INDEX=17114
+,P_FR_Cmd_Check_Flag=17165
+,P_PV_Separator_Dancer_Pressure=17166
+,P_PV_Cathode_Clamp_Pressure=17167
+,P_PV_Anoode_Clamp_Pressure=17168
+,P_PV_Cathode_Final_Roller_X_Axis=17169
+,P_PV_Anode_Final_Roller_X_Axis=17170
+,P_PV_Cathode_Clamp_ON_Y1_Axis_Pos=17171
+,P_PV_Cathode_Clamp_ON_Y2_Axis_Pos=17172
+,P_PV_Cathode_Clamp_ON_Z1_Axis_Pos=17173
+,P_PV_Cathode_Clamp_ON_Z2_Axis_Pos=17174
+,P_PV_Anode_Clamp_ON_Y1_Axis_Pos=17175
+,P_PV_Anode_Clamp_ON_Y2_Axis_Pos=17176
+,P_PV_Anode_Clamp_ON_Z1_Axis_Pos=17177
+,P_PV_Anode_Clamp_ON_Z2_Axis_Pos=17178
+,P_PV_Cathode_2th_AT_T_Axis_Pos=17179
+,P_PV_Cathode_2th_ST_T_Axis_Pos=17180
+,P_PV_Cathode_2th_AT_Z_Axis_Pos=17181
+,P_PV_Cathode_2th_ST_Z_Axis_Pos=17182
+,P_PV_Anode_2th_AT_T_Axis_Pos=17183
+,P_PV_Anode_2th_ST_T_Axis_Pos=17184
+,P_PV_Anode_2th_AT_Z_Axis_Pos=17185
+,P_PV_Anode_2th_ST_Z_Axis_Pos=17186
+,P_PV_Cathode_1th_Ready_T_Axis_Pos=17187
+,P_PV_Cathode_1th_CV_T_Axis_Pos=17188
+,P_PV_Cathode_1th_AT_T_Axis_Pos=17189
+,P_PV_Cathode_1th_Ready_Z_Axis_Pos=17190
+,P_PV_Cathode_1th_CV_Z_Axis_Pos=17191
+,P_PV_Cathode_1th_AT_Z_Axis_Pos=17192
+,P_PV_Anode_1th_Ready_T_Axis_Pos=17193
+,P_PV_Anode_1th_CV_T_Axis_Pos=17194
+,P_PV_Anode_1th_AT_T_Axis_Pos=17195
+,P_PV_Anode_1th_Ready_Z_Axis_Pos=17196
+,P_PV_Anode_1th_CV_Z_Axis_Pos=17197
+,P_PV_Anode_1th_AT_Z_Axis_Pos=17198
+,P_PV_Cathode_NG_AT_T_Axis_Pos=17199
+,P_PV_Cathode_NG_Box_T_Axis_Pos=17200
+,P_PV_Anode_NG_AT_T_Axis_Pos=17201
+,P_PV_Anode_NG_Box_T_Axis_Pos=17202
+,P_PV_1st_Unloader_X_Axis_Pos=17203
+,P_PV_1st_Unloader_Z_Axis_Pos=17204
+,P_SemiRun_Separator_Dancer_Pressure_Flag=17205
+,P_SemiRun_Cathode_Clamp_Pressure_Flag=17206
+,P_SemiRun_Anoode_Clamp_Pressure_Flag=17207
+,P_SemiRun_Cathode_Final_Roller_X_Axis_Flag=17208
+,P_SemiRun_Anode_Final_Roller_X_Axis_Flag=17209
+,P_SemiRun_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag=17210
+,P_SemiRun_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag=17211
+,P_SemiRun_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag=17212
+,P_SemiRun_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag=17213
+,P_SemiRun_Cathode_2th_AT_T_Axis_Pos_Flag=17214
+,P_SemiRun_Cathode_2th_ST_T_Axis_Pos_Flag=17215
+,P_SemiRun_Cathode_2th_AT_Z_Axis_Pos_Flag=17216
+,P_SemiRun_Cathode_2th_ST_Z_Axis_Pos_Flag=17217
+,P_SemiRun_Anode_2th_AT_T_Axis_Pos_Flag=17218
+,P_SemiRun_Anode_2th_ST_T_Axis_Pos_Flag=17219
+,P_SemiRun_Anode_2th_AT_Z_Axis_Pos_Flag=17220
+,P_SemiRun_Anode_2th_ST_Z_Axis_Pos_Flag=17221
+,P_SemiRun_Cathode_1th_Ready_T_Axis_Pos_Flag=17222
+,P_SemiRun_Cathode_1th_CV_T_Axis_Pos_Flag=17223
+,P_SemiRun_Cathode_1th_AT_T_Axis_Pos_Flag=17224
+,P_SemiRun_Cathode_1th_Ready_Z_Axis_Pos_Flag=17225
+,P_SemiRun_Cathode_1th_CV_Z_Axis_Pos_Flag=17226
+,P_SemiRun_Cathode_1th_AT_Z_Axis_Pos_Flag=17227
+,P_SemiRun_Anode_1th_Ready_T_Axis_Pos_Flag=17228
+,P_SemiRun_Anode_1th_CV_T_Axis_Pos_Flag=17229
+,P_SemiRun_Anode_1th_AT_T_Axis_Pos_Flag=17230
+,P_SemiRun_Anode_1th_Ready_Z_Axis_Pos_Flag=17231
+,P_SemiRun_Anode_1th_CV_Z_Axis_Pos_Flag=17232
+,P_SemiRun_Anode_1th_AT_Z_Axis_Pos_Flag=17233
+,P_SemiRun_Cathode_NG_AT_T_Axis_Pos_Flag=17234
+,P_SemiRun_Cathode_NG_Box_T_Axis_Pos_Flag=17235
+,P_SemiRun_Anode_NG_AT_T_Axis_Pos_Flag=17236
+,P_SemiRun_Anode_NG_Box_T_Axis_Pos_Flag=17237
+,P_SemiRun_1st_Unloader_Forward_Pos_Flag=17238
+,P_Motion_Separator_Dancer_Pressure_Flag=17239
+,P_Motion_Cathode_Clamp_Pressure_Flag=17240
+,P_Motion_Anoode_Clamp_Pressure_Flag=17241
+,P_Motion_Cathode_Final_Roller_X_Axis_Flag=17242
+,P_Motion_Anode_Final_Roller_X_Axis_Flag=17243
+,P_Motion_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag=17244
+,P_Motion_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag=17245
+,P_Motion_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag=17246
+,P_Motion_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag=17247
+,P_Motion_Cathode_2th_AT_T_Axis_Pos_Flag=17248
+,P_Motion_Cathode_2th_ST_T_Axis_Pos_Flag=17249
+,P_Motion_Cathode_2th_AT_Z_Axis_Pos_Flag=17250
+,P_Motion_Cathode_2th_ST_Z_Axis_Pos_Flag=17251
+,P_Motion_Anode_2th_AT_T_Axis_Pos_Flag=17252
+,P_Motion_Anode_2th_ST_T_Axis_Pos_Flag=17253
+,P_Motion_Anode_2th_AT_Z_Axis_Pos_Flag=17254
+,P_Motion_Anode_2th_ST_Z_Axis_Pos_Flag=17255
+,P_Motion_Cathode_1th_Ready_T_Axis_Pos_Flag=17256
+,P_Motion_Cathode_1th_CV_T_Axis_Pos_Flag=17257
+,P_Motion_Cathode_1th_AT_T_Axis_Pos_Flag=17258
+,P_Motion_Cathode_1th_Ready_Z_Axis_Pos_Flag=17259
+,P_Motion_Cathode_1th_CV_Z_Axis_Pos_Flag=17260
+,P_Motion_Cathode_1th_AT_Z_Axis_Pos_Flag=17261
+,P_Motion_Anode_1th_Ready_T_Axis_Pos_Flag=17262
+,P_Motion_Anode_1th_CV_T_Axis_Pos_Flag=17263
+,P_Motion_Anode_1th_AT_T_Axis_Pos_Flag=17264
+,P_Motion_Anode_1th_Ready_Z_Axis_Pos_Flag=17265
+,P_Motion_Anode_1th_CV_Z_Axis_Pos_Flag=17266
+,P_Motion_Anode_1th_AT_Z_Axis_Pos_Flag=17267
+,P_Motion_Cathode_NG_AT_T_Axis_Pos_Flag=17268
+,P_Motion_Cathode_NG_Box_T_Axis_Pos_Flag=17269
+,P_Motion_Anode_NG_AT_T_Axis_Pos_Flag=17270
+,P_Motion_Anode_NG_Box_T_Axis_Pos_Flag=17271
+,P_Motion_1st_Unloader_Forward_Pos_Flag=17272
+,P_Cathode_1PNP_Sacle_Value=17273
+,P_Cathode_2PNP_Sacle_Value=17274
+,P_Anode_1PNP_Sacle_Value=17275
+,P_Anode_2PNP_Sacle_Value=17276
+,P_PLC01_SemiRun_PV_Flag=17277
+,P_PV_EPC_Index=17278
+,P_BTN_MSA_Total_Value=17294
+,P_Vision_Align_Trigger_Timer=17295
+,P_Vision_Stack_Trigger_Timer=17296
+,P_MSA_Chk_Pos_Timer=17297
+,P_MSA_Chk_Pos_Time=17298
+,P_VISION_MSA_Seq_Index=17319
+,P_VISION_MSA_Anode_Align_Bit_Pos=17320
+,P_VISION_MSA_Seq_PreCondition_Index=17321
+,P_MSA_CycleStop_Point_Check_Complete_RTN=17322
+,P_Current_Anode_Align_MSA_Run_Count=17328
+,P_Current_Cathode_Align_MSA_Run_Count=17329
+,P_Current_Anode_Stack_MSA_Run_Count=17330
+,P_Current_Cathode_Stack_MSA_Run_Count=17331
+,P_VISION_MSA_Align_Count_Chk_Flag=17332
+,P_VISION_MSA_Stack_Count_Chk_Flag=17333
+,P_VISION_MSA_pre_InterLock_Cmd=17334
+,P_VISION_MSA_pre_InterLock_Status=17335
+,P_VISION_MSA_pre_InterLock_Check_Assy_Bit=17336
+,P_VISION_MSA_pre_InterLock_Assy_Bit_Pos=17337
+,P_Vision_MSA_Interlock_Status=17338
+,P_VISION_MSA_MODE=17339
+,P_VISION_MSA_Status_Flag=17340
+,P_VISION_MSA_State_Machine=17341
+,P_VISION_MSA_Status=17342
+,P_VISION_MSA_Seq_Command_Occurs=17343
+,P_Vision_Align_Trigger_Time=17344
+,P_Anode_Align_MSA_Motion_Check=17345
+,P_Cathode_Align_MSA_Motion_Check=17346
+,P_Anode_Stack_MSA_Motion_Check=17347
+,P_Cathode_Stack_MSA_Motion_Check=17348
+,P_Anode_Align_MSA_Motion_ProgActive_Complete=17349
+,P_Cathode_Align_MSA_Motion_ProgActive_Complete=17350
+,P_Anode_Stack_MSA_Motion_ProgActive_Complete=17351
+,P_Cathode_Stack_MSA_Motion_ProgActive_Complete=17352
+,P_BTN_Align_Off_Total_Value=17353
+,P_Align_Take_Off_Status=17357
+,P_Align_Take_Off_Mode=17358
+,P_Align_Take_Off_Status_Flag=17359
+,P_Align_Take_Off_State_Machine=17360
+,P_Align_Take_Off_Chk_Pos_Timer=17361
+,P_Align_Take_Off_Motor_Check_Complete=17362
+,P_Align_Take_Off_Speed_Return_Complete=17363
+,P_Align_Take_Off_Interlock_Status=17364
+,P_Align_Take_Off_pre_InterLock_Cmd=17365
+,P_Align_Take_Off_pre_InterLock_Status=17366
+,P_Align_Take_Off_pre_InterLock_Check_Assy_Bit=17367
+,P_Align_Take_Off_pre_InterLock_Assy_Bit_Pos=17368
+,P_Align_Take_Off_Seq_Index=17369
+,P_Align_Take_Off_Seq_PreCondition_Index=17370
+,P_Align_Take_Off_Stop_Signal=17391
+,P_Vision_Cal_Reset_Count=17392
+,P_2nd_PNP_Cleaning_Mode_Cmd=17393
+,P_2nd_PNP_Cleaning_Mode_Status=17394
+,P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed=17395
+,P_2nd_PNP_Cleaning_Mode_X_Jog_Speed=17396
+,P_2nd_PNP_Cleaning_Mode_T_Jog_Speed=17397
+,P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos=17398
+,P_PNP_Vac_Chk_Mode_Interlock=17399
+,P_Vac_Chk_Test=17400
+,P_Anode_1st_PNP_Vac_Chk_Mode_Blocked=17401
+,P_Cathode_1st_PNP_Vac_Chk_Mode_Blocked=17402
+,P_Anode_2nd_PNP_Vac_Chk_Mode_Blocked=17403
+,P_Cathode_2nd_PNP_Vac_Chk_Mode_Blocked=17404
+,P_SM_Anode_1st_PNP_Vac_Chk_Mode=17405
+,P_SM_Cathode_1st_PNP_Vac_Chk_Mode=17406
+,P_SM_Anode_2nd_PNP_Vac_Chk_Mode=17407
+,P_SM_Cathode_2nd_PNP_Vac_Chk_Mode=17408
+,P_Anode_1st_PNP_Vac_Chk_Execute_Timer=17409
+,P_Cathode_1st_PNP_Vac_Chk_Execute_Timer=17410
+,P_Anode_2nd_PNP_Vac_Chk_Execute_Timer=17411
+,P_Cathode_2nd_PNP_Vac_Chk_Execute_Timer=17412
+,P_Anode_1st_PNP_Vac_Check_Timer=17413
+,P_Cathode_1st_PNP_Vac_Check_Timer=17414
+,P_Anode_2nd_PNP_Vac_Check_Timer=17415
+,P_Cathode_2nd_PNP_Vac_Check_Timer=17416
+,P_Anode_1st_PNP_Vac_Chk_Status=17417
+,P_Cathode_1st_PNP_Vac_Chk_Status=17418
+,P_Anode_2nd_PNP_Vac_Chk_Status=17419
+,P_Cathode_2nd_PNP_Vac_Chk_Status=17420
+,P_Anode_1st_PNP_Vac_Chk_Mode_Stop_Blocked=17421
+,P_Cathode_1st_PNP_Vac_Chk_Mode_Stop_Blocked=17422
+,P_Anode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked=17423
+,P_Cathode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked=17424
+,P_Anode_1st_PnP_Vac_Chk_Mode_RTN=17425
+,P_Cathode_1st_PnP_Vac_Chk_Mode_RTN=17426
+,P_Anode_2nd_PnP_Vac_Chk_Mode_RTN=17427
+,P_Cathode_2nd_PnP_Vac_Chk_Mode_RTN=17428
+,P_PNP_Vac_Chk_Mode_TimeBase_Rtn=17429
+,P_PNP_Vac_Chk_Mode_Timer=17430
+,P_Anode_1st_PNP_Vac_Chk_Mode_Err=17431
+,P_Cathode_1st_PNP_Vac_Chk_Mode_Err=17432
+,P_Anode_2nd_PNP_Vac_Chk_Mode_Err=17433
+,P_Cathode_2nd_PNP_Vac_Chk_Mode_Err=17434
+,P_PNP_Vac_Chk_Mode_BTN_Err=17435
+,P_BTN_CA_1st_PNP_Vac_Chk_Mode=17436
+,P_BTN_AN_1st_PNP_Vac_Chk_Mode=17437
+,P_BTN_CA_2nd_PNP_Vac_Chk_Mode=17438
+,P_BTN_AN_2nd_PNP_Vac_Chk_Mode=17439
+,P_ARC_Tilting_Unwinder_Move_Dis=17474
+,P_Old_ARC_Upper_Tilting_Status=17475
+,P_Old_ARC_Lower_Tilting_Status=17476
+,P_System_Cascading_ON_Cmd=17587
+,P_System_Cascading_OFF_Cmd=17588
+,P_System_Master_Following_ON_Cmd=17589
+,P_System_Master_Following_OFF_Cmd=17590
+,P_System_CamTable_ON_Cmd=17591
+,P_System_CamTable_OFF_Cmd=17592
+,P_System_Spool_Home_Ready_Pos_Cmd=17593
+,P_System_Cascading_ON_Status=17594
+,P_System_Cascading_OFF_Status=17595
+,P_System_Master_Following_ON_Status=17596
+,P_System_Master_Following_OFF_Status=17597
+,P_System_CamTable_ON_Status=17598
+,P_System_CamTable_OFF_Status=17599
+,P_System_Spool_Home_Ready_Pos_Status=17600
+,P_System_Cascading_ON_State_Machine=17601
+,P_System_Cascading_OFF_State_Machine=17602
+,P_System_Master_Follwing_ON_State_Machine=17603
+,P_System_Master_Follwing_OFF_State_Machine=17604
+,P_System_CamTable_ON_State_Machine=17605
+,P_System_CamTable_OFF_State_Machine=17606
+,P_System_Spool_Home_Ready_Pos_State_Machine=17607
+,P_System_Cascading_ON_Complete_Flag=17608
+,P_System_Cascading_OFF_Complete_Flag=17609
+,P_System_Master_Following_ON_Complete_Flag=17610
+,P_System_Master_Following_OFF_Complete_Flag=17611
+,P_System_CamTable_ON_Complete_Flag=17612
+,P_System_CamTable_OFF_Complete_Flag=17613
+,P_System_Spool_Home_Ready_Pos_Complete_Flag=17614
+,P_Servo_Dancer_Cascading_Off_Timer=17615
+,P_Servo_Dancer_Cascading_Set_Timer=17616
+,P_Dancer_Frist_Home_Ready_Pos_Timer=17617
+,P_Driving_Motor_Use_Flag=17618
+,P_Home_Spool_Unwinding=17619
+,P_OutValue=17620
+,P_Dancer_Out_Slew_Seq=17621
+,P_OutChangeValue=17622
+,P_Rot_OutValue=17623
+,P_OutChangeTime=17624
+,P_Regul_Max_kPa_Value=17635
+,P_Regul_Min_kPa_Value=17636
+,P_Regul_Max_AD=17637
+,P_Regul_Min_AD=17638
+,P_Current_Max_Value=17639
+,P_Current_Min_Value=17640
+,P_Current_Max_AD=17641
+,P_Current_Min_AD=17642
+,P_Sepa_Cal_Inclination=17643
+,P_Regul_Cal_Inclination=17644
+,P_Cutter_Heat_Amp_Data_Bit=17645
+,P_Cut_Heat_Amp_Value=17646
+,P_AI_Cathode_Clamp_Damper_AVG=17647
+,P_AI_Anode_Clamp_Damper_AVG=17648
+,P_Tension_Ready_Pos_Cmd=17649
+,P_Tension_Ready_State_Machine=17650
+,P_Tension_Ready_Pos_Status=17651
+,P_Dancer_Center_Pos=17652
+,P_Upper_Sepa_Cal_Inclination=17653
+,P_Lower_Sepa_Cal_Inclination=17654
+,P_Unwinder_Jogspeed=17655
+,P_Cascading_First_Out=17656
+,P_Dancer_Cur_Vdc=17657
+,P_Dancer_Cur_Torque=17658
+,P_Dancer_Cur_Newton=17659
+,P_Dancer_Cur_Kgf=17660
+,P_Board_IO_Count=17661
+,P_Force_BTN_Address_Clear_Count=17662
+,P_Force_BTN_Condition_Count=18047
+,P_Old_Force_BTN_Mode=18048
+,P_Force_BTN_Address_Count=18049
+,P_Force_BTN_GPIO_Address_Count=18050
+,P_Force_BTN_Ecat_Address_Count=18051
+,P_Force_BTN_M_Variable_Save_Count=18052
+,P_Force_BTN_M_Variable_Start_Num=18053
+,P_Force_BTN_Normal_Mode_Status=18054
+,P_Force_BTN_Normal_Mode_State_Machine=18055
+,P_Force_BTN_Normal_Mode_Complete_Flag=18056
+,P_Force_BTN_Force_Mode_Timer=18057
+,P_Force_BTN_Force_Mode_Delay_Time=18058
+,P_Force_BTN_Force_Mode_Status=18059
+,P_Force_BTN_Force_Mode_State_Machine=18060
+,P_Force_BTN_Force_Mode_Complete_Flag=18061
+,P_Mem_Save_Error_Bit=18062
+,P_Servo_Gain_Save_Command=18073
+,P_Servo_Gain_Load_Command=18074
+,P_Servo_Gain_Save_Flag=18075
+,P_Servo_Gain_Load_Flag=18076
+,P_Insert_Phase_Flag=18257
+,P_Alarm_Occur_Flag=18358
+,P_Alarm_Wait_Time=18363
+,P_Alarm_Delay_Timer=18364
+,P_Compare_Priority=18365
+,P_Alarm_Report=18366
+,P_Alarm_Num=18367
+,P_Alarm_Index=18368
+,P_First_Alarm_Flag=18369
+,P_Servo_Alarm_Check=18400
+,P_Ecat_Servo_Alarm_Check=18401
+,P_Alarm_Count=18402
+,P_Alarm_Get_Flag=18403
+,P_Alarm_Sort_Time=18404
+,P_Alarm_Frist_Flag=18405
+,P_Alarm_Delay_time=18406
+,P_IL_ON_OFF_Flag=19227
+,P_IL_Coord_Robot=19228
+,P_IL_Robot_Bit=19229
+,P_IL_Outer_Status=19230
+,P_Robot_Unit_Serch_Flag=19231
+,P_IL_Home_Chk_Edge=19232
+,P_IL_Sprint=19236
+,P_IL_length=19237
+,P_IL_Strcat=19238
+,P_IL_Popup_Motor=19239
+,P_IL_Motor_Page=19240
+,P_IL_Recipe_Bit=19241
+,P_Interlock_Popup_On_Flag=19242
+,P_Motor_Page=19243
+,P_OP_Side_Ca_PNP_Pos=19244
+,P_OP_Side_An_PNP_Pos=19245
+,P_OP_Side_PMAC_Cur_Mode=19246
+,P_Abs_Trans_Cur_Pos=19247
+,P_Minus_IL_Offset=19248
+,P_Plus_IL_Offset=19249
+,P_2nd_PNP_Arm_Radius=19250
+,P_IL_Enable_Flag=19251
+,P_Plus_Interlock_Bit=19252
+,P_Minus_Interlock_Bit=19253
+,UPPos=19254
+,Unloader_In_StackPos=19255
+,FR_AnodePos=19256
+,FR_CathodePos=19257
+,Before_In_Stack=19258
+,In_Stack=19259
+,P_Minus_Collision_Risk_Motor=19262
+,P_IL_Clamp_Y=19263
+,P_IL_Clamp_Z=19264
+,P_IL_Clamp_Pos=19265
+,P_IL_Use_FR_Clamp_Pos=19266
+,P_Ca_1st_Plus_IL_Offset=19667
+,P_Ca_1st_Minus_IL_Offset=19668
+,P_An_1st_Plus_IL_Offset=19669
+,P_An_1st_Minus_IL_Offset=19670
+,P_Z_Pos_Data=19689
+,P_Clamp_Z_Plus_IL_Offset=19690
+,P_FR_Z_Minus_IL_Offset=19695
+,P_X_PLC_InterLock=19751
+,P_IL_Home_Chk=19752
+,P_IL_Home_Chk_Motor_Update=19773
+,P_IL_Inside_Home_Chk_Complete=19774
+,P_IL_Outside_Home_Chk_Complete=19775
+,P_IL_Motor_Home_Chk_RTN=19776
+,P_IL_Function_Cnt=19777
+,P_IL_Function_Motor_Num=19778
+,P_Jog_Page_Flag=19779
+,P_Jog_Btn_Flag=19780
+,P_Old_Jog_Btn_Flag=19781
+,P_Anode_1st_TR_Belt_Down_Flag=19782
+,P_Anode_1st_TR_Belt_Pick_Up_Flag=19783
+,P_Anode_1st_TR_Align_Down_Flag=19784
+,P_Anode_2nd_TR_Align_Pick_Up_Flag=19785
+,P_Anode_2nd_TR_Stack_Down_Flag=19786
+,P_Anode_NG_TR_Align_Pick_Up_Flag=19787
+,P_Anode_NG_TR_NG_Place_Down_Flag=19788
+,P_Anode_2nd_TR_Align_Down_Flag=19789
+,P_Anode_1st_TR_Align_Pick_Up_Flag=19790
+,P_Anode_1st_TR_Belt_Down_State_Machine=19791
+,P_Anode_1st_TR_Belt_Down_Status=19792
+,P_Anode_1st_TR_Belt_Pick_Up_State_Machine=19793
+,P_Anode_1st_TR_Belt_Pick_Up_Status=19794
+,P_Anode_1st_TR_Align_Down_State_Machine=19795
+,P_Anode_1st_TR_Align_Down_Status=19796
+,P_Anode_2nd_TR_Align_Pick_Up_State_Machine=19797
+,P_Anode_2nd_TR_Align_Pick_Up_Status=19798
+,P_Anode_2nd_TR_Stack_Down_State_Machine=19799
+,P_Anode_2nd_TR_Stack_Down_Status=19800
+,P_Anode_NG_TR_Align_Pick_Up_State_Machine=19801
+,P_Anode_NG_TR_Align_Pick_Up_Status=19802
+,P_Anode_NG_TR_NG_Place_Down_State_Machine=19803
+,P_Anode_NG_TR_NG_Place_Down_Status=19804
+,P_Anode_2nd_TR_Align_Down_State_Machine=19805
+,P_Anode_2nd_TR_Align_Down_Status=19806
+,P_Anode_1st_TR_Align_Pick_Up_State_Machine=19807
+,P_Anode_1st_TR_Align_Pick_Up_Status=19808
+,P_Cathode_1st_TR_Belt_Down_Flag=19809
+,P_Cathode_1st_TR_Belt_Pick_Up_Flag=19810
+,P_Cathode_1st_TR_Align_Down_Flag=19811
+,P_Cathode_2nd_TR_Align_Pick_Up_Flag=19812
+,P_Cathode_2nd_TR_Stack_Down_Flag=19813
+,P_Cathode_NG_TR_Align_Pick_Up_Flag=19814
+,P_Cathode_NG_TR_NG_Place_Down_Flag=19815
+,P_Cathode_2nd_TR_Align_Down_Flag=19816
+,P_Cathode_1st_TR_Align_Pick_Up_Flag=19817
+,P_Cathode_1st_TR_Belt_Down_State_Machine=19818
+,P_Cathode_1st_TR_Belt_Down_Status=19819
+,P_Cathode_1st_TR_Belt_Pick_Up_State_Machine=19820
+,P_Cathode_1st_TR_Belt_Pick_Up_Status=19821
+,P_Cathode_1st_TR_Align_Down_State_Machine=19822
+,P_Cathode_1st_TR_Align_Down_Status=19823
+,P_Cathode_2nd_TR_Align_Pick_Up_State_Machine=19824
+,P_Cathode_2nd_TR_Align_Pick_Up_Status=19825
+,P_Cathode_2nd_TR_Stack_Down_State_Machine=19826
+,P_Cathode_2nd_TR_Stack_Down_Status=19827
+,P_Cathode_NG_TR_Align_Pick_Up_State_Machine=19828
+,P_Cathode_NG_TR_Align_Pick_Up_Status=19829
+,P_Cathode_NG_TR_NG_Place_Down_State_Machine=19830
+,P_Cathode_NG_TR_NG_Place_Down_Status=19831
+,P_Cathode_2nd_TR_Align_Down_State_Machine=19832
+,P_Cathode_2nd_TR_Align_Down_Status=19833
+,P_Cathode_1st_TR_Align_Pick_Up_State_Machine=19834
+,P_Cathode_1st_TR_Align_Pick_Up_Status=19835
+,P_Old_Anode_Belt_ASCII=19836
+,P_Old_Cathode_Belt_ASCII=19837
+,P_Anode_Belt_ASCII=19838
+,P_Cathode_Belt_ASCII=19839
+,P_Check_Vac_Time=19840
+,P_Send_Anode_NG_Code_To_PLC=19841
+,P_Receive_Anode_NG_Code_From_PLC=19842
+,P_Send_Cathode_NG_Code_To_PLC=19843
+,P_Receive_Cathode_NG_Code_From_PLC=19844
+,P_Current_Cell_Memory_Anode_1P=19845
+,P_Current_Cell_Memory_Anode_AT=19846
+,P_Current_Cell_Memory_Anode_2P=19847
+,P_Current_Cell_Memory_Cathode_1P=19848
+,P_Current_Cell_Memory_Cathode_AT=19849
+,P_Current_Cell_Memory_Cathode_2P=19850
+,P_Current_Cell_Memory_Stack_Table=19851
+,P_Current_Cell_Memory_Cathode_NG_TR=19852
+,P_Current_Cell_Memory_Anode_NG_TR=19853
+,P_BTN_Anode_1st_TR_Buffer_Clear=19854
+,P_BTN_Anode_2nd_TR_Buffer_Clear=19855
+,P_BTN_Anode_Align_Buffer_Clear=19856
+,P_BTN_Anode_NG_TR_Buffer_Clear=19857
+,P_BTN_Cathode_1st_TR_Buffer_Clear=19858
+,P_BTN_Cathode_2nd_TR_Buffer_Clear=19859
+,P_BTN_Cathode_Align_Buffer_Clear=19860
+,P_BTN_Cathode_NG_TR_Buffer_Clear=19861
+,P_Old_BTN_Anode_1st_TR_Buffer_Clear=19862
+,P_Old_BTN_Anode_2nd_TR_Buffer_Clear=19863
+,P_Old_BTN_Anode_Align_Buffer_Clear=19864
+,P_Old_BTN_Anode_NG_TR_Buffer_Clear=19865
+,P_Old_BTN_Cathode_1st_TR_Buffer_Clear=19866
+,P_Old_BTN_Cathode_2nd_TR_Buffer_Clear=19867
+,P_Old_BTN_Cathode_Align_Buffer_Clear=19868
+,P_Old_BTN_Cathode_NG_TR_Buffer_Clear=19869
+,P_Send_Anode_NG_Code_Flag=19870
+,P_Send_Cathode_NG_Code_Flag=19871
+,P_Anode_Vision_NG_To_PLC_Flag=19872
+,P_Cathode_Vision_NG_To_PLC_Flag=19873
+,P_Status_Clear_Sheet_Maint_Check=19874
+,P_Single_Run_Start_Flag=19875
+,P_Single_Run_Control_State_Machine=19876
+,P_Single_Run_Control_Status=19877
+,P_Single_Run_Execute_Bit=19878
+,P_User_Dry_Run_Mode=19879
+,P_Single_Run_State_Machine=19880
+,P_Single_Run_Status=19881
+,P_Single_Run_Unit=19882
+,P_Single_Run_Evade_Pos_RTN=19883
+,P_Single_Run_Evade_Pos_Check_RTN=19884
+,P_Single_Run_Pos_Rtn1=19885
+,P_Single_Run_Pos_Rtn2=19886
+,P_Single_Run_Motion_Ready_RTN=19887
+,P_Single_Run_Execution_Interlock_RTN=19888
+,P_Single_Run_Coord_Activate_RTN=19889
+,P_Single_Run_Coord_Activate_Check_RTN=19890
+,P_Single_Run_Select_Run_Mode_RTN=19891
+,P_Single_Run_Execution_Run_RTN=19892
+,P_Single_Run_Motion_Ready_State_Machine=19893
+,P_Coord_1=19894
+,P_Coord_2=19895
+,P_Coord_3=19896
+,P_Coord_4=19897
+,P_Final_Roll_Z_Motion_Flag=19898
+,P_Final_Roll_Z_Motion_State_Machine=19899
+,P_Main_Z_Motion_Flag=19900
+,P_Main_Z_Motion_State_Machine=19901
+,P_Single_Run_Mode_Flag=19902
+,P_Cathode_AT_Motion_Flag=19903
+,P_Cathode_Align_Motion_State_Machine=19904
+,P_Anode_AT_Motion_Flag=19905
+,P_Anode_Align_Motion_State_Machine=19906
+,P_Sheet_Paper_Motion_Flag=19907
+,P_Sheet_Paper_Motion_State_Machine=19908
+,P_Cathode_NG_PNP_T_Motion_Flag=19909
+,P_Cathode_NG_PNP_T_Motion_State_Machine=19910
+,P_Cathode_NG_PNP_Z_Motion_Flag=19911
+,P_Cathode_NG_PNP_Z_Motion_State_Machine=19912
+,P_Anode_NG_PNP_T_Motion_Flag=19913
+,P_Anode_NG_PNP_T_Motion_State_Machine=19914
+,P_Anode_NG_PNP_Z_Motion_Flag=19915
+,P_Anode_NG_PNP_Z_Motion_State_Machine=19916
+,P_1st_UND_X_Motion_Flag=19917
+,P_1st_UND_X_Motion_State_Machine=19918
+,P_1st_UND_Z_Motion_Flag=19919
+,P_1st_UND_Z_Motion_State_Machine=19920
+,P_1st_UND_T_Motion_Flag=19921
+,P_1st_UND_T_Motion_State_Machine=19922
+,P_Cathode_Run_Command_Flag=19923
+,P_Anode_Run_Command_Flag=19924
+,P_NG_PNP_Uint_Motion_Flag=19925
+,P_NG_PNP_Uint_State_Machine=19926
+,P_NG_PNP_Motion_Cnt=19927
+,P_Single_Run_Timer=19938
+,P_Single_Run_Align_Timer=19939
+,P_Single_Run_Align_Timer2=19940
+,P_Single_Run_Finall_Roll_Z_Timer=19941
+,P_Single_RuN_MAIN_Z_Timer=19942
+,P_Single_Run_Sheet_Paper_Timer=19943
+,P_Single_Run_Debug_SM=19944
+,P_Error_Monitoring_Count_1=19945
+,P_Error_Monitoring_Count_2=19946
+,P_Error_Monitoring_Count_3=19947
+,P_Error_Monitoring_Count_4=19948
+,P_Error_Monitoring_Count_5=19949
+,P_Old_Single_Run_Mode_Flag=19950
+,P_Old_Current_Mode=19951
+,P_Single_Run_Timebase_Off_RTN=19952
+,P_Single_Run_Stop_State_Machine=19953
+,P_Single_Run_Stop_Status=19954
+,P_Single_Run_Stop_Timer=19955
+,P_Single_Run_Stop_Init_RTN=19956
+,P_Single_Run_Stop_Btn_Chk=19957
+,P_Single_Run_Stop_Command=19958
+,P_Motor_Ready_Poa_Inpos_200um=19959
+,P_Ecat_Parameter_Write_Flag=19960
+,P_Ecat_Parameter_Read_Flag=19961
+,P_Ecat_Each_Parameter_Write_Flag=19962
+,P_Ecat_Slave_Idx=19963
+,P_Ec_Num=19964
+,P_Ecat_Read_Motor_Num=19965
+,P_Ecat_Write_Motor_Num=19966
+,P_Ecat_Parameter_Write_State_Machine=19967
+,P_Ecat_Parameter_Read_State_Machine=19968
+,P_Ecat_Each_Parameter_Write_State_Machine=19969
+,P_Ecat_Write_Status=20090
+,P_Ecat_Read_Status=20091
+,P_Ecat_Each_Write_Status=20092
+,P_Align_Plus_Blow_Test=20653
+,P_System_Setting_Flag=20654
+,P_Ecat_Setting_Flag=20655
+,P_Ecat_Activation_State_Machine=20656
+,P_PLC31_Ecat_Retry_Cnt=20657
+,P_Ecat_Connect_Result=20658
+,P_Ecat_Slave_Error=20659
+,P_PWM_AbsPhasePosOffset_Change_State_Machine=20660
+,P_AbsPhasePosOffset_Change_Complete=20661
+,P_PWM_AbsPhasing_Fail=20662
+,P_PWM_AbsPhasing_Complete=20663
+,P_Whole_Stacking_Tack_Time=20664
+,P_Whole_Stacking_Tack_Time_Check=20665
+,P_Whole_Stacking_Tack_Timer_Check_Flag=20666
+,P_Whole_Stacking_Timer_Shift_Status_Machine=20667
+,P_Whole_Stacking_TackTime_Array0=20668
+,P_Whole_Stacking_TackTime_Array1=20669
+,P_Whole_Stacking_TackTime_Array2=20670
+,P_Whole_Stacking_TackTime_Array3=20671
+,P_Whole_Stacking_TackTime_Array4=20672
+,P_Whole_Stacking_TackTime_Array5=20673
+,P_Whole_Stacking_TackTime_Array6=20674
+,P_Whole_Stacking_TackTime_Array7=20675
+,P_Whole_Stacking_TackTime_Array8=20676
+,P_Whole_Stacking_TackTime_Array9=20677
+,P_Whole_Stacking_TackTime_Array10=20678
+,P_First_Stacking_Start=20679
+,P_Last_Stacking_Complete=20680
+,P_Stacking_Tack_Time=20681
+,P_Stacking_Tack_Time_Check=20682
+,P_Stacking_Tack_Timer_Check_Flag=20683
+,P_Stacking_Timer_Shift_Status_Machine=20684
+,P_Cathode_to_Anode_FR_Tack_Time_Check=20685
+,P_Anode_to_Cathode_FR_Tack_Time_Check=20686
+,P_Cathode_to_Anode_FR_Tack_Time_Start=20687
+,P_Anode_to_Cathode_FR_Tack_Time_Start=20688
+,P_Cathode_to_Anode_FR_Tack_Time_Complete=20689
+,P_Anode_to_Cathode_FR_Tack_Time_Complete=20690
+,P_Cathode_to_Anode_FR_Time=20691
+,P_Anode_to_Cathode_FR_Time=20692
+,P_Cathode_to_Anode_FR_Tack_Timer_Check_Flag=20693
+,P_Anode_to_Cathode_FR_Tack_Timer_Check_Flag=20694
+,P_Anode_Align_Table_Time=20695
+,P_Anode_Align_Table_Tack_Time_Check=20696
+,P_Anode_Align_Table_Tack_Timer_Check_Flag=20697
+,P_Anode_Align_Table_Timer_Shift_Status_Machine=20698
+,P_Anode_Align_Tack_Time_Start=20699
+,P_Anode_Align_Tack_Time_Complete=20700
+,P_Cathode_Align_Table_Time=20701
+,P_Cathode_Align_Table_Tack_Time_Check=20702
+,P_Cathode_Align_Table_Tack_Timer_Check_Flag=20703
+,P_Cathode_Align_Table_Timer_Shift_Status_Machine=20704
+,P_Cathode_Align_Tack_Time_Start=20705
+,P_Cathode_Align_Tack_Time_Complete=20706
+,P_Anode_1th_Tack_Time_Start=20707
+,P_Anode_1th_Tack_Time_Complete=20708
+,P_Anode_1th_Time=20709
+,P_Anode_1th_Tack_Time_Check=20710
+,P_Anode_1th_Tack_Timer_Check_Flag=20711
+,P_Anode_1th_Timer_Shift_Status_Machine=20712
+,P_Cathode_1th_Tack_Time_Start=20713
+,P_Cathode_1th_Tack_Time_Complete=20714
+,P_Cathode_1th_Time=20715
+,P_Cathode_1th_Tack_Time_Check=20716
+,P_Cathode_1th_Tack_Timer_Check_Flag=20717
+,P_Cathode_1th_Timer_Shift_Status_Machine=20718
+,P_Anode_2th_Tack_Time_Start=20719
+,P_Anode_2th_Tack_Time_Complete=20720
+,P_Anode_2th_Time=20721
+,P_Anode_2th_Tack_Time_Check=20722
+,P_Anode_2th_Tack_Timer_Check_Flag=20723
+,P_Anode_2th_Timer_Shift_Status_Machine=20724
+,P_Cathode_2th_Tack_Time_Start=20725
+,P_Cathode_2th_Tack_Time_Complete=20726
+,P_Cathode_2th_Time=20727
+,P_Cathode_2th_Tack_Time_Check=20728
+,P_Cathode_2th_Tack_Timer_Check_Flag=20729
+,P_Cathode_2th_Timer_Shift_Status_Machine=20730
+,P_Anode_1th_NG_Tack_Time_Start=20731
+,P_Anode_1th_NG_Tack_Time_Complete=20732
+,P_Anode_1th_NG_Time=20733
+,P_Anode_1th_NG_Tack_Time_Check=20734
+,P_Anode_1th_NG_Tack_Timer_Check_Flag=20735
+,P_Anode_1th_NG_Timer_Shift_Status_Machine=20736
+,P_Cathode_1th_NG_Tack_Time_Start=20737
+,P_Cathode_1th_NG_Tack_Time_Complete=20738
+,P_Cathode_1th_NG_Time=20739
+,P_Cathode_1th_NG_Tack_Time_Check=20740
+,P_Cathode_1th_NG_Tack_Timer_Check_Flag=20741
+,P_Cathode_1th_NG_Timer_Shift_Status_Machine=20742
+,P_Anode_Clamp_Tack_Time_Start=20743
+,P_Anode_Clamp_Tack_Time_Complete=20744
+,P_Anode_Clamp_Time=20745
+,P_Anode_Clamp_Tack_Time_Check=20746
+,P_Anode_Clamp_Tack_Timer_Check_Flag=20747
+,P_Anode_Clamp_Timer_Shift_Status_Machine=20748
+,P_Cathode_Clamp_Tack_Time_Start=20749
+,P_Cathode_Clamp_Tack_Time_Complete=20750
+,P_Cathode_Clamp_Time=20751
+,P_Cathode_Clamp_Tack_Time_Check=20752
+,P_Cathode_Clamp_Tack_Timer_Check_Flag=20753
+,P_Cathode_Clamp_Timer_Shift_Status_Machine=20754
+,P_Final_Roll_X_Timer_Shift_Status_Machine=20755
+,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array0=20756
+,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array1=20757
+,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array2=20758
+,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array3=20759
+,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array4=20760
+,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array5=20761
+,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array6=20762
+,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array7=20763
+,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array8=20764
+,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array9=20765
+,P_Final_Roll_X_Cathode_to_Anode_TackTime_Array10=20766
+,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array0=20767
+,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array1=20768
+,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array2=20769
+,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array3=20770
+,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array4=20771
+,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array5=20772
+,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array6=20773
+,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array7=20774
+,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array8=20775
+,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array9=20776
+,P_Final_Roll_X_Anode_to_Cathode_TackTime_Array10=20777
+,P_MCC_Anode_Align_NG_Count=20832
+,P_MCC_Cathode_Align_NG_Count=20833
+,P_MCC_Anode_Retry_NG_Count=20834
+,P_MCC_Cathode_Retry_NG_Count=20835
+,P_Discharge_Hold_Timer=20848
+,P_Discharge_Hold_Time=20849
+,P_AN_1st_Z_Zero_Angle=20850
+,P_AN_1st_Z_Zero_Length=20851
+,P_Anode_1st_PNP_Z_Crank_Zero_Pos=20852
+,P_Anode_1st_PNP_Z_Crank_real_Move_Pos=20853
+,P_Anode_1st_PNP_Z_Crank_radian=20854
+,P_Anode_1st_PNP_Z_Acos_denominator=20855
+,P_Anode_1st_PNP_Z_Acos_numerator=20856
+,P_Anode_1st_PNP_Z_Crank_Angle=20857
+,P_Anode_1st_PNP_Z_Real_Move_Pos=20858
+,P_Anode_1st_Fwd_Bwd_Rise=20859
+,P_CA_1st_Z_Zero_Angle=20860
+,P_CA_1st_Z_Zero_Length=20861
+,P_Cathode_1st_PNP_Z_Crank_Zero_Pos=20862
+,P_Cathode_1st_PNP_Z_Crank_real_Move_Pos=20863
+,P_Cathode_1st_PNP_Z_Crank_radian=20864
+,P_Cathode_1st_PNP_Z_Acos_denominator=20865
+,P_Cathode_1st_PNP_Z_Acos_numerator=20866
+,P_Cathode_1st_PNP_Z_Crank_Angle=20867
+,P_Cathode_1st_PNP_Z_Real_Move_Pos=20868
+,P_Cathode_1st_Fwd_Bwd_Rise=20869
+,P_AN_2nd_Z_Zero_Angle=20870
+,P_AN_2nd_Z_Zero_Length=20871
+,P_Anode_2nd_PNP_Z_Crank_Zero_Pos=20872
+,P_Anode_2nd_PNP_Z_Crank_real_Move_Pos=20873
+,P_Anode_2nd_PNP_Z_Crank_radian=20874
+,P_Anode_2nd_PNP_Z_Acos_denominator=20875
+,P_Anode_2nd_PNP_Z_Acos_numerator=20876
+,P_Anode_2nd_PNP_Z_Crank_Angle=20877
+,P_Anode_2nd_PNP_Z_Real_Move_Pos=20878
+,P_Anode_2nd_Fwd_Bwd_Rise=20879
+,P_CA_2nd_Z_Zero_Angle=20880
+,P_CA_2nd_Z_Zero_Length=20881
+,P_Cathode_2nd_PNP_Z_Crank_Zero_Pos=20882
+,P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos=20883
+,P_Cathode_2nd_PNP_Z_Crank_radian=20884
+,P_Cathode_2nd_PNP_Z_Acos_denominator=20885
+,P_Cathode_2nd_PNP_Z_Acos_numerator=20886
+,P_Cathode_2nd_PNP_Z_Crank_Angle=20887
+,P_Cathode_2nd_PNP_Z_Real_Move_Pos=20888
+,P_Cathode_2nd_Fwd_Bwd_Rise=20889
+,P_Old_Recipe_Anode_1st_PNP_Z_Ready_Up=20890
+,P_Old_Recipe_Anode_1st_PNP_Z_Belt_Up=20891
+,P_Old_Recipe_Anode_1st_PNP_Z_Belt_Down=20892
+,P_Old_Recipe_Anode_1st_PNP_Z_Align_Up=20893
+,P_Old_Recipe_Anode_1st_PNP_Z_Align_Down=20894
+,P_Old_Recipe_Cathode_1st_PNP_Z_Ready_Up=20895
+,P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Up=20896
+,P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Down=20897
+,P_Old_Recipe_Cathode_1st_PNP_Z_Align_Up=20898
+,P_Old_Recipe_Cathode_1st_PNP_Z_Align_Down=20899
+,P_Old_Recipe_Anode_2nd_PNP_Z_Align_Up=20900
+,P_Old_Recipe_Anode_2nd_PNP_Z_Align_Down=20901
+,P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Up=20902
+,P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Down=20903
+,P_Old_Recipe_Anode_2nd_PNP_Z_Ready_Up=20904
+,P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Up=20905
+,P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Down=20906
+,P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Up=20907
+,P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Down=20908
+,P_Old_Recipe_Cathode_2nd_PNP_Z_Ready_Up=20909
+,P_PLC19_All_Home_Status=20910
+,P_PLC19_All_Home_Module_Status=20911
+,P_PLC19_All_Home_State_Machine=20912
+,P_PLC19_All_Home_Seq_Index=20913
+,P_PLC19_All_Home_Self_Index=20914
+,P_PLC19_All_Home_Set_Mode_Return=20915
+,P_PLC19_All_Home_Timer=20916
+,P_PLC19_All_Home_Tact_Time=20937
+,P_All_Home_Module_Error=20938
+,P_Act_ALL_Home_Time_Out_Time=20939
+,P_Act_Hold_Time_Out_Time=21155
+,P_First_PNP_T_Wait_Status=21191
+,P_First_PNP_Z_Wait_Status=21192
+,P_First_PNP_Picker_T_Turn_Status=21193
+,P_First_PNP_T_Wait_To_Belt_Status=21194
+,P_First_PNP_Z_Wait_To_Belt_Status=21195
+,P_First_PNP_T_Align_To_Belt_Status=21196
+,P_First_PNP_Z_Align_To_Belt_Status=21197
+,P_First_PNP_Z_Belt_Down_Status=21198
+,P_First_PNP_Z_Belt_Up_Status=21199
+,P_First_PNP_T_Wait_To_Align_Status=21200
+,P_First_PNP_Z_Wait_To_Align_Status=21201
+,P_First_PNP_T_Belt_To_Align_Status=21202
+,P_First_PNP_Z_Belt_To_Align_Status=21203
+,P_First_PNP_Z_Align_Down_Status=21204
+,P_First_PNP_Z_Align_Up_Status=21205
+,P_First_PNP_Vac_On_Status=21206
+,P_First_PNP_Blow_On_Status=21207
+,P_Second_PNP_T_Align_To_Stack_Status=21208
+,P_Second_PNP_Z_Align_To_Stack_Status=21209
+,P_Second_PNP_T_Stack_To_Align_Status=21210
+,P_Second_PNP_Z_Stack_To_Align_Status=21211
+,P_Second_PNP_Z_Align_Down_Status=21212
+,P_Second_PNP_Z_Align_Up_Status=21213
+,P_Second_PNP_Vac_On_Status=21214
+,P_Second_PNP_Blow_On_Status=21215
+,P_NG_PNP_NG_Bos_Status=21216
+,P_NG_PNP_Align_Status=21217
+,P_NG_PNP_Align_Down_Status=21218
+,P_NG_PNP_Align_Up_Status=21219
+,P_NG_PNP_Vac_On_Status=21220
+,P_NG_PNP_Blow_On_Status=21221
+,P_Hold_1st_PNP_Position=21222
+,P_Hold_Module_Error=21223
+,P_Act_Execute_Time_Out_Time=21284
+,P_Execute_Module_Error=21297
+,P_Execute_First_Sepa_Total_Tact_Time=21298
+,P_Current_JR_Thickness_mm=21299
+,P_Current_Jelly_Roll_Thinckness_mm_Send_Enable_Flag=21300
+,P_Stack_Table_NG_Flag=21301
+,P_Suspend_Discharge_Cell_Out_Restart=21302
+,P_Jelly_Roll_OK_Count=21303
+,P_Jelly_Roll_NG_Count=21304
+,P_Jelly_Roll_Total_Count=21305
+,P_Jelly_Roll_Prod_Count=21306
+,P_Jelly_Roll_Recipe_Count=21307
+,P_Current_Cell_Memory_Jelly_Roll=21308
+,P_VISION_PLC10_Anode_Align_Start=21309
+,P_VISION_PLC10_Cathode_Align_Start=21310
+,P_Stack_Table_NG_Count=21311
+,P_Stack_PMAC_NG_Code=21312
+,P_Stack_Vision_NG_Code_IN_Timer=21313
+,P_1st_Discharge_State=21314
+,P_Prev_Sepa_Stack_Completed_Flag=21315
+,P_First_Sepa_Vision_Skip_Flag=21316
+,P_Discharge_Unloader_Handover_Timer=21317
+,P_Discharge_Unloader_Handover_Time=21318
+,P_Execute_First_Sepa_Mode_Cmd=21379
+,P_Execute_First_Sepa_Mode_Status=21380
+,P_Execute_First_Sepa_Mode_Module_Status=21381
+,P_Execute_First_Sepa_Mode_State_Machine=21382
+,P_Execute_First_Sepa_Mode_Seq_Index=21383
+,P_Execute_First_Sepa_Mode_Self_Index=21384
+,P_Execute_First_Sepa_Mode_Debug_Edge=21385
+,P_Execute_First_Sepa_Mode_Timer=21416
+,P_Execute_First_Sepa_Mode_Tact_Time=21437
+,P_Execute_1st_Sepa_Status=21438
+,P_Suspend_Discharge_Cmd=21439
+,P_Suspend_Discharge_Status=21440
+,P_Suspend_Discharge_State_Machine=21441
+,P_Suspend_Discharge_Seq_Index=21442
+,P_Suspend_Discharge_Self_Index=21443
+,P_Suspend_Discharge_Timer=21534
+,P_Suspend_Discharge_Tact_Time=21555
+,P_Suspend_Discharge_1st_Unloader_JR_Grip=21556
+,P_Suspend_ARC_Cmd=21557
+,P_Suspend_ARC_Status=21558
+,P_Suspend_ARC_State_Machine=21559
+,P_Suspend_ARC_Seq_Index=21560
+,P_Suspend_ARC_Self_Index=21561
+,P_Suspend_ARC_Manual_Occur_Flag=21562
+,P_Suspend_ARC_Timer=21653
+,P_Suspend_ARC_Tact_Time=21674
+,P_Suspend_Anode_1TR_Cell_Supply_Cmd=21675
+,P_Suspend_Anode_1TR_Cell_Supply_Status=21676
+,P_Suspend_Anode_1TR_Cell_Supply_State_Machine=21677
+,P_Suspend_Anode_1TR_Cell_Supply_Seq_Index=21678
+,P_Suspend_Anode_1TR_Cell_Supply_Self_Index=21679
+,P_Suspend_Anode_1TR_Cell_Supply_Module_Status=21680
+,P_Suspend_Anode_1TR_Cell_Supply_Timer=21771
+,P_Suspend_Anode_1TR_Cell_Supply_Tact_Time=21792
+,P_Hold_Exist_Insp_Cmd=21793
+,P_Hold_Exist_Insp_Status=21794
+,P_Hold_Exist_Insp_Module_Status=21795
+,P_Hold_Exist_Insp_State_Machine=21796
+,P_Hold_Exist_Insp_Seq_Index=21797
+,P_Hold_Exist_Insp_Self_Index=21798
+,P_Hold_Exist_Insp_Debug_Edge=21799
+,P_Hold_Exist_Insp_Timer=21830
+,P_Hold_Exist_Insp_Tact_Time=21851
+,P_Hold_Remove_NG_PNP_Cmd=21852
+,P_Hold_Remove_NG_PNP_Status=21853
+,P_Hold_Remove_NG_PNP_Module_Status=21854
+,P_Hold_Remove_NG_PNP_State_Machine=21855
+,P_Hold_Remove_NG_PNP_Seq_Index=21856
+,P_Hold_Remove_NG_PNP_Self_Index=21857
+,P_Hold_Remove_NG_PNP_Debug_Edge=21858
+,P_Hold_Remove_NG_PNP_Timer=21889
+,P_Hold_Remove_NG_PNP_Tact_Time=21910
+,P_PLC01_Hold_Remove_NG_PNP_Sub_Flag=21911
+,P_PLC01_Hold_Remove_NG_PNP_Sub_State_Machine=21912
+,P_PLC01_Hold_Remove_NG_PNP_Sub_Status=21913
+,P_Hold_Remove_Align_Cmd=21914
+,P_Hold_Remove_Align_Status=21915
+,P_Hold_Remove_Align_Module_Status=21916
+,P_Hold_Remove_Align_State_Machine=21917
+,P_Hold_Remove_Align_Seq_Index=21918
+,P_Hold_Remove_Align_Self_Index=21919
+,P_Hold_Remove_Align_Debug_Edge=21920
+,P_Hold_Remove_Align_Timer=21951
+,P_Hold_Remove_Align_Tact_Time=21972
+,P_PLC01_Hold_Remove_Align_Sub_Flag=21973
+,P_PLC01_Hold_Remove_Align_Sub_State_Machine=21974
+,P_PLC01_Hold_Remove_Align_Sub_Status=21975
+,P_Hold_Remove_2TR_Cmd=21976
+,P_Hold_Remove_2TR_Status=21977
+,P_Hold_Remove_2TR_Module_Status=21978
+,P_Hold_Remove_2TR_State_Machine=21979
+,P_Hold_Remove_2TR_Seq_Index=21980
+,P_Hold_Remove_2TR_Self_Index=21981
+,P_Hold_Remove_2TR_Debug_Edge=21982
+,P_Hold_Remove_2TR_Timer=22013
+,P_Hold_Remove_2TR_Tact_Time=22034
+,P_Hold_Supply_1TR_Cmd=22035
+,P_Hold_Supply_1TR_Status=22036
+,P_Hold_Supply_1TR_Module_Status=22037
+,P_Hold_Supply_1TR_State_Machine=22038
+,P_Hold_Supply_1TR_Seq_Index=22039
+,P_Hold_Supply_1TR_Self_Index=22040
+,P_Hold_Supply_1TR_Debug_Edge=22041
+,P_Hold_Supply_1TR_Timer=22072
+,P_Hold_Supply_1TR_Tact_Time=22093
+,P_PLC01_Hold_Supply_1TR_Memory_RTN=22094
+,P_PLC01_Hold_Supply_1TR_Judge_Flag=22095
+,P_PLC01_Hold_Supply_1TR_Judge_State_Machine=22096
+,P_PLC01_Hold_Supply_1TR_Judge_Status=22097
+,P_Plate_1TR_Supply_Module_Judge_Bit=22098
+,P_Hold_Supply_Align_Cmd=22099
+,P_Hold_Supply_Align_Status=22100
+,P_Hold_Supply_Align_Module_Status=22101
+,P_Hold_Supply_Align_State_Machine=22102
+,P_Hold_Supply_Align_Seq_Index=22103
+,P_Hold_Supply_Align_Self_Index=22104
+,P_Hold_Supply_Align_Debug_Edge=22105
+,P_Hold_Supply_Align_Timer=22136
+,P_Hold_Supply_Align_Tact_Time=22157
+,P_Hold_Supply_2TR_Cmd=22158
+,P_Hold_Supply_2TR_Status=22159
+,P_Hold_Supply_2TR_Module_Status=22160
+,P_Hold_Supply_2TR_State_Machine=22161
+,P_Hold_Supply_2TR_Seq_Index=22162
+,P_Hold_Supply_2TR_Self_Index=22163
+,P_Hold_Supply_2TR_Debug_Edge=22164
+,P_Hold_Supply_2TR_Timer=22195
+,P_Hold_Supply_2TR_Tact_Time=22216
+,P_Hold_Semi_Run_Pos_Move_Cmd=22217
+,P_Hold_Semi_Run_Pos_Move_Status=22218
+,P_Hold_Semi_Run_Pos_Move_Module_Status=22219
+,P_Hold_Semi_Run_Pos_Move_State_Machine=22220
+,P_Hold_Semi_Run_Pos_Move_Seq_Index=22221
+,P_Hold_Semi_Run_Pos_Move_Self_Index=22222
+,P_Hold_Semi_Run_Pos_Move_Debug_Edge=22223
+,P_Hold_Semi_Run_Pos_Move_Timer=22254
+,P_Hold_Semi_Run_Pos_Move_Tact_Time=22275
+,P_Act_Suspend_Time_Out_Time=22474
+,P_Test_Sungmin_Flag=22541
+,P_Suspend_Discharge_Module_Status=23400
+,P_Suspend_Discharge_To_Execute_Flag=23401
+,P_Suspend_Discharge_Complete_Flag=23402
+,P_First_Unloader_Stack_Up_Status=23403
+,P_First_Unloader_Stack_FWD_Status=23404
+,P_First_Unloader_Grip_Cell_Status=23405
+,P_First_Unloader_Stack_BWD_Wait_Status=23406
+,P_First_Unloader_Stack_BWD_Status=23407
+,P_First_Unloader_Stack_Down_Status=23408
+,P_First_Unloader_Avoid_Status=23409
+,P_First_Unloader_Turn_Status=23410
+,P_First_Unloader_Handover_Status=23411
+,P_Cathode_Clamp_OFF_Status=23412
+,P_Final_Roll_Discharge_Status=23413
+,P_Final_Roll_Stack_Pos_Status=23414
+,P_Final_Roll_Stack_Up_Pos_Status=23415
+,P_Main_Z_Init_Pos_Status=23416
+,P_Sheet_Paper_BWD_Status=23417
+,P_Discharge_Vision_DIO_RTN=23418
+,P_Discharge_Sub_RTN=23419
+,P_Discharge_NG_Code_Report_RTN=23420
+,P_Individual_RTN=23421
+,P_Suspend_Discharge_Last_Run_Bit=23422
+,P_Suspend_Discharge_JR_Result_RTN=23423
+,P_ARC_Buffer_Jog_Speed=23424
+,P_Selected_Spool_Number=23425
+,P_ARC_Home_Check_RTN=23426
+,P_Suspend_ARC_Module_Status=23427
+,P_Not_Selected_Spool_Radius=23428
+,P_Not_Selected_Spool_Circumference=23429
+,P_Passive_D_One_Degree_AD_Value=23455
+,P_After_ARC_Rotate_Distance=23456
+,P_Stack_Vision_NG_Code_Time_Over=23457
+,P_Suspend_Discharge_Resume_Flag=23458
+,P_Suspend_Discharge_Resume_Complete=23459
+,P_Suspend_Discharge_Pause_Flag=23460
+,P_Flag_Stack_Work_Host_ID=23471
+,P_First_Sepa_Stack_Align_OK_PMAC_Flag=23472
+,P_Sepa_Run_Completed_Status_Machine=23473
+,P_Discharge_Debug_Edge=23474
+,P_Discharge_Sepa_Cutter_Time_Out_State_Machine=23485
+,P_Old_Suspend_Discharge_Seq_Index=23486
+,P_Discharge_Debug_Index_1=23487
+,P_Discharge_Debug_Index_2=23488
+,P_Discharge_Debug_Index_3=23489
+,P_Discharge_Debug_Index_4=23490
+,P_ARC_Debug_Edge=23491
+,P_Old_Suspend_ARC_Seq_Index=23502
+,P_ARC_Debug_Index_1=23503
+,P_ARC_Debug_Index_2=23504
+,P_ARC_Debug_Index_3=23505
+,P_ARC_Debug_Index_4=23506
+,P_Suspend_Cutter_Heating_Time=23509
+,P_Suspend_Cutter_Heating_Timer=23510
+,P_An_1TR_Supply_Debug_Edge=23511
+,P_Old_Suspend_An_1TR_Supply_Seq_Index=23522
+,P_An_1TR_Supply_Debug_Index_1=23523
+,P_An_1TR_Supply_Debug_Index_2=23524
+,P_An_1TR_Supply_Debug_Index_3=23525
+,P_An_1TR_Supply_Debug_Index_4=23526
+,P_Suspend_Supply_Index=23527
+,P_Suspend_Supply_Index_2nd=23528
+,P_Suspend_Supply_Pause_Flag=23537
+,P_Suspend_Supply_Resume_Flag=23538
+,P_Supply_Module_Status=23539
+,P_Suspend_Anode_1TR_Supply_Complete_Flag=23540
+,P_Suspend_Discharge_Module_Error=23541
+,P_Suspend_ARC_Module_Error=23542
+,P_Suspend_1st_Supply_Error=23543
+,P_Discharge_Seq_Data=23544
+,P_Suspend_Discharging_Popup_Flag=23545
+,P_Suspend_Discharge_FR_Unclamp_Error_Popup_Flag=23546
+,P_Suspend_Discharge_Cathode_Align_Retry_Cal_Error_Popup_Flag=23547
+,P_Suspend_Discharge_Anode_Align_Retry_Cal_Error_Popup_Flag=23548
+,P_Suspend_Discharge_FR_Discharge_Pos_Error_Popup_Flag=23549
+,P_Suspend_Discharge_1st_Unloader_Grip_OFF_Error_Popup_Flag=23550
+,P_Suspend_Discharge_1st_Unloader_Up_Error_Popup_Flag=23551
+,P_Suspend_Discharge_1st_Unloader_FWD_Error_Popup_Flag=23552
+,P_Suspend_Discharge_FR_Clamp_Error_Popup_Flag=23553
+,P_Suspend_Discharge_Sepa_Cutter_Heating_Error_Popup_Flag=23554
+,P_Suspend_Discharge_1st_Unloader_Grip_Cell_Pos_Error_Popup_Flag=23555
+,P_Suspend_Discharge_1st_Unloader_Grip_ON_Error_Popup_Flag=23556
+,P_Suspend_Discharge_Sheet_Paper_BWD_Error_Popup_Flag=23557
+,P_Suspend_Discharge_Cathode_Clamp_OFF_Error_Popup_Flag=23558
+,P_Suspend_Discharge_Sepa_Cutter_FWD_Error_Popup_Flag=23559
+,P_Suspend_Discharge_Sheet_Paper_Vacuum_ON_Error_Popup_Flag=23560
+,P_Suspend_Discharge_Sepa_Cutter_BWD_Error_Popup_Flag=23561
+,P_Suspend_Discharge_1st_Unloader_BWD_Wait_Pos_Error_Popup_Flag=23562
+,P_Suspend_Discharge_1st_Unloader_BWD_Error_Popup_Flag=23563
+,P_Suspend_Discharge_1st_Unloader_Stack_Down_Error_Popup_Flag=23564
+,P_Suspend_Discharge_FR_Stack_Pos_Error_Popup_Flag=23565
+,P_Suspend_Discharge_After_Action_Init_Error_Popup_Flag=23566
+,P_Suspend_Discharge_1st_Unloader_Avoid_Pos_Error_Popup_Flag=23567
+,P_Suspend_Discharge_1st_2nd_Unloader_Handover_Chk_Error_Popup_Flag=23568
+,P_Suspend_Discharge_1st_Unloader_Handover_Pos_Error_Popup_Flag=23569
+,P_Suspend_Discharge_2nd_3rd_Unloader_Grip_Request_Error_Popup_Flag=23570
+,P_Suspend_Discharge_1st_Unloader_Wait_Pos_Error_Popup_Flag=23571
+,P_Suspend_ARC_Manual_ARC_Active_Popup_Flag=23572
+,P_Suspend_ARC_Auto_ARC_Active_Popup_Flag=23573
+,P_Suspend_ARC_Pre_Act_Popup_Flag=23574
+,P_Suspend_ARC_Dancer_Close_Popup_Flag=23575
+,P_Suspend_ARC_Use_Plate_FWD_Popup_Flag=23576
+,P_Suspend_ARC_Replace_Plate_Blow_ON_Popup_Flag=23577
+,P_Suspend_ARC_Use_Plate_Clamp_Popup_Flag=23578
+,P_Suspend_ARC_Use_Plate_Cutter_FWD_Popup_Flag=23579
+,P_Suspend_ARC_Use_Plate_Cutter_BWD_Popup_Flag=23580
+,P_Suspend_ARC_Use_Plate_Unclamp_Popup_Flag=23581
+,P_Suspend_ARC_Use_Plate_BWD_Popup_Flag=23582
+,P_Suspend_ARC_Replace_Plate_Blow_OFF_Popup_Flag=23583
+,P_Suspend_ARC_Dancer_Open_Popup_Flag=23584
+,P_Suspend_ARC_Spool_Change_Popup_Flag=23585
+,P_Suspend_ARC_Post_Act_Popup_Flag=23586
+,P_Suspend_ARC_Previous_Spool_Remain_Winding_Popup_Flag=23587
+,P_Suspend_Discharge_First_Address=23588
+,P_Suspend_ARC_First_Address=23589
+,P_Status_Stop_Ready_Pos_Move=23590
+,P_Cycle_Stop_Stauts=23591
+,P_Cycle_Stop_Status_Machine=23592
+,P_Cycle_Stop_Flag=23593
+,P_Speed_Origin_rtn=23594
+,P_Speed_rtn=23595
+,P_NG_PNP_Z_Move_rtn=23596
+,P_NG_PNP_Z_Move_Check_rtn=23597
+,P_NG_PNP_T_Move_rtn=23598
+,P_NG_PNP_T_Move_Check_rtn=23599
+,P_2nd_Z_Move_rtn=23600
+,P_2nd_Z_Move_Check_rtn=23601
+,P_2nd_T_Move_rtn=23602
+,P_2nd_T_Move_Check_rtn=23603
+,P_Stack_Judgement_Memory=23604
+,P_Stop_Cycle_Stop_Move_Status=23605
+,P_STOP_Initial_Process_Status=23606
+,P_Stopping_CycleStop_Init_Flag=23607
+,P_Sepa_Timing=23608
+,P_Old_Trigger_PLC0=23609
+,P_Mode_Command=23610
+,P_Current_Mode=23611
+,P_Mode_Command_Buffer=23632
+,P_Mode_Command_Wait_Count=23633
+,P_Old_Mode_Command=23634
+,P_Anode_NG_Unit_Status=26635
+,P_Cathode_NG_Unit_Status=26636
+,P_ParsingRtn=26637
+,P_CurPosData=26638
+,P_Hold_MNTR_Supply_1st=26639
+,P_TimeOutNumb=26640
+,P_PosRtn=26641
+,P_MotionRtn=26642
+,P_CmdData=26643
+,P_Interval=26644
+,P_Cont_Ret=26645
+,P_Cur_Idx=26646
+,P_NextID=26647
+,P_Cur_Size=26648
+,P_Hold_Exist_Insp=26649
+,P_Hold_Remove_NG_PNP=26650
+,P_Hold_Remove_Align=26651
+,P_Hold_Remove_2TR=26652
+,P_Hold_Supply_1TR=26653
+,P_Hold_Supply_Align=26654
+,P_Hold_Supply_2TR=26655
+,P_Hold_Semi_Run=26656
 ,P_Hold_NG_PNP_Remove=180
 ,P_Hold_Remove_2nd=182
 ,P_Hold_Supply_1st=183
@@ -7798,126 +7801,126 @@ enum globalP {_globalP_=-1
 ,P_Hold_Existence_Insp=188
 ,P_Hold_1st_Belt_Move=189
 ,P_Hold_Motion=190
-,P_Hold_Data_process_State_Machine=26656
-,P_Hold_Align_Remove_State_Machine=26657
-,P_Hold_2nd_Remove_State_Machine=26658
-,P_Hold_Supply_1st_State_Machine=26659
-,P_Hold_Supply_2nd_State_Machine=26660
-,P_Hold_Existence_Insp_State_Machine=26661
-,P_Hold_NG_PNP_Remove_State_Machine=26662
-,P_Hold_Data_Process_Complete=26663
-,P_Hold_Semi_Run_Enable_Pos_State_Machine=26664
-,P_HOLD_Existence_Insp_Queue_State_Machine=26665
-,P_Hold_Stop_Existence_Insp_STEP=26666
-,P_SubMaster_Status_Err=26667
-,P_Data_Process_Rtn=26668
-,P_Hold_Set_Trigger=26669
-,P_Hold_Get_Trigger=26670
-,P_Anode_2nd_Data=26671
-,P_Anode_Align_Data=26672
-,P_Hold_Remove_Step=26673
-,P_HList_Head_Idx=26674
-,P_Hold_Next_ID=26675
-,P_Hold_Data_Value=26696
-,P_Comb_Bitwise=26697
-,P_Target_Cmd=26698
-,P_Temp_Bit=26699
-,P_Get_ErrorCode=26700
-,P_Rtn_Code=26701
-,P_Complete_Hold_Bit=26702
-,P_HoldMtion_Flag=26703
-,P_Ret_BitWise=26704
-,P_NotEnough_GetSpace=26705
-,P_NotEnough_SetSpace=26706
-,P_Check_SetSpace=26707
-,P_Hold_Get_Data=26708
-,P_Err_NextID_Flag=26709
-,P_Elec_Bit=26710
-,P_MotionData=26711
-,P_Cur_PosX1=26727
-,P_Cur_PosZ1=26728
-,P_Cur_PosX2=26729
-,P_Cur_PosZ2=26730
-,P_Dest_PosX=26731
-,P_Dest_PosZ=26732
-,P_FailToParse=26733
-,P_CurTrigger=26734
-,P_TimeOutTrigger=26735
-,P_CalcTime=26736
-,P_Cycle_Count=26737
-,P_MotionTimeOutFlag=26738
-,P_Set_Data=26739
-,P_Rtn=26740
-,P_CurPosTestBit=26741
-,P_Hold_Anode_Pause_CHK=26742
-,P_Hold_Cathode_Pause_CHK=26743
-,P_Surface_Complete_To_Hold=26744
-,P_Hold_Pause_Trg=26765
-,P_From_Staring_Flag=26766
-,P_Hold_Existence_Insp_Enqueue_Flag=26767
-,P_Hold_Rtn=26768
-,P_Debug_Existence_Insp_STEP=26769
-,P_Hold_Align_Sheet_CHK=26770
-,P_Hold_Cathode_Exception_Empty_Flag=26771
-,P_Hold_Anode_Exception_Empty_Flag=26772
-,P_HOLD_Hold_Process_State_Machine=26773
-,P_Hold_Stop_Sheet_Process_STEP=26774
-,P_Hold_Debug_Sheet_Process_STEP=26775
-,P_Hold_Stop_Point=26776
-,P_Hold_CHK=26777
-,P_Hold_Test=26778
-,P_Anode_1st_Motion_Complete=26779
-,P_Anode_2nd_Motion_Complete=26780
-,P_Anode_NG_PNP_Motion_Complete=26781
-,P_Cathode_1st_Motion_Complete=26782
-,P_Cathode_2nd_Motion_Complete=26783
-,P_Cathode_NG_PNP_Motion_Complete=26784
-,P_Anode_1st_Picker_Motion_Complete=26785
-,P_Cathode_1st_Picker_Motion_Complete=26786
-,P_individual_return=26787
-,P_individual_return2=26788
-,P_HoldCurPosBit1=26789
-,P_HoldCurPosBit2=26790
-,P_Parsing_Status=26791
-,P_Sel_Obj=26792
-,P_Sel_Elec=26793
-,P_Error=26794
-,P_Vision_FirstSepa_Complete=26795
-,P_NG_PNP_Turn_TM=26796
-,P_NG_PNP_Turn_TS=26797
-,P_NG_PNP_Turn_TA=26798
-,P_NG_PNP_Up_TM=26799
-,P_NG_PNP_Up_TS=26800
-,P_NG_PNP_Up_TA=26801
-,P_NG_PNP_Down_TM=26802
-,P_NG_PNP_Down_TS=26803
-,P_NG_PNP_Down_TA=26804
-,P_NG_PNP_Vac_Time=26805
-,P_NG_PNP_Blow_Time=26806
-,P_Slow_NG_Mode_Btn=26807
-,P_HOLD_Memory_Tower_Offset=26808
-,P_Hold_Pause_Use=26809
-,P_Hold_Motion_Err_Chk=26830
-,P_Hold_Motion_TimeOut=26846
-,P_Hold_Data_OK=26847
-,P_VISION_TRG_PLC4_AnodeSurface_Ins_Shoot=26848
-,P_VISION_TRG_PLC4_CathodeSurface_Ins_Shoot=26849
-,P_Memory_Tower_Test=26850
-,P_Temp_Run_Mode=26851
-,P_Data_Idx=26852
-,P_Get_Data_Idx=26853
-,P_HOLD_Data_Err_Queue=26854
-,P_HOLD_Data_Err_State_Machine=26855
-,P_HOLD_Err_Set_Data=26856
-,P_HOLD_Err_Save=26857
-,P_Sepa_Run_Completed_Flag=26858
-,P_Log_Data_Y=27792
-,P_Log_Data_M=27793
-,P_Log_Data_D=27794
-,P_Log_Data_H=27795
-,P_Log_Data_m=27796
-,P_Log_Data_s=27797
-,P_MNTR_End_Index=27798
+,P_Hold_Data_process_State_Machine=26657
+,P_Hold_Align_Remove_State_Machine=26658
+,P_Hold_2nd_Remove_State_Machine=26659
+,P_Hold_Supply_1st_State_Machine=26660
+,P_Hold_Supply_2nd_State_Machine=26661
+,P_Hold_Existence_Insp_State_Machine=26662
+,P_Hold_NG_PNP_Remove_State_Machine=26663
+,P_Hold_Data_Process_Complete=26664
+,P_Hold_Semi_Run_Enable_Pos_State_Machine=26665
+,P_HOLD_Existence_Insp_Queue_State_Machine=26666
+,P_Hold_Stop_Existence_Insp_STEP=26667
+,P_SubMaster_Status_Err=26668
+,P_Data_Process_Rtn=26669
+,P_Hold_Set_Trigger=26670
+,P_Hold_Get_Trigger=26671
+,P_Anode_2nd_Data=26672
+,P_Anode_Align_Data=26673
+,P_Hold_Remove_Step=26674
+,P_HList_Head_Idx=26675
+,P_Hold_Next_ID=26676
+,P_Hold_Data_Value=26697
+,P_Comb_Bitwise=26698
+,P_Target_Cmd=26699
+,P_Temp_Bit=26700
+,P_Get_ErrorCode=26701
+,P_Rtn_Code=26702
+,P_Complete_Hold_Bit=26703
+,P_HoldMtion_Flag=26704
+,P_Ret_BitWise=26705
+,P_NotEnough_GetSpace=26706
+,P_NotEnough_SetSpace=26707
+,P_Check_SetSpace=26708
+,P_Hold_Get_Data=26709
+,P_Err_NextID_Flag=26710
+,P_Elec_Bit=26711
+,P_MotionData=26712
+,P_Cur_PosX1=26728
+,P_Cur_PosZ1=26729
+,P_Cur_PosX2=26730
+,P_Cur_PosZ2=26731
+,P_Dest_PosX=26732
+,P_Dest_PosZ=26733
+,P_FailToParse=26734
+,P_CurTrigger=26735
+,P_TimeOutTrigger=26736
+,P_CalcTime=26737
+,P_Cycle_Count=26738
+,P_MotionTimeOutFlag=26739
+,P_Set_Data=26740
+,P_Rtn=26741
+,P_CurPosTestBit=26742
+,P_Hold_Anode_Pause_CHK=26743
+,P_Hold_Cathode_Pause_CHK=26744
+,P_Surface_Complete_To_Hold=26745
+,P_Hold_Pause_Trg=26766
+,P_From_Staring_Flag=26767
+,P_Hold_Existence_Insp_Enqueue_Flag=26768
+,P_Hold_Rtn=26769
+,P_Debug_Existence_Insp_STEP=26770
+,P_Hold_Align_Sheet_CHK=26771
+,P_Hold_Cathode_Exception_Empty_Flag=26772
+,P_Hold_Anode_Exception_Empty_Flag=26773
+,P_HOLD_Hold_Process_State_Machine=26774
+,P_Hold_Stop_Sheet_Process_STEP=26775
+,P_Hold_Debug_Sheet_Process_STEP=26776
+,P_Hold_Stop_Point=26777
+,P_Hold_CHK=26778
+,P_Hold_Test=26779
+,P_Anode_1st_Motion_Complete=26780
+,P_Anode_2nd_Motion_Complete=26781
+,P_Anode_NG_PNP_Motion_Complete=26782
+,P_Cathode_1st_Motion_Complete=26783
+,P_Cathode_2nd_Motion_Complete=26784
+,P_Cathode_NG_PNP_Motion_Complete=26785
+,P_Anode_1st_Picker_Motion_Complete=26786
+,P_Cathode_1st_Picker_Motion_Complete=26787
+,P_individual_return=26788
+,P_individual_return2=26789
+,P_HoldCurPosBit1=26790
+,P_HoldCurPosBit2=26791
+,P_Parsing_Status=26792
+,P_Sel_Obj=26793
+,P_Sel_Elec=26794
+,P_Error=26795
+,P_Vision_FirstSepa_Complete=26796
+,P_NG_PNP_Turn_TM=26797
+,P_NG_PNP_Turn_TS=26798
+,P_NG_PNP_Turn_TA=26799
+,P_NG_PNP_Up_TM=26800
+,P_NG_PNP_Up_TS=26801
+,P_NG_PNP_Up_TA=26802
+,P_NG_PNP_Down_TM=26803
+,P_NG_PNP_Down_TS=26804
+,P_NG_PNP_Down_TA=26805
+,P_NG_PNP_Vac_Time=26806
+,P_NG_PNP_Blow_Time=26807
+,P_Slow_NG_Mode_Btn=26808
+,P_HOLD_Memory_Tower_Offset=26809
+,P_Hold_Pause_Use=26810
+,P_Hold_Motion_Err_Chk=26831
+,P_Hold_Motion_TimeOut=26847
+,P_Hold_Data_OK=26848
+,P_VISION_TRG_PLC4_AnodeSurface_Ins_Shoot=26849
+,P_VISION_TRG_PLC4_CathodeSurface_Ins_Shoot=26850
+,P_Memory_Tower_Test=26851
+,P_Temp_Run_Mode=26852
+,P_Data_Idx=26853
+,P_Get_Data_Idx=26854
+,P_HOLD_Data_Err_Queue=26855
+,P_HOLD_Data_Err_State_Machine=26856
+,P_HOLD_Err_Set_Data=26857
+,P_HOLD_Err_Save=26858
+,P_Sepa_Run_Completed_Flag=26859
+,P_Log_Data_Y=27793
+,P_Log_Data_M=27794
+,P_Log_Data_D=27795
+,P_Log_Data_H=27796
+,P_Log_Data_m=27797
+,P_Log_Data_s=27798
+,P_MNTR_End_Index=27799
 ,P_BG_CPLC_Running_MNTR=50
 ,P_RTI_CPLC_Running_MNTR=51
 ,P_Log_Start_Flag=170
@@ -7926,37 +7929,37 @@ enum globalP {_globalP_=-1
 ,P_USB_Register=173
 ,P_Cur_Line_Check=175
 ,P_Cur_Line_Check_Init=176
-,P_Hold_Pass=27809
-,P_PLC01_Total_Step_Flag=27825
-,P_PLC02_Total_Step_Flag=27826
-,P_PLC014_Total_Step_Flag=27827
-,P_PLC02_Total_Step_Flag2=27828
-,P_Vac_Pass=27829
-,P_Vision_Pass_Exisitence=27830
-,P_Vision_Pass_Empty=27831
-,P_Vision_Pass_FirstSepa=27832
-,P_Vision_Pass_Stack_Inspection=27833
-,P_ULD_Home_Pass=27834
-,P_Clamp_Cell_Down_Use=27835
-,P_FR_Clamp_Use_Test=27836
-,P_Door_Interlock_Use_Flag=27837
-,P_Vacuum_Door_Clear_Use=27838
-,P_Align_Test_Pos=27839
-,P_PLC02_Exe_Module_First_Sepa_Step_Flag=27935
-,P_PLC02_Sus_Module_Discharge_Step_Flag=27936
-,P_PLC02_Sus_Module_ARC_Step_Flag=27937
-,P_PLC02_Sus_Module_1TR_Supply_Step_Flag=27938
-,P_PLC02_HOLD_Module_Insp_Step_Flag=27939
-,P_PLC02_HOLD_Module_Remove_NGPNP_Step_Flag=27940
-,P_PLC02_HOLD_Module_Remove_Align_Step_Flag=27941
-,P_PLC02_HOLD_Module_Remove_2TR_Step_Flag=27942
-,P_PLC02_HOLD_Module_Supply_1TR_Step_Flag=27943
-,P_PLC02_HOLD_Module_Supply_Align_Step_Flag=27944
-,P_PLC02_HOLD_Module_Supply_2TR_Step_Flag=27945
-,P_PLC02_HOLD_Module_SemiRun_Pos_Step_Flag=27946
-,P_PLC14_STOP_Module_Cycle_Stop_Step_Flag=27947
-,P_PLC02_Discharge_MNTR=27948
-,P_NEW_Alarm_USE_Flag=27949
+,P_Hold_Pass=27810
+,P_PLC01_Total_Step_Flag=27826
+,P_PLC02_Total_Step_Flag=27827
+,P_PLC014_Total_Step_Flag=27828
+,P_PLC02_Total_Step_Flag2=27829
+,P_Vac_Pass=27830
+,P_Vision_Pass_Exisitence=27831
+,P_Vision_Pass_Empty=27832
+,P_Vision_Pass_FirstSepa=27833
+,P_Vision_Pass_Stack_Inspection=27834
+,P_ULD_Home_Pass=27835
+,P_Clamp_Cell_Down_Use=27836
+,P_FR_Clamp_Use_Test=27837
+,P_Door_Interlock_Use_Flag=27838
+,P_Vacuum_Door_Clear_Use=27839
+,P_Align_Test_Pos=27840
+,P_PLC02_Exe_Module_First_Sepa_Step_Flag=27936
+,P_PLC02_Sus_Module_Discharge_Step_Flag=27937
+,P_PLC02_Sus_Module_ARC_Step_Flag=27938
+,P_PLC02_Sus_Module_1TR_Supply_Step_Flag=27939
+,P_PLC02_HOLD_Module_Insp_Step_Flag=27940
+,P_PLC02_HOLD_Module_Remove_NGPNP_Step_Flag=27941
+,P_PLC02_HOLD_Module_Remove_Align_Step_Flag=27942
+,P_PLC02_HOLD_Module_Remove_2TR_Step_Flag=27943
+,P_PLC02_HOLD_Module_Supply_1TR_Step_Flag=27944
+,P_PLC02_HOLD_Module_Supply_Align_Step_Flag=27945
+,P_PLC02_HOLD_Module_Supply_2TR_Step_Flag=27946
+,P_PLC02_HOLD_Module_SemiRun_Pos_Step_Flag=27947
+,P_PLC14_STOP_Module_Cycle_Stop_Step_Flag=27948
+,P_PLC02_Discharge_MNTR=27949
+,P_NEW_Alarm_USE_Flag=27950
 ,P_EPC_SENSOR_Load_Ratio=133
 ,P_STACK_VISION_Load_Ratio=134
 ,P_SHEET_PAPER_X_Load_Ratio=135
@@ -7973,28 +7976,28 @@ enum globalP {_globalP_=-1
 ,P_UNLOADER_X_Load_Ratio=146
 ,P_UNLOADER_Z_Load_Ratio=147
 ,P_UNLOADER_T_Load_Ratio=148
-,P_Error_Index_Number=27950
-,P_ECAT_MNTR_Bit=27951
-,P_Local_MNTR_Bit=27952
-,P_Clamp_Motion_VER1=27953
-,P_CA_DR_Ta=27954
-,P_CA_DR_Ts=27955
-,P_CA_DR_Tm=27956
-,P_CA_DR_Td=27957
-,P_CA_DR_Tsd=27958
-,P_AN_DR_Ta=27959
-,P_AN_DR_Ts=27960
-,P_AN_DR_Tm=27961
-,P_AN_DR_Td=27962
-,P_AN_DR_Tsd=27963
-,P_First_Sepa_1st_Driving_Move=27964
-,P_AN_Cam_Total_Time=27965
-,P_CA_Cam_Total_Time=27966
-,P_Dry_Run_BTN=27967
-,P_Home_Angle_Offset_change_Bit=27968
-,P_InterLock_Motor_Num=27969
-,P_Recipe_Move_IL_Loop=27970
-,P_Z_Var=27971};
+,P_Error_Index_Number=27951
+,P_ECAT_MNTR_Bit=27952
+,P_Local_MNTR_Bit=27953
+,P_Clamp_Motion_VER1=27954
+,P_CA_DR_Ta=27955
+,P_CA_DR_Ts=27956
+,P_CA_DR_Tm=27957
+,P_CA_DR_Td=27958
+,P_CA_DR_Tsd=27959
+,P_AN_DR_Ta=27960
+,P_AN_DR_Ts=27961
+,P_AN_DR_Tm=27962
+,P_AN_DR_Td=27963
+,P_AN_DR_Tsd=27964
+,P_First_Sepa_1st_Driving_Move=27965
+,P_AN_Cam_Total_Time=27966
+,P_CA_Cam_Total_Time=27967
+,P_Dry_Run_BTN=27968
+,P_Home_Angle_Offset_change_Bit=27969
+,P_InterLock_Motor_Num=27970
+,P_Recipe_Move_IL_Loop=27971
+,P_Z_Var=27972};
 enum globalParray {_globalParray_=-1
 ,P_Ca_1st_PNP_ABSPhasing_Pos=8196
 ,P_An_1st_PNP_ABSPhasing_Pos=8236
@@ -8174,428 +8177,428 @@ enum globalParray {_globalParray_=-1
 ,P_Anode_Run_Mode_Type=11531
 ,P_Anode_Run_Mode_Trigger=11551
 ,P_Stop_Origin_Save=11728
-,P_Sheet_Err=11810
-,P_Drivig_Cal_Save=11829
-,P_PMAC_Status_Arr_Save1=11836
-,P_HomePos_Save1=11841
-,P_PMAC_Status_Arr_Save2=11846
-,P_HomePos_Save2=11851
-,P_PMAC_Status_Arr_Save3=11856
-,P_HomePos_Save3=11861
-,P_PMAC_Status_Arr_Save4=11866
-,P_HomePos_Save4=11871
-,P_HomePos_Err=11881
-,P_Cutter_FWB_Heater_Current=11946
-,P_Scan_Time=12000
-,P_Read_Sector_TactTime=12108
-,P_Write_Sector_TactTime=12114
-,P_SV_AO_Reference_Value_Chanel=12137
-,P_MSA_Run_Repeat_Num=12170
-,P_Current_MSA_Run_Num=12175
-,P_PV_AO_Value_Chanel=12508
-,P_Interlock_Messege=12519
-,P_Current_Homming_Status=12572
-,P_Home_Execute_Type=12622
-,P_Interval_Read_Time=12675
-,P_Interval_Write_Time=12681
-,P_Sub_Master_Motion_Program_Flag=12722
-,P_Slave_Motion_Program_Flag=12742
-,P_OLD_Jog_Speed_Motor=12763
-,P_Command_Start=12819
-,P_Command_Complete=12837
-,P_Command_Reset=12855
-,P_Command_Hold=12873
-,P_Command_Unhold=12891
-,P_Command_Suspend=12909
-,P_Command_Unsuspend=12927
-,P_Command_Clear=12945
-,P_Command_Stop=12963
-,P_Command_Abort=12981
-,P_Command_Status_Complete=12999
-,P_Command_Mask_Layer=13017
-,P_Command_Process_Type=13035
-,P_Sum_Ready_pos_Motor=13091
-,P_Anode_Align_NG_Array=13222
-,P_Cathode_Align_NG_Array=13242
-,P_Anode_Surface_NG_Array=13262
-,P_Cathode_Surface_NG_Array=13282
-,P_Stack_NG_Array=13302
-,P_Continuous_Call_Align_OK_Flag=13334
-,P_Continuous_Call_Align_NG_Flag=13336
-,P_Continuous_Call_Align_TimeOut_Flag=13338
-,P_Continuous_Call_Surface_OK_Flag=13340
-,P_Continuous_Call_Surface_NG_Flag=13342
-,P_Continuous_Call_Surface_TimeOut_Flag=13344
-,P_Continuous_Call_Stack_Flag=13346
-,P_PLC12_Observser_MNTR=13358
-,P_PLC12_Vacuum_MNTR=13363
-,P_Vacuum_Check=13371
-,P_PLC12_Blow_MNTR=13379
-,P_Blow_Check=13387
-,P_PLC12_Vacuum_1st_Cathode_Take_Time=13411
-,P_PLC12_Vacuum_2nd_Cathode_Take_Time=13416
-,P_PLC12_Vacuum_NG_Cathode_Take_Time=13421
-,P_PLC12_Vacuum_Align_Cathode_Take_Time=13426
-,P_PLC12_Vacuum_1st_Anode_Take_Time=13431
-,P_PLC12_Vacuum_2nd_Anode_Take_Time=13436
-,P_PLC12_Vacuum_NG_Anode_Take_Time=13441
-,P_PLC12_Vacuum_Align_Anode_Take_Time=13446
-,P_PLC12_Blow_1st_Cathode_Take_Time=13467
-,P_PLC12_Blow_2nd_Cathode_Take_Time=13472
-,P_PLC12_Blow_NG_Cathode_Take_Time=13477
-,P_PLC12_Blow_Align_Cathode_Take_Time=13482
-,P_PLC12_Blow_1st_Anode_Take_Time=13487
-,P_PLC12_Blow_2nd_Anode_Take_Time=13492
-,P_PLC12_Blow_NG_Anode_Take_Time=13497
-,P_PLC12_Blow_Align_Anode_Take_Time=13502
-,P_Status_arry=13509
-,P_Queue_arry=13529
-,P_Step_arry=13549
-,P_Index_arry=13569
-,P_PLC_Observser_MNTR=13596
-,P_Test_Vacuum_Timer=13605
-,P_Test_Blow_Timer=13613
-,P_Vac_Test_Set_Time=13621
-,P_Blow_Test_Set_Time=13629
-,P_Zero_Angle=13692
-,P_Zero_Length=13717
-,P_Homeoffset_Change_Flag=13742
-,P_Cal_Distance=13767
-,P_Cal_Denominator=13772
-,P_Cal_Numerator=13777
-,P_Cal_Dif_Deg=13782
-,P_Vac_Door_Open_Clear=13787
-,P_Read_Timer_S=13801
-,P_Write_Timer_S=13810
-,P_Interval_Read_S=13819
-,P_Interval_Write_S=13828
-,P_UI_Jog_Vel_M=13837
-,P_Old_X_Read_Count_S=13888
-,P_X_BTN_Manual_1=13911
-,P_X_BTN_Manual_2=14031
-,P_X_BTN_Manual_3=14151
-,P_Home_InterLock_M=14271
-,P_Status_BTN_Manual_1=14321
-,P_Status_BTN_Manual_2=14441
-,P_Status_BTN_Manual_Interlock_1=14561
-,P_Status_BTN_Manual_Interlock_2=14681
-,P_Status_BTN_Manual_Interlock_3=14801
-,P_Mode_Run_Enable_Flag=14921
-,P_MNTR_PLC4_Vision_Result=14928
-,P_PNP_Vac_Mode_Run_Enable_Flag=15129
-,P_HCK_Step_MNTR=15136
-,P_Axis_Home_Pos=15186
-,P_Axis_Ready_Pos=15236
-,P_PMAC_Homing_CHK=15286
-,P_Home_Command=15337
-,P_Old_BTN_Servo_On_Off_M=15391
-,P_Peak_Load_Ratio_M=15424
-,P_Chk_Current_Jog_Sel=15457
-,P_Recipe_POS_Interock_Num_Bit=15491
-,P_Recipe_VEL=15524
-,P_Recipe_POS=15535
-,P_BTN_Servo_On_Off_M=15546
-,P_BTN_Home_M=15579
-,P_BTN_Jog_Stop_M=15612
-,P_BTN_Recipe_POS_RUN_M=15645
-,P_Recipe_POS_Flag_M=15678
-,P_BTN_Jog_INC_M=15711
-,P_BTN_JOG_ABS_M=15744
-,P_Unit_Command=15778
-,P_Unit_State_Machine=15878
-,P_Status_BTN_Manual_3=15978
-,P_Chk_Current_BTN_Sel=16078
-,P_Linear_Encoder_Pos_Check_Flag=16137
-,P_Linear_Encoder_Pos=16142
-,P_Status_Linear_Encoder_HomeZero=16147
-,P_Command_Linear_Encoder_HomeZero=16152
-,P_OLD_Home_Offset=16165
-,P_PLC13_Cycle_Stop_Return_Array=16253
-,P_Stopping_CycleStop_Act_State_Machine=16359
-,P_Module_Cycle_Stop_Act_State_Machine_Array=16379
-,P_Module_Cycle_Stop_Act_Complete_Bit=16399
-,P_Module_Cycle_Stop_Act_Command_Array=16419
-,P_OLD_Module_Cycle_Stop_Act_Command_Array=16439
-,P_Buffer_Seqdata_CycleStop_Array=16459
-,P_Tact_Time_Timer=16496
-,P_Tack_Time_Save_Time=16536
-,P_Tact_Time_Stack_Array=16580
-,P_Tact_Time_Discharge_Array=16590
-,P_Tact_Time_1st_Unloader_Array=16600
-,P_Tact_Time_Sepa_ARC_Array=16610
-,P_Tact_Time_Final_Roll_Array=16620
-,P_Tact_Time_Cathode_1st_PNP_Array=16630
-,P_Tact_Time_Cathode_Align_Array=16640
-,P_Tact_Time_Cathode_2nd_PNP_Array=16650
-,P_Tact_Time_Cathode_Clamp_Array=16660
-,P_Tact_Time_Anode_1st_PNP_Array=16670
-,P_Tact_Time_Anode_Align_Array=16680
-,P_Tact_Time_Anode_2nd_PNP_Array=16690
-,P_Tact_Time_Anode_Clamp_Array=16700
-,P_Tact_Time_Cathode_1st_PNP_Vac_Array=16710
-,P_Tact_Time_Cathode_Align_PNP_Vac_Array=16720
-,P_Tact_Time_Cathode_2nd_PNP_Vac_Array=16730
-,P_Tact_Time_Anode_1st_PNP_Vac_Array=16740
-,P_Tact_Time_Anode_Align_PNP_Vac_Array=16750
-,P_Tact_Time_Anode_2nd_PNP_Vac_Array=16760
-,P_Tact_Time_Check=16814
-,P_Old_Tact_Time_Check=16854
-,P_Tact_Time_Head_Address=16894
-,P_EPC_MNTR_VAR=16951
-,P_Home_Check_Arry=16974
-,P_PWM_Phasing_Start=17026
-,P_PWM_Status=17031
-,P_PWM_State_Machine=17036
-,P_AH_Seq_arr=17041
-,P_DD_M_Home_ABS_Pos=17056
-,P_AH_Indvi_rtn=17061
-,P_Home_Check_Arry1=17114
-,P_PV_EPC_Camera_Pos=17278
-,P_VISION_MSA_Status_Prod_Sequence=17298
-,P_MSA_Cmd=17322
-,P_Align_Take_Off_Cmd=17353
-,P_Align_Take_Off_Status_Prod_Sequence=17370
-,P_Old_Upper_Sensor=17439
-,P_Edge_Upper_Sensor=17447
-,P_Old_Lower_Sensor=17455
-,P_Edge_Lower_Sensor=17463
-,P_Edge_NP_BTN=17471
-,P_UI_Unit_Status=17476
-,P_Motor_Unit_Status=17486
-,P_Current_Homming_Status_To_PLC=17536
-,P_AO_Module_Arr=17624
-,P_AO_Range_Set_Value=17629
-,P_Force_BTN_M_Variable_Save=17662
-,P_ABS_Phasing_Data=18062
-,P_ABS_Home_Offset_Data=18067
-,P_Servo_Gain_Kp=18076
-,P_Servo_Gain_Kvfb=18106
-,P_Servo_Gain_Kvff=18136
-,P_Servo_Gain_Ki=18166
-,P_Servo_Gain_SwZvInt=18196
-,P_Servo_Gain_Kaff=18226
-,P_Alarm_Arr=18257
-,P_Alarm_Occur_Index_Flag=18358
-,P_First_Alarm_Log=18369
-,P_Alarm_duplicate_Check_Arr=18406
-,P_Alarm_Time_Log=19076
-,P_Alarm_Log=19126
-,P_Old_Drive_Alarm=19176
-,P_Limit_PosData=19232
-,P_Collision_Risk_Motor=19259
-,P_P_IL_Normal_Pos_Offset=19266
-,P_M_IL_Normal_Pos_Offset=19316
-,P_P_IL_Upper_Pos_Offset=19366
-,P_M_IL_Upper_Pos_Offset=19416
-,P_P_IL_Align_Pos_Offset=19466
-,P_M_IL_Align_Pos_Offset=19516
-,P_P_IL_Stack_Pos_Offset=19566
-,P_M_IL_Stack_Pos_Offset=19616
-,P_Ca_2nd_T_Plus_IL_Offset=19670
-,P_Ca_2nd_T_Minus_IL_Offset=19673
-,P_Ca_2nd_Z_Plus_IL_Offset=19676
-,P_Ca_2nd_Z_Minus_IL_Offset=19678
-,P_An_2nd_T_Plus_IL_Offset=19680
-,P_An_2nd_T_Minus_IL_Offset=19683
-,P_An_2nd_Z_Minus_IL_Offset=19686
-,P_FR_X_Plus_IL_Offset=19690
-,P_FR_X_Minus_IL_Offset=19692
-,P_Ca_NG_PNP_Plus_IL_Offset=19695
-,P_Ca_NG_PNP_Minus_IL_Offset=19699
-,P_An_NG_PNP_Plus_IL_Offset=19703
-,P_An_NG_PNP_Minus_IL_Offset=19707
-,P_Unloader_X_Plus_IL_Offset=19711
-,P_Unloader_X_Minus_IL_Offset=19715
-,P_Unloader_Z_Plus_IL_Offset=19719
-,P_Unloader_Z_Minus_IL_Offset=19722
-,P_IL_In_Offset=19725
-,P_IL_Home_Chk_Motor_Num=19752
-,P_NG_PNP_Motion_arr=19927
-,P_Ecat_Read_MNTR=19969
-,P_Ecat_Write_MNTR=19997
-,P_Ecat_Save_MNTR=20025
-,P_Ecat_Error_MNTR=20041
-,P_Ecat_Read_Error_MNTR=20057
-,P_Ecat_Each_Write_Error_MNTR=20073
-,P_Pn000=20092
-,P_Pn001=20112
-,P_Pn00B=20132
-,P_Pn100=20152
-,P_Pn101=20172
-,P_Pn102=20192
-,P_Pn103=20212
-,P_Pn123=20232
-,P_Pn140=20252
-,P_Pn141=20272
-,P_Pn145=20292
-,P_Pn146=20312
-,P_Pn160=20332
-,P_Pn161=20352
-,P_Pn163=20372
-,P_Pn170=20392
-,P_Pn401=20412
-,P_Pn408=20432
-,P_Pn409=20452
-,P_Pn40A=20472
-,P_Pn40C=20492
-,P_Pn40D=20512
-,P_Pn416=20532
-,P_Pn417=20552
-,P_Pn511=20572
-,P_Pn520=20592
-,P_PnB02_Numerator=20612
-,P_PnB02_Denominator=20632
-,P_Pneumatic_Pressure_Unit_Tack_Time_Chk_Timer=20777
-,P_Pneumatic_Pressure_Unit_Tack_Time=20804
-,P_Discharge_Tact_Time_Arr=20835
-,P_PLC19_All_Home_Tact_Time_Array=20916
-,P_Act_ALL_Home_Time_Out=20939
-,P_Act_Hold_Complete_Bit=20979
-,P_Module_Act_Hold_Command_Array=21014
-,P_OLD_Module_Act_Hold_Command_Array=21049
-,P_Module_Act_Hold_State_Machine_Array=21084
-,P_Act_Hold_Old_Time=21119
-,P_Act_Hold_Time_Out=21155
-,P_Act_Execute_Complete_Bit=21223
-,P_Module_Act_Execute_Command_Array=21235
-,P_OLD_Module_Act_Execute_Command_Array=21247
-,P_Module_Act_Execute_State_Machine_Array=21259
-,P_Act_Execute_Old_Time=21271
-,P_Act_Execute_Time_Out=21284
-,P_Buffer_Mode_Module_Status_Sequence=21318
-,P_EXECUTE_Status_Prod_Sequence=21348
-,P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array=21385
-,P_Execute_First_Sepa_Mode_Tact_Time_Array=21416
-,P_Discharge_Seq_InterLock_Delay_Time=21443
-,P_Discharge_Seq_InterLock_Flag=21473
-,P_Buffer_Seqdata_Discharge_Array=21503
-,P_Suspend_Discharge_Tact_Time_Array=21534
-,P_ARC_Seq_InterLock_Delay_Time=21562
-,P_ARC_Seq_InterLock_Flag=21592
-,P_Buffer_Seqdata_ARC_Array=21622
-,P_Suspend_ARC_Tact_Time_Array=21653
-,P_Anode_1TR_Cell_Supply_Seq_InterLock_Delay_Time=21680
-,P_Anode_1TR_Cell_Supply_Seq_InterLock_Flag=21710
-,P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array=21740
-,P_Suspend_Anode_1TR_Cell_Supply_Tact_Time_Array=21771
-,P_Buffer_Seqdata_Hold_Exist_Insp_Array=21799
-,P_Hold_Exist_Insp_Tact_Time_Array=21830
-,P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array=21858
-,P_Hold_Remove_NG_PNP_Tact_Time_Array=21889
-,P_Buffer_Seqdata_Hold_Remove_Align_Array=21920
-,P_Hold_Remove_Align_Tact_Time_Array=21951
-,P_Buffer_Seqdata_Hold_Remove_2TR_Array=21982
-,P_Hold_Remove_2TR_Tact_Time_Array=22013
-,P_Buffer_Seqdata_Hold_Supply_1TR_Array=22041
-,P_Hold_Supply_1TR_Tact_Time_Array=22072
-,P_Buffer_Seqdata_Hold_Supply_Align_Array=22105
-,P_Hold_Supply_Align_Tact_Time_Array=22136
-,P_Buffer_Seqdata_Hold_Supply_2TR_Array=22164
-,P_Hold_Supply_2TR_Tact_Time_Array=22195
-,P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array=22223
-,P_Hold_Semi_Run_Pos_Move_Tact_Time_Array=22254
-,P_Act_Complete_Bit=22275
-,P_Act_Old_Time=22341
-,P_Act_Delay_Time=22407
-,P_Act_Time_Out=22474
-,P_Discharge_Possibility_Bit=22541
-,P_HOLD_Exist_Possibility_Bit=22607
-,P_HOLD_NG_Remove_Possibility_Bit=22673
-,P_HOLD_Align_Remove_Possibility_Bit=22739
-,P_HOLD_2TR_Remove_Possibility_Bit=22805
-,P_HOLD_1TR_Supply_Possibility_Bit=22871
-,P_HOLD_Align_Supply_Possibility_Bit=22937
-,P_HOLD_2TR_Supply_Possibility_Bit=23003
-,P_HOLD_Semi_Run_Pos_Possibility_Bit=23069
-,P_Module_Act_Command_Array=23135
-,P_OLD_Module_Act_Command_Array=23201
-,P_Module_Act_State_Machine_Array=23267
-,P_Module_Act_State_Machine_Error_Array=23333
-,P_Sensor_To_Sepa_Curr_Distance_mm=23429
-,P_Suspend_Monitor_=23460
-,P_Suspend_Discharge_Debug_Address=23474
-,P_Suspend_Discharge_Debug_Value=23479
-,P_Suspend_ARC_Debug_Address=23491
-,P_Suspend_ARC_Debug_Value=23496
-,P_ARC_Ready_Flag=23506
-,P_Suspend_An_1TR_Supply_Debug_Address=23511
-,P_Suspend_An_1TR_Supply_Debug_Value=23516
-,P_Anode_Suspend_Supply_Complete=23528
-,P_MOde_Num=23611
-,P_Command_Depth=23616
-,P_In_Position=23621
-,P_Last_Cycle_Command=23626
-,P_Slave1_Anode_Run_Motion_Array=23634
-,P_Slave2_Anode_Run_Motion_Array=23734
-,P_Slave3_Anode_Run_Motion_Array=23834
-,P_Slave4_Anode_Run_Motion_Array=23934
-,P_Slave5_Anode_Run_Motion_Array=24034
-,P_Slave6_Anode_Run_Motion_Array=24134
-,P_Slave7_Anode_Run_Motion_Array=24234
-,P_Slave8_Anode_Run_Motion_Array=24334
-,P_Slave9_Anode_Run_Motion_Array=24434
-,P_Slave10_Anode_Run_Motion_Array=24534
-,P_Slave15_Anode_Run_Motion_Array=24634
-,P_Slave16_Anode_Run_Motion_Array=24734
-,P_Slave17_Anode_Run_Motion_Array=24834
-,P_Slave18_Anode_Run_Motion_Array=24934
-,P_Slave19_Anode_Run_Motion_Array=25034
-,P_Slave1_Cathode_Run_Motion_Array=25134
-,P_Slave2_Cathode_Run_Motion_Array=25234
-,P_Slave3_Cathode_Run_Motion_Array=25334
-,P_Slave4_Cathode_Run_Motion_Array=25434
-,P_Slave5_Cathode_Run_Motion_Array=25534
-,P_Slave15_Cathode_Run_Motion_Array=25634
-,P_Slave6_Cathode_Run_Motion_Array=25734
-,P_Slave7_Cathode_Run_Motion_Array=25834
-,P_Slave8_Cathode_Run_Motion_Array=25934
-,P_Slave9_Cathode_Run_Motion_Array=26034
-,P_Slave10_Cathode_Run_Motion_Array=26134
-,P_Slave16_Cathode_Run_Motion_Array=26234
-,P_Slave17_Cathode_Run_Motion_Array=26334
-,P_Slave18_Cathode_Run_Motion_Array=26434
-,P_Slave19_Cathode_Run_Motion_Array=26534
-,P_HCmd_List=26676
-,P_DataList=26712
-,P_Hold_Data_Err=26717
-,P_Hold_Motion_Arr=26745
-,P_Hold_Err_MNTR=26810
-,P_Hold_Err_Data_Save=26814
-,P_Hold_Err_Action_Data_Save=26822
-,P_Hold_Memory_Tower_Err_Pos=26831
-,P_Buffer_Seqdata_MSA_Array=26859
-,P_Buffer_Seqdata_Align_Take_Off_Array=26909
-,P_VISION_MSA_Align_Module_Complete_Bit=26959
-,P_Module_Manual_MSA_Act_Command_Array=27059
-,P_OLD_Module_Manual_MSA_Act_Command_Array=27159
-,P_Module_MSA_Act_State_Machine_Array=27259
-,P_VISION_MSA_Seq_Stopping_Point=27359
-,P_Align_Take_Off_Module_Complete_Bit=27392
-,P_Module_Manual_Align_Take_Off_Act_Command_Array=27492
-,P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array=27592
-,P_Module_Align_Take_Off_Act_State_Machine_Array=27692
-,P_Buffer_Judge_Trg=27799
-,P_PLC01_Queue_MNTR=27810
-,P_PLC01_Exe_Is_Ena_Step_Flag=27840
-,P_PLC01_Exe_Fist_Sepa_Step_Flag=27850
-,P_PLC01_Exe_Prod_Step_Flag=27860
-,P_PLC01_HOLD_Insp_Step_Flag=27865
-,P_PLC01_HOLD_Main_Step_Flag=27875
-,P_PLC01_Sus_Discharge_Step_Flag=27890
-,P_PLC01_Sus_ARC_Step_Flag=27900
-,P_PLC01_STOP_Init_Step_Flag=27910
-,P_PLC01_STOP_Cycle_ST_Step_Flag=27920
-,P_No1_Recipe_Pos_IL=27972
-,P_No2_Recipe_Pos_IL=28025
-,P_No3_Recipe_Pos_IL=28078
-,P_No4_Recipe_Pos_IL=28131
-,P_No5_Recipe_Pos_IL=28184
-,P_No6_Recipe_Pos_IL=28237
-,P_No7_Recipe_Pos_IL=28290
-,P_No8_Recipe_Pos_IL=28343
-,P_No9_Recipe_Pos_IL=28396
-,P_No10_Recipe_Pos_IL=28449
-,P_Recipe_POS_Interock_M=28502};
+,P_Sheet_Err=11811
+,P_Drivig_Cal_Save=11830
+,P_PMAC_Status_Arr_Save1=11837
+,P_HomePos_Save1=11842
+,P_PMAC_Status_Arr_Save2=11847
+,P_HomePos_Save2=11852
+,P_PMAC_Status_Arr_Save3=11857
+,P_HomePos_Save3=11862
+,P_PMAC_Status_Arr_Save4=11867
+,P_HomePos_Save4=11872
+,P_HomePos_Err=11882
+,P_Cutter_FWB_Heater_Current=11947
+,P_Scan_Time=12001
+,P_Read_Sector_TactTime=12109
+,P_Write_Sector_TactTime=12115
+,P_SV_AO_Reference_Value_Chanel=12138
+,P_MSA_Run_Repeat_Num=12171
+,P_Current_MSA_Run_Num=12176
+,P_PV_AO_Value_Chanel=12509
+,P_Interlock_Messege=12520
+,P_Current_Homming_Status=12573
+,P_Home_Execute_Type=12623
+,P_Interval_Read_Time=12676
+,P_Interval_Write_Time=12682
+,P_Sub_Master_Motion_Program_Flag=12723
+,P_Slave_Motion_Program_Flag=12743
+,P_OLD_Jog_Speed_Motor=12764
+,P_Command_Start=12820
+,P_Command_Complete=12838
+,P_Command_Reset=12856
+,P_Command_Hold=12874
+,P_Command_Unhold=12892
+,P_Command_Suspend=12910
+,P_Command_Unsuspend=12928
+,P_Command_Clear=12946
+,P_Command_Stop=12964
+,P_Command_Abort=12982
+,P_Command_Status_Complete=13000
+,P_Command_Mask_Layer=13018
+,P_Command_Process_Type=13036
+,P_Sum_Ready_pos_Motor=13092
+,P_Anode_Align_NG_Array=13223
+,P_Cathode_Align_NG_Array=13243
+,P_Anode_Surface_NG_Array=13263
+,P_Cathode_Surface_NG_Array=13283
+,P_Stack_NG_Array=13303
+,P_Continuous_Call_Align_OK_Flag=13335
+,P_Continuous_Call_Align_NG_Flag=13337
+,P_Continuous_Call_Align_TimeOut_Flag=13339
+,P_Continuous_Call_Surface_OK_Flag=13341
+,P_Continuous_Call_Surface_NG_Flag=13343
+,P_Continuous_Call_Surface_TimeOut_Flag=13345
+,P_Continuous_Call_Stack_Flag=13347
+,P_PLC12_Observser_MNTR=13359
+,P_PLC12_Vacuum_MNTR=13364
+,P_Vacuum_Check=13372
+,P_PLC12_Blow_MNTR=13380
+,P_Blow_Check=13388
+,P_PLC12_Vacuum_1st_Cathode_Take_Time=13412
+,P_PLC12_Vacuum_2nd_Cathode_Take_Time=13417
+,P_PLC12_Vacuum_NG_Cathode_Take_Time=13422
+,P_PLC12_Vacuum_Align_Cathode_Take_Time=13427
+,P_PLC12_Vacuum_1st_Anode_Take_Time=13432
+,P_PLC12_Vacuum_2nd_Anode_Take_Time=13437
+,P_PLC12_Vacuum_NG_Anode_Take_Time=13442
+,P_PLC12_Vacuum_Align_Anode_Take_Time=13447
+,P_PLC12_Blow_1st_Cathode_Take_Time=13468
+,P_PLC12_Blow_2nd_Cathode_Take_Time=13473
+,P_PLC12_Blow_NG_Cathode_Take_Time=13478
+,P_PLC12_Blow_Align_Cathode_Take_Time=13483
+,P_PLC12_Blow_1st_Anode_Take_Time=13488
+,P_PLC12_Blow_2nd_Anode_Take_Time=13493
+,P_PLC12_Blow_NG_Anode_Take_Time=13498
+,P_PLC12_Blow_Align_Anode_Take_Time=13503
+,P_Status_arry=13510
+,P_Queue_arry=13530
+,P_Step_arry=13550
+,P_Index_arry=13570
+,P_PLC_Observser_MNTR=13597
+,P_Test_Vacuum_Timer=13606
+,P_Test_Blow_Timer=13614
+,P_Vac_Test_Set_Time=13622
+,P_Blow_Test_Set_Time=13630
+,P_Zero_Angle=13693
+,P_Zero_Length=13718
+,P_Homeoffset_Change_Flag=13743
+,P_Cal_Distance=13768
+,P_Cal_Denominator=13773
+,P_Cal_Numerator=13778
+,P_Cal_Dif_Deg=13783
+,P_Vac_Door_Open_Clear=13788
+,P_Read_Timer_S=13802
+,P_Write_Timer_S=13811
+,P_Interval_Read_S=13820
+,P_Interval_Write_S=13829
+,P_UI_Jog_Vel_M=13838
+,P_Old_X_Read_Count_S=13889
+,P_X_BTN_Manual_1=13912
+,P_X_BTN_Manual_2=14032
+,P_X_BTN_Manual_3=14152
+,P_Home_InterLock_M=14272
+,P_Status_BTN_Manual_1=14322
+,P_Status_BTN_Manual_2=14442
+,P_Status_BTN_Manual_Interlock_1=14562
+,P_Status_BTN_Manual_Interlock_2=14682
+,P_Status_BTN_Manual_Interlock_3=14802
+,P_Mode_Run_Enable_Flag=14922
+,P_MNTR_PLC4_Vision_Result=14929
+,P_PNP_Vac_Mode_Run_Enable_Flag=15130
+,P_HCK_Step_MNTR=15137
+,P_Axis_Home_Pos=15187
+,P_Axis_Ready_Pos=15237
+,P_PMAC_Homing_CHK=15287
+,P_Home_Command=15338
+,P_Old_BTN_Servo_On_Off_M=15392
+,P_Peak_Load_Ratio_M=15425
+,P_Chk_Current_Jog_Sel=15458
+,P_Recipe_POS_Interock_Num_Bit=15492
+,P_Recipe_VEL=15525
+,P_Recipe_POS=15536
+,P_BTN_Servo_On_Off_M=15547
+,P_BTN_Home_M=15580
+,P_BTN_Jog_Stop_M=15613
+,P_BTN_Recipe_POS_RUN_M=15646
+,P_Recipe_POS_Flag_M=15679
+,P_BTN_Jog_INC_M=15712
+,P_BTN_JOG_ABS_M=15745
+,P_Unit_Command=15779
+,P_Unit_State_Machine=15879
+,P_Status_BTN_Manual_3=15979
+,P_Chk_Current_BTN_Sel=16079
+,P_Linear_Encoder_Pos_Check_Flag=16138
+,P_Linear_Encoder_Pos=16143
+,P_Status_Linear_Encoder_HomeZero=16148
+,P_Command_Linear_Encoder_HomeZero=16153
+,P_OLD_Home_Offset=16166
+,P_PLC13_Cycle_Stop_Return_Array=16254
+,P_Stopping_CycleStop_Act_State_Machine=16360
+,P_Module_Cycle_Stop_Act_State_Machine_Array=16380
+,P_Module_Cycle_Stop_Act_Complete_Bit=16400
+,P_Module_Cycle_Stop_Act_Command_Array=16420
+,P_OLD_Module_Cycle_Stop_Act_Command_Array=16440
+,P_Buffer_Seqdata_CycleStop_Array=16460
+,P_Tact_Time_Timer=16497
+,P_Tack_Time_Save_Time=16537
+,P_Tact_Time_Stack_Array=16581
+,P_Tact_Time_Discharge_Array=16591
+,P_Tact_Time_1st_Unloader_Array=16601
+,P_Tact_Time_Sepa_ARC_Array=16611
+,P_Tact_Time_Final_Roll_Array=16621
+,P_Tact_Time_Cathode_1st_PNP_Array=16631
+,P_Tact_Time_Cathode_Align_Array=16641
+,P_Tact_Time_Cathode_2nd_PNP_Array=16651
+,P_Tact_Time_Cathode_Clamp_Array=16661
+,P_Tact_Time_Anode_1st_PNP_Array=16671
+,P_Tact_Time_Anode_Align_Array=16681
+,P_Tact_Time_Anode_2nd_PNP_Array=16691
+,P_Tact_Time_Anode_Clamp_Array=16701
+,P_Tact_Time_Cathode_1st_PNP_Vac_Array=16711
+,P_Tact_Time_Cathode_Align_PNP_Vac_Array=16721
+,P_Tact_Time_Cathode_2nd_PNP_Vac_Array=16731
+,P_Tact_Time_Anode_1st_PNP_Vac_Array=16741
+,P_Tact_Time_Anode_Align_PNP_Vac_Array=16751
+,P_Tact_Time_Anode_2nd_PNP_Vac_Array=16761
+,P_Tact_Time_Check=16815
+,P_Old_Tact_Time_Check=16855
+,P_Tact_Time_Head_Address=16895
+,P_EPC_MNTR_VAR=16952
+,P_Home_Check_Arry=16975
+,P_PWM_Phasing_Start=17027
+,P_PWM_Status=17032
+,P_PWM_State_Machine=17037
+,P_AH_Seq_arr=17042
+,P_DD_M_Home_ABS_Pos=17057
+,P_AH_Indvi_rtn=17062
+,P_Home_Check_Arry1=17115
+,P_PV_EPC_Camera_Pos=17279
+,P_VISION_MSA_Status_Prod_Sequence=17299
+,P_MSA_Cmd=17323
+,P_Align_Take_Off_Cmd=17354
+,P_Align_Take_Off_Status_Prod_Sequence=17371
+,P_Old_Upper_Sensor=17440
+,P_Edge_Upper_Sensor=17448
+,P_Old_Lower_Sensor=17456
+,P_Edge_Lower_Sensor=17464
+,P_Edge_NP_BTN=17472
+,P_UI_Unit_Status=17477
+,P_Motor_Unit_Status=17487
+,P_Current_Homming_Status_To_PLC=17537
+,P_AO_Module_Arr=17625
+,P_AO_Range_Set_Value=17630
+,P_Force_BTN_M_Variable_Save=17663
+,P_ABS_Phasing_Data=18063
+,P_ABS_Home_Offset_Data=18068
+,P_Servo_Gain_Kp=18077
+,P_Servo_Gain_Kvfb=18107
+,P_Servo_Gain_Kvff=18137
+,P_Servo_Gain_Ki=18167
+,P_Servo_Gain_SwZvInt=18197
+,P_Servo_Gain_Kaff=18227
+,P_Alarm_Arr=18258
+,P_Alarm_Occur_Index_Flag=18359
+,P_First_Alarm_Log=18370
+,P_Alarm_duplicate_Check_Arr=18407
+,P_Alarm_Time_Log=19077
+,P_Alarm_Log=19127
+,P_Old_Drive_Alarm=19177
+,P_Limit_PosData=19233
+,P_Collision_Risk_Motor=19260
+,P_P_IL_Normal_Pos_Offset=19267
+,P_M_IL_Normal_Pos_Offset=19317
+,P_P_IL_Upper_Pos_Offset=19367
+,P_M_IL_Upper_Pos_Offset=19417
+,P_P_IL_Align_Pos_Offset=19467
+,P_M_IL_Align_Pos_Offset=19517
+,P_P_IL_Stack_Pos_Offset=19567
+,P_M_IL_Stack_Pos_Offset=19617
+,P_Ca_2nd_T_Plus_IL_Offset=19671
+,P_Ca_2nd_T_Minus_IL_Offset=19674
+,P_Ca_2nd_Z_Plus_IL_Offset=19677
+,P_Ca_2nd_Z_Minus_IL_Offset=19679
+,P_An_2nd_T_Plus_IL_Offset=19681
+,P_An_2nd_T_Minus_IL_Offset=19684
+,P_An_2nd_Z_Minus_IL_Offset=19687
+,P_FR_X_Plus_IL_Offset=19691
+,P_FR_X_Minus_IL_Offset=19693
+,P_Ca_NG_PNP_Plus_IL_Offset=19696
+,P_Ca_NG_PNP_Minus_IL_Offset=19700
+,P_An_NG_PNP_Plus_IL_Offset=19704
+,P_An_NG_PNP_Minus_IL_Offset=19708
+,P_Unloader_X_Plus_IL_Offset=19712
+,P_Unloader_X_Minus_IL_Offset=19716
+,P_Unloader_Z_Plus_IL_Offset=19720
+,P_Unloader_Z_Minus_IL_Offset=19723
+,P_IL_In_Offset=19726
+,P_IL_Home_Chk_Motor_Num=19753
+,P_NG_PNP_Motion_arr=19928
+,P_Ecat_Read_MNTR=19970
+,P_Ecat_Write_MNTR=19998
+,P_Ecat_Save_MNTR=20026
+,P_Ecat_Error_MNTR=20042
+,P_Ecat_Read_Error_MNTR=20058
+,P_Ecat_Each_Write_Error_MNTR=20074
+,P_Pn000=20093
+,P_Pn001=20113
+,P_Pn00B=20133
+,P_Pn100=20153
+,P_Pn101=20173
+,P_Pn102=20193
+,P_Pn103=20213
+,P_Pn123=20233
+,P_Pn140=20253
+,P_Pn141=20273
+,P_Pn145=20293
+,P_Pn146=20313
+,P_Pn160=20333
+,P_Pn161=20353
+,P_Pn163=20373
+,P_Pn170=20393
+,P_Pn401=20413
+,P_Pn408=20433
+,P_Pn409=20453
+,P_Pn40A=20473
+,P_Pn40C=20493
+,P_Pn40D=20513
+,P_Pn416=20533
+,P_Pn417=20553
+,P_Pn511=20573
+,P_Pn520=20593
+,P_PnB02_Numerator=20613
+,P_PnB02_Denominator=20633
+,P_Pneumatic_Pressure_Unit_Tack_Time_Chk_Timer=20778
+,P_Pneumatic_Pressure_Unit_Tack_Time=20805
+,P_Discharge_Tact_Time_Arr=20836
+,P_PLC19_All_Home_Tact_Time_Array=20917
+,P_Act_ALL_Home_Time_Out=20940
+,P_Act_Hold_Complete_Bit=20980
+,P_Module_Act_Hold_Command_Array=21015
+,P_OLD_Module_Act_Hold_Command_Array=21050
+,P_Module_Act_Hold_State_Machine_Array=21085
+,P_Act_Hold_Old_Time=21120
+,P_Act_Hold_Time_Out=21156
+,P_Act_Execute_Complete_Bit=21224
+,P_Module_Act_Execute_Command_Array=21236
+,P_OLD_Module_Act_Execute_Command_Array=21248
+,P_Module_Act_Execute_State_Machine_Array=21260
+,P_Act_Execute_Old_Time=21272
+,P_Act_Execute_Time_Out=21285
+,P_Buffer_Mode_Module_Status_Sequence=21319
+,P_EXECUTE_Status_Prod_Sequence=21349
+,P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array=21386
+,P_Execute_First_Sepa_Mode_Tact_Time_Array=21417
+,P_Discharge_Seq_InterLock_Delay_Time=21444
+,P_Discharge_Seq_InterLock_Flag=21474
+,P_Buffer_Seqdata_Discharge_Array=21504
+,P_Suspend_Discharge_Tact_Time_Array=21535
+,P_ARC_Seq_InterLock_Delay_Time=21563
+,P_ARC_Seq_InterLock_Flag=21593
+,P_Buffer_Seqdata_ARC_Array=21623
+,P_Suspend_ARC_Tact_Time_Array=21654
+,P_Anode_1TR_Cell_Supply_Seq_InterLock_Delay_Time=21681
+,P_Anode_1TR_Cell_Supply_Seq_InterLock_Flag=21711
+,P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array=21741
+,P_Suspend_Anode_1TR_Cell_Supply_Tact_Time_Array=21772
+,P_Buffer_Seqdata_Hold_Exist_Insp_Array=21800
+,P_Hold_Exist_Insp_Tact_Time_Array=21831
+,P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array=21859
+,P_Hold_Remove_NG_PNP_Tact_Time_Array=21890
+,P_Buffer_Seqdata_Hold_Remove_Align_Array=21921
+,P_Hold_Remove_Align_Tact_Time_Array=21952
+,P_Buffer_Seqdata_Hold_Remove_2TR_Array=21983
+,P_Hold_Remove_2TR_Tact_Time_Array=22014
+,P_Buffer_Seqdata_Hold_Supply_1TR_Array=22042
+,P_Hold_Supply_1TR_Tact_Time_Array=22073
+,P_Buffer_Seqdata_Hold_Supply_Align_Array=22106
+,P_Hold_Supply_Align_Tact_Time_Array=22137
+,P_Buffer_Seqdata_Hold_Supply_2TR_Array=22165
+,P_Hold_Supply_2TR_Tact_Time_Array=22196
+,P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array=22224
+,P_Hold_Semi_Run_Pos_Move_Tact_Time_Array=22255
+,P_Act_Complete_Bit=22276
+,P_Act_Old_Time=22342
+,P_Act_Delay_Time=22408
+,P_Act_Time_Out=22475
+,P_Discharge_Possibility_Bit=22542
+,P_HOLD_Exist_Possibility_Bit=22608
+,P_HOLD_NG_Remove_Possibility_Bit=22674
+,P_HOLD_Align_Remove_Possibility_Bit=22740
+,P_HOLD_2TR_Remove_Possibility_Bit=22806
+,P_HOLD_1TR_Supply_Possibility_Bit=22872
+,P_HOLD_Align_Supply_Possibility_Bit=22938
+,P_HOLD_2TR_Supply_Possibility_Bit=23004
+,P_HOLD_Semi_Run_Pos_Possibility_Bit=23070
+,P_Module_Act_Command_Array=23136
+,P_OLD_Module_Act_Command_Array=23202
+,P_Module_Act_State_Machine_Array=23268
+,P_Module_Act_State_Machine_Error_Array=23334
+,P_Sensor_To_Sepa_Curr_Distance_mm=23430
+,P_Suspend_Monitor_=23461
+,P_Suspend_Discharge_Debug_Address=23475
+,P_Suspend_Discharge_Debug_Value=23480
+,P_Suspend_ARC_Debug_Address=23492
+,P_Suspend_ARC_Debug_Value=23497
+,P_ARC_Ready_Flag=23507
+,P_Suspend_An_1TR_Supply_Debug_Address=23512
+,P_Suspend_An_1TR_Supply_Debug_Value=23517
+,P_Anode_Suspend_Supply_Complete=23529
+,P_MOde_Num=23612
+,P_Command_Depth=23617
+,P_In_Position=23622
+,P_Last_Cycle_Command=23627
+,P_Slave1_Anode_Run_Motion_Array=23635
+,P_Slave2_Anode_Run_Motion_Array=23735
+,P_Slave3_Anode_Run_Motion_Array=23835
+,P_Slave4_Anode_Run_Motion_Array=23935
+,P_Slave5_Anode_Run_Motion_Array=24035
+,P_Slave6_Anode_Run_Motion_Array=24135
+,P_Slave7_Anode_Run_Motion_Array=24235
+,P_Slave8_Anode_Run_Motion_Array=24335
+,P_Slave9_Anode_Run_Motion_Array=24435
+,P_Slave10_Anode_Run_Motion_Array=24535
+,P_Slave15_Anode_Run_Motion_Array=24635
+,P_Slave16_Anode_Run_Motion_Array=24735
+,P_Slave17_Anode_Run_Motion_Array=24835
+,P_Slave18_Anode_Run_Motion_Array=24935
+,P_Slave19_Anode_Run_Motion_Array=25035
+,P_Slave1_Cathode_Run_Motion_Array=25135
+,P_Slave2_Cathode_Run_Motion_Array=25235
+,P_Slave3_Cathode_Run_Motion_Array=25335
+,P_Slave4_Cathode_Run_Motion_Array=25435
+,P_Slave5_Cathode_Run_Motion_Array=25535
+,P_Slave15_Cathode_Run_Motion_Array=25635
+,P_Slave6_Cathode_Run_Motion_Array=25735
+,P_Slave7_Cathode_Run_Motion_Array=25835
+,P_Slave8_Cathode_Run_Motion_Array=25935
+,P_Slave9_Cathode_Run_Motion_Array=26035
+,P_Slave10_Cathode_Run_Motion_Array=26135
+,P_Slave16_Cathode_Run_Motion_Array=26235
+,P_Slave17_Cathode_Run_Motion_Array=26335
+,P_Slave18_Cathode_Run_Motion_Array=26435
+,P_Slave19_Cathode_Run_Motion_Array=26535
+,P_HCmd_List=26677
+,P_DataList=26713
+,P_Hold_Data_Err=26718
+,P_Hold_Motion_Arr=26746
+,P_Hold_Err_MNTR=26811
+,P_Hold_Err_Data_Save=26815
+,P_Hold_Err_Action_Data_Save=26823
+,P_Hold_Memory_Tower_Err_Pos=26832
+,P_Buffer_Seqdata_MSA_Array=26860
+,P_Buffer_Seqdata_Align_Take_Off_Array=26910
+,P_VISION_MSA_Align_Module_Complete_Bit=26960
+,P_Module_Manual_MSA_Act_Command_Array=27060
+,P_OLD_Module_Manual_MSA_Act_Command_Array=27160
+,P_Module_MSA_Act_State_Machine_Array=27260
+,P_VISION_MSA_Seq_Stopping_Point=27360
+,P_Align_Take_Off_Module_Complete_Bit=27393
+,P_Module_Manual_Align_Take_Off_Act_Command_Array=27493
+,P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array=27593
+,P_Module_Align_Take_Off_Act_State_Machine_Array=27693
+,P_Buffer_Judge_Trg=27800
+,P_PLC01_Queue_MNTR=27811
+,P_PLC01_Exe_Is_Ena_Step_Flag=27841
+,P_PLC01_Exe_Fist_Sepa_Step_Flag=27851
+,P_PLC01_Exe_Prod_Step_Flag=27861
+,P_PLC01_HOLD_Insp_Step_Flag=27866
+,P_PLC01_HOLD_Main_Step_Flag=27876
+,P_PLC01_Sus_Discharge_Step_Flag=27891
+,P_PLC01_Sus_ARC_Step_Flag=27901
+,P_PLC01_STOP_Init_Step_Flag=27911
+,P_PLC01_STOP_Cycle_ST_Step_Flag=27921
+,P_No1_Recipe_Pos_IL=27973
+,P_No2_Recipe_Pos_IL=28026
+,P_No3_Recipe_Pos_IL=28079
+,P_No4_Recipe_Pos_IL=28132
+,P_No5_Recipe_Pos_IL=28185
+,P_No6_Recipe_Pos_IL=28238
+,P_No7_Recipe_Pos_IL=28291
+,P_No8_Recipe_Pos_IL=28344
+,P_No9_Recipe_Pos_IL=28397
+,P_No10_Recipe_Pos_IL=28450
+,P_Recipe_POS_Interock_M=28503};
 enum csglobalQ {_csglobalQ_=-1};
 enum csglobalQarray {_csglobalQarray_=-1};
 enum ptrM {_ptrM_=-1
@@ -9053,9 +9056,10 @@ enum ptrM {_ptrM_=-1
 ,M_AO_Anode_Clamp_Regulator=5413
 ,M_AO_Dancer_Regulator=5414
 ,M_Sys_Time=8296
-,M_X_PLC_Anode_Sheet_Ready2=5010
-,M_X_PLC_Cathode_Sheet_Ready2=5011
 ,M_Y_A_Site_Heart_Bit=5014
+,M_X_PLC_Anode_Sheet_Ready2=4010
+,M_X_PLC_Cathode_Sheet_Ready2=4011
+,M_X_B_Site_Heart_Bit=4014
 ,M_PLC_HeartBit_Flag=4223
 ,M_X_BTN_Press_Jog_Left_From_PLC=4160
 ,M_X_BTN_Press_Jog_Right_From_PLC=4107
@@ -10089,9 +10093,10 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_Queue_PeekEmpty 9211
 #define P_Self_items 9212
 #define P_Hold_Resume_Need_Flag 9213
-#define M_X_PLC_Anode_Sheet_Ready2 5010
-#define M_X_PLC_Cathode_Sheet_Ready2 5011
 #define M_Y_A_Site_Heart_Bit 5014
+#define M_X_PLC_Anode_Sheet_Ready2 4010
+#define M_X_PLC_Cathode_Sheet_Ready2 4011
+#define M_X_B_Site_Heart_Bit 4014
 #define P_Stack_Heart_Bit_Timer 9214
 #define P_Stack_Heart_Bit_Calc 9215
 #define P_Stack_Heart_Bit_Sync_State_Machine 9216
@@ -10770,750 +10775,751 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_Recipe_Dancer_input_kgf 11760
 #define P_Cathode_NG_PNP_Vel_Zero_Set 11761
 #define P_Anode_NG_PNP_Vel_Zero_Set 11762
-#define P_Anode_Run_DR 11763
-#define P_Cathode_Run_DR 11764
-#define P_1st_UND_Grip_Time 11765
-#define P_1st_UND_Grip_Time_offset 11766
-#define P_1st_UND_Grip_Time_offset2 11767
-#define P_First_Sepa_Driving_Use 11768
-#define P_First_Sepa_Driving_Timing 11769
-#define P_Unloader_Safe_rtn 11770
-#define P_Final_Start 11771
-#define P_Driving_Start 11772
-#define P_Starting_Pause_IO_OFF_Flag 11773
-#define P_individual_Hold_return 11774
-#define P_individual_Hold_return2 11775
-#define P_Tension_Ready_Pass 11776
-#define P_Discharge_cal_rtn 11777
-#define P_Old_Tact_Current_Mode 11778
-#define P_Sheet_Clear 11779
-#define P_Anode_Clamp_On_Time2 11780
-#define P_Anode_Clamp_On_Time 11781
-#define P_Cathode_Clamp_On_Time 11782
-#define P_Cathode_Clamp_On_Time2 11783
-#define P_Offset 11784
-#define P_Man_C 11785
-#define P_NG_Box_Stop_Use 11786
-#define P_SlewTime 11787
-#define P_Old_SlewTime 11788
-#define P_Resume_MNTR1 11789
-#define P_Resume_MNTR2 11790
-#define P_Resume_MNTR3 11791
-#define P_Resume_MNTR4 11792
-#define P_Resume_MNTR5 11793
-#define P_Resume_MNTR6 11794
-#define P_Resume_MNTR7 11795
-#define P_Resume_MNTR8 11796
-#define P_Resume_MNTR9 11797
-#define P_Resume_MNTR10 11798
-#define P_Resume_MNTR11 11799
-#define P_Resume_MNTR12 11800
-#define P_old_P_Anode_Count 11801
-#define P_Sheet_Paper_BWD_Count 11802
-#define P_Stop_CHK 11803
-#define P_Seq_Pause 11804
-#define P_Seq_Pause2 11805
-#define P_MSA_TimeBase_Rtn 11806
-#define P_Old_Vison_Read_EPC_Camera_Move_Request 11807
-#define P_First_Sepa_Time_Out_Count 11808
-#define P_Align_Retry_Cal_RTN 11809
-#define P_Sheet_Err 11810
-#define P_Driving_Cal 11826
-#define P_Driving_End_Pos 11827
-#define P_Driving_Start_Pos 11828
-#define P_Drivig_Cal_Save 11829
-#define P_Anode_Align_Blow 11834
-#define P_Cathode_Align_Blow 11835
-#define P_PMAC_Status_Arr_Save1 11836
-#define P_HomePos_Save1 11841
-#define P_PMAC_Status_Arr_Save2 11846
-#define P_HomePos_Save2 11851
-#define P_PMAC_Status_Arr_Save3 11856
-#define P_HomePos_Save3 11861
-#define P_PMAC_Status_Arr_Save4 11866
-#define P_HomePos_Save4 11871
-#define P_Home_Pos_Err_Cnt1 11876
-#define P_Home_Pos_Err_Cnt2 11877
-#define P_Home_Pos_Err_Cnt3 11878
-#define P_Home_Pos_Err_Cnt4 11879
-#define P_Align_Inspection_Delay 11880
-#define P_HomePos_Err 11881
-#define P_Anode_Sheet_Test 11886
-#define P_Cathode_Sheet_Test 11887
-#define P_Anode_Sheet_Interlock_Timing 11888
-#define P_Cathode_Sheet_Interlock_Timing 11889
-#define P_Discharge_Err_MNTR 11890
-#define P_Arc_Err_MNTR 11891
-#define P_Abort_Cnt 11892
-#define P_EMO_Cnt 11893
-#define P_Dry_Run_Inspection 11894
-#define P_Servo_ON_MNTR1 11895
-#define P_Servo_ON_MNTR2 11896
-#define P_Servo_ON_MNTR3 11897
-#define P_Servo_ON_MNTR4 11898
-#define P_Servo_ON_MNTR5 11899
-#define P_Servo_ON_MNTR6 11900
-#define P_Servo_ON_MNTR7 11901
-#define P_Servo_ON_MNTR8 11902
-#define P_Servo_ON_MNTR9 11903
-#define P_Servo_ON_MNTR10 11904
-#define P_Servo_ON_MNTR11 11905
-#define P_Servo_ON_MNTR12 11906
-#define P_Servo_ON_MNTR13 11907
-#define P_Servo_ON_MNTR14 11908
-#define P_Servo_ON_MNTR15 11909
-#define P_Servo_ON_MNTR16 11910
-#define P_Servo_ON_MNTR17 11911
-#define P_Servo_ON_MNTR18 11912
-#define P_Servo_ON_MNTR19 11913
-#define P_Servo_ON_MNTR20 11914
-#define P_Servo_ON_MNTR21 11915
-#define P_Servo_ON_MNTR22 11916
-#define P_Servo_ON_MNTR23 11917
-#define P_Servo_ON_MNTR24 11918
-#define P_Servo_ON_MNTR25 11919
-#define P_Servo_ON_MNTR26 11920
-#define P_Servo_ON_MNTR27 11921
-#define P_Servo_ON_MNTR28 11922
-#define P_Servo_ON_MNTR29 11923
-#define P_Servo_ON_MNTR30 11924
-#define P_X_IO_WinMess_Connect_BTN 11925
-#define P_Ecat_ReConnetion_State_Machine 11926
-#define P_Ecat_Reconnection_Timer 11927
-#define P_Y_Ecat_Reconnecting 11928
-#define P_Y_Ecat_ReConnection_Fail 11929
-#define P_Y_Ecat_ReConnection_Complete 11930
-#define P_X_Ecat_Reconnection_BTN 11931
-#define P_X_PLC_Setup_Mode_Check 11932
-#define P_Interlock_On_Off_Flag 11933
-#define P_X_Old_MC_Reconnect_BTN_Signal 11934
-#define P_BTN_1st_ULD_Data_Clear 11935
-#define P_Old_BTN_1st_ULD_Data_Clear 11936
-#define P_Old_M_Y_1st_Unloader_UnGrip_Sol 11937
-#define P_Sepa_Cutter_Heat_Meter 11938
-#define P_Sepa_Cutter_Heating_Timer 11939
-#define P_Middle_Skip_Off_Flag 11940
-#define P_Stop_MNTR1 11941
-#define P_Stop_MNTR2 11942
-#define P_Sheet_Pos_Offset 11943
-#define P_Stopping_Wait_Time 11944
-#define P_Stopping_Test_Timer 11945
-#define P_Cutter_FWB_Heater_Current 11946
-#define P_1st_ULD_OK_Lamp 11956
-#define P_1st_ULD_NG_Lamp 11957
-#define P_1st_ULD_Sample_QC_Lamp 11958
-#define P_Proceed_Execute_Flag 11959
-#define P_Continuous_Call_Stack_NG_Flag 11960
-#define P_Continuous_Call_Stack_OK_Flag 11961
-#define P_Cathode_Picker_Home_Pos 11962
-#define P_Anode_Picker_Home_Pos 11963
-#define P_FR_Sheet_Paper_Home_Chk 11964
-#define P_Align_TimeOut1 11965
-#define P_Align_TimeOut2 11966
-#define P_Align_TimeOut3 11967
-#define P_Align_TimeOut4 11968
-#define P_Align_TimeOut5 11969
-#define P_Align_TimeOut6 11970
-#define P_Anode_Align_OK 11971
-#define P_Cathode_Align_OK 11972
-#define P_Anode_Align_NG 11973
-#define P_Cathode_Align_NG 11974
-#define P_Anode_Align_TimeOut 11975
-#define P_Cathode_Align_TimeOut 11976
-#define P_Anode_Surf_OK 11977
-#define P_Cathode_Surf_OK 11978
-#define P_Anode_Surf_NG 11979
-#define P_Cathode_Surf_NG 11980
-#define P_Anode_Surf_TimeOut 11981
-#define P_Cathode_Surf_TimeOut 11982
-#define P_Surf_TimeOut1 11983
-#define P_Surf_TimeOut2 11984
-#define P_Surf_TimeOut3 11985
-#define P_Surf_TimeOut4 11986
-#define P_Surf_TimeOut5 11987
-#define P_Surf_TimeOut6 11988
-#define P_Anode_Stack_TimeOut 11989
-#define P_Cathode_Stack_TimeOut 11990
-#define P_Anode_Stack_OK 11991
-#define P_Cathode_Stack_OK 11992
-#define P_Anode_Stack_NG 11993
-#define P_Cathode_Stack_NG 11994
-#define P_Stack_TimeOut1 11995
-#define P_Stack_TimeOut2 11996
-#define P_Stack_TimeOut3 11997
-#define P_Align_Move_Err 11998
-#define P_Ecat_Test 11999
-#define P_Scan_Time 12000
-#define P_Scan_Aver 12002
-#define P_Scan_MAX 12003
-#define P_Cathode_1TR_Picker_T_Belt_POS 12004
-#define P_Cathode_1TR_Picker_T_Align_POS 12005
-#define P_Anode_1TR_Picker_T_Belt_POS 12006
-#define P_Anode_1TR_Picker_T_Align_POS 12007
-#define P_1TR_Picker_T_Align_POS 12008
-#define P_AVRG_Lower_Sepa_Thickness_mm 12009
-#define P_AVRG_Upper_Sepa_Thickness_mm 12010
-#define P_PLC06_Upper_Curr_Unwinder_Thickness_mm 12011
-#define P_PLC06_Lower_Curr_Unwinder_Thickness_mm 12012
-#define P_Upper_Curr_Spool_Radius 12013
-#define P_Lower_Curr_Spool_Radius 12014
-#define P_PLC06_Curr_Upper_Distance_mm 12015
-#define P_PLC06_Curr_Lower_Distance_mm 12016
-#define P_Upper_Sepa_Min_Distance_mm 12017
-#define P_Lower_Sepa_Min_Distance_mm 12018
-#define P_PLC06_Sepa_Change_Set 12019
-#define P_Upper_Sepa_To_Sensor_Min_Dis 12020
-#define P_Upper_Sepa_To_Sensor_Max_Dis 12021
-#define P_Upper_Sensor_To_Unwinder_Core_Dis 12022
-#define P_Upper_Sensor_Min_AD 12023
-#define P_Upper_Sensor_Max_AD 12024
-#define P_Lower_Sepa_To_Sensor_Min_Dis 12025
-#define P_Lower_Sepa_To_Sensor_Max_Dis 12026
-#define P_Lower_Sensor_To_Unwinder_Core_Dis 12027
-#define P_Lower_Sensor_Min_AD 12028
-#define P_Lower_Sensor_Max_AD 12029
+#define P_NG_Box_Open_Popup_Flag 11763
+#define P_Anode_Run_DR 11764
+#define P_Cathode_Run_DR 11765
+#define P_1st_UND_Grip_Time 11766
+#define P_1st_UND_Grip_Time_offset 11767
+#define P_1st_UND_Grip_Time_offset2 11768
+#define P_First_Sepa_Driving_Use 11769
+#define P_First_Sepa_Driving_Timing 11770
+#define P_Unloader_Safe_rtn 11771
+#define P_Final_Start 11772
+#define P_Driving_Start 11773
+#define P_Starting_Pause_IO_OFF_Flag 11774
+#define P_individual_Hold_return 11775
+#define P_individual_Hold_return2 11776
+#define P_Tension_Ready_Pass 11777
+#define P_Discharge_cal_rtn 11778
+#define P_Old_Tact_Current_Mode 11779
+#define P_Sheet_Clear 11780
+#define P_Anode_Clamp_On_Time2 11781
+#define P_Anode_Clamp_On_Time 11782
+#define P_Cathode_Clamp_On_Time 11783
+#define P_Cathode_Clamp_On_Time2 11784
+#define P_Offset 11785
+#define P_Man_C 11786
+#define P_NG_Box_Stop_Use 11787
+#define P_SlewTime 11788
+#define P_Old_SlewTime 11789
+#define P_Resume_MNTR1 11790
+#define P_Resume_MNTR2 11791
+#define P_Resume_MNTR3 11792
+#define P_Resume_MNTR4 11793
+#define P_Resume_MNTR5 11794
+#define P_Resume_MNTR6 11795
+#define P_Resume_MNTR7 11796
+#define P_Resume_MNTR8 11797
+#define P_Resume_MNTR9 11798
+#define P_Resume_MNTR10 11799
+#define P_Resume_MNTR11 11800
+#define P_Resume_MNTR12 11801
+#define P_old_P_Anode_Count 11802
+#define P_Sheet_Paper_BWD_Count 11803
+#define P_Stop_CHK 11804
+#define P_Seq_Pause 11805
+#define P_Seq_Pause2 11806
+#define P_MSA_TimeBase_Rtn 11807
+#define P_Old_Vison_Read_EPC_Camera_Move_Request 11808
+#define P_First_Sepa_Time_Out_Count 11809
+#define P_Align_Retry_Cal_RTN 11810
+#define P_Sheet_Err 11811
+#define P_Driving_Cal 11827
+#define P_Driving_End_Pos 11828
+#define P_Driving_Start_Pos 11829
+#define P_Drivig_Cal_Save 11830
+#define P_Anode_Align_Blow 11835
+#define P_Cathode_Align_Blow 11836
+#define P_PMAC_Status_Arr_Save1 11837
+#define P_HomePos_Save1 11842
+#define P_PMAC_Status_Arr_Save2 11847
+#define P_HomePos_Save2 11852
+#define P_PMAC_Status_Arr_Save3 11857
+#define P_HomePos_Save3 11862
+#define P_PMAC_Status_Arr_Save4 11867
+#define P_HomePos_Save4 11872
+#define P_Home_Pos_Err_Cnt1 11877
+#define P_Home_Pos_Err_Cnt2 11878
+#define P_Home_Pos_Err_Cnt3 11879
+#define P_Home_Pos_Err_Cnt4 11880
+#define P_Align_Inspection_Delay 11881
+#define P_HomePos_Err 11882
+#define P_Anode_Sheet_Test 11887
+#define P_Cathode_Sheet_Test 11888
+#define P_Anode_Sheet_Interlock_Timing 11889
+#define P_Cathode_Sheet_Interlock_Timing 11890
+#define P_Discharge_Err_MNTR 11891
+#define P_Arc_Err_MNTR 11892
+#define P_Abort_Cnt 11893
+#define P_EMO_Cnt 11894
+#define P_Dry_Run_Inspection 11895
+#define P_Servo_ON_MNTR1 11896
+#define P_Servo_ON_MNTR2 11897
+#define P_Servo_ON_MNTR3 11898
+#define P_Servo_ON_MNTR4 11899
+#define P_Servo_ON_MNTR5 11900
+#define P_Servo_ON_MNTR6 11901
+#define P_Servo_ON_MNTR7 11902
+#define P_Servo_ON_MNTR8 11903
+#define P_Servo_ON_MNTR9 11904
+#define P_Servo_ON_MNTR10 11905
+#define P_Servo_ON_MNTR11 11906
+#define P_Servo_ON_MNTR12 11907
+#define P_Servo_ON_MNTR13 11908
+#define P_Servo_ON_MNTR14 11909
+#define P_Servo_ON_MNTR15 11910
+#define P_Servo_ON_MNTR16 11911
+#define P_Servo_ON_MNTR17 11912
+#define P_Servo_ON_MNTR18 11913
+#define P_Servo_ON_MNTR19 11914
+#define P_Servo_ON_MNTR20 11915
+#define P_Servo_ON_MNTR21 11916
+#define P_Servo_ON_MNTR22 11917
+#define P_Servo_ON_MNTR23 11918
+#define P_Servo_ON_MNTR24 11919
+#define P_Servo_ON_MNTR25 11920
+#define P_Servo_ON_MNTR26 11921
+#define P_Servo_ON_MNTR27 11922
+#define P_Servo_ON_MNTR28 11923
+#define P_Servo_ON_MNTR29 11924
+#define P_Servo_ON_MNTR30 11925
+#define P_X_IO_WinMess_Connect_BTN 11926
+#define P_Ecat_ReConnetion_State_Machine 11927
+#define P_Ecat_Reconnection_Timer 11928
+#define P_Y_Ecat_Reconnecting 11929
+#define P_Y_Ecat_ReConnection_Fail 11930
+#define P_Y_Ecat_ReConnection_Complete 11931
+#define P_X_Ecat_Reconnection_BTN 11932
+#define P_X_PLC_Setup_Mode_Check 11933
+#define P_Interlock_On_Off_Flag 11934
+#define P_X_Old_MC_Reconnect_BTN_Signal 11935
+#define P_BTN_1st_ULD_Data_Clear 11936
+#define P_Old_BTN_1st_ULD_Data_Clear 11937
+#define P_Old_M_Y_1st_Unloader_UnGrip_Sol 11938
+#define P_Sepa_Cutter_Heat_Meter 11939
+#define P_Sepa_Cutter_Heating_Timer 11940
+#define P_Middle_Skip_Off_Flag 11941
+#define P_Stop_MNTR1 11942
+#define P_Stop_MNTR2 11943
+#define P_Sheet_Pos_Offset 11944
+#define P_Stopping_Wait_Time 11945
+#define P_Stopping_Test_Timer 11946
+#define P_Cutter_FWB_Heater_Current 11947
+#define P_1st_ULD_OK_Lamp 11957
+#define P_1st_ULD_NG_Lamp 11958
+#define P_1st_ULD_Sample_QC_Lamp 11959
+#define P_Proceed_Execute_Flag 11960
+#define P_Continuous_Call_Stack_NG_Flag 11961
+#define P_Continuous_Call_Stack_OK_Flag 11962
+#define P_Cathode_Picker_Home_Pos 11963
+#define P_Anode_Picker_Home_Pos 11964
+#define P_FR_Sheet_Paper_Home_Chk 11965
+#define P_Align_TimeOut1 11966
+#define P_Align_TimeOut2 11967
+#define P_Align_TimeOut3 11968
+#define P_Align_TimeOut4 11969
+#define P_Align_TimeOut5 11970
+#define P_Align_TimeOut6 11971
+#define P_Anode_Align_OK 11972
+#define P_Cathode_Align_OK 11973
+#define P_Anode_Align_NG 11974
+#define P_Cathode_Align_NG 11975
+#define P_Anode_Align_TimeOut 11976
+#define P_Cathode_Align_TimeOut 11977
+#define P_Anode_Surf_OK 11978
+#define P_Cathode_Surf_OK 11979
+#define P_Anode_Surf_NG 11980
+#define P_Cathode_Surf_NG 11981
+#define P_Anode_Surf_TimeOut 11982
+#define P_Cathode_Surf_TimeOut 11983
+#define P_Surf_TimeOut1 11984
+#define P_Surf_TimeOut2 11985
+#define P_Surf_TimeOut3 11986
+#define P_Surf_TimeOut4 11987
+#define P_Surf_TimeOut5 11988
+#define P_Surf_TimeOut6 11989
+#define P_Anode_Stack_TimeOut 11990
+#define P_Cathode_Stack_TimeOut 11991
+#define P_Anode_Stack_OK 11992
+#define P_Cathode_Stack_OK 11993
+#define P_Anode_Stack_NG 11994
+#define P_Cathode_Stack_NG 11995
+#define P_Stack_TimeOut1 11996
+#define P_Stack_TimeOut2 11997
+#define P_Stack_TimeOut3 11998
+#define P_Align_Move_Err 11999
+#define P_Ecat_Test 12000
+#define P_Scan_Time 12001
+#define P_Scan_Aver 12003
+#define P_Scan_MAX 12004
+#define P_Cathode_1TR_Picker_T_Belt_POS 12005
+#define P_Cathode_1TR_Picker_T_Align_POS 12006
+#define P_Anode_1TR_Picker_T_Belt_POS 12007
+#define P_Anode_1TR_Picker_T_Align_POS 12008
+#define P_1TR_Picker_T_Align_POS 12009
+#define P_AVRG_Lower_Sepa_Thickness_mm 12010
+#define P_AVRG_Upper_Sepa_Thickness_mm 12011
+#define P_PLC06_Upper_Curr_Unwinder_Thickness_mm 12012
+#define P_PLC06_Lower_Curr_Unwinder_Thickness_mm 12013
+#define P_Upper_Curr_Spool_Radius 12014
+#define P_Lower_Curr_Spool_Radius 12015
+#define P_PLC06_Curr_Upper_Distance_mm 12016
+#define P_PLC06_Curr_Lower_Distance_mm 12017
+#define P_Upper_Sepa_Min_Distance_mm 12018
+#define P_Lower_Sepa_Min_Distance_mm 12019
+#define P_PLC06_Sepa_Change_Set 12020
+#define P_Upper_Sepa_To_Sensor_Min_Dis 12021
+#define P_Upper_Sepa_To_Sensor_Max_Dis 12022
+#define P_Upper_Sensor_To_Unwinder_Core_Dis 12023
+#define P_Upper_Sensor_Min_AD 12024
+#define P_Upper_Sensor_Max_AD 12025
+#define P_Lower_Sepa_To_Sensor_Min_Dis 12026
+#define P_Lower_Sepa_To_Sensor_Max_Dis 12027
+#define P_Lower_Sensor_To_Unwinder_Core_Dis 12028
+#define P_Lower_Sensor_Min_AD 12029
+#define P_Lower_Sensor_Max_AD 12030
 #define M_AI_Upper_Sepa_Sensing 372
 #define M_AI_Lower_Sepa_Sensing 373
-#define P_Status_NP_BTN_Lower_Unwinder 12030
-#define P_Status_NP_BTN_Upper_Unwinder 12031
-#define P_Driving_CamTable_Scale_Change_Flag 12032
-#define P_FR_Driving_Diameter 12033
-#define P_FR_Driving_Floating_Point 12034
-#define P_FR_Driving_Reward 12035
-#define P_Unwinder_Master_Following_Use_Flag 12036
-#define P_Unwinder_Master_Following_On 12037
-#define P_Old_Master_Following_Start 12038
-#define P_Unwinder_Master_Following_Scale 12039
-#define P_Unwinder_Jog_Use_Flag 12040
-#define P_Old_Jog_Start 12041
-#define P_Unwinder_Jog_Total_Time 12042
-#define P_Unwinder_Ta 12043
-#define P_Unwinder_Ts 12044
-#define P_Unwinder_Tm 12045
-#define P_Unwinder_1mm_Deg 12046
-#define P_Unwinder_Jog_Pos 12047
-#define P_Unwinder_Jog_Cnt 12048
-#define P_PLC06_Frist_Flag 12049
-#define P_Sepa_AI 12050
-#define P_PLC06_Reel_Upper_Change_Flag 12051
-#define P_PLC06_Reel_Lower_Change_Flag 12052
-#define P_Spool_Ready_Enable_Flag 12053
-#define P_Spool_Lack_Flag 12054
-#define P_Sepa_DR_Start_Flag 12055
-#define P_cdTime_Tact_Sec 12056
-#define P_Master_Tact_Sec 12057
-#define P_Prev_Err_Pos 12058
-#define P_Cur_Arc_Rad 12059
-#define P_Cur_Arc_Deg 12060
-#define P_Spool_Velocity 12061
-#define P_Lin_Prop_Vel 12062
-#define P_Err_Pos 12063
-#define P_Lin_Deriv_Vel 12064
-#define P_Lin_Dacer_Kd 12065
-#define P_Lin_Dacer_Kp 12066
-#define P_Running_CDTimer 12067
-#define P_Unwinder_Jog_Ta 12068
-#define P_Unwinder_Jog_Ts 12069
-#define P_Unwinder_Vel_Test_Time 12070
-#define P_Set_Interval_Time 12071
-#define P_PLC06_Upper_Sepa_AI_Timer 12072
-#define P_PLC06_Upper_Sepa_AI_Data 12073
-#define P_PLC06_Upper_Sepa_AI_Cnt 12074
-#define P_PLC06_Upper_AVRG_Sensor_Data 12075
-#define P_PLC06_Lower_Sepa_AI_Timer 12076
-#define P_PLC06_Lower_Sepa_AI_Data 12077
-#define P_PLC06_Lower_Sepa_AI_Cnt 12078
-#define P_PLC06_Lower_AVRG_Sensor_Data 12079
-#define P_PLC06_Sepa_Upper_Thickness_Timer 12080
-#define P_PLC06_Sepa_Upper_Thickness_Data 12081
-#define P_PLC06_Sepa_Upper_Thickness_Cnt 12082
-#define P_PLC06_Sepa_Lower_Thickness_Timer 12083
-#define P_PLC06_Sepa_Lower_Thickness_Data 12084
-#define P_PLC06_Sepa_Lower_Thickness_Cnt 12085
-#define P_Sepa_Thickness_Chk_Timer 12086
-#define P_Spool_Length 12087
-#define P_Cascade_Sf_Driving_Value 12088
-#define P_Cascade_Sf_None_Driving_Value 12089
-#define P_Sepa_Min_Value_Cal_Cmd 12090
-#define P_Total_Sepa_Need_Length 12091
-#define P_Alpa 12092
-#define P_Sepa_Num_of_Turns 12093
-#define P_Sepa_Turn_Num 12094
-#define P_Accumulate_Value 12095
-#define P_Sharft_to_Sepa_Core_mm 12096
-#define P_Sepa_Cal_Circum 12097
-#define P_Sepa_Min_Need_Thickness 12098
-#define P_Sepa_Min_Thickness_Cmd 12099
-#define P_Sepa_Accumulate_Cmd 12100
-#define P_Sepa_Required_Amount 12101
-#define P_Sepa_Current_Thickness 12102
-#define P_Sepa_Initial_Tickness 12103
-#define P_Sepa_Required_Update_Timer 12104
+#define P_Status_NP_BTN_Lower_Unwinder 12031
+#define P_Status_NP_BTN_Upper_Unwinder 12032
+#define P_Driving_CamTable_Scale_Change_Flag 12033
+#define P_FR_Driving_Diameter 12034
+#define P_FR_Driving_Floating_Point 12035
+#define P_FR_Driving_Reward 12036
+#define P_Unwinder_Master_Following_Use_Flag 12037
+#define P_Unwinder_Master_Following_On 12038
+#define P_Old_Master_Following_Start 12039
+#define P_Unwinder_Master_Following_Scale 12040
+#define P_Unwinder_Jog_Use_Flag 12041
+#define P_Old_Jog_Start 12042
+#define P_Unwinder_Jog_Total_Time 12043
+#define P_Unwinder_Ta 12044
+#define P_Unwinder_Ts 12045
+#define P_Unwinder_Tm 12046
+#define P_Unwinder_1mm_Deg 12047
+#define P_Unwinder_Jog_Pos 12048
+#define P_Unwinder_Jog_Cnt 12049
+#define P_PLC06_Frist_Flag 12050
+#define P_Sepa_AI 12051
+#define P_PLC06_Reel_Upper_Change_Flag 12052
+#define P_PLC06_Reel_Lower_Change_Flag 12053
+#define P_Spool_Ready_Enable_Flag 12054
+#define P_Spool_Lack_Flag 12055
+#define P_Sepa_DR_Start_Flag 12056
+#define P_cdTime_Tact_Sec 12057
+#define P_Master_Tact_Sec 12058
+#define P_Prev_Err_Pos 12059
+#define P_Cur_Arc_Rad 12060
+#define P_Cur_Arc_Deg 12061
+#define P_Spool_Velocity 12062
+#define P_Lin_Prop_Vel 12063
+#define P_Err_Pos 12064
+#define P_Lin_Deriv_Vel 12065
+#define P_Lin_Dacer_Kd 12066
+#define P_Lin_Dacer_Kp 12067
+#define P_Running_CDTimer 12068
+#define P_Unwinder_Jog_Ta 12069
+#define P_Unwinder_Jog_Ts 12070
+#define P_Unwinder_Vel_Test_Time 12071
+#define P_Set_Interval_Time 12072
+#define P_PLC06_Upper_Sepa_AI_Timer 12073
+#define P_PLC06_Upper_Sepa_AI_Data 12074
+#define P_PLC06_Upper_Sepa_AI_Cnt 12075
+#define P_PLC06_Upper_AVRG_Sensor_Data 12076
+#define P_PLC06_Lower_Sepa_AI_Timer 12077
+#define P_PLC06_Lower_Sepa_AI_Data 12078
+#define P_PLC06_Lower_Sepa_AI_Cnt 12079
+#define P_PLC06_Lower_AVRG_Sensor_Data 12080
+#define P_PLC06_Sepa_Upper_Thickness_Timer 12081
+#define P_PLC06_Sepa_Upper_Thickness_Data 12082
+#define P_PLC06_Sepa_Upper_Thickness_Cnt 12083
+#define P_PLC06_Sepa_Lower_Thickness_Timer 12084
+#define P_PLC06_Sepa_Lower_Thickness_Data 12085
+#define P_PLC06_Sepa_Lower_Thickness_Cnt 12086
+#define P_Sepa_Thickness_Chk_Timer 12087
+#define P_Spool_Length 12088
+#define P_Cascade_Sf_Driving_Value 12089
+#define P_Cascade_Sf_None_Driving_Value 12090
+#define P_Sepa_Min_Value_Cal_Cmd 12091
+#define P_Total_Sepa_Need_Length 12092
+#define P_Alpa 12093
+#define P_Sepa_Num_of_Turns 12094
+#define P_Sepa_Turn_Num 12095
+#define P_Accumulate_Value 12096
+#define P_Sharft_to_Sepa_Core_mm 12097
+#define P_Sepa_Cal_Circum 12098
+#define P_Sepa_Min_Need_Thickness 12099
+#define P_Sepa_Min_Thickness_Cmd 12100
+#define P_Sepa_Accumulate_Cmd 12101
+#define P_Sepa_Required_Amount 12102
+#define P_Sepa_Current_Thickness 12103
+#define P_Sepa_Initial_Tickness 12104
+#define P_Sepa_Required_Update_Timer 12105
 #define M_PLC_HeartBit_Flag 4223
 #define M_X_BTN_Press_Jog_Left_From_PLC 4160
 #define M_X_BTN_Press_Jog_Right_From_PLC 4107
-#define P_TEST_EPC_Interlock_Auto 12105
-#define P_TEST_EPC_Interlock_Manual 12106
-#define P_Discharge_Total_Tact 12107
-#define P_Read_Sector_TactTime 12108
-#define P_Write_Sector_TactTime 12114
-#define P_PLC15_Sub_Function_Dryrun_Active_Flag 12120
-#define P_Sepa_Rotation_Sequence_Run_Trigger_Cnt 12121
-#define P_Sepa_Mode_Sepa_Recipe_Count 12122
-#define P_Discharged_After_End_Trigger 12123
-#define P_Unloader_1st_Grip_Delay 12124
-#define P_Separate_Cutter_Heating_Limit_Value 12125
-#define P_Separate_Cutting_Current 12126
-#define P_Separate_Cutter_Change_Cycle 12127
-#define P_X_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger 12128
-#define P_X_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger 12129
-#define P_X_Cathode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger 12130
-#define P_X_Anode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger 12131
-#define P_X_Stack_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger 12132
-#define P_Interlock_Messege_Confirmed 12133
-#define P_X_MC_Communication_HeartBit 12134
-#define P_SV_Cathode_Count 12135
-#define P_SV_Anode_Count 12136
-#define P_SV_AO_Reference_Value_Chanel 12137
-#define P_SV_Cathode_Reference_Thickness 12140
-#define P_SV_Anode_Reference_Thickness 12141
-#define P_SV_Stack_Table_Damper_Cathode 12142
-#define P_SV_Stack_Table_Damper_Anode 12143
-#define P_SV_Sepa_Reference_Thickness 12144
-#define P_SV_Jelly_Roll_Width 12145
-#define P_Cathode_Align_Continuous_NG_Recipe 12146
-#define P_Anode_Align_Continuous_NG_Recipe 12147
-#define P_Stack_Vision_Continuous_NG_Recipe 12148
-#define P_PLC_Recipe_EPC_Sepa_Count 12149
-#define P_PLC_Recipe_Revise_Sepa 12150
-#define P_X_PLC_to_PMAC_Correction_Value 12151
-#define P_Anode_Align_Continuous_NG_Check_range 12152
-#define P_Cathode_Align_Continuous_NG_Check_range 12153
-#define P_Stack_Align_Continuous_NG_Check_range 12154
-#define P_Cathode_Surface_Continuous_NG_Recipe 12155
-#define P_Anode_Surface_Continuous_NG_Recipe 12156
-#define P_Cathode_Surface_Continuous_NG_Check_range 12157
-#define P_Anode_Surface_Continuous_NG_Check_range 12158
-#define P_Servo_Dancer_Alarm_Maximum_Angle_Value 12159
-#define P_Servo_Dancer_Alarm_Minimum_Angle_Value 12160
-#define P_Current_Selected_Spool_Rev_Counts_Init_Read 12161
-#define P_Spool_ARC_Distance_mm 12162
-#define P_ARC_Upper_Request_Sepa_Thickness_mm 12163
-#define P_ARC_Lower_Request_Sepa_Thickness_mm 12164
-#define P_Selected_Spool_Arc_Set_Rev_Counts_Value 12165
-#define P_Set_Cnt_FR_Moving_Sepa_ARC 12166
-#define P_Current_Selected_Spool_Rev_Counts 12167
-#define P_AI_Cathode_Clamp_Damper 12168
-#define P_AI_Anode_Clamp_Damper 12169
-#define P_MSA_Run_Repeat_Num 12170
-#define P_Current_MSA_Run_Num 12175
-#define P_Select_Sheet_Value 12180
-#define P_BTN_Config_Setup_Mode_Select 12181
-#define P_Sepa_Thickness_Max_Value 12182
-#define P_AI_Cathode_Clamp_Damper_Zero_Mpa_Analog_Value 12183
-#define P_AI_Anode_Clamp_Damper_Zero_Mpa_Analog_Value 12184
-#define P_Accumulated_Movement_MM_Unit_Cathode_1ST_pnp 12185
-#define P_Accumulated_Movement_MM_Unit_Anode_1ST_pnp 12186
-#define P_Accumulated_Movement_MM_Unit_Cathode_2nd_pnp 12187
-#define P_Accumulated_Movement_MM_Unit_Anode_2nd_pnp 12188
-#define P_AI_Anode_Clamp_Damper_Mpa 12189
-#define P_AI_Cathode_Clamp_Damper_Mpa 12190
-#define P_Current_Whole_Stack_Jelly_Roll_Thinckness_mm 12191
-#define P_Upper_Sepa_Current_Thickness_um 12192
-#define P_Lower_Sepa_Current_Thickness_um 12193
-#define P_Spool_Rotate_Distance 12194
-#define Spool_Diameter 12195
-#define P_Current_FR_Moving_Cnt_To_PlC 12196
-#define P_MES_APC_Select_Btn 12197
-#define P_AO_Anode_Clamp_Damper 12198
-#define P_AO_Cathode_Clamp_Damper 12199
-#define P_Sepa_Length 12200
-#define P_Minus_Limit_Detect_Popup_Flag 12201
-#define P_Plus_Limit_Detect_Popup_Flag 12202
-#define P_Fatal_Fe_Limit_Detect_Popup_Flag 12203
-#define P_Emergency_Alarm_Popup_Flag 12204
-#define P_SepaArcing_Popup_Flag 12205
-#define P_Y_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger 12206
-#define P_Y_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger 12207
-#define P_Y_Cathode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger 12208
-#define P_Y_Anode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger 12209
-#define P_Y_Stack_Align_Calibration_twisted_Cycle_Stop_Request_Trigger 12210
-#define P_Current_Selected_Sheet_Value 12211
-#define P_Status_Config_Mode_Select 12212
-#define P_Sepa_Thickness_Jig_Value 12213
-#define P_PV_Stack_Table_Damper_Cathode 12214
-#define P_PV_Stack_Table_Damper_Anode 12215
-#define P_Discharge_Standby_Pos_Tack_Time 12216
-#define P_Discharge_FR_MainZ_Pos_Tack_Time 12217
-#define P_Discharge_Unloader_Go_Pos_Tack_Time 12218
-#define P_Discharge_SubZ_Down_Pos_Tack_Time 12219
-#define P_Discharge_Unloader_Cutting_Pos_Tack_Time 12220
-#define P_Discharge_FR_Clamp_ON_Complete_Tack_Time 12221
-#define P_Discharge_Cutting_Complete_Tack_Time 12222
-#define P_Discharge_Motion_PG_Active_Starting_Tack_Time 12223
-#define P_Discharge_Motion_PG_Active_Complete_Tack_Time 12224
-#define P_Discharge_Sepa_First_Complete_Tack_Time 12225
-#define P_Discharge_Complete_Tack_Time 12226
-#define P_Discharge_Total_Tack_Time 12227
-#define P_Anode_Clamp_TackTime_Array0 12228
-#define P_Anode_Clamp_TackTime_Array1 12229
-#define P_Anode_Clamp_TackTime_Array2 12230
-#define P_Anode_Clamp_TackTime_Array3 12231
-#define P_Anode_Clamp_TackTime_Array4 12232
-#define P_Anode_Clamp_TackTime_Array5 12233
-#define P_Anode_Clamp_TackTime_Array6 12234
-#define P_Anode_Clamp_TackTime_Array7 12235
-#define P_Anode_Clamp_TackTime_Array8 12236
-#define P_Anode_Clamp_TackTime_Array9 12237
-#define P_Anode_Clamp_TackTime_Array10 12238
-#define P_Stacking_TackTime_Array0 12239
-#define P_Stacking_TackTime_Array1 12240
-#define P_Stacking_TackTime_Array2 12241
-#define P_Stacking_TackTime_Array3 12242
-#define P_Stacking_TackTime_Array4 12243
-#define P_Stacking_TackTime_Array5 12244
-#define P_Stacking_TackTime_Array6 12245
-#define P_Stacking_TackTime_Array7 12246
-#define P_Stacking_TackTime_Array8 12247
-#define P_Stacking_TackTime_Array9 12248
-#define P_Stacking_TackTime_Array10 12249
-#define P_Cathode_Clamp_TackTime_Array0 12250
-#define P_Cathode_Clamp_TackTime_Array1 12251
-#define P_Cathode_Clamp_TackTime_Array2 12252
-#define P_Cathode_Clamp_TackTime_Array3 12253
-#define P_Cathode_Clamp_TackTime_Array4 12254
-#define P_Cathode_Clamp_TackTime_Array5 12255
-#define P_Cathode_Clamp_TackTime_Array6 12256
-#define P_Cathode_Clamp_TackTime_Array7 12257
-#define P_Cathode_Clamp_TackTime_Array8 12258
-#define P_Cathode_Clamp_TackTime_Array9 12259
-#define P_Cathode_Clamp_TackTime_Array10 12260
-#define P_JellyRoll_Out_TackTime_Array0 12261
-#define P_JellyRoll_Out_TackTime_Array1 12262
-#define P_JellyRoll_Out_TackTime_Array2 12263
-#define P_JellyRoll_Out_TackTime_Array3 12264
-#define P_JellyRoll_Out_TackTime_Array4 12265
-#define P_JellyRoll_Out_TackTime_Array5 12266
-#define P_JellyRoll_Out_TackTime_Array6 12267
-#define P_JellyRoll_Out_TackTime_Array7 12268
-#define P_JellyRoll_Out_TackTime_Array8 12269
-#define P_JellyRoll_Out_TackTime_Array9 12270
-#define P_JellyRoll_Out_TackTime_Array10 12271
-#define P_Anode_1th_TackTime_Array0 12272
-#define P_Anode_1th_TackTime_Array1 12273
-#define P_Anode_1th_TackTime_Array2 12274
-#define P_Anode_1th_TackTime_Array3 12275
-#define P_Anode_1th_TackTime_Array4 12276
-#define P_Anode_1th_TackTime_Array5 12277
-#define P_Anode_1th_TackTime_Array6 12278
-#define P_Anode_1th_TackTime_Array7 12279
-#define P_Anode_1th_TackTime_Array8 12280
-#define P_Anode_1th_TackTime_Array9 12281
-#define P_Anode_1th_TackTime_Array10 12282
-#define P_Cathode_1th_TackTime_Array0 12283
-#define P_Cathode_1th_TackTime_Array1 12284
-#define P_Cathode_1th_TackTime_Array2 12285
-#define P_Cathode_1th_TackTime_Array3 12286
-#define P_Cathode_1th_TackTime_Array4 12287
-#define P_Cathode_1th_TackTime_Array5 12288
-#define P_Cathode_1th_TackTime_Array6 12289
-#define P_Cathode_1th_TackTime_Array7 12290
-#define P_Cathode_1th_TackTime_Array8 12291
-#define P_Cathode_1th_TackTime_Array9 12292
-#define P_Cathode_1th_TackTime_Array10 12293
-#define P_Anode_2th_TackTime_Array0 12294
-#define P_Anode_2th_TackTime_Array1 12295
-#define P_Anode_2th_TackTime_Array2 12296
-#define P_Anode_2th_TackTime_Array3 12297
-#define P_Anode_2th_TackTime_Array4 12298
-#define P_Anode_2th_TackTime_Array5 12299
-#define P_Anode_2th_TackTime_Array6 12300
-#define P_Anode_2th_TackTime_Array7 12301
-#define P_Anode_2th_TackTime_Array8 12302
-#define P_Anode_2th_TackTime_Array9 12303
-#define P_Anode_2th_TackTime_Array10 12304
-#define P_Cathode_2th_TackTime_Array0 12305
-#define P_Cathode_2th_TackTime_Array1 12306
-#define P_Cathode_2th_TackTime_Array2 12307
-#define P_Cathode_2th_TackTime_Array3 12308
-#define P_Cathode_2th_TackTime_Array4 12309
-#define P_Cathode_2th_TackTime_Array5 12310
-#define P_Cathode_2th_TackTime_Array6 12311
-#define P_Cathode_2th_TackTime_Array7 12312
-#define P_Cathode_2th_TackTime_Array8 12313
-#define P_Cathode_2th_TackTime_Array9 12314
-#define P_Cathode_2th_TackTime_Array10 12315
-#define P_Anode_Align_Table_TackTime_Array0 12316
-#define P_Anode_Align_Table_TackTime_Array1 12317
-#define P_Anode_Align_Table_TackTime_Array2 12318
-#define P_Anode_Align_Table_TackTime_Array3 12319
-#define P_Anode_Align_Table_TackTime_Array4 12320
-#define P_Anode_Align_Table_TackTime_Array5 12321
-#define P_Anode_Align_Table_TackTime_Array6 12322
-#define P_Anode_Align_Table_TackTime_Array7 12323
-#define P_Anode_Align_Table_TackTime_Array8 12324
-#define P_Anode_Align_Table_TackTime_Array9 12325
-#define P_Anode_Align_Table_TackTime_Array10 12326
-#define P_Cathode_Align_Table_TackTime_Array0 12327
-#define P_Cathode_Align_Table_TackTime_Array1 12328
-#define P_Cathode_Align_Table_TackTime_Array2 12329
-#define P_Cathode_Align_Table_TackTime_Array3 12330
-#define P_Cathode_Align_Table_TackTime_Array4 12331
-#define P_Cathode_Align_Table_TackTime_Array5 12332
-#define P_Cathode_Align_Table_TackTime_Array6 12333
-#define P_Cathode_Align_Table_TackTime_Array7 12334
-#define P_Cathode_Align_Table_TackTime_Array8 12335
-#define P_Cathode_Align_Table_TackTime_Array9 12336
-#define P_Cathode_Align_Table_TackTime_Array10 12337
-#define P_Anode_NG_PNP_TackTime_Array0 12338
-#define P_Anode_NG_PNP_TackTime_Array1 12339
-#define P_Anode_NG_PNP_TackTime_Array2 12340
-#define P_Anode_NG_PNP_TackTime_Array3 12341
-#define P_Anode_NG_PNP_TackTime_Array4 12342
-#define P_Anode_NG_PNP_TackTime_Array5 12343
-#define P_Anode_NG_PNP_TackTime_Array6 12344
-#define P_Anode_NG_PNP_TackTime_Array7 12345
-#define P_Anode_NG_PNP_TackTime_Array8 12346
-#define P_Anode_NG_PNP_TackTime_Array9 12347
-#define P_Anode_NG_PNP_TackTime_Array10 12348
-#define P_Cathode_NG_PNP_TackTime_Array0 12349
-#define P_Cathode_NG_PNP_TackTime_Array1 12350
-#define P_Cathode_NG_PNP_TackTime_Array2 12351
-#define P_Cathode_NG_PNP_TackTime_Array3 12352
-#define P_Cathode_NG_PNP_TackTime_Array4 12353
-#define P_Cathode_NG_PNP_TackTime_Array5 12354
-#define P_Cathode_NG_PNP_TackTime_Array6 12355
-#define P_Cathode_NG_PNP_TackTime_Array7 12356
-#define P_Cathode_NG_PNP_TackTime_Array8 12357
-#define P_Cathode_NG_PNP_TackTime_Array9 12358
-#define P_Cathode_NG_PNP_TackTime_Array10 12359
-#define P_Sepa_Unwinder_TackTime_Array0 12360
-#define P_Sepa_Unwinder_TackTime_Array1 12361
-#define P_Sepa_Unwinder_TackTime_Array2 12362
-#define P_Sepa_Unwinder_TackTime_Array3 12363
-#define P_Sepa_Unwinder_TackTime_Array4 12364
-#define P_Sepa_Unwinder_TackTime_Array5 12365
-#define P_Sepa_Unwinder_TackTime_Array6 12366
-#define P_Sepa_Unwinder_TackTime_Array7 12367
-#define P_Sepa_Unwinder_TackTime_Array8 12368
-#define P_Sepa_Unwinder_TackTime_Array9 12369
-#define P_Sepa_Unwinder_TackTime_Array10 12370
-#define P_Sepa_Unwinder_TackTime_Array11 12371
-#define P_1st_Unloader_TackTime_Array0 12372
-#define P_1st_Unloader_TackTime_Array1 12373
-#define P_1st_Unloader_TackTime_Array2 12374
-#define P_1st_Unloader_TackTime_Array3 12375
-#define P_1st_Unloader_TackTime_Array4 12376
-#define P_1st_Unloader_TackTime_Array5 12377
-#define P_1st_Unloader_TackTime_Array6 12378
-#define P_1st_Unloader_TackTime_Array7 12379
-#define P_1st_Unloader_TackTime_Array8 12380
-#define P_1st_Unloader_TackTime_Array9 12381
-#define P_1st_Unloader_TackTime_Array10 12382
-#define P_Cathode_1st_Vacuum_TackTime_Array1 12383
-#define P_Cathode_1st_Vacuum_TackTime_Array2 12384
-#define P_Cathode_1st_Vacuum_TackTime_Array3 12385
-#define P_Cathode_1st_Vacuum_TackTime_Array4 12386
-#define P_Cathode_1st_Vacuum_TackTime_Array5 12387
-#define P_Cathode_1st_Vacuum_TackTime_Array6 12388
-#define P_Cathode_1st_Vacuum_TackTime_Array7 12389
-#define P_Cathode_1st_Vacuum_TackTime_Array8 12390
-#define P_Cathode_1st_Vacuum_TackTime_Array9 12391
-#define P_Cathode_1st_Vacuum_TackTime_Array10 12392
-#define P_Cathode_Align_Vacuum_TackTime_Array1 12393
-#define P_Cathode_Align_Vacuum_TackTime_Array2 12394
-#define P_Cathode_Align_Vacuum_TackTime_Array3 12395
-#define P_Cathode_Align_Vacuum_TackTime_Array4 12396
-#define P_Cathode_Align_Vacuum_TackTime_Array5 12397
-#define P_Cathode_Align_Vacuum_TackTime_Array6 12398
-#define P_Cathode_Align_Vacuum_TackTime_Array7 12399
-#define P_Cathode_Align_Vacuum_TackTime_Array8 12400
-#define P_Cathode_Align_Vacuum_TackTime_Array9 12401
-#define P_Cathode_Align_Vacuum_TackTime_Array10 12402
-#define P_Cathode_2nd_Vacuum_TackTime_Array1 12403
-#define P_Cathode_2nd_Vacuum_TackTime_Array2 12404
-#define P_Cathode_2nd_Vacuum_TackTime_Array3 12405
-#define P_Cathode_2nd_Vacuum_TackTime_Array4 12406
-#define P_Cathode_2nd_Vacuum_TackTime_Array5 12407
-#define P_Cathode_2nd_Vacuum_TackTime_Array6 12408
-#define P_Cathode_2nd_Vacuum_TackTime_Array7 12409
-#define P_Cathode_2nd_Vacuum_TackTime_Array8 12410
-#define P_Cathode_2nd_Vacuum_TackTime_Array9 12411
-#define P_Cathode_2nd_Vacuum_TackTime_Array10 12412
-#define P_Anode_1st_Vacuum_TackTime_Array1 12413
-#define P_Anode_1st_Vacuum_TackTime_Array2 12414
-#define P_Anode_1st_Vacuum_TackTime_Array3 12415
-#define P_Anode_1st_Vacuum_TackTime_Array4 12416
-#define P_Anode_1st_Vacuum_TackTime_Array5 12417
-#define P_Anode_1st_Vacuum_TackTime_Array6 12418
-#define P_Anode_1st_Vacuum_TackTime_Array7 12419
-#define P_Anode_1st_Vacuum_TackTime_Array8 12420
-#define P_Anode_1st_Vacuum_TackTime_Array9 12421
-#define P_Anode_1st_Vacuum_TackTime_Array10 12422
-#define P_Anode_Align_Vacuum_TackTime_Array1 12423
-#define P_Anode_Align_Vacuum_TackTime_Array2 12424
-#define P_Anode_Align_Vacuum_TackTime_Array3 12425
-#define P_Anode_Align_Vacuum_TackTime_Array4 12426
-#define P_Anode_Align_Vacuum_TackTime_Array5 12427
-#define P_Anode_Align_Vacuum_TackTime_Array6 12428
-#define P_Anode_Align_Vacuum_TackTime_Array7 12429
-#define P_Anode_Align_Vacuum_TackTime_Array8 12430
-#define P_Anode_Align_Vacuum_TackTime_Array9 12431
-#define P_Anode_Align_Vacuum_TackTime_Array10 12432
-#define P_Anode_2nd_Vacuum_TackTime_Array1 12433
-#define P_Anode_2nd_Vacuum_TackTime_Array2 12434
-#define P_Anode_2nd_Vacuum_TackTime_Array3 12435
-#define P_Anode_2nd_Vacuum_TackTime_Array4 12436
-#define P_Anode_2nd_Vacuum_TackTime_Array5 12437
-#define P_Anode_2nd_Vacuum_TackTime_Array6 12438
-#define P_Anode_2nd_Vacuum_TackTime_Array7 12439
-#define P_Anode_2nd_Vacuum_TackTime_Array8 12440
-#define P_Anode_2nd_Vacuum_TackTime_Array9 12441
-#define P_Anode_2nd_Vacuum_TackTime_Array10 12442
-#define P_Final_Roll_TackTime_Array1 12443
-#define P_Final_Roll_TackTime_Array2 12444
-#define P_Final_Roll_TackTime_Array3 12445
-#define P_Final_Roll_TackTime_Array4 12446
-#define P_Final_Roll_TackTime_Array5 12447
-#define P_Final_Roll_TackTime_Array6 12448
-#define P_Final_Roll_TackTime_Array7 12449
-#define P_Final_Roll_TackTime_Array8 12450
-#define P_Final_Roll_TackTime_Array9 12451
-#define P_Final_Roll_TackTime_Array10 12452
-#define P_Sepa_ARC_TackTime_Array1 12453
-#define P_Sepa_ARC_TackTime_Array2 12454
-#define P_Sepa_ARC_TackTime_Array3 12455
-#define P_Sepa_ARC_TackTime_Array4 12456
-#define P_Sepa_ARC_TackTime_Array5 12457
-#define P_Sepa_ARC_TackTime_Array6 12458
-#define P_Sepa_ARC_TackTime_Array7 12459
-#define P_Sepa_ARC_TackTime_Array8 12460
-#define P_Sepa_ARC_TackTime_Array9 12461
-#define P_Sepa_ARC_TackTime_Array10 12462
-#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array1 12463
-#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array2 12464
-#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array3 12465
-#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array4 12466
-#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array5 12467
-#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array6 12468
-#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array7 12469
-#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array8 12470
-#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array9 12471
-#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array10 12472
-#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array1 12473
-#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array2 12474
-#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array3 12475
-#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array4 12476
-#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array5 12477
-#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array6 12478
-#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array7 12479
-#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array8 12480
-#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array9 12481
-#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array10 12482
-#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array1 12483
-#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array2 12484
-#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array3 12485
-#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array4 12486
-#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array5 12487
-#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array6 12488
-#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array7 12489
-#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array8 12490
-#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array9 12491
-#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array10 12492
-#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array1 12493
-#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array2 12494
-#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array3 12495
-#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array4 12496
-#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array5 12497
-#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array6 12498
-#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array7 12499
-#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array8 12500
-#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array9 12501
-#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array10 12502
-#define P_PACK_ML_Status_bit 12503
-#define P_Whole_Stacking_TackTime_MES_Report_Flag 12504
-#define P_JellyRoll_Out_TackTime_MES_Report_Flag 12505
-#define P_PV_Cathode_Count 12506
-#define P_PV_Anode_Count 12507
-#define P_PV_AO_Value_Chanel 12508
-#define P_PV_Cathode_NG_TR_NG_Count 12512
-#define P_PV_Anode_NG_TR_NG_Count 12513
-#define P_PV_Anode_Retry_NG_Count 12514
-#define P_PV_Cathode_Retry_NG_Count 12515
-#define P_PV_Align_INPUT_Count 12516
-#define P_Unloader_Grip_Pressure 12517
-#define P_Unloader_Heatmeter 12518
-#define P_Interlock_Messege 12519
-#define P_EPC_Y_StandBy 12569
-#define P_SV_Read_Enable_Flag 12570
-#define P_Spool_Rotate_Distance_mm 12571
-#define P_Current_Homming_Status 12572
-#define P_Home_Execute_Type 12622
-#define P_Cathode_Clamp_Gantry 12672
-#define P_Anode_Clamp_Gantry 12673
-#define P_SV_Separator_Heting_Cutter_Change_Period 12674
-#define P_Interval_Read_Time 12675
-#define P_Interval_Write_Time 12681
-#define P_Cathode_Picker_Cylinder_Count 12687
-#define P_Anode_Picker_Cylinder_Count 12688
-#define P_SV_Stack_Table_Cathode_Reference_Value 12689
-#define P_SV_Stack_Table_Anode_Reference_Value 12690
-#define P_CA_DR_Offset 12691
-#define P_AN_DR_Offset 12692
-#define P_First_DR_Offset 12693
-#define P_Last_DR_Offset 12694
-#define P_BTN_QC_Sample_Flag 12695
-#define P_BTN_Loss_Sample_Flag 12696
-#define P_MSA_Sample_Flag 12697
-#define P_Sample_JR_Recipe_Count 12698
+#define P_TEST_EPC_Interlock_Auto 12106
+#define P_TEST_EPC_Interlock_Manual 12107
+#define P_Discharge_Total_Tact 12108
+#define P_Read_Sector_TactTime 12109
+#define P_Write_Sector_TactTime 12115
+#define P_PLC15_Sub_Function_Dryrun_Active_Flag 12121
+#define P_Sepa_Rotation_Sequence_Run_Trigger_Cnt 12122
+#define P_Sepa_Mode_Sepa_Recipe_Count 12123
+#define P_Discharged_After_End_Trigger 12124
+#define P_Unloader_1st_Grip_Delay 12125
+#define P_Separate_Cutter_Heating_Limit_Value 12126
+#define P_Separate_Cutting_Current 12127
+#define P_Separate_Cutter_Change_Cycle 12128
+#define P_X_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger 12129
+#define P_X_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Receive_Complete_Trigger 12130
+#define P_X_Cathode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger 12131
+#define P_X_Anode_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger 12132
+#define P_X_Stack_Align_Calibration_twisted_Cycle_Stop_Receive_Complete_Trigger 12133
+#define P_Interlock_Messege_Confirmed 12134
+#define P_X_MC_Communication_HeartBit 12135
+#define P_SV_Cathode_Count 12136
+#define P_SV_Anode_Count 12137
+#define P_SV_AO_Reference_Value_Chanel 12138
+#define P_SV_Cathode_Reference_Thickness 12141
+#define P_SV_Anode_Reference_Thickness 12142
+#define P_SV_Stack_Table_Damper_Cathode 12143
+#define P_SV_Stack_Table_Damper_Anode 12144
+#define P_SV_Sepa_Reference_Thickness 12145
+#define P_SV_Jelly_Roll_Width 12146
+#define P_Cathode_Align_Continuous_NG_Recipe 12147
+#define P_Anode_Align_Continuous_NG_Recipe 12148
+#define P_Stack_Vision_Continuous_NG_Recipe 12149
+#define P_PLC_Recipe_EPC_Sepa_Count 12150
+#define P_PLC_Recipe_Revise_Sepa 12151
+#define P_X_PLC_to_PMAC_Correction_Value 12152
+#define P_Anode_Align_Continuous_NG_Check_range 12153
+#define P_Cathode_Align_Continuous_NG_Check_range 12154
+#define P_Stack_Align_Continuous_NG_Check_range 12155
+#define P_Cathode_Surface_Continuous_NG_Recipe 12156
+#define P_Anode_Surface_Continuous_NG_Recipe 12157
+#define P_Cathode_Surface_Continuous_NG_Check_range 12158
+#define P_Anode_Surface_Continuous_NG_Check_range 12159
+#define P_Servo_Dancer_Alarm_Maximum_Angle_Value 12160
+#define P_Servo_Dancer_Alarm_Minimum_Angle_Value 12161
+#define P_Current_Selected_Spool_Rev_Counts_Init_Read 12162
+#define P_Spool_ARC_Distance_mm 12163
+#define P_ARC_Upper_Request_Sepa_Thickness_mm 12164
+#define P_ARC_Lower_Request_Sepa_Thickness_mm 12165
+#define P_Selected_Spool_Arc_Set_Rev_Counts_Value 12166
+#define P_Set_Cnt_FR_Moving_Sepa_ARC 12167
+#define P_Current_Selected_Spool_Rev_Counts 12168
+#define P_AI_Cathode_Clamp_Damper 12169
+#define P_AI_Anode_Clamp_Damper 12170
+#define P_MSA_Run_Repeat_Num 12171
+#define P_Current_MSA_Run_Num 12176
+#define P_Select_Sheet_Value 12181
+#define P_BTN_Config_Setup_Mode_Select 12182
+#define P_Sepa_Thickness_Max_Value 12183
+#define P_AI_Cathode_Clamp_Damper_Zero_Mpa_Analog_Value 12184
+#define P_AI_Anode_Clamp_Damper_Zero_Mpa_Analog_Value 12185
+#define P_Accumulated_Movement_MM_Unit_Cathode_1ST_pnp 12186
+#define P_Accumulated_Movement_MM_Unit_Anode_1ST_pnp 12187
+#define P_Accumulated_Movement_MM_Unit_Cathode_2nd_pnp 12188
+#define P_Accumulated_Movement_MM_Unit_Anode_2nd_pnp 12189
+#define P_AI_Anode_Clamp_Damper_Mpa 12190
+#define P_AI_Cathode_Clamp_Damper_Mpa 12191
+#define P_Current_Whole_Stack_Jelly_Roll_Thinckness_mm 12192
+#define P_Upper_Sepa_Current_Thickness_um 12193
+#define P_Lower_Sepa_Current_Thickness_um 12194
+#define P_Spool_Rotate_Distance 12195
+#define Spool_Diameter 12196
+#define P_Current_FR_Moving_Cnt_To_PlC 12197
+#define P_MES_APC_Select_Btn 12198
+#define P_AO_Anode_Clamp_Damper 12199
+#define P_AO_Cathode_Clamp_Damper 12200
+#define P_Sepa_Length 12201
+#define P_Minus_Limit_Detect_Popup_Flag 12202
+#define P_Plus_Limit_Detect_Popup_Flag 12203
+#define P_Fatal_Fe_Limit_Detect_Popup_Flag 12204
+#define P_Emergency_Alarm_Popup_Flag 12205
+#define P_SepaArcing_Popup_Flag 12206
+#define P_Y_Cathode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger 12207
+#define P_Y_Anode_Sheet_Tab_Retry_inspection_Continuos_Ng_Cycle_Stop_Request_Trigger 12208
+#define P_Y_Cathode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger 12209
+#define P_Y_Anode_Align_Calibration_twisted_Cycle_Stop_Request_Trigger 12210
+#define P_Y_Stack_Align_Calibration_twisted_Cycle_Stop_Request_Trigger 12211
+#define P_Current_Selected_Sheet_Value 12212
+#define P_Status_Config_Mode_Select 12213
+#define P_Sepa_Thickness_Jig_Value 12214
+#define P_PV_Stack_Table_Damper_Cathode 12215
+#define P_PV_Stack_Table_Damper_Anode 12216
+#define P_Discharge_Standby_Pos_Tack_Time 12217
+#define P_Discharge_FR_MainZ_Pos_Tack_Time 12218
+#define P_Discharge_Unloader_Go_Pos_Tack_Time 12219
+#define P_Discharge_SubZ_Down_Pos_Tack_Time 12220
+#define P_Discharge_Unloader_Cutting_Pos_Tack_Time 12221
+#define P_Discharge_FR_Clamp_ON_Complete_Tack_Time 12222
+#define P_Discharge_Cutting_Complete_Tack_Time 12223
+#define P_Discharge_Motion_PG_Active_Starting_Tack_Time 12224
+#define P_Discharge_Motion_PG_Active_Complete_Tack_Time 12225
+#define P_Discharge_Sepa_First_Complete_Tack_Time 12226
+#define P_Discharge_Complete_Tack_Time 12227
+#define P_Discharge_Total_Tack_Time 12228
+#define P_Anode_Clamp_TackTime_Array0 12229
+#define P_Anode_Clamp_TackTime_Array1 12230
+#define P_Anode_Clamp_TackTime_Array2 12231
+#define P_Anode_Clamp_TackTime_Array3 12232
+#define P_Anode_Clamp_TackTime_Array4 12233
+#define P_Anode_Clamp_TackTime_Array5 12234
+#define P_Anode_Clamp_TackTime_Array6 12235
+#define P_Anode_Clamp_TackTime_Array7 12236
+#define P_Anode_Clamp_TackTime_Array8 12237
+#define P_Anode_Clamp_TackTime_Array9 12238
+#define P_Anode_Clamp_TackTime_Array10 12239
+#define P_Stacking_TackTime_Array0 12240
+#define P_Stacking_TackTime_Array1 12241
+#define P_Stacking_TackTime_Array2 12242
+#define P_Stacking_TackTime_Array3 12243
+#define P_Stacking_TackTime_Array4 12244
+#define P_Stacking_TackTime_Array5 12245
+#define P_Stacking_TackTime_Array6 12246
+#define P_Stacking_TackTime_Array7 12247
+#define P_Stacking_TackTime_Array8 12248
+#define P_Stacking_TackTime_Array9 12249
+#define P_Stacking_TackTime_Array10 12250
+#define P_Cathode_Clamp_TackTime_Array0 12251
+#define P_Cathode_Clamp_TackTime_Array1 12252
+#define P_Cathode_Clamp_TackTime_Array2 12253
+#define P_Cathode_Clamp_TackTime_Array3 12254
+#define P_Cathode_Clamp_TackTime_Array4 12255
+#define P_Cathode_Clamp_TackTime_Array5 12256
+#define P_Cathode_Clamp_TackTime_Array6 12257
+#define P_Cathode_Clamp_TackTime_Array7 12258
+#define P_Cathode_Clamp_TackTime_Array8 12259
+#define P_Cathode_Clamp_TackTime_Array9 12260
+#define P_Cathode_Clamp_TackTime_Array10 12261
+#define P_JellyRoll_Out_TackTime_Array0 12262
+#define P_JellyRoll_Out_TackTime_Array1 12263
+#define P_JellyRoll_Out_TackTime_Array2 12264
+#define P_JellyRoll_Out_TackTime_Array3 12265
+#define P_JellyRoll_Out_TackTime_Array4 12266
+#define P_JellyRoll_Out_TackTime_Array5 12267
+#define P_JellyRoll_Out_TackTime_Array6 12268
+#define P_JellyRoll_Out_TackTime_Array7 12269
+#define P_JellyRoll_Out_TackTime_Array8 12270
+#define P_JellyRoll_Out_TackTime_Array9 12271
+#define P_JellyRoll_Out_TackTime_Array10 12272
+#define P_Anode_1th_TackTime_Array0 12273
+#define P_Anode_1th_TackTime_Array1 12274
+#define P_Anode_1th_TackTime_Array2 12275
+#define P_Anode_1th_TackTime_Array3 12276
+#define P_Anode_1th_TackTime_Array4 12277
+#define P_Anode_1th_TackTime_Array5 12278
+#define P_Anode_1th_TackTime_Array6 12279
+#define P_Anode_1th_TackTime_Array7 12280
+#define P_Anode_1th_TackTime_Array8 12281
+#define P_Anode_1th_TackTime_Array9 12282
+#define P_Anode_1th_TackTime_Array10 12283
+#define P_Cathode_1th_TackTime_Array0 12284
+#define P_Cathode_1th_TackTime_Array1 12285
+#define P_Cathode_1th_TackTime_Array2 12286
+#define P_Cathode_1th_TackTime_Array3 12287
+#define P_Cathode_1th_TackTime_Array4 12288
+#define P_Cathode_1th_TackTime_Array5 12289
+#define P_Cathode_1th_TackTime_Array6 12290
+#define P_Cathode_1th_TackTime_Array7 12291
+#define P_Cathode_1th_TackTime_Array8 12292
+#define P_Cathode_1th_TackTime_Array9 12293
+#define P_Cathode_1th_TackTime_Array10 12294
+#define P_Anode_2th_TackTime_Array0 12295
+#define P_Anode_2th_TackTime_Array1 12296
+#define P_Anode_2th_TackTime_Array2 12297
+#define P_Anode_2th_TackTime_Array3 12298
+#define P_Anode_2th_TackTime_Array4 12299
+#define P_Anode_2th_TackTime_Array5 12300
+#define P_Anode_2th_TackTime_Array6 12301
+#define P_Anode_2th_TackTime_Array7 12302
+#define P_Anode_2th_TackTime_Array8 12303
+#define P_Anode_2th_TackTime_Array9 12304
+#define P_Anode_2th_TackTime_Array10 12305
+#define P_Cathode_2th_TackTime_Array0 12306
+#define P_Cathode_2th_TackTime_Array1 12307
+#define P_Cathode_2th_TackTime_Array2 12308
+#define P_Cathode_2th_TackTime_Array3 12309
+#define P_Cathode_2th_TackTime_Array4 12310
+#define P_Cathode_2th_TackTime_Array5 12311
+#define P_Cathode_2th_TackTime_Array6 12312
+#define P_Cathode_2th_TackTime_Array7 12313
+#define P_Cathode_2th_TackTime_Array8 12314
+#define P_Cathode_2th_TackTime_Array9 12315
+#define P_Cathode_2th_TackTime_Array10 12316
+#define P_Anode_Align_Table_TackTime_Array0 12317
+#define P_Anode_Align_Table_TackTime_Array1 12318
+#define P_Anode_Align_Table_TackTime_Array2 12319
+#define P_Anode_Align_Table_TackTime_Array3 12320
+#define P_Anode_Align_Table_TackTime_Array4 12321
+#define P_Anode_Align_Table_TackTime_Array5 12322
+#define P_Anode_Align_Table_TackTime_Array6 12323
+#define P_Anode_Align_Table_TackTime_Array7 12324
+#define P_Anode_Align_Table_TackTime_Array8 12325
+#define P_Anode_Align_Table_TackTime_Array9 12326
+#define P_Anode_Align_Table_TackTime_Array10 12327
+#define P_Cathode_Align_Table_TackTime_Array0 12328
+#define P_Cathode_Align_Table_TackTime_Array1 12329
+#define P_Cathode_Align_Table_TackTime_Array2 12330
+#define P_Cathode_Align_Table_TackTime_Array3 12331
+#define P_Cathode_Align_Table_TackTime_Array4 12332
+#define P_Cathode_Align_Table_TackTime_Array5 12333
+#define P_Cathode_Align_Table_TackTime_Array6 12334
+#define P_Cathode_Align_Table_TackTime_Array7 12335
+#define P_Cathode_Align_Table_TackTime_Array8 12336
+#define P_Cathode_Align_Table_TackTime_Array9 12337
+#define P_Cathode_Align_Table_TackTime_Array10 12338
+#define P_Anode_NG_PNP_TackTime_Array0 12339
+#define P_Anode_NG_PNP_TackTime_Array1 12340
+#define P_Anode_NG_PNP_TackTime_Array2 12341
+#define P_Anode_NG_PNP_TackTime_Array3 12342
+#define P_Anode_NG_PNP_TackTime_Array4 12343
+#define P_Anode_NG_PNP_TackTime_Array5 12344
+#define P_Anode_NG_PNP_TackTime_Array6 12345
+#define P_Anode_NG_PNP_TackTime_Array7 12346
+#define P_Anode_NG_PNP_TackTime_Array8 12347
+#define P_Anode_NG_PNP_TackTime_Array9 12348
+#define P_Anode_NG_PNP_TackTime_Array10 12349
+#define P_Cathode_NG_PNP_TackTime_Array0 12350
+#define P_Cathode_NG_PNP_TackTime_Array1 12351
+#define P_Cathode_NG_PNP_TackTime_Array2 12352
+#define P_Cathode_NG_PNP_TackTime_Array3 12353
+#define P_Cathode_NG_PNP_TackTime_Array4 12354
+#define P_Cathode_NG_PNP_TackTime_Array5 12355
+#define P_Cathode_NG_PNP_TackTime_Array6 12356
+#define P_Cathode_NG_PNP_TackTime_Array7 12357
+#define P_Cathode_NG_PNP_TackTime_Array8 12358
+#define P_Cathode_NG_PNP_TackTime_Array9 12359
+#define P_Cathode_NG_PNP_TackTime_Array10 12360
+#define P_Sepa_Unwinder_TackTime_Array0 12361
+#define P_Sepa_Unwinder_TackTime_Array1 12362
+#define P_Sepa_Unwinder_TackTime_Array2 12363
+#define P_Sepa_Unwinder_TackTime_Array3 12364
+#define P_Sepa_Unwinder_TackTime_Array4 12365
+#define P_Sepa_Unwinder_TackTime_Array5 12366
+#define P_Sepa_Unwinder_TackTime_Array6 12367
+#define P_Sepa_Unwinder_TackTime_Array7 12368
+#define P_Sepa_Unwinder_TackTime_Array8 12369
+#define P_Sepa_Unwinder_TackTime_Array9 12370
+#define P_Sepa_Unwinder_TackTime_Array10 12371
+#define P_Sepa_Unwinder_TackTime_Array11 12372
+#define P_1st_Unloader_TackTime_Array0 12373
+#define P_1st_Unloader_TackTime_Array1 12374
+#define P_1st_Unloader_TackTime_Array2 12375
+#define P_1st_Unloader_TackTime_Array3 12376
+#define P_1st_Unloader_TackTime_Array4 12377
+#define P_1st_Unloader_TackTime_Array5 12378
+#define P_1st_Unloader_TackTime_Array6 12379
+#define P_1st_Unloader_TackTime_Array7 12380
+#define P_1st_Unloader_TackTime_Array8 12381
+#define P_1st_Unloader_TackTime_Array9 12382
+#define P_1st_Unloader_TackTime_Array10 12383
+#define P_Cathode_1st_Vacuum_TackTime_Array1 12384
+#define P_Cathode_1st_Vacuum_TackTime_Array2 12385
+#define P_Cathode_1st_Vacuum_TackTime_Array3 12386
+#define P_Cathode_1st_Vacuum_TackTime_Array4 12387
+#define P_Cathode_1st_Vacuum_TackTime_Array5 12388
+#define P_Cathode_1st_Vacuum_TackTime_Array6 12389
+#define P_Cathode_1st_Vacuum_TackTime_Array7 12390
+#define P_Cathode_1st_Vacuum_TackTime_Array8 12391
+#define P_Cathode_1st_Vacuum_TackTime_Array9 12392
+#define P_Cathode_1st_Vacuum_TackTime_Array10 12393
+#define P_Cathode_Align_Vacuum_TackTime_Array1 12394
+#define P_Cathode_Align_Vacuum_TackTime_Array2 12395
+#define P_Cathode_Align_Vacuum_TackTime_Array3 12396
+#define P_Cathode_Align_Vacuum_TackTime_Array4 12397
+#define P_Cathode_Align_Vacuum_TackTime_Array5 12398
+#define P_Cathode_Align_Vacuum_TackTime_Array6 12399
+#define P_Cathode_Align_Vacuum_TackTime_Array7 12400
+#define P_Cathode_Align_Vacuum_TackTime_Array8 12401
+#define P_Cathode_Align_Vacuum_TackTime_Array9 12402
+#define P_Cathode_Align_Vacuum_TackTime_Array10 12403
+#define P_Cathode_2nd_Vacuum_TackTime_Array1 12404
+#define P_Cathode_2nd_Vacuum_TackTime_Array2 12405
+#define P_Cathode_2nd_Vacuum_TackTime_Array3 12406
+#define P_Cathode_2nd_Vacuum_TackTime_Array4 12407
+#define P_Cathode_2nd_Vacuum_TackTime_Array5 12408
+#define P_Cathode_2nd_Vacuum_TackTime_Array6 12409
+#define P_Cathode_2nd_Vacuum_TackTime_Array7 12410
+#define P_Cathode_2nd_Vacuum_TackTime_Array8 12411
+#define P_Cathode_2nd_Vacuum_TackTime_Array9 12412
+#define P_Cathode_2nd_Vacuum_TackTime_Array10 12413
+#define P_Anode_1st_Vacuum_TackTime_Array1 12414
+#define P_Anode_1st_Vacuum_TackTime_Array2 12415
+#define P_Anode_1st_Vacuum_TackTime_Array3 12416
+#define P_Anode_1st_Vacuum_TackTime_Array4 12417
+#define P_Anode_1st_Vacuum_TackTime_Array5 12418
+#define P_Anode_1st_Vacuum_TackTime_Array6 12419
+#define P_Anode_1st_Vacuum_TackTime_Array7 12420
+#define P_Anode_1st_Vacuum_TackTime_Array8 12421
+#define P_Anode_1st_Vacuum_TackTime_Array9 12422
+#define P_Anode_1st_Vacuum_TackTime_Array10 12423
+#define P_Anode_Align_Vacuum_TackTime_Array1 12424
+#define P_Anode_Align_Vacuum_TackTime_Array2 12425
+#define P_Anode_Align_Vacuum_TackTime_Array3 12426
+#define P_Anode_Align_Vacuum_TackTime_Array4 12427
+#define P_Anode_Align_Vacuum_TackTime_Array5 12428
+#define P_Anode_Align_Vacuum_TackTime_Array6 12429
+#define P_Anode_Align_Vacuum_TackTime_Array7 12430
+#define P_Anode_Align_Vacuum_TackTime_Array8 12431
+#define P_Anode_Align_Vacuum_TackTime_Array9 12432
+#define P_Anode_Align_Vacuum_TackTime_Array10 12433
+#define P_Anode_2nd_Vacuum_TackTime_Array1 12434
+#define P_Anode_2nd_Vacuum_TackTime_Array2 12435
+#define P_Anode_2nd_Vacuum_TackTime_Array3 12436
+#define P_Anode_2nd_Vacuum_TackTime_Array4 12437
+#define P_Anode_2nd_Vacuum_TackTime_Array5 12438
+#define P_Anode_2nd_Vacuum_TackTime_Array6 12439
+#define P_Anode_2nd_Vacuum_TackTime_Array7 12440
+#define P_Anode_2nd_Vacuum_TackTime_Array8 12441
+#define P_Anode_2nd_Vacuum_TackTime_Array9 12442
+#define P_Anode_2nd_Vacuum_TackTime_Array10 12443
+#define P_Final_Roll_TackTime_Array1 12444
+#define P_Final_Roll_TackTime_Array2 12445
+#define P_Final_Roll_TackTime_Array3 12446
+#define P_Final_Roll_TackTime_Array4 12447
+#define P_Final_Roll_TackTime_Array5 12448
+#define P_Final_Roll_TackTime_Array6 12449
+#define P_Final_Roll_TackTime_Array7 12450
+#define P_Final_Roll_TackTime_Array8 12451
+#define P_Final_Roll_TackTime_Array9 12452
+#define P_Final_Roll_TackTime_Array10 12453
+#define P_Sepa_ARC_TackTime_Array1 12454
+#define P_Sepa_ARC_TackTime_Array2 12455
+#define P_Sepa_ARC_TackTime_Array3 12456
+#define P_Sepa_ARC_TackTime_Array4 12457
+#define P_Sepa_ARC_TackTime_Array5 12458
+#define P_Sepa_ARC_TackTime_Array6 12459
+#define P_Sepa_ARC_TackTime_Array7 12460
+#define P_Sepa_ARC_TackTime_Array8 12461
+#define P_Sepa_ARC_TackTime_Array9 12462
+#define P_Sepa_ARC_TackTime_Array10 12463
+#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array1 12464
+#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array2 12465
+#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array3 12466
+#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array4 12467
+#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array5 12468
+#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array6 12469
+#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array7 12470
+#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array8 12471
+#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array9 12472
+#define P_Cathode_1st_PNP_Vac_Chk_TackTime_Array10 12473
+#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array1 12474
+#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array2 12475
+#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array3 12476
+#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array4 12477
+#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array5 12478
+#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array6 12479
+#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array7 12480
+#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array8 12481
+#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array9 12482
+#define P_Anode_1st_PNP_Vac_Chk_TackTime_Array10 12483
+#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array1 12484
+#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array2 12485
+#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array3 12486
+#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array4 12487
+#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array5 12488
+#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array6 12489
+#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array7 12490
+#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array8 12491
+#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array9 12492
+#define P_Cathode_2nd_PNP_Vac_Chk_TackTime_Array10 12493
+#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array1 12494
+#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array2 12495
+#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array3 12496
+#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array4 12497
+#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array5 12498
+#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array6 12499
+#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array7 12500
+#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array8 12501
+#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array9 12502
+#define P_Anode_2nd_PNP_Vac_Chk_TackTime_Array10 12503
+#define P_PACK_ML_Status_bit 12504
+#define P_Whole_Stacking_TackTime_MES_Report_Flag 12505
+#define P_JellyRoll_Out_TackTime_MES_Report_Flag 12506
+#define P_PV_Cathode_Count 12507
+#define P_PV_Anode_Count 12508
+#define P_PV_AO_Value_Chanel 12509
+#define P_PV_Cathode_NG_TR_NG_Count 12513
+#define P_PV_Anode_NG_TR_NG_Count 12514
+#define P_PV_Anode_Retry_NG_Count 12515
+#define P_PV_Cathode_Retry_NG_Count 12516
+#define P_PV_Align_INPUT_Count 12517
+#define P_Unloader_Grip_Pressure 12518
+#define P_Unloader_Heatmeter 12519
+#define P_Interlock_Messege 12520
+#define P_EPC_Y_StandBy 12570
+#define P_SV_Read_Enable_Flag 12571
+#define P_Spool_Rotate_Distance_mm 12572
+#define P_Current_Homming_Status 12573
+#define P_Home_Execute_Type 12623
+#define P_Cathode_Clamp_Gantry 12673
+#define P_Anode_Clamp_Gantry 12674
+#define P_SV_Separator_Heting_Cutter_Change_Period 12675
+#define P_Interval_Read_Time 12676
+#define P_Interval_Write_Time 12682
+#define P_Cathode_Picker_Cylinder_Count 12688
+#define P_Anode_Picker_Cylinder_Count 12689
+#define P_SV_Stack_Table_Cathode_Reference_Value 12690
+#define P_SV_Stack_Table_Anode_Reference_Value 12691
+#define P_CA_DR_Offset 12692
+#define P_AN_DR_Offset 12693
+#define P_First_DR_Offset 12694
+#define P_Last_DR_Offset 12695
+#define P_BTN_QC_Sample_Flag 12696
+#define P_BTN_Loss_Sample_Flag 12697
+#define P_MSA_Sample_Flag 12698
+#define P_Sample_JR_Recipe_Count 12699
 #define M_Sample_JR_Prod_Count 8351
 #define M_Sample_Btn_Flag 8352
-#define P_Ca_Clamp_Y_Move 12699
-#define P_An_Clamp_Y_Move 12700
-#define P_Stack_Table_JR_Exist_Flag 12701
-#define P_Program_Monitoring_Lamp_Cell_Ready 12702
-#define P_Program_Monitoring_Lamp_Ready_Pos 12703
-#define P_Program_Monitoring_Lamp_Pause_Pos 12704
-#define P_Program_Monitoring_Lamp_Motion_Run 12705
-#define P_Program_Monitoring_Lamp_Cell_Remove 12706
-#define P_Program_Monitoring_Lamp_Cell_Supply 12707
-#define P_Program_Monitoring_Lamp_Sepa_Mode 12708
-#define P_Program_Monitoring_Lamp_Semi_Run 12709
-#define P_Program_Monitoring_Lamp_Stack_Mode 12710
-#define P_Program_Monitoring_Lamp_Anode_Aling_NG 12711
-#define P_Program_Monitoring_Lamp_Anode_Retry_NG 12712
-#define P_Program_Monitoring_Lamp_Cathode_Align_NG 12713
-#define P_Program_Monitoring_Lamp_Cathode_Retry_NG 12714
-#define P_Program_Monitoring_Lamp_Last_Stack_Mode 12715
-#define P_Program_Monitoring_Lamp_Jelly_Roll_OK 12716
-#define P_Program_Monitoring_Lamp_Jelly_Roll_NG 12717
-#define P_Program_Monitoring_Lamp_Jelly_Roll_Sepa 12718
-#define P_Program_Monitoring_Lamp_Cell_Out_Pos 12719
-#define P_Program_Monitoring_Lamp_Cell_Out_Mode 12720
-#define P_Master_Motion_Program_Flag 12721
-#define P_Sub_Master_Motion_Program_Flag 12722
-#define P_Slave_Motion_Program_Flag 12742
-#define P_Master_Motion_CycleStop_Flag 12762
-#define P_OLD_Jog_Speed_Motor 12763
-#define P_PLC_08_Program_Ver 12813
-#define P_Old_PMAC_Commands 12814
-#define P_Old_PMAC_Status 12815
-#define P_Old_PMAC_Current_Mode 12816
-#define P_Mode_Function_State_Machine 12817
-#define P_PMAC_Commands 12818
-#define P_Command_Start 12819
-#define P_Command_Complete 12837
-#define P_Command_Reset 12855
-#define P_Command_Hold 12873
-#define P_Command_Unhold 12891
-#define P_Command_Suspend 12909
-#define P_Command_Unsuspend 12927
-#define P_Command_Clear 12945
-#define P_Command_Stop 12963
-#define P_Command_Abort 12981
-#define P_Command_Status_Complete 12999
-#define P_Command_Mask_Layer 13017
-#define P_Command_Process_Type 13035
+#define P_Ca_Clamp_Y_Move 12700
+#define P_An_Clamp_Y_Move 12701
+#define P_Stack_Table_JR_Exist_Flag 12702
+#define P_Program_Monitoring_Lamp_Cell_Ready 12703
+#define P_Program_Monitoring_Lamp_Ready_Pos 12704
+#define P_Program_Monitoring_Lamp_Pause_Pos 12705
+#define P_Program_Monitoring_Lamp_Motion_Run 12706
+#define P_Program_Monitoring_Lamp_Cell_Remove 12707
+#define P_Program_Monitoring_Lamp_Cell_Supply 12708
+#define P_Program_Monitoring_Lamp_Sepa_Mode 12709
+#define P_Program_Monitoring_Lamp_Semi_Run 12710
+#define P_Program_Monitoring_Lamp_Stack_Mode 12711
+#define P_Program_Monitoring_Lamp_Anode_Aling_NG 12712
+#define P_Program_Monitoring_Lamp_Anode_Retry_NG 12713
+#define P_Program_Monitoring_Lamp_Cathode_Align_NG 12714
+#define P_Program_Monitoring_Lamp_Cathode_Retry_NG 12715
+#define P_Program_Monitoring_Lamp_Last_Stack_Mode 12716
+#define P_Program_Monitoring_Lamp_Jelly_Roll_OK 12717
+#define P_Program_Monitoring_Lamp_Jelly_Roll_NG 12718
+#define P_Program_Monitoring_Lamp_Jelly_Roll_Sepa 12719
+#define P_Program_Monitoring_Lamp_Cell_Out_Pos 12720
+#define P_Program_Monitoring_Lamp_Cell_Out_Mode 12721
+#define P_Master_Motion_Program_Flag 12722
+#define P_Sub_Master_Motion_Program_Flag 12723
+#define P_Slave_Motion_Program_Flag 12743
+#define P_Master_Motion_CycleStop_Flag 12763
+#define P_OLD_Jog_Speed_Motor 12764
+#define P_PLC_08_Program_Ver 12814
+#define P_Old_PMAC_Commands 12815
+#define P_Old_PMAC_Status 12816
+#define P_Old_PMAC_Current_Mode 12817
+#define P_Mode_Function_State_Machine 12818
+#define P_PMAC_Commands 12819
+#define P_Command_Start 12820
+#define P_Command_Complete 12838
+#define P_Command_Reset 12856
+#define P_Command_Hold 12874
+#define P_Command_Unhold 12892
+#define P_Command_Suspend 12910
+#define P_Command_Unsuspend 12928
+#define P_Command_Clear 12946
+#define P_Command_Stop 12964
+#define P_Command_Abort 12982
+#define P_Command_Status_Complete 13000
+#define P_Command_Mask_Layer 13018
+#define P_Command_Process_Type 13036
 #define P_array_CF_Mode_Name 100
 #define P_array_CF_Function_Name 200
 #define P_array_CF_Function_State_Number 300
@@ -11524,103 +11530,103 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_array_CF_Function_Return_Flag 800
 #define P_array_CF_Function_Mask 900
 #define P_array_CF_Function_Debug_Flag 1000
-#define P_PMAC_Current_Mode 13053
-#define P_PMAC_Status 13054
-#define P_PMAC_Old_Mode 13055
-#define P_Ready_Tack_Chk_Timer 13056
-#define P_PLC09_Common_Command_Flag 13057
-#define P_PLC09_Common_Command_Complete_Bit 13058
-#define P_PLC09_Common_Execute_Flag 13059
-#define P_PLC09_Common_Execute_Complete_Bit 13060
-#define P_PLC09_Status 13061
-#define P_PLC09_Libraries_Var 13062
-#define P_Master_Motion_Program_ON_Flag 13063
-#define P_Master_Motion_Program_ON_Complete_Bit 13064
-#define P_Master_Motion_Program_OFF_Flag 13065
-#define P_Master_Motion_Program_OFF_Complete_Bit 13066
-#define P_Common_Function_Timbase_ON_Flag 13067
-#define P_Common_Function_Timbase_ON_Complete_Bit 13068
-#define P_Common_Function_Timbase_OFF_Flag 13069
-#define P_Common_Function_Timbase_OFF_Complete_Bit 13070
-#define P_Common_Function_Monitoring_Lamp_OFF_Flag 13071
-#define P_Common_Function_Monitoring_Lamp_OFF_Complete_Bit 13072
-#define P_Common_Function_Slave_Motion_Common_Init_Flag 13073
-#define P_Common_Function_Slave_Motion_Common_Init_Complete_Bit 13074
-#define P_Common_Function_OlD_Jog_Speed_Save_ON_Flag 13075
-#define P_Common_Function_OlD_Jog_Speed_Save_ON_Complete_Bit 13076
-#define P_Auto_Resetting_Sum_Ready_Pos_Check_Flag 13077
-#define P_Auto_Resetting_Sum_Ready_Pos_Check_Complete_bit 13078
-#define P_Manual_Resetting_Sum_Ready_Pos_Check_Flag 13079
-#define P_Manual_Resetting_Sum_Ready_Pos_Check_Complete_bit 13080
-#define P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Flag 13081
-#define P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Complete_Bit 13082
-#define P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Flag 13083
-#define P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Complete_Bit 13084
-#define P_Motion_Target_Position_Complete 13085
-#define P_SM_Auto_Run_Layer_Management 13086
-#define P_Buffer_Mode_Status_Sequence 13087
-#define P_SM_Sub_Function_Pause 13088
-#define P_PLC09_Resetting_Position_Check_State_Machine 13089
-#define P_PLC09_Resetting_Position_Moving_State_Machine 13090
-#define P_Sum_Ready_pos_Motor 13091
-#define P_SM_Resetting_Pause_Position 13133
-#define P_20per_Vac_Error_Cycle_Stop_Flag 13134
-#define P_MNTR_PLC23_ARC_Complete 13135
-#define P_FUNCTION_PLC13_Sepa_Trigger_Enable 13136
-#define P_PLC_Recipe_PLC2_Revise_Sepa 13137
-#define P_Auto_Semi_Init_Status 13138
-#define P_Auto_Semi_Init_Chk_Bit 13139
-#define P_Old_PLC_HeartBit_Flag 13140
-#define P_PLC09_Init_Flag 13141
-#define P_Check_IDLE_CF_Flag 13142
-#define P_Check_EXECUTE_CF_Flag 13143
-#define P_Check_COMPLETING_CF_Flag 13144
-#define P_Check_COMPLETE_CF_Flag 13145
-#define P_Check_HOLDING_CF_Flag 13146
-#define P_Check_HOLD_CF_Flag 13147
-#define P_Check_UNHOLDING_CF_Flag 13148
-#define P_Check_SUSPENDING_CF_Flag 13149
-#define P_Check_SUSPENDED_CF_Flag 13150
-#define P_Check_UNSUSPENDING_CF_Flag 13151
-#define P_Check_STOPPED_CF_Flag 13152
-#define P_Check_ABORTED_CF_Flag 13153
-#define P_Check_CLEARING_CF_Flag 13154
-#define P_Check_IDLE_CF 13155
-#define P_Check_EXECUTE_CF 13156
-#define P_Check_COMPLETING_CF 13157
-#define P_Check_COMPLETE_CF 13158
-#define P_Check_HOLDING_CF 13159
-#define P_Check_HOLD_CF 13160
-#define P_Check_UNHOLDING_CF 13161
-#define P_Check_SUSPENDING_CF 13162
-#define P_Check_SUSPENDED_CF 13163
-#define P_Check_UNSUSPENDING_CF 13164
-#define P_Check_STOPPED_CF 13165
-#define P_Check_ABORTED_CF 13166
-#define P_Check_CLEARING_CF 13167
-#define P_Check_STOPPING_CF 13168
-#define P_Check_STARTING_CF 13169
-#define P_Check_RESETTING_CF 13170
-#define P_Check_STARTTING_CF 13171
-#define P_Queue_Clear 13172
-#define P_Resetting_First_Approach_Start_Flag 13173
-#define P_Resetting_Re_Entry_Step_Count 13174
-#define P_PLC09_Alarm_Test_Flag 13175
-#define P_PLC09_Test_Temp 13176
-#define P_PLC01_STOP_Queue_Complete_Flag 13177
-#define P_PMAC_All_Home_Cmd 13178
-#define P_PMAC_All_Home_Status 13179
-#define P_PMAC_Master_Following_Use_Flag 13180
-#define PnP_Belt_Waring_Pos 13181
-#define P_Old_X_PLC_Sync_Heart_Bit 13182
-#define P_Stack_Heart_Bit_Sync_Flag 13183
-#define P_Stack_Heart_Bit_Sunc_Complete_Bit 13184
-#define P_Resetting_Init_Module_RTN 13185
-#define P_PLC09_MNTR 13186
-#define P_Unloder_PNP_Home_IL_Pos 13187
-#define P_ECAT_Slave_Err_Bit 13188
-#define P_MC_Power_Down_Flag 13189
-#define P_Old_MC_Power_Down_Flag 13190
+#define P_PMAC_Current_Mode 13054
+#define P_PMAC_Status 13055
+#define P_PMAC_Old_Mode 13056
+#define P_Ready_Tack_Chk_Timer 13057
+#define P_PLC09_Common_Command_Flag 13058
+#define P_PLC09_Common_Command_Complete_Bit 13059
+#define P_PLC09_Common_Execute_Flag 13060
+#define P_PLC09_Common_Execute_Complete_Bit 13061
+#define P_PLC09_Status 13062
+#define P_PLC09_Libraries_Var 13063
+#define P_Master_Motion_Program_ON_Flag 13064
+#define P_Master_Motion_Program_ON_Complete_Bit 13065
+#define P_Master_Motion_Program_OFF_Flag 13066
+#define P_Master_Motion_Program_OFF_Complete_Bit 13067
+#define P_Common_Function_Timbase_ON_Flag 13068
+#define P_Common_Function_Timbase_ON_Complete_Bit 13069
+#define P_Common_Function_Timbase_OFF_Flag 13070
+#define P_Common_Function_Timbase_OFF_Complete_Bit 13071
+#define P_Common_Function_Monitoring_Lamp_OFF_Flag 13072
+#define P_Common_Function_Monitoring_Lamp_OFF_Complete_Bit 13073
+#define P_Common_Function_Slave_Motion_Common_Init_Flag 13074
+#define P_Common_Function_Slave_Motion_Common_Init_Complete_Bit 13075
+#define P_Common_Function_OlD_Jog_Speed_Save_ON_Flag 13076
+#define P_Common_Function_OlD_Jog_Speed_Save_ON_Complete_Bit 13077
+#define P_Auto_Resetting_Sum_Ready_Pos_Check_Flag 13078
+#define P_Auto_Resetting_Sum_Ready_Pos_Check_Complete_bit 13079
+#define P_Manual_Resetting_Sum_Ready_Pos_Check_Flag 13080
+#define P_Manual_Resetting_Sum_Ready_Pos_Check_Complete_bit 13081
+#define P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Flag 13082
+#define P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_1TR_Complete_Bit 13083
+#define P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Flag 13084
+#define P_Manual_Pause_Resetting_Sum_Ready_Pos_Check_2TR_Complete_Bit 13085
+#define P_Motion_Target_Position_Complete 13086
+#define P_SM_Auto_Run_Layer_Management 13087
+#define P_Buffer_Mode_Status_Sequence 13088
+#define P_SM_Sub_Function_Pause 13089
+#define P_PLC09_Resetting_Position_Check_State_Machine 13090
+#define P_PLC09_Resetting_Position_Moving_State_Machine 13091
+#define P_Sum_Ready_pos_Motor 13092
+#define P_SM_Resetting_Pause_Position 13134
+#define P_20per_Vac_Error_Cycle_Stop_Flag 13135
+#define P_MNTR_PLC23_ARC_Complete 13136
+#define P_FUNCTION_PLC13_Sepa_Trigger_Enable 13137
+#define P_PLC_Recipe_PLC2_Revise_Sepa 13138
+#define P_Auto_Semi_Init_Status 13139
+#define P_Auto_Semi_Init_Chk_Bit 13140
+#define P_Old_PLC_HeartBit_Flag 13141
+#define P_PLC09_Init_Flag 13142
+#define P_Check_IDLE_CF_Flag 13143
+#define P_Check_EXECUTE_CF_Flag 13144
+#define P_Check_COMPLETING_CF_Flag 13145
+#define P_Check_COMPLETE_CF_Flag 13146
+#define P_Check_HOLDING_CF_Flag 13147
+#define P_Check_HOLD_CF_Flag 13148
+#define P_Check_UNHOLDING_CF_Flag 13149
+#define P_Check_SUSPENDING_CF_Flag 13150
+#define P_Check_SUSPENDED_CF_Flag 13151
+#define P_Check_UNSUSPENDING_CF_Flag 13152
+#define P_Check_STOPPED_CF_Flag 13153
+#define P_Check_ABORTED_CF_Flag 13154
+#define P_Check_CLEARING_CF_Flag 13155
+#define P_Check_IDLE_CF 13156
+#define P_Check_EXECUTE_CF 13157
+#define P_Check_COMPLETING_CF 13158
+#define P_Check_COMPLETE_CF 13159
+#define P_Check_HOLDING_CF 13160
+#define P_Check_HOLD_CF 13161
+#define P_Check_UNHOLDING_CF 13162
+#define P_Check_SUSPENDING_CF 13163
+#define P_Check_SUSPENDED_CF 13164
+#define P_Check_UNSUSPENDING_CF 13165
+#define P_Check_STOPPED_CF 13166
+#define P_Check_ABORTED_CF 13167
+#define P_Check_CLEARING_CF 13168
+#define P_Check_STOPPING_CF 13169
+#define P_Check_STARTING_CF 13170
+#define P_Check_RESETTING_CF 13171
+#define P_Check_STARTTING_CF 13172
+#define P_Queue_Clear 13173
+#define P_Resetting_First_Approach_Start_Flag 13174
+#define P_Resetting_Re_Entry_Step_Count 13175
+#define P_PLC09_Alarm_Test_Flag 13176
+#define P_PLC09_Test_Temp 13177
+#define P_PLC01_STOP_Queue_Complete_Flag 13178
+#define P_PMAC_All_Home_Cmd 13179
+#define P_PMAC_All_Home_Status 13180
+#define P_PMAC_Master_Following_Use_Flag 13181
+#define PnP_Belt_Waring_Pos 13182
+#define P_Old_X_PLC_Sync_Heart_Bit 13183
+#define P_Stack_Heart_Bit_Sync_Flag 13184
+#define P_Stack_Heart_Bit_Sunc_Complete_Bit 13185
+#define P_Resetting_Init_Module_RTN 13186
+#define P_PLC09_MNTR 13187
+#define P_Unloder_PNP_Home_IL_Pos 13188
+#define P_ECAT_Slave_Err_Bit 13189
+#define P_MC_Power_Down_Flag 13190
+#define P_Old_MC_Power_Down_Flag 13191
 #define P_Modbus_A_PMAC_Cur_Mode 10
 #define P_Modbus_A_PMAC_Cur_Status 11
 #define P_Modbus_A_VISION_MSA_Status 12
@@ -11640,1032 +11646,1032 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_Modbus_B_All_Home_Status 36
 #define P_Modbus_B_Anode_1st_HCK 37
 #define P_Modbus_B_Cathode_1st_HCK 38
-#define P_Modbus_Delay_Timer 13191
-#define P_Modbus_Connect_Status 13192
-#define P_Modbus_Reconnect_MNTR 13193
-#define P_Ecat_Reconn_Chk_Lamp 13194
-#define P_MC_Reconn_Chk_Lamp 13195
-#define P_Cathode_2TR_PNP_Avoid_Pos 13196
-#define P_Anode_2TR_PNP_Avoid_Pos 13197
-#define P_Cathode_2TR_PNP_Avoid_Value 13198
-#define P_Anode_2TR_PNP_Avoid_Value 13199
-#define P_Cathode_1st_Vac_Set_Time 13200
-#define P_Cathode_2nd_Vac_Set_Time 13201
-#define P_Cathode_Align_Vac_Set_Time 13202
-#define P_Cathode_Align_Blow_Set_Time 13203
-#define P_Anode_1st_Vac_Set_Time 13204
-#define P_Anode_2nd_Vac_Set_Time 13205
-#define P_Sepa_Consume_Mode_Thickness_rate 13206
-#define P_Sepa_Anode_Recipe_Count 13207
-#define P_Sepa_Cathode_Recipe_Count 13208
-#define P_Discharge_Cathode_Recipe_Count 13209
-#define P_Discharge_Anode_Recipe_Count 13210
-#define P_Suspend_Discharge_Cathode_Counter 13211
-#define P_Suspend_Discharge_Anode_Counter 13212
-#define P_Suspend_Discharge_Waiting_Flag 13213
-#define P_Com_ARC_Sepa_Consume_Mode_Flag 13214
-#define P_Com_EPC_Sepa_Consume_Mode_Flag 13215
-#define P_Com_User_Sepa_Consume_Mode_Flag 13216
-#define P_Com_Dry_Mode_Flag 13217
-#define P_SM_Recipe_Value_Management 13218
-#define P_Sepa_Mode_Recipe_Count 13219
-#define P_Sepa_Mode_EPC_Recipe_Count 13220
-#define P_ARC_End_Sepa_Recipe_Count 13221
-#define P_Anode_Align_NG_Array 13222
-#define P_Cathode_Align_NG_Array 13242
-#define P_Anode_Surface_NG_Array 13262
-#define P_Cathode_Surface_NG_Array 13282
-#define P_Stack_NG_Array 13302
-#define P_Cathode_Align_Continuous_NG_Stop_Select 13322
-#define P_Anode_Align_Continuous_NG_Stop_Select 13323
-#define P_Stack_Vision_NG_Enable 13324
-#define P_Cathode_Surface_Continuous_NG_Stop_Select 13325
-#define P_Anode_Surface_Continuous_NG_Stop_Select 13326
-#define P_Anode_Trigger_IO_Test_Vision_PLC_Loop 13327
-#define P_Anode_Trigger_IO_Test_Motion_Loop 13328
-#define P_Cathode_Trigger_IO_Test_Vision_PLC_Loop 13329
-#define P_Cathode_Trigger_IO_Test_Motion_Loop 13330
-#define P_Stack_Trigger_IO_Test_Vision_PLC_Loop 13331
-#define P_Stack_Trigger_IO_Test_Motion_Loop 13332
-#define P_PLC12_Continuous_Buffer_Reset_Flag 13333
-#define P_Continuous_Call_Align_OK_Flag 13334
-#define P_Continuous_Call_Align_NG_Flag 13336
-#define P_Continuous_Call_Align_TimeOut_Flag 13338
-#define P_Continuous_Call_Surface_OK_Flag 13340
-#define P_Continuous_Call_Surface_NG_Flag 13342
-#define P_Continuous_Call_Surface_TimeOut_Flag 13344
-#define P_Continuous_Call_Stack_Flag 13346
-#define P_PLC12_Anode_Sheet_Pick_Up_Flag 13349
-#define P_PLC12_Cathode_Sheet_Pick_Up_Flag 13350
-#define P_Hold_Anode_Sheet_Pick_Up_Flag 13351
-#define P_Hold_Cathode_Sheet_Pick_Up_Flag 13352
-#define P_Sheet_Interface_Complete_Pos 13353
-#define P_Anode_Sheet_Interface_Complete_Pos 13354
-#define P_Cathode_Sheet_Interface_Complete_Pos 13355
-#define P_Anode_2nd_TR_Maint_Check 13356
-#define P_Cathode_2nd_TR_Maint_Check 13357
-#define P_PLC12_Observser_MNTR 13358
-#define P_PLC12_Vacuum_MNTR 13363
-#define P_Vacuum_Check 13371
-#define P_PLC12_Blow_MNTR 13379
-#define P_Blow_Check 13387
-#define P_PLC12_Vacuum_1st_Cathode_MNTR_Timer 13395
-#define P_PLC12_Vacuum_2nd_Cathode_MNTR_Timer 13396
-#define P_PLC12_Vacuum_NG_Cathode_MNTR_Timer 13397
-#define P_PLC12_Vacuum_Align_Cathode_MNTR_Timer 13398
-#define P_PLC12_Vacuum_1st_Anode_MNTR_Timer 13399
-#define P_PLC12_Vacuum_2nd_Anode_MNTR_Timer 13400
-#define P_PLC12_Vacuum_NG_Anode_MNTR_Timer 13401
-#define P_PLC12_Vacuum_Align_Anode_MNTR_Timer 13402
-#define P_PLC12_Vacuum_1st_Cathode_Set_Time 13403
-#define P_PLC12_Vacuum_2nd_Cathode_Set_Time 13404
-#define P_PLC12_Vacuum_NG_Cathode_Set_Time 13405
-#define P_PLC12_Vacuum_Align_Cathode_Set_Time 13406
-#define P_PLC12_Vacuum_1st_Anode_Set_Time 13407
-#define P_PLC12_Vacuum_2nd_Anode_Set_Time 13408
-#define P_PLC12_Vacuum_NG_Anode_Set_Time 13409
-#define P_PLC12_Vacuum_Align_Anode_Set_Time 13410
-#define P_PLC12_Vacuum_1st_Cathode_Take_Time 13411
-#define P_PLC12_Vacuum_2nd_Cathode_Take_Time 13416
-#define P_PLC12_Vacuum_NG_Cathode_Take_Time 13421
-#define P_PLC12_Vacuum_Align_Cathode_Take_Time 13426
-#define P_PLC12_Vacuum_1st_Anode_Take_Time 13431
-#define P_PLC12_Vacuum_2nd_Anode_Take_Time 13436
-#define P_PLC12_Vacuum_NG_Anode_Take_Time 13441
-#define P_PLC12_Vacuum_Align_Anode_Take_Time 13446
-#define P_PLC12_Blow_1st_Cathode_MNTR_Timer 13451
-#define P_PLC12_Blow_2nd_Cathode_MNTR_Timer 13452
-#define P_PLC12_Blow_NG_Cathode_MNTR_Timer 13453
-#define P_PLC12_Blow_Align_Cathode_MNTR_Timer 13454
-#define P_PLC12_Blow_1st_Anode_MNTR_Timer 13455
-#define P_PLC12_Blow_2nd_Anode_MNTR_Timer 13456
-#define P_PLC12_Blow_NG_Anode_MNTR_Timer 13457
-#define P_PLC12_Blow_Align_Anode_MNTR_Timer 13458
-#define P_PLC12_Blow_1st_Cathode_Set_Time 13459
-#define P_PLC12_Blow_2nd_Cathode_Set_Time 13460
-#define P_PLC12_Blow_NG_Cathode_Set_Time 13461
-#define P_PLC12_Blow_Align_Cathode_Set_Time 13462
-#define P_PLC12_Blow_1st_Anode_Set_Time 13463
-#define P_PLC12_Blow_2nd_Anode_Set_Time 13464
-#define P_PLC12_Blow_NG_Anode_Set_Time 13465
-#define P_PLC12_Blow_Align_Anode_Set_Time 13466
-#define P_PLC12_Blow_1st_Cathode_Take_Time 13467
-#define P_PLC12_Blow_2nd_Cathode_Take_Time 13472
-#define P_PLC12_Blow_NG_Cathode_Take_Time 13477
-#define P_PLC12_Blow_Align_Cathode_Take_Time 13482
-#define P_PLC12_Blow_1st_Anode_Take_Time 13487
-#define P_PLC12_Blow_2nd_Anode_Take_Time 13492
-#define P_PLC12_Blow_NG_Anode_Take_Time 13497
-#define P_PLC12_Blow_Align_Anode_Take_Time 13502
-#define P_Vacuum_Reentry_Bit 13507
-#define P_Blow_Reentry_Bit 13508
-#define P_Status_arry 13509
-#define P_Queue_arry 13529
-#define P_Step_arry 13549
-#define P_Index_arry 13569
-#define P_top 13589
-#define P_Queue_stack_top 13590
-#define P_Step_stack_top 13591
-#define P_Index_stack_top 13592
-#define P_Status_stack_top 13593
-#define NN_Step 13594
-#define NN_Index 13595
-#define P_PLC_Observser_MNTR 13596
-#define P_PLC12_Frist 13601
-#define P_SM_Auto_Run_Status_Management 13602
-#define P_SM_Status_Main_Memory_Management 13603
-#define P_SM_Cell_Memory_Management 13604
-#define P_Test_Vacuum_Timer 13605
-#define P_Test_Blow_Timer 13613
-#define P_Vac_Test_Set_Time 13621
-#define P_Blow_Test_Set_Time 13629
-#define P_PLC12_Vacuum_Unit_Data 13637
-#define P_PLC12_Blow_Unit_Data 13638
-#define P_Stack_Algorithme_Cmd_Event_Status 13639
-#define P_PLC12_vacuum_Event_Status 13640
-#define P_PLC12_Blow_Event_status 13641
-#define P_PLC12_vacuum_DIO_Observer_Status 13642
-#define P_PLC12_Blow_DIO_Observer_Status 13643
-#define P_Resetting_Vacuum_MNTR_State_Machine 13644
-#define P_Heart_Bit_Time 13645
-#define P_Dancer_Angle_Alarm_Timer_Flag 13646
-#define P_Dancer_Angle_Alarm_Check_Timer 13647
-#define P_BTN_LED_LAMP 13648
-#define P_Old_BTN_LED_LAMP 13649
-#define P_PLC_TO_PMAC_Work_Confirm_Operation_Cnt 13650
-#define P_VISION_TO_PMAC_Work_Confirm_Operation_Ack_Cnt 13651
-#define P_Ca_AT_Retry_Cal_Move_Complete 13652
-#define P_An_AT_Retry_Cal_Move_Complete 13653
-#define P_Ca_AT_Retry_Cal_Cnt 13654
-#define P_An_AT_Retry_Cal_Cnt 13655
-#define P_Ca_AT_Retry_Cal_Complete 13656
-#define P_An_AT_Retry_Cal_Complete 13657
-#define P_An_AT_Retry_Cal_Pass 13658
-#define P_Ca_AT_Retry_Cal_Pass 13659
-#define P_Ca_Picker_T_Turn_Cnt_Flag 13660
-#define P_Ca_Picker_T_Turn_Cnt 13661
-#define P_Ca_Picker_T_Home_Type 13662
-#define P_An_Picker_T_Turn_Cnt_Flag 13663
-#define P_An_Picker_T_Turn_Cnt 13664
-#define P_An_Picker_T_Home_Type 13665
-#define P_Flag_Vac_Status_Initialize 13666
-#define P_SM_Vac_Initialize 13667
-#define P_Flag_Anode_1st_Vac_OFF 13668
-#define P_Flag_Anode_AT_Vac_OFF 13669
-#define P_Flag_Anode_2nd_Vac_OFF 13670
-#define P_Flag_Anode_NG_Vac_OFF 13671
-#define P_Flag_Cathode_1st_Vac_OFF 13672
-#define P_Flag_Cathode_AT_Vac_OFF 13673
-#define P_Flag_Cathode_2nd_Vac_OFF 13674
-#define P_Flag_Cathode_NG_Vac_OFF 13675
-#define P_Flag_Anode_1st_Vac_Initial_Alarm 13676
-#define P_Flag_Anode_AT_Vac_Initial_Alarm 13677
-#define P_Flag_Anode_2nd_Vac_Initial_Alarm 13678
-#define P_Flag_Anode_NG_Vac_Initial_Alarm 13679
-#define P_Flag_Cathode_1st_Vac_Initial_Alarm 13680
-#define P_Flag_Cathode_AT_Vac_Initial_Alarm 13681
-#define P_Flag_Cathode_2nd_Vac_Initial_Alarm 13682
-#define P_Flag_Cathode_NG_Vac_Initial_Alarm 13683
-#define P_Middle_Discharge_Ignore_Total_Count 13684
-#define P_Middle_Discharge_Ignore_Stack_Count 13685
-#define P_Middle_Discharge_Ignore_ON_Signal 13686
-#define P_Middle_Discharge_Ignore_OFF_Signal 13687
-#define P_Middle_Discharge_Ignore_Cell_Count 13688
-#define P_ARC_Middle_Discharge_Ignore_Vision_Check 13689
-#define P_ARC_Middle_Discharge_Ignore_ON_Flag 13690
-#define P_Middle_Discharge_Ignore_User_Sepa_Mode_Check 13691
-#define P_Zero_Angle 13692
-#define P_Zero_Length 13717
-#define P_Homeoffset_Change_Flag 13742
-#define P_Cal_Distance 13767
-#define P_Cal_Denominator 13772
-#define P_Cal_Numerator 13777
-#define P_Cal_Dif_Deg 13782
-#define P_Vac_Door_Open_Clear 13787
+#define P_Modbus_Delay_Timer 13192
+#define P_Modbus_Connect_Status 13193
+#define P_Modbus_Reconnect_MNTR 13194
+#define P_Ecat_Reconn_Chk_Lamp 13195
+#define P_MC_Reconn_Chk_Lamp 13196
+#define P_Cathode_2TR_PNP_Avoid_Pos 13197
+#define P_Anode_2TR_PNP_Avoid_Pos 13198
+#define P_Cathode_2TR_PNP_Avoid_Value 13199
+#define P_Anode_2TR_PNP_Avoid_Value 13200
+#define P_Cathode_1st_Vac_Set_Time 13201
+#define P_Cathode_2nd_Vac_Set_Time 13202
+#define P_Cathode_Align_Vac_Set_Time 13203
+#define P_Cathode_Align_Blow_Set_Time 13204
+#define P_Anode_1st_Vac_Set_Time 13205
+#define P_Anode_2nd_Vac_Set_Time 13206
+#define P_Sepa_Consume_Mode_Thickness_rate 13207
+#define P_Sepa_Anode_Recipe_Count 13208
+#define P_Sepa_Cathode_Recipe_Count 13209
+#define P_Discharge_Cathode_Recipe_Count 13210
+#define P_Discharge_Anode_Recipe_Count 13211
+#define P_Suspend_Discharge_Cathode_Counter 13212
+#define P_Suspend_Discharge_Anode_Counter 13213
+#define P_Suspend_Discharge_Waiting_Flag 13214
+#define P_Com_ARC_Sepa_Consume_Mode_Flag 13215
+#define P_Com_EPC_Sepa_Consume_Mode_Flag 13216
+#define P_Com_User_Sepa_Consume_Mode_Flag 13217
+#define P_Com_Dry_Mode_Flag 13218
+#define P_SM_Recipe_Value_Management 13219
+#define P_Sepa_Mode_Recipe_Count 13220
+#define P_Sepa_Mode_EPC_Recipe_Count 13221
+#define P_ARC_End_Sepa_Recipe_Count 13222
+#define P_Anode_Align_NG_Array 13223
+#define P_Cathode_Align_NG_Array 13243
+#define P_Anode_Surface_NG_Array 13263
+#define P_Cathode_Surface_NG_Array 13283
+#define P_Stack_NG_Array 13303
+#define P_Cathode_Align_Continuous_NG_Stop_Select 13323
+#define P_Anode_Align_Continuous_NG_Stop_Select 13324
+#define P_Stack_Vision_NG_Enable 13325
+#define P_Cathode_Surface_Continuous_NG_Stop_Select 13326
+#define P_Anode_Surface_Continuous_NG_Stop_Select 13327
+#define P_Anode_Trigger_IO_Test_Vision_PLC_Loop 13328
+#define P_Anode_Trigger_IO_Test_Motion_Loop 13329
+#define P_Cathode_Trigger_IO_Test_Vision_PLC_Loop 13330
+#define P_Cathode_Trigger_IO_Test_Motion_Loop 13331
+#define P_Stack_Trigger_IO_Test_Vision_PLC_Loop 13332
+#define P_Stack_Trigger_IO_Test_Motion_Loop 13333
+#define P_PLC12_Continuous_Buffer_Reset_Flag 13334
+#define P_Continuous_Call_Align_OK_Flag 13335
+#define P_Continuous_Call_Align_NG_Flag 13337
+#define P_Continuous_Call_Align_TimeOut_Flag 13339
+#define P_Continuous_Call_Surface_OK_Flag 13341
+#define P_Continuous_Call_Surface_NG_Flag 13343
+#define P_Continuous_Call_Surface_TimeOut_Flag 13345
+#define P_Continuous_Call_Stack_Flag 13347
+#define P_PLC12_Anode_Sheet_Pick_Up_Flag 13350
+#define P_PLC12_Cathode_Sheet_Pick_Up_Flag 13351
+#define P_Hold_Anode_Sheet_Pick_Up_Flag 13352
+#define P_Hold_Cathode_Sheet_Pick_Up_Flag 13353
+#define P_Sheet_Interface_Complete_Pos 13354
+#define P_Anode_Sheet_Interface_Complete_Pos 13355
+#define P_Cathode_Sheet_Interface_Complete_Pos 13356
+#define P_Anode_2nd_TR_Maint_Check 13357
+#define P_Cathode_2nd_TR_Maint_Check 13358
+#define P_PLC12_Observser_MNTR 13359
+#define P_PLC12_Vacuum_MNTR 13364
+#define P_Vacuum_Check 13372
+#define P_PLC12_Blow_MNTR 13380
+#define P_Blow_Check 13388
+#define P_PLC12_Vacuum_1st_Cathode_MNTR_Timer 13396
+#define P_PLC12_Vacuum_2nd_Cathode_MNTR_Timer 13397
+#define P_PLC12_Vacuum_NG_Cathode_MNTR_Timer 13398
+#define P_PLC12_Vacuum_Align_Cathode_MNTR_Timer 13399
+#define P_PLC12_Vacuum_1st_Anode_MNTR_Timer 13400
+#define P_PLC12_Vacuum_2nd_Anode_MNTR_Timer 13401
+#define P_PLC12_Vacuum_NG_Anode_MNTR_Timer 13402
+#define P_PLC12_Vacuum_Align_Anode_MNTR_Timer 13403
+#define P_PLC12_Vacuum_1st_Cathode_Set_Time 13404
+#define P_PLC12_Vacuum_2nd_Cathode_Set_Time 13405
+#define P_PLC12_Vacuum_NG_Cathode_Set_Time 13406
+#define P_PLC12_Vacuum_Align_Cathode_Set_Time 13407
+#define P_PLC12_Vacuum_1st_Anode_Set_Time 13408
+#define P_PLC12_Vacuum_2nd_Anode_Set_Time 13409
+#define P_PLC12_Vacuum_NG_Anode_Set_Time 13410
+#define P_PLC12_Vacuum_Align_Anode_Set_Time 13411
+#define P_PLC12_Vacuum_1st_Cathode_Take_Time 13412
+#define P_PLC12_Vacuum_2nd_Cathode_Take_Time 13417
+#define P_PLC12_Vacuum_NG_Cathode_Take_Time 13422
+#define P_PLC12_Vacuum_Align_Cathode_Take_Time 13427
+#define P_PLC12_Vacuum_1st_Anode_Take_Time 13432
+#define P_PLC12_Vacuum_2nd_Anode_Take_Time 13437
+#define P_PLC12_Vacuum_NG_Anode_Take_Time 13442
+#define P_PLC12_Vacuum_Align_Anode_Take_Time 13447
+#define P_PLC12_Blow_1st_Cathode_MNTR_Timer 13452
+#define P_PLC12_Blow_2nd_Cathode_MNTR_Timer 13453
+#define P_PLC12_Blow_NG_Cathode_MNTR_Timer 13454
+#define P_PLC12_Blow_Align_Cathode_MNTR_Timer 13455
+#define P_PLC12_Blow_1st_Anode_MNTR_Timer 13456
+#define P_PLC12_Blow_2nd_Anode_MNTR_Timer 13457
+#define P_PLC12_Blow_NG_Anode_MNTR_Timer 13458
+#define P_PLC12_Blow_Align_Anode_MNTR_Timer 13459
+#define P_PLC12_Blow_1st_Cathode_Set_Time 13460
+#define P_PLC12_Blow_2nd_Cathode_Set_Time 13461
+#define P_PLC12_Blow_NG_Cathode_Set_Time 13462
+#define P_PLC12_Blow_Align_Cathode_Set_Time 13463
+#define P_PLC12_Blow_1st_Anode_Set_Time 13464
+#define P_PLC12_Blow_2nd_Anode_Set_Time 13465
+#define P_PLC12_Blow_NG_Anode_Set_Time 13466
+#define P_PLC12_Blow_Align_Anode_Set_Time 13467
+#define P_PLC12_Blow_1st_Cathode_Take_Time 13468
+#define P_PLC12_Blow_2nd_Cathode_Take_Time 13473
+#define P_PLC12_Blow_NG_Cathode_Take_Time 13478
+#define P_PLC12_Blow_Align_Cathode_Take_Time 13483
+#define P_PLC12_Blow_1st_Anode_Take_Time 13488
+#define P_PLC12_Blow_2nd_Anode_Take_Time 13493
+#define P_PLC12_Blow_NG_Anode_Take_Time 13498
+#define P_PLC12_Blow_Align_Anode_Take_Time 13503
+#define P_Vacuum_Reentry_Bit 13508
+#define P_Blow_Reentry_Bit 13509
+#define P_Status_arry 13510
+#define P_Queue_arry 13530
+#define P_Step_arry 13550
+#define P_Index_arry 13570
+#define P_top 13590
+#define P_Queue_stack_top 13591
+#define P_Step_stack_top 13592
+#define P_Index_stack_top 13593
+#define P_Status_stack_top 13594
+#define NN_Step 13595
+#define NN_Index 13596
+#define P_PLC_Observser_MNTR 13597
+#define P_PLC12_Frist 13602
+#define P_SM_Auto_Run_Status_Management 13603
+#define P_SM_Status_Main_Memory_Management 13604
+#define P_SM_Cell_Memory_Management 13605
+#define P_Test_Vacuum_Timer 13606
+#define P_Test_Blow_Timer 13614
+#define P_Vac_Test_Set_Time 13622
+#define P_Blow_Test_Set_Time 13630
+#define P_PLC12_Vacuum_Unit_Data 13638
+#define P_PLC12_Blow_Unit_Data 13639
+#define P_Stack_Algorithme_Cmd_Event_Status 13640
+#define P_PLC12_vacuum_Event_Status 13641
+#define P_PLC12_Blow_Event_status 13642
+#define P_PLC12_vacuum_DIO_Observer_Status 13643
+#define P_PLC12_Blow_DIO_Observer_Status 13644
+#define P_Resetting_Vacuum_MNTR_State_Machine 13645
+#define P_Heart_Bit_Time 13646
+#define P_Dancer_Angle_Alarm_Timer_Flag 13647
+#define P_Dancer_Angle_Alarm_Check_Timer 13648
+#define P_BTN_LED_LAMP 13649
+#define P_Old_BTN_LED_LAMP 13650
+#define P_PLC_TO_PMAC_Work_Confirm_Operation_Cnt 13651
+#define P_VISION_TO_PMAC_Work_Confirm_Operation_Ack_Cnt 13652
+#define P_Ca_AT_Retry_Cal_Move_Complete 13653
+#define P_An_AT_Retry_Cal_Move_Complete 13654
+#define P_Ca_AT_Retry_Cal_Cnt 13655
+#define P_An_AT_Retry_Cal_Cnt 13656
+#define P_Ca_AT_Retry_Cal_Complete 13657
+#define P_An_AT_Retry_Cal_Complete 13658
+#define P_An_AT_Retry_Cal_Pass 13659
+#define P_Ca_AT_Retry_Cal_Pass 13660
+#define P_Ca_Picker_T_Turn_Cnt_Flag 13661
+#define P_Ca_Picker_T_Turn_Cnt 13662
+#define P_Ca_Picker_T_Home_Type 13663
+#define P_An_Picker_T_Turn_Cnt_Flag 13664
+#define P_An_Picker_T_Turn_Cnt 13665
+#define P_An_Picker_T_Home_Type 13666
+#define P_Flag_Vac_Status_Initialize 13667
+#define P_SM_Vac_Initialize 13668
+#define P_Flag_Anode_1st_Vac_OFF 13669
+#define P_Flag_Anode_AT_Vac_OFF 13670
+#define P_Flag_Anode_2nd_Vac_OFF 13671
+#define P_Flag_Anode_NG_Vac_OFF 13672
+#define P_Flag_Cathode_1st_Vac_OFF 13673
+#define P_Flag_Cathode_AT_Vac_OFF 13674
+#define P_Flag_Cathode_2nd_Vac_OFF 13675
+#define P_Flag_Cathode_NG_Vac_OFF 13676
+#define P_Flag_Anode_1st_Vac_Initial_Alarm 13677
+#define P_Flag_Anode_AT_Vac_Initial_Alarm 13678
+#define P_Flag_Anode_2nd_Vac_Initial_Alarm 13679
+#define P_Flag_Anode_NG_Vac_Initial_Alarm 13680
+#define P_Flag_Cathode_1st_Vac_Initial_Alarm 13681
+#define P_Flag_Cathode_AT_Vac_Initial_Alarm 13682
+#define P_Flag_Cathode_2nd_Vac_Initial_Alarm 13683
+#define P_Flag_Cathode_NG_Vac_Initial_Alarm 13684
+#define P_Middle_Discharge_Ignore_Total_Count 13685
+#define P_Middle_Discharge_Ignore_Stack_Count 13686
+#define P_Middle_Discharge_Ignore_ON_Signal 13687
+#define P_Middle_Discharge_Ignore_OFF_Signal 13688
+#define P_Middle_Discharge_Ignore_Cell_Count 13689
+#define P_ARC_Middle_Discharge_Ignore_Vision_Check 13690
+#define P_ARC_Middle_Discharge_Ignore_ON_Flag 13691
+#define P_Middle_Discharge_Ignore_User_Sepa_Mode_Check 13692
+#define P_Zero_Angle 13693
+#define P_Zero_Length 13718
+#define P_Homeoffset_Change_Flag 13743
+#define P_Cal_Distance 13768
+#define P_Cal_Denominator 13773
+#define P_Cal_Numerator 13778
+#define P_Cal_Dif_Deg 13783
+#define P_Vac_Door_Open_Clear 13788
 #define M_Y_Vacuum_Popup_On_Request 8353
 #define M_X_Vacuum_Popup_On_Request_Ack 8354
 #define M_Touchprobefunction 8355
 #define M_Touchprobestatus 8404
-#define P_Flag_Sepa_Stack_Mode_CHK 13800
-#define P_Read_Timer_S 13801
-#define P_Write_Timer_S 13810
-#define P_Interval_Read_S 13819
-#define P_Interval_Write_S 13828
-#define P_UI_Jog_Vel_M 13837
-#define P_Initialize_Read_Excom_Variables_Flag 13887
-#define P_Old_X_Read_Count_S 13888
-#define P_Cathode_Clamp_MC_Cylinder_Count 13897
-#define P_Cathode_Clamp_OP_Cylinder_Count 13898
-#define P_Anode_Clamp_MC_Cylinder_Count 13899
-#define P_Anode_Clamp_OP_Cylinder_Count 13900
+#define P_Flag_Sepa_Stack_Mode_CHK 13801
+#define P_Read_Timer_S 13802
+#define P_Write_Timer_S 13811
+#define P_Interval_Read_S 13820
+#define P_Interval_Write_S 13829
+#define P_UI_Jog_Vel_M 13838
+#define P_Initialize_Read_Excom_Variables_Flag 13888
+#define P_Old_X_Read_Count_S 13889
+#define P_Cathode_Clamp_MC_Cylinder_Count 13898
+#define P_Cathode_Clamp_OP_Cylinder_Count 13899
+#define P_Anode_Clamp_MC_Cylinder_Count 13900
+#define P_Anode_Clamp_OP_Cylinder_Count 13901
 #define P_Cathode_1ST_TR_Cylinder_Count 8003
 #define P_Anode_1ST_TR_Cylinder_Count 8004
-#define P_BTN_Cathode_Clamp_inside_Machine_Cylinder_Count_Clear 13901
-#define P_BTN_Cathode_Clamp_Middle_Cylinder_Count_Clear 13902
-#define P_BTN_Cathode_Clamp_outside_Machine_Cylinder_Count_Clear 13903
-#define P_BTN_Anode_Clamp_inside_Machine_Cylinder_Count_Clear 13904
-#define P_BTN_Anode_Clamp_Middle_Cylinder_Count_Clear 13905
-#define P_BTN_Anode_Clamp_outside_Machine_Cylinder_Count_Clear 13906
-#define P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear 13907
-#define P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear_Old 13908
-#define P_BTN_Anode_1ST_TR_Cylinder_Count_Clear 13909
-#define P_BTN_Anode_1ST_TR_Cylinder_Count_Clear_Old 13910
-#define P_X_BTN_Manual_1 13911
-#define P_X_BTN_Manual_2 14031
-#define P_X_BTN_Manual_3 14151
-#define P_Home_InterLock_M 14271
-#define P_Status_BTN_Manual_1 14321
-#define P_Status_BTN_Manual_2 14441
-#define P_Status_BTN_Manual_Interlock_1 14561
-#define P_Status_BTN_Manual_Interlock_2 14681
-#define P_Status_BTN_Manual_Interlock_3 14801
-#define P_Mode_Run_Enable_Flag 14921
-#define P_RECIPE_PLC27_Manual_Interval 14926
-#define P_RECIPE_PLC27_Auto_Interval 14927
-#define P_MNTR_PLC4_Vision_Result 14928
-#define P_PNP_Vac_Mode_Run_Enable_Flag 15129
-#define P_Recipe_Speed_Value 15134
-#define P_Slave6_Target_X_For_Cell_Out 15135
-#define P_HCK_Step_MNTR 15136
-#define P_Axis_Home_Pos 15186
-#define P_Axis_Ready_Pos 15236
-#define P_PMAC_Homing_CHK 15286
-#define P_Poistion_error 15336
-#define P_Home_Command 15337
-#define P_Recipe_Count_Num 15387
-#define L_Motor_Status_Update_Interval 15388
-#define L_Motor_Recipe_Update_Interval 15389
-#define P_UI_Servo_On_Off 15390
-#define P_Old_BTN_Servo_On_Off_M 15391
-#define P_Peak_Load_Ratio_M 15424
-#define P_Chk_Current_Jog_Sel 15457
-#define P_Jog_Sel_Count 15490
-#define P_Recipe_POS_Interock_Num_Bit 15491
-#define P_Recipe_VEL 15524
-#define P_Recipe_POS 15535
-#define P_BTN_Servo_On_Off_M 15546
-#define P_BTN_Home_M 15579
-#define P_BTN_Jog_Stop_M 15612
-#define P_BTN_Recipe_POS_RUN_M 15645
-#define P_Recipe_POS_Flag_M 15678
-#define P_BTN_Jog_INC_M 15711
-#define P_BTN_JOG_ABS_M 15744
-#define P_User_Jog_Distance 15777
-#define P_Unit_Command 15778
-#define P_Unit_State_Machine 15878
-#define P_Status_BTN_Manual_3 15978
-#define P_Chk_Current_BTN_Sel 16078
-#define P_BTN_Sel_Count 16128
-#define P_PC_BTN_No 16129
-#define P_BTN_Interlock_Update_Interval 16130
-#define P_Align_Table_Status_Update_Interval 16131
-#define P_Jelly_Roll_Total_Count_Old 16132
-#define P_Old_m4120 16133
-#define P_Old_m4121 16134
-#define P_Old_m4122 16135
-#define P_Old_m4123 16136
-#define P_Linear_Encoder_Pos_Check_Flag 16137
-#define P_Linear_Encoder_Pos 16142
-#define P_Status_Linear_Encoder_HomeZero 16147
-#define P_Command_Linear_Encoder_HomeZero 16152
-#define P_Flag_Linear_Enc_Homezero_Complete_M17 16157
-#define P_Flag_Linear_Enc_Homezero_Complete_M18 16158
-#define P_Flag_Linear_Enc_Homezero_Complete_M19 16159
-#define P_Flag_Linear_Enc_Homezero_Complete_M20 16160
-#define P_CMD_Linear_ENC_Homezero_M17 16161
-#define P_CMD_Linear_ENC_Homezero_M18 16162
-#define P_CMD_Linear_ENC_Homezero_M19 16163
-#define P_CMD_Linear_ENC_Homezero_M20 16164
-#define P_OLD_Home_Offset 16165
-#define P_RECIPE_PLC27_Alltime_Interval 16195
-#define P_Manual_Memory_Tower_Timer 16196
-#define P_Memory_Tower_Interval 16197
-#define P_PLC_14_Status_Cycle_Stop_Flag 16198
-#define P_Cathode_AlignTable_Cleaning_Pos_Status_Machine 16199
-#define P_Anode_AlignTable_Cleaning_Pos_Status_Machine 16200
-#define P_Status_Cathode_AlignTable_Cleaning_Pos 16201
-#define P_Status_Anode_AlignTable_Cleaning_Pos 16202
-#define P_CMD_Cathode_AlignTable_Cleaning_Pos 16203
-#define P_CMD_Anode_AlignTable_Cleaning_Pos 16204
-#define P_Cathode_2nd_pnp_Cleaning_Mode_Pos 16205
-#define P_Anode_2nd_pnp_Cleaning_Mode_Pos 16206
-#define P_Interlock_Test 16207
-#define P_PNP_Picker_T_Pos 16208
-#define P_NG_PNP_Pos 16209
-#define M_Old_X_BTN_Machine_READY 16210
-#define M_Old_X_BTN_Machine_START 16211
-#define M_Old_X_BTN_Machine_STOP 16212
-#define M_Old_X_BTN_Machine_RESET 16213
-#define M_Old_X_BTN_Machine_MODE 16214
-#define P_BTN_Motor_Pos_Check_RTN 16215
-#define P_BTN_Memory_Tower_Check_Bit 16216
-#define P_PMAC_Status_IDLE_Motor_Not_Pos 16217
-#define P_PMAC_Status_IDLE_Motor_Pos 16218
-#define P_BTN_Motor_Pos_Check_Monitor 16219
-#define P_PackML_Auto_Stop_Bit 16220
-#define P_BTN_IDLE_Motor_Not_Pos 16221
-#define M_X_BTN_Machine_Mode 16222
-#define M_Old_X_BTN_Machine_Mode 16223
-#define P_Lamp_Blinking_Timer 16224
-#define P_BTN_Ready_Lamp 16225
-#define P_BTN_Start_Lamp 16226
-#define P_BTN_Stop_Lamp 16227
-#define P_ARC_Name_Plate_Passive_Status 16228
-#define P_ARC_Passive_Status 16229
-#define P_NP_Spool_Number 16230
-#define P_ARC_Page_On 16231
-#define P_ARC_NP_Upper_Timer 16232
-#define P_ARC_Upper_Ready 16233
-#define P_ARC_NP_Upper_3rd_Step_Toggle_Variable 16234
-#define P_ARC_NP_Upper_7th_Step_Variable 16235
-#define P_ARC_NP_Upper_7th_Step_Edge_Variable 16236
-#define P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit 16237
-#define P_ARC_NP_Lower_Timer 16238
-#define P_ARC_Lower_Ready 16239
-#define P_ARC_NP_Lower_3rd_Step_Toggle_Variable 16240
-#define P_ARC_NP_Lower_7th_Step_Variable 16241
-#define P_ARC_NP_Lower_7th_Step_Edge_Variable 16242
-#define P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit 16243
-#define M_Old_X_ARC_NP_Ready 16244
-#define M_Old_X_ARC_NP_Unwinder_Rotation 16245
-#define M_Old_X_ARC_NP_Unwinder_Re_Rotation 16246
-#define P_Status_Clear_Flag 16247
-#define P_Status_Clear_RTN 16248
-#define P_MSA_BTN_On 16249
-#define P_Align_Take_Off_BTN_ON 16250
-#define P_ARC_NP_Upper_Ready_Check_Bit 16251
-#define P_ARC_NP_Lower_Ready_Check_Bit 16252
-#define P_PLC13_Cycle_Stop_Return_Array 16253
-#define P_Stopping_CycleStop_Status 16353
-#define P_Stopping_CycleStop_Seq_Index 16354
-#define P_Stopping_CycleStop_Precondition_Seq_Index 16355
-#define P_Stopping_CycleStop_Module_Status 16356
-#define P_Stopping_CycleStop_Cmd 16357
-#define P_Stopping_CycleStop_State_Machine 16358
-#define P_Stopping_CycleStop_Act_State_Machine 16359
-#define P_Module_Cycle_Stop_Act_State_Machine_Array 16379
-#define P_Module_Cycle_Stop_Act_Complete_Bit 16399
-#define P_Module_Cycle_Stop_Act_Command_Array 16419
-#define P_OLD_Module_Cycle_Stop_Act_Command_Array 16439
-#define P_Buffer_Seqdata_CycleStop_Array 16459
-#define P_Final_Roll_Cathode_Pos_Status 16479
-#define P_Sheet_Paper_FWD_Pos_Status 16480
-#define P_Final_Roll_Vision_Pos_Status 16481
-#define P_Cathode_Clamp_ON_Status 16482
-#define P_Anode_Clamp_ON_Status 16483
-#define P_Anode_Clamp_OFF_Status 16484
-#define P_Partition_Up_Flag 16485
-#define P_Partition_Down_Flag 16486
-#define P_Partition_Avoid_Flag 16487
-#define P_Partition_Avoid_Z_Speed 16488
-#define P_Partition_Avoid_X_Speed 16489
-#define P_Partition_Avoid_T_Speed 16490
-#define P_Partition_Avoid_2nd_T_Pos 16491
-#define P_Partition_Step_Flag 16492
-#define P_Partition_1st_Avoid_Offset 16493
-#define P_Partition_Picker_Avoid_Offset 16494
-#define P_Partition_Avoid_Check 16495
-#define P_Tact_Time_Timer 16496
-#define P_Tack_Time_Save_Time 16536
-#define P_Anode_NG_PNP_Tact_Time_Start 16576
-#define P_Cathode_NG_PNP_Tact_Time_Start 16577
-#define P_Anode_NG_PNP_Tact_Time_End 16578
-#define P_Cathode_NG_PNP_Tact_Time_End 16579
-#define P_Tact_Time_Stack_Array 16580
-#define P_Tact_Time_Discharge_Array 16590
-#define P_Tact_Time_1st_Unloader_Array 16600
-#define P_Tact_Time_Sepa_ARC_Array 16610
-#define P_Tact_Time_Final_Roll_Array 16620
-#define P_Tact_Time_Cathode_1st_PNP_Array 16630
-#define P_Tact_Time_Cathode_Align_Array 16640
-#define P_Tact_Time_Cathode_2nd_PNP_Array 16650
-#define P_Tact_Time_Cathode_Clamp_Array 16660
-#define P_Tact_Time_Anode_1st_PNP_Array 16670
-#define P_Tact_Time_Anode_Align_Array 16680
-#define P_Tact_Time_Anode_2nd_PNP_Array 16690
-#define P_Tact_Time_Anode_Clamp_Array 16700
-#define P_Tact_Time_Cathode_1st_PNP_Vac_Array 16710
-#define P_Tact_Time_Cathode_Align_PNP_Vac_Array 16720
-#define P_Tact_Time_Cathode_2nd_PNP_Vac_Array 16730
-#define P_Tact_Time_Anode_1st_PNP_Vac_Array 16740
-#define P_Tact_Time_Anode_Align_PNP_Vac_Array 16750
-#define P_Tact_Time_Anode_2nd_PNP_Vac_Array 16760
-#define P_Tact_Time_Final_Roller_Clamp 16770
-#define P_Tact_Time_Final_Roller_Unclamp 16771
-#define P_Tact_Time_Stack_Table_Down 16772
-#define P_Tact_Time_Stack_Table_Up 16773
-#define P_Tact_Time_Sepa_Cutting_Down 16774
-#define P_Tact_Time_Sepa_Cutting_Up 16775
-#define P_Tact_Time_ARC_Upper_Plate_Up 16776
-#define P_Tact_Time_ARC_Upper_Plate_Down 16777
-#define P_Tact_Time_ARC_Upper_Tilting_On 16778
-#define P_Tact_Time_ARC_Upper_Tilting_Off 16779
-#define P_Tact_Time_ARC_Upper_Cutter_Fwd 16780
-#define P_Tact_Time_ARC_Upper_Cutter_Bwd 16781
-#define P_Tact_Time_ARC_Upper_Clamp_On 16782
-#define P_Tact_Time_ARC_Upper_Clamp_Off 16783
-#define P_Tact_Time_ARC_Lower_Plate_Up 16784
-#define P_Tact_Time_ARC_Lower_Plate_Down 16785
-#define P_Tact_Time_ARC_Lower_Tilting_On 16786
-#define P_Tact_Time_ARC_Lower_Tilting_Off 16787
-#define P_Tact_Time_ARC_Lower_Cutter_Fwd 16788
-#define P_Tact_Time_ARC_Lower_Cutter_Bwd 16789
-#define P_Tact_Time_ARC_Lower_Clamp_On 16790
-#define P_Tact_Time_ARC_Lower_Clamp_Off 16791
-#define P_Tact_Time_Save_Final_Roller_Clamp_Time 16792
-#define P_Tact_Time_Save_Final_Roller_Unclamp_Time 16793
-#define P_Tact_Time_Save_Stack_Table_Down_Time 16794
-#define P_Tact_Time_Save_Stack_Table_Up_Time 16795
-#define P_Tact_Time_Save_Sepa_Cutting_Down_Time 16796
-#define P_Tact_Time_Save_Sepa_Cutting_Up_Time 16797
-#define P_Tact_Time_Save_ARC_Upper_Plate_Up_Time 16798
-#define P_Tact_Time_Save_ARC_Upper_Plate_Down_Time 16799
-#define P_Tact_Time_Save_ARC_Upper_Tilting_On_Time 16800
-#define P_Tact_Time_Save_ARC_Upper_Tilting_Off_Time 16801
-#define P_Tact_Time_Save_ARC_Upper_Cutter_Fwd_Time 16802
-#define P_Tact_Time_Save_ARC_Upper_Cutter_Bwd_Time 16803
-#define P_Tact_Time_Save_ARC_Upper_Clamp_On_Time 16804
-#define P_Tact_Time_Save_ARC_Upper_Clamp_Off_Time 16805
-#define P_Tact_Time_Save_ARC_Lower_Plate_Up_Time 16806
-#define P_Tact_Time_Save_ARC_Lower_Plate_Down_Time 16807
-#define P_Tact_Time_Save_ARC_Lower_Tilting_On_Time 16808
-#define P_Tact_Time_Save_ARC_Lower_Tilting_Off_Time 16809
-#define P_Tact_Time_Save_ARC_Lower_Cutter_Fwd_Time 16810
-#define P_Tact_Time_Save_ARC_Lower_Cutter_Bwd_Time 16811
-#define P_Tact_Time_Save_ARC_Lower_Clamp_On_Time 16812
-#define P_Tact_Time_Save_ARC_Lower_Clamp_Off_Time 16813
-#define P_Tact_Time_Check 16814
-#define P_Old_Tact_Time_Check 16854
-#define P_Tact_Time_Head_Address 16894
-#define P_Tact_Time_Array_Init 16934
-#define P_Last_Run_To_Discharge_Tact_Timer 16935
-#define P_Last_Run_To_Discharge_Tact_Time 16936
-#define P_Master_Trigger_Sync_Tact_Timer 16937
-#define P_Master_Trigger_Sync_Tact_Time 16938
-#define P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag 16939
-#define P_PLC18_EPC_Retry_Mode_Time_Use_Flag 16940
-#define P_PLC18_Vision_EPC_Correction_Request_Old 16941
-#define P_PLC18_EPC_Moving_Flag 16942
-#define P_PLC18_EPC_Moving_Status 16943
-#define P_PLC18_EPC_Move_State_Machine 16944
-#define P_PLC18_EPC_Move_Status 16945
-#define P_PLC18_EPC_inspection_Time 16946
-#define P_EPC_Insp_Time 16947
-#define P_EPC_Correction_Time 16948
-#define P_TEST_Max_EPC_Sensor_Value_um 16949
-#define P_PLC18_EPC_Moving_Timer 16950
-#define P_EPC_MNTR_VAR 16951
-#define P_EPC_Axis_Target_Y 16961
-#define P_Com_After_Sepa_Mode_Status 16962
-#define P_PLC18_PLC_to_PMAC_Correction_Value 16963
-#define P_PLC_EPC_Status 16964
-#define P_EPC_Retry_Over_Alarm_Flag 16965
-#define P_ARC_EPC_Vision_Value_Apply_Bit 16966
-#define P_ARC_EPC_Vision_Value_Apply_Flag 16967
-#define P_ARC_EPC_Vision_Value_Apply_State_Machine 16968
-#define P_ARC_EPC_Vision_Value_Apply_Timer 16969
-#define P_ARC_EPC_Vision_Value_Apply_Time 16970
-#define P_AH_Home_Status 16971
-#define P_Resetting_All_Home_Command 16972
-#define P_Homing_Alarm_Time 16973
-#define P_Home_Check_Arry 16974
-#define P_All_Home_Stop_Cmd 17024
-#define P_Home_First_Move 17025
-#define P_PWM_Phasing_Start 17026
-#define P_PWM_Status 17031
-#define P_PWM_State_Machine 17036
-#define P_AH_Seq_arr 17041
-#define P_DD_M_Home_ABS_Pos 17056
-#define P_AH_Indvi_rtn 17061
-#define P_DD_M_Home_Pos_Flag 17112
-#define P_WAIT_INDEX 17113
-#define P_Home_Check_Arry1 17114
-#define P_FR_Cmd_Check_Flag 17164
+#define P_BTN_Cathode_Clamp_inside_Machine_Cylinder_Count_Clear 13902
+#define P_BTN_Cathode_Clamp_Middle_Cylinder_Count_Clear 13903
+#define P_BTN_Cathode_Clamp_outside_Machine_Cylinder_Count_Clear 13904
+#define P_BTN_Anode_Clamp_inside_Machine_Cylinder_Count_Clear 13905
+#define P_BTN_Anode_Clamp_Middle_Cylinder_Count_Clear 13906
+#define P_BTN_Anode_Clamp_outside_Machine_Cylinder_Count_Clear 13907
+#define P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear 13908
+#define P_BTN_Cathode_1ST_TR_Cylinder_Count_Clear_Old 13909
+#define P_BTN_Anode_1ST_TR_Cylinder_Count_Clear 13910
+#define P_BTN_Anode_1ST_TR_Cylinder_Count_Clear_Old 13911
+#define P_X_BTN_Manual_1 13912
+#define P_X_BTN_Manual_2 14032
+#define P_X_BTN_Manual_3 14152
+#define P_Home_InterLock_M 14272
+#define P_Status_BTN_Manual_1 14322
+#define P_Status_BTN_Manual_2 14442
+#define P_Status_BTN_Manual_Interlock_1 14562
+#define P_Status_BTN_Manual_Interlock_2 14682
+#define P_Status_BTN_Manual_Interlock_3 14802
+#define P_Mode_Run_Enable_Flag 14922
+#define P_RECIPE_PLC27_Manual_Interval 14927
+#define P_RECIPE_PLC27_Auto_Interval 14928
+#define P_MNTR_PLC4_Vision_Result 14929
+#define P_PNP_Vac_Mode_Run_Enable_Flag 15130
+#define P_Recipe_Speed_Value 15135
+#define P_Slave6_Target_X_For_Cell_Out 15136
+#define P_HCK_Step_MNTR 15137
+#define P_Axis_Home_Pos 15187
+#define P_Axis_Ready_Pos 15237
+#define P_PMAC_Homing_CHK 15287
+#define P_Poistion_error 15337
+#define P_Home_Command 15338
+#define P_Recipe_Count_Num 15388
+#define L_Motor_Status_Update_Interval 15389
+#define L_Motor_Recipe_Update_Interval 15390
+#define P_UI_Servo_On_Off 15391
+#define P_Old_BTN_Servo_On_Off_M 15392
+#define P_Peak_Load_Ratio_M 15425
+#define P_Chk_Current_Jog_Sel 15458
+#define P_Jog_Sel_Count 15491
+#define P_Recipe_POS_Interock_Num_Bit 15492
+#define P_Recipe_VEL 15525
+#define P_Recipe_POS 15536
+#define P_BTN_Servo_On_Off_M 15547
+#define P_BTN_Home_M 15580
+#define P_BTN_Jog_Stop_M 15613
+#define P_BTN_Recipe_POS_RUN_M 15646
+#define P_Recipe_POS_Flag_M 15679
+#define P_BTN_Jog_INC_M 15712
+#define P_BTN_JOG_ABS_M 15745
+#define P_User_Jog_Distance 15778
+#define P_Unit_Command 15779
+#define P_Unit_State_Machine 15879
+#define P_Status_BTN_Manual_3 15979
+#define P_Chk_Current_BTN_Sel 16079
+#define P_BTN_Sel_Count 16129
+#define P_PC_BTN_No 16130
+#define P_BTN_Interlock_Update_Interval 16131
+#define P_Align_Table_Status_Update_Interval 16132
+#define P_Jelly_Roll_Total_Count_Old 16133
+#define P_Old_m4120 16134
+#define P_Old_m4121 16135
+#define P_Old_m4122 16136
+#define P_Old_m4123 16137
+#define P_Linear_Encoder_Pos_Check_Flag 16138
+#define P_Linear_Encoder_Pos 16143
+#define P_Status_Linear_Encoder_HomeZero 16148
+#define P_Command_Linear_Encoder_HomeZero 16153
+#define P_Flag_Linear_Enc_Homezero_Complete_M17 16158
+#define P_Flag_Linear_Enc_Homezero_Complete_M18 16159
+#define P_Flag_Linear_Enc_Homezero_Complete_M19 16160
+#define P_Flag_Linear_Enc_Homezero_Complete_M20 16161
+#define P_CMD_Linear_ENC_Homezero_M17 16162
+#define P_CMD_Linear_ENC_Homezero_M18 16163
+#define P_CMD_Linear_ENC_Homezero_M19 16164
+#define P_CMD_Linear_ENC_Homezero_M20 16165
+#define P_OLD_Home_Offset 16166
+#define P_RECIPE_PLC27_Alltime_Interval 16196
+#define P_Manual_Memory_Tower_Timer 16197
+#define P_Memory_Tower_Interval 16198
+#define P_PLC_14_Status_Cycle_Stop_Flag 16199
+#define P_Cathode_AlignTable_Cleaning_Pos_Status_Machine 16200
+#define P_Anode_AlignTable_Cleaning_Pos_Status_Machine 16201
+#define P_Status_Cathode_AlignTable_Cleaning_Pos 16202
+#define P_Status_Anode_AlignTable_Cleaning_Pos 16203
+#define P_CMD_Cathode_AlignTable_Cleaning_Pos 16204
+#define P_CMD_Anode_AlignTable_Cleaning_Pos 16205
+#define P_Cathode_2nd_pnp_Cleaning_Mode_Pos 16206
+#define P_Anode_2nd_pnp_Cleaning_Mode_Pos 16207
+#define P_Interlock_Test 16208
+#define P_PNP_Picker_T_Pos 16209
+#define P_NG_PNP_Pos 16210
+#define M_Old_X_BTN_Machine_READY 16211
+#define M_Old_X_BTN_Machine_START 16212
+#define M_Old_X_BTN_Machine_STOP 16213
+#define M_Old_X_BTN_Machine_RESET 16214
+#define M_Old_X_BTN_Machine_MODE 16215
+#define P_BTN_Motor_Pos_Check_RTN 16216
+#define P_BTN_Memory_Tower_Check_Bit 16217
+#define P_PMAC_Status_IDLE_Motor_Not_Pos 16218
+#define P_PMAC_Status_IDLE_Motor_Pos 16219
+#define P_BTN_Motor_Pos_Check_Monitor 16220
+#define P_PackML_Auto_Stop_Bit 16221
+#define P_BTN_IDLE_Motor_Not_Pos 16222
+#define M_X_BTN_Machine_Mode 16223
+#define M_Old_X_BTN_Machine_Mode 16224
+#define P_Lamp_Blinking_Timer 16225
+#define P_BTN_Ready_Lamp 16226
+#define P_BTN_Start_Lamp 16227
+#define P_BTN_Stop_Lamp 16228
+#define P_ARC_Name_Plate_Passive_Status 16229
+#define P_ARC_Passive_Status 16230
+#define P_NP_Spool_Number 16231
+#define P_ARC_Page_On 16232
+#define P_ARC_NP_Upper_Timer 16233
+#define P_ARC_Upper_Ready 16234
+#define P_ARC_NP_Upper_3rd_Step_Toggle_Variable 16235
+#define P_ARC_NP_Upper_7th_Step_Variable 16236
+#define P_ARC_NP_Upper_7th_Step_Edge_Variable 16237
+#define P_ARC_NP_Upper_Rot_ReRot_Blinking_Bit 16238
+#define P_ARC_NP_Lower_Timer 16239
+#define P_ARC_Lower_Ready 16240
+#define P_ARC_NP_Lower_3rd_Step_Toggle_Variable 16241
+#define P_ARC_NP_Lower_7th_Step_Variable 16242
+#define P_ARC_NP_Lower_7th_Step_Edge_Variable 16243
+#define P_ARC_NP_Lower_Rot_ReRot_Blinking_Bit 16244
+#define M_Old_X_ARC_NP_Ready 16245
+#define M_Old_X_ARC_NP_Unwinder_Rotation 16246
+#define M_Old_X_ARC_NP_Unwinder_Re_Rotation 16247
+#define P_Status_Clear_Flag 16248
+#define P_Status_Clear_RTN 16249
+#define P_MSA_BTN_On 16250
+#define P_Align_Take_Off_BTN_ON 16251
+#define P_ARC_NP_Upper_Ready_Check_Bit 16252
+#define P_ARC_NP_Lower_Ready_Check_Bit 16253
+#define P_PLC13_Cycle_Stop_Return_Array 16254
+#define P_Stopping_CycleStop_Status 16354
+#define P_Stopping_CycleStop_Seq_Index 16355
+#define P_Stopping_CycleStop_Precondition_Seq_Index 16356
+#define P_Stopping_CycleStop_Module_Status 16357
+#define P_Stopping_CycleStop_Cmd 16358
+#define P_Stopping_CycleStop_State_Machine 16359
+#define P_Stopping_CycleStop_Act_State_Machine 16360
+#define P_Module_Cycle_Stop_Act_State_Machine_Array 16380
+#define P_Module_Cycle_Stop_Act_Complete_Bit 16400
+#define P_Module_Cycle_Stop_Act_Command_Array 16420
+#define P_OLD_Module_Cycle_Stop_Act_Command_Array 16440
+#define P_Buffer_Seqdata_CycleStop_Array 16460
+#define P_Final_Roll_Cathode_Pos_Status 16480
+#define P_Sheet_Paper_FWD_Pos_Status 16481
+#define P_Final_Roll_Vision_Pos_Status 16482
+#define P_Cathode_Clamp_ON_Status 16483
+#define P_Anode_Clamp_ON_Status 16484
+#define P_Anode_Clamp_OFF_Status 16485
+#define P_Partition_Up_Flag 16486
+#define P_Partition_Down_Flag 16487
+#define P_Partition_Avoid_Flag 16488
+#define P_Partition_Avoid_Z_Speed 16489
+#define P_Partition_Avoid_X_Speed 16490
+#define P_Partition_Avoid_T_Speed 16491
+#define P_Partition_Avoid_2nd_T_Pos 16492
+#define P_Partition_Step_Flag 16493
+#define P_Partition_1st_Avoid_Offset 16494
+#define P_Partition_Picker_Avoid_Offset 16495
+#define P_Partition_Avoid_Check 16496
+#define P_Tact_Time_Timer 16497
+#define P_Tack_Time_Save_Time 16537
+#define P_Anode_NG_PNP_Tact_Time_Start 16577
+#define P_Cathode_NG_PNP_Tact_Time_Start 16578
+#define P_Anode_NG_PNP_Tact_Time_End 16579
+#define P_Cathode_NG_PNP_Tact_Time_End 16580
+#define P_Tact_Time_Stack_Array 16581
+#define P_Tact_Time_Discharge_Array 16591
+#define P_Tact_Time_1st_Unloader_Array 16601
+#define P_Tact_Time_Sepa_ARC_Array 16611
+#define P_Tact_Time_Final_Roll_Array 16621
+#define P_Tact_Time_Cathode_1st_PNP_Array 16631
+#define P_Tact_Time_Cathode_Align_Array 16641
+#define P_Tact_Time_Cathode_2nd_PNP_Array 16651
+#define P_Tact_Time_Cathode_Clamp_Array 16661
+#define P_Tact_Time_Anode_1st_PNP_Array 16671
+#define P_Tact_Time_Anode_Align_Array 16681
+#define P_Tact_Time_Anode_2nd_PNP_Array 16691
+#define P_Tact_Time_Anode_Clamp_Array 16701
+#define P_Tact_Time_Cathode_1st_PNP_Vac_Array 16711
+#define P_Tact_Time_Cathode_Align_PNP_Vac_Array 16721
+#define P_Tact_Time_Cathode_2nd_PNP_Vac_Array 16731
+#define P_Tact_Time_Anode_1st_PNP_Vac_Array 16741
+#define P_Tact_Time_Anode_Align_PNP_Vac_Array 16751
+#define P_Tact_Time_Anode_2nd_PNP_Vac_Array 16761
+#define P_Tact_Time_Final_Roller_Clamp 16771
+#define P_Tact_Time_Final_Roller_Unclamp 16772
+#define P_Tact_Time_Stack_Table_Down 16773
+#define P_Tact_Time_Stack_Table_Up 16774
+#define P_Tact_Time_Sepa_Cutting_Down 16775
+#define P_Tact_Time_Sepa_Cutting_Up 16776
+#define P_Tact_Time_ARC_Upper_Plate_Up 16777
+#define P_Tact_Time_ARC_Upper_Plate_Down 16778
+#define P_Tact_Time_ARC_Upper_Tilting_On 16779
+#define P_Tact_Time_ARC_Upper_Tilting_Off 16780
+#define P_Tact_Time_ARC_Upper_Cutter_Fwd 16781
+#define P_Tact_Time_ARC_Upper_Cutter_Bwd 16782
+#define P_Tact_Time_ARC_Upper_Clamp_On 16783
+#define P_Tact_Time_ARC_Upper_Clamp_Off 16784
+#define P_Tact_Time_ARC_Lower_Plate_Up 16785
+#define P_Tact_Time_ARC_Lower_Plate_Down 16786
+#define P_Tact_Time_ARC_Lower_Tilting_On 16787
+#define P_Tact_Time_ARC_Lower_Tilting_Off 16788
+#define P_Tact_Time_ARC_Lower_Cutter_Fwd 16789
+#define P_Tact_Time_ARC_Lower_Cutter_Bwd 16790
+#define P_Tact_Time_ARC_Lower_Clamp_On 16791
+#define P_Tact_Time_ARC_Lower_Clamp_Off 16792
+#define P_Tact_Time_Save_Final_Roller_Clamp_Time 16793
+#define P_Tact_Time_Save_Final_Roller_Unclamp_Time 16794
+#define P_Tact_Time_Save_Stack_Table_Down_Time 16795
+#define P_Tact_Time_Save_Stack_Table_Up_Time 16796
+#define P_Tact_Time_Save_Sepa_Cutting_Down_Time 16797
+#define P_Tact_Time_Save_Sepa_Cutting_Up_Time 16798
+#define P_Tact_Time_Save_ARC_Upper_Plate_Up_Time 16799
+#define P_Tact_Time_Save_ARC_Upper_Plate_Down_Time 16800
+#define P_Tact_Time_Save_ARC_Upper_Tilting_On_Time 16801
+#define P_Tact_Time_Save_ARC_Upper_Tilting_Off_Time 16802
+#define P_Tact_Time_Save_ARC_Upper_Cutter_Fwd_Time 16803
+#define P_Tact_Time_Save_ARC_Upper_Cutter_Bwd_Time 16804
+#define P_Tact_Time_Save_ARC_Upper_Clamp_On_Time 16805
+#define P_Tact_Time_Save_ARC_Upper_Clamp_Off_Time 16806
+#define P_Tact_Time_Save_ARC_Lower_Plate_Up_Time 16807
+#define P_Tact_Time_Save_ARC_Lower_Plate_Down_Time 16808
+#define P_Tact_Time_Save_ARC_Lower_Tilting_On_Time 16809
+#define P_Tact_Time_Save_ARC_Lower_Tilting_Off_Time 16810
+#define P_Tact_Time_Save_ARC_Lower_Cutter_Fwd_Time 16811
+#define P_Tact_Time_Save_ARC_Lower_Cutter_Bwd_Time 16812
+#define P_Tact_Time_Save_ARC_Lower_Clamp_On_Time 16813
+#define P_Tact_Time_Save_ARC_Lower_Clamp_Off_Time 16814
+#define P_Tact_Time_Check 16815
+#define P_Old_Tact_Time_Check 16855
+#define P_Tact_Time_Head_Address 16895
+#define P_Tact_Time_Array_Init 16935
+#define P_Last_Run_To_Discharge_Tact_Timer 16936
+#define P_Last_Run_To_Discharge_Tact_Time 16937
+#define P_Master_Trigger_Sync_Tact_Timer 16938
+#define P_Master_Trigger_Sync_Tact_Time 16939
+#define P_Vision_First_Sepa_Stack_Align_OK_PMAC_Flag 16940
+#define P_PLC18_EPC_Retry_Mode_Time_Use_Flag 16941
+#define P_PLC18_Vision_EPC_Correction_Request_Old 16942
+#define P_PLC18_EPC_Moving_Flag 16943
+#define P_PLC18_EPC_Moving_Status 16944
+#define P_PLC18_EPC_Move_State_Machine 16945
+#define P_PLC18_EPC_Move_Status 16946
+#define P_PLC18_EPC_inspection_Time 16947
+#define P_EPC_Insp_Time 16948
+#define P_EPC_Correction_Time 16949
+#define P_TEST_Max_EPC_Sensor_Value_um 16950
+#define P_PLC18_EPC_Moving_Timer 16951
+#define P_EPC_MNTR_VAR 16952
+#define P_EPC_Axis_Target_Y 16962
+#define P_Com_After_Sepa_Mode_Status 16963
+#define P_PLC18_PLC_to_PMAC_Correction_Value 16964
+#define P_PLC_EPC_Status 16965
+#define P_EPC_Retry_Over_Alarm_Flag 16966
+#define P_ARC_EPC_Vision_Value_Apply_Bit 16967
+#define P_ARC_EPC_Vision_Value_Apply_Flag 16968
+#define P_ARC_EPC_Vision_Value_Apply_State_Machine 16969
+#define P_ARC_EPC_Vision_Value_Apply_Timer 16970
+#define P_ARC_EPC_Vision_Value_Apply_Time 16971
+#define P_AH_Home_Status 16972
+#define P_Resetting_All_Home_Command 16973
+#define P_Homing_Alarm_Time 16974
+#define P_Home_Check_Arry 16975
+#define P_All_Home_Stop_Cmd 17025
+#define P_Home_First_Move 17026
+#define P_PWM_Phasing_Start 17027
+#define P_PWM_Status 17032
+#define P_PWM_State_Machine 17037
+#define P_AH_Seq_arr 17042
+#define P_DD_M_Home_ABS_Pos 17057
+#define P_AH_Indvi_rtn 17062
+#define P_DD_M_Home_Pos_Flag 17113
+#define P_WAIT_INDEX 17114
+#define P_Home_Check_Arry1 17115
+#define P_FR_Cmd_Check_Flag 17165
 #define M_Ecat_Motor_State 8453
-#define P_PV_Separator_Dancer_Pressure 17165
-#define P_PV_Cathode_Clamp_Pressure 17166
-#define P_PV_Anoode_Clamp_Pressure 17167
-#define P_PV_Cathode_Final_Roller_X_Axis 17168
-#define P_PV_Anode_Final_Roller_X_Axis 17169
-#define P_PV_Cathode_Clamp_ON_Y1_Axis_Pos 17170
-#define P_PV_Cathode_Clamp_ON_Y2_Axis_Pos 17171
-#define P_PV_Cathode_Clamp_ON_Z1_Axis_Pos 17172
-#define P_PV_Cathode_Clamp_ON_Z2_Axis_Pos 17173
-#define P_PV_Anode_Clamp_ON_Y1_Axis_Pos 17174
-#define P_PV_Anode_Clamp_ON_Y2_Axis_Pos 17175
-#define P_PV_Anode_Clamp_ON_Z1_Axis_Pos 17176
-#define P_PV_Anode_Clamp_ON_Z2_Axis_Pos 17177
-#define P_PV_Cathode_2th_AT_T_Axis_Pos 17178
-#define P_PV_Cathode_2th_ST_T_Axis_Pos 17179
-#define P_PV_Cathode_2th_AT_Z_Axis_Pos 17180
-#define P_PV_Cathode_2th_ST_Z_Axis_Pos 17181
-#define P_PV_Anode_2th_AT_T_Axis_Pos 17182
-#define P_PV_Anode_2th_ST_T_Axis_Pos 17183
-#define P_PV_Anode_2th_AT_Z_Axis_Pos 17184
-#define P_PV_Anode_2th_ST_Z_Axis_Pos 17185
-#define P_PV_Cathode_1th_Ready_T_Axis_Pos 17186
-#define P_PV_Cathode_1th_CV_T_Axis_Pos 17187
-#define P_PV_Cathode_1th_AT_T_Axis_Pos 17188
-#define P_PV_Cathode_1th_Ready_Z_Axis_Pos 17189
-#define P_PV_Cathode_1th_CV_Z_Axis_Pos 17190
-#define P_PV_Cathode_1th_AT_Z_Axis_Pos 17191
-#define P_PV_Anode_1th_Ready_T_Axis_Pos 17192
-#define P_PV_Anode_1th_CV_T_Axis_Pos 17193
-#define P_PV_Anode_1th_AT_T_Axis_Pos 17194
-#define P_PV_Anode_1th_Ready_Z_Axis_Pos 17195
-#define P_PV_Anode_1th_CV_Z_Axis_Pos 17196
-#define P_PV_Anode_1th_AT_Z_Axis_Pos 17197
-#define P_PV_Cathode_NG_AT_T_Axis_Pos 17198
-#define P_PV_Cathode_NG_Box_T_Axis_Pos 17199
-#define P_PV_Anode_NG_AT_T_Axis_Pos 17200
-#define P_PV_Anode_NG_Box_T_Axis_Pos 17201
-#define P_PV_1st_Unloader_X_Axis_Pos 17202
-#define P_PV_1st_Unloader_Z_Axis_Pos 17203
-#define P_SemiRun_Separator_Dancer_Pressure_Flag 17204
-#define P_SemiRun_Cathode_Clamp_Pressure_Flag 17205
-#define P_SemiRun_Anoode_Clamp_Pressure_Flag 17206
-#define P_SemiRun_Cathode_Final_Roller_X_Axis_Flag 17207
-#define P_SemiRun_Anode_Final_Roller_X_Axis_Flag 17208
-#define P_SemiRun_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag 17209
-#define P_SemiRun_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag 17210
-#define P_SemiRun_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag 17211
-#define P_SemiRun_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag 17212
-#define P_SemiRun_Cathode_2th_AT_T_Axis_Pos_Flag 17213
-#define P_SemiRun_Cathode_2th_ST_T_Axis_Pos_Flag 17214
-#define P_SemiRun_Cathode_2th_AT_Z_Axis_Pos_Flag 17215
-#define P_SemiRun_Cathode_2th_ST_Z_Axis_Pos_Flag 17216
-#define P_SemiRun_Anode_2th_AT_T_Axis_Pos_Flag 17217
-#define P_SemiRun_Anode_2th_ST_T_Axis_Pos_Flag 17218
-#define P_SemiRun_Anode_2th_AT_Z_Axis_Pos_Flag 17219
-#define P_SemiRun_Anode_2th_ST_Z_Axis_Pos_Flag 17220
-#define P_SemiRun_Cathode_1th_Ready_T_Axis_Pos_Flag 17221
-#define P_SemiRun_Cathode_1th_CV_T_Axis_Pos_Flag 17222
-#define P_SemiRun_Cathode_1th_AT_T_Axis_Pos_Flag 17223
-#define P_SemiRun_Cathode_1th_Ready_Z_Axis_Pos_Flag 17224
-#define P_SemiRun_Cathode_1th_CV_Z_Axis_Pos_Flag 17225
-#define P_SemiRun_Cathode_1th_AT_Z_Axis_Pos_Flag 17226
-#define P_SemiRun_Anode_1th_Ready_T_Axis_Pos_Flag 17227
-#define P_SemiRun_Anode_1th_CV_T_Axis_Pos_Flag 17228
-#define P_SemiRun_Anode_1th_AT_T_Axis_Pos_Flag 17229
-#define P_SemiRun_Anode_1th_Ready_Z_Axis_Pos_Flag 17230
-#define P_SemiRun_Anode_1th_CV_Z_Axis_Pos_Flag 17231
-#define P_SemiRun_Anode_1th_AT_Z_Axis_Pos_Flag 17232
-#define P_SemiRun_Cathode_NG_AT_T_Axis_Pos_Flag 17233
-#define P_SemiRun_Cathode_NG_Box_T_Axis_Pos_Flag 17234
-#define P_SemiRun_Anode_NG_AT_T_Axis_Pos_Flag 17235
-#define P_SemiRun_Anode_NG_Box_T_Axis_Pos_Flag 17236
-#define P_SemiRun_1st_Unloader_Forward_Pos_Flag 17237
-#define P_Motion_Separator_Dancer_Pressure_Flag 17238
-#define P_Motion_Cathode_Clamp_Pressure_Flag 17239
-#define P_Motion_Anoode_Clamp_Pressure_Flag 17240
-#define P_Motion_Cathode_Final_Roller_X_Axis_Flag 17241
-#define P_Motion_Anode_Final_Roller_X_Axis_Flag 17242
-#define P_Motion_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag 17243
-#define P_Motion_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag 17244
-#define P_Motion_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag 17245
-#define P_Motion_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag 17246
-#define P_Motion_Cathode_2th_AT_T_Axis_Pos_Flag 17247
-#define P_Motion_Cathode_2th_ST_T_Axis_Pos_Flag 17248
-#define P_Motion_Cathode_2th_AT_Z_Axis_Pos_Flag 17249
-#define P_Motion_Cathode_2th_ST_Z_Axis_Pos_Flag 17250
-#define P_Motion_Anode_2th_AT_T_Axis_Pos_Flag 17251
-#define P_Motion_Anode_2th_ST_T_Axis_Pos_Flag 17252
-#define P_Motion_Anode_2th_AT_Z_Axis_Pos_Flag 17253
-#define P_Motion_Anode_2th_ST_Z_Axis_Pos_Flag 17254
-#define P_Motion_Cathode_1th_Ready_T_Axis_Pos_Flag 17255
-#define P_Motion_Cathode_1th_CV_T_Axis_Pos_Flag 17256
-#define P_Motion_Cathode_1th_AT_T_Axis_Pos_Flag 17257
-#define P_Motion_Cathode_1th_Ready_Z_Axis_Pos_Flag 17258
-#define P_Motion_Cathode_1th_CV_Z_Axis_Pos_Flag 17259
-#define P_Motion_Cathode_1th_AT_Z_Axis_Pos_Flag 17260
-#define P_Motion_Anode_1th_Ready_T_Axis_Pos_Flag 17261
-#define P_Motion_Anode_1th_CV_T_Axis_Pos_Flag 17262
-#define P_Motion_Anode_1th_AT_T_Axis_Pos_Flag 17263
-#define P_Motion_Anode_1th_Ready_Z_Axis_Pos_Flag 17264
-#define P_Motion_Anode_1th_CV_Z_Axis_Pos_Flag 17265
-#define P_Motion_Anode_1th_AT_Z_Axis_Pos_Flag 17266
-#define P_Motion_Cathode_NG_AT_T_Axis_Pos_Flag 17267
-#define P_Motion_Cathode_NG_Box_T_Axis_Pos_Flag 17268
-#define P_Motion_Anode_NG_AT_T_Axis_Pos_Flag 17269
-#define P_Motion_Anode_NG_Box_T_Axis_Pos_Flag 17270
-#define P_Motion_1st_Unloader_Forward_Pos_Flag 17271
-#define P_Cathode_1PNP_Sacle_Value 17272
-#define P_Cathode_2PNP_Sacle_Value 17273
-#define P_Anode_1PNP_Sacle_Value 17274
-#define P_Anode_2PNP_Sacle_Value 17275
-#define P_PLC01_SemiRun_PV_Flag 17276
-#define P_PV_EPC_Index 17277
-#define P_PV_EPC_Camera_Pos 17278
-#define P_BTN_MSA_Total_Value 17293
-#define P_Vision_Align_Trigger_Timer 17294
-#define P_Vision_Stack_Trigger_Timer 17295
-#define P_MSA_Chk_Pos_Timer 17296
-#define P_MSA_Chk_Pos_Time 17297
-#define P_VISION_MSA_Status_Prod_Sequence 17298
-#define P_VISION_MSA_Seq_Index 17318
-#define P_VISION_MSA_Anode_Align_Bit_Pos 17319
-#define P_VISION_MSA_Seq_PreCondition_Index 17320
-#define P_MSA_CycleStop_Point_Check_Complete_RTN 17321
-#define P_MSA_Cmd 17322
-#define P_Current_Anode_Align_MSA_Run_Count 17327
-#define P_Current_Cathode_Align_MSA_Run_Count 17328
-#define P_Current_Anode_Stack_MSA_Run_Count 17329
-#define P_Current_Cathode_Stack_MSA_Run_Count 17330
-#define P_VISION_MSA_Align_Count_Chk_Flag 17331
-#define P_VISION_MSA_Stack_Count_Chk_Flag 17332
-#define P_VISION_MSA_pre_InterLock_Cmd 17333
-#define P_VISION_MSA_pre_InterLock_Status 17334
-#define P_VISION_MSA_pre_InterLock_Check_Assy_Bit 17335
-#define P_VISION_MSA_pre_InterLock_Assy_Bit_Pos 17336
-#define P_Vision_MSA_Interlock_Status 17337
-#define P_VISION_MSA_MODE 17338
-#define P_VISION_MSA_Status_Flag 17339
-#define P_VISION_MSA_State_Machine 17340
-#define P_VISION_MSA_Status 17341
-#define P_VISION_MSA_Seq_Command_Occurs 17342
-#define P_Vision_Align_Trigger_Time 17343
-#define P_Anode_Align_MSA_Motion_Check 17344
-#define P_Cathode_Align_MSA_Motion_Check 17345
-#define P_Anode_Stack_MSA_Motion_Check 17346
-#define P_Cathode_Stack_MSA_Motion_Check 17347
-#define P_Anode_Align_MSA_Motion_ProgActive_Complete 17348
-#define P_Cathode_Align_MSA_Motion_ProgActive_Complete 17349
-#define P_Anode_Stack_MSA_Motion_ProgActive_Complete 17350
-#define P_Cathode_Stack_MSA_Motion_ProgActive_Complete 17351
-#define P_BTN_Align_Off_Total_Value 17352
-#define P_Align_Take_Off_Cmd 17353
-#define P_Align_Take_Off_Status 17356
-#define P_Align_Take_Off_Mode 17357
-#define P_Align_Take_Off_Status_Flag 17358
-#define P_Align_Take_Off_State_Machine 17359
-#define P_Align_Take_Off_Chk_Pos_Timer 17360
-#define P_Align_Take_Off_Motor_Check_Complete 17361
-#define P_Align_Take_Off_Speed_Return_Complete 17362
-#define P_Align_Take_Off_Interlock_Status 17363
-#define P_Align_Take_Off_pre_InterLock_Cmd 17364
-#define P_Align_Take_Off_pre_InterLock_Status 17365
-#define P_Align_Take_Off_pre_InterLock_Check_Assy_Bit 17366
-#define P_Align_Take_Off_pre_InterLock_Assy_Bit_Pos 17367
-#define P_Align_Take_Off_Seq_Index 17368
-#define P_Align_Take_Off_Seq_PreCondition_Index 17369
-#define P_Align_Take_Off_Status_Prod_Sequence 17370
-#define P_Align_Take_Off_Stop_Signal 17390
-#define P_Vision_Cal_Reset_Count 17391
-#define P_2nd_PNP_Cleaning_Mode_Cmd 17392
-#define P_2nd_PNP_Cleaning_Mode_Status 17393
-#define P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed 17394
-#define P_2nd_PNP_Cleaning_Mode_X_Jog_Speed 17395
-#define P_2nd_PNP_Cleaning_Mode_T_Jog_Speed 17396
-#define P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos 17397
-#define P_PNP_Vac_Chk_Mode_Interlock 17398
-#define P_Vac_Chk_Test 17399
-#define P_Anode_1st_PNP_Vac_Chk_Mode_Blocked 17400
-#define P_Cathode_1st_PNP_Vac_Chk_Mode_Blocked 17401
-#define P_Anode_2nd_PNP_Vac_Chk_Mode_Blocked 17402
-#define P_Cathode_2nd_PNP_Vac_Chk_Mode_Blocked 17403
-#define P_SM_Anode_1st_PNP_Vac_Chk_Mode 17404
-#define P_SM_Cathode_1st_PNP_Vac_Chk_Mode 17405
-#define P_SM_Anode_2nd_PNP_Vac_Chk_Mode 17406
-#define P_SM_Cathode_2nd_PNP_Vac_Chk_Mode 17407
-#define P_Anode_1st_PNP_Vac_Chk_Execute_Timer 17408
-#define P_Cathode_1st_PNP_Vac_Chk_Execute_Timer 17409
-#define P_Anode_2nd_PNP_Vac_Chk_Execute_Timer 17410
-#define P_Cathode_2nd_PNP_Vac_Chk_Execute_Timer 17411
-#define P_Anode_1st_PNP_Vac_Check_Timer 17412
-#define P_Cathode_1st_PNP_Vac_Check_Timer 17413
-#define P_Anode_2nd_PNP_Vac_Check_Timer 17414
-#define P_Cathode_2nd_PNP_Vac_Check_Timer 17415
-#define P_Anode_1st_PNP_Vac_Chk_Status 17416
-#define P_Cathode_1st_PNP_Vac_Chk_Status 17417
-#define P_Anode_2nd_PNP_Vac_Chk_Status 17418
-#define P_Cathode_2nd_PNP_Vac_Chk_Status 17419
-#define P_Anode_1st_PNP_Vac_Chk_Mode_Stop_Blocked 17420
-#define P_Cathode_1st_PNP_Vac_Chk_Mode_Stop_Blocked 17421
-#define P_Anode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked 17422
-#define P_Cathode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked 17423
-#define P_Anode_1st_PnP_Vac_Chk_Mode_RTN 17424
-#define P_Cathode_1st_PnP_Vac_Chk_Mode_RTN 17425
-#define P_Anode_2nd_PnP_Vac_Chk_Mode_RTN 17426
-#define P_Cathode_2nd_PnP_Vac_Chk_Mode_RTN 17427
-#define P_PNP_Vac_Chk_Mode_TimeBase_Rtn 17428
-#define P_PNP_Vac_Chk_Mode_Timer 17429
-#define P_Anode_1st_PNP_Vac_Chk_Mode_Err 17430
-#define P_Cathode_1st_PNP_Vac_Chk_Mode_Err 17431
-#define P_Anode_2nd_PNP_Vac_Chk_Mode_Err 17432
-#define P_Cathode_2nd_PNP_Vac_Chk_Mode_Err 17433
-#define P_PNP_Vac_Chk_Mode_BTN_Err 17434
-#define P_BTN_CA_1st_PNP_Vac_Chk_Mode 17435
-#define P_BTN_AN_1st_PNP_Vac_Chk_Mode 17436
-#define P_BTN_CA_2nd_PNP_Vac_Chk_Mode 17437
-#define P_BTN_AN_2nd_PNP_Vac_Chk_Mode 17438
-#define P_Old_Upper_Sensor 17439
-#define P_Edge_Upper_Sensor 17447
-#define P_Old_Lower_Sensor 17455
-#define P_Edge_Lower_Sensor 17463
-#define P_Edge_NP_BTN 17471
-#define P_ARC_Tilting_Unwinder_Move_Dis 17473
-#define P_Old_ARC_Upper_Tilting_Status 17474
-#define P_Old_ARC_Lower_Tilting_Status 17475
-#define P_UI_Unit_Status 17476
-#define P_Motor_Unit_Status 17486
-#define P_Current_Homming_Status_To_PLC 17536
-#define P_System_Cascading_ON_Cmd 17586
-#define P_System_Cascading_OFF_Cmd 17587
-#define P_System_Master_Following_ON_Cmd 17588
-#define P_System_Master_Following_OFF_Cmd 17589
-#define P_System_CamTable_ON_Cmd 17590
-#define P_System_CamTable_OFF_Cmd 17591
-#define P_System_Spool_Home_Ready_Pos_Cmd 17592
-#define P_System_Cascading_ON_Status 17593
-#define P_System_Cascading_OFF_Status 17594
-#define P_System_Master_Following_ON_Status 17595
-#define P_System_Master_Following_OFF_Status 17596
-#define P_System_CamTable_ON_Status 17597
-#define P_System_CamTable_OFF_Status 17598
-#define P_System_Spool_Home_Ready_Pos_Status 17599
-#define P_System_Cascading_ON_State_Machine 17600
-#define P_System_Cascading_OFF_State_Machine 17601
-#define P_System_Master_Follwing_ON_State_Machine 17602
-#define P_System_Master_Follwing_OFF_State_Machine 17603
-#define P_System_CamTable_ON_State_Machine 17604
-#define P_System_CamTable_OFF_State_Machine 17605
-#define P_System_Spool_Home_Ready_Pos_State_Machine 17606
-#define P_System_Cascading_ON_Complete_Flag 17607
-#define P_System_Cascading_OFF_Complete_Flag 17608
-#define P_System_Master_Following_ON_Complete_Flag 17609
-#define P_System_Master_Following_OFF_Complete_Flag 17610
-#define P_System_CamTable_ON_Complete_Flag 17611
-#define P_System_CamTable_OFF_Complete_Flag 17612
-#define P_System_Spool_Home_Ready_Pos_Complete_Flag 17613
-#define P_Servo_Dancer_Cascading_Off_Timer 17614
-#define P_Servo_Dancer_Cascading_Set_Timer 17615
-#define P_Dancer_Frist_Home_Ready_Pos_Timer 17616
-#define P_Driving_Motor_Use_Flag 17617
-#define P_Home_Spool_Unwinding 17618
-#define P_OutValue 17619
-#define P_Dancer_Out_Slew_Seq 17620
-#define P_OutChangeValue 17621
-#define P_Rot_OutValue 17622
-#define P_OutChangeTime 17623
-#define P_AO_Module_Arr 17624
-#define P_AO_Range_Set_Value 17629
-#define P_Regul_Max_kPa_Value 17634
-#define P_Regul_Min_kPa_Value 17635
-#define P_Regul_Max_AD 17636
-#define P_Regul_Min_AD 17637
-#define P_Current_Max_Value 17638
-#define P_Current_Min_Value 17639
-#define P_Current_Max_AD 17640
-#define P_Current_Min_AD 17641
-#define P_Sepa_Cal_Inclination 17642
-#define P_Regul_Cal_Inclination 17643
-#define P_Cutter_Heat_Amp_Data_Bit 17644
-#define P_Cut_Heat_Amp_Value 17645
-#define P_AI_Cathode_Clamp_Damper_AVG 17646
-#define P_AI_Anode_Clamp_Damper_AVG 17647
-#define P_Tension_Ready_Pos_Cmd 17648
-#define P_Tension_Ready_State_Machine 17649
-#define P_Tension_Ready_Pos_Status 17650
-#define P_Dancer_Center_Pos 17651
-#define P_Upper_Sepa_Cal_Inclination 17652
-#define P_Lower_Sepa_Cal_Inclination 17653
-#define P_Unwinder_Jogspeed 17654
-#define P_Cascading_First_Out 17655
-#define P_Dancer_Cur_Vdc 17656
-#define P_Dancer_Cur_Torque 17657
-#define P_Dancer_Cur_Newton 17658
-#define P_Dancer_Cur_Kgf 17659
-#define P_Board_IO_Count 17660
-#define P_Force_BTN_Address_Clear_Count 17661
-#define P_Force_BTN_M_Variable_Save 17662
-#define P_Force_BTN_Condition_Count 18046
-#define P_Old_Force_BTN_Mode 18047
-#define P_Force_BTN_Address_Count 18048
-#define P_Force_BTN_GPIO_Address_Count 18049
-#define P_Force_BTN_Ecat_Address_Count 18050
-#define P_Force_BTN_M_Variable_Save_Count 18051
-#define P_Force_BTN_M_Variable_Start_Num 18052
-#define P_Force_BTN_Normal_Mode_Status 18053
-#define P_Force_BTN_Normal_Mode_State_Machine 18054
-#define P_Force_BTN_Normal_Mode_Complete_Flag 18055
-#define P_Force_BTN_Force_Mode_Timer 18056
-#define P_Force_BTN_Force_Mode_Delay_Time 18057
-#define P_Force_BTN_Force_Mode_Status 18058
-#define P_Force_BTN_Force_Mode_State_Machine 18059
-#define P_Force_BTN_Force_Mode_Complete_Flag 18060
-#define P_Mem_Save_Error_Bit 18061
-#define P_ABS_Phasing_Data 18062
-#define P_ABS_Home_Offset_Data 18067
-#define P_Servo_Gain_Save_Command 18072
-#define P_Servo_Gain_Load_Command 18073
-#define P_Servo_Gain_Save_Flag 18074
-#define P_Servo_Gain_Load_Flag 18075
-#define P_Servo_Gain_Kp 18076
-#define P_Servo_Gain_Kvfb 18106
-#define P_Servo_Gain_Kvff 18136
-#define P_Servo_Gain_Ki 18166
-#define P_Servo_Gain_SwZvInt 18196
-#define P_Servo_Gain_Kaff 18226
-#define P_Insert_Phase_Flag 18256
-#define P_Alarm_Arr 18257
-#define P_Alarm_Occur_Flag 18357
-#define P_Alarm_Occur_Index_Flag 18358
-#define P_Alarm_Wait_Time 18362
-#define P_Alarm_Delay_Timer 18363
-#define P_Compare_Priority 18364
-#define P_Alarm_Report 18365
-#define P_Alarm_Num 18366
-#define P_Alarm_Index 18367
-#define P_First_Alarm_Flag 18368
-#define P_First_Alarm_Log 18369
-#define P_Servo_Alarm_Check 18399
-#define P_Ecat_Servo_Alarm_Check 18400
+#define P_PV_Separator_Dancer_Pressure 17166
+#define P_PV_Cathode_Clamp_Pressure 17167
+#define P_PV_Anoode_Clamp_Pressure 17168
+#define P_PV_Cathode_Final_Roller_X_Axis 17169
+#define P_PV_Anode_Final_Roller_X_Axis 17170
+#define P_PV_Cathode_Clamp_ON_Y1_Axis_Pos 17171
+#define P_PV_Cathode_Clamp_ON_Y2_Axis_Pos 17172
+#define P_PV_Cathode_Clamp_ON_Z1_Axis_Pos 17173
+#define P_PV_Cathode_Clamp_ON_Z2_Axis_Pos 17174
+#define P_PV_Anode_Clamp_ON_Y1_Axis_Pos 17175
+#define P_PV_Anode_Clamp_ON_Y2_Axis_Pos 17176
+#define P_PV_Anode_Clamp_ON_Z1_Axis_Pos 17177
+#define P_PV_Anode_Clamp_ON_Z2_Axis_Pos 17178
+#define P_PV_Cathode_2th_AT_T_Axis_Pos 17179
+#define P_PV_Cathode_2th_ST_T_Axis_Pos 17180
+#define P_PV_Cathode_2th_AT_Z_Axis_Pos 17181
+#define P_PV_Cathode_2th_ST_Z_Axis_Pos 17182
+#define P_PV_Anode_2th_AT_T_Axis_Pos 17183
+#define P_PV_Anode_2th_ST_T_Axis_Pos 17184
+#define P_PV_Anode_2th_AT_Z_Axis_Pos 17185
+#define P_PV_Anode_2th_ST_Z_Axis_Pos 17186
+#define P_PV_Cathode_1th_Ready_T_Axis_Pos 17187
+#define P_PV_Cathode_1th_CV_T_Axis_Pos 17188
+#define P_PV_Cathode_1th_AT_T_Axis_Pos 17189
+#define P_PV_Cathode_1th_Ready_Z_Axis_Pos 17190
+#define P_PV_Cathode_1th_CV_Z_Axis_Pos 17191
+#define P_PV_Cathode_1th_AT_Z_Axis_Pos 17192
+#define P_PV_Anode_1th_Ready_T_Axis_Pos 17193
+#define P_PV_Anode_1th_CV_T_Axis_Pos 17194
+#define P_PV_Anode_1th_AT_T_Axis_Pos 17195
+#define P_PV_Anode_1th_Ready_Z_Axis_Pos 17196
+#define P_PV_Anode_1th_CV_Z_Axis_Pos 17197
+#define P_PV_Anode_1th_AT_Z_Axis_Pos 17198
+#define P_PV_Cathode_NG_AT_T_Axis_Pos 17199
+#define P_PV_Cathode_NG_Box_T_Axis_Pos 17200
+#define P_PV_Anode_NG_AT_T_Axis_Pos 17201
+#define P_PV_Anode_NG_Box_T_Axis_Pos 17202
+#define P_PV_1st_Unloader_X_Axis_Pos 17203
+#define P_PV_1st_Unloader_Z_Axis_Pos 17204
+#define P_SemiRun_Separator_Dancer_Pressure_Flag 17205
+#define P_SemiRun_Cathode_Clamp_Pressure_Flag 17206
+#define P_SemiRun_Anoode_Clamp_Pressure_Flag 17207
+#define P_SemiRun_Cathode_Final_Roller_X_Axis_Flag 17208
+#define P_SemiRun_Anode_Final_Roller_X_Axis_Flag 17209
+#define P_SemiRun_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag 17210
+#define P_SemiRun_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag 17211
+#define P_SemiRun_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag 17212
+#define P_SemiRun_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag 17213
+#define P_SemiRun_Cathode_2th_AT_T_Axis_Pos_Flag 17214
+#define P_SemiRun_Cathode_2th_ST_T_Axis_Pos_Flag 17215
+#define P_SemiRun_Cathode_2th_AT_Z_Axis_Pos_Flag 17216
+#define P_SemiRun_Cathode_2th_ST_Z_Axis_Pos_Flag 17217
+#define P_SemiRun_Anode_2th_AT_T_Axis_Pos_Flag 17218
+#define P_SemiRun_Anode_2th_ST_T_Axis_Pos_Flag 17219
+#define P_SemiRun_Anode_2th_AT_Z_Axis_Pos_Flag 17220
+#define P_SemiRun_Anode_2th_ST_Z_Axis_Pos_Flag 17221
+#define P_SemiRun_Cathode_1th_Ready_T_Axis_Pos_Flag 17222
+#define P_SemiRun_Cathode_1th_CV_T_Axis_Pos_Flag 17223
+#define P_SemiRun_Cathode_1th_AT_T_Axis_Pos_Flag 17224
+#define P_SemiRun_Cathode_1th_Ready_Z_Axis_Pos_Flag 17225
+#define P_SemiRun_Cathode_1th_CV_Z_Axis_Pos_Flag 17226
+#define P_SemiRun_Cathode_1th_AT_Z_Axis_Pos_Flag 17227
+#define P_SemiRun_Anode_1th_Ready_T_Axis_Pos_Flag 17228
+#define P_SemiRun_Anode_1th_CV_T_Axis_Pos_Flag 17229
+#define P_SemiRun_Anode_1th_AT_T_Axis_Pos_Flag 17230
+#define P_SemiRun_Anode_1th_Ready_Z_Axis_Pos_Flag 17231
+#define P_SemiRun_Anode_1th_CV_Z_Axis_Pos_Flag 17232
+#define P_SemiRun_Anode_1th_AT_Z_Axis_Pos_Flag 17233
+#define P_SemiRun_Cathode_NG_AT_T_Axis_Pos_Flag 17234
+#define P_SemiRun_Cathode_NG_Box_T_Axis_Pos_Flag 17235
+#define P_SemiRun_Anode_NG_AT_T_Axis_Pos_Flag 17236
+#define P_SemiRun_Anode_NG_Box_T_Axis_Pos_Flag 17237
+#define P_SemiRun_1st_Unloader_Forward_Pos_Flag 17238
+#define P_Motion_Separator_Dancer_Pressure_Flag 17239
+#define P_Motion_Cathode_Clamp_Pressure_Flag 17240
+#define P_Motion_Anoode_Clamp_Pressure_Flag 17241
+#define P_Motion_Cathode_Final_Roller_X_Axis_Flag 17242
+#define P_Motion_Anode_Final_Roller_X_Axis_Flag 17243
+#define P_Motion_Cathode_Clamp_ON_Y1_Z1_Axis_Pos_Flag 17244
+#define P_Motion_Cathode_Clamp_ON_Y2_Z2_Axis_Pos_Flag 17245
+#define P_Motion_Anode_Clamp_ON_Y1_Z1_Axis_Pos_Flag 17246
+#define P_Motion_Anode_Clamp_ON_Y2_Z2_Axis_Pos_Flag 17247
+#define P_Motion_Cathode_2th_AT_T_Axis_Pos_Flag 17248
+#define P_Motion_Cathode_2th_ST_T_Axis_Pos_Flag 17249
+#define P_Motion_Cathode_2th_AT_Z_Axis_Pos_Flag 17250
+#define P_Motion_Cathode_2th_ST_Z_Axis_Pos_Flag 17251
+#define P_Motion_Anode_2th_AT_T_Axis_Pos_Flag 17252
+#define P_Motion_Anode_2th_ST_T_Axis_Pos_Flag 17253
+#define P_Motion_Anode_2th_AT_Z_Axis_Pos_Flag 17254
+#define P_Motion_Anode_2th_ST_Z_Axis_Pos_Flag 17255
+#define P_Motion_Cathode_1th_Ready_T_Axis_Pos_Flag 17256
+#define P_Motion_Cathode_1th_CV_T_Axis_Pos_Flag 17257
+#define P_Motion_Cathode_1th_AT_T_Axis_Pos_Flag 17258
+#define P_Motion_Cathode_1th_Ready_Z_Axis_Pos_Flag 17259
+#define P_Motion_Cathode_1th_CV_Z_Axis_Pos_Flag 17260
+#define P_Motion_Cathode_1th_AT_Z_Axis_Pos_Flag 17261
+#define P_Motion_Anode_1th_Ready_T_Axis_Pos_Flag 17262
+#define P_Motion_Anode_1th_CV_T_Axis_Pos_Flag 17263
+#define P_Motion_Anode_1th_AT_T_Axis_Pos_Flag 17264
+#define P_Motion_Anode_1th_Ready_Z_Axis_Pos_Flag 17265
+#define P_Motion_Anode_1th_CV_Z_Axis_Pos_Flag 17266
+#define P_Motion_Anode_1th_AT_Z_Axis_Pos_Flag 17267
+#define P_Motion_Cathode_NG_AT_T_Axis_Pos_Flag 17268
+#define P_Motion_Cathode_NG_Box_T_Axis_Pos_Flag 17269
+#define P_Motion_Anode_NG_AT_T_Axis_Pos_Flag 17270
+#define P_Motion_Anode_NG_Box_T_Axis_Pos_Flag 17271
+#define P_Motion_1st_Unloader_Forward_Pos_Flag 17272
+#define P_Cathode_1PNP_Sacle_Value 17273
+#define P_Cathode_2PNP_Sacle_Value 17274
+#define P_Anode_1PNP_Sacle_Value 17275
+#define P_Anode_2PNP_Sacle_Value 17276
+#define P_PLC01_SemiRun_PV_Flag 17277
+#define P_PV_EPC_Index 17278
+#define P_PV_EPC_Camera_Pos 17279
+#define P_BTN_MSA_Total_Value 17294
+#define P_Vision_Align_Trigger_Timer 17295
+#define P_Vision_Stack_Trigger_Timer 17296
+#define P_MSA_Chk_Pos_Timer 17297
+#define P_MSA_Chk_Pos_Time 17298
+#define P_VISION_MSA_Status_Prod_Sequence 17299
+#define P_VISION_MSA_Seq_Index 17319
+#define P_VISION_MSA_Anode_Align_Bit_Pos 17320
+#define P_VISION_MSA_Seq_PreCondition_Index 17321
+#define P_MSA_CycleStop_Point_Check_Complete_RTN 17322
+#define P_MSA_Cmd 17323
+#define P_Current_Anode_Align_MSA_Run_Count 17328
+#define P_Current_Cathode_Align_MSA_Run_Count 17329
+#define P_Current_Anode_Stack_MSA_Run_Count 17330
+#define P_Current_Cathode_Stack_MSA_Run_Count 17331
+#define P_VISION_MSA_Align_Count_Chk_Flag 17332
+#define P_VISION_MSA_Stack_Count_Chk_Flag 17333
+#define P_VISION_MSA_pre_InterLock_Cmd 17334
+#define P_VISION_MSA_pre_InterLock_Status 17335
+#define P_VISION_MSA_pre_InterLock_Check_Assy_Bit 17336
+#define P_VISION_MSA_pre_InterLock_Assy_Bit_Pos 17337
+#define P_Vision_MSA_Interlock_Status 17338
+#define P_VISION_MSA_MODE 17339
+#define P_VISION_MSA_Status_Flag 17340
+#define P_VISION_MSA_State_Machine 17341
+#define P_VISION_MSA_Status 17342
+#define P_VISION_MSA_Seq_Command_Occurs 17343
+#define P_Vision_Align_Trigger_Time 17344
+#define P_Anode_Align_MSA_Motion_Check 17345
+#define P_Cathode_Align_MSA_Motion_Check 17346
+#define P_Anode_Stack_MSA_Motion_Check 17347
+#define P_Cathode_Stack_MSA_Motion_Check 17348
+#define P_Anode_Align_MSA_Motion_ProgActive_Complete 17349
+#define P_Cathode_Align_MSA_Motion_ProgActive_Complete 17350
+#define P_Anode_Stack_MSA_Motion_ProgActive_Complete 17351
+#define P_Cathode_Stack_MSA_Motion_ProgActive_Complete 17352
+#define P_BTN_Align_Off_Total_Value 17353
+#define P_Align_Take_Off_Cmd 17354
+#define P_Align_Take_Off_Status 17357
+#define P_Align_Take_Off_Mode 17358
+#define P_Align_Take_Off_Status_Flag 17359
+#define P_Align_Take_Off_State_Machine 17360
+#define P_Align_Take_Off_Chk_Pos_Timer 17361
+#define P_Align_Take_Off_Motor_Check_Complete 17362
+#define P_Align_Take_Off_Speed_Return_Complete 17363
+#define P_Align_Take_Off_Interlock_Status 17364
+#define P_Align_Take_Off_pre_InterLock_Cmd 17365
+#define P_Align_Take_Off_pre_InterLock_Status 17366
+#define P_Align_Take_Off_pre_InterLock_Check_Assy_Bit 17367
+#define P_Align_Take_Off_pre_InterLock_Assy_Bit_Pos 17368
+#define P_Align_Take_Off_Seq_Index 17369
+#define P_Align_Take_Off_Seq_PreCondition_Index 17370
+#define P_Align_Take_Off_Status_Prod_Sequence 17371
+#define P_Align_Take_Off_Stop_Signal 17391
+#define P_Vision_Cal_Reset_Count 17392
+#define P_2nd_PNP_Cleaning_Mode_Cmd 17393
+#define P_2nd_PNP_Cleaning_Mode_Status 17394
+#define P_2nd_PNP_Cleaning_Mode_Z_Jog_Speed 17395
+#define P_2nd_PNP_Cleaning_Mode_X_Jog_Speed 17396
+#define P_2nd_PNP_Cleaning_Mode_T_Jog_Speed 17397
+#define P_2nd_PNP_Cleaning_Avoid_2nd_T_Pos 17398
+#define P_PNP_Vac_Chk_Mode_Interlock 17399
+#define P_Vac_Chk_Test 17400
+#define P_Anode_1st_PNP_Vac_Chk_Mode_Blocked 17401
+#define P_Cathode_1st_PNP_Vac_Chk_Mode_Blocked 17402
+#define P_Anode_2nd_PNP_Vac_Chk_Mode_Blocked 17403
+#define P_Cathode_2nd_PNP_Vac_Chk_Mode_Blocked 17404
+#define P_SM_Anode_1st_PNP_Vac_Chk_Mode 17405
+#define P_SM_Cathode_1st_PNP_Vac_Chk_Mode 17406
+#define P_SM_Anode_2nd_PNP_Vac_Chk_Mode 17407
+#define P_SM_Cathode_2nd_PNP_Vac_Chk_Mode 17408
+#define P_Anode_1st_PNP_Vac_Chk_Execute_Timer 17409
+#define P_Cathode_1st_PNP_Vac_Chk_Execute_Timer 17410
+#define P_Anode_2nd_PNP_Vac_Chk_Execute_Timer 17411
+#define P_Cathode_2nd_PNP_Vac_Chk_Execute_Timer 17412
+#define P_Anode_1st_PNP_Vac_Check_Timer 17413
+#define P_Cathode_1st_PNP_Vac_Check_Timer 17414
+#define P_Anode_2nd_PNP_Vac_Check_Timer 17415
+#define P_Cathode_2nd_PNP_Vac_Check_Timer 17416
+#define P_Anode_1st_PNP_Vac_Chk_Status 17417
+#define P_Cathode_1st_PNP_Vac_Chk_Status 17418
+#define P_Anode_2nd_PNP_Vac_Chk_Status 17419
+#define P_Cathode_2nd_PNP_Vac_Chk_Status 17420
+#define P_Anode_1st_PNP_Vac_Chk_Mode_Stop_Blocked 17421
+#define P_Cathode_1st_PNP_Vac_Chk_Mode_Stop_Blocked 17422
+#define P_Anode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked 17423
+#define P_Cathode_2nd_PNP_Vac_Chk_Mode_Stop_Blocked 17424
+#define P_Anode_1st_PnP_Vac_Chk_Mode_RTN 17425
+#define P_Cathode_1st_PnP_Vac_Chk_Mode_RTN 17426
+#define P_Anode_2nd_PnP_Vac_Chk_Mode_RTN 17427
+#define P_Cathode_2nd_PnP_Vac_Chk_Mode_RTN 17428
+#define P_PNP_Vac_Chk_Mode_TimeBase_Rtn 17429
+#define P_PNP_Vac_Chk_Mode_Timer 17430
+#define P_Anode_1st_PNP_Vac_Chk_Mode_Err 17431
+#define P_Cathode_1st_PNP_Vac_Chk_Mode_Err 17432
+#define P_Anode_2nd_PNP_Vac_Chk_Mode_Err 17433
+#define P_Cathode_2nd_PNP_Vac_Chk_Mode_Err 17434
+#define P_PNP_Vac_Chk_Mode_BTN_Err 17435
+#define P_BTN_CA_1st_PNP_Vac_Chk_Mode 17436
+#define P_BTN_AN_1st_PNP_Vac_Chk_Mode 17437
+#define P_BTN_CA_2nd_PNP_Vac_Chk_Mode 17438
+#define P_BTN_AN_2nd_PNP_Vac_Chk_Mode 17439
+#define P_Old_Upper_Sensor 17440
+#define P_Edge_Upper_Sensor 17448
+#define P_Old_Lower_Sensor 17456
+#define P_Edge_Lower_Sensor 17464
+#define P_Edge_NP_BTN 17472
+#define P_ARC_Tilting_Unwinder_Move_Dis 17474
+#define P_Old_ARC_Upper_Tilting_Status 17475
+#define P_Old_ARC_Lower_Tilting_Status 17476
+#define P_UI_Unit_Status 17477
+#define P_Motor_Unit_Status 17487
+#define P_Current_Homming_Status_To_PLC 17537
+#define P_System_Cascading_ON_Cmd 17587
+#define P_System_Cascading_OFF_Cmd 17588
+#define P_System_Master_Following_ON_Cmd 17589
+#define P_System_Master_Following_OFF_Cmd 17590
+#define P_System_CamTable_ON_Cmd 17591
+#define P_System_CamTable_OFF_Cmd 17592
+#define P_System_Spool_Home_Ready_Pos_Cmd 17593
+#define P_System_Cascading_ON_Status 17594
+#define P_System_Cascading_OFF_Status 17595
+#define P_System_Master_Following_ON_Status 17596
+#define P_System_Master_Following_OFF_Status 17597
+#define P_System_CamTable_ON_Status 17598
+#define P_System_CamTable_OFF_Status 17599
+#define P_System_Spool_Home_Ready_Pos_Status 17600
+#define P_System_Cascading_ON_State_Machine 17601
+#define P_System_Cascading_OFF_State_Machine 17602
+#define P_System_Master_Follwing_ON_State_Machine 17603
+#define P_System_Master_Follwing_OFF_State_Machine 17604
+#define P_System_CamTable_ON_State_Machine 17605
+#define P_System_CamTable_OFF_State_Machine 17606
+#define P_System_Spool_Home_Ready_Pos_State_Machine 17607
+#define P_System_Cascading_ON_Complete_Flag 17608
+#define P_System_Cascading_OFF_Complete_Flag 17609
+#define P_System_Master_Following_ON_Complete_Flag 17610
+#define P_System_Master_Following_OFF_Complete_Flag 17611
+#define P_System_CamTable_ON_Complete_Flag 17612
+#define P_System_CamTable_OFF_Complete_Flag 17613
+#define P_System_Spool_Home_Ready_Pos_Complete_Flag 17614
+#define P_Servo_Dancer_Cascading_Off_Timer 17615
+#define P_Servo_Dancer_Cascading_Set_Timer 17616
+#define P_Dancer_Frist_Home_Ready_Pos_Timer 17617
+#define P_Driving_Motor_Use_Flag 17618
+#define P_Home_Spool_Unwinding 17619
+#define P_OutValue 17620
+#define P_Dancer_Out_Slew_Seq 17621
+#define P_OutChangeValue 17622
+#define P_Rot_OutValue 17623
+#define P_OutChangeTime 17624
+#define P_AO_Module_Arr 17625
+#define P_AO_Range_Set_Value 17630
+#define P_Regul_Max_kPa_Value 17635
+#define P_Regul_Min_kPa_Value 17636
+#define P_Regul_Max_AD 17637
+#define P_Regul_Min_AD 17638
+#define P_Current_Max_Value 17639
+#define P_Current_Min_Value 17640
+#define P_Current_Max_AD 17641
+#define P_Current_Min_AD 17642
+#define P_Sepa_Cal_Inclination 17643
+#define P_Regul_Cal_Inclination 17644
+#define P_Cutter_Heat_Amp_Data_Bit 17645
+#define P_Cut_Heat_Amp_Value 17646
+#define P_AI_Cathode_Clamp_Damper_AVG 17647
+#define P_AI_Anode_Clamp_Damper_AVG 17648
+#define P_Tension_Ready_Pos_Cmd 17649
+#define P_Tension_Ready_State_Machine 17650
+#define P_Tension_Ready_Pos_Status 17651
+#define P_Dancer_Center_Pos 17652
+#define P_Upper_Sepa_Cal_Inclination 17653
+#define P_Lower_Sepa_Cal_Inclination 17654
+#define P_Unwinder_Jogspeed 17655
+#define P_Cascading_First_Out 17656
+#define P_Dancer_Cur_Vdc 17657
+#define P_Dancer_Cur_Torque 17658
+#define P_Dancer_Cur_Newton 17659
+#define P_Dancer_Cur_Kgf 17660
+#define P_Board_IO_Count 17661
+#define P_Force_BTN_Address_Clear_Count 17662
+#define P_Force_BTN_M_Variable_Save 17663
+#define P_Force_BTN_Condition_Count 18047
+#define P_Old_Force_BTN_Mode 18048
+#define P_Force_BTN_Address_Count 18049
+#define P_Force_BTN_GPIO_Address_Count 18050
+#define P_Force_BTN_Ecat_Address_Count 18051
+#define P_Force_BTN_M_Variable_Save_Count 18052
+#define P_Force_BTN_M_Variable_Start_Num 18053
+#define P_Force_BTN_Normal_Mode_Status 18054
+#define P_Force_BTN_Normal_Mode_State_Machine 18055
+#define P_Force_BTN_Normal_Mode_Complete_Flag 18056
+#define P_Force_BTN_Force_Mode_Timer 18057
+#define P_Force_BTN_Force_Mode_Delay_Time 18058
+#define P_Force_BTN_Force_Mode_Status 18059
+#define P_Force_BTN_Force_Mode_State_Machine 18060
+#define P_Force_BTN_Force_Mode_Complete_Flag 18061
+#define P_Mem_Save_Error_Bit 18062
+#define P_ABS_Phasing_Data 18063
+#define P_ABS_Home_Offset_Data 18068
+#define P_Servo_Gain_Save_Command 18073
+#define P_Servo_Gain_Load_Command 18074
+#define P_Servo_Gain_Save_Flag 18075
+#define P_Servo_Gain_Load_Flag 18076
+#define P_Servo_Gain_Kp 18077
+#define P_Servo_Gain_Kvfb 18107
+#define P_Servo_Gain_Kvff 18137
+#define P_Servo_Gain_Ki 18167
+#define P_Servo_Gain_SwZvInt 18197
+#define P_Servo_Gain_Kaff 18227
+#define P_Insert_Phase_Flag 18257
+#define P_Alarm_Arr 18258
+#define P_Alarm_Occur_Flag 18358
+#define P_Alarm_Occur_Index_Flag 18359
+#define P_Alarm_Wait_Time 18363
+#define P_Alarm_Delay_Timer 18364
+#define P_Compare_Priority 18365
+#define P_Alarm_Report 18366
+#define P_Alarm_Num 18367
+#define P_Alarm_Index 18368
+#define P_First_Alarm_Flag 18369
+#define P_First_Alarm_Log 18370
+#define P_Servo_Alarm_Check 18400
+#define P_Ecat_Servo_Alarm_Check 18401
 #define M_SysTimer 8503
-#define P_Alarm_Count 18401
-#define P_Alarm_Get_Flag 18402
-#define P_Alarm_Sort_Time 18403
-#define P_Alarm_Frist_Flag 18404
-#define P_Alarm_Delay_time 18405
-#define P_Alarm_duplicate_Check_Arr 18406
-#define P_Alarm_Time_Log 19076
-#define P_Alarm_Log 19126
-#define P_Old_Drive_Alarm 19176
-#define P_IL_ON_OFF_Flag 19226
-#define P_IL_Coord_Robot 19227
-#define P_IL_Robot_Bit 19228
-#define P_IL_Outer_Status 19229
-#define P_Robot_Unit_Serch_Flag 19230
-#define P_IL_Home_Chk_Edge 19231
-#define P_Limit_PosData 19232
-#define P_IL_Sprint 19235
-#define P_IL_length 19236
-#define P_IL_Strcat 19237
-#define P_IL_Popup_Motor 19238
-#define P_IL_Motor_Page 19239
-#define P_IL_Recipe_Bit 19240
-#define P_Interlock_Popup_On_Flag 19241
-#define P_Motor_Page 19242
+#define P_Alarm_Count 18402
+#define P_Alarm_Get_Flag 18403
+#define P_Alarm_Sort_Time 18404
+#define P_Alarm_Frist_Flag 18405
+#define P_Alarm_Delay_time 18406
+#define P_Alarm_duplicate_Check_Arr 18407
+#define P_Alarm_Time_Log 19077
+#define P_Alarm_Log 19127
+#define P_Old_Drive_Alarm 19177
+#define P_IL_ON_OFF_Flag 19227
+#define P_IL_Coord_Robot 19228
+#define P_IL_Robot_Bit 19229
+#define P_IL_Outer_Status 19230
+#define P_Robot_Unit_Serch_Flag 19231
+#define P_IL_Home_Chk_Edge 19232
+#define P_Limit_PosData 19233
+#define P_IL_Sprint 19236
+#define P_IL_length 19237
+#define P_IL_Strcat 19238
+#define P_IL_Popup_Motor 19239
+#define P_IL_Motor_Page 19240
+#define P_IL_Recipe_Bit 19241
+#define P_Interlock_Popup_On_Flag 19242
+#define P_Motor_Page 19243
 #define M_Motor_BTN_Info 8504
-#define P_OP_Side_Ca_PNP_Pos 19243
-#define P_OP_Side_An_PNP_Pos 19244
-#define P_OP_Side_PMAC_Cur_Mode 19245
-#define P_Abs_Trans_Cur_Pos 19246
-#define P_Minus_IL_Offset 19247
-#define P_Plus_IL_Offset 19248
-#define P_2nd_PNP_Arm_Radius 19249
-#define P_IL_Enable_Flag 19250
-#define P_Plus_Interlock_Bit 19251
-#define P_Minus_Interlock_Bit 19252
-#define UPPos 19253
-#define Unloader_In_StackPos 19254
-#define FR_AnodePos 19255
-#define FR_CathodePos 19256
-#define Before_In_Stack 19257
-#define In_Stack 19258
-#define P_Collision_Risk_Motor 19259
-#define P_Minus_Collision_Risk_Motor 19261
-#define P_IL_Clamp_Y 19262
-#define P_IL_Clamp_Z 19263
-#define P_IL_Clamp_Pos 19264
-#define P_IL_Use_FR_Clamp_Pos 19265
-#define P_P_IL_Normal_Pos_Offset 19266
-#define P_M_IL_Normal_Pos_Offset 19316
-#define P_P_IL_Upper_Pos_Offset 19366
-#define P_M_IL_Upper_Pos_Offset 19416
-#define P_P_IL_Align_Pos_Offset 19466
-#define P_M_IL_Align_Pos_Offset 19516
-#define P_P_IL_Stack_Pos_Offset 19566
-#define P_M_IL_Stack_Pos_Offset 19616
-#define P_Ca_1st_Plus_IL_Offset 19666
-#define P_Ca_1st_Minus_IL_Offset 19667
-#define P_An_1st_Plus_IL_Offset 19668
-#define P_An_1st_Minus_IL_Offset 19669
-#define P_Ca_2nd_T_Plus_IL_Offset 19670
-#define P_Ca_2nd_T_Minus_IL_Offset 19673
-#define P_Ca_2nd_Z_Plus_IL_Offset 19676
-#define P_Ca_2nd_Z_Minus_IL_Offset 19678
-#define P_An_2nd_T_Plus_IL_Offset 19680
-#define P_An_2nd_T_Minus_IL_Offset 19683
-#define P_An_2nd_Z_Minus_IL_Offset 19686
-#define P_Z_Pos_Data 19688
-#define P_Clamp_Z_Plus_IL_Offset 19689
-#define P_FR_X_Plus_IL_Offset 19690
-#define P_FR_X_Minus_IL_Offset 19692
-#define P_FR_Z_Minus_IL_Offset 19694
-#define P_Ca_NG_PNP_Plus_IL_Offset 19695
-#define P_Ca_NG_PNP_Minus_IL_Offset 19699
-#define P_An_NG_PNP_Plus_IL_Offset 19703
-#define P_An_NG_PNP_Minus_IL_Offset 19707
-#define P_Unloader_X_Plus_IL_Offset 19711
-#define P_Unloader_X_Minus_IL_Offset 19715
-#define P_Unloader_Z_Plus_IL_Offset 19719
-#define P_Unloader_Z_Minus_IL_Offset 19722
-#define P_IL_In_Offset 19725
-#define P_X_PLC_InterLock 19750
-#define P_IL_Home_Chk 19751
-#define P_IL_Home_Chk_Motor_Num 19752
-#define P_IL_Home_Chk_Motor_Update 19772
-#define P_IL_Inside_Home_Chk_Complete 19773
-#define P_IL_Outside_Home_Chk_Complete 19774
-#define P_IL_Motor_Home_Chk_RTN 19775
-#define P_IL_Function_Cnt 19776
-#define P_IL_Function_Motor_Num 19777
-#define P_Jog_Page_Flag 19778
-#define P_Jog_Btn_Flag 19779
-#define P_Old_Jog_Btn_Flag 19780
-#define P_Anode_1st_TR_Belt_Down_Flag 19781
-#define P_Anode_1st_TR_Belt_Pick_Up_Flag 19782
-#define P_Anode_1st_TR_Align_Down_Flag 19783
-#define P_Anode_2nd_TR_Align_Pick_Up_Flag 19784
-#define P_Anode_2nd_TR_Stack_Down_Flag 19785
-#define P_Anode_NG_TR_Align_Pick_Up_Flag 19786
-#define P_Anode_NG_TR_NG_Place_Down_Flag 19787
-#define P_Anode_2nd_TR_Align_Down_Flag 19788
-#define P_Anode_1st_TR_Align_Pick_Up_Flag 19789
-#define P_Anode_1st_TR_Belt_Down_State_Machine 19790
-#define P_Anode_1st_TR_Belt_Down_Status 19791
-#define P_Anode_1st_TR_Belt_Pick_Up_State_Machine 19792
-#define P_Anode_1st_TR_Belt_Pick_Up_Status 19793
-#define P_Anode_1st_TR_Align_Down_State_Machine 19794
-#define P_Anode_1st_TR_Align_Down_Status 19795
-#define P_Anode_2nd_TR_Align_Pick_Up_State_Machine 19796
-#define P_Anode_2nd_TR_Align_Pick_Up_Status 19797
-#define P_Anode_2nd_TR_Stack_Down_State_Machine 19798
-#define P_Anode_2nd_TR_Stack_Down_Status 19799
-#define P_Anode_NG_TR_Align_Pick_Up_State_Machine 19800
-#define P_Anode_NG_TR_Align_Pick_Up_Status 19801
-#define P_Anode_NG_TR_NG_Place_Down_State_Machine 19802
-#define P_Anode_NG_TR_NG_Place_Down_Status 19803
-#define P_Anode_2nd_TR_Align_Down_State_Machine 19804
-#define P_Anode_2nd_TR_Align_Down_Status 19805
-#define P_Anode_1st_TR_Align_Pick_Up_State_Machine 19806
-#define P_Anode_1st_TR_Align_Pick_Up_Status 19807
-#define P_Cathode_1st_TR_Belt_Down_Flag 19808
-#define P_Cathode_1st_TR_Belt_Pick_Up_Flag 19809
-#define P_Cathode_1st_TR_Align_Down_Flag 19810
-#define P_Cathode_2nd_TR_Align_Pick_Up_Flag 19811
-#define P_Cathode_2nd_TR_Stack_Down_Flag 19812
-#define P_Cathode_NG_TR_Align_Pick_Up_Flag 19813
-#define P_Cathode_NG_TR_NG_Place_Down_Flag 19814
-#define P_Cathode_2nd_TR_Align_Down_Flag 19815
-#define P_Cathode_1st_TR_Align_Pick_Up_Flag 19816
-#define P_Cathode_1st_TR_Belt_Down_State_Machine 19817
-#define P_Cathode_1st_TR_Belt_Down_Status 19818
-#define P_Cathode_1st_TR_Belt_Pick_Up_State_Machine 19819
-#define P_Cathode_1st_TR_Belt_Pick_Up_Status 19820
-#define P_Cathode_1st_TR_Align_Down_State_Machine 19821
-#define P_Cathode_1st_TR_Align_Down_Status 19822
-#define P_Cathode_2nd_TR_Align_Pick_Up_State_Machine 19823
-#define P_Cathode_2nd_TR_Align_Pick_Up_Status 19824
-#define P_Cathode_2nd_TR_Stack_Down_State_Machine 19825
-#define P_Cathode_2nd_TR_Stack_Down_Status 19826
-#define P_Cathode_NG_TR_Align_Pick_Up_State_Machine 19827
-#define P_Cathode_NG_TR_Align_Pick_Up_Status 19828
-#define P_Cathode_NG_TR_NG_Place_Down_State_Machine 19829
-#define P_Cathode_NG_TR_NG_Place_Down_Status 19830
-#define P_Cathode_2nd_TR_Align_Down_State_Machine 19831
-#define P_Cathode_2nd_TR_Align_Down_Status 19832
-#define P_Cathode_1st_TR_Align_Pick_Up_State_Machine 19833
-#define P_Cathode_1st_TR_Align_Pick_Up_Status 19834
-#define P_Old_Anode_Belt_ASCII 19835
-#define P_Old_Cathode_Belt_ASCII 19836
-#define P_Anode_Belt_ASCII 19837
-#define P_Cathode_Belt_ASCII 19838
-#define P_Check_Vac_Time 19839
-#define P_Send_Anode_NG_Code_To_PLC 19840
-#define P_Receive_Anode_NG_Code_From_PLC 19841
-#define P_Send_Cathode_NG_Code_To_PLC 19842
-#define P_Receive_Cathode_NG_Code_From_PLC 19843
-#define P_Current_Cell_Memory_Anode_1P 19844
-#define P_Current_Cell_Memory_Anode_AT 19845
-#define P_Current_Cell_Memory_Anode_2P 19846
-#define P_Current_Cell_Memory_Cathode_1P 19847
-#define P_Current_Cell_Memory_Cathode_AT 19848
-#define P_Current_Cell_Memory_Cathode_2P 19849
-#define P_Current_Cell_Memory_Stack_Table 19850
-#define P_Current_Cell_Memory_Cathode_NG_TR 19851
-#define P_Current_Cell_Memory_Anode_NG_TR 19852
-#define P_BTN_Anode_1st_TR_Buffer_Clear 19853
-#define P_BTN_Anode_2nd_TR_Buffer_Clear 19854
-#define P_BTN_Anode_Align_Buffer_Clear 19855
-#define P_BTN_Anode_NG_TR_Buffer_Clear 19856
-#define P_BTN_Cathode_1st_TR_Buffer_Clear 19857
-#define P_BTN_Cathode_2nd_TR_Buffer_Clear 19858
-#define P_BTN_Cathode_Align_Buffer_Clear 19859
-#define P_BTN_Cathode_NG_TR_Buffer_Clear 19860
-#define P_Old_BTN_Anode_1st_TR_Buffer_Clear 19861
-#define P_Old_BTN_Anode_2nd_TR_Buffer_Clear 19862
-#define P_Old_BTN_Anode_Align_Buffer_Clear 19863
-#define P_Old_BTN_Anode_NG_TR_Buffer_Clear 19864
-#define P_Old_BTN_Cathode_1st_TR_Buffer_Clear 19865
-#define P_Old_BTN_Cathode_2nd_TR_Buffer_Clear 19866
-#define P_Old_BTN_Cathode_Align_Buffer_Clear 19867
-#define P_Old_BTN_Cathode_NG_TR_Buffer_Clear 19868
-#define P_Send_Anode_NG_Code_Flag 19869
-#define P_Send_Cathode_NG_Code_Flag 19870
-#define P_Anode_Vision_NG_To_PLC_Flag 19871
-#define P_Cathode_Vision_NG_To_PLC_Flag 19872
-#define P_Status_Clear_Sheet_Maint_Check 19873
+#define P_OP_Side_Ca_PNP_Pos 19244
+#define P_OP_Side_An_PNP_Pos 19245
+#define P_OP_Side_PMAC_Cur_Mode 19246
+#define P_Abs_Trans_Cur_Pos 19247
+#define P_Minus_IL_Offset 19248
+#define P_Plus_IL_Offset 19249
+#define P_2nd_PNP_Arm_Radius 19250
+#define P_IL_Enable_Flag 19251
+#define P_Plus_Interlock_Bit 19252
+#define P_Minus_Interlock_Bit 19253
+#define UPPos 19254
+#define Unloader_In_StackPos 19255
+#define FR_AnodePos 19256
+#define FR_CathodePos 19257
+#define Before_In_Stack 19258
+#define In_Stack 19259
+#define P_Collision_Risk_Motor 19260
+#define P_Minus_Collision_Risk_Motor 19262
+#define P_IL_Clamp_Y 19263
+#define P_IL_Clamp_Z 19264
+#define P_IL_Clamp_Pos 19265
+#define P_IL_Use_FR_Clamp_Pos 19266
+#define P_P_IL_Normal_Pos_Offset 19267
+#define P_M_IL_Normal_Pos_Offset 19317
+#define P_P_IL_Upper_Pos_Offset 19367
+#define P_M_IL_Upper_Pos_Offset 19417
+#define P_P_IL_Align_Pos_Offset 19467
+#define P_M_IL_Align_Pos_Offset 19517
+#define P_P_IL_Stack_Pos_Offset 19567
+#define P_M_IL_Stack_Pos_Offset 19617
+#define P_Ca_1st_Plus_IL_Offset 19667
+#define P_Ca_1st_Minus_IL_Offset 19668
+#define P_An_1st_Plus_IL_Offset 19669
+#define P_An_1st_Minus_IL_Offset 19670
+#define P_Ca_2nd_T_Plus_IL_Offset 19671
+#define P_Ca_2nd_T_Minus_IL_Offset 19674
+#define P_Ca_2nd_Z_Plus_IL_Offset 19677
+#define P_Ca_2nd_Z_Minus_IL_Offset 19679
+#define P_An_2nd_T_Plus_IL_Offset 19681
+#define P_An_2nd_T_Minus_IL_Offset 19684
+#define P_An_2nd_Z_Minus_IL_Offset 19687
+#define P_Z_Pos_Data 19689
+#define P_Clamp_Z_Plus_IL_Offset 19690
+#define P_FR_X_Plus_IL_Offset 19691
+#define P_FR_X_Minus_IL_Offset 19693
+#define P_FR_Z_Minus_IL_Offset 19695
+#define P_Ca_NG_PNP_Plus_IL_Offset 19696
+#define P_Ca_NG_PNP_Minus_IL_Offset 19700
+#define P_An_NG_PNP_Plus_IL_Offset 19704
+#define P_An_NG_PNP_Minus_IL_Offset 19708
+#define P_Unloader_X_Plus_IL_Offset 19712
+#define P_Unloader_X_Minus_IL_Offset 19716
+#define P_Unloader_Z_Plus_IL_Offset 19720
+#define P_Unloader_Z_Minus_IL_Offset 19723
+#define P_IL_In_Offset 19726
+#define P_X_PLC_InterLock 19751
+#define P_IL_Home_Chk 19752
+#define P_IL_Home_Chk_Motor_Num 19753
+#define P_IL_Home_Chk_Motor_Update 19773
+#define P_IL_Inside_Home_Chk_Complete 19774
+#define P_IL_Outside_Home_Chk_Complete 19775
+#define P_IL_Motor_Home_Chk_RTN 19776
+#define P_IL_Function_Cnt 19777
+#define P_IL_Function_Motor_Num 19778
+#define P_Jog_Page_Flag 19779
+#define P_Jog_Btn_Flag 19780
+#define P_Old_Jog_Btn_Flag 19781
+#define P_Anode_1st_TR_Belt_Down_Flag 19782
+#define P_Anode_1st_TR_Belt_Pick_Up_Flag 19783
+#define P_Anode_1st_TR_Align_Down_Flag 19784
+#define P_Anode_2nd_TR_Align_Pick_Up_Flag 19785
+#define P_Anode_2nd_TR_Stack_Down_Flag 19786
+#define P_Anode_NG_TR_Align_Pick_Up_Flag 19787
+#define P_Anode_NG_TR_NG_Place_Down_Flag 19788
+#define P_Anode_2nd_TR_Align_Down_Flag 19789
+#define P_Anode_1st_TR_Align_Pick_Up_Flag 19790
+#define P_Anode_1st_TR_Belt_Down_State_Machine 19791
+#define P_Anode_1st_TR_Belt_Down_Status 19792
+#define P_Anode_1st_TR_Belt_Pick_Up_State_Machine 19793
+#define P_Anode_1st_TR_Belt_Pick_Up_Status 19794
+#define P_Anode_1st_TR_Align_Down_State_Machine 19795
+#define P_Anode_1st_TR_Align_Down_Status 19796
+#define P_Anode_2nd_TR_Align_Pick_Up_State_Machine 19797
+#define P_Anode_2nd_TR_Align_Pick_Up_Status 19798
+#define P_Anode_2nd_TR_Stack_Down_State_Machine 19799
+#define P_Anode_2nd_TR_Stack_Down_Status 19800
+#define P_Anode_NG_TR_Align_Pick_Up_State_Machine 19801
+#define P_Anode_NG_TR_Align_Pick_Up_Status 19802
+#define P_Anode_NG_TR_NG_Place_Down_State_Machine 19803
+#define P_Anode_NG_TR_NG_Place_Down_Status 19804
+#define P_Anode_2nd_TR_Align_Down_State_Machine 19805
+#define P_Anode_2nd_TR_Align_Down_Status 19806
+#define P_Anode_1st_TR_Align_Pick_Up_State_Machine 19807
+#define P_Anode_1st_TR_Align_Pick_Up_Status 19808
+#define P_Cathode_1st_TR_Belt_Down_Flag 19809
+#define P_Cathode_1st_TR_Belt_Pick_Up_Flag 19810
+#define P_Cathode_1st_TR_Align_Down_Flag 19811
+#define P_Cathode_2nd_TR_Align_Pick_Up_Flag 19812
+#define P_Cathode_2nd_TR_Stack_Down_Flag 19813
+#define P_Cathode_NG_TR_Align_Pick_Up_Flag 19814
+#define P_Cathode_NG_TR_NG_Place_Down_Flag 19815
+#define P_Cathode_2nd_TR_Align_Down_Flag 19816
+#define P_Cathode_1st_TR_Align_Pick_Up_Flag 19817
+#define P_Cathode_1st_TR_Belt_Down_State_Machine 19818
+#define P_Cathode_1st_TR_Belt_Down_Status 19819
+#define P_Cathode_1st_TR_Belt_Pick_Up_State_Machine 19820
+#define P_Cathode_1st_TR_Belt_Pick_Up_Status 19821
+#define P_Cathode_1st_TR_Align_Down_State_Machine 19822
+#define P_Cathode_1st_TR_Align_Down_Status 19823
+#define P_Cathode_2nd_TR_Align_Pick_Up_State_Machine 19824
+#define P_Cathode_2nd_TR_Align_Pick_Up_Status 19825
+#define P_Cathode_2nd_TR_Stack_Down_State_Machine 19826
+#define P_Cathode_2nd_TR_Stack_Down_Status 19827
+#define P_Cathode_NG_TR_Align_Pick_Up_State_Machine 19828
+#define P_Cathode_NG_TR_Align_Pick_Up_Status 19829
+#define P_Cathode_NG_TR_NG_Place_Down_State_Machine 19830
+#define P_Cathode_NG_TR_NG_Place_Down_Status 19831
+#define P_Cathode_2nd_TR_Align_Down_State_Machine 19832
+#define P_Cathode_2nd_TR_Align_Down_Status 19833
+#define P_Cathode_1st_TR_Align_Pick_Up_State_Machine 19834
+#define P_Cathode_1st_TR_Align_Pick_Up_Status 19835
+#define P_Old_Anode_Belt_ASCII 19836
+#define P_Old_Cathode_Belt_ASCII 19837
+#define P_Anode_Belt_ASCII 19838
+#define P_Cathode_Belt_ASCII 19839
+#define P_Check_Vac_Time 19840
+#define P_Send_Anode_NG_Code_To_PLC 19841
+#define P_Receive_Anode_NG_Code_From_PLC 19842
+#define P_Send_Cathode_NG_Code_To_PLC 19843
+#define P_Receive_Cathode_NG_Code_From_PLC 19844
+#define P_Current_Cell_Memory_Anode_1P 19845
+#define P_Current_Cell_Memory_Anode_AT 19846
+#define P_Current_Cell_Memory_Anode_2P 19847
+#define P_Current_Cell_Memory_Cathode_1P 19848
+#define P_Current_Cell_Memory_Cathode_AT 19849
+#define P_Current_Cell_Memory_Cathode_2P 19850
+#define P_Current_Cell_Memory_Stack_Table 19851
+#define P_Current_Cell_Memory_Cathode_NG_TR 19852
+#define P_Current_Cell_Memory_Anode_NG_TR 19853
+#define P_BTN_Anode_1st_TR_Buffer_Clear 19854
+#define P_BTN_Anode_2nd_TR_Buffer_Clear 19855
+#define P_BTN_Anode_Align_Buffer_Clear 19856
+#define P_BTN_Anode_NG_TR_Buffer_Clear 19857
+#define P_BTN_Cathode_1st_TR_Buffer_Clear 19858
+#define P_BTN_Cathode_2nd_TR_Buffer_Clear 19859
+#define P_BTN_Cathode_Align_Buffer_Clear 19860
+#define P_BTN_Cathode_NG_TR_Buffer_Clear 19861
+#define P_Old_BTN_Anode_1st_TR_Buffer_Clear 19862
+#define P_Old_BTN_Anode_2nd_TR_Buffer_Clear 19863
+#define P_Old_BTN_Anode_Align_Buffer_Clear 19864
+#define P_Old_BTN_Anode_NG_TR_Buffer_Clear 19865
+#define P_Old_BTN_Cathode_1st_TR_Buffer_Clear 19866
+#define P_Old_BTN_Cathode_2nd_TR_Buffer_Clear 19867
+#define P_Old_BTN_Cathode_Align_Buffer_Clear 19868
+#define P_Old_BTN_Cathode_NG_TR_Buffer_Clear 19869
+#define P_Send_Anode_NG_Code_Flag 19870
+#define P_Send_Cathode_NG_Code_Flag 19871
+#define P_Anode_Vision_NG_To_PLC_Flag 19872
+#define P_Cathode_Vision_NG_To_PLC_Flag 19873
+#define P_Status_Clear_Sheet_Maint_Check 19874
 #define M_ASCII_Stack_Work_Host_Sepa_ID_Buffer 8554
 #define M_Stack_Host_ID_Buffer_Mode 8564
 #define M_Stack_Host_ID_Sample_Type 8565
@@ -12679,756 +12685,756 @@ enum ptrMarray {_ptrMarray_=-1
 #define M_ASCII_Cathode_Sheet_Buffer 8655
 #define M_ASCII_First_Sheet_Buffer 8711
 #define M_ASCII_Last_Sheet_Buffer 8718
-#define P_Single_Run_Start_Flag 19874
-#define P_Single_Run_Control_State_Machine 19875
-#define P_Single_Run_Control_Status 19876
-#define P_Single_Run_Execute_Bit 19877
-#define P_User_Dry_Run_Mode 19878
-#define P_Single_Run_State_Machine 19879
-#define P_Single_Run_Status 19880
-#define P_Single_Run_Unit 19881
-#define P_Single_Run_Evade_Pos_RTN 19882
-#define P_Single_Run_Evade_Pos_Check_RTN 19883
-#define P_Single_Run_Pos_Rtn1 19884
-#define P_Single_Run_Pos_Rtn2 19885
-#define P_Single_Run_Motion_Ready_RTN 19886
-#define P_Single_Run_Execution_Interlock_RTN 19887
-#define P_Single_Run_Coord_Activate_RTN 19888
-#define P_Single_Run_Coord_Activate_Check_RTN 19889
-#define P_Single_Run_Select_Run_Mode_RTN 19890
-#define P_Single_Run_Execution_Run_RTN 19891
-#define P_Single_Run_Motion_Ready_State_Machine 19892
-#define P_Coord_1 19893
-#define P_Coord_2 19894
-#define P_Coord_3 19895
-#define P_Coord_4 19896
-#define P_Final_Roll_Z_Motion_Flag 19897
-#define P_Final_Roll_Z_Motion_State_Machine 19898
-#define P_Main_Z_Motion_Flag 19899
-#define P_Main_Z_Motion_State_Machine 19900
-#define P_Single_Run_Mode_Flag 19901
-#define P_Cathode_AT_Motion_Flag 19902
-#define P_Cathode_Align_Motion_State_Machine 19903
-#define P_Anode_AT_Motion_Flag 19904
-#define P_Anode_Align_Motion_State_Machine 19905
-#define P_Sheet_Paper_Motion_Flag 19906
-#define P_Sheet_Paper_Motion_State_Machine 19907
-#define P_Cathode_NG_PNP_T_Motion_Flag 19908
-#define P_Cathode_NG_PNP_T_Motion_State_Machine 19909
-#define P_Cathode_NG_PNP_Z_Motion_Flag 19910
-#define P_Cathode_NG_PNP_Z_Motion_State_Machine 19911
-#define P_Anode_NG_PNP_T_Motion_Flag 19912
-#define P_Anode_NG_PNP_T_Motion_State_Machine 19913
-#define P_Anode_NG_PNP_Z_Motion_Flag 19914
-#define P_Anode_NG_PNP_Z_Motion_State_Machine 19915
-#define P_1st_UND_X_Motion_Flag 19916
-#define P_1st_UND_X_Motion_State_Machine 19917
-#define P_1st_UND_Z_Motion_Flag 19918
-#define P_1st_UND_Z_Motion_State_Machine 19919
-#define P_1st_UND_T_Motion_Flag 19920
-#define P_1st_UND_T_Motion_State_Machine 19921
-#define P_Cathode_Run_Command_Flag 19922
-#define P_Anode_Run_Command_Flag 19923
-#define P_NG_PNP_Uint_Motion_Flag 19924
-#define P_NG_PNP_Uint_State_Machine 19925
-#define P_NG_PNP_Motion_Cnt 19926
-#define P_NG_PNP_Motion_arr 19927
-#define P_Single_Run_Timer 19937
-#define P_Single_Run_Align_Timer 19938
-#define P_Single_Run_Align_Timer2 19939
-#define P_Single_Run_Finall_Roll_Z_Timer 19940
-#define P_Single_RuN_MAIN_Z_Timer 19941
-#define P_Single_Run_Sheet_Paper_Timer 19942
-#define P_Single_Run_Debug_SM 19943
-#define P_Error_Monitoring_Count_1 19944
-#define P_Error_Monitoring_Count_2 19945
-#define P_Error_Monitoring_Count_3 19946
-#define P_Error_Monitoring_Count_4 19947
-#define P_Error_Monitoring_Count_5 19948
-#define P_Old_Single_Run_Mode_Flag 19949
-#define P_Old_Current_Mode 19950
-#define P_Single_Run_Timebase_Off_RTN 19951
-#define P_Single_Run_Stop_State_Machine 19952
-#define P_Single_Run_Stop_Status 19953
-#define P_Single_Run_Stop_Timer 19954
-#define P_Single_Run_Stop_Init_RTN 19955
-#define P_Single_Run_Stop_Btn_Chk 19956
-#define P_Single_Run_Stop_Command 19957
-#define P_Motor_Ready_Poa_Inpos_200um 19958
-#define P_Ecat_Parameter_Write_Flag 19959
-#define P_Ecat_Parameter_Read_Flag 19960
-#define P_Ecat_Each_Parameter_Write_Flag 19961
-#define P_Ecat_Slave_Idx 19962
-#define P_Ec_Num 19963
-#define P_Ecat_Read_Motor_Num 19964
-#define P_Ecat_Write_Motor_Num 19965
-#define P_Ecat_Parameter_Write_State_Machine 19966
-#define P_Ecat_Parameter_Read_State_Machine 19967
-#define P_Ecat_Each_Parameter_Write_State_Machine 19968
-#define P_Ecat_Read_MNTR 19969
-#define P_Ecat_Write_MNTR 19997
-#define P_Ecat_Save_MNTR 20025
-#define P_Ecat_Error_MNTR 20041
-#define P_Ecat_Read_Error_MNTR 20057
-#define P_Ecat_Each_Write_Error_MNTR 20073
-#define P_Ecat_Write_Status 20089
-#define P_Ecat_Read_Status 20090
-#define P_Ecat_Each_Write_Status 20091
-#define P_Pn000 20092
-#define P_Pn001 20112
-#define P_Pn00B 20132
-#define P_Pn100 20152
-#define P_Pn101 20172
-#define P_Pn102 20192
-#define P_Pn103 20212
-#define P_Pn123 20232
-#define P_Pn140 20252
-#define P_Pn141 20272
-#define P_Pn145 20292
-#define P_Pn146 20312
-#define P_Pn160 20332
-#define P_Pn161 20352
-#define P_Pn163 20372
-#define P_Pn170 20392
-#define P_Pn401 20412
-#define P_Pn408 20432
-#define P_Pn409 20452
-#define P_Pn40A 20472
-#define P_Pn40C 20492
-#define P_Pn40D 20512
-#define P_Pn416 20532
-#define P_Pn417 20552
-#define P_Pn511 20572
-#define P_Pn520 20592
-#define P_PnB02_Numerator 20612
-#define P_PnB02_Denominator 20632
-#define P_Align_Plus_Blow_Test 20652
-#define P_System_Setting_Flag 20653
-#define P_Ecat_Setting_Flag 20654
-#define P_Ecat_Activation_State_Machine 20655
-#define P_PLC31_Ecat_Retry_Cnt 20656
-#define P_Ecat_Connect_Result 20657
-#define P_Ecat_Slave_Error 20658
-#define P_PWM_AbsPhasePosOffset_Change_State_Machine 20659
-#define P_AbsPhasePosOffset_Change_Complete 20660
-#define P_PWM_AbsPhasing_Fail 20661
-#define P_PWM_AbsPhasing_Complete 20662
-#define P_Whole_Stacking_Tack_Time 20663
-#define P_Whole_Stacking_Tack_Time_Check 20664
-#define P_Whole_Stacking_Tack_Timer_Check_Flag 20665
-#define P_Whole_Stacking_Timer_Shift_Status_Machine 20666
-#define P_Whole_Stacking_TackTime_Array0 20667
-#define P_Whole_Stacking_TackTime_Array1 20668
-#define P_Whole_Stacking_TackTime_Array2 20669
-#define P_Whole_Stacking_TackTime_Array3 20670
-#define P_Whole_Stacking_TackTime_Array4 20671
-#define P_Whole_Stacking_TackTime_Array5 20672
-#define P_Whole_Stacking_TackTime_Array6 20673
-#define P_Whole_Stacking_TackTime_Array7 20674
-#define P_Whole_Stacking_TackTime_Array8 20675
-#define P_Whole_Stacking_TackTime_Array9 20676
-#define P_Whole_Stacking_TackTime_Array10 20677
-#define P_First_Stacking_Start 20678
-#define P_Last_Stacking_Complete 20679
-#define P_Stacking_Tack_Time 20680
-#define P_Stacking_Tack_Time_Check 20681
-#define P_Stacking_Tack_Timer_Check_Flag 20682
-#define P_Stacking_Timer_Shift_Status_Machine 20683
-#define P_Cathode_to_Anode_FR_Tack_Time_Check 20684
-#define P_Anode_to_Cathode_FR_Tack_Time_Check 20685
-#define P_Cathode_to_Anode_FR_Tack_Time_Start 20686
-#define P_Anode_to_Cathode_FR_Tack_Time_Start 20687
-#define P_Cathode_to_Anode_FR_Tack_Time_Complete 20688
-#define P_Anode_to_Cathode_FR_Tack_Time_Complete 20689
-#define P_Cathode_to_Anode_FR_Time 20690
-#define P_Anode_to_Cathode_FR_Time 20691
-#define P_Cathode_to_Anode_FR_Tack_Timer_Check_Flag 20692
-#define P_Anode_to_Cathode_FR_Tack_Timer_Check_Flag 20693
-#define P_Anode_Align_Table_Time 20694
-#define P_Anode_Align_Table_Tack_Time_Check 20695
-#define P_Anode_Align_Table_Tack_Timer_Check_Flag 20696
-#define P_Anode_Align_Table_Timer_Shift_Status_Machine 20697
-#define P_Anode_Align_Tack_Time_Start 20698
-#define P_Anode_Align_Tack_Time_Complete 20699
-#define P_Cathode_Align_Table_Time 20700
-#define P_Cathode_Align_Table_Tack_Time_Check 20701
-#define P_Cathode_Align_Table_Tack_Timer_Check_Flag 20702
-#define P_Cathode_Align_Table_Timer_Shift_Status_Machine 20703
-#define P_Cathode_Align_Tack_Time_Start 20704
-#define P_Cathode_Align_Tack_Time_Complete 20705
-#define P_Anode_1th_Tack_Time_Start 20706
-#define P_Anode_1th_Tack_Time_Complete 20707
-#define P_Anode_1th_Time 20708
-#define P_Anode_1th_Tack_Time_Check 20709
-#define P_Anode_1th_Tack_Timer_Check_Flag 20710
-#define P_Anode_1th_Timer_Shift_Status_Machine 20711
-#define P_Cathode_1th_Tack_Time_Start 20712
-#define P_Cathode_1th_Tack_Time_Complete 20713
-#define P_Cathode_1th_Time 20714
-#define P_Cathode_1th_Tack_Time_Check 20715
-#define P_Cathode_1th_Tack_Timer_Check_Flag 20716
-#define P_Cathode_1th_Timer_Shift_Status_Machine 20717
-#define P_Anode_2th_Tack_Time_Start 20718
-#define P_Anode_2th_Tack_Time_Complete 20719
-#define P_Anode_2th_Time 20720
-#define P_Anode_2th_Tack_Time_Check 20721
-#define P_Anode_2th_Tack_Timer_Check_Flag 20722
-#define P_Anode_2th_Timer_Shift_Status_Machine 20723
-#define P_Cathode_2th_Tack_Time_Start 20724
-#define P_Cathode_2th_Tack_Time_Complete 20725
-#define P_Cathode_2th_Time 20726
-#define P_Cathode_2th_Tack_Time_Check 20727
-#define P_Cathode_2th_Tack_Timer_Check_Flag 20728
-#define P_Cathode_2th_Timer_Shift_Status_Machine 20729
-#define P_Anode_1th_NG_Tack_Time_Start 20730
-#define P_Anode_1th_NG_Tack_Time_Complete 20731
-#define P_Anode_1th_NG_Time 20732
-#define P_Anode_1th_NG_Tack_Time_Check 20733
-#define P_Anode_1th_NG_Tack_Timer_Check_Flag 20734
-#define P_Anode_1th_NG_Timer_Shift_Status_Machine 20735
-#define P_Cathode_1th_NG_Tack_Time_Start 20736
-#define P_Cathode_1th_NG_Tack_Time_Complete 20737
-#define P_Cathode_1th_NG_Time 20738
-#define P_Cathode_1th_NG_Tack_Time_Check 20739
-#define P_Cathode_1th_NG_Tack_Timer_Check_Flag 20740
-#define P_Cathode_1th_NG_Timer_Shift_Status_Machine 20741
-#define P_Anode_Clamp_Tack_Time_Start 20742
-#define P_Anode_Clamp_Tack_Time_Complete 20743
-#define P_Anode_Clamp_Time 20744
-#define P_Anode_Clamp_Tack_Time_Check 20745
-#define P_Anode_Clamp_Tack_Timer_Check_Flag 20746
-#define P_Anode_Clamp_Timer_Shift_Status_Machine 20747
-#define P_Cathode_Clamp_Tack_Time_Start 20748
-#define P_Cathode_Clamp_Tack_Time_Complete 20749
-#define P_Cathode_Clamp_Time 20750
-#define P_Cathode_Clamp_Tack_Time_Check 20751
-#define P_Cathode_Clamp_Tack_Timer_Check_Flag 20752
-#define P_Cathode_Clamp_Timer_Shift_Status_Machine 20753
-#define P_Final_Roll_X_Timer_Shift_Status_Machine 20754
-#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array0 20755
-#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array1 20756
-#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array2 20757
-#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array3 20758
-#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array4 20759
-#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array5 20760
-#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array6 20761
-#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array7 20762
-#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array8 20763
-#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array9 20764
-#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array10 20765
-#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array0 20766
-#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array1 20767
-#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array2 20768
-#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array3 20769
-#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array4 20770
-#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array5 20771
-#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array6 20772
-#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array7 20773
-#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array8 20774
-#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array9 20775
-#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array10 20776
-#define P_Pneumatic_Pressure_Unit_Tack_Time_Chk_Timer 20777
-#define P_Pneumatic_Pressure_Unit_Tack_Time 20804
-#define P_MCC_Anode_Align_NG_Count 20831
-#define P_MCC_Cathode_Align_NG_Count 20832
-#define P_MCC_Anode_Retry_NG_Count 20833
-#define P_MCC_Cathode_Retry_NG_Count 20834
-#define P_Discharge_Tact_Time_Arr 20835
-#define P_Discharge_Hold_Timer 20847
-#define P_Discharge_Hold_Time 20848
-#define P_AN_1st_Z_Zero_Angle 20849
-#define P_AN_1st_Z_Zero_Length 20850
-#define P_Anode_1st_PNP_Z_Crank_Zero_Pos 20851
-#define P_Anode_1st_PNP_Z_Crank_real_Move_Pos 20852
-#define P_Anode_1st_PNP_Z_Crank_radian 20853
-#define P_Anode_1st_PNP_Z_Acos_denominator 20854
-#define P_Anode_1st_PNP_Z_Acos_numerator 20855
-#define P_Anode_1st_PNP_Z_Crank_Angle 20856
-#define P_Anode_1st_PNP_Z_Real_Move_Pos 20857
-#define P_Anode_1st_Fwd_Bwd_Rise 20858
-#define P_CA_1st_Z_Zero_Angle 20859
-#define P_CA_1st_Z_Zero_Length 20860
-#define P_Cathode_1st_PNP_Z_Crank_Zero_Pos 20861
-#define P_Cathode_1st_PNP_Z_Crank_real_Move_Pos 20862
-#define P_Cathode_1st_PNP_Z_Crank_radian 20863
-#define P_Cathode_1st_PNP_Z_Acos_denominator 20864
-#define P_Cathode_1st_PNP_Z_Acos_numerator 20865
-#define P_Cathode_1st_PNP_Z_Crank_Angle 20866
-#define P_Cathode_1st_PNP_Z_Real_Move_Pos 20867
-#define P_Cathode_1st_Fwd_Bwd_Rise 20868
-#define P_AN_2nd_Z_Zero_Angle 20869
-#define P_AN_2nd_Z_Zero_Length 20870
-#define P_Anode_2nd_PNP_Z_Crank_Zero_Pos 20871
-#define P_Anode_2nd_PNP_Z_Crank_real_Move_Pos 20872
-#define P_Anode_2nd_PNP_Z_Crank_radian 20873
-#define P_Anode_2nd_PNP_Z_Acos_denominator 20874
-#define P_Anode_2nd_PNP_Z_Acos_numerator 20875
-#define P_Anode_2nd_PNP_Z_Crank_Angle 20876
-#define P_Anode_2nd_PNP_Z_Real_Move_Pos 20877
-#define P_Anode_2nd_Fwd_Bwd_Rise 20878
-#define P_CA_2nd_Z_Zero_Angle 20879
-#define P_CA_2nd_Z_Zero_Length 20880
-#define P_Cathode_2nd_PNP_Z_Crank_Zero_Pos 20881
-#define P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos 20882
-#define P_Cathode_2nd_PNP_Z_Crank_radian 20883
-#define P_Cathode_2nd_PNP_Z_Acos_denominator 20884
-#define P_Cathode_2nd_PNP_Z_Acos_numerator 20885
-#define P_Cathode_2nd_PNP_Z_Crank_Angle 20886
-#define P_Cathode_2nd_PNP_Z_Real_Move_Pos 20887
-#define P_Cathode_2nd_Fwd_Bwd_Rise 20888
-#define P_Old_Recipe_Anode_1st_PNP_Z_Ready_Up 20889
-#define P_Old_Recipe_Anode_1st_PNP_Z_Belt_Up 20890
-#define P_Old_Recipe_Anode_1st_PNP_Z_Belt_Down 20891
-#define P_Old_Recipe_Anode_1st_PNP_Z_Align_Up 20892
-#define P_Old_Recipe_Anode_1st_PNP_Z_Align_Down 20893
-#define P_Old_Recipe_Cathode_1st_PNP_Z_Ready_Up 20894
-#define P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Up 20895
-#define P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Down 20896
-#define P_Old_Recipe_Cathode_1st_PNP_Z_Align_Up 20897
-#define P_Old_Recipe_Cathode_1st_PNP_Z_Align_Down 20898
-#define P_Old_Recipe_Anode_2nd_PNP_Z_Align_Up 20899
-#define P_Old_Recipe_Anode_2nd_PNP_Z_Align_Down 20900
-#define P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Up 20901
-#define P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Down 20902
-#define P_Old_Recipe_Anode_2nd_PNP_Z_Ready_Up 20903
-#define P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Up 20904
-#define P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Down 20905
-#define P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Up 20906
-#define P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Down 20907
-#define P_Old_Recipe_Cathode_2nd_PNP_Z_Ready_Up 20908
-#define P_PLC19_All_Home_Status 20909
-#define P_PLC19_All_Home_Module_Status 20910
-#define P_PLC19_All_Home_State_Machine 20911
-#define P_PLC19_All_Home_Seq_Index 20912
-#define P_PLC19_All_Home_Self_Index 20913
-#define P_PLC19_All_Home_Set_Mode_Return 20914
-#define P_PLC19_All_Home_Timer 20915
-#define P_PLC19_All_Home_Tact_Time_Array 20916
-#define P_PLC19_All_Home_Tact_Time 20936
-#define P_All_Home_Module_Error 20937
-#define P_Act_ALL_Home_Time_Out_Time 20938
-#define P_Act_ALL_Home_Time_Out 20939
-#define P_Act_Hold_Complete_Bit 20979
-#define P_Module_Act_Hold_Command_Array 21014
-#define P_OLD_Module_Act_Hold_Command_Array 21049
-#define P_Module_Act_Hold_State_Machine_Array 21084
-#define P_Act_Hold_Old_Time 21119
-#define P_Act_Hold_Time_Out_Time 21154
-#define P_Act_Hold_Time_Out 21155
-#define P_First_PNP_T_Wait_Status 21190
-#define P_First_PNP_Z_Wait_Status 21191
-#define P_First_PNP_Picker_T_Turn_Status 21192
-#define P_First_PNP_T_Wait_To_Belt_Status 21193
-#define P_First_PNP_Z_Wait_To_Belt_Status 21194
-#define P_First_PNP_T_Align_To_Belt_Status 21195
-#define P_First_PNP_Z_Align_To_Belt_Status 21196
-#define P_First_PNP_Z_Belt_Down_Status 21197
-#define P_First_PNP_Z_Belt_Up_Status 21198
-#define P_First_PNP_T_Wait_To_Align_Status 21199
-#define P_First_PNP_Z_Wait_To_Align_Status 21200
-#define P_First_PNP_T_Belt_To_Align_Status 21201
-#define P_First_PNP_Z_Belt_To_Align_Status 21202
-#define P_First_PNP_Z_Align_Down_Status 21203
-#define P_First_PNP_Z_Align_Up_Status 21204
-#define P_First_PNP_Vac_On_Status 21205
-#define P_First_PNP_Blow_On_Status 21206
-#define P_Second_PNP_T_Align_To_Stack_Status 21207
-#define P_Second_PNP_Z_Align_To_Stack_Status 21208
-#define P_Second_PNP_T_Stack_To_Align_Status 21209
-#define P_Second_PNP_Z_Stack_To_Align_Status 21210
-#define P_Second_PNP_Z_Align_Down_Status 21211
-#define P_Second_PNP_Z_Align_Up_Status 21212
-#define P_Second_PNP_Vac_On_Status 21213
-#define P_Second_PNP_Blow_On_Status 21214
-#define P_NG_PNP_NG_Bos_Status 21215
-#define P_NG_PNP_Align_Status 21216
-#define P_NG_PNP_Align_Down_Status 21217
-#define P_NG_PNP_Align_Up_Status 21218
-#define P_NG_PNP_Vac_On_Status 21219
-#define P_NG_PNP_Blow_On_Status 21220
-#define P_Hold_1st_PNP_Position 21221
-#define P_Hold_Module_Error 21222
-#define P_Act_Execute_Complete_Bit 21223
-#define P_Module_Act_Execute_Command_Array 21235
-#define P_OLD_Module_Act_Execute_Command_Array 21247
-#define P_Module_Act_Execute_State_Machine_Array 21259
-#define P_Act_Execute_Old_Time 21271
-#define P_Act_Execute_Time_Out_Time 21283
-#define P_Act_Execute_Time_Out 21284
-#define P_Execute_Module_Error 21296
-#define P_Execute_First_Sepa_Total_Tact_Time 21297
-#define P_Current_JR_Thickness_mm 21298
-#define P_Current_Jelly_Roll_Thinckness_mm_Send_Enable_Flag 21299
-#define P_Stack_Table_NG_Flag 21300
-#define P_Suspend_Discharge_Cell_Out_Restart 21301
-#define P_Jelly_Roll_OK_Count 21302
-#define P_Jelly_Roll_NG_Count 21303
-#define P_Jelly_Roll_Total_Count 21304
-#define P_Jelly_Roll_Prod_Count 21305
-#define P_Jelly_Roll_Recipe_Count 21306
-#define P_Current_Cell_Memory_Jelly_Roll 21307
-#define P_VISION_PLC10_Anode_Align_Start 21308
-#define P_VISION_PLC10_Cathode_Align_Start 21309
-#define P_Stack_Table_NG_Count 21310
-#define P_Stack_PMAC_NG_Code 21311
-#define P_Stack_Vision_NG_Code_IN_Timer 21312
-#define P_1st_Discharge_State 21313
-#define P_Prev_Sepa_Stack_Completed_Flag 21314
-#define P_First_Sepa_Vision_Skip_Flag 21315
-#define P_Discharge_Unloader_Handover_Timer 21316
-#define P_Discharge_Unloader_Handover_Time 21317
-#define P_Buffer_Mode_Module_Status_Sequence 21318
-#define P_EXECUTE_Status_Prod_Sequence 21348
-#define P_Execute_First_Sepa_Mode_Cmd 21378
-#define P_Execute_First_Sepa_Mode_Status 21379
-#define P_Execute_First_Sepa_Mode_Module_Status 21380
-#define P_Execute_First_Sepa_Mode_State_Machine 21381
-#define P_Execute_First_Sepa_Mode_Seq_Index 21382
-#define P_Execute_First_Sepa_Mode_Self_Index 21383
-#define P_Execute_First_Sepa_Mode_Debug_Edge 21384
-#define P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array 21385
-#define P_Execute_First_Sepa_Mode_Timer 21415
-#define P_Execute_First_Sepa_Mode_Tact_Time_Array 21416
-#define P_Execute_First_Sepa_Mode_Tact_Time 21436
-#define P_Execute_1st_Sepa_Status 21437
-#define P_Suspend_Discharge_Cmd 21438
-#define P_Suspend_Discharge_Status 21439
-#define P_Suspend_Discharge_State_Machine 21440
-#define P_Suspend_Discharge_Seq_Index 21441
-#define P_Suspend_Discharge_Self_Index 21442
-#define P_Discharge_Seq_InterLock_Delay_Time 21443
-#define P_Discharge_Seq_InterLock_Flag 21473
-#define P_Buffer_Seqdata_Discharge_Array 21503
-#define P_Suspend_Discharge_Timer 21533
-#define P_Suspend_Discharge_Tact_Time_Array 21534
-#define P_Suspend_Discharge_Tact_Time 21554
-#define P_Suspend_Discharge_1st_Unloader_JR_Grip 21555
-#define P_Suspend_ARC_Cmd 21556
-#define P_Suspend_ARC_Status 21557
-#define P_Suspend_ARC_State_Machine 21558
-#define P_Suspend_ARC_Seq_Index 21559
-#define P_Suspend_ARC_Self_Index 21560
-#define P_Suspend_ARC_Manual_Occur_Flag 21561
-#define P_ARC_Seq_InterLock_Delay_Time 21562
-#define P_ARC_Seq_InterLock_Flag 21592
-#define P_Buffer_Seqdata_ARC_Array 21622
-#define P_Suspend_ARC_Timer 21652
-#define P_Suspend_ARC_Tact_Time_Array 21653
-#define P_Suspend_ARC_Tact_Time 21673
-#define P_Suspend_Anode_1TR_Cell_Supply_Cmd 21674
-#define P_Suspend_Anode_1TR_Cell_Supply_Status 21675
-#define P_Suspend_Anode_1TR_Cell_Supply_State_Machine 21676
-#define P_Suspend_Anode_1TR_Cell_Supply_Seq_Index 21677
-#define P_Suspend_Anode_1TR_Cell_Supply_Self_Index 21678
-#define P_Suspend_Anode_1TR_Cell_Supply_Module_Status 21679
-#define P_Anode_1TR_Cell_Supply_Seq_InterLock_Delay_Time 21680
-#define P_Anode_1TR_Cell_Supply_Seq_InterLock_Flag 21710
-#define P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array 21740
-#define P_Suspend_Anode_1TR_Cell_Supply_Timer 21770
-#define P_Suspend_Anode_1TR_Cell_Supply_Tact_Time_Array 21771
-#define P_Suspend_Anode_1TR_Cell_Supply_Tact_Time 21791
-#define P_Hold_Exist_Insp_Cmd 21792
-#define P_Hold_Exist_Insp_Status 21793
-#define P_Hold_Exist_Insp_Module_Status 21794
-#define P_Hold_Exist_Insp_State_Machine 21795
-#define P_Hold_Exist_Insp_Seq_Index 21796
-#define P_Hold_Exist_Insp_Self_Index 21797
-#define P_Hold_Exist_Insp_Debug_Edge 21798
-#define P_Buffer_Seqdata_Hold_Exist_Insp_Array 21799
-#define P_Hold_Exist_Insp_Timer 21829
-#define P_Hold_Exist_Insp_Tact_Time_Array 21830
-#define P_Hold_Exist_Insp_Tact_Time 21850
-#define P_Hold_Remove_NG_PNP_Cmd 21851
-#define P_Hold_Remove_NG_PNP_Status 21852
-#define P_Hold_Remove_NG_PNP_Module_Status 21853
-#define P_Hold_Remove_NG_PNP_State_Machine 21854
-#define P_Hold_Remove_NG_PNP_Seq_Index 21855
-#define P_Hold_Remove_NG_PNP_Self_Index 21856
-#define P_Hold_Remove_NG_PNP_Debug_Edge 21857
-#define P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array 21858
-#define P_Hold_Remove_NG_PNP_Timer 21888
-#define P_Hold_Remove_NG_PNP_Tact_Time_Array 21889
-#define P_Hold_Remove_NG_PNP_Tact_Time 21909
-#define P_PLC01_Hold_Remove_NG_PNP_Sub_Flag 21910
-#define P_PLC01_Hold_Remove_NG_PNP_Sub_State_Machine 21911
-#define P_PLC01_Hold_Remove_NG_PNP_Sub_Status 21912
-#define P_Hold_Remove_Align_Cmd 21913
-#define P_Hold_Remove_Align_Status 21914
-#define P_Hold_Remove_Align_Module_Status 21915
-#define P_Hold_Remove_Align_State_Machine 21916
-#define P_Hold_Remove_Align_Seq_Index 21917
-#define P_Hold_Remove_Align_Self_Index 21918
-#define P_Hold_Remove_Align_Debug_Edge 21919
-#define P_Buffer_Seqdata_Hold_Remove_Align_Array 21920
-#define P_Hold_Remove_Align_Timer 21950
-#define P_Hold_Remove_Align_Tact_Time_Array 21951
-#define P_Hold_Remove_Align_Tact_Time 21971
-#define P_PLC01_Hold_Remove_Align_Sub_Flag 21972
-#define P_PLC01_Hold_Remove_Align_Sub_State_Machine 21973
-#define P_PLC01_Hold_Remove_Align_Sub_Status 21974
-#define P_Hold_Remove_2TR_Cmd 21975
-#define P_Hold_Remove_2TR_Status 21976
-#define P_Hold_Remove_2TR_Module_Status 21977
-#define P_Hold_Remove_2TR_State_Machine 21978
-#define P_Hold_Remove_2TR_Seq_Index 21979
-#define P_Hold_Remove_2TR_Self_Index 21980
-#define P_Hold_Remove_2TR_Debug_Edge 21981
-#define P_Buffer_Seqdata_Hold_Remove_2TR_Array 21982
-#define P_Hold_Remove_2TR_Timer 22012
-#define P_Hold_Remove_2TR_Tact_Time_Array 22013
-#define P_Hold_Remove_2TR_Tact_Time 22033
-#define P_Hold_Supply_1TR_Cmd 22034
-#define P_Hold_Supply_1TR_Status 22035
-#define P_Hold_Supply_1TR_Module_Status 22036
-#define P_Hold_Supply_1TR_State_Machine 22037
-#define P_Hold_Supply_1TR_Seq_Index 22038
-#define P_Hold_Supply_1TR_Self_Index 22039
-#define P_Hold_Supply_1TR_Debug_Edge 22040
-#define P_Buffer_Seqdata_Hold_Supply_1TR_Array 22041
-#define P_Hold_Supply_1TR_Timer 22071
-#define P_Hold_Supply_1TR_Tact_Time_Array 22072
-#define P_Hold_Supply_1TR_Tact_Time 22092
-#define P_PLC01_Hold_Supply_1TR_Memory_RTN 22093
-#define P_PLC01_Hold_Supply_1TR_Judge_Flag 22094
-#define P_PLC01_Hold_Supply_1TR_Judge_State_Machine 22095
-#define P_PLC01_Hold_Supply_1TR_Judge_Status 22096
-#define P_Plate_1TR_Supply_Module_Judge_Bit 22097
-#define P_Hold_Supply_Align_Cmd 22098
-#define P_Hold_Supply_Align_Status 22099
-#define P_Hold_Supply_Align_Module_Status 22100
-#define P_Hold_Supply_Align_State_Machine 22101
-#define P_Hold_Supply_Align_Seq_Index 22102
-#define P_Hold_Supply_Align_Self_Index 22103
-#define P_Hold_Supply_Align_Debug_Edge 22104
-#define P_Buffer_Seqdata_Hold_Supply_Align_Array 22105
-#define P_Hold_Supply_Align_Timer 22135
-#define P_Hold_Supply_Align_Tact_Time_Array 22136
-#define P_Hold_Supply_Align_Tact_Time 22156
-#define P_Hold_Supply_2TR_Cmd 22157
-#define P_Hold_Supply_2TR_Status 22158
-#define P_Hold_Supply_2TR_Module_Status 22159
-#define P_Hold_Supply_2TR_State_Machine 22160
-#define P_Hold_Supply_2TR_Seq_Index 22161
-#define P_Hold_Supply_2TR_Self_Index 22162
-#define P_Hold_Supply_2TR_Debug_Edge 22163
-#define P_Buffer_Seqdata_Hold_Supply_2TR_Array 22164
-#define P_Hold_Supply_2TR_Timer 22194
-#define P_Hold_Supply_2TR_Tact_Time_Array 22195
-#define P_Hold_Supply_2TR_Tact_Time 22215
-#define P_Hold_Semi_Run_Pos_Move_Cmd 22216
-#define P_Hold_Semi_Run_Pos_Move_Status 22217
-#define P_Hold_Semi_Run_Pos_Move_Module_Status 22218
-#define P_Hold_Semi_Run_Pos_Move_State_Machine 22219
-#define P_Hold_Semi_Run_Pos_Move_Seq_Index 22220
-#define P_Hold_Semi_Run_Pos_Move_Self_Index 22221
-#define P_Hold_Semi_Run_Pos_Move_Debug_Edge 22222
-#define P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array 22223
-#define P_Hold_Semi_Run_Pos_Move_Timer 22253
-#define P_Hold_Semi_Run_Pos_Move_Tact_Time_Array 22254
-#define P_Hold_Semi_Run_Pos_Move_Tact_Time 22274
-#define P_Act_Complete_Bit 22275
-#define P_Act_Old_Time 22341
-#define P_Act_Delay_Time 22407
-#define P_Act_Suspend_Time_Out_Time 22473
-#define P_Act_Time_Out 22474
-#define P_Test_Sungmin_Flag 22540
-#define P_Discharge_Possibility_Bit 22541
-#define P_HOLD_Exist_Possibility_Bit 22607
-#define P_HOLD_NG_Remove_Possibility_Bit 22673
-#define P_HOLD_Align_Remove_Possibility_Bit 22739
-#define P_HOLD_2TR_Remove_Possibility_Bit 22805
-#define P_HOLD_1TR_Supply_Possibility_Bit 22871
-#define P_HOLD_Align_Supply_Possibility_Bit 22937
-#define P_HOLD_2TR_Supply_Possibility_Bit 23003
-#define P_HOLD_Semi_Run_Pos_Possibility_Bit 23069
-#define P_Module_Act_Command_Array 23135
-#define P_OLD_Module_Act_Command_Array 23201
-#define P_Module_Act_State_Machine_Array 23267
-#define P_Module_Act_State_Machine_Error_Array 23333
-#define P_Suspend_Discharge_Module_Status 23399
-#define P_Suspend_Discharge_To_Execute_Flag 23400
-#define P_Suspend_Discharge_Complete_Flag 23401
-#define P_First_Unloader_Stack_Up_Status 23402
-#define P_First_Unloader_Stack_FWD_Status 23403
-#define P_First_Unloader_Grip_Cell_Status 23404
-#define P_First_Unloader_Stack_BWD_Wait_Status 23405
-#define P_First_Unloader_Stack_BWD_Status 23406
-#define P_First_Unloader_Stack_Down_Status 23407
-#define P_First_Unloader_Avoid_Status 23408
-#define P_First_Unloader_Turn_Status 23409
-#define P_First_Unloader_Handover_Status 23410
-#define P_Cathode_Clamp_OFF_Status 23411
-#define P_Final_Roll_Discharge_Status 23412
-#define P_Final_Roll_Stack_Pos_Status 23413
-#define P_Final_Roll_Stack_Up_Pos_Status 23414
-#define P_Main_Z_Init_Pos_Status 23415
-#define P_Sheet_Paper_BWD_Status 23416
-#define P_Discharge_Vision_DIO_RTN 23417
-#define P_Discharge_Sub_RTN 23418
-#define P_Discharge_NG_Code_Report_RTN 23419
-#define P_Individual_RTN 23420
-#define P_Suspend_Discharge_Last_Run_Bit 23421
-#define P_Suspend_Discharge_JR_Result_RTN 23422
-#define P_ARC_Buffer_Jog_Speed 23423
-#define P_Selected_Spool_Number 23424
-#define P_ARC_Home_Check_RTN 23425
-#define P_Suspend_ARC_Module_Status 23426
-#define P_Not_Selected_Spool_Radius 23427
-#define P_Not_Selected_Spool_Circumference 23428
-#define P_Sensor_To_Sepa_Curr_Distance_mm 23429
-#define P_Passive_D_One_Degree_AD_Value 23454
-#define P_After_ARC_Rotate_Distance 23455
-#define P_Stack_Vision_NG_Code_Time_Over 23456
-#define P_Suspend_Discharge_Resume_Flag 23457
-#define P_Suspend_Discharge_Resume_Complete 23458
-#define P_Suspend_Discharge_Pause_Flag 23459
-#define P_Suspend_Monitor_ 23460
-#define P_Flag_Stack_Work_Host_ID 23470
-#define P_First_Sepa_Stack_Align_OK_PMAC_Flag 23471
-#define P_Sepa_Run_Completed_Status_Machine 23472
-#define P_Discharge_Debug_Edge 23473
-#define P_Suspend_Discharge_Debug_Address 23474
-#define P_Suspend_Discharge_Debug_Value 23479
-#define P_Discharge_Sepa_Cutter_Time_Out_State_Machine 23484
-#define P_Old_Suspend_Discharge_Seq_Index 23485
-#define P_Discharge_Debug_Index_1 23486
-#define P_Discharge_Debug_Index_2 23487
-#define P_Discharge_Debug_Index_3 23488
-#define P_Discharge_Debug_Index_4 23489
-#define P_ARC_Debug_Edge 23490
-#define P_Suspend_ARC_Debug_Address 23491
-#define P_Suspend_ARC_Debug_Value 23496
-#define P_Old_Suspend_ARC_Seq_Index 23501
-#define P_ARC_Debug_Index_1 23502
-#define P_ARC_Debug_Index_2 23503
-#define P_ARC_Debug_Index_3 23504
-#define P_ARC_Debug_Index_4 23505
-#define P_ARC_Ready_Flag 23506
-#define P_Suspend_Cutter_Heating_Time 23508
-#define P_Suspend_Cutter_Heating_Timer 23509
-#define P_An_1TR_Supply_Debug_Edge 23510
-#define P_Suspend_An_1TR_Supply_Debug_Address 23511
-#define P_Suspend_An_1TR_Supply_Debug_Value 23516
-#define P_Old_Suspend_An_1TR_Supply_Seq_Index 23521
-#define P_An_1TR_Supply_Debug_Index_1 23522
-#define P_An_1TR_Supply_Debug_Index_2 23523
-#define P_An_1TR_Supply_Debug_Index_3 23524
-#define P_An_1TR_Supply_Debug_Index_4 23525
-#define P_Suspend_Supply_Index 23526
-#define P_Suspend_Supply_Index_2nd 23527
-#define P_Anode_Suspend_Supply_Complete 23528
-#define P_Suspend_Supply_Pause_Flag 23536
-#define P_Suspend_Supply_Resume_Flag 23537
-#define P_Supply_Module_Status 23538
-#define P_Suspend_Anode_1TR_Supply_Complete_Flag 23539
-#define P_Suspend_Discharge_Module_Error 23540
-#define P_Suspend_ARC_Module_Error 23541
-#define P_Suspend_1st_Supply_Error 23542
-#define P_Discharge_Seq_Data 23543
-#define P_Suspend_Discharging_Popup_Flag 23544
-#define P_Suspend_Discharge_FR_Unclamp_Error_Popup_Flag 23545
-#define P_Suspend_Discharge_Cathode_Align_Retry_Cal_Error_Popup_Flag 23546
-#define P_Suspend_Discharge_Anode_Align_Retry_Cal_Error_Popup_Flag 23547
-#define P_Suspend_Discharge_FR_Discharge_Pos_Error_Popup_Flag 23548
-#define P_Suspend_Discharge_1st_Unloader_Grip_OFF_Error_Popup_Flag 23549
-#define P_Suspend_Discharge_1st_Unloader_Up_Error_Popup_Flag 23550
-#define P_Suspend_Discharge_1st_Unloader_FWD_Error_Popup_Flag 23551
-#define P_Suspend_Discharge_FR_Clamp_Error_Popup_Flag 23552
-#define P_Suspend_Discharge_Sepa_Cutter_Heating_Error_Popup_Flag 23553
-#define P_Suspend_Discharge_1st_Unloader_Grip_Cell_Pos_Error_Popup_Flag 23554
-#define P_Suspend_Discharge_1st_Unloader_Grip_ON_Error_Popup_Flag 23555
-#define P_Suspend_Discharge_Sheet_Paper_BWD_Error_Popup_Flag 23556
-#define P_Suspend_Discharge_Cathode_Clamp_OFF_Error_Popup_Flag 23557
-#define P_Suspend_Discharge_Sepa_Cutter_FWD_Error_Popup_Flag 23558
-#define P_Suspend_Discharge_Sheet_Paper_Vacuum_ON_Error_Popup_Flag 23559
-#define P_Suspend_Discharge_Sepa_Cutter_BWD_Error_Popup_Flag 23560
-#define P_Suspend_Discharge_1st_Unloader_BWD_Wait_Pos_Error_Popup_Flag 23561
-#define P_Suspend_Discharge_1st_Unloader_BWD_Error_Popup_Flag 23562
-#define P_Suspend_Discharge_1st_Unloader_Stack_Down_Error_Popup_Flag 23563
-#define P_Suspend_Discharge_FR_Stack_Pos_Error_Popup_Flag 23564
-#define P_Suspend_Discharge_After_Action_Init_Error_Popup_Flag 23565
-#define P_Suspend_Discharge_1st_Unloader_Avoid_Pos_Error_Popup_Flag 23566
-#define P_Suspend_Discharge_1st_2nd_Unloader_Handover_Chk_Error_Popup_Flag 23567
-#define P_Suspend_Discharge_1st_Unloader_Handover_Pos_Error_Popup_Flag 23568
-#define P_Suspend_Discharge_2nd_3rd_Unloader_Grip_Request_Error_Popup_Flag 23569
-#define P_Suspend_Discharge_1st_Unloader_Wait_Pos_Error_Popup_Flag 23570
-#define P_Suspend_ARC_Manual_ARC_Active_Popup_Flag 23571
-#define P_Suspend_ARC_Auto_ARC_Active_Popup_Flag 23572
-#define P_Suspend_ARC_Pre_Act_Popup_Flag 23573
-#define P_Suspend_ARC_Dancer_Close_Popup_Flag 23574
-#define P_Suspend_ARC_Use_Plate_FWD_Popup_Flag 23575
-#define P_Suspend_ARC_Replace_Plate_Blow_ON_Popup_Flag 23576
-#define P_Suspend_ARC_Use_Plate_Clamp_Popup_Flag 23577
-#define P_Suspend_ARC_Use_Plate_Cutter_FWD_Popup_Flag 23578
-#define P_Suspend_ARC_Use_Plate_Cutter_BWD_Popup_Flag 23579
-#define P_Suspend_ARC_Use_Plate_Unclamp_Popup_Flag 23580
-#define P_Suspend_ARC_Use_Plate_BWD_Popup_Flag 23581
-#define P_Suspend_ARC_Replace_Plate_Blow_OFF_Popup_Flag 23582
-#define P_Suspend_ARC_Dancer_Open_Popup_Flag 23583
-#define P_Suspend_ARC_Spool_Change_Popup_Flag 23584
-#define P_Suspend_ARC_Post_Act_Popup_Flag 23585
-#define P_Suspend_ARC_Previous_Spool_Remain_Winding_Popup_Flag 23586
-#define P_Suspend_Discharge_First_Address 23587
-#define P_Suspend_ARC_First_Address 23588
-#define P_Status_Stop_Ready_Pos_Move 23589
-#define P_Cycle_Stop_Stauts 23590
-#define P_Cycle_Stop_Status_Machine 23591
-#define P_Cycle_Stop_Flag 23592
-#define P_Speed_Origin_rtn 23593
-#define P_Speed_rtn 23594
-#define P_NG_PNP_Z_Move_rtn 23595
-#define P_NG_PNP_Z_Move_Check_rtn 23596
-#define P_NG_PNP_T_Move_rtn 23597
-#define P_NG_PNP_T_Move_Check_rtn 23598
-#define P_2nd_Z_Move_rtn 23599
-#define P_2nd_Z_Move_Check_rtn 23600
-#define P_2nd_T_Move_rtn 23601
-#define P_2nd_T_Move_Check_rtn 23602
-#define P_Stack_Judgement_Memory 23603
-#define P_Stop_Cycle_Stop_Move_Status 23604
-#define P_STOP_Initial_Process_Status 23605
-#define P_Stopping_CycleStop_Init_Flag 23606
-#define P_Sepa_Timing 23607
-#define P_Old_Trigger_PLC0 23608
-#define P_Mode_Command 23609
-#define P_Current_Mode 23610
-#define P_MOde_Num 23611
-#define P_Command_Depth 23616
-#define P_In_Position 23621
-#define P_Last_Cycle_Command 23626
-#define P_Mode_Command_Buffer 23631
-#define P_Mode_Command_Wait_Count 23632
-#define P_Old_Mode_Command 23633
-#define P_Slave1_Anode_Run_Motion_Array 23634
-#define P_Slave2_Anode_Run_Motion_Array 23734
-#define P_Slave3_Anode_Run_Motion_Array 23834
-#define P_Slave4_Anode_Run_Motion_Array 23934
-#define P_Slave5_Anode_Run_Motion_Array 24034
-#define P_Slave6_Anode_Run_Motion_Array 24134
-#define P_Slave7_Anode_Run_Motion_Array 24234
-#define P_Slave8_Anode_Run_Motion_Array 24334
-#define P_Slave9_Anode_Run_Motion_Array 24434
-#define P_Slave10_Anode_Run_Motion_Array 24534
-#define P_Slave15_Anode_Run_Motion_Array 24634
-#define P_Slave16_Anode_Run_Motion_Array 24734
-#define P_Slave17_Anode_Run_Motion_Array 24834
-#define P_Slave18_Anode_Run_Motion_Array 24934
-#define P_Slave19_Anode_Run_Motion_Array 25034
-#define P_Slave1_Cathode_Run_Motion_Array 25134
-#define P_Slave2_Cathode_Run_Motion_Array 25234
-#define P_Slave3_Cathode_Run_Motion_Array 25334
-#define P_Slave4_Cathode_Run_Motion_Array 25434
-#define P_Slave5_Cathode_Run_Motion_Array 25534
-#define P_Slave15_Cathode_Run_Motion_Array 25634
-#define P_Slave6_Cathode_Run_Motion_Array 25734
-#define P_Slave7_Cathode_Run_Motion_Array 25834
-#define P_Slave8_Cathode_Run_Motion_Array 25934
-#define P_Slave9_Cathode_Run_Motion_Array 26034
-#define P_Slave10_Cathode_Run_Motion_Array 26134
-#define P_Slave16_Cathode_Run_Motion_Array 26234
-#define P_Slave17_Cathode_Run_Motion_Array 26334
-#define P_Slave18_Cathode_Run_Motion_Array 26434
-#define P_Slave19_Cathode_Run_Motion_Array 26534
+#define P_Single_Run_Start_Flag 19875
+#define P_Single_Run_Control_State_Machine 19876
+#define P_Single_Run_Control_Status 19877
+#define P_Single_Run_Execute_Bit 19878
+#define P_User_Dry_Run_Mode 19879
+#define P_Single_Run_State_Machine 19880
+#define P_Single_Run_Status 19881
+#define P_Single_Run_Unit 19882
+#define P_Single_Run_Evade_Pos_RTN 19883
+#define P_Single_Run_Evade_Pos_Check_RTN 19884
+#define P_Single_Run_Pos_Rtn1 19885
+#define P_Single_Run_Pos_Rtn2 19886
+#define P_Single_Run_Motion_Ready_RTN 19887
+#define P_Single_Run_Execution_Interlock_RTN 19888
+#define P_Single_Run_Coord_Activate_RTN 19889
+#define P_Single_Run_Coord_Activate_Check_RTN 19890
+#define P_Single_Run_Select_Run_Mode_RTN 19891
+#define P_Single_Run_Execution_Run_RTN 19892
+#define P_Single_Run_Motion_Ready_State_Machine 19893
+#define P_Coord_1 19894
+#define P_Coord_2 19895
+#define P_Coord_3 19896
+#define P_Coord_4 19897
+#define P_Final_Roll_Z_Motion_Flag 19898
+#define P_Final_Roll_Z_Motion_State_Machine 19899
+#define P_Main_Z_Motion_Flag 19900
+#define P_Main_Z_Motion_State_Machine 19901
+#define P_Single_Run_Mode_Flag 19902
+#define P_Cathode_AT_Motion_Flag 19903
+#define P_Cathode_Align_Motion_State_Machine 19904
+#define P_Anode_AT_Motion_Flag 19905
+#define P_Anode_Align_Motion_State_Machine 19906
+#define P_Sheet_Paper_Motion_Flag 19907
+#define P_Sheet_Paper_Motion_State_Machine 19908
+#define P_Cathode_NG_PNP_T_Motion_Flag 19909
+#define P_Cathode_NG_PNP_T_Motion_State_Machine 19910
+#define P_Cathode_NG_PNP_Z_Motion_Flag 19911
+#define P_Cathode_NG_PNP_Z_Motion_State_Machine 19912
+#define P_Anode_NG_PNP_T_Motion_Flag 19913
+#define P_Anode_NG_PNP_T_Motion_State_Machine 19914
+#define P_Anode_NG_PNP_Z_Motion_Flag 19915
+#define P_Anode_NG_PNP_Z_Motion_State_Machine 19916
+#define P_1st_UND_X_Motion_Flag 19917
+#define P_1st_UND_X_Motion_State_Machine 19918
+#define P_1st_UND_Z_Motion_Flag 19919
+#define P_1st_UND_Z_Motion_State_Machine 19920
+#define P_1st_UND_T_Motion_Flag 19921
+#define P_1st_UND_T_Motion_State_Machine 19922
+#define P_Cathode_Run_Command_Flag 19923
+#define P_Anode_Run_Command_Flag 19924
+#define P_NG_PNP_Uint_Motion_Flag 19925
+#define P_NG_PNP_Uint_State_Machine 19926
+#define P_NG_PNP_Motion_Cnt 19927
+#define P_NG_PNP_Motion_arr 19928
+#define P_Single_Run_Timer 19938
+#define P_Single_Run_Align_Timer 19939
+#define P_Single_Run_Align_Timer2 19940
+#define P_Single_Run_Finall_Roll_Z_Timer 19941
+#define P_Single_RuN_MAIN_Z_Timer 19942
+#define P_Single_Run_Sheet_Paper_Timer 19943
+#define P_Single_Run_Debug_SM 19944
+#define P_Error_Monitoring_Count_1 19945
+#define P_Error_Monitoring_Count_2 19946
+#define P_Error_Monitoring_Count_3 19947
+#define P_Error_Monitoring_Count_4 19948
+#define P_Error_Monitoring_Count_5 19949
+#define P_Old_Single_Run_Mode_Flag 19950
+#define P_Old_Current_Mode 19951
+#define P_Single_Run_Timebase_Off_RTN 19952
+#define P_Single_Run_Stop_State_Machine 19953
+#define P_Single_Run_Stop_Status 19954
+#define P_Single_Run_Stop_Timer 19955
+#define P_Single_Run_Stop_Init_RTN 19956
+#define P_Single_Run_Stop_Btn_Chk 19957
+#define P_Single_Run_Stop_Command 19958
+#define P_Motor_Ready_Poa_Inpos_200um 19959
+#define P_Ecat_Parameter_Write_Flag 19960
+#define P_Ecat_Parameter_Read_Flag 19961
+#define P_Ecat_Each_Parameter_Write_Flag 19962
+#define P_Ecat_Slave_Idx 19963
+#define P_Ec_Num 19964
+#define P_Ecat_Read_Motor_Num 19965
+#define P_Ecat_Write_Motor_Num 19966
+#define P_Ecat_Parameter_Write_State_Machine 19967
+#define P_Ecat_Parameter_Read_State_Machine 19968
+#define P_Ecat_Each_Parameter_Write_State_Machine 19969
+#define P_Ecat_Read_MNTR 19970
+#define P_Ecat_Write_MNTR 19998
+#define P_Ecat_Save_MNTR 20026
+#define P_Ecat_Error_MNTR 20042
+#define P_Ecat_Read_Error_MNTR 20058
+#define P_Ecat_Each_Write_Error_MNTR 20074
+#define P_Ecat_Write_Status 20090
+#define P_Ecat_Read_Status 20091
+#define P_Ecat_Each_Write_Status 20092
+#define P_Pn000 20093
+#define P_Pn001 20113
+#define P_Pn00B 20133
+#define P_Pn100 20153
+#define P_Pn101 20173
+#define P_Pn102 20193
+#define P_Pn103 20213
+#define P_Pn123 20233
+#define P_Pn140 20253
+#define P_Pn141 20273
+#define P_Pn145 20293
+#define P_Pn146 20313
+#define P_Pn160 20333
+#define P_Pn161 20353
+#define P_Pn163 20373
+#define P_Pn170 20393
+#define P_Pn401 20413
+#define P_Pn408 20433
+#define P_Pn409 20453
+#define P_Pn40A 20473
+#define P_Pn40C 20493
+#define P_Pn40D 20513
+#define P_Pn416 20533
+#define P_Pn417 20553
+#define P_Pn511 20573
+#define P_Pn520 20593
+#define P_PnB02_Numerator 20613
+#define P_PnB02_Denominator 20633
+#define P_Align_Plus_Blow_Test 20653
+#define P_System_Setting_Flag 20654
+#define P_Ecat_Setting_Flag 20655
+#define P_Ecat_Activation_State_Machine 20656
+#define P_PLC31_Ecat_Retry_Cnt 20657
+#define P_Ecat_Connect_Result 20658
+#define P_Ecat_Slave_Error 20659
+#define P_PWM_AbsPhasePosOffset_Change_State_Machine 20660
+#define P_AbsPhasePosOffset_Change_Complete 20661
+#define P_PWM_AbsPhasing_Fail 20662
+#define P_PWM_AbsPhasing_Complete 20663
+#define P_Whole_Stacking_Tack_Time 20664
+#define P_Whole_Stacking_Tack_Time_Check 20665
+#define P_Whole_Stacking_Tack_Timer_Check_Flag 20666
+#define P_Whole_Stacking_Timer_Shift_Status_Machine 20667
+#define P_Whole_Stacking_TackTime_Array0 20668
+#define P_Whole_Stacking_TackTime_Array1 20669
+#define P_Whole_Stacking_TackTime_Array2 20670
+#define P_Whole_Stacking_TackTime_Array3 20671
+#define P_Whole_Stacking_TackTime_Array4 20672
+#define P_Whole_Stacking_TackTime_Array5 20673
+#define P_Whole_Stacking_TackTime_Array6 20674
+#define P_Whole_Stacking_TackTime_Array7 20675
+#define P_Whole_Stacking_TackTime_Array8 20676
+#define P_Whole_Stacking_TackTime_Array9 20677
+#define P_Whole_Stacking_TackTime_Array10 20678
+#define P_First_Stacking_Start 20679
+#define P_Last_Stacking_Complete 20680
+#define P_Stacking_Tack_Time 20681
+#define P_Stacking_Tack_Time_Check 20682
+#define P_Stacking_Tack_Timer_Check_Flag 20683
+#define P_Stacking_Timer_Shift_Status_Machine 20684
+#define P_Cathode_to_Anode_FR_Tack_Time_Check 20685
+#define P_Anode_to_Cathode_FR_Tack_Time_Check 20686
+#define P_Cathode_to_Anode_FR_Tack_Time_Start 20687
+#define P_Anode_to_Cathode_FR_Tack_Time_Start 20688
+#define P_Cathode_to_Anode_FR_Tack_Time_Complete 20689
+#define P_Anode_to_Cathode_FR_Tack_Time_Complete 20690
+#define P_Cathode_to_Anode_FR_Time 20691
+#define P_Anode_to_Cathode_FR_Time 20692
+#define P_Cathode_to_Anode_FR_Tack_Timer_Check_Flag 20693
+#define P_Anode_to_Cathode_FR_Tack_Timer_Check_Flag 20694
+#define P_Anode_Align_Table_Time 20695
+#define P_Anode_Align_Table_Tack_Time_Check 20696
+#define P_Anode_Align_Table_Tack_Timer_Check_Flag 20697
+#define P_Anode_Align_Table_Timer_Shift_Status_Machine 20698
+#define P_Anode_Align_Tack_Time_Start 20699
+#define P_Anode_Align_Tack_Time_Complete 20700
+#define P_Cathode_Align_Table_Time 20701
+#define P_Cathode_Align_Table_Tack_Time_Check 20702
+#define P_Cathode_Align_Table_Tack_Timer_Check_Flag 20703
+#define P_Cathode_Align_Table_Timer_Shift_Status_Machine 20704
+#define P_Cathode_Align_Tack_Time_Start 20705
+#define P_Cathode_Align_Tack_Time_Complete 20706
+#define P_Anode_1th_Tack_Time_Start 20707
+#define P_Anode_1th_Tack_Time_Complete 20708
+#define P_Anode_1th_Time 20709
+#define P_Anode_1th_Tack_Time_Check 20710
+#define P_Anode_1th_Tack_Timer_Check_Flag 20711
+#define P_Anode_1th_Timer_Shift_Status_Machine 20712
+#define P_Cathode_1th_Tack_Time_Start 20713
+#define P_Cathode_1th_Tack_Time_Complete 20714
+#define P_Cathode_1th_Time 20715
+#define P_Cathode_1th_Tack_Time_Check 20716
+#define P_Cathode_1th_Tack_Timer_Check_Flag 20717
+#define P_Cathode_1th_Timer_Shift_Status_Machine 20718
+#define P_Anode_2th_Tack_Time_Start 20719
+#define P_Anode_2th_Tack_Time_Complete 20720
+#define P_Anode_2th_Time 20721
+#define P_Anode_2th_Tack_Time_Check 20722
+#define P_Anode_2th_Tack_Timer_Check_Flag 20723
+#define P_Anode_2th_Timer_Shift_Status_Machine 20724
+#define P_Cathode_2th_Tack_Time_Start 20725
+#define P_Cathode_2th_Tack_Time_Complete 20726
+#define P_Cathode_2th_Time 20727
+#define P_Cathode_2th_Tack_Time_Check 20728
+#define P_Cathode_2th_Tack_Timer_Check_Flag 20729
+#define P_Cathode_2th_Timer_Shift_Status_Machine 20730
+#define P_Anode_1th_NG_Tack_Time_Start 20731
+#define P_Anode_1th_NG_Tack_Time_Complete 20732
+#define P_Anode_1th_NG_Time 20733
+#define P_Anode_1th_NG_Tack_Time_Check 20734
+#define P_Anode_1th_NG_Tack_Timer_Check_Flag 20735
+#define P_Anode_1th_NG_Timer_Shift_Status_Machine 20736
+#define P_Cathode_1th_NG_Tack_Time_Start 20737
+#define P_Cathode_1th_NG_Tack_Time_Complete 20738
+#define P_Cathode_1th_NG_Time 20739
+#define P_Cathode_1th_NG_Tack_Time_Check 20740
+#define P_Cathode_1th_NG_Tack_Timer_Check_Flag 20741
+#define P_Cathode_1th_NG_Timer_Shift_Status_Machine 20742
+#define P_Anode_Clamp_Tack_Time_Start 20743
+#define P_Anode_Clamp_Tack_Time_Complete 20744
+#define P_Anode_Clamp_Time 20745
+#define P_Anode_Clamp_Tack_Time_Check 20746
+#define P_Anode_Clamp_Tack_Timer_Check_Flag 20747
+#define P_Anode_Clamp_Timer_Shift_Status_Machine 20748
+#define P_Cathode_Clamp_Tack_Time_Start 20749
+#define P_Cathode_Clamp_Tack_Time_Complete 20750
+#define P_Cathode_Clamp_Time 20751
+#define P_Cathode_Clamp_Tack_Time_Check 20752
+#define P_Cathode_Clamp_Tack_Timer_Check_Flag 20753
+#define P_Cathode_Clamp_Timer_Shift_Status_Machine 20754
+#define P_Final_Roll_X_Timer_Shift_Status_Machine 20755
+#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array0 20756
+#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array1 20757
+#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array2 20758
+#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array3 20759
+#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array4 20760
+#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array5 20761
+#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array6 20762
+#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array7 20763
+#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array8 20764
+#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array9 20765
+#define P_Final_Roll_X_Cathode_to_Anode_TackTime_Array10 20766
+#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array0 20767
+#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array1 20768
+#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array2 20769
+#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array3 20770
+#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array4 20771
+#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array5 20772
+#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array6 20773
+#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array7 20774
+#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array8 20775
+#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array9 20776
+#define P_Final_Roll_X_Anode_to_Cathode_TackTime_Array10 20777
+#define P_Pneumatic_Pressure_Unit_Tack_Time_Chk_Timer 20778
+#define P_Pneumatic_Pressure_Unit_Tack_Time 20805
+#define P_MCC_Anode_Align_NG_Count 20832
+#define P_MCC_Cathode_Align_NG_Count 20833
+#define P_MCC_Anode_Retry_NG_Count 20834
+#define P_MCC_Cathode_Retry_NG_Count 20835
+#define P_Discharge_Tact_Time_Arr 20836
+#define P_Discharge_Hold_Timer 20848
+#define P_Discharge_Hold_Time 20849
+#define P_AN_1st_Z_Zero_Angle 20850
+#define P_AN_1st_Z_Zero_Length 20851
+#define P_Anode_1st_PNP_Z_Crank_Zero_Pos 20852
+#define P_Anode_1st_PNP_Z_Crank_real_Move_Pos 20853
+#define P_Anode_1st_PNP_Z_Crank_radian 20854
+#define P_Anode_1st_PNP_Z_Acos_denominator 20855
+#define P_Anode_1st_PNP_Z_Acos_numerator 20856
+#define P_Anode_1st_PNP_Z_Crank_Angle 20857
+#define P_Anode_1st_PNP_Z_Real_Move_Pos 20858
+#define P_Anode_1st_Fwd_Bwd_Rise 20859
+#define P_CA_1st_Z_Zero_Angle 20860
+#define P_CA_1st_Z_Zero_Length 20861
+#define P_Cathode_1st_PNP_Z_Crank_Zero_Pos 20862
+#define P_Cathode_1st_PNP_Z_Crank_real_Move_Pos 20863
+#define P_Cathode_1st_PNP_Z_Crank_radian 20864
+#define P_Cathode_1st_PNP_Z_Acos_denominator 20865
+#define P_Cathode_1st_PNP_Z_Acos_numerator 20866
+#define P_Cathode_1st_PNP_Z_Crank_Angle 20867
+#define P_Cathode_1st_PNP_Z_Real_Move_Pos 20868
+#define P_Cathode_1st_Fwd_Bwd_Rise 20869
+#define P_AN_2nd_Z_Zero_Angle 20870
+#define P_AN_2nd_Z_Zero_Length 20871
+#define P_Anode_2nd_PNP_Z_Crank_Zero_Pos 20872
+#define P_Anode_2nd_PNP_Z_Crank_real_Move_Pos 20873
+#define P_Anode_2nd_PNP_Z_Crank_radian 20874
+#define P_Anode_2nd_PNP_Z_Acos_denominator 20875
+#define P_Anode_2nd_PNP_Z_Acos_numerator 20876
+#define P_Anode_2nd_PNP_Z_Crank_Angle 20877
+#define P_Anode_2nd_PNP_Z_Real_Move_Pos 20878
+#define P_Anode_2nd_Fwd_Bwd_Rise 20879
+#define P_CA_2nd_Z_Zero_Angle 20880
+#define P_CA_2nd_Z_Zero_Length 20881
+#define P_Cathode_2nd_PNP_Z_Crank_Zero_Pos 20882
+#define P_Cathode_2nd_PNP_Z_Crank_real_Move_Pos 20883
+#define P_Cathode_2nd_PNP_Z_Crank_radian 20884
+#define P_Cathode_2nd_PNP_Z_Acos_denominator 20885
+#define P_Cathode_2nd_PNP_Z_Acos_numerator 20886
+#define P_Cathode_2nd_PNP_Z_Crank_Angle 20887
+#define P_Cathode_2nd_PNP_Z_Real_Move_Pos 20888
+#define P_Cathode_2nd_Fwd_Bwd_Rise 20889
+#define P_Old_Recipe_Anode_1st_PNP_Z_Ready_Up 20890
+#define P_Old_Recipe_Anode_1st_PNP_Z_Belt_Up 20891
+#define P_Old_Recipe_Anode_1st_PNP_Z_Belt_Down 20892
+#define P_Old_Recipe_Anode_1st_PNP_Z_Align_Up 20893
+#define P_Old_Recipe_Anode_1st_PNP_Z_Align_Down 20894
+#define P_Old_Recipe_Cathode_1st_PNP_Z_Ready_Up 20895
+#define P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Up 20896
+#define P_Old_Recipe_Cathode_1st_PNP_Z_Belt_Down 20897
+#define P_Old_Recipe_Cathode_1st_PNP_Z_Align_Up 20898
+#define P_Old_Recipe_Cathode_1st_PNP_Z_Align_Down 20899
+#define P_Old_Recipe_Anode_2nd_PNP_Z_Align_Up 20900
+#define P_Old_Recipe_Anode_2nd_PNP_Z_Align_Down 20901
+#define P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Up 20902
+#define P_Old_Recipe_Anode_2nd_PNP_Z_Stack_Down 20903
+#define P_Old_Recipe_Anode_2nd_PNP_Z_Ready_Up 20904
+#define P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Up 20905
+#define P_Old_Recipe_Cathode_2nd_PNP_Z_Align_Down 20906
+#define P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Up 20907
+#define P_Old_Recipe_Cathode_2nd_PNP_Z_Stack_Down 20908
+#define P_Old_Recipe_Cathode_2nd_PNP_Z_Ready_Up 20909
+#define P_PLC19_All_Home_Status 20910
+#define P_PLC19_All_Home_Module_Status 20911
+#define P_PLC19_All_Home_State_Machine 20912
+#define P_PLC19_All_Home_Seq_Index 20913
+#define P_PLC19_All_Home_Self_Index 20914
+#define P_PLC19_All_Home_Set_Mode_Return 20915
+#define P_PLC19_All_Home_Timer 20916
+#define P_PLC19_All_Home_Tact_Time_Array 20917
+#define P_PLC19_All_Home_Tact_Time 20937
+#define P_All_Home_Module_Error 20938
+#define P_Act_ALL_Home_Time_Out_Time 20939
+#define P_Act_ALL_Home_Time_Out 20940
+#define P_Act_Hold_Complete_Bit 20980
+#define P_Module_Act_Hold_Command_Array 21015
+#define P_OLD_Module_Act_Hold_Command_Array 21050
+#define P_Module_Act_Hold_State_Machine_Array 21085
+#define P_Act_Hold_Old_Time 21120
+#define P_Act_Hold_Time_Out_Time 21155
+#define P_Act_Hold_Time_Out 21156
+#define P_First_PNP_T_Wait_Status 21191
+#define P_First_PNP_Z_Wait_Status 21192
+#define P_First_PNP_Picker_T_Turn_Status 21193
+#define P_First_PNP_T_Wait_To_Belt_Status 21194
+#define P_First_PNP_Z_Wait_To_Belt_Status 21195
+#define P_First_PNP_T_Align_To_Belt_Status 21196
+#define P_First_PNP_Z_Align_To_Belt_Status 21197
+#define P_First_PNP_Z_Belt_Down_Status 21198
+#define P_First_PNP_Z_Belt_Up_Status 21199
+#define P_First_PNP_T_Wait_To_Align_Status 21200
+#define P_First_PNP_Z_Wait_To_Align_Status 21201
+#define P_First_PNP_T_Belt_To_Align_Status 21202
+#define P_First_PNP_Z_Belt_To_Align_Status 21203
+#define P_First_PNP_Z_Align_Down_Status 21204
+#define P_First_PNP_Z_Align_Up_Status 21205
+#define P_First_PNP_Vac_On_Status 21206
+#define P_First_PNP_Blow_On_Status 21207
+#define P_Second_PNP_T_Align_To_Stack_Status 21208
+#define P_Second_PNP_Z_Align_To_Stack_Status 21209
+#define P_Second_PNP_T_Stack_To_Align_Status 21210
+#define P_Second_PNP_Z_Stack_To_Align_Status 21211
+#define P_Second_PNP_Z_Align_Down_Status 21212
+#define P_Second_PNP_Z_Align_Up_Status 21213
+#define P_Second_PNP_Vac_On_Status 21214
+#define P_Second_PNP_Blow_On_Status 21215
+#define P_NG_PNP_NG_Bos_Status 21216
+#define P_NG_PNP_Align_Status 21217
+#define P_NG_PNP_Align_Down_Status 21218
+#define P_NG_PNP_Align_Up_Status 21219
+#define P_NG_PNP_Vac_On_Status 21220
+#define P_NG_PNP_Blow_On_Status 21221
+#define P_Hold_1st_PNP_Position 21222
+#define P_Hold_Module_Error 21223
+#define P_Act_Execute_Complete_Bit 21224
+#define P_Module_Act_Execute_Command_Array 21236
+#define P_OLD_Module_Act_Execute_Command_Array 21248
+#define P_Module_Act_Execute_State_Machine_Array 21260
+#define P_Act_Execute_Old_Time 21272
+#define P_Act_Execute_Time_Out_Time 21284
+#define P_Act_Execute_Time_Out 21285
+#define P_Execute_Module_Error 21297
+#define P_Execute_First_Sepa_Total_Tact_Time 21298
+#define P_Current_JR_Thickness_mm 21299
+#define P_Current_Jelly_Roll_Thinckness_mm_Send_Enable_Flag 21300
+#define P_Stack_Table_NG_Flag 21301
+#define P_Suspend_Discharge_Cell_Out_Restart 21302
+#define P_Jelly_Roll_OK_Count 21303
+#define P_Jelly_Roll_NG_Count 21304
+#define P_Jelly_Roll_Total_Count 21305
+#define P_Jelly_Roll_Prod_Count 21306
+#define P_Jelly_Roll_Recipe_Count 21307
+#define P_Current_Cell_Memory_Jelly_Roll 21308
+#define P_VISION_PLC10_Anode_Align_Start 21309
+#define P_VISION_PLC10_Cathode_Align_Start 21310
+#define P_Stack_Table_NG_Count 21311
+#define P_Stack_PMAC_NG_Code 21312
+#define P_Stack_Vision_NG_Code_IN_Timer 21313
+#define P_1st_Discharge_State 21314
+#define P_Prev_Sepa_Stack_Completed_Flag 21315
+#define P_First_Sepa_Vision_Skip_Flag 21316
+#define P_Discharge_Unloader_Handover_Timer 21317
+#define P_Discharge_Unloader_Handover_Time 21318
+#define P_Buffer_Mode_Module_Status_Sequence 21319
+#define P_EXECUTE_Status_Prod_Sequence 21349
+#define P_Execute_First_Sepa_Mode_Cmd 21379
+#define P_Execute_First_Sepa_Mode_Status 21380
+#define P_Execute_First_Sepa_Mode_Module_Status 21381
+#define P_Execute_First_Sepa_Mode_State_Machine 21382
+#define P_Execute_First_Sepa_Mode_Seq_Index 21383
+#define P_Execute_First_Sepa_Mode_Self_Index 21384
+#define P_Execute_First_Sepa_Mode_Debug_Edge 21385
+#define P_Buffer_Seqdata_Execute_First_Sepa_Mode_Array 21386
+#define P_Execute_First_Sepa_Mode_Timer 21416
+#define P_Execute_First_Sepa_Mode_Tact_Time_Array 21417
+#define P_Execute_First_Sepa_Mode_Tact_Time 21437
+#define P_Execute_1st_Sepa_Status 21438
+#define P_Suspend_Discharge_Cmd 21439
+#define P_Suspend_Discharge_Status 21440
+#define P_Suspend_Discharge_State_Machine 21441
+#define P_Suspend_Discharge_Seq_Index 21442
+#define P_Suspend_Discharge_Self_Index 21443
+#define P_Discharge_Seq_InterLock_Delay_Time 21444
+#define P_Discharge_Seq_InterLock_Flag 21474
+#define P_Buffer_Seqdata_Discharge_Array 21504
+#define P_Suspend_Discharge_Timer 21534
+#define P_Suspend_Discharge_Tact_Time_Array 21535
+#define P_Suspend_Discharge_Tact_Time 21555
+#define P_Suspend_Discharge_1st_Unloader_JR_Grip 21556
+#define P_Suspend_ARC_Cmd 21557
+#define P_Suspend_ARC_Status 21558
+#define P_Suspend_ARC_State_Machine 21559
+#define P_Suspend_ARC_Seq_Index 21560
+#define P_Suspend_ARC_Self_Index 21561
+#define P_Suspend_ARC_Manual_Occur_Flag 21562
+#define P_ARC_Seq_InterLock_Delay_Time 21563
+#define P_ARC_Seq_InterLock_Flag 21593
+#define P_Buffer_Seqdata_ARC_Array 21623
+#define P_Suspend_ARC_Timer 21653
+#define P_Suspend_ARC_Tact_Time_Array 21654
+#define P_Suspend_ARC_Tact_Time 21674
+#define P_Suspend_Anode_1TR_Cell_Supply_Cmd 21675
+#define P_Suspend_Anode_1TR_Cell_Supply_Status 21676
+#define P_Suspend_Anode_1TR_Cell_Supply_State_Machine 21677
+#define P_Suspend_Anode_1TR_Cell_Supply_Seq_Index 21678
+#define P_Suspend_Anode_1TR_Cell_Supply_Self_Index 21679
+#define P_Suspend_Anode_1TR_Cell_Supply_Module_Status 21680
+#define P_Anode_1TR_Cell_Supply_Seq_InterLock_Delay_Time 21681
+#define P_Anode_1TR_Cell_Supply_Seq_InterLock_Flag 21711
+#define P_Buffer_Seqdata_Anode_1TR_Cell_Supply_Array 21741
+#define P_Suspend_Anode_1TR_Cell_Supply_Timer 21771
+#define P_Suspend_Anode_1TR_Cell_Supply_Tact_Time_Array 21772
+#define P_Suspend_Anode_1TR_Cell_Supply_Tact_Time 21792
+#define P_Hold_Exist_Insp_Cmd 21793
+#define P_Hold_Exist_Insp_Status 21794
+#define P_Hold_Exist_Insp_Module_Status 21795
+#define P_Hold_Exist_Insp_State_Machine 21796
+#define P_Hold_Exist_Insp_Seq_Index 21797
+#define P_Hold_Exist_Insp_Self_Index 21798
+#define P_Hold_Exist_Insp_Debug_Edge 21799
+#define P_Buffer_Seqdata_Hold_Exist_Insp_Array 21800
+#define P_Hold_Exist_Insp_Timer 21830
+#define P_Hold_Exist_Insp_Tact_Time_Array 21831
+#define P_Hold_Exist_Insp_Tact_Time 21851
+#define P_Hold_Remove_NG_PNP_Cmd 21852
+#define P_Hold_Remove_NG_PNP_Status 21853
+#define P_Hold_Remove_NG_PNP_Module_Status 21854
+#define P_Hold_Remove_NG_PNP_State_Machine 21855
+#define P_Hold_Remove_NG_PNP_Seq_Index 21856
+#define P_Hold_Remove_NG_PNP_Self_Index 21857
+#define P_Hold_Remove_NG_PNP_Debug_Edge 21858
+#define P_Buffer_Seqdata_Hold_Remove_NG_PNP_Array 21859
+#define P_Hold_Remove_NG_PNP_Timer 21889
+#define P_Hold_Remove_NG_PNP_Tact_Time_Array 21890
+#define P_Hold_Remove_NG_PNP_Tact_Time 21910
+#define P_PLC01_Hold_Remove_NG_PNP_Sub_Flag 21911
+#define P_PLC01_Hold_Remove_NG_PNP_Sub_State_Machine 21912
+#define P_PLC01_Hold_Remove_NG_PNP_Sub_Status 21913
+#define P_Hold_Remove_Align_Cmd 21914
+#define P_Hold_Remove_Align_Status 21915
+#define P_Hold_Remove_Align_Module_Status 21916
+#define P_Hold_Remove_Align_State_Machine 21917
+#define P_Hold_Remove_Align_Seq_Index 21918
+#define P_Hold_Remove_Align_Self_Index 21919
+#define P_Hold_Remove_Align_Debug_Edge 21920
+#define P_Buffer_Seqdata_Hold_Remove_Align_Array 21921
+#define P_Hold_Remove_Align_Timer 21951
+#define P_Hold_Remove_Align_Tact_Time_Array 21952
+#define P_Hold_Remove_Align_Tact_Time 21972
+#define P_PLC01_Hold_Remove_Align_Sub_Flag 21973
+#define P_PLC01_Hold_Remove_Align_Sub_State_Machine 21974
+#define P_PLC01_Hold_Remove_Align_Sub_Status 21975
+#define P_Hold_Remove_2TR_Cmd 21976
+#define P_Hold_Remove_2TR_Status 21977
+#define P_Hold_Remove_2TR_Module_Status 21978
+#define P_Hold_Remove_2TR_State_Machine 21979
+#define P_Hold_Remove_2TR_Seq_Index 21980
+#define P_Hold_Remove_2TR_Self_Index 21981
+#define P_Hold_Remove_2TR_Debug_Edge 21982
+#define P_Buffer_Seqdata_Hold_Remove_2TR_Array 21983
+#define P_Hold_Remove_2TR_Timer 22013
+#define P_Hold_Remove_2TR_Tact_Time_Array 22014
+#define P_Hold_Remove_2TR_Tact_Time 22034
+#define P_Hold_Supply_1TR_Cmd 22035
+#define P_Hold_Supply_1TR_Status 22036
+#define P_Hold_Supply_1TR_Module_Status 22037
+#define P_Hold_Supply_1TR_State_Machine 22038
+#define P_Hold_Supply_1TR_Seq_Index 22039
+#define P_Hold_Supply_1TR_Self_Index 22040
+#define P_Hold_Supply_1TR_Debug_Edge 22041
+#define P_Buffer_Seqdata_Hold_Supply_1TR_Array 22042
+#define P_Hold_Supply_1TR_Timer 22072
+#define P_Hold_Supply_1TR_Tact_Time_Array 22073
+#define P_Hold_Supply_1TR_Tact_Time 22093
+#define P_PLC01_Hold_Supply_1TR_Memory_RTN 22094
+#define P_PLC01_Hold_Supply_1TR_Judge_Flag 22095
+#define P_PLC01_Hold_Supply_1TR_Judge_State_Machine 22096
+#define P_PLC01_Hold_Supply_1TR_Judge_Status 22097
+#define P_Plate_1TR_Supply_Module_Judge_Bit 22098
+#define P_Hold_Supply_Align_Cmd 22099
+#define P_Hold_Supply_Align_Status 22100
+#define P_Hold_Supply_Align_Module_Status 22101
+#define P_Hold_Supply_Align_State_Machine 22102
+#define P_Hold_Supply_Align_Seq_Index 22103
+#define P_Hold_Supply_Align_Self_Index 22104
+#define P_Hold_Supply_Align_Debug_Edge 22105
+#define P_Buffer_Seqdata_Hold_Supply_Align_Array 22106
+#define P_Hold_Supply_Align_Timer 22136
+#define P_Hold_Supply_Align_Tact_Time_Array 22137
+#define P_Hold_Supply_Align_Tact_Time 22157
+#define P_Hold_Supply_2TR_Cmd 22158
+#define P_Hold_Supply_2TR_Status 22159
+#define P_Hold_Supply_2TR_Module_Status 22160
+#define P_Hold_Supply_2TR_State_Machine 22161
+#define P_Hold_Supply_2TR_Seq_Index 22162
+#define P_Hold_Supply_2TR_Self_Index 22163
+#define P_Hold_Supply_2TR_Debug_Edge 22164
+#define P_Buffer_Seqdata_Hold_Supply_2TR_Array 22165
+#define P_Hold_Supply_2TR_Timer 22195
+#define P_Hold_Supply_2TR_Tact_Time_Array 22196
+#define P_Hold_Supply_2TR_Tact_Time 22216
+#define P_Hold_Semi_Run_Pos_Move_Cmd 22217
+#define P_Hold_Semi_Run_Pos_Move_Status 22218
+#define P_Hold_Semi_Run_Pos_Move_Module_Status 22219
+#define P_Hold_Semi_Run_Pos_Move_State_Machine 22220
+#define P_Hold_Semi_Run_Pos_Move_Seq_Index 22221
+#define P_Hold_Semi_Run_Pos_Move_Self_Index 22222
+#define P_Hold_Semi_Run_Pos_Move_Debug_Edge 22223
+#define P_Buffer_Seqdata_Hold_Semi_Run_Pos_Move_Array 22224
+#define P_Hold_Semi_Run_Pos_Move_Timer 22254
+#define P_Hold_Semi_Run_Pos_Move_Tact_Time_Array 22255
+#define P_Hold_Semi_Run_Pos_Move_Tact_Time 22275
+#define P_Act_Complete_Bit 22276
+#define P_Act_Old_Time 22342
+#define P_Act_Delay_Time 22408
+#define P_Act_Suspend_Time_Out_Time 22474
+#define P_Act_Time_Out 22475
+#define P_Test_Sungmin_Flag 22541
+#define P_Discharge_Possibility_Bit 22542
+#define P_HOLD_Exist_Possibility_Bit 22608
+#define P_HOLD_NG_Remove_Possibility_Bit 22674
+#define P_HOLD_Align_Remove_Possibility_Bit 22740
+#define P_HOLD_2TR_Remove_Possibility_Bit 22806
+#define P_HOLD_1TR_Supply_Possibility_Bit 22872
+#define P_HOLD_Align_Supply_Possibility_Bit 22938
+#define P_HOLD_2TR_Supply_Possibility_Bit 23004
+#define P_HOLD_Semi_Run_Pos_Possibility_Bit 23070
+#define P_Module_Act_Command_Array 23136
+#define P_OLD_Module_Act_Command_Array 23202
+#define P_Module_Act_State_Machine_Array 23268
+#define P_Module_Act_State_Machine_Error_Array 23334
+#define P_Suspend_Discharge_Module_Status 23400
+#define P_Suspend_Discharge_To_Execute_Flag 23401
+#define P_Suspend_Discharge_Complete_Flag 23402
+#define P_First_Unloader_Stack_Up_Status 23403
+#define P_First_Unloader_Stack_FWD_Status 23404
+#define P_First_Unloader_Grip_Cell_Status 23405
+#define P_First_Unloader_Stack_BWD_Wait_Status 23406
+#define P_First_Unloader_Stack_BWD_Status 23407
+#define P_First_Unloader_Stack_Down_Status 23408
+#define P_First_Unloader_Avoid_Status 23409
+#define P_First_Unloader_Turn_Status 23410
+#define P_First_Unloader_Handover_Status 23411
+#define P_Cathode_Clamp_OFF_Status 23412
+#define P_Final_Roll_Discharge_Status 23413
+#define P_Final_Roll_Stack_Pos_Status 23414
+#define P_Final_Roll_Stack_Up_Pos_Status 23415
+#define P_Main_Z_Init_Pos_Status 23416
+#define P_Sheet_Paper_BWD_Status 23417
+#define P_Discharge_Vision_DIO_RTN 23418
+#define P_Discharge_Sub_RTN 23419
+#define P_Discharge_NG_Code_Report_RTN 23420
+#define P_Individual_RTN 23421
+#define P_Suspend_Discharge_Last_Run_Bit 23422
+#define P_Suspend_Discharge_JR_Result_RTN 23423
+#define P_ARC_Buffer_Jog_Speed 23424
+#define P_Selected_Spool_Number 23425
+#define P_ARC_Home_Check_RTN 23426
+#define P_Suspend_ARC_Module_Status 23427
+#define P_Not_Selected_Spool_Radius 23428
+#define P_Not_Selected_Spool_Circumference 23429
+#define P_Sensor_To_Sepa_Curr_Distance_mm 23430
+#define P_Passive_D_One_Degree_AD_Value 23455
+#define P_After_ARC_Rotate_Distance 23456
+#define P_Stack_Vision_NG_Code_Time_Over 23457
+#define P_Suspend_Discharge_Resume_Flag 23458
+#define P_Suspend_Discharge_Resume_Complete 23459
+#define P_Suspend_Discharge_Pause_Flag 23460
+#define P_Suspend_Monitor_ 23461
+#define P_Flag_Stack_Work_Host_ID 23471
+#define P_First_Sepa_Stack_Align_OK_PMAC_Flag 23472
+#define P_Sepa_Run_Completed_Status_Machine 23473
+#define P_Discharge_Debug_Edge 23474
+#define P_Suspend_Discharge_Debug_Address 23475
+#define P_Suspend_Discharge_Debug_Value 23480
+#define P_Discharge_Sepa_Cutter_Time_Out_State_Machine 23485
+#define P_Old_Suspend_Discharge_Seq_Index 23486
+#define P_Discharge_Debug_Index_1 23487
+#define P_Discharge_Debug_Index_2 23488
+#define P_Discharge_Debug_Index_3 23489
+#define P_Discharge_Debug_Index_4 23490
+#define P_ARC_Debug_Edge 23491
+#define P_Suspend_ARC_Debug_Address 23492
+#define P_Suspend_ARC_Debug_Value 23497
+#define P_Old_Suspend_ARC_Seq_Index 23502
+#define P_ARC_Debug_Index_1 23503
+#define P_ARC_Debug_Index_2 23504
+#define P_ARC_Debug_Index_3 23505
+#define P_ARC_Debug_Index_4 23506
+#define P_ARC_Ready_Flag 23507
+#define P_Suspend_Cutter_Heating_Time 23509
+#define P_Suspend_Cutter_Heating_Timer 23510
+#define P_An_1TR_Supply_Debug_Edge 23511
+#define P_Suspend_An_1TR_Supply_Debug_Address 23512
+#define P_Suspend_An_1TR_Supply_Debug_Value 23517
+#define P_Old_Suspend_An_1TR_Supply_Seq_Index 23522
+#define P_An_1TR_Supply_Debug_Index_1 23523
+#define P_An_1TR_Supply_Debug_Index_2 23524
+#define P_An_1TR_Supply_Debug_Index_3 23525
+#define P_An_1TR_Supply_Debug_Index_4 23526
+#define P_Suspend_Supply_Index 23527
+#define P_Suspend_Supply_Index_2nd 23528
+#define P_Anode_Suspend_Supply_Complete 23529
+#define P_Suspend_Supply_Pause_Flag 23537
+#define P_Suspend_Supply_Resume_Flag 23538
+#define P_Supply_Module_Status 23539
+#define P_Suspend_Anode_1TR_Supply_Complete_Flag 23540
+#define P_Suspend_Discharge_Module_Error 23541
+#define P_Suspend_ARC_Module_Error 23542
+#define P_Suspend_1st_Supply_Error 23543
+#define P_Discharge_Seq_Data 23544
+#define P_Suspend_Discharging_Popup_Flag 23545
+#define P_Suspend_Discharge_FR_Unclamp_Error_Popup_Flag 23546
+#define P_Suspend_Discharge_Cathode_Align_Retry_Cal_Error_Popup_Flag 23547
+#define P_Suspend_Discharge_Anode_Align_Retry_Cal_Error_Popup_Flag 23548
+#define P_Suspend_Discharge_FR_Discharge_Pos_Error_Popup_Flag 23549
+#define P_Suspend_Discharge_1st_Unloader_Grip_OFF_Error_Popup_Flag 23550
+#define P_Suspend_Discharge_1st_Unloader_Up_Error_Popup_Flag 23551
+#define P_Suspend_Discharge_1st_Unloader_FWD_Error_Popup_Flag 23552
+#define P_Suspend_Discharge_FR_Clamp_Error_Popup_Flag 23553
+#define P_Suspend_Discharge_Sepa_Cutter_Heating_Error_Popup_Flag 23554
+#define P_Suspend_Discharge_1st_Unloader_Grip_Cell_Pos_Error_Popup_Flag 23555
+#define P_Suspend_Discharge_1st_Unloader_Grip_ON_Error_Popup_Flag 23556
+#define P_Suspend_Discharge_Sheet_Paper_BWD_Error_Popup_Flag 23557
+#define P_Suspend_Discharge_Cathode_Clamp_OFF_Error_Popup_Flag 23558
+#define P_Suspend_Discharge_Sepa_Cutter_FWD_Error_Popup_Flag 23559
+#define P_Suspend_Discharge_Sheet_Paper_Vacuum_ON_Error_Popup_Flag 23560
+#define P_Suspend_Discharge_Sepa_Cutter_BWD_Error_Popup_Flag 23561
+#define P_Suspend_Discharge_1st_Unloader_BWD_Wait_Pos_Error_Popup_Flag 23562
+#define P_Suspend_Discharge_1st_Unloader_BWD_Error_Popup_Flag 23563
+#define P_Suspend_Discharge_1st_Unloader_Stack_Down_Error_Popup_Flag 23564
+#define P_Suspend_Discharge_FR_Stack_Pos_Error_Popup_Flag 23565
+#define P_Suspend_Discharge_After_Action_Init_Error_Popup_Flag 23566
+#define P_Suspend_Discharge_1st_Unloader_Avoid_Pos_Error_Popup_Flag 23567
+#define P_Suspend_Discharge_1st_2nd_Unloader_Handover_Chk_Error_Popup_Flag 23568
+#define P_Suspend_Discharge_1st_Unloader_Handover_Pos_Error_Popup_Flag 23569
+#define P_Suspend_Discharge_2nd_3rd_Unloader_Grip_Request_Error_Popup_Flag 23570
+#define P_Suspend_Discharge_1st_Unloader_Wait_Pos_Error_Popup_Flag 23571
+#define P_Suspend_ARC_Manual_ARC_Active_Popup_Flag 23572
+#define P_Suspend_ARC_Auto_ARC_Active_Popup_Flag 23573
+#define P_Suspend_ARC_Pre_Act_Popup_Flag 23574
+#define P_Suspend_ARC_Dancer_Close_Popup_Flag 23575
+#define P_Suspend_ARC_Use_Plate_FWD_Popup_Flag 23576
+#define P_Suspend_ARC_Replace_Plate_Blow_ON_Popup_Flag 23577
+#define P_Suspend_ARC_Use_Plate_Clamp_Popup_Flag 23578
+#define P_Suspend_ARC_Use_Plate_Cutter_FWD_Popup_Flag 23579
+#define P_Suspend_ARC_Use_Plate_Cutter_BWD_Popup_Flag 23580
+#define P_Suspend_ARC_Use_Plate_Unclamp_Popup_Flag 23581
+#define P_Suspend_ARC_Use_Plate_BWD_Popup_Flag 23582
+#define P_Suspend_ARC_Replace_Plate_Blow_OFF_Popup_Flag 23583
+#define P_Suspend_ARC_Dancer_Open_Popup_Flag 23584
+#define P_Suspend_ARC_Spool_Change_Popup_Flag 23585
+#define P_Suspend_ARC_Post_Act_Popup_Flag 23586
+#define P_Suspend_ARC_Previous_Spool_Remain_Winding_Popup_Flag 23587
+#define P_Suspend_Discharge_First_Address 23588
+#define P_Suspend_ARC_First_Address 23589
+#define P_Status_Stop_Ready_Pos_Move 23590
+#define P_Cycle_Stop_Stauts 23591
+#define P_Cycle_Stop_Status_Machine 23592
+#define P_Cycle_Stop_Flag 23593
+#define P_Speed_Origin_rtn 23594
+#define P_Speed_rtn 23595
+#define P_NG_PNP_Z_Move_rtn 23596
+#define P_NG_PNP_Z_Move_Check_rtn 23597
+#define P_NG_PNP_T_Move_rtn 23598
+#define P_NG_PNP_T_Move_Check_rtn 23599
+#define P_2nd_Z_Move_rtn 23600
+#define P_2nd_Z_Move_Check_rtn 23601
+#define P_2nd_T_Move_rtn 23602
+#define P_2nd_T_Move_Check_rtn 23603
+#define P_Stack_Judgement_Memory 23604
+#define P_Stop_Cycle_Stop_Move_Status 23605
+#define P_STOP_Initial_Process_Status 23606
+#define P_Stopping_CycleStop_Init_Flag 23607
+#define P_Sepa_Timing 23608
+#define P_Old_Trigger_PLC0 23609
+#define P_Mode_Command 23610
+#define P_Current_Mode 23611
+#define P_MOde_Num 23612
+#define P_Command_Depth 23617
+#define P_In_Position 23622
+#define P_Last_Cycle_Command 23627
+#define P_Mode_Command_Buffer 23632
+#define P_Mode_Command_Wait_Count 23633
+#define P_Old_Mode_Command 23634
+#define P_Slave1_Anode_Run_Motion_Array 23635
+#define P_Slave2_Anode_Run_Motion_Array 23735
+#define P_Slave3_Anode_Run_Motion_Array 23835
+#define P_Slave4_Anode_Run_Motion_Array 23935
+#define P_Slave5_Anode_Run_Motion_Array 24035
+#define P_Slave6_Anode_Run_Motion_Array 24135
+#define P_Slave7_Anode_Run_Motion_Array 24235
+#define P_Slave8_Anode_Run_Motion_Array 24335
+#define P_Slave9_Anode_Run_Motion_Array 24435
+#define P_Slave10_Anode_Run_Motion_Array 24535
+#define P_Slave15_Anode_Run_Motion_Array 24635
+#define P_Slave16_Anode_Run_Motion_Array 24735
+#define P_Slave17_Anode_Run_Motion_Array 24835
+#define P_Slave18_Anode_Run_Motion_Array 24935
+#define P_Slave19_Anode_Run_Motion_Array 25035
+#define P_Slave1_Cathode_Run_Motion_Array 25135
+#define P_Slave2_Cathode_Run_Motion_Array 25235
+#define P_Slave3_Cathode_Run_Motion_Array 25335
+#define P_Slave4_Cathode_Run_Motion_Array 25435
+#define P_Slave5_Cathode_Run_Motion_Array 25535
+#define P_Slave15_Cathode_Run_Motion_Array 25635
+#define P_Slave6_Cathode_Run_Motion_Array 25735
+#define P_Slave7_Cathode_Run_Motion_Array 25835
+#define P_Slave8_Cathode_Run_Motion_Array 25935
+#define P_Slave9_Cathode_Run_Motion_Array 26035
+#define P_Slave10_Cathode_Run_Motion_Array 26135
+#define P_Slave16_Cathode_Run_Motion_Array 26235
+#define P_Slave17_Cathode_Run_Motion_Array 26335
+#define P_Slave18_Cathode_Run_Motion_Array 26435
+#define P_Slave19_Cathode_Run_Motion_Array 26535
 #define P_BTN_Jog_BWD_M 8725
 #define P_BTN_Jog_FWD_M 8775
 #define M_UnWinder_BTN_Lamp 8825
@@ -13443,28 +13449,28 @@ enum ptrMarray {_ptrMarray_=-1
 #define M_ARC_BTN_Interlock 9081
 #define M_NP_BTN_Interlock 9113
 #define M_Manual_ARC_BTN 9129
-#define P_Anode_NG_Unit_Status 26634
-#define P_Cathode_NG_Unit_Status 26635
-#define P_ParsingRtn 26636
-#define P_CurPosData 26637
-#define P_Hold_MNTR_Supply_1st 26638
-#define P_TimeOutNumb 26639
-#define P_PosRtn 26640
-#define P_MotionRtn 26641
-#define P_CmdData 26642
-#define P_Interval 26643
-#define P_Cont_Ret 26644
-#define P_Cur_Idx 26645
-#define P_NextID 26646
-#define P_Cur_Size 26647
-#define P_Hold_Exist_Insp 26648
-#define P_Hold_Remove_NG_PNP 26649
-#define P_Hold_Remove_Align 26650
-#define P_Hold_Remove_2TR 26651
-#define P_Hold_Supply_1TR 26652
-#define P_Hold_Supply_Align 26653
-#define P_Hold_Supply_2TR 26654
-#define P_Hold_Semi_Run 26655
+#define P_Anode_NG_Unit_Status 26635
+#define P_Cathode_NG_Unit_Status 26636
+#define P_ParsingRtn 26637
+#define P_CurPosData 26638
+#define P_Hold_MNTR_Supply_1st 26639
+#define P_TimeOutNumb 26640
+#define P_PosRtn 26641
+#define P_MotionRtn 26642
+#define P_CmdData 26643
+#define P_Interval 26644
+#define P_Cont_Ret 26645
+#define P_Cur_Idx 26646
+#define P_NextID 26647
+#define P_Cur_Size 26648
+#define P_Hold_Exist_Insp 26649
+#define P_Hold_Remove_NG_PNP 26650
+#define P_Hold_Remove_Align 26651
+#define P_Hold_Remove_2TR 26652
+#define P_Hold_Supply_1TR 26653
+#define P_Hold_Supply_Align 26654
+#define P_Hold_Supply_2TR 26655
+#define P_Hold_Semi_Run 26656
 #define P_Hold_NG_PNP_Remove 180
 #define P_Hold_Remove_2nd 182
 #define P_Hold_Supply_1st 183
@@ -13474,127 +13480,127 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_Hold_Existence_Insp 188
 #define P_Hold_1st_Belt_Move 189
 #define P_Hold_Motion 190
-#define P_Hold_Data_process_State_Machine 26656
-#define P_Hold_Align_Remove_State_Machine 26657
-#define P_Hold_2nd_Remove_State_Machine 26658
-#define P_Hold_Supply_1st_State_Machine 26659
-#define P_Hold_Supply_2nd_State_Machine 26660
-#define P_Hold_Existence_Insp_State_Machine 26661
-#define P_Hold_NG_PNP_Remove_State_Machine 26662
-#define P_Hold_Data_Process_Complete 26663
-#define P_Hold_Semi_Run_Enable_Pos_State_Machine 26664
-#define P_HOLD_Existence_Insp_Queue_State_Machine 26665
-#define P_Hold_Stop_Existence_Insp_STEP 26666
-#define P_SubMaster_Status_Err 26667
-#define P_Data_Process_Rtn 26668
-#define P_Hold_Set_Trigger 26669
-#define P_Hold_Get_Trigger 26670
-#define P_Anode_2nd_Data 26671
-#define P_Anode_Align_Data 26672
-#define P_Hold_Remove_Step 26673
-#define P_HList_Head_Idx 26674
-#define P_Hold_Next_ID 26675
-#define P_HCmd_List 26676
-#define P_Hold_Data_Value 26696
-#define P_Comb_Bitwise 26697
-#define P_Target_Cmd 26698
-#define P_Temp_Bit 26699
-#define P_Get_ErrorCode 26700
-#define P_Rtn_Code 26701
-#define P_Complete_Hold_Bit 26702
-#define P_HoldMtion_Flag 26703
-#define P_Ret_BitWise 26704
-#define P_NotEnough_GetSpace 26705
-#define P_NotEnough_SetSpace 26706
-#define P_Check_SetSpace 26707
-#define P_Hold_Get_Data 26708
-#define P_Err_NextID_Flag 26709
-#define P_Elec_Bit 26710
-#define P_MotionData 26711
-#define P_DataList 26712
-#define P_Hold_Data_Err 26717
-#define P_Cur_PosX1 26727
-#define P_Cur_PosZ1 26728
-#define P_Cur_PosX2 26729
-#define P_Cur_PosZ2 26730
-#define P_Dest_PosX 26731
-#define P_Dest_PosZ 26732
-#define P_FailToParse 26733
-#define P_CurTrigger 26734
-#define P_TimeOutTrigger 26735
-#define P_CalcTime 26736
-#define P_Cycle_Count 26737
-#define P_MotionTimeOutFlag 26738
-#define P_Set_Data 26739
-#define P_Rtn 26740
-#define P_CurPosTestBit 26741
-#define P_Hold_Anode_Pause_CHK 26742
-#define P_Hold_Cathode_Pause_CHK 26743
-#define P_Surface_Complete_To_Hold 26744
-#define P_Hold_Motion_Arr 26745
-#define P_Hold_Pause_Trg 26765
-#define P_From_Staring_Flag 26766
-#define P_Hold_Existence_Insp_Enqueue_Flag 26767
-#define P_Hold_Rtn 26768
-#define P_Debug_Existence_Insp_STEP 26769
-#define P_Hold_Align_Sheet_CHK 26770
-#define P_Hold_Cathode_Exception_Empty_Flag 26771
-#define P_Hold_Anode_Exception_Empty_Flag 26772
-#define P_HOLD_Hold_Process_State_Machine 26773
-#define P_Hold_Stop_Sheet_Process_STEP 26774
-#define P_Hold_Debug_Sheet_Process_STEP 26775
-#define P_Hold_Stop_Point 26776
-#define P_Hold_CHK 26777
-#define P_Hold_Test 26778
-#define P_Anode_1st_Motion_Complete 26779
-#define P_Anode_2nd_Motion_Complete 26780
-#define P_Anode_NG_PNP_Motion_Complete 26781
-#define P_Cathode_1st_Motion_Complete 26782
-#define P_Cathode_2nd_Motion_Complete 26783
-#define P_Cathode_NG_PNP_Motion_Complete 26784
-#define P_Anode_1st_Picker_Motion_Complete 26785
-#define P_Cathode_1st_Picker_Motion_Complete 26786
-#define P_individual_return 26787
-#define P_individual_return2 26788
-#define P_HoldCurPosBit1 26789
-#define P_HoldCurPosBit2 26790
-#define P_Parsing_Status 26791
-#define P_Sel_Obj 26792
-#define P_Sel_Elec 26793
-#define P_Error 26794
-#define P_Vision_FirstSepa_Complete 26795
-#define P_NG_PNP_Turn_TM 26796
-#define P_NG_PNP_Turn_TS 26797
-#define P_NG_PNP_Turn_TA 26798
-#define P_NG_PNP_Up_TM 26799
-#define P_NG_PNP_Up_TS 26800
-#define P_NG_PNP_Up_TA 26801
-#define P_NG_PNP_Down_TM 26802
-#define P_NG_PNP_Down_TS 26803
-#define P_NG_PNP_Down_TA 26804
-#define P_NG_PNP_Vac_Time 26805
-#define P_NG_PNP_Blow_Time 26806
-#define P_Slow_NG_Mode_Btn 26807
-#define P_HOLD_Memory_Tower_Offset 26808
-#define P_Hold_Pause_Use 26809
-#define P_Hold_Err_MNTR 26810
-#define P_Hold_Err_Data_Save 26814
-#define P_Hold_Err_Action_Data_Save 26822
-#define P_Hold_Motion_Err_Chk 26830
-#define P_Hold_Memory_Tower_Err_Pos 26831
-#define P_Hold_Motion_TimeOut 26846
-#define P_Hold_Data_OK 26847
-#define P_VISION_TRG_PLC4_AnodeSurface_Ins_Shoot 26848
-#define P_VISION_TRG_PLC4_CathodeSurface_Ins_Shoot 26849
-#define P_Memory_Tower_Test 26850
-#define P_Temp_Run_Mode 26851
-#define P_Data_Idx 26852
-#define P_Get_Data_Idx 26853
-#define P_HOLD_Data_Err_Queue 26854
-#define P_HOLD_Data_Err_State_Machine 26855
-#define P_HOLD_Err_Set_Data 26856
-#define P_HOLD_Err_Save 26857
-#define P_Sepa_Run_Completed_Flag 26858
+#define P_Hold_Data_process_State_Machine 26657
+#define P_Hold_Align_Remove_State_Machine 26658
+#define P_Hold_2nd_Remove_State_Machine 26659
+#define P_Hold_Supply_1st_State_Machine 26660
+#define P_Hold_Supply_2nd_State_Machine 26661
+#define P_Hold_Existence_Insp_State_Machine 26662
+#define P_Hold_NG_PNP_Remove_State_Machine 26663
+#define P_Hold_Data_Process_Complete 26664
+#define P_Hold_Semi_Run_Enable_Pos_State_Machine 26665
+#define P_HOLD_Existence_Insp_Queue_State_Machine 26666
+#define P_Hold_Stop_Existence_Insp_STEP 26667
+#define P_SubMaster_Status_Err 26668
+#define P_Data_Process_Rtn 26669
+#define P_Hold_Set_Trigger 26670
+#define P_Hold_Get_Trigger 26671
+#define P_Anode_2nd_Data 26672
+#define P_Anode_Align_Data 26673
+#define P_Hold_Remove_Step 26674
+#define P_HList_Head_Idx 26675
+#define P_Hold_Next_ID 26676
+#define P_HCmd_List 26677
+#define P_Hold_Data_Value 26697
+#define P_Comb_Bitwise 26698
+#define P_Target_Cmd 26699
+#define P_Temp_Bit 26700
+#define P_Get_ErrorCode 26701
+#define P_Rtn_Code 26702
+#define P_Complete_Hold_Bit 26703
+#define P_HoldMtion_Flag 26704
+#define P_Ret_BitWise 26705
+#define P_NotEnough_GetSpace 26706
+#define P_NotEnough_SetSpace 26707
+#define P_Check_SetSpace 26708
+#define P_Hold_Get_Data 26709
+#define P_Err_NextID_Flag 26710
+#define P_Elec_Bit 26711
+#define P_MotionData 26712
+#define P_DataList 26713
+#define P_Hold_Data_Err 26718
+#define P_Cur_PosX1 26728
+#define P_Cur_PosZ1 26729
+#define P_Cur_PosX2 26730
+#define P_Cur_PosZ2 26731
+#define P_Dest_PosX 26732
+#define P_Dest_PosZ 26733
+#define P_FailToParse 26734
+#define P_CurTrigger 26735
+#define P_TimeOutTrigger 26736
+#define P_CalcTime 26737
+#define P_Cycle_Count 26738
+#define P_MotionTimeOutFlag 26739
+#define P_Set_Data 26740
+#define P_Rtn 26741
+#define P_CurPosTestBit 26742
+#define P_Hold_Anode_Pause_CHK 26743
+#define P_Hold_Cathode_Pause_CHK 26744
+#define P_Surface_Complete_To_Hold 26745
+#define P_Hold_Motion_Arr 26746
+#define P_Hold_Pause_Trg 26766
+#define P_From_Staring_Flag 26767
+#define P_Hold_Existence_Insp_Enqueue_Flag 26768
+#define P_Hold_Rtn 26769
+#define P_Debug_Existence_Insp_STEP 26770
+#define P_Hold_Align_Sheet_CHK 26771
+#define P_Hold_Cathode_Exception_Empty_Flag 26772
+#define P_Hold_Anode_Exception_Empty_Flag 26773
+#define P_HOLD_Hold_Process_State_Machine 26774
+#define P_Hold_Stop_Sheet_Process_STEP 26775
+#define P_Hold_Debug_Sheet_Process_STEP 26776
+#define P_Hold_Stop_Point 26777
+#define P_Hold_CHK 26778
+#define P_Hold_Test 26779
+#define P_Anode_1st_Motion_Complete 26780
+#define P_Anode_2nd_Motion_Complete 26781
+#define P_Anode_NG_PNP_Motion_Complete 26782
+#define P_Cathode_1st_Motion_Complete 26783
+#define P_Cathode_2nd_Motion_Complete 26784
+#define P_Cathode_NG_PNP_Motion_Complete 26785
+#define P_Anode_1st_Picker_Motion_Complete 26786
+#define P_Cathode_1st_Picker_Motion_Complete 26787
+#define P_individual_return 26788
+#define P_individual_return2 26789
+#define P_HoldCurPosBit1 26790
+#define P_HoldCurPosBit2 26791
+#define P_Parsing_Status 26792
+#define P_Sel_Obj 26793
+#define P_Sel_Elec 26794
+#define P_Error 26795
+#define P_Vision_FirstSepa_Complete 26796
+#define P_NG_PNP_Turn_TM 26797
+#define P_NG_PNP_Turn_TS 26798
+#define P_NG_PNP_Turn_TA 26799
+#define P_NG_PNP_Up_TM 26800
+#define P_NG_PNP_Up_TS 26801
+#define P_NG_PNP_Up_TA 26802
+#define P_NG_PNP_Down_TM 26803
+#define P_NG_PNP_Down_TS 26804
+#define P_NG_PNP_Down_TA 26805
+#define P_NG_PNP_Vac_Time 26806
+#define P_NG_PNP_Blow_Time 26807
+#define P_Slow_NG_Mode_Btn 26808
+#define P_HOLD_Memory_Tower_Offset 26809
+#define P_Hold_Pause_Use 26810
+#define P_Hold_Err_MNTR 26811
+#define P_Hold_Err_Data_Save 26815
+#define P_Hold_Err_Action_Data_Save 26823
+#define P_Hold_Motion_Err_Chk 26831
+#define P_Hold_Memory_Tower_Err_Pos 26832
+#define P_Hold_Motion_TimeOut 26847
+#define P_Hold_Data_OK 26848
+#define P_VISION_TRG_PLC4_AnodeSurface_Ins_Shoot 26849
+#define P_VISION_TRG_PLC4_CathodeSurface_Ins_Shoot 26850
+#define P_Memory_Tower_Test 26851
+#define P_Temp_Run_Mode 26852
+#define P_Data_Idx 26853
+#define P_Get_Data_Idx 26854
+#define P_HOLD_Data_Err_Queue 26855
+#define P_HOLD_Data_Err_State_Machine 26856
+#define P_HOLD_Err_Set_Data 26857
+#define P_HOLD_Err_Save 26858
+#define P_Sepa_Run_Completed_Flag 26859
 #define M_Motor_Vel 9130
 #define M_Motor_TA 9180
 #define M_Motor_TD 9230
@@ -13608,24 +13614,24 @@ enum ptrMarray {_ptrMarray_=-1
 #define M_Motor_Peak_Load_Ratio 9630
 #define M_Motor_Effective_Load_Ratio 9680
 #define M_Motor_Check_Current_Recipe_Pos 9730
-#define P_Buffer_Seqdata_MSA_Array 26859
-#define P_Buffer_Seqdata_Align_Take_Off_Array 26909
-#define P_VISION_MSA_Align_Module_Complete_Bit 26959
-#define P_Module_Manual_MSA_Act_Command_Array 27059
-#define P_OLD_Module_Manual_MSA_Act_Command_Array 27159
-#define P_Module_MSA_Act_State_Machine_Array 27259
-#define P_VISION_MSA_Seq_Stopping_Point 27359
-#define P_Align_Take_Off_Module_Complete_Bit 27392
-#define P_Module_Manual_Align_Take_Off_Act_Command_Array 27492
-#define P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array 27592
-#define P_Module_Align_Take_Off_Act_State_Machine_Array 27692
-#define P_Log_Data_Y 27792
-#define P_Log_Data_M 27793
-#define P_Log_Data_D 27794
-#define P_Log_Data_H 27795
-#define P_Log_Data_m 27796
-#define P_Log_Data_s 27797
-#define P_MNTR_End_Index 27798
+#define P_Buffer_Seqdata_MSA_Array 26860
+#define P_Buffer_Seqdata_Align_Take_Off_Array 26910
+#define P_VISION_MSA_Align_Module_Complete_Bit 26960
+#define P_Module_Manual_MSA_Act_Command_Array 27060
+#define P_OLD_Module_Manual_MSA_Act_Command_Array 27160
+#define P_Module_MSA_Act_State_Machine_Array 27260
+#define P_VISION_MSA_Seq_Stopping_Point 27360
+#define P_Align_Take_Off_Module_Complete_Bit 27393
+#define P_Module_Manual_Align_Take_Off_Act_Command_Array 27493
+#define P_OLD_Module_Manual_Align_Take_Off_Act_Command_Array 27593
+#define P_Module_Align_Take_Off_Act_State_Machine_Array 27693
+#define P_Log_Data_Y 27793
+#define P_Log_Data_M 27794
+#define P_Log_Data_D 27795
+#define P_Log_Data_H 27796
+#define P_Log_Data_m 27797
+#define P_Log_Data_s 27798
+#define P_MNTR_End_Index 27799
 #define P_BG_CPLC_Running_MNTR 50
 #define P_RTI_CPLC_Running_MNTR 51
 #define P_Log_Start_Flag 170
@@ -13634,48 +13640,48 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_USB_Register 173
 #define P_Cur_Line_Check 175
 #define P_Cur_Line_Check_Init 176
-#define P_Buffer_Judge_Trg 27799
-#define P_Hold_Pass 27809
-#define P_PLC01_Queue_MNTR 27810
-#define P_PLC01_Total_Step_Flag 27825
-#define P_PLC02_Total_Step_Flag 27826
-#define P_PLC014_Total_Step_Flag 27827
-#define P_PLC02_Total_Step_Flag2 27828
-#define P_Vac_Pass 27829
-#define P_Vision_Pass_Exisitence 27830
-#define P_Vision_Pass_Empty 27831
-#define P_Vision_Pass_FirstSepa 27832
-#define P_Vision_Pass_Stack_Inspection 27833
-#define P_ULD_Home_Pass 27834
-#define P_Clamp_Cell_Down_Use 27835
-#define P_FR_Clamp_Use_Test 27836
-#define P_Door_Interlock_Use_Flag 27837
-#define P_Vacuum_Door_Clear_Use 27838
-#define P_Align_Test_Pos 27839
-#define P_PLC01_Exe_Is_Ena_Step_Flag 27840
-#define P_PLC01_Exe_Fist_Sepa_Step_Flag 27850
-#define P_PLC01_Exe_Prod_Step_Flag 27860
-#define P_PLC01_HOLD_Insp_Step_Flag 27865
-#define P_PLC01_HOLD_Main_Step_Flag 27875
-#define P_PLC01_Sus_Discharge_Step_Flag 27890
-#define P_PLC01_Sus_ARC_Step_Flag 27900
-#define P_PLC01_STOP_Init_Step_Flag 27910
-#define P_PLC01_STOP_Cycle_ST_Step_Flag 27920
-#define P_PLC02_Exe_Module_First_Sepa_Step_Flag 27935
-#define P_PLC02_Sus_Module_Discharge_Step_Flag 27936
-#define P_PLC02_Sus_Module_ARC_Step_Flag 27937
-#define P_PLC02_Sus_Module_1TR_Supply_Step_Flag 27938
-#define P_PLC02_HOLD_Module_Insp_Step_Flag 27939
-#define P_PLC02_HOLD_Module_Remove_NGPNP_Step_Flag 27940
-#define P_PLC02_HOLD_Module_Remove_Align_Step_Flag 27941
-#define P_PLC02_HOLD_Module_Remove_2TR_Step_Flag 27942
-#define P_PLC02_HOLD_Module_Supply_1TR_Step_Flag 27943
-#define P_PLC02_HOLD_Module_Supply_Align_Step_Flag 27944
-#define P_PLC02_HOLD_Module_Supply_2TR_Step_Flag 27945
-#define P_PLC02_HOLD_Module_SemiRun_Pos_Step_Flag 27946
-#define P_PLC14_STOP_Module_Cycle_Stop_Step_Flag 27947
-#define P_PLC02_Discharge_MNTR 27948
-#define P_NEW_Alarm_USE_Flag 27949
+#define P_Buffer_Judge_Trg 27800
+#define P_Hold_Pass 27810
+#define P_PLC01_Queue_MNTR 27811
+#define P_PLC01_Total_Step_Flag 27826
+#define P_PLC02_Total_Step_Flag 27827
+#define P_PLC014_Total_Step_Flag 27828
+#define P_PLC02_Total_Step_Flag2 27829
+#define P_Vac_Pass 27830
+#define P_Vision_Pass_Exisitence 27831
+#define P_Vision_Pass_Empty 27832
+#define P_Vision_Pass_FirstSepa 27833
+#define P_Vision_Pass_Stack_Inspection 27834
+#define P_ULD_Home_Pass 27835
+#define P_Clamp_Cell_Down_Use 27836
+#define P_FR_Clamp_Use_Test 27837
+#define P_Door_Interlock_Use_Flag 27838
+#define P_Vacuum_Door_Clear_Use 27839
+#define P_Align_Test_Pos 27840
+#define P_PLC01_Exe_Is_Ena_Step_Flag 27841
+#define P_PLC01_Exe_Fist_Sepa_Step_Flag 27851
+#define P_PLC01_Exe_Prod_Step_Flag 27861
+#define P_PLC01_HOLD_Insp_Step_Flag 27866
+#define P_PLC01_HOLD_Main_Step_Flag 27876
+#define P_PLC01_Sus_Discharge_Step_Flag 27891
+#define P_PLC01_Sus_ARC_Step_Flag 27901
+#define P_PLC01_STOP_Init_Step_Flag 27911
+#define P_PLC01_STOP_Cycle_ST_Step_Flag 27921
+#define P_PLC02_Exe_Module_First_Sepa_Step_Flag 27936
+#define P_PLC02_Sus_Module_Discharge_Step_Flag 27937
+#define P_PLC02_Sus_Module_ARC_Step_Flag 27938
+#define P_PLC02_Sus_Module_1TR_Supply_Step_Flag 27939
+#define P_PLC02_HOLD_Module_Insp_Step_Flag 27940
+#define P_PLC02_HOLD_Module_Remove_NGPNP_Step_Flag 27941
+#define P_PLC02_HOLD_Module_Remove_Align_Step_Flag 27942
+#define P_PLC02_HOLD_Module_Remove_2TR_Step_Flag 27943
+#define P_PLC02_HOLD_Module_Supply_1TR_Step_Flag 27944
+#define P_PLC02_HOLD_Module_Supply_Align_Step_Flag 27945
+#define P_PLC02_HOLD_Module_Supply_2TR_Step_Flag 27946
+#define P_PLC02_HOLD_Module_SemiRun_Pos_Step_Flag 27947
+#define P_PLC14_STOP_Module_Cycle_Stop_Step_Flag 27948
+#define P_PLC02_Discharge_MNTR 27949
+#define P_NEW_Alarm_USE_Flag 27950
 #define M_EPC_SENSOR_Load_Ratio 6033
 #define M_STACK_VISION_Load_Ratio 6034
 #define M_SHEET_PAPER_X_Load_Ratio 6035
@@ -13708,39 +13714,39 @@ enum ptrMarray {_ptrMarray_=-1
 #define P_UNLOADER_X_Load_Ratio 146
 #define P_UNLOADER_Z_Load_Ratio 147
 #define P_UNLOADER_T_Load_Ratio 148
-#define P_Error_Index_Number 27950
-#define P_ECAT_MNTR_Bit 27951
-#define P_Local_MNTR_Bit 27952
-#define P_Clamp_Motion_VER1 27953
-#define P_CA_DR_Ta 27954
-#define P_CA_DR_Ts 27955
-#define P_CA_DR_Tm 27956
-#define P_CA_DR_Td 27957
-#define P_CA_DR_Tsd 27958
-#define P_AN_DR_Ta 27959
-#define P_AN_DR_Ts 27960
-#define P_AN_DR_Tm 27961
-#define P_AN_DR_Td 27962
-#define P_AN_DR_Tsd 27963
-#define P_First_Sepa_1st_Driving_Move 27964
-#define P_AN_Cam_Total_Time 27965
-#define P_CA_Cam_Total_Time 27966
-#define P_Dry_Run_BTN 27967
-#define P_Home_Angle_Offset_change_Bit 27968
-#define P_InterLock_Motor_Num 27969
-#define P_Recipe_Move_IL_Loop 27970
-#define P_Z_Var 27971
-#define P_No1_Recipe_Pos_IL 27972
-#define P_No2_Recipe_Pos_IL 28025
-#define P_No3_Recipe_Pos_IL 28078
-#define P_No4_Recipe_Pos_IL 28131
-#define P_No5_Recipe_Pos_IL 28184
-#define P_No6_Recipe_Pos_IL 28237
-#define P_No7_Recipe_Pos_IL 28290
-#define P_No8_Recipe_Pos_IL 28343
-#define P_No9_Recipe_Pos_IL 28396
-#define P_No10_Recipe_Pos_IL 28449
-#define P_Recipe_POS_Interock_M 28502
+#define P_Error_Index_Number 27951
+#define P_ECAT_MNTR_Bit 27952
+#define P_Local_MNTR_Bit 27953
+#define P_Clamp_Motion_VER1 27954
+#define P_CA_DR_Ta 27955
+#define P_CA_DR_Ts 27956
+#define P_CA_DR_Tm 27957
+#define P_CA_DR_Td 27958
+#define P_CA_DR_Tsd 27959
+#define P_AN_DR_Ta 27960
+#define P_AN_DR_Ts 27961
+#define P_AN_DR_Tm 27962
+#define P_AN_DR_Td 27963
+#define P_AN_DR_Tsd 27964
+#define P_First_Sepa_1st_Driving_Move 27965
+#define P_AN_Cam_Total_Time 27966
+#define P_CA_Cam_Total_Time 27967
+#define P_Dry_Run_BTN 27968
+#define P_Home_Angle_Offset_change_Bit 27969
+#define P_InterLock_Motor_Num 27970
+#define P_Recipe_Move_IL_Loop 27971
+#define P_Z_Var 27972
+#define P_No1_Recipe_Pos_IL 27973
+#define P_No2_Recipe_Pos_IL 28026
+#define P_No3_Recipe_Pos_IL 28079
+#define P_No4_Recipe_Pos_IL 28132
+#define P_No5_Recipe_Pos_IL 28185
+#define P_No6_Recipe_Pos_IL 28238
+#define P_No7_Recipe_Pos_IL 28291
+#define P_No8_Recipe_Pos_IL 28344
+#define P_No9_Recipe_Pos_IL 28397
+#define P_No10_Recipe_Pos_IL 28450
+#define P_Recipe_POS_Interock_M 28503
 #endif
 #endif
 #endif //_PP_PROJ_H_

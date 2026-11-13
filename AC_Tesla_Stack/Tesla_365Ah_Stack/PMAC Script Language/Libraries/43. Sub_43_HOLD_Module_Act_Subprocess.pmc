@@ -106,7 +106,7 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 				else if( P_Hold_Anode_Exception_Empty_Flag == 1 && Sys_Anode_NG_TR_Sheet_Data == 0 )								// NG PNP에 극판 데이터가 있는 상태로 정지 후 재시작 할 경우 → 극판 데이터가 없다면 작업자가 제거했다고 판단하여 빈테이블 검사 실행.
 				{
 					P_Vision_EmptyTable_Command = N_Anode_Unit;																		// 빈테이블 검사 실행.
-					P_Anode_NG_TR_NG_Place_Down_Flag = 1;
+					//P_Anode_NG_TR_NG_Place_Down_Flag = 1;
 					P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = 1;										// 다음 스텟 머신으로 이동.
 				}
 				else
@@ -123,7 +123,7 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 				else if( P_Hold_Cathode_Exception_Empty_Flag == 1 && Sys_Cathode_NG_TR_Sheet_Data == 0 )							// NG PNP에 극판 데이터가 있는 상태로 정지 후 재시작 할 경우 → 극판 데이터가 없다면 작업자가 제거했다고 판단하여 빈테이블 검사 실행.
 				{
 					P_Vision_EmptyTable_Command = N_Cathode_Unit;																	// 빈테이블 검사 실행.
-					P_Cathode_NG_TR_NG_Place_Down_Flag = 1;
+					//P_Cathode_NG_TR_NG_Place_Down_Flag = 1;
 					P_Module_Act_Hold_State_Machine_Array(N_Act_Cell_Data_Vision_Check) = 1;										// 다음 스텟 머신으로 이동.					
 				}
 				else

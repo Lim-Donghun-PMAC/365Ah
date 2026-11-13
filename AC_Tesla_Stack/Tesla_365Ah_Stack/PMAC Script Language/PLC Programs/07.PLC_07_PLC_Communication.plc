@@ -2176,21 +2176,22 @@ if(M_Write_Sector_Scan_Complete(3) == 1)
 	u.user:$014888.01 = P_Middle_Discharge_Ignore_OFF_Signal;	// 중간 배출 무시 OFF 요청 신호.
 
 	// [ 참조 : 26.09.14 PV EPC Camera Pos 추가 ]
-	Sys.Idata[21030] = P_PV_EPC_Camera_Pos(0);					// Separator_EPC_Sensor_Target_00turn
-	Sys.Idata[21031] = P_PV_EPC_Camera_Pos(1);					// Separator_EPC_Sensor_Target_10turn
-	Sys.Idata[21032] = P_PV_EPC_Camera_Pos(2);					// Separator_EPC_Sensor_Target_40turn
-	Sys.Idata[21033] = P_PV_EPC_Camera_Pos(3);					// Separator_EPC_Sensor_Target_70turn
-	Sys.Idata[21034] = P_PV_EPC_Camera_Pos(4);					// Separator_EPC_Sensor_Target_100turn
-	Sys.Idata[21035] = P_PV_EPC_Camera_Pos(5);					// Separator_EPC_Sensor_Target_130turn
-	Sys.Idata[21036] = P_PV_EPC_Camera_Pos(6);					// Separator_EPC_Sensor_Target_160turn
-	Sys.Idata[21037] = P_PV_EPC_Camera_Pos(7);					// Separator_EPC_Sensor_Target_190turn
-	Sys.Idata[21038] = P_PV_EPC_Camera_Pos(8);					// Separator_EPC_Sensor_Target_220turn
-	Sys.Idata[21039] = P_PV_EPC_Camera_Pos(9);					// Separator_EPC_Sensor_Target_250turn
-	Sys.Idata[21040] = P_PV_EPC_Camera_Pos(10);					// Separator_EPC_Sensor_Target_280turn
-	Sys.Idata[21041] = P_PV_EPC_Camera_Pos(11);					// Separator_EPC_Sensor_Target_310turn
-	Sys.Idata[21042] = P_PV_EPC_Camera_Pos(12);					// Separator_EPC_Sensor_Target_end-20turn
+	// [ 참조 : 26.11.12 PV EPC Camera Pos 수정 ]
+	Sys.Idata[21030] = P_PV_EPC_Camera_Pos(0) * 10000;			// Separator_EPC_Sensor_Target_00turn
+	Sys.Idata[21031] = P_PV_EPC_Camera_Pos(1) * 10000;			// Separator_EPC_Sensor_Target_10turn
+	Sys.Idata[21032] = P_PV_EPC_Camera_Pos(2) * 10000;			// Separator_EPC_Sensor_Target_40turn
+	Sys.Idata[21033] = P_PV_EPC_Camera_Pos(3) * 10000;			// Separator_EPC_Sensor_Target_70turn
+	Sys.Idata[21034] = P_PV_EPC_Camera_Pos(4) * 10000;			// Separator_EPC_Sensor_Target_100turn
+	Sys.Idata[21035] = P_PV_EPC_Camera_Pos(5) * 10000;			// Separator_EPC_Sensor_Target_130turn
+	Sys.Idata[21036] = P_PV_EPC_Camera_Pos(6) * 10000;			// Separator_EPC_Sensor_Target_160turn
+	Sys.Idata[21037] = P_PV_EPC_Camera_Pos(7) * 10000;			// Separator_EPC_Sensor_Target_190turn
+	Sys.Idata[21038] = P_PV_EPC_Camera_Pos(8) * 10000;			// Separator_EPC_Sensor_Target_220turn
+	Sys.Idata[21039] = P_PV_EPC_Camera_Pos(9) * 10000;			// Separator_EPC_Sensor_Target_250turn
+	Sys.Idata[21040] = P_PV_EPC_Camera_Pos(10) * 10000;			// Separator_EPC_Sensor_Target_280turn
+	Sys.Idata[21041] = P_PV_EPC_Camera_Pos(11) * 10000;			// Separator_EPC_Sensor_Target_310turn
+	Sys.Idata[21042] = P_PV_EPC_Camera_Pos(12) * 10000;			// Separator_EPC_Sensor_Target_end-20turn
 
-	Sys.Idata[21190] = P_Sepa_Required_Amount;	// 세파 소요량
+	Sys.Idata[21190] = P_Sepa_Required_Amount * 10;	// 세파 소요량	[ 참조 : 26.11.12 MES 단위 변경 ]
 	// [ 참조 : 2026.06.18 현재 Dacout 값을 kgf 변환 프로그램 ]
 	// 올릴때 벨류를 모르겠네 몇을 곱해줘야할지 ( kgf 내려올때 3자리로 내려온다니까 *100 하자 )
 	Sys.Idata[21191] = P_Dancer_Cur_Kgf * 100;

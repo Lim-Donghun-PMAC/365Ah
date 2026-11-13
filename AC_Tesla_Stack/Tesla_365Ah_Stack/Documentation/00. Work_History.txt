@@ -1874,3 +1874,35 @@ Date : 26.10.27 - 최윤영 책임
 2. 내용 : NG PNP가 얼라인에 극판을 못 집었으나 진공알람이 발생하지 않고
           1차 PNP가 얼라인에 공급하여 더블 시트 현상이 발생 -> NG PNP 진공알람 감시 시간 늘림
          [26.11.07 NG PNP가 상승 후 T축 이동시까지 감시를 위해 수정]
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//Date : 26.11.12 - 임동훈 선임
+1. 내용 : [ 참조 : 26.11.12 스텍 비전 타임아웃 시간 변경 ]
+		수정 전 : 0ms
+		수정 후 : 3000ms
+2. 내용 : [ 잠조 : 26.11.12 비전 마지막장, 첫장 시점 재변경 ]
+		수정 전 : 파이널 롤러 배출 위치 이동 시 진행 (배출 Index : 2)
+		수정 후 : 파이널 롤러 언클램프 시 진행 (배출 Index : 1)
+		변경 사유 : 비전 마지막장 신호 On 시 P_Stack_Vision_To_NG_Code를 주는데 판단을 먼저 하고 NG_Code를 받아 TimeOut으로만 적용
+3. 내용 : [ 참조 : 26.11.12 세파 소요량 계산 수식 변경 ]
+		수정 전 : P_Sepa_Initial_Tickness = P_Sepa_Initial_Tickness + P_Lower_Sensor_To_Unwinder_Core_Dis - P_Lower_Sepa_To_Sensor_Max_Dis;
+		수정 후 : P_Sepa_Initial_Tickness = P_Upper_Sensor_To_Unwinder_Core_Dis - P_Upper_Sepa_To_Sensor_Max_Dis;
+				 P_Sepa_Initial_Tickness = P_Lower_Sensor_To_Unwinder_Core_Dis - P_Lower_Sepa_To_Sensor_Max_Dis;
+4. 내용 : [ 참조 : 26.11.12 댄서 압력 계산 조건 변경 ]
+		수정 전 : if( Motor[N_SERVO_DANCER].AmpEna == 1 && Motor[N_SERVO_DANCER].ClosedLoop != 0 )
+		수정 후 : if( Motor[N_SERVO_DANCER].AmpEna == 1 && Motor[N_SERVO_DANCER].ClosedLoop != 1 )
+5. 내용 : [ 참조 : 26.11.12 Maint NG 씌우는 조건 수정 ]
+		수정 전 : 극판 존재 조건만 확인
+		수정 후 : 극판 존재 + NG Bit가 없을 경우
+		변경 사유 : 얼라인에서 NG 판정 그대로 NG 처리하기 위함 
+6. 내용 : [ 참조 : 26.11.12 NG Box 신호에 따른 처리 수정 ]
+		수정 내용 : Setup Mode + Manual + Resetting 중 NG Box 센서가 감지되지 않을 경우 정지 및 팝업
+7. 내용 : [ 참조 : 26.11.12 PV EPC Camera Pos 수정 ]
+		- 수정 내용 : PV_EPC_Index 초기화 조건 수정
+		수정 전 : Isenable에서 초기화
+		수정 후 : Isenable에서 JR 적층 중이 아닐 때 초기화
+		- 수정 내용 : P_PV_Index 변환 조건 수정
+		수정 전 : if ( P_PV_EPC_Index <= 13 )  
+		수정 후 : if ( P_PV_EPC_Index >= 13 )
+		- 수정 내용 : PV EPC Camera Pos 단위 변환 (*10,000)
+8. 내용 : [ 참조 : 26.11.12 MES 단위 변경 ]
+		- 수정 내용 : 세파 피딩양, 세파 피딩양 드라이빙 롤러, 세파 소모량

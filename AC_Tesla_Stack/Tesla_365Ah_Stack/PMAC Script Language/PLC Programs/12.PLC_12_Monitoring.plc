@@ -1281,143 +1281,158 @@ if( P_Stop_Cmd_Origin != P_Stop_Origin_Save(0) && P_Stop_Cmd_Origin != 0 )
 
 // ng 박스 센서 off 시 NG PNP 동작 멈춤
 //[참조 : 260730 환경안전검수용 인터락 활성화 버튼 추가]
-If ( P_PMAC_Current_Mode == F_Current_Automatic && P_X_PLC_Setup_Mode_Check == 0 )
+If ( P_X_PLC_Setup_Mode_Check == 0 )
 {
-	// ng pnp 동작은 hold 때만 있음
-	if ( P_PMAC_Status == F_Status_HOLD )
+	IF ( P_PMAC_Current_Mode == F_Current_Automatic )
 	{
-		// 양극 NG BOX 미감지 및 양극 NG PNP 동작 중이라면 NG PNP 동작 정지 시퀀스 실행
-		if( M_X_Cathode_NG_Box_Detect_Sensor == 0 && P_Cathode_NG_PNP_Vel_Zero_Set == 0  )
+		// ng pnp 동작은 hold 때만 있음
+		if ( P_PMAC_Status == F_Status_HOLD )
 		{
-			if( Motor[42].DesVelZero == 0 ||  Motor[44].DesVelZero == 0 )
-				P_Cathode_NG_PNP_Vel_Zero_Set = 1
-		}
-	
-		// 음극 NG BOX 미감지 및 음극 NG PNP 동작 중이라면 NG PNP 동작 정지 시퀀스 실행
-		if( M_X_Anode_NG_Box_Detect_Sensor == 0 && P_Anode_NG_PNP_Vel_Zero_Set == 0  )
-		{
-			if( Motor[43].DesVelZero == 0 ||  Motor[45].DesVelZero == 0 )
-				P_Anode_NG_PNP_Vel_Zero_Set = 1
-		}
-	}
-
-	switch( P_Cathode_NG_PNP_Vel_Zero_Set )
-	{
-		// 좌표계 원복
-		case 1 :
-			Coord[N_Coord_NG_PNP_CA].pDesTimeBase = Coord[N_Coord_NG_PNP_CA].DesTimeBase.a;
-			P_Cathode_NG_PNP_Vel_Zero_Set++
-		break;
-	
-		// NG PNP 정지
-		case 2 :
-			if( Coord[N_Coord_NG_PNP_CA].pDesTimeBase == Coord[N_Coord_NG_PNP_CA].DesTimeBase.a )
+			// 양극 NG BOX 미감지 및 양극 NG PNP 동작 중이라면 NG PNP 동작 정지 시퀀스 실행
+			if( M_X_Cathode_NG_Box_Detect_Sensor == 0 && P_Cathode_NG_PNP_Vel_Zero_Set == 0  )
 			{
-				Coord[N_Coord_NG_PNP_CA].DesTimeBase = 0
-				P_Cathode_NG_PNP_Vel_Zero_Set++
+				if( Motor[42].DesVelZero == 0 ||  Motor[44].DesVelZero == 0 )
+					P_Cathode_NG_PNP_Vel_Zero_Set = 1
 			}
-		break;
 		
-		// NG BOX 재감지 시 동작 실행
-		case 3 :
-			if( M_X_Cathode_NG_Box_Detect_Sensor == 1 )
+			// 음극 NG BOX 미감지 및 음극 NG PNP 동작 중이라면 NG PNP 동작 정지 시퀀스 실행
+			if( M_X_Anode_NG_Box_Detect_Sensor == 0 && P_Anode_NG_PNP_Vel_Zero_Set == 0  )
 			{
-				Coord[N_Coord_NG_PNP_CA].pDesTimeBase =  Coord[1].DesTimeBase.a;
+				if( Motor[43].DesVelZero == 0 ||  Motor[45].DesVelZero == 0 )
+					P_Anode_NG_PNP_Vel_Zero_Set = 1
+			}
+		}
+
+		switch( P_Cathode_NG_PNP_Vel_Zero_Set )
+		{
+			// 좌표계 원복
+			case 1 :
+				Coord[N_Coord_NG_PNP_CA].pDesTimeBase = Coord[N_Coord_NG_PNP_CA].DesTimeBase.a;
 				P_Cathode_NG_PNP_Vel_Zero_Set++
-			}
-		break;
-
-		// TimeBase 원복
-		case 4 :
-			if( Coord[N_Coord_NG_PNP_CA].pDesTimeBase == Coord[1].DesTimeBase.a )
-			{
-				Coord[N_Coord_NG_PNP_CA].DesTimeBase = Coord[1].DesTimeBase
-				if( Coord[N_Coord_NG_PNP_CA].DesTimeBase == Coord[1].DesTimeBase  )
+			break;
+		
+			// NG PNP 정지
+			case 2 :
+				if( Coord[N_Coord_NG_PNP_CA].pDesTimeBase == Coord[N_Coord_NG_PNP_CA].DesTimeBase.a )
 				{
-					P_Cathode_NG_PNP_Vel_Zero_Set = 0
+					Coord[N_Coord_NG_PNP_CA].DesTimeBase = 0
+					P_Cathode_NG_PNP_Vel_Zero_Set++
 				}
-			}
-		break;
-	
-		default:
-	
-		break
+			break;
+			
+			// NG BOX 재감지 시 동작 실행
+			case 3 :
+				if( M_X_Cathode_NG_Box_Detect_Sensor == 1 )
+				{
+					Coord[N_Coord_NG_PNP_CA].pDesTimeBase =  Coord[1].DesTimeBase.a;
+					P_Cathode_NG_PNP_Vel_Zero_Set++
+				}
+			break;
+
+			// TimeBase 원복
+			case 4 :
+				if( Coord[N_Coord_NG_PNP_CA].pDesTimeBase == Coord[1].DesTimeBase.a )
+				{
+					Coord[N_Coord_NG_PNP_CA].DesTimeBase = Coord[1].DesTimeBase
+					if( Coord[N_Coord_NG_PNP_CA].DesTimeBase == Coord[1].DesTimeBase  )
+					{
+						P_Cathode_NG_PNP_Vel_Zero_Set = 0
+					}
+				}
+			break;
+		
+			default:
+		
+			break
+		}
+		switch( P_Anode_NG_PNP_Vel_Zero_Set )
+		{
+			case 1 :
+				Coord[N_Coord_NG_PNP_AN].pDesTimeBase = Coord[N_Coord_NG_PNP_AN].DesTimeBase.a;
+				P_Anode_NG_PNP_Vel_Zero_Set++
+			break;
+		
+			case 2 :
+				if( Coord[N_Coord_NG_PNP_AN].pDesTimeBase == Coord[N_Coord_NG_PNP_AN].DesTimeBase.a )
+				{
+					Coord[N_Coord_NG_PNP_AN].DesTimeBase = 0
+					P_Anode_NG_PNP_Vel_Zero_Set++
+				}
+			break;
+		
+			case 3 :
+				if( M_X_Anode_NG_Box_Detect_Sensor == 1 )
+				{
+					Coord[N_Coord_NG_PNP_AN].pDesTimeBase = Coord[1].DesTimeBase.a;
+					P_Anode_NG_PNP_Vel_Zero_Set++
+				}
+			break;
+
+			case 4 :
+				if( Coord[N_Coord_NG_PNP_AN].pDesTimeBase == Coord[1].DesTimeBase.a )
+				{
+					Coord[N_Coord_NG_PNP_AN].DesTimeBase = Coord[1].DesTimeBase
+					if( Coord[N_Coord_NG_PNP_AN].DesTimeBase == Coord[1].DesTimeBase )
+					{
+						P_Anode_NG_PNP_Vel_Zero_Set = 0
+					}
+				}
+			break; 
+		
+			default:
+		
+			break
+		}
 	}
-	
-	
-	
-	switch( P_Anode_NG_PNP_Vel_Zero_Set )
+	IF ( P_PMAC_Current_Mode == F_Current_Manual && P_PMAC_Status == F_Status_RESETTING )		// 매뉴얼 + 홈 진행 중 NG Box 신호가 들어오지 않을 경우 정지.	 [ 참조 : 26.11.12 NG Box 신호에 따른 처리 수정 ]
 	{
-		case 1 :
-			Coord[N_Coord_NG_PNP_AN].pDesTimeBase = Coord[N_Coord_NG_PNP_AN].DesTimeBase.a;
-			P_Anode_NG_PNP_Vel_Zero_Set++
-		break;
-	
-		case 2 :
-			if( Coord[N_Coord_NG_PNP_AN].pDesTimeBase == Coord[N_Coord_NG_PNP_AN].DesTimeBase.a )
-			{
-				Coord[N_Coord_NG_PNP_AN].DesTimeBase = 0
-				P_Anode_NG_PNP_Vel_Zero_Set++
-			}
-		break;
-	
-		case 3 :
-			if( M_X_Anode_NG_Box_Detect_Sensor == 1 )
-			{
-				Coord[N_Coord_NG_PNP_AN].pDesTimeBase = Coord[1].DesTimeBase.a;
-				P_Anode_NG_PNP_Vel_Zero_Set++
-			}
-		break;
-
-		case 4 :
-			if( Coord[N_Coord_NG_PNP_AN].pDesTimeBase == Coord[1].DesTimeBase.a )
-			{
-				Coord[N_Coord_NG_PNP_AN].DesTimeBase = Coord[1].DesTimeBase
-				if( Coord[N_Coord_NG_PNP_AN].DesTimeBase == Coord[1].DesTimeBase )
-				{
-					P_Anode_NG_PNP_Vel_Zero_Set = 0
-				}
-			}
-		break; 
-	
-		default:
-	
-		break
+		IF ( M_X_Cathode_NG_Box_Detect_Sensor == 0 || M_X_Anode_NG_Box_Detect_Sensor == 0 )		// 양극 또는 음극 NG Box 신호가 들어오지 않을 경우.
+		{
+			P_PMAC_Commands = F_Command_Stop;													// 정지.
+			P_Stop_Cmd_Origin = 130;
+			P_NG_Box_Open_Popup_Flag = 1;														// 팝업 활성화.
+		}
 	}
 }
 
 // 정지 완료 및 Abort 완료 시 시퀀스 종료
-if( P_Cathode_NG_PNP_Vel_Zero_Set != 0 || P_Anode_NG_PNP_Vel_Zero_Set != 0 )
+if( P_Cathode_NG_PNP_Vel_Zero_Set != 0 || P_Anode_NG_PNP_Vel_Zero_Set != 0 )					// 오토 상태 + Hold에서 NG Box 감지 되지 않을 경우 켜짐.
 {
 	if ( P_PMAC_Status == F_Status_STOPPED || P_PMAC_Status == F_Status_ABORTED || P_PMAC_Status == F_Status_EXECUTE || (P_Hold_Remove_NG_PNP == 0 && P_Hold_Remove_Align == 0) )
 	{
 		P_Cathode_NG_PNP_Vel_Zero_Set = 0
 		P_Anode_NG_PNP_Vel_Zero_Set = 0
 		Coord[N_Coord_NG_PNP_CA].DesTimeBase = Coord[1].DesTimeBase
-		Coord[N_Coord_NG_PNP_CA].DesTimeBase = Coord[1].DesTimeBase
+		Coord[N_Coord_NG_PNP_AN].DesTimeBase = Coord[1].DesTimeBase
 	}
 	else
 	{
-		// 260806 NG 박스 센서 감지 안될 시 팝업 발생
-		nop(memset(F_IL_Cdata,0,N_IL_memset_size));
-
-		if( P_Cathode_NG_PNP_Vel_Zero_Set != 0 )
-		{
-			nop(sprintf(F_IL_Cdata," Cathode NG Box Opened "));		
-		}
-
-		if( P_Anode_NG_PNP_Vel_Zero_Set != 0 )
-		{
-			nop(sprintf(F_IL_Cdata," Anode NG Box Opened "));
-		}
-
-		nop(sprintf(F_IL_Cdata2," Please Close NG BOX "));
-		if ( P_X_Interlock_Popup_On_Request_Ack == 0 )			// 26.09.29 팝업이 꺼져있을 때 팝업을 띄울 수 있도록 수정.
-		{
-			P_Y_Interlock_Popup_On_Request = 1;
-		}
+		P_NG_Box_Open_Popup_Flag = 1;		// NG Box Open 팝업 발생.
 	}
 }
+if ( P_NG_Box_Open_Popup_Flag == 1 )		// [ 참조 : 26.11.12 NG Box 신호에 따른 처리 수정 ]
+{
+	P_NG_Box_Open_Popup_Flag = 0;
+	// 260806 NG 박스 센서 감지 안될 시 팝업 
+	nop(memset(F_IL_Cdata,0,N_IL_memset_size));
+
+	if( P_Cathode_NG_PNP_Vel_Zero_Set != 0 || M_X_Cathode_NG_Box_Detect_Sensor == 0 )
+	{
+		nop(sprintf(F_IL_Cdata," Cathod e NG Box Opened "));		
+	}
+
+	if( P_Anode_NG_PNP_Vel_Zero_Set != 0  || M_X_Anode_NG_Box_Detect_Sensor == 0 )
+	{
+		nop(sprintf(F_IL_Cdata," Anode NG Box Opened "));
+	}
+
+	nop(sprintf(F_IL_Cdata2," Please Close NG BOX "));
+	if ( P_X_Interlock_Popup_On_Request_Ack == 0 )			// 26.09.29 팝업이 꺼져있을 때 팝업을 띄울 수 있도록 수정.
+	{
+		P_Y_Interlock_Popup_On_Request = 1;
+	}
+}
+
 
 // 260401 세파 열선 ON 후 20초 동안 꺼지지 않는다면 강제로 off
 if( M_Y_Sepa_Cutter_SSR_On == 1 && M_Y_Sepa_Cutter_SSR_On != P_Old_M_Y_Sepa_Cutter_SSR_On  )

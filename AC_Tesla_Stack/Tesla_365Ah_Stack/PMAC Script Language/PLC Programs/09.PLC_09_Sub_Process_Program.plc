@@ -1046,8 +1046,8 @@ IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_AB
 			case N_PLC09_PackML_Num_0: break;
 
 			case N_PLC09_PackML_Num_1:
-				P_Anode_NG_PNP_Vel_Zero_Set = 0
-				P_Cathode_NG_PNP_Vel_Zero_Set = 0
+				//P_Anode_NG_PNP_Vel_Zero_Set = 0			[ 참조 : 26.11.12 NG Box 신호에 따른 처리 수정 ]
+				//P_Cathode_NG_PNP_Vel_Zero_Set = 0
 
 				P_Execute_Manage_Mode = 0
 				P_array_CF_Function_Run_Flag = 1;																			// 서브 프로그램 시작

@@ -333,6 +333,27 @@ P_Edge_Lower_Sensor(0),8 = 0;
 global P_Edge_NP_BTN(2)		// 네임플레이트 상,하부 변경 Edge 변수		[ 참조 : 26.04.24 ARC 네임 플레이트 램프 수정 ]
 P_Edge_NP_BTN(0),2 = 0;	
 
-global P_ARC_Tilting_Unwinder_Move_Dis = -50;
 global P_Old_ARC_Upper_Tilting_Status = 0;
 global P_Old_ARC_Lower_Tilting_Status = 0;
+
+// [ 참조 : 26.11.14 플레이트 언틸팅 시 언와인더 풀리는 프로그램 수정 ]
+global P_ARC_Tilting_Unwinder_Move_Dis = -30;			// 언와인더 풀리는 길이.
+global P_ARC_Tilting_Unwinder_Move_Motor_Num = 0;		// 언와인더 모터 번호. 
+global P_ARC_Tilting_Unwinder_Move_State_Machine = 0;	// 언와인더 풀리는 스탯머신.
+global P_ARC_Tilting_Unwinder_Move_Status = 0;			// 언와인더 풀리는 프로그램 상태.
+global P_ARC_Tilting_Unwinder_Move_Chk_Timer = 0;		// 언와인더 풀리는 움직임 확인 타이머. 
+global P_ARC_Tilting_Unwinder_Move_Chk_Time = 1500;		// [ms] 언와인더 풀리는 움직임 확인 시간.
+
+
+
+// [ 참조 : 26.11.17 양극 얼라인 MSA 중 블로우 IO 추가 ]
+// 양극 1차 PNP가 얼라인 테이블에서 블로우 후 흡착 시 놓치는 경우가 있어 얼라인 블로우 지속하도록 수정
+global P_MSA_Cathode_Blow_Time = 100;
+global P_MSA_Cathode_Vac_Time = 100;
+// 음극 얼라인 MSA FR 회피 모션 추가
+global P_MES_FR_Avoid_Z_Tm = 450;
+global P_MES_FR_Avoid_Z_Ta = 25;
+global P_MES_FR_Avoid_Z_Ts = 25;
+global P_MES_FR_Avoid_X_Tm = 2500;
+global P_MES_FR_Avoid_X_Ta = 250;
+global P_MES_FR_Avoid_X_Ts = 250;

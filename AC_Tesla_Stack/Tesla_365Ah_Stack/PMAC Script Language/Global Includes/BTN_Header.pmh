@@ -382,8 +382,10 @@ M_NP_BTN_Interlock(15)->u.user:$001486C.15;	//=	M_X_Sepa_Lower_Ionizer_Error;
 #define F_ARC_Lower_Cutter_BWD			u.user:$0147F0.13
 #define F_ARC_Upper_Clamp				u.user:$0147F0.14
 #define F_ARC_Upper_UnClamp				u.user:$0147F0.15
-#define F_ARC_Lower_UnClamp				u.user:$0147F0.16
-#define F_ARC_Lower_Clamp				u.user:$0147F0.17
+//#define F_ARC_Lower_UnClamp			u.user:$0147F0.16		[ 참조 : 26.11.17 ARC 하부 클램프, 언클램프 헤더 변경 ]
+//#define F_ARC_Lower_Clamp				u.user:$0147F0.17
+#define F_ARC_Lower_Clamp				u.user:$0147F0.16
+#define F_ARC_Lower_UnClamp				u.user:$0147F0.17
 #define F_ARC_Upper_Vac					u.user:$0147F0.18
 #define F_ARC_Upper_Off					u.user:$0147F0.19
 #define F_ARC_Upper_Blow				u.user:$0147F0.20

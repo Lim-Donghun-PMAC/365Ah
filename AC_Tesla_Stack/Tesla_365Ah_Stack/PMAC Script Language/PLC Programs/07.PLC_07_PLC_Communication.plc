@@ -620,6 +620,11 @@ if( M_Read_Sector_Scan_Complete(3) == 1)
 	P_AI_Cathode_Clamp_Damper_Zero_Mpa_Analog_Value			= Sys.Idata[11165];  
 	P_AI_Anode_Clamp_Damper_Zero_Mpa_Analog_Value			= Sys.Idata[11166];
 
+	// [ 참조 : 26.11.16 MES 상태에 따른 세파 언와인더 Ready 조건 수정 ]
+	P_MES_Status							= u.user:$00AE90.00.1;	// MES 상태 [ 0 : OFF, 1 : ON ] 
+	P_Sepa_Unwinder_Upper_Confirm_Status	= u.user:$00AE90.01.1;	// 상부 세파 언와인더 Confirm 상태 [ 0 : 미완료, 1 : 완료 ]
+	P_Sepa_Unwinder_Lower_Confirm_Status	= u.user:$00AE90.02.1;	// 하부 세파 언와인더 Confirm 상태 [ 0 : 미완료, 1 : 완료 ]
+
 	// [ 참조 : 26.09.14 MES PV 수정 ]
 	if ( M_Func_BTN.Cathode_NG_Move_Count_Reset == 1 )		// 양극 얼라인 NG 카운트 신호가 들어올 경우.
 		P_PV_Cathode_NG_TR_NG_Count = 0;					// 양극 얼라인 NG 개수 PV 초기화.

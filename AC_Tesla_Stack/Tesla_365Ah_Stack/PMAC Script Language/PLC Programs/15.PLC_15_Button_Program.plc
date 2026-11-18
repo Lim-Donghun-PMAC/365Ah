@@ -231,7 +231,7 @@ If ( P_PMAC_Current_Mode == F_Current_Manual )
 	if( M_X_BTN_CMD_Ready == 1 && L_Old_M_X_BTN_CMD_Ready == 0)
 	{	
 		P_Partition_Avoid_Flag = 0;
-		P_PMAC_Commands = F_Command_Reset;
+		P_PMAC_Commands = F_Command_Reset;			
 	}
 }
 L_Old_M_X_BTN_CMD_Ready = M_X_BTN_CMD_Ready;

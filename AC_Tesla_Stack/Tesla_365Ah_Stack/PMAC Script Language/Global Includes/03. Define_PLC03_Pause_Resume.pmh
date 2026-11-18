@@ -68,3 +68,30 @@ global P_Sepa_To_Normal_Mode_Sync_Err_Avoid = 0;		// [isenable에서 싱크 맞추기 �
 global P_Pause_Time_Flag = 0;
 global P_Puase_Resume_Time_Check = 0;
 global P_Pause_To_Resume_Time = 0;
+
+// Pause Error 발생 디버깅 변수	[ 참조 : 26.11.16 Pause Error 디버깅 변수 선언]
+global P_Pause_Error_Avoid_Count = 0;
+global P_Pause_Error_Debug_Flag = 0;
+global P_Pause_Error_Debug_P_PMAC_status = 0;
+global P_Pause_Error_Debug_M_Y_Pause_Cathode_Signal = 0;
+global P_Pause_Error_Debug_M_Y_Pause_Anode_Signal = 0;
+global P_Pause_Error_Debug_M_Y_Pause_Status_Complete_Signal = 0;
+global P_Pause_Error_Debug_P_Sepa_To_Normal_Mode_Sync_Err_Avoid = 0;
+global P_Pause_Error_Debug_P_Master_Motion_Trigger = 0;
+global P_Pause_Error_Debug_M_X_Opposite_Resume_Not_Free = 0;
+global P_Pause_Error_Debug_P_Opposite_Lane_P_PMAC_Status = 0;
+global P_Pause_Error_Debug_M_X_Pause_Status_Complete_Signal = 0;
+global P_Pause_Error_Debug_M_X_PLC_Sync_Heart_Bit = 0;
+global P_Pause_Error_Debug_P_Old_X_PLC_Sync_Heart_Bit = 0;
+
+global P_Pause_Error_Debug_Buffer_P_PMAC_status = 0;
+global P_Pause_Error_Debug_Buffer_M_Y_Pause_Cathode_Signal = 0;
+global P_Pause_Error_Debug_Buffer_M_Y_Pause_Anode_Signal = 0;
+global P_Pause_Error_Debug_Buffer_M_Y_Pause_Status_Complete_Signal = 0;
+global P_Pause_Error_Debug_Buffer_P_Sepa_To_Normal_Mode_Sync_Err_Avoid = 0;
+global P_Pause_Error_Debug_Buffer_P_Master_Motion_Trigger = 0;
+global P_Pause_Error_Debug_Buffer_M_X_Opposite_Resume_Not_Free = 0;
+global P_Pause_Error_Debug_Buffer_P_Opposite_Lane_P_PMAC_Status = 0;
+global P_Pause_Error_Debug_Buffer_M_X_Pause_Status_Complete_Signal = 0;
+global P_Pause_Error_Debug_Buffer_M_X_PLC_Sync_Heart_Bit = 0;
+global P_Pause_Error_Debug_Buffer_P_Old_X_PLC_Sync_Heart_Bit = 0;

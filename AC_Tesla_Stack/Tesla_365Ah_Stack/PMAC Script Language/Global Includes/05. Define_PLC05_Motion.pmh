@@ -98,6 +98,8 @@ global P_Unloader_TA_Test = 240;
 #define N_FR_Last_Run_Motion				8
 #define N_First_Sepa_1st_Move				9
 
+#define N_FR_MES_Avoid_Motion				12		// 음극 얼라인 MES 시 파이널 롤러 회피 모션.	[ 참조 : 26.11.17 얼라인 MES 중 파이널 롤러 회피 시 세파 빠짐 현상 수정 ]
+
 #define N_FR_Virtual_Anode_Move				54
 #define N_FR_Virtual_Cathode_Move			55
 

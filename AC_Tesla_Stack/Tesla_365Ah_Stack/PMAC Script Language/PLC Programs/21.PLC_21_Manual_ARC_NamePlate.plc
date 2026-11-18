@@ -38,6 +38,7 @@ if (L_Time_Cycle_Up_Count_Delta_Time > N_Range_Update_Interval)
 	
 	L_ARC_Ready_Check_Timer = L_ARC_Ready_Check_Timer + L_Time_Cycle_Up_Count_Delta_Time;
 	L_Two_Btn_Interlock_Timer = L_Two_Btn_Interlock_Timer + L_Time_Cycle_Up_Count_Delta_Time;
+	P_ARC_Tilting_Unwinder_Move_Chk_Timer = P_ARC_Tilting_Unwinder_Move_Chk_Timer + L_Time_Cycle_Up_Count_Delta_Time;		// [ 참조 : 26.11.14 플레이트 언틸팅 시 언와인더 풀리는 프로그램 수정 ]
 
 	L_Time_Cycle_Up_Count_Start_Time = L_Time_Cycle_Up_Count_End_Time;
 	L_Time_Cycle_Up_Count_Delta_Time = 0;
@@ -507,26 +508,76 @@ IF ( P_PMAC_Current_Mode == F_Current_Manual )
 }
 
 
-// 틸팅 후 세파 걸고 언틸팅 동작 시 언와인더 풀어주도록 추가
+// 틸팅 후 세파 걸고 언틸팅 동작 시 언와인더 풀어주도록 추가		[ 참조 : 26.11.14 플레이트 언틸팅 시 언와인더 풀리는 프로그램 수정 ]
 if(P_Selected_Spool_Number == N_UNWINDER_LOWER)
 {
-	if( M_Y_Sepa_ARC_Upper_UnTilting_Sol == 1 && P_Old_ARC_Upper_Tilting_Status == 1)
+	if( M_Y_Sepa_ARC_Upper_UnTilting_Sol == 1 && P_Old_ARC_Upper_Tilting_Status == 1 && P_ARC_Tilting_Unwinder_Move_Status == F_Status_Nonseatus )
 	{
-		Motor[N_UNWINDER_UPPER].jogspeed = 50;
-		Motor[N_UNWINDER_UPPER].ProgJogPos = P_ARC_Tilting_Unwinder_Move_Dis * 1000;
-		Jog23:*;
-		//cmd"#23j: %f",P_ARC_Tilting_Unwinder_Move_Dis
+		P_ARC_Tilting_Unwinder_Move_Status = F_Status_STARTING;								// 언와인더 프로그램 상태.
+		P_ARC_Tilting_Unwinder_Move_Motor_Num = N_UNWINDER_UPPER;							// 언와인더 모터	번호 설정.
+		P_ARC_Tilting_Unwinder_Move_State_Machine = 1;										// 스탯머신 시작.
 	}
 }
 else if(P_Selected_Spool_Number == N_UNWINDER_UPPER)
 {
-	if( M_Y_Sepa_ARC_Lower_UnTilting_Sol == 1 && P_Old_ARC_Lower_Tilting_Status == 1)
+	if( M_Y_Sepa_ARC_Lower_UnTilting_Sol == 1 && P_Old_ARC_Lower_Tilting_Status == 1 && P_ARC_Tilting_Unwinder_Move_Status == F_Status_Nonseatus )
 	{
-		Motor[N_UNWINDER_LOWER].jogspeed = 50;
-		Motor[N_UNWINDER_LOWER].ProgJogPos = P_ARC_Tilting_Unwinder_Move_Dis * 1000;
-		Jog24:*;
-		//cmd"#24j: %f",P_ARC_Tilting_Unwinder_Move_Dis
+		P_ARC_Tilting_Unwinder_Move_Status = F_Status_STARTING;								// 언와인더 프로그램 상태.
+		P_ARC_Tilting_Unwinder_Move_Motor_Num = N_UNWINDER_LOWER;							// 언와인더 모터	번호 설정.
+		P_ARC_Tilting_Unwinder_Move_State_Machine = 1;										// 스탯머신 시작.
 	}
+}
+switch(P_ARC_Tilting_Unwinder_Move_State_Machine)
+{
+	case 0:
+		P_ARC_Tilting_Unwinder_Move_Status = F_Status_Nonseatus;
+	break;
+
+	case 1:	// 언와인더 모터 동작.
+		if( P_ARC_Tilting_Unwinder_Move_Motor_Num == N_UNWINDER_UPPER )			// 상부 언와인더를 움직여야 할 경우.
+		{
+			Motor[N_UNWINDER_UPPER].jogspeed = 50;								// 속도 설정.
+			Motor[N_UNWINDER_UPPER].ProgJogPos = P_ARC_Tilting_Unwinder_Move_Dis * 1000;	// 이동 거리 설정.
+			Jog23:*;															// 동작 실행.
+			P_ARC_Tilting_Unwinder_Move_Chk_Timer = 0;							// 타이머 초기화.
+			P_ARC_Tilting_Unwinder_Move_State_Machine = 2;						// 다음 스탯머신 이동. (동작 감시)
+		}
+		else if( P_ARC_Tilting_Unwinder_Move_Motor_Num == N_UNWINDER_LOWER )	// 하부 언와인더를 움직여야 할 경우.
+		{
+			Motor[N_UNWINDER_LOWER].jogspeed = 50;								// 속도 설정.
+			Motor[N_UNWINDER_LOWER].ProgJogPos = P_ARC_Tilting_Unwinder_Move_Dis * 1000;	// 이동 거리 설정.
+			Jog24:*;															// 동작 실행.
+			P_ARC_Tilting_Unwinder_Move_Chk_Timer = 0;							// 타이머 초기화.
+			P_ARC_Tilting_Unwinder_Move_State_Machine = 2;						// 다음 스탯머신 이동. (동작 감시)
+		}
+	break;
+
+	case 2: // 언와인더 동작.
+		if( P_ARC_Tilting_Unwinder_Move_Motor_Num == N_UNWINDER_UPPER )			// 상부 언와인더를 움직여야 할 경우.
+		{
+			if( Motor[N_UNWINDER_UPPER].DesVelZero == 1 )						// 모터가 정지 했을 경우.
+			{
+				P_ARC_Tilting_Unwinder_Move_State_Machine = 0;					// 종료.
+			}
+			else if( P_ARC_Tilting_Unwinder_Move_Chk_Timer > P_ARC_Tilting_Unwinder_Move_Chk_Time )	// 시간이 지날 경우.
+			{
+				Jog/N_UNWINDER_UPPER;											// 정지.
+				P_ARC_Tilting_Unwinder_Move_State_Machine = 0;					// 종료.
+			}
+		}
+		else if( P_ARC_Tilting_Unwinder_Move_Motor_Num == N_UNWINDER_LOWER )	// 하부 언와인더를 움직여야 할 경우.
+		{
+			if( Motor[N_UNWINDER_LOWER].DesVelZero == 1 )						// 모터가 정지 했을 경우.
+			{
+				P_ARC_Tilting_Unwinder_Move_State_Machine = 0;					// 종료.
+			}
+			else if( P_ARC_Tilting_Unwinder_Move_Chk_Timer > P_ARC_Tilting_Unwinder_Move_Chk_Time )	// 시간이 지날 경우.
+			{
+				Jog/N_UNWINDER_LOWER;											// 정지.
+				P_ARC_Tilting_Unwinder_Move_State_Machine = 0;					// 종료.
+			}
+		}
+	break;
 }
 
 P_Old_ARC_Upper_Tilting_Status = M_Y_Sepa_ARC_Upper_Tilting_Sol;

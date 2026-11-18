@@ -550,3 +550,8 @@ global P_An_Clamp_Y_Move = 0;
 
 // [ 참조 : 260909 스택 테이블 적층 완료 젤리롤 유무 비트 추가 ]
 global P_Stack_Table_JR_Exist_Flag = 0;
+
+// [ 참조 : 26.11.16 MES 상태에 따른 세파 언와인더 Ready 조건 수정 ]
+global P_MES_Status = 0;							// MES 상태 [ 0 : OFF, 1 : ON ] 
+global P_Sepa_Unwinder_Upper_Confirm_Status = 0;	// 상부 세파 언와인더 Confirm 상태 [ 0 : 미완료, 1 : 완료 ]
+global P_Sepa_Unwinder_Lower_Confirm_Status = 0;	// 하부 세파 언와인더 Confirm 상태 [ 0 : 미완료, 1 : 완료 ]

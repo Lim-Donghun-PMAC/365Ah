@@ -175,6 +175,18 @@ open prog 25
 				dwell(0)
 			break;
 
+			// case 12
+			case N_FR_MES_Avoid_Motion:		// 음극 Align MES 파이널 롤러 회피 모션	[ 참조 : 26.11.17 얼라인 MES 중 파이널 롤러 회피 시 세파 빠짐 현상 수정 ]
+				P_Slave5_Motion_Command = 0;
+				dwell(0)
+				ta(P_MES_FR_Avoid_Z_Ta)ts(P_MES_FR_Avoid_Z_Ts)tm(P_MES_FR_Avoid_Z_Tm)				// 500ms
+				z( P_Final_Roll_Z_Run_Pos )
+				dwell(0)
+				ta(P_MES_FR_Avoid_X_Ta)ts(P_MES_FR_Avoid_X_Ts)tm(P_MES_FR_Avoid_X_Tm)				// 5000ms
+				x( P_Final_Roll_X_Cathode_Move )		// 131.5mm
+				dwell(0)
+			break;
+
 			default :
 
 			break;

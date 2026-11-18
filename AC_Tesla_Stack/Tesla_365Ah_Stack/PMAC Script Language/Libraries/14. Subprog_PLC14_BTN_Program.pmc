@@ -774,32 +774,44 @@ open subprog ARC_NP_Lamp(void)
 	return;
 	
 	sub:Upper_3rd_Step(void)		// [Upper_3rd_Step__] 상부 척 + 틸팅0도 + 진공 출력 ON + 진공 입력 ON => Ready 점멸, 틸팅 점등, 척 점등, 진공 점등		
-		// Ready 버튼 점멸
-		if ( M_X_ARC_NP_BTN_Ready == 1 && M_Old_X_ARC_NP_Ready != M_X_ARC_NP_BTN_Ready)	// Ready 버튼을 누를 경우.
-			P_ARC_NP_Upper_3rd_Step_Toggle_Variable ^= $1;	// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
-		if ( P_ARC_NP_Upper_Timer > ARC_NP_Blinking_Time && P_ARC_NP_Upper_3rd_Step_Toggle_Variable == 0 )	// Ready 버튼 점멸.
+		if ( P_MES_Status == 1 && P_Sepa_Unwinder_Upper_Confirm_Status == 0 )		// MES ON + 상부 세파 언와인더 Confirm 사용 중 또는 사용 완료 일 경우.
 		{
-			P_ARC_NP_Upper_Timer = 0;						// 타이머 초기화.
-			M_Y_NP_BTN_Ready ^= $1;							// 점멸.
-			P_ARC_NP_Upper_Ready_Check_Bit = 1;				// Ready 버튼 점멸 중 일정 시간 후 팝업 및 부저 발생.	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
-			P_ARC_Upper_Ready = 0;							// 상부 언와인더 준비 완료 변수.
-		}
-		else if ( P_ARC_NP_Upper_3rd_Step_Toggle_Variable == 1 )	// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
-		{
-			if ( P_ARC_Ready_Flag(N_Upper) == 1 )			// 상부 ARC 준비 상태 확인 [ 참조 : 26.04.17 ARC 보완사항 수정 ]
+			if ( P_ARC_NP_Upper_Timer > ARC_NP_Blinking_Time )	// Ready 버튼 점멸.
 			{
-				M_Y_NP_BTN_Ready = 1;						// 점등.
-				P_ARC_NP_Upper_Ready_Check_Bit = 0;			// Ready 버튼 점멸 중 일정 시간 후 팝업 및 부저 발생.	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
-				P_ARC_Upper_Ready = 1;						// 상부 언와인더 준비 완료 변수.
-			}
-			else
-			{
-				M_Y_NP_BTN_Ready = 0;						// 소등.
-				P_ARC_NP_Upper_Ready_Check_Bit = 0;			// Ready 버튼 점멸 중 일정 시간 후 팝업 및 부저 발생.	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
-				P_ARC_Upper_Ready = 0;						// 상부 언와인더 준비 완료 변수.
+				P_ARC_NP_Upper_Timer = 0;						// 타이머 초기화.
+				M_Y_NP_BTN_Ready ^= $1;							// 점멸.
+				P_ARC_Upper_Ready = 0;							// 상부 언와인더 준비 완료 변수.
 			}
 		}
-		M_Old_X_ARC_NP_Ready = M_X_ARC_NP_BTN_Ready;		// Edge 값 업데이트.
+		else	// MES ON + 상부 세파 언와인더 Confirm 미사용 || MES OFF 일 경우.
+		{
+			// Ready 버튼 점멸
+			if ( M_X_ARC_NP_BTN_Ready == 1 && M_Old_X_ARC_NP_Ready != M_X_ARC_NP_BTN_Ready)	// Ready 버튼을 누를 경우.
+				P_ARC_NP_Upper_3rd_Step_Toggle_Variable ^= $1;	// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+			if ( P_ARC_NP_Upper_Timer > ARC_NP_Blinking_Time && P_ARC_NP_Upper_3rd_Step_Toggle_Variable == 0 )	// Ready 버튼 점멸.
+			{
+				P_ARC_NP_Upper_Timer = 0;						// 타이머 초기화.
+				M_Y_NP_BTN_Ready ^= $1;							// 점멸.
+				P_ARC_NP_Upper_Ready_Check_Bit = 1;				// Ready 버튼 점멸 중 일정 시간 후 팝업 및 부저 발생.	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
+				P_ARC_Upper_Ready = 0;							// 상부 언와인더 준비 완료 변수.
+			}
+			else if ( P_ARC_NP_Upper_3rd_Step_Toggle_Variable == 1 )	// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+			{
+				if ( P_ARC_Ready_Flag(N_Upper) == 1 )			// 상부 ARC 준비 상태 확인 [ 참조 : 26.04.17 ARC 보완사항 수정 ]
+				{
+					M_Y_NP_BTN_Ready = 1;						// 점등.
+					P_ARC_NP_Upper_Ready_Check_Bit = 0;			// Ready 버튼 점멸 중 일정 시간 후 팝업 및 부저 발생.	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
+					P_ARC_Upper_Ready = 1;						// 상부 언와인더 준비 완료 변수.
+				}
+				else
+				{
+					M_Y_NP_BTN_Ready = 0;						// 소등.
+					P_ARC_NP_Upper_Ready_Check_Bit = 0;			// Ready 버튼 점멸 중 일정 시간 후 팝업 및 부저 발생.	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
+					P_ARC_Upper_Ready = 0;						// 상부 언와인더 준비 완료 변수.
+				}
+			}
+			M_Old_X_ARC_NP_Ready = M_X_ARC_NP_BTN_Ready;		// Edge 값 업데이트.
+		}
 		//==================//
 		// 나머지 버튼 조작 //
 		//================//
@@ -997,32 +1009,44 @@ open subprog ARC_NP_Lamp(void)
 	return;
 	
 	sub:Lower_3rd_Step(void)		// [Lower_3rd_Step__]하부 척 + 틸팅0도 + 진공 출력 ON + 진공 입력 ON => Ready 점멸, 틸팅 점등, 척 점등, 진공 점등
-		// Ready 버튼 점멸
-		if ( M_X_ARC_NP_BTN_Ready == 1 && M_Old_X_ARC_NP_Ready != M_X_ARC_NP_BTN_Ready)	// Ready 버튼을 누를 경우.
-			P_ARC_NP_Lower_3rd_Step_Toggle_Variable ^= $1;	// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
-		if ( P_ARC_NP_Lower_Timer > ARC_NP_Blinking_Time && P_ARC_NP_Lower_3rd_Step_Toggle_Variable == 0 )	// Ready 버튼 점멸.
+		if ( P_MES_Status == 1 && P_Sepa_Unwinder_Lower_Confirm_Status == 0 )		// MES ON + 하부 세파 언와인더 Confirm 사용 중 또는 사용 완료 일 경우.
 		{
-			P_ARC_NP_Lower_Timer = 0;						// 타이머 초기화.
-			M_Y_NP_BTN_Ready ^= $1;							// 점멸.
-			P_ARC_NP_Lower_Ready_Check_Bit = 1;				// Ready 버튼 점멸 중 일정 시간 후 팝업 및 부저 발생.	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
-			P_ARC_Lower_Ready = 0;							// 하부 언와인더 준비 완료 변수.
-		}
-		else if ( P_ARC_NP_Lower_3rd_Step_Toggle_Variable == 1 )	// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
-		{
-			if ( P_ARC_Ready_Flag(N_Lower) == 1 )			// 하부 ARC 준비 상태 확인 [ 참조 : 26.04.17 ARC 보완사항 수정 ]
+			if ( P_ARC_NP_Lower_Timer > ARC_NP_Blinking_Time )	// Ready 버튼 점멸.
 			{
-				M_Y_NP_BTN_Ready = 1;						// 점등.
-				P_ARC_NP_Lower_Ready_Check_Bit = 0;			// Ready 버튼 점멸 중 일정 시간 후 팝업 및 부저 발생.	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
-				P_ARC_Lower_Ready = 1;						// 상부 언와인더 준비 완료 변수.
-			}
-			else
-			{
-				M_Y_NP_BTN_Ready = 0;						// 소등.
-				P_ARC_NP_Lower_Ready_Check_Bit = 0;			// Ready 버튼 점멸 중 일정 시간 후 팝업 및 부저 발생.	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
-				P_ARC_Lower_Ready = 0;						// 상부 언와인더 준비 완료 변수.
+				P_ARC_NP_Lower_Timer = 0;						// 타이머 초기화.
+				M_Y_NP_BTN_Ready ^= $1;							// 점멸.
+				P_ARC_Lower_Ready = 0;							// 하부 언와인더 준비 완료 변수.
 			}
 		}
-		M_Old_X_ARC_NP_Ready = M_X_ARC_NP_BTN_Ready;		// Edge 값 업데이트.
+		else		// MES ON + 하부 세파 언와인더 Confirm 미사용 || MES OFF 일 경우.
+		{
+			// Ready 버튼 점멸
+			if ( M_X_ARC_NP_BTN_Ready == 1 && M_Old_X_ARC_NP_Ready != M_X_ARC_NP_BTN_Ready)	// Ready 버튼을 누를 경우.
+				P_ARC_NP_Lower_3rd_Step_Toggle_Variable ^= $1;	// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+			if ( P_ARC_NP_Lower_Timer > ARC_NP_Blinking_Time && P_ARC_NP_Lower_3rd_Step_Toggle_Variable == 0 )	// Ready 버튼 점멸.
+			{
+				P_ARC_NP_Lower_Timer = 0;						// 타이머 초기화.
+				M_Y_NP_BTN_Ready ^= $1;							// 점멸.
+				P_ARC_NP_Lower_Ready_Check_Bit = 1;				// Ready 버튼 점멸 중 일정 시간 후 팝업 및 부저 발생.	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
+				P_ARC_Lower_Ready = 0;							// 하부 언와인더 준비 완료 변수.
+			}
+			else if ( P_ARC_NP_Lower_3rd_Step_Toggle_Variable == 1 )	// [Ready 버튼 누를 때 : 점멸 → 점등, 점등 → 점멸]
+			{
+				if ( P_ARC_Ready_Flag(N_Lower) == 1 )			// 하부 ARC 준비 상태 확인 [ 참조 : 26.04.17 ARC 보완사항 수정 ]
+				{
+					M_Y_NP_BTN_Ready = 1;						// 점등.
+					P_ARC_NP_Lower_Ready_Check_Bit = 0;			// Ready 버튼 점멸 중 일정 시간 후 팝업 및 부저 발생.	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
+					P_ARC_Lower_Ready = 1;						// 상부 언와인더 준비 완료 변수.
+				}
+				else
+				{
+					M_Y_NP_BTN_Ready = 0;						// 소등.
+					P_ARC_NP_Lower_Ready_Check_Bit = 0;			// Ready 버튼 점멸 중 일정 시간 후 팝업 및 부저 발생.	[ 참조 : 26.09.25 ARC 네임플레이트 Ready 신호에 따른 신호 추가 ]
+					P_ARC_Lower_Ready = 0;						// 상부 언와인더 준비 완료 변수.
+				}
+			}
+			M_Old_X_ARC_NP_Ready = M_X_ARC_NP_BTN_Ready;		// Edge 값 업데이트.
+		}
 		//==================//
 		// 나머지 버튼 조작 //
 		//================//

@@ -763,7 +763,7 @@ switch( P_SM_Anode_Align_MSA )
 		{
 			if( Coord[23].ProgActive & Coord[38].ProgActive & Coord[21].ProgActive & Coord[37].ProgActive & Coord[25].ProgActive & Coord[33].ProgActive ) //PickerT PNP에 묶음으로 인하여 주석처리 [ 참조 : 26.08.14 PickerT 모션 변경 ]//& Coord[22].ProgActive )
 			{
-				P_SM_Anode_Align_MSA = 888
+				P_SM_Anode_Align_MSA = 5;	// [ 참조 : 26.11.17 얼라인 MES 중 파이널 롤러 회피 시 세파 빠짐 현상 수정 ]
 			}
 			else
 			{
@@ -791,7 +791,8 @@ switch( P_SM_Anode_Align_MSA )
 
 	// 파이널롤러 회피, 양극 방향 이동
 	case 5 :
-		P_Slave5_Motion_Command = N_FR_Cathode_Move_Motion
+		//P_Slave5_Motion_Command = N_FR_Cathode_Move_Motion
+		P_Slave5_Motion_Command = N_FR_MES_Avoid_Motion;	// [ 참조 : 26.11.17 얼라인 MES 중 파이널 롤러 회피 시 세파 빠짐 현상 수정 ]
 		P_SM_Anode_Align_MSA = 6
 		P_MSA_Timer = 0
 	break;
@@ -801,8 +802,10 @@ switch( P_SM_Anode_Align_MSA )
 		if( P_MSA_Timer > 100 )
 		{
 			call MSA_SubProg.Motor_Pos_CHK(N_FINAL_ROLL_X, P_Final_Roll_X_Cathode_Move, &P_Anode_Algin_MSA_RTN)
+			call MSA_SubProg.Motor_Pos_CHK(N_FINAL_ROLL_Z, P_Final_Roll_Z_Run_Pos, &P_Anode_Algin_MSA_RTN2)
 
-			if( P_Anode_Algin_MSA_RTN == 1 )
+			//if( P_Anode_Algin_MSA_RTN == 1 )
+			if( P_Anode_Algin_MSA_RTN == 1 && P_Anode_Algin_MSA_RTN2 == 1 )
 			{
 				P_SM_Anode_Align_MSA = 7
 			}
@@ -873,8 +876,9 @@ switch( P_SM_Anode_Align_MSA )
 
 	// 음극 2차 PNP 스택 이동
 	case 13 : 
-		P_Slave3_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion
-		P_Slave17_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;
+		//P_Slave3_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion
+		//P_Slave17_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;
+		P_Slave3_Motion_Command = N_2nd_PNP_Avoid_Pos_Motion		// [ 참조 : 26.11.17 얼라인 MES 중 파이널 롤러 회피 시 세파 빠짐 현상 수정 ]
 		P_SM_Anode_Align_MSA = 14
 		P_MSA_Timer = 0
 	break;
@@ -884,7 +888,8 @@ switch( P_SM_Anode_Align_MSA )
 	case 14 :
 		if( P_MSA_Timer > 100 )
 		{
-			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_AN_T, P_Anode_2TR_T_Stack_POS, &P_Anode_Algin_MSA_RTN)
+			//call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_AN_T, P_Anode_2TR_T_Stack_POS, &P_Anode_Algin_MSA_RTN)	
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_AN_T, P_Anode_2TR_PNP_Avoid_Pos, &P_Anode_Algin_MSA_RTN)	// [ 참조 : 26.11.17 얼라인 MES 중 파이널 롤러 회피 시 세파 빠짐 현상 수정 ]
 
 			if( P_Anode_Algin_MSA_RTN == 1 )
 			{
@@ -1487,8 +1492,9 @@ switch( P_SM_Cathode_Align_MSA )
 
 	// 양극 2차 PNP 스택 이동
 	case 13 : 
-		P_Slave8_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion
-		P_Slave18_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;	
+//		P_Slave8_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion	
+//		p_Slave18_Motion_Command = N_2nd_PNP_Align_To_Stack_Motion;			
+		P_Slave8_Motion_Command = N_2nd_PNP_Avoid_Pos_Motion			// [ 참조 : 26.11.17 얼라인 MES 중 파이널 롤러 회피 시 세파 빠짐 현상 수정 ]
 		P_SM_Cathode_Align_MSA = 14
 		P_MSA_Timer = 0
 	break;
@@ -1498,7 +1504,8 @@ switch( P_SM_Cathode_Align_MSA )
 	case 14 :
 		if( P_MSA_Timer > 100 )
 		{
-			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_CA_T, P_Cathode_2TR_T_Stack_POS, &P_Cathode_Algin_MSA_RTN)
+			//call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_CA_T, P_Cathode_2TR_T_Stack_POS, &P_Cathode_Algin_MSA_RTN)
+			call MSA_SubProg.Motor_Pos_CHK(N_2nd_PnP_CA_T, P_Cathode_2TR_PNP_Avoid_Pos, &P_Cathode_Algin_MSA_RTN)		// [ 참조 : 26.11.17 얼라인 MES 중 파이널 롤러 회피 시 세파 빠짐 현상 수정 ]
 
 			if( P_Cathode_Algin_MSA_RTN == 1 )
 			{
@@ -1642,7 +1649,8 @@ switch( P_SM_Cathode_Align_MSA )
 
 	// 양극 1차 PNP 얼라인 블로우 대기
 	case 28 :
-		if( P_MSA_Timer > 100 )
+		//if( P_MSA_Timer > 100 )		
+		if( P_MSA_Timer > P_MSA_Cathode_Blow_Time )			// [ 참조 : 26.11.17 양극 얼라인 MSA 중 블로우 IO 추가 ]
 		{
 			P_Cathode_Align_MSA_Count++
 			if( P_Cathode_Align_MSA_Count >= P_MSA_Run_Repeat_Num(F_Cathode_Align_MSA))
@@ -1665,8 +1673,13 @@ switch( P_SM_Cathode_Align_MSA )
 
 	// 양극 1차 PNP 얼라인 흡착 대기
 	case 30 :
-		if( P_MSA_Timer > 100 )
+		M_Y_Cathode_AT_Vac_Ejector_Vac_On = 0;			// 양극 얼라인 흡착 ON	[ 참조 : 26.11.17 양극 얼라인 MSA 중 블로우 IO 추가 ]
+		M_Y_Cathode_AT_Vac_Ejector_Vac_Off = 1;			// 양극 얼라인 흡착 OFF	[ 참조 : 26.11.17 양극 얼라인 MSA 중 블로우 IO 추가 ]
+		//if( P_MSA_Timer > 100 )		
+		if( P_MSA_Timer > P_MSA_Cathode_Vac_Time )		// [ 참조 : 26.11.17 양극 얼라인 MSA 중 블로우 IO 추가 ]
 		{
+			M_Y_Cathode_AT_Vac_Ejector_Vac_On = 0;		// 양극 얼라인 흡착 ON	[ 참조 : 26.11.17 양극 얼라인 MSA 중 블로우 IO 추가 ]
+			M_Y_Cathode_AT_Vac_Ejector_Vac_Off = 0;		// 양극 얼라인 흡착 OFF	[ 참조 : 26.11.17 양극 얼라인 MSA 중 블로우 IO 추가 ]
 			P_SM_Cathode_Align_MSA = 31
 		}
 	break;

@@ -1144,6 +1144,19 @@ if( P_Pause_Err_Use2 == 1 )
 						{
 							P_Pause_Err_Timer = 0
 							P_Pause_Err_Process = 1
+							// [ 참조 : 26.11.16 Pause Error 디버깅 변수 선언]
+							P_Pause_Error_Debug_Flag = 1;
+							P_Pause_Error_Debug_P_PMAC_status = P_PMAC_Status
+							P_Pause_Error_Debug_M_Y_Pause_Cathode_Signal = M_Y_Pause_Cathode_Signal
+							P_Pause_Error_Debug_M_Y_Pause_Anode_Signal = M_Y_Pause_Anode_Signal
+							P_Pause_Error_Debug_M_Y_Pause_Status_Complete_Signal = M_Y_Pause_Status_Complete_Signal
+							P_Pause_Error_Debug_P_Sepa_To_Normal_Mode_Sync_Err_Avoid = P_Sepa_To_Normal_Mode_Sync_Err_Avoid
+							P_Pause_Error_Debug_P_Master_Motion_Trigger = P_Master_Motion_Trigger
+							P_Pause_Error_Debug_M_X_Opposite_Resume_Not_Free = M_X_Opposite_Resume_Not_Free
+							P_Pause_Error_Debug_P_Opposite_Lane_P_PMAC_Status = P_Opposite_Lane_P_PMAC_Status
+							P_Pause_Error_Debug_M_X_Pause_Status_Complete_Signal = M_X_Pause_Status_Complete_Signal
+							P_Pause_Error_Debug_M_X_PLC_Sync_Heart_Bit = M_X_PLC_Sync_Heart_Bit
+							P_Pause_Error_Debug_P_Old_X_PLC_Sync_Heart_Bit = P_Old_X_PLC_Sync_Heart_Bit
 						}
 					}
 				}
@@ -1169,6 +1182,9 @@ if( P_Pause_Err_Use2 == 1 )
 			}		
 			else
 			{
+				// [ 참조 : 26.11.16 Pause Error 디버깅 변수 선언]
+				P_Pause_Error_Debug_Flag = 0;
+				P_Pause_Error_Avoid_Count++;
 				P_Pause_Err_Process = 0
 			}
 		}
@@ -1221,10 +1237,26 @@ if( P_Pause_Err_Use2 == 1 )
 		P_Pause_Err_Process++
 	}
 	
-	if( P_Pause_Err_Process == 2 )
+	if( P_Pause_Err_Process == 4 )			// [ 참조 : 26.11.14 Pause_Resume 오류 코드 수정 ]
 	{
 		if( P_Pause_Err_Timer > 30 )
 		{
+			if( P_Pause_Error_Debug_Flag == 1 )		// [ 참조 : 26.11.16 Pause Error 디버깅 변수 선언]
+			{
+				P_Pause_Error_Debug_Flag = 0;
+				P_Pause_Error_Debug_Buffer_P_PMAC_status = P_Pause_Error_Debug_P_PMAC_status
+				P_Pause_Error_Debug_Buffer_M_Y_Pause_Cathode_Signal = P_Pause_Error_Debug_M_Y_Pause_Cathode_Signal
+				P_Pause_Error_Debug_Buffer_M_Y_Pause_Anode_Signal = P_Pause_Error_Debug_M_Y_Pause_Anode_Signal
+				P_Pause_Error_Debug_Buffer_M_Y_Pause_Status_Complete_Signal = P_Pause_Error_Debug_M_Y_Pause_Status_Complete_Signal
+				P_Pause_Error_Debug_Buffer_P_Sepa_To_Normal_Mode_Sync_Err_Avoid = P_Sepa_To_Normal_Mode_Sync_Err_Avoid
+				P_Pause_Error_Debug_Buffer_P_Master_Motion_Trigger = P_Pause_Error_Debug_P_Master_Motion_Trigger
+				P_Pause_Error_Debug_Buffer_M_X_Opposite_Resume_Not_Free = P_Pause_Error_Debug_M_X_Opposite_Resume_Not_Free
+				P_Pause_Error_Debug_Buffer_P_Opposite_Lane_P_PMAC_Status = P_Pause_Error_Debug_P_Opposite_Lane_P_PMAC_Status
+				P_Pause_Error_Debug_Buffer_M_X_Pause_Status_Complete_Signal = P_Pause_Error_Debug_M_X_Pause_Status_Complete_Signal
+				P_Pause_Error_Debug_Buffer_M_X_PLC_Sync_Heart_Bit = P_Pause_Error_Debug_M_X_PLC_Sync_Heart_Bit
+				P_Pause_Error_Debug_Buffer_P_Old_X_PLC_Sync_Heart_Bit = P_Pause_Error_Debug_P_Old_X_PLC_Sync_Heart_Bit
+
+			} 
 			call Alarm.Insert_Alarm(N_Alarm_Opposite_Lane_Pause_IO_Err, N_High_Alarm_Cycle_Stop);
 			// 알람 비활성화로 임시로 커맨드 실행, 알람 활성화 후 삭제 필요
 			P_PMAC_Commands = F_Command_Stop;								

@@ -376,14 +376,28 @@ if( P_PMAC_Current_Mode == F_Current_Automatic )
 	{
 		if( Motor[L_Local_Axis].PlusLimit == N_TRUE  )							// 플러스 리밋이 감지 된다면
 		{
-			call Alarm.Insert_Alarm(L_Local_Axis + 105, N_High_Alarm_Emergency_Stop); 
+			if( L_Local_Axis == N_SERVO_DANCER )								// 서보 댄서 일 경우	[ 참조 : 26.11.14 서보 댄서 리밋 감지 시 사이클 정지로 알람 수정 ]
+			{
+				call Alarm.Insert_Alarm(L_Local_Axis + 105, N_High_Alarm_Cycle_Stop); // 사이클 정지 알람 발생.
+			}
+			else
+			{
+				call Alarm.Insert_Alarm(L_Local_Axis + 105, N_High_Alarm_Emergency_Stop); 
+			}
 			//M(L_Local_Axis + 120) = 1;
 			P_PMAC_Homing_CHK(L_Local_Axis) = 0;								// 해당 모터 홈잉 체크 초기화
 		}
 
 		if( Motor[L_Local_Axis].MinusLimit == N_TRUE )							// 마이너스 리밋이 감지 된다면
 		{
-			call Alarm.Insert_Alarm(L_Local_Axis + 52, N_High_Alarm_Emergency_Stop); 
+			if( L_Local_Axis == N_SERVO_DANCER )								// 서보 댄서 일 경우	[ 참조 : 26.11.14 서보 댄서 리밋 감지 시 사이클 정지로 알람 수정 ]
+			{
+				call Alarm.Insert_Alarm(L_Local_Axis + 52, N_High_Alarm_Cycle_Stop);  // 사이클 정지 알람 발생.
+			}
+			else
+			{
+				call Alarm.Insert_Alarm(L_Local_Axis + 52, N_High_Alarm_Emergency_Stop); 
+			}
 //			M(L_Local_Axis + 60) = 1;
 			P_PMAC_Homing_CHK(L_Local_Axis) = 0;								// 해당 모터 홈잉 체크 초기화
 		}

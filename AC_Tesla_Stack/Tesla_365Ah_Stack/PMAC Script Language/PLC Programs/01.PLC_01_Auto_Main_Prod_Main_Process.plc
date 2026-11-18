@@ -488,8 +488,8 @@ Switch ( P_Queue_Command_Status )
 		// 2.4.2. 사이클 정지 위치 이동
 		if ( P_STOP_STEP == 3 )
 		{
-			P_STOP_STEP = N_Complete_Step;
-			P_Queue_Command_Status = 0;				// 큐 상태 초기화
+			//P_STOP_STEP = N_Complete_Step;		// [ 참조 : 26.11.18 사이클 정지 Enqueue Step 수정 ]
+			//P_Queue_Command_Status = 0;				// 큐 상태 초기화
 
 			local L_Check_PauseProcessC_Rtn = 0;
 			call Sub_Automation_Circular_Queue.Enqueue(N_Function_CycleStop,&L_Check_PauseProcessC_Rtn);
@@ -2123,6 +2123,11 @@ Switch ( P_Process_Function_Command )
 								P_Suspend_Discharge_Cmd = F_Command_Start;												// 5.1) 배출 커맨드 발생	
 								P_SUSPEND_FUNC_JR_Discharge_STEP = N_Only_Discharge;									// 다음 스텝으로 이동
 							}
+						}
+						else
+						{
+							P_Suspend_Discharging_Popup_Flag = 1;								// 배출 팝업 ON.
+							P_Suspend_Discharge_1st_Unloader_Unuse_Btn_Check_Popup_Flag = 1;	// 1차 언로더 미사용 버튼 확인 팝업 ON.		[ 참조 : 26.11.18 1차 언로더 미사용 버튼 팝업 추가 ]
 						}
 					}
 				}

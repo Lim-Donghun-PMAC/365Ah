@@ -1947,7 +1947,7 @@ if(M_Write_Sector_Scan_Complete(3) == 1)
 	u.user:$014874.26.1 = P_Suspend_Discharge_1st_Unloader_Handover_Pos_Error_Popup_Flag
 	u.user:$014874.27.1 = P_Suspend_Discharge_2nd_3rd_Unloader_Grip_Request_Error_Popup_Flag
 	u.user:$014874.28.1 = P_Suspend_Discharge_1st_Unloader_Wait_Pos_Error_Popup_Flag
-	//u.user:$014874.29.1 = Spare
+	u.user:$014874.29.1 = P_Suspend_Discharge_1st_Unloader_Unuse_Btn_Check_Popup_Flag		// [ 참조 : 26.11.18 1차 언로더 미사용 버튼 팝업 추가 ]
 	//u.user:$014874.30.1 = Spare
 	//u.user:$014874.31.1 = Spare
 	

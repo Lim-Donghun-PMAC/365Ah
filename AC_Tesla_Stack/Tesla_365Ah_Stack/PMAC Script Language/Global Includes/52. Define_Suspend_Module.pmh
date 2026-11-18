@@ -1371,7 +1371,8 @@ global P_Suspend_Discharge_1st_Unloader_Handover_Pos_Error_Popup_Flag = 0;			// 
 global P_Suspend_Discharge_2nd_3rd_Unloader_Grip_Request_Error_Popup_Flag = 0;		// 26) 2,3차 언로더 그립 요청 오류 팝업 플래그.
 // Index 16
 global P_Suspend_Discharge_1st_Unloader_Wait_Pos_Error_Popup_Flag = 0;				// 27) 1차 언로더 대기 위치 이동 오류 팝업 플래그.
-
+// 1차 언로더 미사용 버튼 팝업 추가	[ 참조 : 26.11.18 1차 언로더 미사용 버튼 팝업 추가 ]
+global P_Suspend_Discharge_1st_Unloader_Unuse_Btn_Check_Popup_Flag = 0;				// 28) 1차 언로더 미사용	버튼 확인 팝업 플래그.
 
 // ↓ ARC
 // Manual ARC
@@ -1408,7 +1409,7 @@ global P_Suspend_ARC_Previous_Spool_Remain_Winding_Popup_Flag = 0;					// 16) 이
 //===================================//
 // [↑ Popup Flag 추가 시 ↓ 카운트 변경 필요]
 // ↓ Reset 버튼 누를 시 Popup Clear 하기 위한 카운트
-#define Discharge_Popup_Cnt		27
+#define Discharge_Popup_Cnt		28
 #define ARC_Popup_Cnt			16
 //===================================//
 global P_Suspend_Discharge_First_Address = 0;										// Reset 버튼 누를 시 배출 첫번째 주소

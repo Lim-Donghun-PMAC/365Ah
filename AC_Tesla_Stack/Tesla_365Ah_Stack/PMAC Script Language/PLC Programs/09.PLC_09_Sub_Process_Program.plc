@@ -964,6 +964,11 @@ IF ( P_array_CF_Mode_Name == F_Current_Automatic && P_PMAC_Status == F_Status_ST
 				P_Hold_Anode_Sheet_Pick_Up_Flag = 0;
 				P_Hold_Cathode_Sheet_Pick_Up_Flag = 0;
 				P_Sepa_To_Normal_Mode_Sync_Flag = 0;																	// [ 참조 : 26.07.31 Pause_Resume 수정 ]	
+				// [ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
+				P_Cathode_Align_Continuous_NG_Alarm_Flag = 0;
+				P_Anode_Align_Continuous_NG_Alarm_Flag = 0;	
+				P_Cathode_Retry_Continuous_NG_Alarm_Flag = 0;
+				P_Anode_Retry_Continuous_NG_Alarm_Flag = 0;	
 
 				M_Y_Resume_Stop_Signal = 0;
 				// 260611 드라이빙 위치 값이 너무 커지면 터치에 표현되는 값을 넘어 hmz 추가

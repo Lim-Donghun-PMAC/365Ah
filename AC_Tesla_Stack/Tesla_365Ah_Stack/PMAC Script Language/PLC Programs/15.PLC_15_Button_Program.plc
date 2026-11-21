@@ -544,6 +544,12 @@ if( P_PMAC_Current_Mode != F_Current_Automatic  || P_Status_Clear_Flag == 1 )	//
 			P_Hold_Semi_Run_Pos_Move_State_Machine = 0;		
 			P_Hold_Semi_Run_Pos_Move_Seq_Index = 0;			
 			P_Hold_Semi_Run_Pos_Move_Self_Index = 0;			
+
+			// [ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
+			P_Cathode_Align_Continuous_NG_Alarm_Flag = 0;
+			P_Anode_Align_Continuous_NG_Alarm_Flag = 0;	
+			P_Cathode_Retry_Continuous_NG_Alarm_Flag = 0;
+			P_Anode_Retry_Continuous_NG_Alarm_Flag = 0;	
 	
 		// 4. Suspend
 			// 공통 //

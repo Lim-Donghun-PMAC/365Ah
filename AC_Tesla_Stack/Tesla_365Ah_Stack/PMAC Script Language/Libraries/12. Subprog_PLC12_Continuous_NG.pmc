@@ -37,13 +37,15 @@ if( M_Option_Function_BTN.Anode_Align_Continuous_NG_Stop_Select == 1 )	//[ 참조 
 		if( L_Detected_NG_Count >= P_Anode_Align_Continuous_NG_Recipe )	// 지정된 횟수보다 NG횟수가 커지면
 		{
 //			M(M_Anode_Align_NG_Over_Count_Alarm) = 1;
-			call Alarm.Insert_Alarm(N_Alarm_Anode_Align_NG_Over_Count, N_High_Alarm_Cycle_Stop);
-			P_Anode_Align_NG_Array(0), N_Queue_Max_Size = 0;				// 음극 얼라인 NG 횟수 초기화 
+			//call Alarm.Insert_Alarm(N_Alarm_Anode_Align_NG_Over_Count, N_High_Alarm_Cycle_Stop);		// [ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
+			P_Anode_Align_Continuous_NG_Alarm_Flag = 1;					// 알람 플래그 ON. (Hold 처리 후 알람 발생)	[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
+			P_Anode_Align_NG_Array(0),N_Queue_Max_Size = 0;				// 음극 얼라인 NG 횟수 초기화 
 		}
 	}
 }
 else
 {
+	P_Anode_Align_Continuous_NG_Alarm_Flag = 0;		// 알람 플래그 OFF.		[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
 	P_Anode_Align_NG_Array(0),N_Queue_Max_Size = 0;	
 }
 return
@@ -80,13 +82,15 @@ if ( M_Option_Function_BTN.Cathode_Align_Continuous_NG_Stop_Select == 1 ) 	//[ �
 		if( L_Detected_NG_Count >= P_Cathode_Align_Continuous_NG_Recipe )	// 지정된 횟수보다 NG횟수가 커지면
 		{	
 //			M(M_Cathode_Align_NG_Over_Count_Alarm) = 1;
-			call Alarm.Insert_Alarm(N_Alarm_Cathode_Align_NG_Over_Count, N_High_Alarm_Cycle_Stop);
+			//call Alarm.Insert_Alarm(N_Alarm_Cathode_Align_NG_Over_Count, N_High_Alarm_Cycle_Stop);		// [ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
+			P_Cathode_Align_Continuous_NG_Alarm_Flag = 1;					// 알람 플래그 ON. (Hold 처리 후 알람 발생)	[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
 			P_Cathode_Align_NG_Array(0),N_Queue_Max_Size = 0;				// 양극 얼라인 NG 횟수 초기화 
 		}
 	}
 }
 else
 {
+	P_Cathode_Align_Continuous_NG_Alarm_Flag = 0;		// 알람 플래그 OFF.		[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
 	P_Cathode_Align_NG_Array(0),N_Queue_Max_Size = 0;
 }
 return
@@ -123,13 +127,15 @@ if(  M_Option_Function_BTN.Anode_Surface_Continuous_NG_Stop_Select == 1 )	//[ 참
 		if( L_Detected_NG_Count >= P_Anode_Surface_Continuous_NG_Recipe )	// 지정된 횟수보다 NG횟수가 커지면
 		{
 //			M(M_Anode_Retry_Align_Count_NG_Alarm) = 1;
-			call Alarm.Insert_Alarm(N_Alarm_Anode_Retry_Align_Count_NG, N_High_Alarm_Cycle_Stop);
+			//call Alarm.Insert_Alarm(N_Alarm_Anode_Retry_Align_Count_NG, N_High_Alarm_Cycle_Stop);		// [ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
+			P_Anode_Retry_Continuous_NG_Alarm_Flag = 1;						// 알람 플래그 ON. (Hold 처리 후 알람 발생)	[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
 			P_Anode_Surface_NG_Array(0),N_Queue_Max_Size = 0;				// 음극 리트라이 NG 횟수 초기화 
 		}
 	}
 }
 else
 {
+	P_Anode_Retry_Continuous_NG_Alarm_Flag = 0;		// 알람 플래그 OFF.		[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
 	P_Anode_Surface_NG_Array(0),N_Queue_Max_Size = 0;
 }
 return
@@ -166,13 +172,15 @@ if( M_Option_Function_BTN.Cathode_Surface_Continuous_NG_Stop_Select == 1 ) 	//[ 
 		if( L_Detected_NG_Count >= P_Cathode_Surface_Continuous_NG_Recipe )	// 지정된 횟수보다 NG횟수가 커지면
 		{
 //			M(M_Cathode_Retry_Align_Count_NG_Alarm) = 1;
-			call Alarm.Insert_Alarm(N_Alarm_Cathode_Retry_Align_Count_NG, N_High_Alarm_Cycle_Stop);
+			//call Alarm.Insert_Alarm(N_Alarm_Cathode_Retry_Align_Count_NG, N_High_Alarm_Cycle_Stop);		// [ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
+			P_Cathode_Retry_Continuous_NG_Alarm_Flag = 1;					// 알람 플래그 ON. (Hold 처리 후 알람 발생)	[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
 			P_Cathode_Surface_NG_Array(0),N_Queue_Max_Size = 0;				// 양극 리트라이 NG 횟수 초기화 
 		}
 	}
 }
 else
 {
+	P_Cathode_Retry_Continuous_NG_Alarm_Flag = 0;		// 알람 플래그 OFF.		[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
 	P_Cathode_Surface_NG_Array(0),N_Queue_Max_Size = 0;
 }
 return

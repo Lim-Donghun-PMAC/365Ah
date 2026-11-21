@@ -2516,13 +2516,33 @@ open subprog Subprog_Subprocess_Hold_Act_Module(void)
 					{
 						// 2.1) 파이널 롤 양극 위치 일 경우. [음극 동작 가능]
 						if ( P_FinalRoll_Unit_Status == F_FR_Cathode_Pos )
-						{
-								P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+						{		
+							if ( P_Anode_Align_Continuous_NG_Alarm_Flag == 1 )		// 음극 얼라인 연속 NG 알람 Flag On 일 경우		[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
+							{
+								P_Anode_Align_Continuous_NG_Alarm_Flag = 0;			// Flag 초기화.
+								call Alarm.Insert_Alarm(N_Alarm_Anode_Align_NG_Over_Count, N_High_Alarm_Cycle_Stop);		// 음극 얼라인 연속 NG 알람 발생
+							}
+							if ( P_Anode_Retry_Continuous_NG_Alarm_Flag == 1 )		// 음극 리트라이 연속 NG 알람 Flag On 일 경우		[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
+							{
+								P_Anode_Retry_Continuous_NG_Alarm_Flag = 0;		// Flag 초기화.
+								call Alarm.Insert_Alarm(N_Alarm_Anode_Retry_Align_Count_NG, N_High_Alarm_Cycle_Stop);		// 음극 리트라이 연속 NG 알람 발생
+							}
+							P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
 						}
 						// 2.2) 파이널 롤 음극 위치 일 경우. [양극 동작 가능]
 						else if( P_FinalRoll_Unit_Status == F_FR_Anode_Pos || P_FinalRoll_Unit_Status == F_FR_Ready_And_Cutting_Pos )
 						{
-								P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
+							if ( P_Cathode_Align_Continuous_NG_Alarm_Flag == 1 )	// 양극 얼라인 연속 NG 알람 Flag On 일 경우		[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
+							{
+								P_Cathode_Align_Continuous_NG_Alarm_Flag = 0;		// Flag 초기화.
+								call Alarm.Insert_Alarm(N_Alarm_Cathode_Align_NG_Over_Count, N_High_Alarm_Cycle_Stop);		// 양극 얼라인 연속 NG 알람 발생
+							}
+							if ( P_Cathode_Retry_Continuous_NG_Alarm_Flag == 1 )	// 양극 리트라이 연속 NG 알람 Flag On 일 경우		[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
+							{
+								P_Cathode_Retry_Continuous_NG_Alarm_Flag = 0;		// Flag 초기화.
+								call Alarm.Insert_Alarm(N_Alarm_Cathode_Retry_Align_Count_NG, N_High_Alarm_Cycle_Stop);		// 양극 리트라이 연속 NG 알람 발생
+							}
+							P_Module_Act_Hold_State_Machine_Array(N_Act_NG_PNP_Blow_On) = N_Complete_Step;							// 완료 스텟 머신으로 이동.
 						}
 					}
 				}

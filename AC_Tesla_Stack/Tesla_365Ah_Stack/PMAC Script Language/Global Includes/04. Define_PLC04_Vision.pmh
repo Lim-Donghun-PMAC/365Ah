@@ -236,7 +236,11 @@ global P_Anode_NG_Code = 0;
 global P_Cathode_NG_Code = 0;
 global P_Stack_NG_Code = 0;
 
-
+// [ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
+global P_Cathode_Align_Continuous_NG_Alarm_Flag = 0;	// 양극 얼라인 연속 NG 알람 플래그
+global P_Anode_Align_Continuous_NG_Alarm_Flag = 0;		// 음극 얼라인 연속 NG 알람 플래그
+global P_Cathode_Retry_Continuous_NG_Alarm_Flag = 0;	// 양극 리트라이 연속 NG 알람 플래그
+global P_Anode_Retry_Continuous_NG_Alarm_Flag = 0;		// 음극 리트라이 연속 NG 알람 플래그
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

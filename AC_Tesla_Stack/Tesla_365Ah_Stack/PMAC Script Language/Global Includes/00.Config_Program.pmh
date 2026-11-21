@@ -34,7 +34,7 @@ global P_An_2nd_PNP_ABSPhasing_Pos(N_AC_Equip);
  global P_Project_Ver_A = 1;			//프로그램 구분(Tesla 1, SunGrow 2)
  global P_Project_Ver_B = 1;			//기능 추가 
  global P_Project_Ver_C = 2;			//기능 변경
- global P_Project_Ver_D = 4;			//미확정(버그수정용)
+ global P_Project_Ver_D = 5;			//미확정(버그수정용)
 
  //===========================================================
 // 0.3 세파모드 시 1차 언로더까지 진행 

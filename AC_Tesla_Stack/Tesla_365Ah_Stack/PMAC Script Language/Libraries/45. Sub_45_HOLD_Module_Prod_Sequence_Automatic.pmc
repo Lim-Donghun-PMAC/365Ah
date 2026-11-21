@@ -599,7 +599,7 @@ open subprog Sub_Hold_Automatic_Prod_Sequnce(void)
 					
 					// 9. [ Align 제거 - 일반 모드 ]
 					case N_SEQ_Normal_Hold_Remove_Align_No_9:	// 9. [ 일반 생산 모드 ]
-						P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.		
+						//P_Module_Act_Hold_Command_Array(N_Act_Module_Stop_Point)				= F_ACT_STATUS_ENABLE;		// 1. 스탑 포인트.	[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]		
 						
 						Execute_Hold_Remove_Align_RTN = N_TRUE;
 					break;
@@ -718,11 +718,11 @@ open subprog Sub_Hold_Automatic_Prod_Sequnce(void)
 					break;
 		
 					case N_SEQ_Normal_Hold_Remove_Align_No_10 :
-						if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )				// 1. 스탑 포인트.			
-						{		
-							P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) = 0;			// 초기화.
+						//if( P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) )			// 1. 스탑 포인트.		[ 참조 : 26.11.19 연속 NG 알람 시점 변경 ]
+						//{		
+						//	P_Act_Hold_Complete_Bit(N_Act_Module_Stop_Point) = 0;			// 초기화.
 							Precondition_Hold_Remove_Align_RTN = N_TRUE;
-						}
+						//}
 					break;
 		
 					case N_SEQ_Normal_Hold_Remove_Align_No_11 :

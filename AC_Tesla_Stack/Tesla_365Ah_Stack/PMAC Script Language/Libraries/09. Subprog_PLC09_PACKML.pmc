@@ -91,11 +91,15 @@ Sub: Slave_Motion_Command_Init(&rtn)
 	P_Slave8_Motion_Command = 0;	// 슬레이브축 커멘드
 	P_Slave9_Motion_Command = 0;	// 슬레이브축 커멘드
 	P_Slave10_Motion_Command = 0;	// 슬레이브축 커멘드
-	P_Slave11_Motion_Command = 0;
-	P_Slave12_Motion_Command = 0;
-	P_Slave13_Motion_Command = 0;
-	P_Slave14_Motion_Command = 0;
-	P_Slave15_Motion_Command = 0;
+	P_Slave11_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave12_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave13_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave14_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave15_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave16_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave17_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave18_Motion_Command = 0;	// 슬레이브축 커멘드
+	P_Slave19_Motion_Command = 0;	// 슬레이브축 커멘드
 
 	rtn = F_TRUE;
 return

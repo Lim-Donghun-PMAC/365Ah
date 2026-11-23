@@ -779,6 +779,7 @@ open subprog ARC_NP_Lamp(void)
 			if ( P_ARC_NP_Upper_Timer > ARC_NP_Blinking_Time )	// Ready 버튼 점멸.
 			{
 				P_ARC_NP_Upper_Timer = 0;						// 타이머 초기화.
+				P_ARC_NP_Upper_Ready_Check_Bit = 0;				// 팝업 초기화.
 				M_Y_NP_BTN_Ready ^= $1;							// 점멸.
 				P_ARC_Upper_Ready = 0;							// 상부 언와인더 준비 완료 변수.
 			}
@@ -1014,6 +1015,7 @@ open subprog ARC_NP_Lamp(void)
 			if ( P_ARC_NP_Lower_Timer > ARC_NP_Blinking_Time )	// Ready 버튼 점멸.
 			{
 				P_ARC_NP_Lower_Timer = 0;						// 타이머 초기화.
+				P_ARC_NP_Lower_Ready_Check_Bit = 0;				// 팝업 초기화.
 				M_Y_NP_BTN_Ready ^= $1;							// 점멸.
 				P_ARC_Lower_Ready = 0;							// 하부 언와인더 준비 완료 변수.
 			}

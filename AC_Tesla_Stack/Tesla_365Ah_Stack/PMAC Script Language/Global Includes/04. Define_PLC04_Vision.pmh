@@ -219,6 +219,10 @@ global P_Vision_Existence_Status = 0;				// 유무검사 진행 상태
 global P_Vision_EmptyTable_Status = 0;				// 빈테이블 검사 진행 상태
 global P_Vision_FirstSepa_Status = 0;				// 세파 첫장 진행 상태
 
+// [ 참조 : 26.11.14 얼라인 이중 극판 공급 개선 ] 빈테이블 검사 결과 → HOLD 얼라인 NG 제거 후 1차 공급 조건
+global P_Vision_EmptyTable_Result_OK = 0;			// 빈테이블 검사 결과 OK (1 : 얼라인 비어 있음)
+global P_Vision_EmptyTable_Result_NG = 0;			// 빈테이블 검사 결과 NG (1 : 극판 남음 or 타임아웃)
+
 global P_Align_Zero_Move_Start_Flag(2);				// 얼라인 대기위치 동작 플래그
 
 #define	F_Align_Move_Mode				1			// 얼라인 보정 위치 동작

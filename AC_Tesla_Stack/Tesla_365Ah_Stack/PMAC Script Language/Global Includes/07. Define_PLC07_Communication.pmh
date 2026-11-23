@@ -555,3 +555,48 @@ global P_Stack_Table_JR_Exist_Flag = 0;
 global P_MES_Status = 0;							// MES 상태 [ 0 : OFF, 1 : ON ] 
 global P_Sepa_Unwinder_Upper_Confirm_Status = 0;	// 상부 세파 언와인더 Confirm 상태 [ 0 : 미완료, 1 : 완료 ]
 global P_Sepa_Unwinder_Lower_Confirm_Status = 0;	// 하부 세파 언와인더 Confirm 상태 [ 0 : 미완료, 1 : 완료 ]
+
+/*
+// [ 참 조 : MES FlowChart 영역 선언 및 추가 26.11.12 ]
+[ 1차 PNP ]
+0 bit : on 1 -> Align 하강 
+1 bit : on 1 -> Align Blow
+2 bit : on 1 -> Align 상승 
+3 bit : on 1 -> Align → Belt 이동
+4 bit : on 1 -> Belt 하강
+5 bit : on 1 -> Belt Vacuum
+6 bit : on 1 -> Belt 상승
+7 bit : on 1 -> Belt → Align 이동
+[ 2차 PNP ]
+0 bit : on 1 -> Stack 하강 
+1 bit : on 1 -> Stack Blow
+2 bit : on 1 -> Stack 상승 
+3 bit : on 1 -> Stack → Align 이동
+4 bit : on 1 -> Align 하강
+5 bit : on 1 -> Align Vacuum
+6 bit : on 1 -> Align 상승
+7 bit : on 1 -> Align → Stack 이동
+[ Clamp ]
+0 bit : on 1 -> Clamp OFF
+1 bit : on 1 -> Clamp ON
+2 bit : on 1 -> 극판두께 하강
+[ Final Roll ]
+0 bit : on 1 -> 양극 방향 이동
+1 bit : on 1 -> 음극 방향 이동
+[ Stack Table ]
+0 bit : on 1 -> 음극 적층 두께 하강
+1 bit : on 1 -> 양극 적층 두께 하강
+*/
+
+// [ 참 조 : MES FlowChart 영역 선언 및 추가 26.11.12 ]
+#define F_Cathode_1St_FlowChart_Bit		Sys.Udata[20967]	//u.user:$01479C	양극 1차 P&P 플로우차트 
+#define F_Cathode_AT_FlowChart_Bit		Sys.Udata[20968]	//u.user:$0147A0	양극 A/T 플로우차트 
+#define F_Cathode_2nd_FlowChart_Bit		Sys.Udata[20969]	//u.user:$0147A4	양극 2차 P&P 플로우차트 
+#define F_Anode_Clamp_FlowChart_Bit		Sys.Udata[20970]	//u.user:$0147A8	음극 클램프 플로우차트 
+#define F_Final_Roll_FlowChart_Bit		Sys.Udata[20971]	//u.user:$0147AC	파이널롤 플로우차트 
+#define F_Stack_Table_FlowChart_Bit		Sys.Udata[20972]	//u.user:$0147B0	스택테이블 플로우차트 
+#define F_Cathode_Clamp_FlowChart_Bit	Sys.Udata[20973]	//u.user:$0147B4	양극 클램프 프롤우차트 
+#define F_Anode_2nd_FlowChart_Bit		Sys.Udata[20974]	//u.user:$0147B8	음극 2차 P&P 플로우차트 
+#define F_Anode_AT_FlowChart_Bit		Sys.Udata[20975]	//u.user:$0147BC	음극 A/T 플로우차트
+#define F_Anode_1St_FlowChart_Bit		Sys.Udata[20976]	//u.user:$0147C0	음극 1차 P&P 플로우차트 
+#define F_Sepa_Unwinder_FlowChart_Bit	Sys.Udata[20977]	//u.user:$0147C4	세파 언와인더 플로우차트 

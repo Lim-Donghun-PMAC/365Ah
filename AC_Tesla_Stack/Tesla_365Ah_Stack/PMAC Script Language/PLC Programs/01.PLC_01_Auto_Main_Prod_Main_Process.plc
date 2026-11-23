@@ -1391,10 +1391,22 @@ Switch ( P_Process_Function_Command )
 				{
 					P_PLC01_HOLD_Main_Step_Flag(6) = 0;
 
+					// [ 참조 : 26.11.14 얼라인 이중 극판 공급 개선 ] 제거 모듈 완료 + 빈테이블 OK 확인 후에만 다음 단계 (1차 공급) 진행
+					//  - 빈테이블 검사는 NG PNP 블로우 (Prog32/33 case 8) 에서 실행, 결과는 PLC04 에서 저장
+					//  - 모듈 안에서 대기하면 P_Hold_Remove_Align = 1 유지 → STOPPING 에서 멈추므로 대기 위치는 여기 (모듈 완료 후)
 					IF (P_EXECUTE_Status_Prod_Sequence(N_Hold_Remove_Align) == F_Status_COMPLETE )
 					 {
-						P_EXECUTE_Status_Prod_Sequence(N_Hold_Remove_Align) = F_Status_IDLE;
-						P_HOLD_Hold_Process_State_Machine = 7;
+						IF ( P_Vision_EmptyTable_Result_OK == 1 && P_Vision_EmptyTable_Result_NG == 0 )				// 6.1) 빈테이블 OK → 얼라인 비어 있음 → 다음 단계 진행
+						{
+							P_EXECUTE_Status_Prod_Sequence(N_Hold_Remove_Align) = F_Status_IDLE;
+							P_HOLD_Hold_Process_State_Machine = 7;
+						}
+						ELSE IF ( P_Vision_EmptyTable_Result_NG == 1 && P_Vision_EmptyTable_Result_OK == 0 )			// 6.2) 빈테이블 NG or 타임아웃 → 극판 남음 → 1차 공급 안 함 (알람 · Stop 은 PLC04 에서 처리)
+						{
+							P_EXECUTE_Status_Prod_Sequence(N_Hold_Remove_Align) = F_Status_IDLE;
+							P_Hold_Debug_Sheet_Process_STEP = P_HOLD_Hold_Process_State_Machine;
+							P_HOLD_Hold_Process_State_Machine = N_Stop_Step;
+						}
 					 }
 					 ELSE IF ( P_EXECUTE_Status_Prod_Sequence(N_Hold_Remove_Align) == F_Status_ABORTED)
 					 {

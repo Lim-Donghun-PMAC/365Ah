@@ -241,6 +241,8 @@ if(P_PMAC_Current_Mode == F_Current_Automatic && P_Buffer_Mode_Status_Sequence !
 	{														
 		P_Selected_EmptyTable_Inspection_Unit = P_Vision_EmptyTable_Command;	// 커멘드에 입력된 양극 or 음극 저장
 		P_Vision_EmptyTable_Command = 0;										// 커멘드 재진입 방지 초기화
+		P_Vision_EmptyTable_Result_OK = 0;										// 빈테이블 결과 OK 초기화	[ 참조 : 26.11.14 얼라인 이중 극판 공급 개선 ]
+		P_Vision_EmptyTable_Result_NG = 0;										// 빈테이블 결과 NG 초기화	[ 참조 : 26.11.14 얼라인 이중 극판 공급 개선 ]
 		
 		L_EmptyTable_Timer = 0;													// 빈테이블 검사 타이머 초기화
 		P_Vision_EmptyTable_State_Machine = 1;									// 빈테이블 스테이트 머신 시작
@@ -908,10 +910,12 @@ switch(P_Vision_EmptyTable_State_Machine)
 			L_EmptyTable_Timer = 0;
 			if(L_EmptyTable_Ret == N_Inspection_OK )		// Ok , NG
 			{
+				P_Vision_EmptyTable_Result_OK = 1;			// 빈테이블 결과 OK 저장	[ 참조 : 26.11.14 얼라인 이중 극판 공급 개선 ]
 				P_Vision_EmptyTable_State_Machine = 5;
 			}
 			else if (L_EmptyTable_Ret == N_Inspection_NG)
 			{
+				P_Vision_EmptyTable_Result_NG = 1;			// 빈테이블 결과 NG 저장	[ 참조 : 26.11.14 얼라인 이중 극판 공급 개선 ]
 				if(P_Selected_EmptyTable_Inspection_Unit == N_Anode_Unit)
 				{
 					// 260708 빈테이블 및 유무검사 알람 세분화, 타임아웃 알람 추가
@@ -940,6 +944,7 @@ switch(P_Vision_EmptyTable_State_Machine)
 	break;
 
 	case 4 :		// TimeOut
+		P_Vision_EmptyTable_Result_NG = 1;			// 빈테이블 결과 NG 저장	[ 참조 : 26.11.14 얼라인 이중 극판 공급 개선 ]
 		if(P_Selected_EmptyTable_Inspection_Unit == N_Anode_Unit)
 		{
 			// 260708 빈테이블 및 유무검사 알람 세분화, 타임아웃 알람 추가
